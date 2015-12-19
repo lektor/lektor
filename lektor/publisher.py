@@ -17,7 +17,7 @@ from lektor.utils import portable_popen, locate_executable
 devnull = open(os.devnull, 'rb+')
 
 
-def _patch_git_env(env_overrides):
+def _patch_git_env(env_overrides, ssh_command=None):
     env = dict(os.environ)
     env.update(env_overrides or ())
 
@@ -40,10 +40,13 @@ def _patch_git_env(env_overrides):
             env[key_a] = default
             env[key_b] = default
 
+    if ssh_command is not None and not env.get('GIT_SSH_COMMAND'):
+        env['GIT_SSH_COMMAND'] = ssh_command
+
     return env
 
 
-def write_key_file(tempdir, credentials):
+def _write_ssh_key_file(temp_fn, credentials):
     if credentials:
         key_file = credentials.get('key_file')
         if key_file is not None:
@@ -55,14 +58,22 @@ def write_key_file(tempdir, credentials):
                 kt = 'RSA'
             else:
                 kt, key = parts
-            fn = os.path.join(tempdir, 'auth-key')
-            with open(fn, 'wb') as f:
+            with open(temp_fn, 'wb') as f:
                 f.write(b'-----BEGIN %s PRIVATE KEY-----\n' % kt.upper())
                 for x in xrange(0, len(key), 64):
                     f.write(key[x:x + 64].encode('utf-8') + b'\n')
                 f.write(b'-----END %s PRIVATE KEY-----\n' % kt.upper())
-            os.chmod(fn, 0600)
-            return fn
+            os.chmod(temp_fn, 0600)
+            return temp_fn
+
+
+def _get_ssh_cmd(port=None, keyfile=None):
+    ssh_args = []
+    if port:
+        ssh_args.append('-p %s' % port)
+    if keyfile:
+        ssh_args.append('-i "%s"' % keyfile)
+    return 'ssh %s' % ' '.join(ssh_args)
 
 
 class PublishError(Exception):
@@ -157,16 +168,12 @@ class RsyncPublisher(Publisher):
         target = []
         env = {}
 
-        keyfile = write_key_file(tempdir, credentials)
+        keyfile = _write_ssh_key_file(os.path.join(
+            tempdir, 'ssh-auth-key'), credentials)
 
         if target_url.port is not None or keyfile is not None:
-            ssh_args = []
-            if target_url.port:
-                ssh_args.append('-p %s' % target_url.port)
-            if keyfile:
-                ssh_args.append('-i "%s"' % keyfile)
             argline.append('-e')
-            argline.append('ssh %s' % ' '.join(ssh_args))
+            argline.append(_get_ssh_cmd(target_url.port, keyfile))
 
         username = credentials.get('username') or target_url.username
         if username:
@@ -483,10 +490,15 @@ class GithubPagesPublisher(Publisher):
         return rv and rv.encode('utf-8') or None
 
     def update_git_config(self, repo, url, branch, credentials=None):
+        ssh_command = None
         path = (url.host + u'/' + url.path.strip(u'/')).encode('utf-8')
         cred = None
         if url.scheme in ('ghpages', 'ghpages+ssh'):
             push_url = 'git@github.com:%s.git' % path
+            keyfile = _write_ssh_key_file(os.path.join(
+                repo, '.git', 'ssh-auth-key'), credentials)
+            if keyfile or url.port:
+                ssh_command = _get_ssh_cmd(url.port, keyfile)
         else:
             push_url = 'https://github.com/%s' % path
             cred = self.get_credentials(url, credentials)
@@ -501,6 +513,8 @@ class GithubPagesPublisher(Publisher):
                         cred_path)
                 with open(cred_path, 'w') as cf:
                     cf.write('https://%s@github.com\n' % cred)
+
+        return ssh_command
 
     def link_artifacts(self, path):
         try:
@@ -551,14 +565,16 @@ class GithubPagesPublisher(Publisher):
             branch = 'gh-pages'
 
         with self.temporary_folder() as path:
+            ssh_command = None
             def git(args, **kwargs):
-                kwargs['env'] = _patch_git_env(kwargs.pop('env', None))
+                kwargs['env'] = _patch_git_env(kwargs.pop('env', None),
+                                               ssh_command)
                 return Command(['git'] + args, cwd=path, **kwargs).proc()
 
             for line in git(['init']):
                 yield line
-            self.update_git_config(path, target_url, branch,
-                                   credentials)
+            ssh_command = self.update_git_config(path, target_url, branch,
+                                                 credentials)
             for line in git(['remote', 'update']):
                 yield line
 
