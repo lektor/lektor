@@ -62,7 +62,6 @@ def write_key_file(tempdir, credentials):
                     f.write(key[x:x + 64].encode('utf-8') + b'\n')
                 f.write(b'-----END %s PRIVATE KEY-----\n' % kt.upper())
             os.chmod(fn, 0600)
-            os.system('cat "%s"' % fn)
             return fn
 
 
@@ -150,22 +149,9 @@ class Publisher(object):
         raise NotImplementedError()
 
 
-class ExternalPublisher(Publisher):
+class RsyncPublisher(Publisher):
 
-    def get_command(self, target_url, tempdir, credentails=None):
-        raise NotImplementedError()
-
-    def publish(self, target_url, credentials=None):
-        with self.temporary_folder() as tempdir:
-            client = self.get_command(target_url, tempdir, credentials)
-            with client:
-                for line in client:
-                    yield line
-
-
-class RsyncPublisher(ExternalPublisher):
-
-    def get_command(self, target_url, tempdir, credentials=None):
+    def get_command(self, target_url, tempdir, credentials):
         credentials = credentials or {}
         argline = ['rsync', '-rclzv', '--exclude=.lektor']
         target = []
@@ -192,6 +178,13 @@ class RsyncPublisher(ExternalPublisher):
         argline.append(self.output_path.rstrip('/\\') + '/')
         argline.append(''.join(target))
         return Command(argline, env=env)
+
+    def publish(self, target_url, credentials=None):
+        with self.temporary_folder() as tempdir:
+            client = self.get_command(target_url, tempdir, credentials)
+            with client:
+                for line in client:
+                    yield line
 
 
 class FtpConnection(object):
