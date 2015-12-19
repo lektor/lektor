@@ -24,7 +24,7 @@ def _patch_git_env(env_overrides):
     keys = [
         ('GIT_COMMITTER_NAME', 'GIT_AUTHOR_NAME', 'Lektor Bot'),
         ('GIT_COMMITTER_EMAIL', 'GIT_AUTHOR_EMAIL',
-         'lektor-bot@getlektor.com'),
+         'bot@getlektor.com'),
     ]
 
     for key_a, key_b, default in keys:
