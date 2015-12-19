@@ -29,7 +29,7 @@ to true.
 target = sftp://myuser:mypassword@ftp.example.com/var/www/example
 ```
 
-## Note on Credentials
+## Credentials
 
 FTP is considered a largely insecure protocol for Lektor.  As such if you
 want to use it you should keep your project file save as credentials will

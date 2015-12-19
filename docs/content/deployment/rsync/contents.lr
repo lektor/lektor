@@ -20,7 +20,7 @@ as default from the `.ssh/config`.
 target = rsync://deploy@example.com/var/www/example.com
 ```
 
-## Note on Credentials
+## Credentials
 
 The `rsync` deploy method supports both username and password parameter
 though it's recommended to use `.ssh/config` and an SSH agent to secure

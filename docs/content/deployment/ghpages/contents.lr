@@ -15,14 +15,24 @@ The way this is implemented in Lektor currently is that Lektor will force-push
 a website into a repository of choice.  There are two ways to push it up:
 `ghpages` (which uses SSH) or `ghpages+https` (which uses HTTPS).  The latter
 can also accept `username:password@` in the URL to hold the credentials in
-addition to accepting username and password from the command line.
+addition to accepting username and password from the command line or
+environment variables.
 
 Example:
 
 ```ini
-[servers.production]
+[servers.ghpages]
 target = ghpages://your-user/your-repository
 ```
+
+## Credentials
+
+This deployment method has two implementations: `ghpages` (also known as
+`ghpages+ssh`) which uses SSH and `ghpages+https` which uses HTTPS.  They
+use different methods for credentials.  For the SSH transport the same
+rules apply as for the [rsync deployment method :ref](../rsync/).  The HTTPS
+transport on the other hand accepts `--username` and `--password` which
+override the values in the URL.
 
 ## Behavior
 
