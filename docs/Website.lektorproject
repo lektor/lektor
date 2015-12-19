@@ -5,7 +5,7 @@ url = https://www.getlektor.com/
 [servers.production]
 enabled = yes
 name = Production
-target = rsync://flow.srv.pocoo.org/srv/websites/getlektor.com/static
+target = rsync://deploy@flow.srv.pocoo.org/srv/websites/getlektor.com/static
 default = yes
 
 [packages]
