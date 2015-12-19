@@ -4,7 +4,7 @@ import click
 import hashlib
 from inifile import IniFile
 
-from lektor.utils import to_os_path
+from lektor.utils import to_os_path, get_cache_dir
 
 
 class Project(object):
@@ -83,8 +83,7 @@ class Project(object):
 
     def get_output_path(self):
         """The path where output files are stored."""
-        return os.path.join(click.get_app_dir('Lektor'), 'build-cache',
-                            self.id)
+        return os.path.join(get_cache_dir(), 'builds', self.id)
 
     def get_package_cache_path(self):
         """The path where plugin packages are stored."""
@@ -92,8 +91,7 @@ class Project(object):
         h.update(self.id)
         h.update(sys.version)
         h.update(sys.prefix)
-        return os.path.join(click.get_app_dir('Lektor'), 'package-cache',
-                            h.hexdigest())
+        return os.path.join(click.get_cache_dir(), 'packages', h.hexdigest())
 
     def content_path_from_filename(self, filename):
         """Given a filename returns the content path or None if

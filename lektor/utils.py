@@ -3,8 +3,8 @@ import os
 import sys
 import re
 import json
-import codecs
 import uuid
+import codecs
 import subprocess
 import tempfile
 import posixpath
@@ -16,6 +16,8 @@ from Queue import Queue
 from threading import Thread
 from datetime import datetime
 from contextlib import contextmanager
+
+import click
 
 from werkzeug.http import http_date
 from werkzeug.urls import url_parse
@@ -553,3 +555,20 @@ def format_lat_long(lat=None, long=None, secs=True):
     if long is not None:
         rv.append(_format(long, 'EW'))
     return u', '.join(rv)
+
+
+def get_app_dir():
+    return click.get_app_dir('Lektor')
+
+
+def get_cache_dir():
+    if is_windows:
+        folder = os.environ.get('APPDATA')
+        if folder is None:
+            folder = os.path.expanduser('~')
+        return os.path.join(folder, 'Lektor', 'Cache')
+    if sys.platform == 'darwin':
+        return os.path.join(os.path.expanduser('~/Library/Caches/Lektor'))
+    return os.path.join(
+        os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
+        'lektor')
