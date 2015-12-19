@@ -10,6 +10,7 @@ Release date to be decided.
 
 - Improved ghpages and rsync deployments.
 - Implemented options for default URL styles.
+- All artifacts now depend on the project file.
 
 0.96
 ----

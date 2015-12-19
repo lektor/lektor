@@ -912,6 +912,13 @@ class Builder(object):
         with reporter.build_artifact(artifact, build_func, is_current):
             if not is_current:
                 with artifact.update() as ctx:
+                    # Upon builing anything we record a dependency to the
+                    # project file.  This is not ideal but for the moment
+                    # it will ensure that if the file changes we will
+                    # rebuild.
+                    project_file = self.env.project.project_file
+                    if project_file:
+                        ctx.record_dependency(project_file)
                     build_func(artifact)
                     return ctx
 

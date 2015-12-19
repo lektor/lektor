@@ -309,7 +309,7 @@ class Config(object):
             return cfg['url_prefix'] or '', cfg['url_suffix'] or ''
         return '', ''
 
-    @property
+    @cached_property
     def primary_alternative_is_rooted(self):
         """`True` if the primary alternative is sitting at the root of
         the URL handler.
