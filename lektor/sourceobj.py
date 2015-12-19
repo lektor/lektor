@@ -2,7 +2,7 @@ import posixpath
 
 from weakref import ref as weakref
 from lektor.environment import PRIMARY_ALT
-from lektor.utils import make_relative_url, cleanup_path
+from lektor.utils import cleanup_path
 
 
 class SourceObject(object):
@@ -78,7 +78,7 @@ class SourceObject(object):
         return this_path[:len(crumbs)] == crumbs and \
             (not strict or len(this_path) > len(crumbs))
 
-    def url_to(self, path, alt=None, absolute=False, external=False):
+    def url_to(self, path, alt=None, absolute=None, external=None):
         """Calculates the URL from the current source object to the given
         other source object.  Alternatively a path can also be provided
         instead of a source object.  If the path starts with a leading
@@ -102,9 +102,7 @@ class SourceObject(object):
 
         if absolute:
             return path
-        elif external:
-            return self.pad.make_absolute_url(path)
-        return make_relative_url(self.url_path, path)
+        return self.pad.make_url(path, self.url_path, absolute, external)
 
 
 class VirtualSourceObject(SourceObject):

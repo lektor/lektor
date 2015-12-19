@@ -25,6 +25,7 @@ from lektor.editor import make_editor_session
 from lektor.environment import PRIMARY_ALT
 from lektor.databags import Databags
 from lektor.filecontents import FileContents
+from lektor.utils import make_relative_url
 
 
 def _process_slug(slug, last_segment=False):
@@ -1149,6 +1150,28 @@ class Pad(object):
             raise RuntimeError('To use absolute URLs you need to configure '
                                'the URL in the project config.')
         return url_join(base_url.rstrip('/') + '/', url.lstrip('/'))
+
+    def make_url(self, url, base_url=None, absolute=None, external=None):
+        """Helper method that creates a finalized URL based on the parameters
+        provided and the config.
+        """
+        url_style = self.db.config.url_style
+        if absolute is None:
+            absolute = url_style == 'absolute'
+        if external is None:
+            external = url_style == 'external'
+        if external:
+            external_base_url = self.db.config.base_url
+            if external_base_url is None:
+                raise RuntimeError('To use absolute URLs you need to '
+                                   'configure the URL in the project config.')
+            return url_join(external_base_url, url.lstrip('/'))
+        if absolute:
+            return url_join(self.db.config.base_path, url.lstrip('/'))
+        if base_url is None:
+            raise RuntimeError('Cannot calculate a relative URL if no base '
+                               'URL has been provided.')
+        return make_relative_url(base_url, url)
 
     def resolve_url_path(self, url_path, include_invisible=False,
                          include_assets=True, alt_fallback=True):

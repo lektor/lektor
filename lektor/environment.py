@@ -9,6 +9,9 @@ from babel import dates
 
 from inifile import IniFile
 
+from werkzeug.utils import cached_property
+from werkzeug.urls import url_parse
+
 from lektor.utils import tojson_filter, secure_url, format_lat_long, \
      bool_from_string
 from lektor.i18n import get_i18n_block
@@ -58,6 +61,7 @@ DEFAULT_CONFIG = {
         'name': None,
         'locale': 'en_US',
         'url': None,
+        'url_style': 'relative',
     },
     'PACKAGES': {},
     'ALTERNATIVES': {},
@@ -325,6 +329,29 @@ class Config(object):
     def primary_alternative(self):
         """The identifier that acts as primary alternative."""
         return self.values['PRIMARY_ALTERNATIVE']
+
+    @cached_property
+    def base_url(self):
+        """The external base URL."""
+        url = self.values['PROJECT'].get('url')
+        if url and url_parse(url).scheme:
+            return url.rstrip('/') + '/'
+
+    @cached_property
+    def base_path(self):
+        """The base path of the URL."""
+        url = self.values['PROJECT'].get('url')
+        if url:
+            return url_parse(url).path.rstrip('/') + '/'
+        return '/'
+
+    @cached_property
+    def url_style(self):
+        """The intended URL style."""
+        style = self.values['PROJECT'].get('url_style')
+        if style in ('relative', 'absolute', 'external'):
+            return style
+        return 'relative'
 
 
 def lookup_from_bag(*args):

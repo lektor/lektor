@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from werkzeug.local import LocalStack, LocalProxy
 
 from lektor.reporter import reporter
-from lektor.utils import make_relative_url
 
 
 _ctx_stack = LocalStack()
@@ -142,17 +141,13 @@ class Context(object):
             return self.source.url_path
         return '/'
 
-    def url_to(self, path, alt=None, absolute=False, external=False):
+    def url_to(self, path, alt=None, absolute=None, external=None):
         """Returns a URL to another path."""
         if self.source is None:
             raise RuntimeError('Can only generate paths to other pages if '
                                'the context has a source document set.')
         rv = self.source.url_to(path, alt=alt, absolute=True)
-        if absolute:
-            return rv
-        elif external:
-            return self.pad.make_absolute_url(rv)
-        return make_relative_url(self.base_url, rv)
+        return self.pad.make_url(rv, self.base_url, absolute, external)
 
     def sub_artifact(self, *args, **kwargs):
         """Decorator version of :func:`add_sub_artifact`."""

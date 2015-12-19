@@ -3,6 +3,14 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+1.0
+---
+
+Release date to be decided.
+
+- Improved ghpages and rsync deployments.
+- Implemented options for default URL styles.
+
 0.96
 ----
 
