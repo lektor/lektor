@@ -44,17 +44,25 @@ def _patch_git_env(env_overrides):
 
 
 def write_key_file(tempdir, credentials):
-    if not credentials:
+    if credentials:
         key_file = credentials.get('key_file')
         if key_file is not None:
             return key_file
         key = credentials.get('key')
         if key:
+            parts = key.split(':', 1)
+            if len(parts) == 1:
+                kt = 'RSA'
+            else:
+                kt, key = parts
             fn = os.path.join(tempdir, 'auth-key')
             with open(fn, 'wb') as f:
-                f.write(b'-----BEGIN PRIVATE KEY-----\n')
-                f.write(key.encode('utf-8') + b'\n')
-                f.write(b'-----END PRIVATE KEY-----\n')
+                f.write(b'-----BEGIN %s PRIVATE KEY-----\n' % kt.upper())
+                for x in xrange(0, len(key), 64):
+                    f.write(key[x:x + 64].encode('utf-8') + b'\n')
+                f.write(b'-----END %s PRIVATE KEY-----\n' % kt.upper())
+            os.chmod(fn, 0600)
+            os.system('cat "%s"' % fn)
             return fn
 
 
@@ -171,7 +179,8 @@ class RsyncPublisher(ExternalPublisher):
                 ssh_args.append('-p %s' % target_url.port)
             if keyfile:
                 ssh_args.append('-i "%s"' % keyfile)
-            argline.append('-e \'ssh %s\'' % ' '.join(ssh_args))
+            argline.append('-e')
+            argline.append('ssh %s' % ' '.join(ssh_args))
 
         username = credentials.get('username') or target_url.username
         if username:
