@@ -24,4 +24,16 @@ target = rsync://deploy@example.com/var/www/example.com
 
 The `rsync` deploy method supports both username and password parameter
 though it's recommended to use `.ssh/config` and an SSH agent to secure
-the deployment.  This is outside of the context of this documentation.
+the deployment.  The `--password` parameter is not supported!  Instead you
+need to use `--key-file` (`LEKTOR_DEPLOY_KEY_FILE`) or `--key`
+(`LEKTOR_DEPLOY_KEY`).  The `--key-file` is the path to an OpenSSH private
+key.
+
+If you are using `--key` you can directly copy paste the contents of a key
+into a string.  This is useful if you want to use it as an environment
+variable.  The format for the string is `KEY_TYPE:BASE64` where `KEY_TYPE`
+is the type of the key (`RSA`, `EC`, etc.) and `BASE64` is the base64 encoded
+private key without newlines or whitespace.  To find out which type your
+key is look at the first line of the key marker.  For instance `BEGIN EC
+PRIVATE KEY` indicates an `EC` key.  If no key type is defined `RSA` is
+assumed.
