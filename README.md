@@ -9,7 +9,8 @@ admin UI and minimal desktop app.
 To see how it works look at the ``example`` folder which contains a
 very basic project to get started.
 
-**This is work in progress**
+For a more complete website look at [lektor/lektor-website](https://github.com/lektor/lektor-website)
+which contains the sourcecode for the official lektor website.
 
 ## How do I use this?
 
