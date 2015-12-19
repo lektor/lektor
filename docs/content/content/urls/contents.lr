@@ -92,12 +92,18 @@ if `404.html` has an attachment named `foo.jpeg` it will move into
 
 ## External and Absolute URLs
 
-Lektor will generally prefer relative URLs when it has a choice to use them.
-This makes it possible to easily host a website below a certain folder
-without having to do anything special to make this work.  However there are
-some features which will require the use of an absolute URL.  For instance
-sitemaps or Atom feeds do not work with realtive URLs.  In this case the
-absolute URL path has to be configured.
+Lektor by default will prefer relative URLs.  This makes it possible to easily
+host a website below a certain folder without having to do anything special to
+make this work.  However there are some features which will require the use of
+an absolute or fully canonical (external) URL.  For instance sitemaps or Atom
+feeds do not work with realtive URLs.  In this case the absolute URL path has
+to be configured.
 
-To see how this can be configured see [Project Configuration
+You can pick the default for URL generation in the project configuration.
+For more information read about the [Project Configuration
 :ref](../../project/file/#[project]).
+
+The default of `relative` a realtive URL style means that you can deploy a
+website to a sub folder without any configuration, however most likely custom
+404 pages will fail to find the needed assets.  Fully canonical URLs are not
+recommended as default style.

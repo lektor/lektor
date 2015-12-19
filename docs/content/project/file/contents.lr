@@ -45,6 +45,29 @@ This section controls some basics about the project:
 > some systems might need it.  For instance sitemaps require full URLs and
 > not having them would be a violation of the specification.
 
+`url_style`
+> This controls the style of generated URL references through the
+> [url_to :ref](../../api/utils/url-to/) function or filters.  The default
+> value for this is `relative`.  The following values are possible:
+>
+> | Value      | Behavior
+> | ---------- | -----------
+> | `relative` | URLs are generated relative to the currently active page.
+> | `absolute` | URLs are generated absolute (relative to root page)
+> | `external` | URLs are generated with the fully canonical URL (external).
+>
+> There are advantages and disadvantages to all styles.  `relative` has the
+> benefit that it works without any configuration no matter where you deploy
+> to.  The downside is that you cannot have a page appear on multiple paths
+> which for instance breaks custom error pages.  `absolute` is useful for
+> situations where you have custom error pages and you generally know a bit
+> about the server you are deploying to.  `external` generally makes not a lot
+> of sense as default setting but exists for consistency's sake.
+>
+> For individual URLs that are generated with the [url_to
+> :ref](../../api/utils/url-to/) function it's possible to override the
+> default URL style.
+
 `path`
 > This setting can be used to configure a different path for the project
 > tree.  This requires a bit of explanation:

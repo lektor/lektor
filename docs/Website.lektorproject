@@ -1,6 +1,7 @@
 [project]
 name = Lektor
 url = https://www.getlektor.com/
+url_style = absolute
 
 [servers.production]
 enabled = yes
