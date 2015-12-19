@@ -1,0 +1,6 @@
+title: Welcome to ${project_name}!
+---
+body:
+
+This is a basic demo website that shows how to use Lektor for a basic
+website with some pages<% if with_blog %> and a blog<% endif %>.

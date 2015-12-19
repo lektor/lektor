@@ -1,0 +1,15 @@
+from setuptools import setup
+
+setup(
+    name='lektor-${plugin_id}',
+    version='0.1',
+    author=${author_name|pprint},
+    author_email='${author_email}',
+    license='MIT',
+    py_modules=['${plugin_module}'],
+    entry_points={
+        'lektor.plugins': [
+            '${plugin_id} = ${plugin_module}:${plugin_class}',
+        ]
+    }
+)

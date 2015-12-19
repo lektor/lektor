@@ -1,0 +1,11 @@
+%% if with_blog
+title: Hello Website
+---
+pub_date: ${today}
+---
+author: ${author_name}
+---
+body:
+
+This is an example blog post.  Not much here but that's not the point :)
+%% endif

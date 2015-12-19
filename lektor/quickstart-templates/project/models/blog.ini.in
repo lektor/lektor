@@ -1,0 +1,14 @@
+%% if with_blog
+[model]
+name = Blog
+label = Blog
+hidden = yes
+
+[children]
+model = blog-post
+order_by = -pub_date, title
+
+[pagination]
+enabled = yes
+per_page = 10
+%% endif

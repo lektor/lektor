@@ -1,0 +1,88 @@
+#!/bin/bash
+
+set -e
+
+HERE="$(cd "$(dirname "$0")"; pwd)"
+BASE="$HERE/.."
+PYTHON_VERSION="2.7.10"
+PYTHON_VERSION_MAJOR="${PYTHON_VERSION:0:3}"
+ARCHIVE="Python-${PYTHON_VERSION}.tgz"
+PYTHON_DOWNLOAD_URL="https://www.python.org/ftp/python/$PYTHON_VERSION/$ARCHIVE"
+OUT="$BASE/build"
+TEMP="$BASE/build/tmp"
+TEMP_OUT="$TEMP/out"
+FRAMEWORK="$TEMP/out/Python.framework"
+USELESS_LIBRARIES="ensurepip bsddb config idlelib lib-tk lib2to3 test lib-dynload/_Qt.so lib-dynload/_tkinter.so"
+
+rm -rf "$TEMP"
+
+# Resolve temp out so that we have no funny business later.  We need to make sure
+# path is reproducible at a later point so that we can rewrite the paths with
+# install_name_tool.  See make-python-framework-relocatable:ORIGINAL_FRAMEWORK_PATH
+# for more information.
+mkdir -p "$TEMP_OUT"
+TEMP_OUT="$(cd $TEMP_OUT; pwd)"
+
+cd "$TEMP"
+
+# Compile settings
+export MACOSX_DEPLOYMENT_TARGET=10.9
+
+# Download archive and unpack
+wget "$PYTHON_DOWNLOAD_URL"
+tar --strip-components=1 -xzf "$ARCHIVE"
+
+# Fix up setup.py for ssl
+python -c '
+s = open("setup.py").read()
+s = s.replace("/usr/local/ssl", "/usr/local/opt/openssl")
+open("setup.py", "w").write(s)
+'
+
+patch -p1 < "$BASE/resources/setup.py.patch"
+
+# If you change this stuff here, you also need to change the corresponding
+# bits in make-python-framework-relocatable
+export CFLAGS="-I/usr/local/opt/openssl/include"
+export CPPFLAGS="-I/usr/local/opt/openssl/include"
+export LDFLAGS="-L/usr/local/opt/openssl/lib"
+export LD_LIBRARY_PATH="/usr/local/opt/openssl/lib"
+
+# Compile
+./configure \
+  --prefix="$TEMP_OUT" \
+  --enable-framework="$TEMP_OUT" \
+  --without-ensurepip \
+  --without-gcc \
+  CFLAGS=$CFLAGS \
+  CPPFLAGS=$CPPFLAGS \
+  LDFLAGS=$LDFLAGS \
+  LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
+  MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
+make
+make frameworkinstall
+
+# Install sitecustomize
+cp \
+  "$BASE/resources/sitecustomize.py" \
+  "$FRAMEWORK/Versions/$PYTHON_VERSION_MAJOR/lib/python$PYTHON_VERSION_MAJOR"
+
+# Delete pyc files
+find "$FRAMEWORK" -name '*.py[co]' -exec rm '{}' \;
+
+# Delete stupid libraries
+for lib in $USELESS_LIBRARIES; do
+  rm -rf "$FRAMEWORK/Versions/$PYTHON_VERSION_MAJOR/lib/python$PYTHON_VERSION_MAJOR/$USELESS_LIBRARIES"
+done
+
+# Delete other unwanted things
+rm -rf "$FRAMEWORK/Versions/$PYTHON_VERSION_MAJOR/lib/pkgconfig"
+rm -rf "$FRAMEWORK/Versions/$PYTHON_VERSION_MAJOR/Mac"
+rm -rf "$FRAMEWORK/Versions/$PYTHON_VERSION_MAJOR/share"
+
+# Move framework out
+mkdir -p "$OUT"
+mv "$FRAMEWORK" "$OUT"
+
+# Clean up
+rm -rf "$TEMP"

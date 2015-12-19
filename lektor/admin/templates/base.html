@@ -1,0 +1,7 @@
+<!doctype html>
+<title>{% block title %}{% endblock %}</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='gen/styles.css') }}">
+{% block body %}{% endblock %}
+{% block scripts %}
+<script type=text/javascript src="{{ url_for('static', filename='gen/vendor.js') }}"></script>
+{% endblock %}

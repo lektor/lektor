@@ -1,0 +1,137 @@
+// Core variables and mixins
+@import (reference) "~bootstrap/less/variables";
+@import (reference) "~bootstrap/less/mixins";
+
+// Font awesome
+@import "~font-awesome/less/font-awesome";
+
+// Reset and dependencies
+@import "~bootstrap/less/normalize";
+@import "~bootstrap/less/print";
+
+// Core CSS
+@import "~bootstrap/less/scaffolding";
+@import "~bootstrap/less/grid";
+@import "~bootstrap/less/forms";
+@import "~bootstrap/less/buttons";
+@import "~bootstrap/less/button-groups";
+@import "~bootstrap/less/navs";
+@import "~bootstrap/less/navbar";
+
+// Components
+@import "~bootstrap/less/component-animations";
+@import "~bootstrap/less/input-groups";
+@import "~bootstrap/less/list-group";
+@import "~bootstrap/less/breadcrumbs";
+@import "~bootstrap/less/responsive-embed";
+@import "~bootstrap/less/panels";
+
+// Utility classes
+@import "~bootstrap/less/utilities";
+@import "~bootstrap/less/responsive-utilities";
+
+// Fonts
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:400,300,300italic,400italic,500,500italic);
+@font-family-serif: 'Roboto Slab', 'Georgia', 'Times New Roman', serif;
+@font-family-base: @font-family-serif;
+
+// Get rid of rounded things
+@border-radius-base: 0;
+@border-radius-large: 0;
+@border-radius-small: 0;
+@panel-radius: @border-radius-small;
+
+// Colors
+@brand-primary: #77304c;
+@input-border-focus: #807177;
+@header-taint: #3d3639;
+@header-sep-color: lighten(@header-taint, 40);
+@header-link-color: white;
+@header-link-hover-color: @header-sep-color;
+@background-taint: #eee;
+@panel-border-color: #ddd;
+@block-header-background: @header-taint;
+@block-item-background: #eee;
+@block-item-color: @brand-primary;
+@block-item-hover-background: #ccc;
+@block-item-hover-color: @brand-primary;
+@block-item-missing-color: #aaa;
+@block-item-active-background: #6c5f65;
+@block-item-active-color: white;
+@flow-panel-background: #f8f8f8;
+@flow-block-panel-background: #fafafa;
+@tab-header-background: #ccc;
+@tab-header-color: @header-taint;
+@toggle-group-color: @brand-primary;
+@input-color: #111;
+@protector-background: fade(@header-taint, 50%);
+
+// Shadows
+@panel-shadow: 0 0 40px @header-taint;
+
+// Sizes
+@screen-sm-min: 768px;
+@screen-md-min: 1024px;
+@screen-lg-min: 1366px;
+
+@container-sm: (720px + @grid-gutter-width);
+@container-md: (970px + @grid-gutter-width);
+@container-lg: (1320px + @grid-gutter-width);
+
+
+// Fix up breadcrumbs
+.breadcrumb > li + li:before {
+  content: "∕";
+  color: #555;
+}
+
+.row-inline-thin-padding {
+  margin-left: -5px;
+  margin-right: -5px;
+
+  [class*="col-"] {
+    padding-left: 5px!important;
+    padding-right: 5px!important;
+  }
+}
+
+/* collapsed sidebar styles */
+@media screen and (max-width: (@screen-sm-min - 1)) {
+  .block-offcanvas {
+    position: relative;
+  }
+
+  .block-offcanvas, .sidebar-offcanvas {
+    -webkit-transition: all 0.25s ease-out;
+    -moz-transition: all 0.25s ease-out;
+    transition: all 0.25s ease-out;
+    left: 0;
+  }
+
+  .block-offcanvas-left .sidebar-offcanvas {
+    left: -45%;
+  }
+  .block-offcanvas-left.active {
+    left: 45%;
+  }
+
+  /* this really should not go here, it's the wrong place but oh well */
+  .block-offcanvas div.view {
+    padding-left: 0!important;
+  }
+  .block-offcanvas.active div.view {
+    padding-left: 10px!important;
+  }
+  .block-offcanvas nav {
+    opacity: 0!important;
+  }
+  .block-offcanvas.active nav {
+    opacity: 1.0!important;
+  }
+
+  .sidebar-offcanvas {
+    position: absolute;
+    top: 0;
+    width: 45%;
+  }
+}

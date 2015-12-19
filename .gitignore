@@ -1,0 +1,14 @@
+.DS_Store
+*.pyc
+*.egg-info
+*.pex
+.cache
+build
+dist
+venv
+lektor/admin/static/gen
+
+node_modules
+gui/build
+gui/node_modules
+gui/static/gen
