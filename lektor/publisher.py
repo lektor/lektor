@@ -22,17 +22,23 @@ def _patch_git_env(env_overrides):
     env.update(env_overrides or ())
 
     keys = [
-        ('GIT_COMMITTER_NAME', 'GIT_AUTHOR_NAME'),
-        ('GIT_COMMITTER_EMAIL', 'GIT_AUTHOR_EMAIL')
+        ('GIT_COMMITTER_NAME', 'GIT_AUTHOR_NAME', 'Lektor Bot'),
+        ('GIT_COMMITTER_EMAIL', 'GIT_AUTHOR_EMAIL',
+         'lektor-bot@getlektor.com'),
     ]
 
-    for key_a, key_b in keys:
+    for key_a, key_b, default in keys:
         value_a = env.get(key_a)
         value_b = env.get(key_b)
-        if value_a and not value_b:
-            env[key_b] = value_a
-        elif value_b and not value_a:
-            env[key_a] = value_b
+        if value_a:
+            if not value_b:
+                env[key_b] = value_a
+        elif value_b:
+            if not value_a:
+                env[key_a] = value_b
+        else:
+            env[key_a] = default
+            env[key_b] = default
 
     return env
 
