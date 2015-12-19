@@ -227,6 +227,12 @@ def clean_cmd(ctx, output_path, verbosity):
 @click.option('--password', envvar='LEKTOR_DEPLOY_PASSWORD',
               help='An optional password to override the URL or the '
               'default prompt.')
+@click.option('--key-file', envvar='LEKTOR_DEPLOY_KEY_FILE',
+              help='The path to a key file that should be used for the '
+              'authentication of the deployment.')
+@click.option('--key', envvar='LEKTOR_DEPLOY_KEY',
+              help='The contents of a key file directly a string that should '
+             'be used for authentication of the deployment.')
 @pass_context
 def deploy_cmd(ctx, server, output_path, **credentials):
     """This command deploys the entire contents of the build folder

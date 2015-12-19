@@ -43,6 +43,19 @@ def _patch_git_env(env_overrides):
     return env
 
 
+def write_key_file(tempdir, credentials):
+    if not credentials:
+        key_file = credentials.get('key_file')
+        if key_file is not None:
+            return key_file
+        key = credentials.get('key')
+        if key:
+            fn = os.path.join(tempdir, 'auth-key')
+            with open(fn, 'wb') as f:
+                f.write(key.encode('utf-8') + b'\n')
+            return fn
+
+
 class PublishError(Exception):
     pass
 
@@ -109,41 +122,58 @@ class Publisher(object):
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
+    @contextmanager
+    def temporary_folder(self):
+        folder = tempfile.mkdtemp()
+        scratch = os.path.join(folder, 'scratch')
+        os.mkdir(scratch)
+        os.chmod(scratch, 0755)
+        try:
+            yield scratch
+        finally:
+            try:
+                shutil.rmtree(folder)
+            except (IOError, OSError):
+                pass
+
     def publish(self, target_url, credentials=None):
         raise NotImplementedError()
 
 
 class ExternalPublisher(Publisher):
 
-    def get_command(self, target_url, credentails=None):
+    def get_command(self, target_url, tempdir, credentails=None):
         raise NotImplementedError()
 
     def publish(self, target_url, credentials=None):
-        client = self.get_command(target_url, credentials)
-        with client:
-            for line in client:
-                yield line
+        with self.temporary_folder() as tempdir:
+            client = self.get_command(target_url, tempdir, credentials)
+            with client:
+                for line in client:
+                    yield line
 
 
 class RsyncPublisher(ExternalPublisher):
 
-    def get_command(self, target_url, credentials=None):
+    def get_command(self, target_url, tempdir, credentials=None):
         credentials = credentials or {}
         argline = ['rsync', '-rclzv', '--exclude=.lektor']
         target = []
         env = {}
 
-        if target_url.port is not None:
-            argline.append('-e')
-            argline.append('ssh -p ' + str(target_url.port))
+        keyfile = write_key_file(tempdir)
+
+        if target_url.port is not None or keyfile is not None:
+            ssh_args = []
+            if target_url.port:
+                ssh_args.append('-p %s' % target_url.port)
+            if keyfile:
+                ssh_args.append('-i "%s"' % keyfile)
+            argline.append('-e \'ssh %s\'' % ' '.join(ssh_args))
 
         username = credentials.get('username') or target_url.username
         if username:
             target.append(username.encode('utf-8') + '@')
-
-        password = credentials.get('password') or target_url.password
-        if password:
-            env['RSYNC_PASSWORD'] = password.encode('utf-8')
 
         target.append(target_url.ascii_host)
         target.append(':' + target_url.path.encode('utf-8').rstrip('/') + '/')
@@ -439,20 +469,6 @@ class FtpTlsPublisher(FtpPublisher):
 
 class GithubPagesPublisher(Publisher):
 
-    @contextmanager
-    def temporary_repo(self):
-        folder = tempfile.mkdtemp()
-        repo = os.path.join(folder, 'repo')
-        os.mkdir(repo)
-        os.chmod(repo, 0755)
-        try:
-            yield repo
-        finally:
-            try:
-                shutil.rmtree(folder)
-            except (IOError, OSError):
-                pass
-
     def get_credentials(self, url, credentials=None):
         credentials = credentials or {}
         username = credentials.get('username') or url.username
@@ -530,7 +546,7 @@ class GithubPagesPublisher(Publisher):
         else:
             branch = 'gh-pages'
 
-        with self.temporary_repo() as path:
+        with self.temporary_folder() as path:
             def git(args, **kwargs):
                 kwargs['env'] = _patch_git_env(kwargs.pop('env', None))
                 return Command(['git'] + args, cwd=path, **kwargs).proc()

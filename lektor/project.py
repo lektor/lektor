@@ -1,6 +1,5 @@
 import os
 import sys
-import click
 import hashlib
 from inifile import IniFile
 
