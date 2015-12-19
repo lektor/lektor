@@ -91,7 +91,7 @@ class Project(object):
         h.update(self.id)
         h.update(sys.version)
         h.update(sys.prefix)
-        return os.path.join(click.get_cache_dir(), 'packages', h.hexdigest())
+        return os.path.join(get_cache_dir(), 'packages', h.hexdigest())
 
     def content_path_from_filename(self, filename):
         """Given a filename returns the content path or None if
