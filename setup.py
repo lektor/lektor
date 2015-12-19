@@ -5,6 +5,7 @@ setup(
     name='Lektor',
     version='0.96',
     url='http://github.com/lektor/lektor/',
+    description='A static content management system.',
     license='BSD',
     author='Armin Ronacher',
     author_email='armin.ronacher@active-4.com',
