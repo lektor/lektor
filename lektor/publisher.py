@@ -52,7 +52,9 @@ def write_key_file(tempdir, credentials):
         if key:
             fn = os.path.join(tempdir, 'auth-key')
             with open(fn, 'wb') as f:
+                f.write(b'-----BEGIN PRIVATE KEY-----\n')
                 f.write(key.encode('utf-8') + b'\n')
+                f.write(b'-----END PRIVATE KEY-----\n')
             return fn
 
 
@@ -161,7 +163,7 @@ class RsyncPublisher(ExternalPublisher):
         target = []
         env = {}
 
-        keyfile = write_key_file(tempdir)
+        keyfile = write_key_file(tempdir, credentials)
 
         if target_url.port is not None or keyfile is not None:
             ssh_args = []
