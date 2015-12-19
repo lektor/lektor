@@ -1,0 +1,28 @@
+title: thumbnail
+---
+summary: Creates a thumbnail for an image.
+---
+type: method
+---
+signature: width, height=None
+---
+body:
+
+This method is available on attachments that are images and can be used to
+automatically generate a thumbnail.  The return value is a thumbnail proxy
+that can be either use directly or with the `|url` filter.
+
+It provides the following attributes:
+
+* `width`: the thumbnail width in pixels.
+* `height`: the thumbnail height in pixels.
+* `url_path` the URL path of the thumbnail.  This is absolute and needs to
+  be made relative with the `|url` filter.
+
+## Example
+
+```html+jinja
+{% for image in this.attachments.images %}
+  <img src="{{ image.thumbnail(64)|url }}">
+{% endfor %}
+```

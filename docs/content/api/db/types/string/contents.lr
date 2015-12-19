@@ -1,0 +1,31 @@
+title: string
+---
+summary: A type that can store a single line of text.
+---
+type: type
+---
+body:
+
+The `string` type is the most basic of all types as it can store one line of
+arbitrary text.  It's useful for many places where you want to show a bit of
+text without any special formatting (titles, basic summaries and more).
+
+It renders as a basic input field in the admin interface.
+
+
+## Field Usage
+
+```ini
+[fields.title]
+label = Title
+type = string
+size = large
+description = The title of the page
+addon_label = [[header]]
+```
+
+## Template Usage
+
+```html+jinja
+<h1>{{ this.title }}</h1>
+```

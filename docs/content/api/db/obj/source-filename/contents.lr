@@ -1,0 +1,20 @@
+title: source_filename
+---
+summary: Returns the filename of the source file.
+---
+type: property
+---
+body:
+
+This returns the primary source filename of the source object.  So for
+instance if this is an asset it will be the path to it, if it is a record
+it will be the path to the lektor contents file.  The path is relative
+to the project folder.
+
+## Example
+
+```html+jinja
+<p>
+  Generated from {{ this.source_filename }}
+</p>
+```

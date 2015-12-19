@@ -1,0 +1,22 @@
+title: get
+---
+summary: Looks up an item by ID.
+---
+type: method
+---
+signature: id, page_num=...
+---
+body:
+
+This method mostly exists for consistency.  It's an alternative to using
+the [get :ref](../../pad/get/) method of the pad but respects the currently
+applied filtering.  If `page_num` is provided it overrides the currently
+requested page number from the query for pagination.
+
+## Example
+
+```html+jinja
+{% set p1 = this.children.get('project-1') %}
+<h2>{{ p1.name }}</h2>
+<p>Our favorite!
+```

@@ -1,0 +1,16 @@
+title: root
+---
+summary: Returns the root object of the primary alternative.
+---
+type: property
+---
+body:
+
+This works exactly like [get_root :ref](../get-root/) but always returns
+the primary alternative and is implemented as a property.
+
+## Example
+
+```html+jinja
+<a href="{{ site.root|url }}">Go to Index</a>
+```

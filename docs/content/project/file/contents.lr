@@ -1,0 +1,153 @@
+title: Project File
+---
+summary: Covers everything about the project file in Lektor.
+---
+body:
+
+The project file holds the main configuration of the project and is used to
+identify the project for the user interface.  The project file is an INI file
+and the minimal content is the name of the project:
+
+```ini
+[project]
+name = My Fancy Project
+```
+
+The name of the file can be arbitrary but must have the `.lektorproject`
+extension or Lektor will not be able to find it.  When Lektor looks for a
+project it looks upwards from the current folder until it finds a single
+file with the `.lektorproject` extension then that's the root of the project.
+
+## Config Sections
+
+Within the project file there are various configuration selections.  The
+following sections currently exist:
+
+### `[project]`
+
+This section controls some basics about the project:
+
+`name`
+> This is the human readable name of the project.  It's used in various
+> places where the system wants to show the context of the operations.  For
+> instance the admin panel will display this to indicate which project is
+> being worked on.
+
+`locale`
+> This is the default locale of the website.  This defaults to `en_US` and
+> can be changed to many others.  Most locales of the CLDR project are
+> supported.  This information is for instance used to format dates.
+
+`url`
+> This is the full URL of the website.  If set this information can be used
+> to enable the `external` URL generation parameter.  Lektor tries hard to
+> make websites work in a way where this information is not necessary but
+> some systems might need it.  For instance sitemaps require full URLs and
+> not having them would be a violation of the specification.
+
+`path`
+> This setting can be used to configure a different path for the project
+> tree.  This requires a bit of explanation:
+>
+> If this is not set (which is the default) then Lektor will find the
+> content files right next to the project file.  However in some situations
+> you might want to move a project file to a completely different location
+> for instance because you want to have settings in there that you do not
+> want to put into version control.  In that case you can set the `path`
+> in the file to a path (absolute or relative to the project file) which
+> resolves to the project tree.
+>
+> Note that if this setting is used some functionality in the desktop app
+> might no longer work (for instance opening `.lr` files with a double click).
+
+Example:
+
+```ini
+[project]
+name = My Website
+url = https://www.mywebsite.invalid/
+locale = de_DE
+```
+
+### `[packages]`
+
+This section controls the packages (plugins) that should be installed for
+this project.  It's a simple key/value list where the key is the plugin
+name and the value is the version number.
+
+Example:
+
+```ini
+[packages]
+lektor-webpack-support = 0.1
+```
+
+### `[servers.*]`
+
+This section can be repeated and each instance sets up a server.  The `*`
+needs to be replaced with the ID of the server.  This ID is used by the
+command line tool to select the server to deploy to.  For more information
+about this see the [Deployment Guide :ref](../../deployment/)
+
+`name`
+> Human readable name for this server (shown in the UI)
+
+`target`
+> The target URL for the server.  This URL is specific to the deployment
+> method that is being used.  For a list of which URLs are supported refer
+> to the deployment guides.
+
+`enabled`
+> This setting can be used to enable/disable the server.  The default is `yes`.
+
+`default`
+> This can be used to set a server to be used by default.  If only one server
+> is configured it's an implicit default.
+
+Example:
+
+```ini
+[servers.production]
+name = Production
+enabled = yes
+default = yes
+target = rsync://server/path/to/folder
+```
+
+### `[alternatives.*]`
+
+This configures [Alternatives :ref](../../content/alts/).  It is repeated for
+each intended alternative.  The default behavior is that alternatives are
+disabled.
+
+`name`
+> The human readable name for the alternative.  The admin interface uses this.
+
+`url_prefix`
+> A prefix that is added in front of all URLs to identify this alternative.
+
+`url_suffix`
+> A suffix that is added behind all URLs to enable this alternative.  This is
+> currently discouraged compared to the URL prefix as it might not yet work
+> in all situations properly.
+
+`primary`
+> If this is set to `true` then the alternative is selected as primary.  For
+> more information about this refer to the guide.
+
+`locale`
+> This setting can override the global site locale for a specific alternative.
+
+Example:
+
+```ini
+[alternatives.en]
+name = English
+primary = yes
+locale = en_US
+
+[alternatives.fr]
+name = French
+url_prefix = /fr/
+locale = fr
+```

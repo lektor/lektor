@@ -1,0 +1,26 @@
+title: List
+---
+summary: A list of known plugins.
+---
+body:
+
+Lektor is a very young project so naturally not that many plugins exist yet.
+This is a list of currently known plugins.
+
+## Official
+
+These are official plugins which means that they were developed by the
+authors of Lektor and kept in good shape together with the rest of the
+project:
+
+* [disqus-comments :ext](https://github.com/lektor/lektor-disqus-comments):
+  this plugin embeds disqus comments into your website.
+* [webpack-support :ext](https://github.com/lektor/lektor-webpack-support):
+  adds support for building websites with webpack.
+
+## Inofficial
+
+There are currently no inofficial plugins listed here, but if you have some
+you can [edit this page on github
+:ext](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr)
+and send a pull request.

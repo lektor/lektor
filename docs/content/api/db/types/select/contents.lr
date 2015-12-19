@@ -1,0 +1,31 @@
+title: select
+---
+summary: A type that can be used to select a single item from a list.
+---
+type: type
+---
+body:
+
+The `select` type works exactly like the [checkboxes :ref](../checkboxes/) type
+but unlike it you can only select a single item.  For configuration options
+refer directly to the checkboxes type.
+
+In the contents file the values are stored as a single textual item.
+
+## Field Usage
+
+```ini
+[fields.class]
+label = Class
+type = select
+choices = full-width, pull-left, pull-right
+choice_labels = Full Width, Pull Left, Pull Right
+```
+
+## Template Usage
+
+```html+jinja
+<div class="{{ this.class }}">
+  ...
+</div>
+```

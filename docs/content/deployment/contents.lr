@@ -1,0 +1,115 @@
+title: Deployment
+---
+sort_key: 110
+---
+summary: All there is to know about deploying and publishing changes.
+---
+body:
+
+A website is only a website if other people can look at it.  While you are
+developing locally that's not really all that helpful.  So how do you get
+your changes up to your favorite web host?  This is where [lektor deploy
+:ref](../cli/deploy/) comes in.
+
+## Deploying in Two Steps:
+
+Deploying a website in Lektor is a two step process:
+
+1. build
+2. deploy
+
+Keep this in mind.  A deploy will not implicitly build!  This means that if
+you deploy without building first you might send up a completely wrong
+version!  Also more importantly: *never deploy unless the build finished
+successfully*.
+
+## The Build Pipeline
+
+So let's cover the building first.  When you use the Lektor server locally,
+Lektor constantly builds our your website into static HTML files behind the
+scenes into the default build folder.  This folder is in an operating system
+specific location.  If you want to know where that folder is, you can use this
+command:
+
+```
+$ lektor project-info --output-path
+```
+
+Additionally you can manually provide a different path if you kick off a
+manual build:
+
+```
+$ lektor build --output-path my-folder
+```
+
+Generally we strongly recommend to use the default build folder when deploying
+from your own machine because it will be faster since the build can reuse
+what the development server already did.  If you want to deploy from a build
+server it might make more sense to provide absolute paths.
+
+## Lektor Assisted Deployments
+
+Currently Lektor can deploy via `rsync` and `ftp` automatically.  To enable
+this functionality you need to configure this in the config file.  For each
+potential deployment target add a `[servers.NAME]` section.  The supported
+keys are `name` for an optional human readable name of the server, `enabled` to
+enable or disable it (defaults to `true`) and `target` which is the URL to
+publish to.  Additionally one of the servers can have `default` set to `yes`
+to set it as default.  Here an example:
+
+```ini
+[servers.production]
+name = Production
+enabled = yes
+default = yes
+target = rsync://server/path/to/folder
+```
+
+To trigger a deploy you can use the [deploy :ref](../cli/deploy/) command:
+
+```
+$ lektor deploy production
+```
+
+Or because it's the default server, you can just do this:
+
+```
+$ lektor deploy
+```
+
+This deploys the latest state of what was built from the default build
+folder.  It does not build itself!  So to do both in one go, do something like
+this:
+
+```
+$ lektor build && lektor deploy
+```
+
+If you want to provide a different build folder, provide it explicitly with
+`--output-path` to both `build` and `deploy`.  This can also be set with
+the `LEKTOR_OUTPUT_PATH` environment variable.
+
+**Note on credentials**: For FTP and other systems it is possible to embed
+the credentials directly in the URL.  If you do this, please ensure that
+you keep your project file secure as loss of the project file can mean that
+people get access to your server.  Alternatively you can also provide username
+and password through the command line of environment variables.
+
+The following targets are supported for the `target` folder:
+
+* [rsync](rsync/)
+* [FTP](ftp/)
+* [GitHub Pages](ghpages/)
+
+## Manual Deployments
+
+If you want to manually deploy something through the favorite tool of yours
+you can do that easily as well.  For instance if you want to deploy to S3
+with [s3cmd](http://s3tools.org/s3cmd-sync) you could do this:
+
+```
+$ lektor build && s3cmd sync "$(lektor project-info --output-path)" "s3://my-bucket/some/path"
+```
+
+Assisted deployments are also supported directly from the admin UI.  There is a
+publish button that can be used to send the changes up.

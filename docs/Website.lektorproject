@@ -1,0 +1,13 @@
+[project]
+name = Lektor
+url = https://www.getlektor.com/
+
+[servers.production]
+enabled = yes
+name = Production
+target = rsync://flow.srv.pocoo.org/srv/websites/getlektor.com/static
+default = yes
+
+[packages]
+lektor-webpack-support = 0.1
+lektor-disqus-comments = 0.1

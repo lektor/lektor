@@ -1,0 +1,27 @@
+title: rsync
+---
+summary: Automatic deployments with SSH and rsync.
+---
+body:
+
+`rsync://username@server/path/to/folder`
+
+This deploys via SSH and rsync to a remote server.  This is the recommended
+way to deploy if the system supports it as it is a very fast and realiable
+way.  It uses the system's SSH config so for authentication just configure
+SSH as you would normally do.  The `username` part is optional and defaults
+to the current user that is signed into the machine or whatever is picked up
+as default from the `.ssh/config`.
+
+## Example
+
+```ini
+[servers.production]
+target = rsync://deploy@example.com/var/www/example.com
+```
+
+## Note on Credentials
+
+The `rsync` deploy method supports both username and password parameter
+though it's recommended to use `.ssh/config` and an SSH agent to secure
+the deployment.  This is outside of the context of this documentation.

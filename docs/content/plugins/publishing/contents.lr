@@ -1,0 +1,57 @@
+title: Publishing
+---
+summary: Explains how publishing of plugins works.
+---
+sort_key: 20
+---
+body:
+
+Once you are happy with a plugin you can publish it so that other people
+can use it.  Publishing of plugins happens through the
+[Python Package Index :ext](https://pypi.python.org/) and can be
+automatically done with the help of the lektor shell command.
+
+## Enhance your setup.py
+
+Before you can go about publishing your plugin there needs to be at least
+some information added about it to your `setup.py`.  At least the keys
+`name`, `version`, `author`, `author_email`, `url` and `description` need to be
+set.  Here is a basic example of doing this:
+
+```python
+from setuptools import setup
+
+
+setup(
+    name='lektor-your-plugin',
+    author='Your Name',
+    author_email='your.email@your.domain.invalid',
+    version='1.0',
+    url='http://github.com/youruser/lektor-yourplugin',
+    license='MIT',
+    packages=['lektor_your_plugin'],
+    description='Basic description goes here',
+    entry_points={
+        'lektor.plugins': [
+            'hello-world = lektor_hello_world:HelloWorldPlugin',
+        ]
+    },
+)
+```
+
+## Publishing
+
+Once you augmented your `setup.py` you can go ahead with the publishing.  First
+you need to make sure you have a PyPI account.  If you do not, you can
+create one at [pypi.python.org :ext](https://pypi.python.org/pypi?%3Aaction=register_form).
+
+Once you have done that, you can publish the plugin from the command line
+with the `lektor` command:
+
+```
+$ cd path/to/your/plugin
+$ lektor dev publish-plugin
+```
+
+When you use this for the first time it will prompt you for your login
+credentials for `pypi`.  Next time it will have remembered them.

@@ -1,0 +1,67 @@
+title: Installation
+---
+summary: How to install Lektor on your computer.
+---
+sort_key: 50
+---
+body:
+
+Lektor comes in two flavors: the command line executable as well as as a
+desktop application.  The desktop version also contains the command line
+executable however it bundles together all dependencies of Lektor in an
+easy to use package which heavily simplifies installation.
+
+## Desktop Application
+
+Currently the desktop application is only available for OS X and can be
+[downloaded from the Lektor website](../../downloads/).  It comes as a downloadable
+disk image that you can mount which contains one application by the name of
+`Lektor.app`.  Just drag it into your `Applications` folder and you are good to
+go.
+
+If you also want access to the command line tools just launch `Lektor.app`
+and then click on *Lektor ➤ Install Shell Command*.
+
+## Command Line Application
+
+If you do not want to install the desktop app you can just install the command
+line executable.  This one runs on more operating systems (OSX, Linux and
+Windows) but that installation is a bit more involved.
+
+You need to make sure you have the following software installed on your computer:
+
+* Python 2.7 (**not** Python 3.x)
+* ImageMagick (`brew install imagemagick` or `apt-get install imagemagick`
+  can get you this on OS X and Ubuntu respectively)
+
+Once you have that installed you can get Lektor installed with our
+installation script:
+
+```
+$ curl -sf https://www.getlektor.com/install.sh | sh
+```
+
+Alternatively you can manually install it with `virtualenv` if you know
+how that works:
+
+```
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install Lektor
+```
+
+## Development Version
+
+If you want to install the development version of Lektor you can do so.  It's
+the same as with installing the command line application but instead of
+using PyPI you install directly from git and you need to have `npm` installed
+to build the admin UI:
+
+```
+$ git clone https://github.com/lektor/lektor
+$ cd lektor
+$ make build-js
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install --editable .
+```

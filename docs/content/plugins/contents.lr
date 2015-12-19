@@ -1,0 +1,40 @@
+title: Plugins
+---
+sort_key: 120
+---
+summary: Explains how to use plugins and how to develop them.
+---
+body:
+
+Lektor can be extended through the use of plugins.  This is something that
+can be done on a per-project basis.  This gives a quick overview of how
+to use plugins and how to build your own.
+
+## Loading Plugins
+
+Plugins can be added to a Lektor project in two different ways:
+
+1. Plugins can be added to the `[packages]` section of the project.  In that
+   case Lektor will automatically download and enable the plugin next time
+   you build the project or run the server.
+2. Plugins can be added to the `packages/` folder in your project.  Each
+   plugin has to go into a separate folder.  This method is especially useful
+   for project specific plugins or for plugin development.
+
+## Installing Plugins
+
+For completely automated plugin managment just open your project file in a
+text editor and edit or extend the `[packages]` section.  Just add a line
+for each plugin in the form `name = version`:
+
+```ini
+[packages]
+lektor-cool-plugin = 1.0
+lektor-other-plugin = 1.2
+```
+
+It's also possible to use the [plugins add :ref](../cli/plugins/add/) command
+to automatically add the latest version of a plugin to the project file.
+
+To upgrade a plugin just increase the version number to the release you want
+and Lektor will do the rest.

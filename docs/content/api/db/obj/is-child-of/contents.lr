@@ -1,0 +1,22 @@
+title: is_child_of
+---
+summary: Indicates if the record is a page or attachment.
+---
+signature: path, strict=False
+---
+type: method
+---
+body:
+
+This method is a convenient way to check if a page is a child of another
+page or not.  The default behavior is to consider a page to be a child of
+itself as this is more convenient in most situations but this can be
+changed with the `strict` parameter.  This method is particularly useful
+when building a navigation.
+
+## Example
+
+```html+jinja
+<a href="{{ '/projects'|url }}"{% if this.is_child_of('/projects')
+  %} class="active"{% endif %}>Projects</a>
+```

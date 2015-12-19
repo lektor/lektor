@@ -1,0 +1,20 @@
+title: pad
+---
+summary: A reference to the active database pad.
+---
+type: property
+---
+body:
+
+To access the current pad from the context, this attribute can be used.  It
+refers to the active [Pad :ref](../../../db/pad/).
+
+## Example
+
+```python
+from lektor.context import get_ctx
+
+ctx = get_ctx()
+for child in ctx.pad.root.children:
+    do_something_with(child)
+```

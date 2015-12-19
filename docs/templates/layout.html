@@ -1,0 +1,78 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{{ '/static/styles.css'|asseturl }}">
+<link rel="stylesheet" href="{{ get_pygments_stylesheet()|url }}">
+<title>{% block title %}Hello{% endblock %} | Lektor Static Website Engine</title>
+<body class="{% block bodyclass %}default{% endblock %}">
+  <nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed"
+          data-toggle="collapse" data-target="#navbar"
+          aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="{{ '/'|url }}">Lektor</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          {% for id, item in bag('menu').iteritems() %}
+            <li{% if this.is_child_of(item.path) %} class="active"{% endif
+              %}><a href="{{ item.path|url }}">{{ item.label }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="body-wrapper">
+    {% block outerbody %}
+    <div class="container">
+      {% block body %}{% endblock %}
+    </div>
+    {% endblock %}
+  </div>
+
+  {% block bottomsummary %}
+  <div class="bottomsummary">
+    <div class="container">
+    </div>
+  </div>
+  {% endblock %}
+
+  {% block footer %}
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-6">
+          <a href="https://github.com/lektor/lektor/">Lektor on Github</a> &middot;
+          <a href="https://github.com/lektor/lektor/issues/">Issue Tracker</a> &middot;
+          <a href="{{ '/license'|url }}">License</a> &middot;
+          <a href="{{ '/contact'|url }}">Contact</a>
+        </div>
+        <div class="col-sm-6">
+          Made with Heart in Carinthia
+          {% if this.path %}
+          — <a href="https://github.com/lektor/lektor-website/tree/master/content{{ this.path }}/contents.lr">View Source</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <script type=text/javascript src="{{ '/static/app.js'|asseturl }}" charset="utf-8"></script>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-70822533-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</body>
