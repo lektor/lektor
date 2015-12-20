@@ -4,7 +4,7 @@
 {% block body %}
   <div class="row">
     <div class="col-sm-3">
-      <ul class="tree-nav">
+      <ul class="tree-nav nocontent">
         <li{% if this._path == '/docs' %} class="active"{% endif
           %}><a href="{{ '/docs'|url }}">Welcome</a></li>
         {% set docs = site.get('/docs') %}
