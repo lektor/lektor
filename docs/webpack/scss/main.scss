@@ -584,3 +584,107 @@ div.sourceviewer {
     overflow: auto;
   }
 }
+
+/* search */
+div.doc-styling div.gsc-control-cse {
+  font-family: $font-family-base!important;
+  font-size: $font-size-base;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 15px 0;
+
+  table {
+    border: none;
+    tr {
+      background: transparent!important;
+    }
+    td, th {
+      padding: default;
+    }
+  }
+
+  .gsc-result {
+    background: transparent;
+    border: none;
+  }
+
+  .gsc-table-result, .gsc-thumbnail-inside, .gsc-url-top {
+    margin: 0;
+    padding: 0;
+    font-family: $font-family-base!important;
+    font-size: $font-size-base!important;
+    td {
+      padding: 0;
+    }
+  }
+
+  .gs-title {
+    height: auto;
+    line-height: 1;
+  }
+
+  .gsc-url-top {
+    line-height: 1;
+    padding: 4px 0;
+  }
+
+  .gs-spelling a,
+  .gs-title a.gs-title,
+  .gs-title a.gs-title * {
+    color: $brand-primary!important;
+  }
+
+  .gs-spelling {
+    padding: 0;
+  }
+
+  .gs-webResult div.gs-visibleUrl, .gs-imageResult div.gs-visibleUrl {
+    color: #888;
+  }
+
+  .gs-no-results-result .gs-snippet {
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    color: $brand-primary;
+    text-align: center;
+    padding: 0;
+  }
+
+  .gsc-thumbnail {
+    display: none;
+  }
+
+  .gsc-result-info-container {
+    padding: 0;
+  }
+
+  .gs-snippet {
+    font-size: 0.9em;
+    line-height: 1.3;
+    padding-left: 30px;
+    color: $gray;
+  }
+
+  .gsc-result-info, .gsc-above-wrapper-area {
+    padding: 0;
+    font-size: $font-size-base;
+    border: none;
+  }
+
+  .gsc-orderby-container {
+    display: none;
+  }
+
+  .gcsc-branding, .gsc-resultsHeader {
+    display: none;
+  }
+
+  .gsc-results .gsc-cursor-box {
+    text-align: center;
+    * {
+      color: $brand-primary!important;
+    }
+  }
+}
