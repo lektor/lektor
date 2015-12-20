@@ -6,7 +6,8 @@ body:
 
 The project file holds the main configuration of the project and is used to
 identify the project for the user interface.  The project file is an INI file
-and the minimal content is the name of the project:
+(UTF-8 encoded like everything else in Lektor) and the minimal content is the
+name of the project:
 
 ```ini
 [project]

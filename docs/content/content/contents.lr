@@ -64,9 +64,9 @@ can be overridden in the content file with the `_template` field.
 ## Content File Format
 
 So now it's time to talk about the content file.  The content file is just a
-text file with the `.lr` extension.  It can be edited with any text editor
-that supports UTF-8 as character encoding.  This file consists of multiple
-data fields according to the model.  The format is very simple:
+UTF-8 encoded text file with the `.lr` extension.  It can be edited with any
+text editor that supports UTF-8 as character encoding.  This file consists of
+multiple data fields according to the model.  The format is very simple:
 
 ```
 _model: page
