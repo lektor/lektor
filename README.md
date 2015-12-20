@@ -14,27 +14,7 @@ which contains the sourcecode for the official lektor website.
 
 ## How do I use this?
 
-This is experimental stuff.  If you really want to use it you better have
-a Mac because that's right now the only thing that's really supported.
+For installation instructions head to the official documentation:
 
-Downloadable releases are on github: [go to releases](https://github.com/lektor/lektor/releases)
-
-If you want to use the command line version make sure to install it
-as Python package into a virtualenv and to build the js files before:
-
-    $ pip install --editable .
-    $ make build-js
-
-So how do you use it?  Just launch the app and open a project like the
-example project.  If you installe the GUI and you want to get access to the
-command line executables you can go to Lektor -> Install Shell Command.
-
-Afterwards you can use the `lektor` executable from the command line.
-
-To build projects:
-
-    lektor build
-
-To open up the admin ui and dev server:
-
-    lektor server --browse
+* [Installation](https://www.getlektor.com/docs/installation/)
+* [Quickstart](https://www.getlektor.com/docs/quickstart/)
