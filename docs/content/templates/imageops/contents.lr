@@ -60,7 +60,7 @@ Here an example that shows the camera information:
 While browsers are reasonably good at downscaling images themselves, you
 still need to transmit the entire image.  When you want smaller images it
 often makes sense to generate thumbnails automatically.  In Lektor each
-image provides the [thumbnail :ref](../../../api/record/thumbnail/) method.
+image provides the [thumbnail :ref](../../api/db/record/thumbnail/) method.
 
 It accepts the width and height of the target image.  If the height is not
 provided it will be scaled proportionally.  The return value can be converted

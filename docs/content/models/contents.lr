@@ -48,7 +48,7 @@ panel.
 ## Fields
 
 Fields for models are ordered in the UI in the order they appear in the model.
-Most options in the field are specific to the type that is selectd, but some
+Most options in the field are specific to the type that is selected, but some
 are the same for all of them.
 
 Fields not only define the behavior of the data (for instance strings and
@@ -76,7 +76,7 @@ extensively in the [types documentation :ref](../api/db/types/).
 
 ## Model Options
 
-Models have the following options that can cutomize the model itself:
+Models have the following options that can customize the model itself:
 
 - `name`: the name of the model itself.  Usually a more capitalized form of
   the filename which is the ID of the model.

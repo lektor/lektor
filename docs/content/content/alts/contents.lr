@@ -12,7 +12,7 @@ or regions.
 ## Enabling Alternatives
 
 To enable alternatives you need to extend your [Project File
-:ref](../../project/).  For each alternative a new
+:ref](../../project/file/).  For each alternative a new
 section has to be added.  It's important that one of the alternatives is
 marked as "primary" which informs the system which of the alternatives is
 the reference.

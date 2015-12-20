@@ -22,6 +22,7 @@ The following attributes exist on the pagination object:
 | `next`      | The record for the net page (might be `None`)
 | `total`     | The total number of items across all pages
 | `pages`     | The total number of pages
+| `page`     | The number of current page
 | `has_prev`  | `True` if a previous page exists
 | `has_next`  | `True` if a next page exists
 | `items`     | The query that resolves to the children of the current page.

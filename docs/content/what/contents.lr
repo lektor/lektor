@@ -6,13 +6,13 @@ sort_key: 20
 ---
 body:
 
-When it comes to creating websites, there ludicrous amount of tools available.
+When it comes to creating websites, there is a ludicrous amount of tools available.
 They range from full blown content management solutions like Drupal over
 desktop solutions like Google Web Designer to Cloud Hosted Website solutions
 like WIX to more programmer focused approaches like Jekyll which generate
 websites out of templates and markdown files.
 
-*Lektor is different than any of these.*
+*Lektor is different from any of these.*
 
 ## Lektor is Static
 
