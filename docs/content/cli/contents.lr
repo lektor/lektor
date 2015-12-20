@@ -2,7 +2,7 @@ title: Command Line
 ---
 sort_key: 900
 ---
-summary: Covers Lektor's command line interface.
+summary: Covers Lektor's command line interface behind the lektor executable.
 ---
 body:
 
