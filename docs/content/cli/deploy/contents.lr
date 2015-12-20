@@ -30,4 +30,8 @@ For more information see the deployment chapter in the documentation.
 - `--username TEXT`: An optional username to override the URL.
 - `--password TEXT`: An optional password to override the URL or the
   default prompt.
+- `--key-file TEXT`: The path to a key file that should be used for the
+  authentication of the deployment.
+- `--key TEXT`: The contents of a key file directly a string that should
+  be used for authentication of the deployment.
 - `--help`: print this help page.
