@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Lektor',
-    version='1.0',
+    version='1.1-dev',
     url='http://github.com/lektor/lektor/',
     description='A static content management system.',
     license='BSD',
