@@ -4,9 +4,9 @@ summary: Explains how to model flow blocks.
 ---
 body:
 
-To use [Flow :ref](../../flow/) you need to define flow block models.
+To use [Flow :ref](../../content/flow/) you need to define flow block models.
 If you are not familiar with Flow yet, you should read the [Introduction
-Documentation](../../flow/) to Flow first.
+Documentation](../../content/flow/) to Flow first.
 
 ## Defining Models
 

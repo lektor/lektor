@@ -17,7 +17,7 @@ name = My Fancy Project
 The name of the file can be arbitrary but must have the `.lektorproject`
 extension or Lektor will not be able to find it.  When Lektor looks for a
 project it looks upwards from the current folder until it finds a single
-file with the `.lektorproject` extension then that's the root of the project.
+file with the `.lektorproject` extension and that's then the root of the project.
 
 ## Config Sections
 

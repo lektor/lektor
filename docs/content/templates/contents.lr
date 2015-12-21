@@ -38,7 +38,7 @@ evaluated in but the following are always available:
 ## The First Template
 
 So let's dive in making our first template.  In case you went through the
-[Quickstart :ref](../quickstart/) which should give you an example model
+[Quickstart :ref](../quickstart/) you should already have an example model
 to work with called `page`, otherwise just add one with the format shown
 in the [Data Modelling Documentation :ref](../models/).
 

@@ -46,7 +46,7 @@ the rendered end result will be at `/portfolio/project-a/`.
 ## Page, Model and Template
 
 Each page is associated with a model and a template.  Each page needs to have
-a model that defines with fields exist.  The template by default matches the
+a model that defines which fields exist.  The template by default matches the
 model name but it can be overridden on a per-page basis.
 
 So how is the model selected?  Either expicitly in the `contents.lr` file

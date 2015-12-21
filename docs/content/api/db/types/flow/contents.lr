@@ -74,5 +74,5 @@ or more complex:
 ```
 
 To see how the actual blocks are rendered have a look at the main
-[Flow Documentation :ref](../../content/flow/) which covers templating
+[Flow Documentation :ref](../../../../content/flow/) which covers templating
 in detail.

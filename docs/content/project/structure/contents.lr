@@ -54,7 +54,7 @@ content/
       thumbnail.png
 ```
 
-The content folder is explained in detail in [Content :ref](../content/).
+The content folder is explained in detail in [Content :ref](../../content/).
 
 ### `models/`
 
@@ -62,7 +62,7 @@ This is the bread and butter of what makes Lektor powerful.  The models define
 exactly how the data from the content folder should be processed.  The `models`
 folder contains a list of INI files that each correspond to a single model.
 
-For more information about this refer to the [Data Modelling :ref](../models/)
+For more information about this refer to the [Data Modelling :ref](../../models/)
 documentation.
 
 ### `templates/`
@@ -80,8 +80,8 @@ files they will appear as such in the final output.
 ### `flowblocks/`
 
 The `flowblocks` folder contains models for blocks that are used by the
-[Flow System :ref](../content/flow/).  Flow blocks split part of a page into
-smaller pieces that can be individually designed.  They work similar to models
+[Flow System :ref](../../content/flow/).  Flow blocks split a part of a page into
+smaller pieces so that can be individually designed.  They work similar to models
 but are contained within a field of a model.
 
 ### `packages/`
@@ -96,8 +96,8 @@ files in there are named `<plugin-id>.ini`.
 
 ### `databags/`
 
-Lektor also supports [Data Bags :ref](../content/databags/) which go into a
+Lektor also supports [Data Bags :ref](../../content/databags/) which go into a
 folder named `databags/`.  These are files with some general information
 that can be accessed from templates.  For instance you could store menus and
-navigations there, API keys and much more.  Just information you want to
-access from different places and maybe not keep in templates directly.
+navigations there, API keys and much more.  This is generally just information 
+you want to access from different places and maybe not keep in templates directly.
