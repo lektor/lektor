@@ -90,8 +90,8 @@ class Generator(object):
             raise
         else:
             for filename in os.listdir(scratch):
-                os.rename(os.path.join(scratch, filename),
-                          os.path.join(path, filename))
+                shutil.move(os.path.join(scratch, filename),
+                            os.path.join(path, filename))
             os.rmdir(scratch)
 
     def expand_filename(self, base, ctx, template_filename):
