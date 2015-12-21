@@ -1179,7 +1179,7 @@ class Pad(object):
         might be an attachment.  If a record cannot be found or is unexposed
         the return value will be `None`.
         """
-        clean_path = cleanup_path(url_path).strip('/')
+        pieces = clean_path = cleanup_path(url_path).strip('/')
 
         # Split off the alt and if no alt was found, point it to the
         # primary alternative.  If the clean path comes back as `None`

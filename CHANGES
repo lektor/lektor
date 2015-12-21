@@ -3,6 +3,14 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+1.1
+---
+
+Bugfix release
+
+- Fixed a bug where resolving URL paths outside of alts did not
+  fall back to asset resolving.
+
 1.0
 ---
 
