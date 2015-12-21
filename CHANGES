@@ -11,6 +11,7 @@ Release date to be decided.
 - Improved ghpages and rsync deployments.
 - Implemented options for default URL styles.
 - All artifacts now depend on the project file.
+- Fixed an issue with renames from tempfile in the quickstart.
 
 0.96
 ----

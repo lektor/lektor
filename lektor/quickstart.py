@@ -89,6 +89,8 @@ class Generator(object):
             shutil.rmtree(scratch)
             raise
         else:
+            # Use shutil.move here in case we move across a file system
+            # boundary.
             for filename in os.listdir(scratch):
                 shutil.move(os.path.join(scratch, filename),
                             os.path.join(path, filename))
