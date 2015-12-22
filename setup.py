@@ -16,6 +16,7 @@ setup(
     install_requires=[
         'Jinja2>=2.4',
         'click>=6.0',
+        'boto3>=1.1.4',
         'watchdog',
         'mistune',
         'Flask',
