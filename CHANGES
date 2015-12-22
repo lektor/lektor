@@ -10,6 +10,10 @@ Bugfix release
 
 - Fixed a bug where resolving URL paths outside of alts did not
   fall back to asset resolving.
+- Added `_discoverable` system field which controls if a page should show
+  up in `children`.  The default is that a page is discoverable.  Setting it
+  to `False` means in practical terms that someone needs to know the URL as
+  all collection operations will not return it.
 
 1.0
 ---
