@@ -25,11 +25,17 @@ class SourceObject(object):
         """The primary source filename of this source object."""
 
     is_hidden = False
+    is_discoverable = True
 
     @property
     def is_visible(self):
         """The negated version of :attr:`is_hidden`."""
         return not self.is_hidden
+
+    @property
+    def is_undiscoverable(self):
+        """The negated version of :attr:`is_discoverable`."""
+        return not self.is_discoverable
 
     def iter_source_filenames(self):
         fn = self.source_filename

@@ -174,9 +174,17 @@ class PageBuildProgram(BuildProgram):
             yield Page(self.source.pad, self.source._data,
                        page_num=page_num)
 
+    def _iter_undiscoverable_children(self):
+        return self.source.children \
+            .include_undiscoverable(True) \
+            .filter(lambda x: x.is_undiscoverable)
+
     def iter_child_sources(self):
         pagination_enabled = self.source.datamodel.pagination_config.enabled
         child_sources = []
+
+        # TODO: this code is not particularly nice and has too many
+        # branches.  Really needs cleaning up.
 
         # So this requires a bit of explanation:
         #
@@ -189,9 +197,9 @@ class PageBuildProgram(BuildProgram):
         # 2. we are pointing to a page, then our child sources are the
         #    items that are shown on that page.
         #
-        # In addition attachments are considered to go on page 1 if
-        # pagination is enabled or to go on the unpaginated page if
-        # pagination is disabled.
+        # In addition attachments and undiscoverable pages are considered
+        # to go on page 1 if pagination is enabled or to go on the
+        # unpaginated page if pagination is disabled.
         if pagination_enabled:
             if self.source.page_num is None:
                 child_sources.append(self._iter_paginated_children())
@@ -199,8 +207,10 @@ class PageBuildProgram(BuildProgram):
                 child_sources.append(self.source.pagination.items)
                 if self.source.page_num == 1:
                     child_sources.append(self.source.attachments)
+                    child_sources.append(self._iter_undiscoverable_children())
         else:
-            child_sources.append(self.source.children)
+            child_sources.append(
+                self.source.children.include_undiscoverable(True))
             child_sources.append(self.source.attachments)
 
         return chain(*child_sources)

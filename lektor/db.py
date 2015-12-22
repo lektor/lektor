@@ -187,6 +187,15 @@ setattr(Expression, 'and', lambda x, o: x & o)
 setattr(Expression, 'or', lambda x, o: x | o)
 
 
+class _CallbackExpr(Expression):
+
+    def __init__(self, func):
+        self.func = func
+
+    def __eval__(self, record):
+        return self.func(record)
+
+
 class _IsBoolExpr(Expression):
 
     def __init__(self, expr, true):
@@ -302,6 +311,16 @@ class Record(SourceObject):
 
         parent = self.parent
         return parent is not None and parent.is_hidden
+
+    @property
+    def is_discoverable(self):
+        """Indicates if the page is discoverable without knowing the URL."""
+        if not is_undefined(self._data['_discoverable']):
+            return self._data['_discoverable']
+        if not is_undefined(self._data['_hidden']):
+            return not self._data['_hidden']
+        parent = self.parent
+        return parent is None or parent.is_discoverable
 
     @cached_property
     def pagination(self):
@@ -454,9 +473,14 @@ class Page(Record):
                 return pg.get_record_for_page(self, 1)
             return self
 
+        # When we resolve URLs we also want to be able to explicitly
+        # target undiscoverable pages.  Those who know the URL are
+        # rewarded.
+        q = self.children.include_undiscoverable(True)
+
         for idx in xrange(len(url_path)):
             piece = '/'.join(url_path[:idx + 1])
-            child = self.children.filter(F._slug == piece).first()
+            child = q.filter(F._slug == piece).first()
             if child is None:
                 attachment = self.attachments.filter(F._slug == piece).first()
                 if attachment is None:
@@ -493,15 +517,15 @@ class Page(Record):
 
     @property
     def children(self):
-        """A query over all children that are not hidden.  If you also
-        want hidden children then use ``children.include_hidden(True)``.
+        """A query over all children that are not hidden or undiscoverable.
+        want undiscoverable then use ``children.include_undiscoverable(True)``.
         """
         repl_query = self.datamodel.get_child_replacements(self)
         if repl_query is not None:
             q = repl_query
         else:
             q = Query(path=self['_path'], pad=self.pad, alt=self.alt)
-        return q.include_hidden(False)
+        return q.include_undiscoverable(False)
 
     @property
     def attachments(self):
@@ -618,8 +642,10 @@ class Query(object):
         self._pristine = True
         self._limit = None
         self._offset = None
-        self._include_hidden = True
+        self._include_hidden = None
+        self._include_undiscoverable = True
         self._page_num = None
+        self._filter_func = None
 
     def __get_lektor_param_hash__(self, h):
         h.update(str(self.alt))
@@ -629,6 +655,7 @@ class Query(object):
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
+        h.update(str(self._include_undiscoverable))
         h.update(str(self._page_num))
 
     @property
@@ -652,7 +679,11 @@ class Query(object):
                             alt=self.alt, page_num=page_num)
 
     def _matches(self, record):
-        if not self._include_hidden and record.is_hidden:
+        include_hidden = self._include_hidden
+        if include_hidden is not None:
+            if not self._include_hidden and record.is_hidden:
+                return False
+        if not self._include_undiscoverable and record.is_undiscoverable:
             return False
         for filter in self._filters or ():
             if not save_eval(filter, record):
@@ -689,6 +720,8 @@ class Query(object):
         """Filters records by an expression."""
         rv = self._clone(mark_dirty=True)
         rv._filters = list(self._filters or ())
+        if callable(expr):
+            expr = _CallbackExpr(expr)
         rv._filters.append(expr)
         return rv
 
@@ -706,6 +739,19 @@ class Query(object):
         """
         rv = self._clone(mark_dirty=True)
         rv._include_hidden = value
+        return rv
+
+    def include_undiscoverable(self, value):
+        """Controls if undiscoverable records should be included as well."""
+        rv = self._clone(mark_dirty=True)
+        rv._include_undiscoverable = value
+
+        # If we flip from not including undiscoverables to discoverables
+        # but we did not yet decide on the value of _include_hidden it
+        # becomes False to not include it.
+        if rv._include_hidden is None and value:
+            rv._include_hidden = False
+
         return rv
 
     def request_page(self, page_num):

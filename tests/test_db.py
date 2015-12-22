@@ -93,7 +93,8 @@ def test_child_query_visibility_setting(pad):
     assert not projects.children._include_hidden
 
     project_query = pad.query('/projects')
-    assert project_query._include_hidden
+    assert project_query._include_hidden is None
+    assert project_query._include_undiscoverable
 
 
 def test_pagination_url_paths(pad):
@@ -199,3 +200,21 @@ def test_is_child_of(pad):
     child = projects.children.first()
     assert child.is_child_of(projects)
     assert child.is_child_of(projects, strict=True)
+
+
+def test_undiscoverable_basics(pad):
+    projects = pad.query('/projects')
+    assert projects.count() == 8
+    assert projects._include_undiscoverable
+    assert projects._include_hidden is None
+
+    secret = pad.get('/projects/secret')
+    assert secret.is_undiscoverable
+    assert secret.url_path == '/projects/secret/'
+
+    q = secret.children
+    assert q._include_undiscoverable is False
+    assert q._include_hidden is None
+    q = q.include_undiscoverable(True)
+    assert q._include_undiscoverable is True
+    assert q._include_hidden is False
