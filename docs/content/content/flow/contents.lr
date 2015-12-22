@@ -7,7 +7,7 @@ body:
 Flow is a system in Lektor that allows you to have higher flexibility when
 creating pages.  The [Flow Type :ref](../../api/db/types/flow/) field type
 that allows you to store multiple different formats of data within the same
-field each with it's own template.
+field each with its own template.
 
 This allows you to build complex pages made from individual components.
 

@@ -15,7 +15,7 @@ URL which can be customized.  They are roughly speaking something like a
 file name.  For instance `foo-bar` can be a slug in `/foo-bar/`.  The default
 slug of a page is the ID of the page.  So if you have a page called
 `/foo/bar/contents.lr` then the default slug is `bar`.  As you can see the
-full URL is comprised of it's own slug concatenated with all the slugs of
+full URL is comprised of its own slug concatenated with all the slugs of
 all parents.
 
 Can a slug contain slashes?  Yes indeed it can.  A slug is free to contain

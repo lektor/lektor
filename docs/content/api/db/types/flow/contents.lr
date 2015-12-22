@@ -20,7 +20,7 @@ For configuration you can define which blocks are allowed by setting the
 that are allowed.  If not defined, all flow blocks become available.
 
 The text format for flow blocks in the `contents.lr` file looks a bit more
-complex because of it's nested nature, but in essence it's this:
+complex because of its nested nature, but in essence it's this:
 
 ```
 #### name-of-flow-block ####
