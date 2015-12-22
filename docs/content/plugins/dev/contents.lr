@@ -108,10 +108,10 @@ class HelloWorldPlugin(Plugin):
 
 If you now start your lektor server with `lektor server` you should
 see some output that indicates that the plugin was loaded.  You can also
-get a list with `lektor plugins`:
+get a list with `lektor plugins list`:
 
 ```
-$ lektor plugins
+$ lektor plugins list
 hello-world: Hello World
   This is a demo plugin for testing purposes.
   path: /Users/john/demo/packages/hello-world
