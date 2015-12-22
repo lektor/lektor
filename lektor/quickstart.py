@@ -150,7 +150,7 @@ def project_quickstart(defaults=None):
     g.title('Lektor Quickstart')
     g.text(
         'This wizard will generate a new basic project with some sensible '
-        'defaults for getting started quickly.  We jsut need to go through '
+        'defaults for getting started quickly.  We just need to go through '
         'a few questions so that the project is set up correctly for you.'
     )
 
