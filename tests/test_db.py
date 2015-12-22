@@ -205,6 +205,8 @@ def test_is_child_of(pad):
 def test_undiscoverable_basics(pad):
     projects = pad.query('/projects')
     assert projects.count() == 8
+    assert pad.get('/projects').children.count() == 7
+    assert 'secret' not in [x['_id'] for x in pad.get('/projects').children]
     assert projects._include_undiscoverable
     assert projects._include_hidden is None
 
@@ -218,3 +220,7 @@ def test_undiscoverable_basics(pad):
     q = q.include_undiscoverable(True)
     assert q._include_undiscoverable is True
     assert q._include_hidden is False
+
+    secret = pad.resolve_url_path('/projects/secret')
+    assert secret is not None
+    assert secret.path == '/projects/secret'
