@@ -59,11 +59,25 @@ div.body-wrapper {
 }
 
 footer {
+  border-top: 1px solid #666;
   padding: 10px 0;
-  color: #333;
+  color: #222;
+  line-height: 36px;
+
+  .icon-bar {
+    font-size: 28px;
+    a {
+      margin-right: 10px;
+      text-decoration: none;
+    }
+  }
 
   a {
-    color: white;
+    color: #ccc;
+    text-decoration: underline;
+    &:hover {
+      color: white;
+    }
   }
 
   div.row > div + div {

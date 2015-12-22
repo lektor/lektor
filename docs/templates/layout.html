@@ -49,17 +49,22 @@
   <footer>
     <div class="container">
       <div class="row">
-        <div class="col-sm-6">
-          <a href="https://github.com/lektor/lektor/">Lektor on Github</a> &middot;
-          <a href="https://github.com/lektor/lektor/issues/">Issue Tracker</a> &middot;
-          <a href="{{ '/license'|url }}">License</a> &middot;
-          <a href="{{ '/contact'|url }}">Contact</a>
+        <div class="col-sm-6 icon-bar">
+          <a href="https://github.com/lektor/lektor/" title="Lektor on Github"
+            ><i class="fa fa-github"></i></a>
+          <a href="https://github.com/lektor/lektor/issues/" title="Report Issues for Lektor"
+            ><i class="fa fa-bug"></i></a>
+          <a href="https://twitter.com/getlektor" title="Find Lektor on Twitter"
+            ><i class="fa fa-twitter"></i></a>
+          {%- if this.path %}
+          <a href="https://github.com/lektor/lektor-website/tree/master/content{{ this.path
+            }}/contents.lr" title="View source for this page"><i class="fa fa-code"></i></a>
+          {%- endif %}
         </div>
         <div class="col-sm-6">
-          Made with Heart in Carinthia
-          {% if this.path %}
-          — <a href="https://github.com/lektor/lektor-website/tree/master/content{{ this.path }}/contents.lr">View Source</a>
-          {% endif %}
+          <a href="{{ '/license'|url }}">License</a> •
+          <a href="{{ '/contact'|url }}">Contact</a> •
+          Made with <i class="fa fa-fw fa-heart" title="Heart"><span hidden>Heart</span></i> in Carinthia
         </div>
       </div>
     </div>

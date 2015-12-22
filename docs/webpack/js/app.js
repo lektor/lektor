@@ -136,8 +136,15 @@ function initGoogleSearch() {
   }
 }
 
+function hideThingsForWindows() {
+  if (navigator.appVersion.indexOf('Win') >= 0) {
+    $('.hide-for-windows').hide();
+  }
+}
+
 $(function() {
   initDownloadButton();
   initInstallRow();
   initGoogleSearch();
+  hideThingsForWindows();
 });

@@ -32,15 +32,19 @@ You need to make sure you have the following software installed on your computer
 
 * Python 2.7 (**not** Python 3.x)
 * ImageMagick (`brew install imagemagick` or `apt-get install imagemagick`
-  can get you this on OS X and Ubuntu respectively, on Windows do `choco install imagemagick`, which requires [chocolatey :ext](https://chocolatey.org/), or download from  [here :ext](http://www.imagemagick.org))
+  can get you this on OS X and Ubuntu respectively, on Windows do `choco
+  install imagemagick`, which requires [chocolatey :ext](https://chocolatey.org/),
+  or [download from here :ext](http://www.imagemagick.org)).
 
-Once you have that installed and made sure that they are on your `PATH` you can get Lektor installed with our
-installation script:
+Once you have that installed and made sure that they are on your `PATH` you can
+get Lektor installed with our installation script:
 
 ```
 $ curl -sf https://www.getlektor.com/install.sh | sh
 ```
+
 For Windows you can use the `command prompt`:
+
 ```
 C:\> @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://getlektor.com/install.ps1'))" && SET PATH=%PATH%;%LocalAppData%\lektor-cli
 ```
