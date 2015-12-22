@@ -176,10 +176,12 @@ class BuildState(object):
 
     def get_artifact_dependency_infos(self, artifact_name, sources):
         con = self.connect_to_database()
-        cur = con.cursor()
-        rv = list(self._iter_artifact_dependency_infos(
-            cur, artifact_name, sources))
-        con.close()
+        try:
+            cur = con.cursor()
+            rv = list(self._iter_artifact_dependency_infos(
+                cur, artifact_name, sources))
+        finally:
+            con.close()
         return rv
 
     def _iter_artifact_dependency_infos(self, cur, artifact_name, sources):
