@@ -591,7 +591,7 @@ class GithubPagesPublisher(Publisher):
                 yield line
 
 
-publishers = {
+builtin_publishers = {
     'rsync': RsyncPublisher,
     'ftp': FtpPublisher,
     'ftps': FtpTlsPublisher,
@@ -603,6 +603,6 @@ publishers = {
 
 def publish(env, target, output_path, credentials=None):
     url = urls.url_parse(unicode(target))
-    publisher = publishers.get(url.scheme)
+    publisher = env.publishers.get(url.scheme)
     if publisher is not None:
         return publisher(env, output_path).publish(url, credentials)
