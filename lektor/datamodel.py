@@ -35,8 +35,9 @@ class ChildConfig(object):
 
 class PaginationConfig(object):
 
-    def __init__(self, enabled=None, per_page=None, url_suffix=None,
+    def __init__(self, env, enabled=None, per_page=None, url_suffix=None,
                  items=None):
+        self.env = env
         if enabled is None:
             enabled = False
         self.enabled = enabled
@@ -47,14 +48,20 @@ class PaginationConfig(object):
             url_suffix = 'page'
         self.url_suffix = url_suffix
         self.items = items
+        self._items_tmpl = None
+
+    def count_total_items(self, record):
+        """Counts the number of items over all pages."""
+        return self.get_pagination_query(record).count()
 
     def count_pages(self, record):
         """Returns the total number of pages for the children of a record."""
-        total = record.children.count()
+        total = self.count_total_items(record)
         return int(math.ceil(total / float(self.per_page)))
 
-    def slice_query_for_page(self, query, page):
+    def slice_query_for_page(self, record, page):
         """Slices the query so it returns the children for a given page."""
+        query = self.get_pagination_query(record)
         if not self.enabled or page is None:
             return query
         return query.limit(self.per_page).offset((page - 1) * self.per_page)
@@ -107,6 +114,20 @@ class PaginationConfig(object):
         if not self.enabled:
             raise RuntimeError('Pagination is disabled')
         return Pagination(record, self)
+
+    def get_pagination_query(self, record):
+        items_expr = self.items
+        if items_expr is None:
+            return record.children
+        if self._items_tmpl is None or \
+           self._items_tmpl[0] != items_expr:
+            self._items_tmpl = (
+                items_expr,
+                Expression(self.env, items_expr)
+            )
+
+        return self._items_tmpl[1].evaluate(
+            record.pad, this=record)
 
     def to_json(self):
         return {
@@ -214,7 +235,7 @@ class DataModel(object):
             attachment_config = AttachmentConfig()
         self.attachment_config = attachment_config
         if pagination_config is None:
-            pagination_config = PaginationConfig()
+            pagination_config = PaginationConfig(env)
         self.pagination_config = pagination_config
         if fields is None:
             fields = []
@@ -517,7 +538,7 @@ def datamodel_from_data(env, model_data, parent=None):
             model=get_value('attachment_config.model'),
             order_by=get_value('attachment_config.order_by'),
         ),
-        pagination_config=PaginationConfig(
+        pagination_config=PaginationConfig(env,
             enabled=get_value('pagination_config.enabled'),
             per_page=get_value('pagination_config.per_page'),
             url_suffix=get_value('pagination_config.url_suffix'),

@@ -13,13 +13,12 @@ class Pagination(object):
         #: the number of items to be displayed on a page.
         self.per_page = pagination_config.per_page
         #: the total number of items matching the query
-        self.total = record.children.count()
+        self.total = pagination_config.count_total_items(record)
 
     @property
     def items(self):
         """The children for this page."""
-        return self.config.slice_query_for_page(
-            self.current.children, self.page)
+        return self.config.slice_query_for_page(self.current, self.page)
 
     @property
     def pages(self):
