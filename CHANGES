@@ -14,6 +14,8 @@ Bugfix release
   up in `children`.  The default is that a page is discoverable.  Setting it
   to `False` means in practical terms that someone needs to know the URL as
   all collection operations will not return it.
+- Added `for_page` function to pagination that returns the pagiantion for a
+  specific page.
 
 1.0
 ---

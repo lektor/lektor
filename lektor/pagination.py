@@ -64,6 +64,11 @@ class Pagination(object):
         return self.config.get_record_for_page(self.current,
                                                self.page + 1)
 
+    def for_page(self, page):
+        """Returns the pagination for a specific page."""
+        if 1 <= page <= self.pages:
+            return self.config.get_record_for_page(self.current, page)
+
     def iter_pages(self, left_edge=2, left_current=2,
                    right_current=5, right_edge=2):
         """Iterates over the page numbers in the pagination.  The four

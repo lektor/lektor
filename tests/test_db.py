@@ -55,6 +55,8 @@ def test_paginated_children(pad):
 def test_unpaginated_children(pad):
     page_all = pad.get('/projects')
 
+    assert page_all
+
     assert page_all.pagination.items.count() == 7
     assert page_all.page_num is None
 
@@ -69,6 +71,17 @@ def test_unpaginated_children(pad):
         u'Slave',
         u'Wolf',
     ]
+
+
+def test_pagination_access(pad):
+    page = pad.get('/projects', page_num=1)
+
+    assert page.pagination.page == 1
+    assert page.pagination.next.pagination.page == 2
+    assert page.pagination.for_page(2).pagination.page == 2
+
+    assert page.pagination.for_page(0) is None
+    assert page.pagination.for_page(3) is None
 
 
 def test_url_matching_for_pagination(pad):
