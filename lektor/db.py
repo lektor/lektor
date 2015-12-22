@@ -315,12 +315,7 @@ class Record(SourceObject):
     @property
     def is_discoverable(self):
         """Indicates if the page is discoverable without knowing the URL."""
-        if not is_undefined(self._data['_discoverable']):
-            return self._data['_discoverable']
-        if not is_undefined(self._data['_hidden']):
-            return not self._data['_hidden']
-        parent = self.parent
-        return parent is None or parent.is_discoverable
+        return self._data['_discoverable'] and not self.is_hidden
 
     @cached_property
     def pagination(self):

@@ -87,7 +87,7 @@
   "HIDE_PAGE": "Hide page",
   "HIDE_PAGE_EXPLANATION": "Should this page be hidden?",
   "PAGE_IS_DISCOVERABLE": "Page is discoverable",
-  "PAGE_IS_DISCOVERABLE_EXPLANATION": "If this is enabled the page can be discovered, otherwise the URL has ot be known.",
+  "PAGE_IS_DISCOVERABLE_EXPLANATION": "If this is enabled the page can be discovered, otherwise the URL has to be known.",
   "REFRESH_BUILD": "Refresh Build",
   "REFRESH_BUILD_NOTE": "This deletes all cached build results which triggers a rebuilt from scratch.  This is useful in certain situations where sync errors or mistakes in templates caused corrupted output.",
   "CURRENTLY_REFRESHING_BUILD": "Currently refreshing build ...",

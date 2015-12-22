@@ -646,7 +646,7 @@ add_system_field('_hidden', type='boolean', label_i18n='HIDE_PAGE',
                  checkbox_label_i18n='HIDE_PAGE_EXPLANATION')
 
 # This marks a page as undiscoverable.
-add_system_field('_discoverable', type='boolean',
+add_system_field('_discoverable', type='boolean', default='yes',
                  label_i18n='PAGE_IS_DISCOVERABLE',
                  checkbox_label_i18n='PAGE_IS_DISCOVERABLE_EXPLANATION')
 

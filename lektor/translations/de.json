@@ -86,6 +86,8 @@
   "TEMPLATE": "Vorlage",
   "HIDE_PAGE": "Seite verstecken",
   "HIDE_PAGE_EXPLANATION": "Soll diese Seite versteckt werden?",
+  "PAGE_IS_DISCOVERABLE": "Seite ist erkundbar",
+  "PAGE_IS_DISCOVERABLE_EXPLANATION": "Wenn dies aktiviert ist, wird Seite von Vorlagen verlinkt. Ansonsten muss die URL bekannt sein.",
   "REFRESH_BUILD": "Änderungen Regenerieren",
   "REFRESH_BUILD_NOTE": "In machen Situationen kann es nützlich sein alle Änderungen zu regenerieren.  Zum Beispiel können Synchronisationsfehler und kaputte Vorlagen manchmal dazu führen, dass Seiten fehlerhaft gebaut wurden.  Dies forciert Lektor alle Seiten neu zu bauen.",
   "CURRENTLY_REFRESHING_BUILD": "Änderungen werden regeneriert ...",
