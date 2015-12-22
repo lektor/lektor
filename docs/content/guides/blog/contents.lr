@@ -90,7 +90,7 @@ instead of `this.children` which will return only the items for the intended
 page.
 
 ```html+jinja
-{% extends "blog_layout.html" %}
+{% extends "layout.html" %}
 {% from "macros/pagination.html" import render_pagination %}
 {% block title %}My Blog{% endblock %}
   <h1>My Blog</h1>
