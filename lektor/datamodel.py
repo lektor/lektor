@@ -35,7 +35,8 @@ class ChildConfig(object):
 
 class PaginationConfig(object):
 
-    def __init__(self, enabled=None, per_page=None, url_suffix=None):
+    def __init__(self, enabled=None, per_page=None, url_suffix=None,
+                 items=None):
         if enabled is None:
             enabled = False
         self.enabled = enabled
@@ -45,6 +46,7 @@ class PaginationConfig(object):
         if url_suffix is None:
             url_suffix = 'page'
         self.url_suffix = url_suffix
+        self.items = items
 
     def count_pages(self, record):
         """Returns the total number of pages for the children of a record."""
@@ -111,6 +113,7 @@ class PaginationConfig(object):
             'enabled': self.enabled,
             'per_page': self.per_page,
             'url_suffix': self.url_suffix,
+            'items': self.items,
         }
 
 
@@ -435,6 +438,7 @@ def datamodel_data_from_ini(id, inifile):
             enabled=inifile.get_bool('pagination.enabled', default=None),
             per_page=inifile.get_int('pagination.per_page'),
             url_suffix=inifile.get('pagination.url_suffix'),
+            items=inifile.get('pagination.items'),
         ),
         fields=fielddata_from_ini(inifile),
     )
@@ -517,6 +521,7 @@ def datamodel_from_data(env, model_data, parent=None):
             enabled=get_value('pagination_config.enabled'),
             per_page=get_value('pagination_config.per_page'),
             url_suffix=get_value('pagination_config.url_suffix'),
+            items=get_value('pagination_config.items'),
         ),
         fields=fields,
     )
