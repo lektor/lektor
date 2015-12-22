@@ -80,7 +80,7 @@ The page body goes here
 
 Fields are separated by three dashes `---` and follow the format `key: value`.
 For values with multiple lines it's recommended to insert two newlines after
-the key.  To format of each field is specific to how the model is configured.
+the key.  The format of each field is specific to how the model is configured.
 
 Some fields are plain text, others can be markdown syntax and more.  These
 fields become available for rendering in the template automatically.
