@@ -20,7 +20,7 @@ disk image that you can mount which contains one application by the name of
 go.
 
 If you also want access to the command line tools just launch `Lektor.app`
-and then click on *Lektor ➤ Install Shell Command*.
+and then click in the menu bar on *Lektor ➤ Install Shell Command*.
 
 ## Command Line Application
 
