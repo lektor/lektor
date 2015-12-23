@@ -5,7 +5,7 @@ summary: Enabling disqus comments in one minute.
 body:
 
 The `disqus-comments` plugin adds support for Disqus comments to Lektor and
-with it's help you can have comments on your pages in no time.  Once the plugin
+with its help you can have comments on your pages in no time.  Once the plugin
 is enabled a `render_disqus_comments` function is available for templates which
 can render a disqus comment box.  All you need to do for this is to create your
 own Disqus community at [Disqus Engage :ext](https://publishers.disqus.com/engage).

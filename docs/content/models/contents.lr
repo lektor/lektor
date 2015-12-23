@@ -86,7 +86,7 @@ Models have the following options that can customize the model itself:
 - `hidden`: a boolean value that indicates if the model should be hidden from
   the UI or not.  If set to `yes` then new pages cannot select this model.
   This is very useful for models that are implied through configuration.
-- `protected`: if a model is set to protected then all of it's instances
+- `protected`: if a model is set to protected then all of its instances
   cannot be deleted once created.
 - `inherits`: if you want to inherit all fields from another model then this
   can be set to the name of another model.
