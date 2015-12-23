@@ -15,6 +15,29 @@ function selectText(text) {
   }
 }
 
+function initBadges() {
+  let badges = $('.badges li').hide();
+
+  if (badges.length <= 0) {
+    return;
+  }
+
+  let nextBadge = 0;
+
+  function fadeInNext() {
+    let el = badges[nextBadge++];
+    if (!el) {
+      return;
+    }
+    window.setTimeout(fadeInNext, 200);
+    $(el).fadeIn();
+  }
+
+  window.setTimeout(function() {
+    fadeInNext();
+  }, 1000);
+}
+
 function initDownloadButton() {
   let buttons = $('.download-btn');
   if (buttons.length <= 0) {
@@ -143,6 +166,7 @@ function hideThingsForWindows() {
 }
 
 $(function() {
+  initBadges();
   initDownloadButton();
   initInstallRow();
   initGoogleSearch();
