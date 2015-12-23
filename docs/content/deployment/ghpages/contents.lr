@@ -8,7 +8,7 @@ body:
 * `ghpages+https://username/repository`
 
 A popular way to host websites for Open Source projects is the GitHub pages.
-It's a free services provided by [GitHub :ext](http://github.com/) which allows
+It's a free service provided by [GitHub :ext](http://github.com/) which allows
 to host completely static websites through GitHub.
 
 The way this is implemented in Lektor currently is that Lektor will force-push
