@@ -12,6 +12,7 @@ from cStringIO import StringIO
 from werkzeug import urls
 
 from lektor.utils import portable_popen, locate_executable
+from lektor.exception import LektorException
 
 
 devnull = open(os.devnull, 'rb+')
@@ -76,7 +77,8 @@ def _get_ssh_cmd(port=None, keyfile=None):
     return 'ssh %s' % ' '.join(ssh_args)
 
 
-class PublishError(Exception):
+class PublishError(LektorException):
+    """Raised by publishers if something goes wrong."""
     pass
 
 
@@ -442,7 +444,7 @@ class FtpPublisher(Publisher):
             con.upload_file('.lektor/.listing.tmp', ''.join(listing))
             con.rename_file('.lektor/.listing.tmp', '.lektor/listing')
 
-    def publish(self, target_url, credentials=None):
+    def publish(self, target_url, credentials=None, **extra):
         con = self.connection_class(target_url, credentials)
         connected = con.connect()
         for event in con.drain_log():
@@ -553,7 +555,7 @@ class GithubPagesPublisher(Publisher):
             with open(os.path.join(path, 'CNAME'), 'w') as f:
                 f.write('%s\n' % cname.encode('utf-8'))
 
-    def publish(self, target_url, credentials=None):
+    def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):
             raise PublishError('git executable not found; cannot deploy.')
 
