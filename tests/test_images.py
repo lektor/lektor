@@ -38,3 +38,12 @@ def test_exif(pad):
 
     for key, value in image.exif.to_dict().iteritems():
         assert getattr(image.exif, key) == value
+
+
+def test_image_attributes(pad):
+    image = pad.root.attachments.images.get('test.jpg')
+    assert image is not None
+
+    assert image.width == 384
+    assert image.height == 512
+    assert image.format == 'jpeg'
