@@ -25,6 +25,7 @@ Bugfix release
   fall back to asset resolving.
 - verbose mode now correctly displays traceback of build failures.
 - Fixed a bug that caused build failures not to be remembered.
+- Fixed a bad EXIF attribute (longitude was misspelt)
 
 1.0
 ---
