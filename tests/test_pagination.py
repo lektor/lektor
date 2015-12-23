@@ -133,7 +133,12 @@ def test_url_matching_for_alt_pagination(pad):
 
 
 def test_pagination_items_filter(pad):
+    # This tests that items are excluded from the pagination based on a
+    # query if needed.
     blog = pad.get('/blog', page_num=1)
+    assert blog.datamodel.pagination_config.items == \
+        "this.children.filter(F._model == 'blog-post')"
+
     assert blog.children.count() == 2
     assert sorted(x['_id'] for x in blog.children) == [
         'dummy.xml', 'post1']
