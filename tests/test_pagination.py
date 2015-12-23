@@ -72,6 +72,27 @@ def test_pagination_access(pad):
     assert page.pagination.for_page(3) is None
 
 
+def test_pagination_attributes(pad):
+    page = pad.get('/projects', page_num=1)
+    assert page.pagination.current is page
+    assert page.pagination.next is not None
+    assert page.pagination.next.page_num == 2
+    assert page.pagination.prev is None
+    assert page.pagination.pages == 2
+    assert page.pagination.prev_num is None
+    assert page.pagination.next_num == 2
+    assert page.pagination.has_next
+    assert not page.pagination.has_prev
+
+    page = page.pagination.next
+    assert page.pagination.current is page
+    assert page.pagination.next is None
+    assert page.pagination.prev.page_num == 1
+    assert not page.pagination.has_next
+    assert page.pagination.next is None
+    assert page.pagination.next_num is None
+
+
 def test_url_matching_for_pagination(pad):
     page1 = pad.resolve_url_path('/projects/')
     assert page1.page_num == 1

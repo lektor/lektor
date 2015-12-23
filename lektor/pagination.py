@@ -32,7 +32,8 @@ class Pagination(object):
     @property
     def prev_num(self):
         """Number of the previous page."""
-        return self.page - 1
+        if self.page > 1:
+            return self.page - 1
 
     @property
     def has_prev(self):
@@ -54,7 +55,8 @@ class Pagination(object):
     @property
     def next_num(self):
         """Number of the next page"""
-        return self.page + 1
+        if self.page < self.pages:
+            return self.page + 1
 
     @property
     def next(self):
