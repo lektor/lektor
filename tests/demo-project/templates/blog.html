@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h1>Blog</h1>
+  <ul>
+  {% for item in this.pagination.items %}
+    <li><a href="{{ item|url }}">{{ item.title }}</a>
+  {% endfor %}
+  </ul>
+{% endblock %}
