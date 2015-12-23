@@ -161,7 +161,7 @@ class EXIFInfo(object):
             return None
 
     @property
-    def longitue(self):
+    def longitude(self):
         try:
             return _convert_gps(self._mapping['GPS GPSLongitude'].values,
                                 self._mapping['GPS GPSLongitudeRef'].printable)
