@@ -11,6 +11,7 @@ Bugfix release
 - Fixed a bug where resolving URL paths outside of alts did not
   fall back to asset resolving.
 - verbose mode now correctly displays traceback of build failures.
+- Fixed a bug that caused build failures not to be remembered.
 
 1.0
 ---
