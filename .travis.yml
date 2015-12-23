@@ -6,3 +6,8 @@ install:
   - pip install --editable .
 
 script: make test
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/f0c538cdfc9883f81e34
