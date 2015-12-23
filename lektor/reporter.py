@@ -62,6 +62,10 @@ class Reporter(object):
         return self.verbosity >= 1
 
     @property
+    def show_tracebacks(self):
+        return self.verbosity >= 1
+
+    @property
     def show_current_artifacts(self):
         return self.verbosity >= 2
 
@@ -224,6 +228,19 @@ class CliReporter(Reporter):
             *exc_info[:2])).splitlines()).strip()
         self._write_line('%s %s (%s)' % (
             sign, artifact.artifact_name, err))
+
+        if not self.show_tracebacks:
+            return
+
+        tb = traceback.format_exception(*exc_info)
+        for line in ''.join(tb).splitlines():
+            if line.startswith('Traceback '):
+                line = click.style(line, fg='red')
+            elif line.startswith('  File '):
+                line = click.style(line, fg='yellow')
+            elif not line.startswith('    '):
+                line = click.style(line, fg='red')
+            self._write_line('  ' + line)
 
     def report_dirty_flag(self, value):
         if self.show_artifact_internals and (value or self.show_debug_info):

@@ -922,7 +922,7 @@ class Builder(object):
                     if project_file:
                         ctx.record_dependency(project_file)
                     build_func(artifact)
-                    return ctx
+                return ctx
 
     def update_source_info(self, prog, build_state):
         """Updates a single source info based on a program.  This is done
