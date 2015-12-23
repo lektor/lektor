@@ -53,8 +53,11 @@ but you can also do it directly in `Powershell`:
 PS C:\> iex ((new-object net.webclient).DownloadString('https://getlektor.com/install.ps1'))
 ```
 
-Alternatively you can manually install it with `virtualenv` if you know
-how that works:
+## pip
+
+Alternatively you can manually install the command line version with
+`virtualenv` if you know how that works.  Note that this method is *heavily
+discouraged* for anything other than advanced use cases such as build servers.
 
 ```
 $ virtualenv venv
