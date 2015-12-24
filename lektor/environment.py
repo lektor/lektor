@@ -18,6 +18,7 @@ from lektor.i18n import get_i18n_block
 from lektor.context import url_to, get_asset_url, site_proxy, \
      config_proxy, get_ctx, get_locale
 from lektor.pluginsystem import PluginController
+from lektor.markdown import Markdown
 
 
 # Special value that identifies a target to the primary alt
@@ -385,6 +386,8 @@ class Environment(object):
                 lambda ctx, *a, **kw: url_to(*a, **kw)),
             asseturl=jinja2.contextfilter(
                 lambda ctx, *a, **kw: get_asset_url(*a, **kw)),
+            markdown=jinja2.contextfilter(
+                lambda ctx, *a, **kw: Markdown(*a, **kw)),
         )
         self.jinja_env.globals.update(
             F=F,
