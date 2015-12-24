@@ -27,6 +27,9 @@ The parameters to the function are as follows:
 * `**extra`: for forwards compatibility publishers are required to ignore extra
   keyword arguments.
 
+Each line in the generator must be a string which is then either logged to
+the output in the console or in the deploy/publish window in the admin UI.
+
 ## Example
 
 This example implements a simple publisher that just copies all built files
