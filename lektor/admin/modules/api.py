@@ -302,9 +302,9 @@ def publish_build():
     info = current_app.lektor_info
     @eventstream
     def generator():
-        event_iter = publish(info.env, server_info.target,
-                             info.output_path) or ()
         try:
+            event_iter = publish(info.env, server_info.target,
+                                 info.output_path) or ()
             for event in event_iter:
                 yield {'msg': event}
         except PublishError as e:

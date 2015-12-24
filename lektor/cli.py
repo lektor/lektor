@@ -269,11 +269,12 @@ def deploy_cmd(ctx, server, output_path, **credentials):
             raise click.BadParameter('Server "%s" does not exist.' % server,
                                      param_hint='server')
 
-    event_iter = publish(env, server_info.target, output_path,
-                         credentials=credentials)
-    if event_iter is None:
+    try:
+        event_iter = publish(env, server_info.target, output_path,
+                             credentials=credentials)
+    except PublishError as e:
         raise click.UsageError('Server "%s" is not configured for a valid '
-                               'publishing method.' % server)
+                               'publishing method: %s' % server)
 
     click.echo('Deploying to %s' % server_info.name)
     click.echo('  Build cache: %s' % output_path)

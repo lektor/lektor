@@ -158,7 +158,7 @@ class Publisher(object):
             except (IOError, OSError):
                 pass
 
-    def publish(self, target_url, credentials=None):
+    def publish(self, target_url, credentials=None, **extra):
         raise NotImplementedError()
 
 
@@ -188,7 +188,7 @@ class RsyncPublisher(Publisher):
         argline.append(''.join(target))
         return Command(argline, env=env)
 
-    def publish(self, target_url, credentials=None):
+    def publish(self, target_url, credentials=None, **extra):
         with self.temporary_folder() as tempdir:
             client = self.get_command(target_url, tempdir, credentials)
             with client:
@@ -606,5 +606,6 @@ builtin_publishers = {
 def publish(env, target, output_path, credentials=None):
     url = urls.url_parse(unicode(target))
     publisher = env.publishers.get(url.scheme)
-    if publisher is not None:
-        return publisher(env, output_path).publish(url, credentials)
+    if publisher is None:
+        raise PublishError('"%s" is an unknown scheme.' % url.scheme)
+    return publisher(env, output_path).publish(url, credentials)
