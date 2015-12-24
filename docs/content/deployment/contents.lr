@@ -101,6 +101,10 @@ The following targets are supported for the `target` folder:
 * [FTP](ftp/)
 * [GitHub Pages](ghpages/)
 
+In addition, third-party plugins are available for these targets:
+
+* [S3 :ext](https://github.com/spenczar/lektor-s3)
+
 ## Manual Deployments
 
 If you want to manually deploy something through the favorite tool of yours
