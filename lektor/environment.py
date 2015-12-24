@@ -522,6 +522,11 @@ class Environment(object):
             cext = asset_cls.source_extension + asset_cls.artifact_extension
             self.special_file_suffixes[cext] = asset_cls.source_extension
 
+    def add_publisher(self, scheme, publisher):
+        if scheme in self.publishers:
+            raise RuntimeError('Scheme "%s" is already registered.' % scheme)
+        self.publishers[scheme] = publisher
+
     def urlresolver(self, func):
         self.custom_url_resolvers.append(func)
         return func

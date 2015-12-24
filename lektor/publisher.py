@@ -77,6 +77,21 @@ def _get_ssh_cmd(port=None, keyfile=None):
     return 'ssh %s' % ' '.join(ssh_args)
 
 
+@contextmanager
+def _temporary_folder():
+    folder = tempfile.mkdtemp()
+    scratch = os.path.join(folder, 'scratch')
+    os.mkdir(scratch)
+    os.chmod(scratch, 0755)
+    try:
+        yield scratch
+    finally:
+        try:
+            shutil.rmtree(folder)
+        except (IOError, OSError):
+            pass
+
+
 class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
     pass
@@ -144,19 +159,8 @@ class Publisher(object):
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
-    @contextmanager
-    def temporary_folder(self):
-        folder = tempfile.mkdtemp()
-        scratch = os.path.join(folder, 'scratch')
-        os.mkdir(scratch)
-        os.chmod(scratch, 0755)
-        try:
-            yield scratch
-        finally:
-            try:
-                shutil.rmtree(folder)
-            except (IOError, OSError):
-                pass
+    def fail(self, message):
+        raise PublishError(message)
 
     def publish(self, target_url, credentials=None, **extra):
         raise NotImplementedError()
@@ -189,7 +193,7 @@ class RsyncPublisher(Publisher):
         return Command(argline, env=env)
 
     def publish(self, target_url, credentials=None, **extra):
-        with self.temporary_folder() as tempdir:
+        with _temporary_folder() as tempdir:
             client = self.get_command(target_url, tempdir, credentials)
             with client:
                 for line in client:
@@ -557,7 +561,7 @@ class GithubPagesPublisher(Publisher):
 
     def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):
-            raise PublishError('git executable not found; cannot deploy.')
+            self.fail('git executable not found; cannot deploy.')
 
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
@@ -566,7 +570,7 @@ class GithubPagesPublisher(Publisher):
         else:
             branch = 'gh-pages'
 
-        with self.temporary_folder() as path:
+        with _temporary_folder() as path:
             ssh_command = None
             def git(args, **kwargs):
                 kwargs['env'] = _patch_git_env(kwargs.pop('env', None),
