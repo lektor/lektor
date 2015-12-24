@@ -103,3 +103,23 @@ def test_undiscoverable_basics(pad):
     secret = pad.resolve_url_path('/projects/secret')
     assert secret is not None
     assert secret.path == '/projects/secret'
+
+
+def test_attachment_api(pad):
+    from lektor.db import Image
+
+    root = pad.root
+    assert root.attachments.count() == 2
+    assert sorted(x['_id'] for x in root.attachments) == [
+        'hello.txt', 'test.jpg']
+
+    txt = root.attachments.get('hello.txt')
+    assert txt is not None
+    assert txt['_attachment_type'] == 'text'
+    assert txt.url_path == '/hello.txt'
+
+    img = root.attachments.get('test.jpg')
+    assert img is not None
+    assert img['_attachment_type'] == 'image'
+    assert isinstance(img, Image)
+    assert img.url_path == '/test.jpg'
