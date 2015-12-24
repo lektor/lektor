@@ -291,11 +291,24 @@ div.doc-styling {
     }
   }
 
-  p.type-info {
+  ul.page-meta {
+    list-style: none;
     font-style: italic;
-  }
-  p.type-info + p.type-info {
-    margin-top: 0;
+    margin: 0;
+    padding: 0 0 0 30px;
+    line-height: 1.4;
+
+    > li {
+      margin: 0;
+      padding: 0;
+      &:last-child {
+        margin-bottom: 10px;
+      }
+
+      em {
+        background: #eee;
+      }
+    }
   }
 
   table {
