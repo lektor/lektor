@@ -403,7 +403,7 @@ class Environment(object):
         from lektor.types import builtin_types
         self.types = builtin_types.copy()
 
-        from lektor.publishers import builtin_publishers
+        from lektor.publisher import builtin_publishers
         self.publishers = builtin_publishers.copy()
 
         # The plugins that are loaded for this environment.  This is
