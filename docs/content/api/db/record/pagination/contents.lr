@@ -15,17 +15,23 @@ overview page.
 
 The following attributes exist on the pagination object:
 
-| Attribute   | Description
-| ----------- | ------------
-| `current`   | The current record
-| `prev`      | The record for the last page (might be `None`)
-| `next`      | The record for the net page (might be `None`)
-| `total`     | The total number of items across all pages
-| `pages`     | The total number of pages
-| `page`     | The number of current page
-| `has_prev`  | `True` if a previous page exists
-| `has_next`  | `True` if a next page exists
-| `items`     | The query that resolves to the children of the current page.
+| Attribute    | Description
+| ------------ | ------------
+| `current`    | The current record
+| `prev`       | The record for the last page (might be `None`)
+| `next`       | The record for the net page (might be `None`)
+| `total`      | The total number of items across all pages
+| `pages`      | The total number of pages
+| `page`       | The number of current page
+| `has_prev`   | `True` if a previous page exists
+| `has_next`   | `True` if a next page exists
+| `items`      | The query that resolves to the children of the current page.
+| `for_page()` | Returns the record for a different page.
+
+The `for_page()` function accepts a page number and returns the record for
+the other page.
+
+!! *Changed in Lektor 2.0:* The `for_page()` method was added.
 
 ## Item Query Example
 
