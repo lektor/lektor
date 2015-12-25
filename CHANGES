@@ -15,6 +15,7 @@ Bugfix release
 - Fixed a bad EXIF attribute (longitude was misspelt)
 - Use requests for URL fetching instead of urllib.  This should fix
   some SSL errors on some Python versions.
+- Parent of page now correctly resolves to the right alt.
 
 1.0
 ---
