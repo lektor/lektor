@@ -24,6 +24,7 @@ setup(
         'Babel',
         'setuptools',
         'pip',
+        'requests[security]',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
