@@ -85,6 +85,10 @@ the key.  The format of each field is specific to how the model is configured.
 Some fields are plain text, others can be markdown syntax and more.  These
 fields become available for rendering in the template automatically.
 
-**Tip:** If you want to use `---` itself in the document text, just add another
+!!! If you want to use `---` itself in the document text, just add another
 dash.  This means `----` will render as `---` and `-----` will render as
 `----` etc.
+
+Fields prefixed with an underscore are so-called system fields.  They are
+provided by Lektor and customize behavior within Lektor.  For a list of
+available fields see [System Fields :ref](../api/db/system-fields/).
