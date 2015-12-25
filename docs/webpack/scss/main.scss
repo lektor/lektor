@@ -327,6 +327,10 @@ div.doc-styling {
       padding: 5px 10px;
     }
 
+    tr {
+      background: white;
+    }
+
     tr:nth-child(odd) {
       background: #f8f8f8;
     }
@@ -610,6 +614,56 @@ div.sourceviewer {
   }
   pre {
     overflow: auto;
+  }
+}
+
+div.admonition {
+  margin: 15px 0;
+  background: white;
+  padding: 10px 15px;
+  padding-bottom: 0;
+
+  &:before {
+    margin: -10px -15px 10px -15px;
+    padding: 10px 15px;
+    line-height: 1;
+    background: #ccc;
+    display: block;
+    content: "";
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  &.admonition-note {
+    &:before {
+      content: "Note";
+      background: #8FC4E0;
+    }
+    border: 1px solid #8FC4E0;
+  }
+
+  &.admonition-info {
+    &:before {
+      content: "Info";
+      background: #E0C18F;
+    }
+    border: 1px solid #E0C18F;
+  }
+
+  &.admonition-tip {
+    &:before {
+      content: "Tip";
+      background: #9EB675;
+    }
+    border: 1px solid #9EB675;
+  }
+
+  &.admonition-warning {
+    &:before {
+      content: "Warning";
+      background: #E0AA8F;
+    }
+    border: 1px solid #E0AA8F;
   }
 }
 
