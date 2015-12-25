@@ -1,12 +1,11 @@
 import os
 import sys
 import site
-import json
 import errno
 import click
 import shutil
-import urllib
 import tempfile
+import requests
 import pkg_resources
 from subprocess import PIPE
 
@@ -45,11 +44,11 @@ def add_package_to_project(project, req):
         raise RuntimeError('The package was already added to the project.')
 
     for choice in name, 'lektor-' + name:
-        rv = urllib.urlopen('https://pypi.python.org/pypi/%s/json' % choice)
-        if rv.code != 200:
+        rv = requests.get('https://pypi.python.org/pypi/%s/json' % choice)
+        if rv.status_code != 200:
             continue
 
-        data = json.load(rv)
+        data = rv.json()
         canonical_name = data['info']['name']
         if version is None:
             version = data['info']['version']

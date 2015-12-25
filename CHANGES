@@ -13,6 +13,8 @@ Bugfix release
 - verbose mode now correctly displays traceback of build failures.
 - Fixed a bug that caused build failures not to be remembered.
 - Fixed a bad EXIF attribute (longitude was misspelt)
+- Use requests for URL fetching instead of urllib.  This should fix
+  some SSL errors on some Python versions.
 
 1.0
 ---
