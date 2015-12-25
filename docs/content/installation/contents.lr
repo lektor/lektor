@@ -65,6 +65,12 @@ $ . venv/bin/activate
 $ pip install Lektor
 ```
 
+!!!! When we say this installation type is discouraged we mean it.  The reason
+is that it encourages uses of Lektor which are entirely unsupported by us.
+Lektor actively manages virtualenvs for plugin installations in very specific
+ways and this might or might not work in your setup.  We support pip
+installations for deployment environments and local development only.
+
 ## Development Version
 
 If you want to install the development version of Lektor you can do so.  It's
