@@ -21,8 +21,8 @@ def test_child_query_visibility_setting(pad):
     assert not projects.children._include_hidden
 
     project_query = pad.query('/projects')
-    assert project_query._include_hidden is None
-    assert project_query._include_undiscoverable
+    assert project_query._include_hidden
+    assert not project_query._include_undiscoverable
 
 
 def test_alt_fallback(pad):
@@ -89,11 +89,12 @@ def test_is_child_of(pad):
 
 def test_undiscoverable_basics(pad):
     projects = pad.query('/projects')
-    assert projects.count() == 8
+    assert projects.count() == 7
+    assert projects.include_undiscoverable(True).count() == 8
     assert pad.get('/projects').children.count() == 7
     assert 'secret' not in [x['_id'] for x in pad.get('/projects').children]
-    assert projects._include_undiscoverable
-    assert projects._include_hidden is None
+    assert not projects._include_undiscoverable
+    assert projects._include_hidden
 
     secret = pad.get('/projects/secret')
     assert secret.is_undiscoverable

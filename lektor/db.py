@@ -518,10 +518,8 @@ class Page(Record):
         """
         repl_query = self.datamodel.get_child_replacements(self)
         if repl_query is not None:
-            q = repl_query
-        else:
-            q = Query(path=self['_path'], pad=self.pad, alt=self.alt)
-        return q.include_undiscoverable(False)
+            return repl_query.include_undiscoverable(False)
+        return Query(path=self['_path'], pad=self.pad, alt=self.alt)
 
     @property
     def attachments(self):
@@ -639,7 +637,7 @@ class Query(object):
         self._limit = None
         self._offset = None
         self._include_hidden = None
-        self._include_undiscoverable = True
+        self._include_undiscoverable = False
         self._page_num = None
         self._filter_func = None
 
@@ -1325,7 +1323,8 @@ class Pad(object):
         # do some unexpected things.
         if alt is None:
             alt = PRIMARY_ALT
-        return Query(path='/' + (path or '').strip('/'), pad=self, alt=alt)
+        return Query(path='/' + (path or '').strip('/'), pad=self, alt=alt) \
+            .include_hidden(True)
 
 
 class TreeItem(object):
