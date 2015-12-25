@@ -10,8 +10,9 @@ body:
 
 This controls how the query should behave with regards to hidden records.
 A query created from the [children :ref](../../record/children/) attribute of
-a record will not include hidden records by default.  The opposite is true
-for queries created from the [query :ref](../../pad/query/) method of the pad.
+a record will not include hidden records (or undiscoverable) by default.  The
+opposite is true for queries created from the [query :ref](../../pad/query/)
+method of the pad.
 
 The parameter can be set to `True` to include hidden or `False` to exclude
 hidden records.
