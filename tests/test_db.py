@@ -35,6 +35,12 @@ def test_alt_fallback(pad):
     assert wolf_page['name'] == 'Wolf'
 
 
+def test_alt_parent(pad):
+    wolf_page = pad.get('/projects/wolf', alt='de')
+    assert wolf_page.alt == 'de'
+    assert wolf_page.alt == wolf_page.parent.alt
+
+
 def test_url_matching_with_customized_slug_in_alt(pad):
     en = pad.resolve_url_path('/projects/slave/')
     assert en.alt == 'en'
