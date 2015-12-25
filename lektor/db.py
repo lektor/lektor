@@ -489,7 +489,8 @@ class Page(Record):
         parent_path = posixpath.dirname(this_path)
         if parent_path != this_path:
             return self.pad.get(parent_path,
-                                persist=self.pad.cache.is_persistent(self))
+                                persist=self.pad.cache.is_persistent(self)
+                                alt=self.alt)
 
     @property
     def children(self):
