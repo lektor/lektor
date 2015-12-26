@@ -128,3 +128,20 @@ def test_basic_artifact_current_test(pad, builder, reporter):
             'source': root,
         })
     ]
+
+
+def test_basic_template_rendering(pad, builder):
+    root = pad.root
+
+    prog, _ = builder.build(root)
+    artifact = prog.artifacts[0]
+
+    with artifact.open('rb') as f:
+        rv = f.read().decode('utf-8')
+
+    assert artifact.artifact_name == 'index.html'
+
+    assert '<title>My Website</title>' in rv
+    assert '<h1>Welcome</h1>' in rv
+    assert '<link href="./static/style.css" rel="stylesheet">' in rv
+    assert '<p>Welcome to this pretty nifty website.</p>' in rv
