@@ -103,7 +103,7 @@ div.slideshow {
   height: auto;
   overflow: auto;
   background: lighten($gray, 55) url(../images/dark-curls.png);
-  box-shadow: inset 0 0 10px darken($lektor-header-bg, 5);
+  box-shadow: inset 0 0 10px fade-out(darken($lektor-header-bg, 5), 0.8);
   color: white;
 
   div.slideshow-inner {
@@ -259,14 +259,24 @@ div.banner {
   margin: 15px 0;
   background-size: cover;
   background-position: center center;
+  background-color: $lektor-header-bg;
 
   &:first-child {
     margin-top: 0;
-    box-shadow: 0 4px 10px fade-out($gray, 0.8);
   }
 
-  &.banner-dark {
-    background-color: $lektor-header-bg;
+  &.banner-500 {
+    height: 500px;
+
+    @media (max-width: $screen-md-max) { height: 300px; }
+    @media (max-width: $screen-sm-max) { height: 200px; }
+  }
+
+  &.banner-300 {
+    height: 300px;
+
+    @media (max-width: $screen-md-max) { height: 200px; }
+    @media (max-width: $screen-sm-max) { height: 120px; }
   }
 }
 
