@@ -96,3 +96,8 @@ Lektor.  This might be good next steps:
   deploy a website to production.
 * [Data Modelling :ref](../models/) for everything about how to model your
   data.
+
+!!! This website is built on Lektor as well.  You can find the sources of it
+[on GitHub :ext](https://github.com/lektor/lektor-website/) and you can click
+at any point on the source symbol (<i class="fa fa-code"></i>) on the bottom
+to see the source for the current page.

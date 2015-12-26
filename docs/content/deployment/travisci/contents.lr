@@ -118,3 +118,22 @@ cache:
 install: "pip install Lektor"
 script: "lektor build && lektor deploy ghpages"
 ```
+
+## Restricting Branches
+
+If you plan on having different branches and contributors you should disable
+the deployment to the master branch only.  You can do this with the following
+config:
+
+```yaml
+language: python
+python: 2.7
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/lektor/builds
+install: "pip install Lektor"
+script:
+  - "lektor build"
+  - 'test "$TRAVIS_PULL_REQUEST" == false && test "$TRAVIS_BRANCH" == master && lektor deploy ghpages'
+```
