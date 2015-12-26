@@ -145,3 +145,17 @@ def test_basic_template_rendering(pad, builder):
     assert '<h1>Welcome</h1>' in rv
     assert '<link href="./static/style.css" rel="stylesheet">' in rv
     assert '<p>Welcome to this pretty nifty website.</p>' in rv
+
+
+def test_attachment_copying(pad, builder):
+    root = pad.root
+    text_file = root.attachments.get('hello.txt')
+
+    prog, _ = builder.build(text_file)
+    artifact = prog.artifacts[0]
+
+    assert artifact.artifact_name == 'hello.txt'
+
+    with artifact.open('rb') as f:
+        rv = f.read().decode('utf-8').strip()
+        assert rv == 'Hello I am an Attachment'
