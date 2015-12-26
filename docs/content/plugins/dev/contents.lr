@@ -122,8 +122,8 @@ hello-world: Hello World
 
 Plugins in Lektor are based on the concept of hooking events.  There are many
 events that can be hooked but we will only cover a very basic one here,
-the `process_template_context` event.  To respond to it, we need to implement
-a function named `on_process_template_context`:
+the `setup-env` event.  To respond to it, we need to implement
+a function named `on_setup_env`:
 
 ```python
 import random
@@ -141,17 +141,24 @@ class HelloWorldPlugin(Plugin):
     name = 'Hello World'
     description = 'This is a demo plugin for testing purposes.'
 
-    def on_process_template_context(self, context, **extra):
-        context['get_random_message'] = get_random_message
+    def on_setup_env(self, **extra):
+        self.env.jinja_env.globals.update(
+            get_random_message=get_random_message
+        )
 ```
 
 This will inject a function with the name `get_random_message` into our
-template context whenever a template is rendered.  This means that we
+template globals when the environment is initialized.  This means that we
 can access this function from templates then:
 
 ```html+jinja
 <p>Message of the page: {{ get_random_message() }}
 ```
+
+There are many events that can be hooked and they can be found in the
+[Event Documentation :ref](../../api/plugins/events/).  All events need
+to be subscribed with an extra `**extra` argument to catch down additional
+arguments that might be supplied in the future.
 
 ## What Plugins Can Do
 
