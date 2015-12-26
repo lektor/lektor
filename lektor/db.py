@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import next
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import os
 import errno
 import hashlib
@@ -76,12 +84,12 @@ class _CmpHelper(object):
             if isinstance(b, Undefined):
                 b = None
             return a, b
-        if isinstance(a, (int, long, float)):
+        if isinstance(a, (int, float)):
             try:
                 return a, type(a)(b)
             except (ValueError, TypeError, OverflowError):
                 pass
-        if isinstance(b, (int, long, float)):
+        if isinstance(b, (int, float)):
             try:
                 return type(b)(a), b
             except (ValueError, TypeError, OverflowError):
@@ -161,19 +169,19 @@ class Expression(object):
 
     def startswith(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-            lambda a, b: unicode(a).lower().startswith(unicode(b).lower()))
+            lambda a, b: str(a).lower().startswith(str(b).lower()))
 
     def endswith(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-            lambda a, b: unicode(a).lower().endswith(unicode(b).lower()))
+            lambda a, b: str(a).lower().endswith(str(b).lower()))
 
     def startswith_cs(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-                        lambda a, b: unicode(a).startswith(unicode(b)))
+                        lambda a, b: str(a).startswith(str(b)))
 
     def endswith_cs(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-                        lambda a, b: unicode(a).endswith(unicode(b)))
+                        lambda a, b: str(a).endswith(str(b)))
 
     def false(self):
         return _IsBoolExpr(self, False)
@@ -335,7 +343,7 @@ class Record(SourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in (self.datamodel.label_i18n or {}).iteritems():
+        for lang, _ in list((self.datamodel.label_i18n or {}).items()):
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)
@@ -473,7 +481,7 @@ class Page(Record):
         # rewarded.
         q = self.children.include_undiscoverable(True)
 
-        for idx in xrange(len(url_path)):
+        for idx in range(len(url_path)):
             piece = '/'.join(url_path[:idx + 1])
             child = q.filter(F._slug == piece).first()
             if child is None:
@@ -645,7 +653,7 @@ class Query(object):
         h.update(str(self.alt))
         h.update(str(self._include_pages))
         h.update(str(self._include_attachments))
-        h.update('(%s)' % u'|'.join(self._order_by or ()).encode('utf-8'))
+        h.update('(%s)' % '|'.join(self._order_by or ()).encode('utf-8'))
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
@@ -798,7 +806,7 @@ class Query(object):
         # otherwise we can load it directly.
         return self._get(id, page_num=page_num)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.first() is not None
 
     def __iter__(self):
@@ -939,7 +947,7 @@ class Database(object):
             try:
                 with open(fs_path, 'rb') as f:
                     for key, lines in metaformat.tokenize(f, encoding='utf-8'):
-                        rv[key] = u''.join(lines)
+                        rv[key] = ''.join(lines)
             except IOError as e:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
@@ -985,11 +993,6 @@ class Database(object):
                 for filename in os.listdir(dir_path):
                     if filename.endswith('.lr') or \
                        self.env.is_uninteresting_source_name(filename):
-                        continue
-
-                    try:
-                        filename = filename.decode(fs_enc)
-                    except UnicodeError:
                         continue
 
                     # We found an attachment.  Attachments always live

@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+
 def test_paginated_children(pad):
     page1 = pad.get('/projects', page_num=1)
 
@@ -14,10 +19,10 @@ def test_paginated_children(pad):
     children = page1.pagination.items.all()
     assert len(children) == 4
     assert [x['name'] for x in children] == [
-        u'Bagpipe',
-        u'Coffee',
-        u'Master',
-        u'Oven',
+        'Bagpipe',
+        'Coffee',
+        'Master',
+        'Oven',
     ]
 
     assert ('projects', '_primary', 1) in pad.cache.persistent
@@ -32,9 +37,9 @@ def test_paginated_children(pad):
     children = page2.pagination.items.all()
     assert len(children) == 3
     assert [x['name'] for x in children] == [
-        u'Postage',
-        u'Slave',
-        u'Wolf',
+        'Postage',
+        'Slave',
+        'Wolf',
     ]
 
     assert ('projects', '_primary', 2) in pad.cache.persistent
@@ -51,13 +56,13 @@ def test_unpaginated_children(pad):
     children = page_all.pagination.items.all()
     assert len(children) == 7
     assert [x['name'] for x in children] == [
-        u'Bagpipe',
-        u'Coffee',
-        u'Master',
-        u'Oven',
-        u'Postage',
-        u'Slave',
-        u'Wolf',
+        'Bagpipe',
+        'Coffee',
+        'Master',
+        'Oven',
+        'Postage',
+        'Slave',
+        'Wolf',
     ]
 
 
@@ -129,14 +134,14 @@ def test_unpaginated_children_other_alt(pad):
     children = page_all.pagination.items.all()
     assert len(children) == 8
     assert [x['name'] for x in children] == [
-        u'Dudelsack',
-        u'Kaffee',
-        u'Meister',
-        u'Ofen',
-        u'Porto',
-        u'Sklave',
-        u'Wolf',
-        u'Zaun'
+        'Dudelsack',
+        'Kaffee',
+        'Meister',
+        'Ofen',
+        'Porto',
+        'Sklave',
+        'Wolf',
+        'Zaun'
     ]
 
 

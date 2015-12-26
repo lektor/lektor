@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import division
+from __future__ import unicode_literals
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from math import ceil
 
 
@@ -26,7 +33,7 @@ class Pagination(object):
         if self.per_page == 0:
             pages = 0
         else:
-            pages = int(ceil(self.total / float(self.per_page)))
+            pages = int(ceil(old_div(self.total, float(self.per_page))))
         return pages
 
     @property
@@ -94,7 +101,7 @@ class Pagination(object):
             {% endmacro %}
         """
         last = 0
-        for num in xrange(1, self.pages + 1):
+        for num in range(1, self.pages + 1):
             if num <= left_edge or \
                (num > self.page - left_current - 1 and
                 num < self.page + right_current) or \

@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import range
+from builtins import object
 import os
 import shutil
 
@@ -34,7 +39,7 @@ class SourceInfo(object):
         en_title = self.path
         if 'en' in title_i18n:
             en_title = title_i18n['en']
-        for key, value in title_i18n.iteritems():
+        for key, value in list(title_i18n.items()):
             if key == 'en':
                 continue
             if value != en_title:
@@ -170,7 +175,7 @@ class PageBuildProgram(BuildProgram):
 
     def _iter_paginated_children(self):
         total = self.source.datamodel.pagination_config.count_pages(self.source)
-        for page_num in xrange(1, total + 1):
+        for page_num in range(1, total + 1):
             yield Page(self.source.pad, self.source._data,
                        page_num=page_num)
 

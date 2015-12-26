@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 import os
 import sys
 import json
@@ -488,7 +492,7 @@ def plugins_list_cmd(ctx, as_json, verbosity):
     """
     ctx.load_plugins()
     env = ctx.get_env()
-    plugins = sorted(env.plugins.values(), key=lambda x: x.id.lower())
+    plugins = sorted(list(env.plugins.values()), key=lambda x: x.id.lower())
 
     if as_json:
         echo_json({

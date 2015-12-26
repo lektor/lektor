@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import str
+
+
 class LektorException(Exception):
 
     def __init__(self, message=None):
@@ -13,7 +19,7 @@ class LektorException(Exception):
         }
 
     def __unicode__(self):
-        return unicode(self.message)
+        return str(self.message)
 
     def __str__(self):
         return self.message.encode('utf-8')

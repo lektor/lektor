@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 from setuptools import setup, find_packages
 
 
@@ -25,6 +28,7 @@ setup(
         'setuptools',
         'pip',
         'requests[security]',
+        'future'
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

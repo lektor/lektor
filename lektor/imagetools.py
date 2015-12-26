@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+from __future__ import division
+from __future__ import unicode_literals
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import os
 import imghdr
 import struct
@@ -17,9 +23,9 @@ datetime.strptime('', '')
 
 
 def _convert_gps(coords, hem):
-    deg, min, sec = [float(x.num) / float(x.den) for x in coords]
+    deg, min, sec = [old_div(float(x.num), float(x.den)) for x in coords]
     sign = hem in 'SW' and -1 or 1
-    return sign * (deg + min / 60.0 + sec / 3600.0)
+    return sign * (deg + old_div(min, 60.0) + old_div(sec, 3600.0))
 
 
 def _combine_make(make, model):
@@ -27,7 +33,7 @@ def _combine_make(make, model):
     model = model or ''
     if make and model.startswith(make):
         return make
-    return u' '.join([make, model]).strip()
+    return ' '.join([make, model]).strip()
 
 
 class EXIFInfo(object):
@@ -35,19 +41,19 @@ class EXIFInfo(object):
     def __init__(self, d):
         self._mapping = d
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._mapping)
 
     def to_dict(self):
         rv = {}
-        for key, value in self.__class__.__dict__.iteritems():
+        for key, value in list(self.__class__.__dict__.items()):
             if key[:1] != '_' and isinstance(value, property):
                 rv[key] = getattr(self, key)
         return rv
 
     def _get_string(self, key):
         try:
-            return self._mapping[key].values.decode('utf-8', 'replace')
+            return self._mapping[key].values
         except KeyError:
             return None
 
@@ -62,7 +68,7 @@ class EXIFInfo(object):
             val = self._mapping[key].values[0]
             if isinstance(val, int):
                 return float(val)
-            return round(float(val.num) / float(val.den), precision)
+            return round(old_div(float(val.num), float(val.den)), precision)
         except LookupError:
             return None
 
@@ -115,7 +121,7 @@ class EXIFInfo(object):
 
     @property
     def f(self):
-        return u'ƒ/%s' % self.f_num
+        return 'ƒ/%s' % self.f_num
 
     @property
     def exposure_time(self):
@@ -125,24 +131,24 @@ class EXIFInfo(object):
     def shutter_speed(self):
         val = self._get_float('EXIF ShutterSpeedValue')
         if val is not None:
-            return '1/%d' % round(1 / (2 ** -val))
+            return '1/%d' % round(old_div(1, (2 ** -val)))
 
     @property
     def focal_length(self):
         val = self._get_float('EXIF FocalLength')
         if val is not None:
-            return u'%smm' % val
+            return '%smm' % val
 
     @property
     def focal_length_35mm(self):
         val = self._get_float('EXIF FocalLengthIn35mmFilm')
         if val is not None:
-            return u'%dmm' % val
+            return '%dmm' % val
 
     @property
     def flash_info(self):
         try:
-            return self._mapping['EXIF Flash'].printable.decode('utf-8')
+            return self._mapping['EXIF Flash'].printable
         except KeyError:
             return None
 
@@ -190,10 +196,8 @@ class EXIFInfo(object):
 
     @property
     def location(self):
-        lat = self.latitude
-        long = self.longitude
-        if lat is not None and long is not None:
-            return (lat, long)
+        if self.latitude is not None and self.longitude is not None:
+            return self.latitude, self.longitude
 
 
 def get_suffix(width, height):

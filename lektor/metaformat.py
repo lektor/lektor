@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+
 def _line_is_dashes(line):
     line = line.strip()
-    return line == u'-' * len(line) and len(line) >= 3
+    return line == '-' * len(line) and len(line) >= 3
 
 
 def _process_buf(buf):
@@ -43,9 +48,9 @@ def tokenize(iterable, interesting_keys=None, encoding=None):
         iterable = (x.decode(encoding, 'replace') for x in iterable)
 
     for line in iterable:
-        line = line.rstrip(u'\r\n') + u'\n'
+        line = line.rstrip('\r\n') + '\n'
 
-        if line.rstrip() == u'---':
+        if line.rstrip() == '---':
             want_newline = False
             if key:
                 yield _flush_item()
@@ -57,7 +62,7 @@ def tokenize(iterable, interesting_keys=None, encoding=None):
             if is_interesting:
                 buf.append(line)
         else:
-            bits = line.split(u':', 1)
+            bits = line.split(':', 1)
             if len(bits) == 2:
                 key = [bits[0].strip()]
                 if interesting_keys is None:
@@ -65,7 +70,7 @@ def tokenize(iterable, interesting_keys=None, encoding=None):
                 else:
                     is_interesting = key[0] in interesting_keys
                 if is_interesting:
-                    first_bit = bits[1].strip(u'\t ')
+                    first_bit = bits[1].strip('\t ')
                     if first_bit.strip():
                         buf = [first_bit]
                     else:
@@ -85,7 +90,7 @@ def serialize(iterable, encoding=None):
     def _produce(item, escape=False):
         if escape:
             if _line_is_dashes(item):
-                item = u'-' + item
+                item = '-' + item
         if encoding is not None:
             item = item.encode(encoding)
         return item

@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import division
+from __future__ import unicode_literals
+from past.utils import old_div
+from builtins import object
 import os
 import math
 import errno
@@ -57,7 +63,7 @@ class PaginationConfig(object):
     def count_pages(self, record):
         """Returns the total number of pages for the children of a record."""
         total = self.count_total_items(record)
-        return int(math.ceil(total / float(self.per_page)))
+        return int(math.ceil(old_div(total, float(self.per_page))))
 
     def slice_query_for_page(self, record, page):
         """Slices the query so it returns the children for a given page."""
@@ -249,7 +255,7 @@ class DataModel(object):
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
         self.field_map = dict((x.name, x) for x in fields)
-        for key, (ty, opts) in system_fields.iteritems():
+        for key, (ty, opts) in list(system_fields.items()):
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
         self._child_slug_tmpl = None
@@ -356,7 +362,7 @@ class DataModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in self.field_map.itervalues():
+        for field in list(self.field_map.values()):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv['_model'] = self.id
@@ -407,7 +413,7 @@ class FlowBlockModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in self.field_map.itervalues():
+        for field in list(self.field_map.values()):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv['_flowblock'] = self.id
@@ -567,7 +573,7 @@ def iter_inis(path):
                 continue
             fn = os.path.join(path, filename)
             if os.path.isfile(fn):
-                base = filename[:-4].decode('ascii', 'replace')
+                base = filename[:-4]
                 inifile = IniFile(fn)
                 yield base, inifile
     except OSError as e:
@@ -605,7 +611,7 @@ def load_datamodels(env):
         rv[model_id] = mod = datamodel_from_data(env, model_data, parent)
         return mod
 
-    for model_id in data.keys():
+    for model_id in list(data.keys()):
         get_model(model_id)
 
     rv['none'] = DataModel(env, 'none', {'en': 'None'}, hidden=True)
@@ -629,10 +635,10 @@ system_fields = {}
 
 
 def add_system_field(name, **opts):
-    for key, value in opts.items():
+    for key, value in list(opts.items()):
         if key.endswith('_i18n'):
             base_key = key[:-5]
-            for lang, trans in load_i18n_block(value).iteritems():
+            for lang, trans in list(load_i18n_block(value).items()):
                 opts['%s[%s]' % (base_key, lang)] = trans
 
     ty = types.builtin_types[opts.pop('type')]

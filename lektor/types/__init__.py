@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 from jinja2 import Undefined
 
 from lektor.environment import PRIMARY_ALT

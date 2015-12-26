@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 import os
 import sys
 import hashlib
@@ -87,9 +91,9 @@ class Project(object):
     def get_package_cache_path(self):
         """The path where plugin packages are stored."""
         h = hashlib.md5()
-        h.update(self.id)
-        h.update(sys.version)
-        h.update(sys.prefix)
+        h.update(self.id.encode('utf-8'))
+        h.update(sys.version.encode('utf-8'))
+        h.update(sys.prefix.encode('utf-8'))
         return os.path.join(get_cache_dir(), 'packages', h.hexdigest())
 
     def content_path_from_filename(self, filename):

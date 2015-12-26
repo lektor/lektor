@@ -1,12 +1,18 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import os
 import time
-import Queue
+import queue
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, DirModifiedEvent
 
 # Alias this as this can be called during interpreter shutdown
-_Empty = Queue.Empty
+_Empty = queue.Empty
 
 
 class EventHandler(FileSystemEventHandler):
@@ -16,7 +22,7 @@ class EventHandler(FileSystemEventHandler):
             self.queue = None
             self.callback = callback
         else:
-            self.queue = Queue.Queue()
+            self.queue = queue.Queue()
             self.callback = self.queue.put
 
     def on_any_event(self, event):

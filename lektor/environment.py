@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from past.builtins import basestring
+from builtins import object
 import os
 import re
 import uuid
@@ -111,7 +116,7 @@ def update_config_from_ini(config, inifile):
                 'locale': inifile.get('alternatives.%s.locale' % alt, 'en_US'),
             }
 
-    for alt, alt_data in config['ALTERNATIVES'].iteritems():
+    for alt, alt_data in list(config['ALTERNATIVES'].items()):
         if alt_data['primary']:
             config['PRIMARY_ALTERNATIVE'] = alt
             break
@@ -171,7 +176,7 @@ class Expression(object):
         result = []
         def result_func(value):
             result.append(value)
-            return u''
+            return ''
         values = self.env.make_default_tmpl_values(pad, this, values, alt)
         values['__result__'] = result_func
         self.tmpl.render(values)
@@ -288,7 +293,7 @@ class Config(object):
     def get_alternative_url_prefixes(self):
         """Returns a list of alternative url prefixes by length."""
         items = [(v['url_prefix'].lstrip('/'), k)
-                 for k, v in self.values['ALTERNATIVES'].iteritems()
+                 for k, v in list(self.values['ALTERNATIVES'].items())
                  if v['url_prefix']]
         items.sort(key=lambda x: -len(x[0]))
         return items
@@ -296,7 +301,7 @@ class Config(object):
     def get_alternative_url_suffixes(self):
         """Returns a list of alternative url suffixes by length."""
         items = [(v['url_suffix'].rstrip('/'), k)
-                 for k, v in self.values['ALTERNATIVES'].iteritems()
+                 for k, v in list(self.values['ALTERNATIVES'].items())
                  if v['url_suffix']]
         items.sort(key=lambda x: -len(x[0]))
         return items
@@ -377,7 +382,7 @@ class Environment(object):
         self.jinja_env.filters.update(
             tojson=tojson_filter,
             latformat=lambda x, secs=True: format_lat_long(lat=x, secs=secs),
-            longformat=lambda x, secs=True: format_lat_long(long=x, secs=secs),
+            longformat=lambda x, secs=True: format_lat_long(int=x, secs=secs),
             latlongformat=lambda x, secs=True: format_lat_long(secs=secs, *x),
             # By default filters need to be side-effect free.  This is not
             # the case for this one, so we need to make it as a dummy
