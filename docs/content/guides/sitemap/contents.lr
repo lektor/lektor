@@ -46,7 +46,7 @@ skips hidden pages so those will not be generated out.
 Note that because sitemaps need to have external URLs (with scheme and
 everything) you will need to configure the `url` of the site before the
 template starts working.  For more information see [Project File
-:ref](../../project/)
+:ref](../../project/file/#[project])
 
 ## Human Readable Sitemap
 

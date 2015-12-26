@@ -55,7 +55,7 @@ potential deployment target add a `[servers.NAME]` section.  The supported
 keys are `name` for an optional human readable name of the server, `enabled` to
 enable or disable it (defaults to `true`) and `target` which is the URL to
 publish to.  Additionally one of the servers can have `default` set to `yes`
-to set it as default.  Here an example:
+to set it as default.  Here is an example:
 
 ```ini
 [servers.production]
@@ -95,7 +95,7 @@ you keep your project file secure as loss of the project file can mean that
 people get access to your server.  Alternatively you can also provide username
 and password through the command line of environment variables.
 
-The following targets are supported for the `target` folder:
+The following targets are supported for the `target` field:
 
 * [rsync](rsync/)
 * [FTP](ftp/)
