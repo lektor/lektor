@@ -12,6 +12,11 @@ be able to generate beautiful websites but if you want to dive deep into the
 powers of the templating language then you can learn more about it by
 reading the [Jinja2 Documentation :ext](http://jinja.pocoo.org/docs).
 
+!! Templates are a very powerful component in Lektor.  A lot of documentation
+about the features of it can be found in the [Jinja2 Documentation
+:ext](http://jinja.pocoo.org/docs) as well as the [Lektor Template API
+Documentation :ext](../api/templates/).
+
 ## Template Folder and Naming
 
 All templates are stored within the `templates/` folder.  Templates typically

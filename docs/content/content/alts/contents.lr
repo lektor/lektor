@@ -9,6 +9,12 @@ to a content file.  This allows you to translate your website into many
 different languages or to customize content specifically for some languages
 or regions.
 
+!!!! Alternatives are a fully functional feature in Lektor but very
+underdocumented and lacking in parts.  The result of this is that it might not
+be working exactly as you expect in parts.  In particular one of the limiting
+factors is that you need to have at least one alternative at the URL root or
+the system will refuse to build the website.
+
 ## Enabling Alternatives
 
 To enable alternatives you need to extend your [Project File
