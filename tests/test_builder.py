@@ -159,3 +159,17 @@ def test_attachment_copying(pad, builder):
     with artifact.open('rb') as f:
         rv = f.read().decode('utf-8').strip()
         assert rv == 'Hello I am an Attachment'
+
+
+def test_asset_processing(pad, builder):
+    static = pad.asset_root.get_child('static')
+
+    prog, _ = builder.build(static)
+    assets = list(prog.iter_child_sources())
+    assert len(assets) == 1
+    assert assets[0].name == 'demo.css'
+
+    prog, _ = builder.build(assets[0])
+    with prog.artifacts[0].open('rb') as f:
+        rv = f.read().decode('utf-8').strip()
+        assert 'color: red' in rv
