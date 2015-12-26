@@ -17,6 +17,7 @@ Next feature release
 - Make pagination next_page and prev_page be None on the edges.
 - Allow plugins to provide publishers.
 - Added `|markdown` filter.
+- Added French translations.
 
 1.1
 ---
