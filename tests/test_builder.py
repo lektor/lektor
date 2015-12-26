@@ -64,3 +64,55 @@ def test_child_sources_pagination(pad, builder):
         'slave',
         'wolf',
     ]
+
+
+def test_basic_artifact_current_test(pad, builder, reporter):
+    root = pad.root
+
+    def build():
+        reporter.clear()
+        prog, _ = builder.build(root)
+        return prog.artifacts[0]
+
+    artifact = build()
+
+    assert reporter.buffer[:3] == [
+        ('enter-source', {
+            'source': root
+        }),
+        ('start-artifact-build', {
+            'artifact': artifact,
+            'is_current': False,
+        }),
+        ('build-func', {
+            'func': 'lektor.build_programs.PageBuildProgram',
+        }),
+    ]
+
+    assert reporter.get_recorded_dependencies() == [
+        'Website.lektorproject',
+        'content/contents.lr',
+        'flowblocks/text.ini',
+        'templates/blocks/text.html',
+        'templates/layout.html',
+        'templates/page.html'
+    ]
+
+    assert artifact.is_current
+
+    artifact = build()
+
+    assert artifact.is_current
+
+    assert reporter.buffer[:3] == [
+        ('enter-source', {
+            'source': root
+        }),
+        ('start-artifact-build', {
+            'artifact': artifact,
+            'is_current': True,
+        }),
+        ('build-func', {
+            'func': 'lektor.build_programs.PageBuildProgram',
+        }),
+    ]

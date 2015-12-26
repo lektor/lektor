@@ -50,3 +50,12 @@ def eval_expr(env):
         expr = Expression(env, expr)
         return expr.evaluate(**kwargs)
     return eval_expr
+
+
+@pytest.fixture(scope='function')
+def reporter(request, env):
+    from lektor.reporter import BufferReporter
+    reporter = BufferReporter(env)
+    reporter.push()
+    request.addfinalizer(reporter.pop)
+    return reporter
