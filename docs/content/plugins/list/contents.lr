@@ -20,7 +20,9 @@ project:
 * [markdown-highlighter :ext](https://github.com/lektor/lektor-markdown-highlighter):
   adds support for syntax highlighting to markdown code snippets.
 * [markdown-header-anchors :ext](https://github.com/lektor/lektor-markdown-header-anchors):
-  adds support for header anchors and table of contents to markdown.
+  adds support for header anchors and table of contents to Markdown.
+* [markdown-admonition :ext](https://github.com/lektor/lektor-mardown-admonition):
+  adds admonition block support to Markdown.
 
 ## Unofficial
 
