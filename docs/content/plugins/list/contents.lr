@@ -30,5 +30,5 @@ so they might not keep pace with development on Lektor.
 
 * [s3 :ext](https://github.com/spenczar/lektor-s3):
   allows deployment of websites to S3 buckets
-* [markdown-excerpt :ext](https://github.com/bancek/markdown-excerpt):
+* [markdown-excerpt :ext](https://github.com/bancek/lektor-markdown-excerpt):
   adds filter for Markdown body excerpt
