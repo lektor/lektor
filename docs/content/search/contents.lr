@@ -14,7 +14,7 @@ documentation:
 <div class="google-custom-search">
   <form method=get>
     <div class="input-group">
-      <input type=text class="form-control" name=q size=40>
+      <input type=text class="form-control" name=q size=40 autofocus>
       <span class="input-group-btn">
         <input type=submit class="btn btn-default" value="Search">
       </span>
