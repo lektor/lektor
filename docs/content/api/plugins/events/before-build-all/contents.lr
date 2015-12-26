@@ -1,0 +1,27 @@
+title: before-build-all
+---
+signature: builder
+---
+summary: This event is emitted before all sources are built.
+---
+type: event
+---
+body:
+
+This event is emitted before the builder decides to build all sources.  It's
+most useful for preprocessing sources on the file system before the rest of
+the build process should pick it up.  For instance here a plugin could inject
+additional files into the asset folder and similar things.
+
+As an example, this is what the [Webpack Support
+:ref](../../../../guides/webpack/) uses.
+
+## Example
+
+```python
+import subprocess
+
+def on_before_build_all(self, builder, **extra):
+    root = ospath.join(self.env.root_path, 'webpack')
+    subprocess.Popen(['webpack'], cwd=root).wait()
+```
