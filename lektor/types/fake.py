@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 from lektor.types import Type
 from lektor.environment import PRIMARY_ALT
 from lektor.i18n import get_i18n_block

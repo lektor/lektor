@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import zip
+from builtins import object
 import traceback
 from lektor.types import Type
 from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
@@ -6,7 +11,7 @@ from lektor.i18n import get_i18n_block
 
 def _reflow_and_split_labels(labels):
     rv = []
-    for lang, string in labels.iteritems():
+    for lang, string in list(labels.items()):
         for idx, item in enumerate(string.split(',')):
             try:
                 d = rv[idx]

@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import str
+from builtins import object
 import time
 import click
 import traceback
@@ -188,7 +193,7 @@ class CliReporter(Reporter):
         click.echo(' ' * (self.indentation * 2) + text)
 
     def _write_kv_info(self, key, value):
-        self._write_line('%s: %s' % (key, style(unicode(value), fg='yellow')))
+        self._write_line('%s: %s' % (key, style(str(value), fg='yellow')))
 
     def start_build(self, activity):
         self._write_line(style('Started %s' % activity, fg='cyan'))
@@ -269,7 +274,7 @@ class CliReporter(Reporter):
             self._write_kv_info(key, value)
 
     def report_generic(self, message):
-        self._write_line(style(unicode(message), fg='cyan'))
+        self._write_line(style(str(message), fg='cyan'))
 
     def enter_source(self):
         if not self.show_source_internals:

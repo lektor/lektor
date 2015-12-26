@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 import os
 import json
 import errno
@@ -16,7 +20,7 @@ def load_databag(filename):
             with open(filename, 'r') as f:
                 return json.load(f, object_pairs_hook=OrderedDict)
         elif filename.endswith('.ini'):
-            return decode_flat_data(IniFile(filename).items(),
+            return decode_flat_data(list(IniFile(filename).items()),
                                     dict_cls=OrderedDict)
     except (OSError, IOError) as e:
         if e.errno != errno.ENOENT:

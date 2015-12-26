@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 from datetime import datetime
 
 
@@ -20,7 +23,7 @@ def test_exif(pad):
     assert image.exif.copyright is None
     assert image.exif.created_at == datetime(2015, 12, 6, 11, 37, 34)
     assert image.exif.exposure_time == '1/33'
-    assert image.exif.f == u'\u0192/2.2'
+    assert image.exif.f == '\u0192/2.2'
     assert almost_equal(image.exif.f_num, 2.2)
     assert image.exif.flash_info == 'Flash did not fire, compulsory flash mode'
     assert image.exif.focal_length == '4.15mm'
@@ -36,7 +39,7 @@ def test_exif(pad):
 
     assert isinstance(image.exif.to_dict(), dict)
 
-    for key, value in image.exif.to_dict().iteritems():
+    for key, value in list(image.exif.to_dict().items()):
         assert getattr(image.exif, key) == value
 
 

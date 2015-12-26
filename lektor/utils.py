@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import os
 import sys
 import re
@@ -12,7 +21,7 @@ import traceback
 import unicodedata
 import multiprocessing
 import hashlib
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 from datetime import datetime
 from contextlib import contextmanager
@@ -53,7 +62,7 @@ def cleanup_path(path):
 
 
 def to_os_path(path):
-    return path.strip('/').replace('/', os.path.sep).decode(fs_enc, 'replace')
+    return path.strip('/').replace('/', os.path.sep)
 
 
 def is_path(path):
@@ -91,7 +100,7 @@ def iter_dotted_path_prefixes(dotted_path):
     if len(pieces) == 1:
         yield dotted_path, None
     else:
-        for x in xrange(1, len(pieces)):
+        for x in range(1, len(pieces)):
             yield '.'.join(pieces[:x]), '.'.join(pieces[x:])
 
 
@@ -144,7 +153,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
             return _convert(container)
         elif container.pop(_list_marker, False):
             return [_convert(x[1]) for x in sorted(container.items())]
-        return dict_cls((k, _convert(v)) for k, v in container.iteritems())
+        return dict_cls((k, _convert(v)) for k, v in container.items())
 
     result = dict_cls()
 
@@ -156,7 +165,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
         for part in parts:
             last_container = container
             container = _enter_container(container, part)
-            last_container[_list_marker] = isinstance(part, (int, long))
+            last_container[_list_marker] = isinstance(part, int)
         container[_value_marker] = [value]
 
     return _convert(result)
@@ -172,7 +181,7 @@ def merge(a, b):
         for idx, (item_1, item_2) in enumerate(zip(a, b)):
             a[idx] = merge(item_1, item_2)
     if isinstance(a, dict) and isinstance(b, dict):
-        for key, value in b.iteritems():
+        for key, value in b.items():
             a[key] = merge(a.get(key), value)
         return a
     return a
@@ -253,17 +262,17 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, uuid.UUID):
             return str(o)
         if hasattr(o, '__html__'):
-            return unicode(o.__html__())
+            return str(o.__html__())
         return json.JSONEncoder.default(self, o)
 
 
 def htmlsafe_json_dump(obj, **kwargs):
     kwargs.setdefault('cls', JSONEncoder)
     rv = json.dumps(obj, **kwargs) \
-        .replace(u'<', u'\\u003c') \
-        .replace(u'>', u'\\u003e') \
-        .replace(u'&', u'\\u0026') \
-        .replace(u"'", u'\\u0027')
+        .replace('<', '\\u003c') \
+        .replace('>', '\\u003e') \
+        .replace('&', '\\u0026') \
+        .replace(u"'", '\\u0027')
     if not _slash_escape:
         rv = rv.replace('\\/', '/')
     return rv
@@ -314,8 +323,7 @@ class WorkerPool(object):
 
 def slugify(value):
     # XXX: not good enough
-    rv = u' '.join(value.strip().encode(
-        'ascii', 'ignore').strip().split()).lower()
+    rv = ' '.join(value.strip().split()).lower()
     words = _slug_re.findall(rv)
     return '-'.join(words)
 
@@ -375,7 +383,7 @@ def prune_file_and_folder(name, base):
 
 
 def sort_normalize_string(s):
-    return unicodedata.normalize('NFD', unicode(s).lower().strip())
+    return unicodedata.normalize('NFD', str(s).lower().strip())
 
 
 def get_dependent_url(url_path, suffix, ext=None):
@@ -383,7 +391,7 @@ def get_dependent_url(url_path, suffix, ext=None):
     url_base, url_ext = posixpath.splitext(url_filename)
     if ext is None:
         ext = url_ext
-    return posixpath.join(url_directory, url_base + u'@' + suffix + ext)
+    return posixpath.join(url_directory, url_base + '@' + suffix + ext)
 
 
 @contextmanager
@@ -391,7 +399,7 @@ def atomic_open(filename, mode='r'):
     if 'r' not in mode:
         fd, tmp_filename = tempfile.mkstemp(
             dir=os.path.dirname(filename), prefix='.__atomic-write')
-        os.chmod(tmp_filename, 0644)
+        os.chmod(tmp_filename, 0o644)
         f = os.fdopen(fd, mode)
     else:
         f = open(filename, mode)
@@ -400,13 +408,17 @@ def atomic_open(filename, mode='r'):
         yield f
     except:
         f.close()
-        exc_type, exc_value, tb = sys.exc_info()
+        exc_info = sys.exc_info()
         if tmp_filename is not None:
             try:
                 os.remove(tmp_filename)
             except OSError:
                 pass
-        raise exc_type, exc_value, tb
+        if sys.version_info[0] >= 3:
+            raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
+        else:
+            eval("raise exc_info[0], exc_info[1], exc_info[2]; 1", None, { 'exc_info': exc_info })
+
     else:
         f.close()
         if tmp_filename is not None:
@@ -422,7 +434,7 @@ def portable_popen(cmd, *args, **kwargs):
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
 
-    if isinstance(exe, unicode):
+    if isinstance(exe, str):
         exe = exe.encode(sys.getfilesystemencoding())
     cmd[0] = exe
     return subprocess.Popen(cmd, *args, **kwargs)
@@ -504,11 +516,11 @@ def get_structure_hash(params):
             h.update('L%d;' % len(obj))
             for item in obj:
                 _hash(item)
-        elif isinstance(obj, (int, long)):
+        elif isinstance(obj, int):
             h.update('T%d;' % obj)
         elif isinstance(obj, bytes):
             h.update('B%d;%s;' % (len(obj), obj))
-        elif isinstance(obj, unicode):
+        elif isinstance(obj, str):
             h.update('S%d;%s;' % (len(obj), obj.encode('utf-8')))
         elif hasattr(obj, '__get_lektor_param_hash__'):
             obj.__get_lektor_param_hash__(h)
@@ -543,18 +555,18 @@ def deg_to_dms(deg):
 def format_lat_long(lat=None, long=None, secs=True):
     def _format(value, sign):
         d, m, sd = deg_to_dms(value)
-        return u'%d° %d′ %s%s' % (
+        return '%d° %d′ %s%s' % (
             abs(d),
             abs(m),
-            secs and (u'%d″ ' % abs(sd)) or '',
+            secs and ('%d″ ' % abs(sd)) or '',
             sign[d < 0],
         )
     rv = []
     if lat is not None:
         rv.append(_format(lat, 'NS'))
-    if long is not None:
-        rv.append(_format(long, 'EW'))
-    return u', '.join(rv)
+    if int is not None:
+        rv.append(_format(int, 'EW'))
+    return ', '.join(rv)
 
 
 def get_app_dir():

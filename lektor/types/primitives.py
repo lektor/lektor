@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import map
 from datetime import date
 
 from markupsafe import Markup
@@ -25,7 +29,7 @@ class StringType(SingleInputType):
         try:
             return raw.value.splitlines()[0].strip()
         except IndexError:
-            return u''
+            return ''
 
 
 class StringsType(Type):
@@ -98,6 +102,6 @@ class DateType(SingleInputType):
         if raw.value is None:
             return raw.missing_value('Missing date')
         try:
-            return date(*map(int, raw.value.split('-')))
+            return date(*list(map(int, raw.value.split('-'))))
         except Exception:
             return raw.bad_value('Bad date format')

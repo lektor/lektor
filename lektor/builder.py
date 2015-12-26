@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 import os
 import sys
 import stat
@@ -219,7 +223,7 @@ class BuildState(object):
         con = self.connect_to_database()
         try:
             cur = con.cursor()
-            for lang, title in info.title_i18n.iteritems():
+            for lang, title in list(info.title_i18n.items()):
                 cur.execute('''
                     insert or replace into source_info
                         (path, alt, lang, type, source, title)
@@ -469,7 +473,7 @@ class FileInfo(object):
                 for filename in sorted(os.listdir(self.filename)):
                     if self.env.is_uninteresting_source_name(filename):
                         continue
-                    if isinstance(filename, unicode):
+                    if isinstance(filename, str):
                         filename = filename.encode('utf-8')
                     h.update(filename)
                     h.update(_describe_fs_path_for_checksum(
@@ -564,7 +568,7 @@ class Artifact(object):
         if self._new_artifact_file is None:
             fd, tmp_filename = tempfile.mkstemp(
                 dir=os.path.dirname(self.dst_filename), prefix='.__trans')
-            os.chmod(tmp_filename, 0644)
+            os.chmod(tmp_filename, 0o644)
             self._new_artifact_file = tmp_filename
             return os.fdopen(fd, mode)
         return open(self._new_artifact_file, mode)

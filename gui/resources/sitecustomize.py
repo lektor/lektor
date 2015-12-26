@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 import sys
 import site
 site.ENABLE_USER_SITE = False

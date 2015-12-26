@@ -1,7 +1,13 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from past.builtins import basestring
 import os
 import mimetypes
 import posixpath
-from cStringIO import StringIO
+from io import StringIO
 from zlib import adler32
 
 from flask import Blueprint, current_app, abort, Response, request, \

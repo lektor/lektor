@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 import os
 import posixpath
 
@@ -59,7 +62,7 @@ def get_record_info():
 
     primary_alt = db.config.primary_alternative
     if primary_alt is not None:
-        for alt in tree_item.alts.itervalues():
+        for alt in list(tree_item.alts.values()):
             alt_cfg = db.config.get_alternative(alt.id)
             alts.append({
                 'alt': alt.id,
@@ -182,7 +185,7 @@ def get_new_record_info():
         'can_have_children': can_have_children,
         'implied_model': implied,
         'available_models': dict(
-            (k, describe_model(v)) for k, v in pad.db.datamodels.iteritems()
+            (k, describe_model(v)) for k, v in list(pad.db.datamodels.items())
             if not v.hidden or k == implied)
     })
 
@@ -273,7 +276,7 @@ def get_servers():
     db = g.admin_context.pad.db
     config = db.env.load_config()
     servers = config.get_servers(public=True)
-    return jsonify(servers=sorted([x.to_json() for x in servers.values()],
+    return jsonify(servers=sorted([x.to_json() for x in list(servers.values())],
                                   key=lambda x: x['name'].lower()))
 
 

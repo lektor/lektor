@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 import re
 
 from jinja2 import is_undefined, TemplateNotFound
@@ -24,7 +28,7 @@ def discover_relevant_flowblock_models(flow, pad, record, alt):
     all_blocks = pad.db.flowblocks
     if flow_blocks is None:
         return dict((k, v.to_json(pad, record, alt))
-                    for k, v in all_blocks.iteritems())
+                    for k, v in list(all_blocks.items()))
 
     wanted_blocks = set()
     to_process = flow_blocks[:]
@@ -126,9 +130,9 @@ class Flow(object):
         self.record = record
 
     def __html__(self):
-        return Markup(u'\n\n'.join(x.__html__() for x in self.blocks))
+        return Markup('\n\n'.join(x.__html__() for x in self.blocks))
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.blocks)
 
     def __repr__(self):
@@ -212,7 +216,7 @@ class FlowType(Type):
 
                 d = {}
                 for key, lines in tokenize(block_lines):
-                    d[key] = u''.join(lines)
+                    d[key] = ''.join(lines)
                 rv.append(flowblock.process_raw_data(d, pad=raw.pad))
         except BadFlowBlock as e:
             return raw.bad_value(e.message)
@@ -227,7 +231,7 @@ class FlowType(Type):
 
         block_order = self.flow_blocks
         if block_order is None:
-            block_order = [k for k, v in sorted(pad.db.flowblocks.items(),
+            block_order = [k for k, v in sorted(list(pad.db.flowblocks.items()),
                                                 key=lambda x: x[1].order)]
         rv['flowblock_order'] = block_order
 

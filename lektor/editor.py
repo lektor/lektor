@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import os
 import shutil
 import posixpath
@@ -66,7 +72,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
     for key in implied_keys:
         raw_data.pop(key, None)
 
-    return EditorSession(pad, id, unicode(path), raw_data, datamodel, record,
+    return EditorSession(pad, id, str(path), raw_data, datamodel, record,
                          exists, is_attachment, alt)
 
 
@@ -91,7 +97,7 @@ class EditorSession(object):
             if parent is not None:
                 slug_format = parent.datamodel.child_config.slug_format
         if slug_format is None:
-            slug_format = u'{{ this._id }}'
+            slug_format = '{{ this._id }}'
         self.slug_format = slug_format
         self.implied_attachment_type = None
 
@@ -118,7 +124,7 @@ class EditorSession(object):
             label = self.id
         can_be_deleted = not self.datamodel.protected and not self.is_root
         return {
-            'data': dict(self.iteritems()),
+            'data': dict(iter(list(self.items()))),
             'record_info': {
                 'id': self.id,
                 'path': self.path,
@@ -178,13 +184,13 @@ class EditorSession(object):
             self.commit()
 
     def update(self, *args, **kwargs):
-        for key, value in dict(*args, **kwargs).iteritems():
+        for key, value in list(dict(*args, **kwargs).items()):
             self[key] = value
 
     def iteritems(self):
         done = set()
 
-        for key, value in self.original_data.iteritems():
+        for key, value in list(self.original_data.items()):
             done.add(key)
             if key in implied_keys:
                 continue
@@ -201,26 +207,26 @@ class EditorSession(object):
                 yield key, value
 
     def iterkeys(self):
-        for key, _ in self.iteritems():
+        for key, _ in list(self.items()):
             yield key
 
     def itervalues(self):
-        for _, value in self.iteritems():
+        for _, value in list(self.items()):
             yield value
 
     def items(self):
-        return list(self.iteritems())
+        return list(self.items())
 
     def keys(self):
-        return list(self.iterkeys())
+        return list(self.keys())
 
     def values(self):
-        return list(self.itervalues())
+        return list(self.values())
 
     __iter__ = iterkeys
 
     def __len__(self):
-        return len(self.items())
+        return len(list(self.items()))
 
     def get_fs_path(self, alt=PRIMARY_ALT):
         """The path to the record file on the file system."""
@@ -367,7 +373,7 @@ class EditorSession(object):
             pass
 
         with atomic_open(self.fs_path, 'wb') as f:
-            for chunk in serialize(self.iteritems(), encoding='utf-8'):
+            for chunk in serialize(iter(list(self.items())), encoding='utf-8'):
                 f.write(chunk)
 
     def __repr__(self):

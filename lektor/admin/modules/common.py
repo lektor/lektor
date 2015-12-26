@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from builtins import object
 import os
 
 from flask import Blueprint, g, request, current_app, url_for
