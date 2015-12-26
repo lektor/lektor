@@ -255,7 +255,7 @@ div.blog-post {
   }
 }
 
-div.banner {
+div.page-banner {
   margin: 15px 0;
   background-size: cover;
   background-position: center center;
@@ -265,17 +265,23 @@ div.banner {
     margin-top: 0;
   }
 
-  &.banner-500 {
+  &.page-banner-500 {
     height: 500px;
 
     @media (max-width: $screen-md-max) { height: 300px; }
     @media (max-width: $screen-sm-max) { height: 200px; }
   }
 
-  &.banner-300 {
+  &.page-banner-300 {
     height: 300px;
 
     @media (max-width: $screen-md-max) { height: 200px; }
+    @media (max-width: $screen-sm-max) { height: 120px; }
+  }
+
+  &.page-banner-200 {
+    height: 200px;
+
     @media (max-width: $screen-sm-max) { height: 120px; }
   }
 }
