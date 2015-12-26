@@ -57,7 +57,7 @@ configure the access credentials.  We will get to that.
 
 ## Enabling Travis
 
-So now that we have all that configured we need to tellt travis to build the
+So now that we have all that configured we need to tell travis to build the
 repository.  For that just head to your [Travis-CI Profile
 :ext](https://travis-ci.org/profile) and enable the repository.  If it does not
 show up yet, you can force a sync with the click of a button.

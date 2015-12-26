@@ -12,7 +12,7 @@ assume we build a website for someone who wants to showcase their art projects.
 ## The Models
 
 The way we want to go about this is that we have a site where all the
-projects shows up and then a detail page for each project in particular.
+projects show up and then a detail page for each project in particular.
 
 ### `projects.ini`
 
@@ -23,7 +23,7 @@ for new pages and make it impossible to delete (`protected`).  This means we
 need to manually create the one page later which will use this.
 
 Because we only have a single page for the projects overview we give it a
-label manually (`label = Projects`).
+static label manually (`label = Projects`).
 
 ```ini
 [model]
@@ -135,7 +135,7 @@ For the detail page we show all information we know about:
   </dl>
   <h2>Description</h2>
   <div class="description">{{ this.description }}</div>
-  {% set images = project.attachments.images.all() %}
+  {% set images = this.attachments.images.all() %}
   {% if images %}
     <h2>Images</h2>
     {% for image in images %}
