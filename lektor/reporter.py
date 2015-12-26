@@ -189,6 +189,13 @@ class BufferReporter(Reporter):
                 rv.add(data['value'])
         return sorted(rv)
 
+    def get_major_events(self):
+        rv = []
+        for event, data in self.buffer:
+            if event not in ('debug-info', 'dirty-flag', 'write-source-info'):
+                rv.append((event, data))
+        return rv
+
     def _emit(self, _event, **extra):
         self.buffer.append((_event, extra))
 
@@ -196,16 +203,14 @@ class BufferReporter(Reporter):
         self._emit('start-build', activity=activity)
 
     def finish_build(self, activity, start_time):
-        self._emit('finish-build', activity=activity, start_time=start_time,
-                   end_time=time.time())
+        self._emit('finish-build', activity=activity)
 
     def start_artifact_build(self, is_current):
         self._emit('start-artifact-build', artifact=self.current_artifact,
                    is_current=is_current)
 
     def finish_artifact_build(self, start_time):
-        self._emit('finish-artifact-build', artifact=self.current_artifact,
-                   start_time=start_time, end_time=time.time())
+        self._emit('finish-artifact-build', artifact=self.current_artifact)
 
     def report_build_all_failure(self, failures):
         self._emit('build-all-failure', failures=failures)

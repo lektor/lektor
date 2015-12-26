@@ -76,9 +76,9 @@ def test_basic_artifact_current_test(pad, builder, reporter):
 
     artifact = build()
 
-    assert reporter.buffer[:3] == [
+    assert reporter.get_major_events() == [
         ('enter-source', {
-            'source': root
+            'source': root,
         }),
         ('start-artifact-build', {
             'artifact': artifact,
@@ -87,6 +87,12 @@ def test_basic_artifact_current_test(pad, builder, reporter):
         ('build-func', {
             'func': 'lektor.build_programs.PageBuildProgram',
         }),
+        ('finish-artifact-build', {
+            'artifact': artifact,
+        }),
+        ('leave-source', {
+            'source': root,
+        })
     ]
 
     assert reporter.get_recorded_dependencies() == [
@@ -104,7 +110,7 @@ def test_basic_artifact_current_test(pad, builder, reporter):
 
     assert artifact.is_current
 
-    assert reporter.buffer[:3] == [
+    assert reporter.get_major_events() == [
         ('enter-source', {
             'source': root
         }),
@@ -115,4 +121,10 @@ def test_basic_artifact_current_test(pad, builder, reporter):
         ('build-func', {
             'func': 'lektor.build_programs.PageBuildProgram',
         }),
+        ('finish-artifact-build', {
+            'artifact': artifact,
+        }),
+        ('leave-source', {
+            'source': root,
+        })
     ]
