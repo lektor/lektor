@@ -123,7 +123,7 @@ For the detail page we show all information we know about:
 {% block title %}{{ this.name }} ({{ this.date.year }}){% endblock %}
 {% block body %}
   <h1>{{ this.name }}</h1>
-  <dt>
+  <dl>
     <dt>Date
     <dd>{{ this.date|dateformat }}
     {% if this.website %}

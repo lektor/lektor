@@ -33,20 +33,34 @@
     <div class="col-sm-9 doc-styling">
       {{ get_doc_header(this) }}
 
+      <ul class=page-meta>
       {% if this.type == 'method' %}
-        <p class="type-info">Method of {{ get_doc_link(this.parent) }}
+        <li>Method of {{ get_doc_link(this.parent) }}
       {% elif this.type == 'property' %}
-        <p class="type-info">Property of {{ get_doc_link(this.parent) }}
+        <li>Property of {{ get_doc_link(this.parent) }}
       {% elif this.type == 'operator' %}
-        <p class="type-info">Operator of {{ get_doc_link(this.parent) }}
+        <li>Operator of {{ get_doc_link(this.parent) }}
       {% endif %}
       {% if this.template_var %}
-        <p class="type-info">Template variable: <a href="{{ (
+        <li>Template variable: <a href="{{ (
           '/docs/api/templates/globals/' ~ this.template_var|lower ~ '/')|url
           }}"><code>{{ this.template_var }}</code></a>
       {% endif %}
+      {% if this.version_added %}
+        <li>New in Lektor Version <em>{{ this.version_added }}</em>
+      {% endif %}
+      </ul>
 
       {{ this.body }}
+
+      {% if this.version_history %}
+      <div class="version-info version-info-collapsed">
+        <h2>Version Info</h2>
+        <div class="contents">
+          {{ this.version_history }}
+        </div>
+      </div>
+      {% endif %}
 
       {% if this.children %}
       <div class="child-pages">

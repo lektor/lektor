@@ -49,7 +49,7 @@ Each page is associated with a model and a template.  Each page needs to have
 a model that defines which fields exist.  The template by default matches the
 model name but it can be overridden on a per-page basis.
 
-So how is the model selected?  Either expicitly in the `contents.lr` file
+So how is the model selected?  Either explicitly in the `contents.lr` file
 with the `_model` key or by configuration and convention.  Lektor will
 select the default model based on trying things in this order:
 
@@ -80,11 +80,15 @@ The page body goes here
 
 Fields are separated by three dashes `---` and follow the format `key: value`.
 For values with multiple lines it's recommended to insert two newlines after
-the key.  To format of each field is specific to how the model is configured.
+the key.  The format of each field is specific to how the model is configured.
 
 Some fields are plain text, others can be markdown syntax and more.  These
 fields become available for rendering in the template automatically.
 
-**Tip:** If you want to use `---` itself in the document text, just add another
+!!! If you want to use `---` itself in the document text, just add another
 dash.  This means `----` will render as `---` and `-----` will render as
 `----` etc.
+
+Fields prefixed with an underscore are so-called system fields.  They are
+provided by Lektor and customize behavior within Lektor.  For a list of
+available fields see [System Fields :ref](../api/db/system-fields/).

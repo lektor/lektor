@@ -17,10 +17,16 @@ project:
   this plugin embeds disqus comments into your website.
 * [webpack-support :ext](https://github.com/lektor/lektor-webpack-support):
   adds support for building websites with webpack.
+* [markdown-highlighter :ext](https://github.com/lektor/lektor-markdown-highlighter):
+  adds support for syntax highlighting to markdown code snippets.
+* [markdown-header-anchors :ext](https://github.com/lektor/lektor-markdown-header-anchors):
+  adds support for header anchors and table of contents to markdown.
 
-## Inofficial
+## Unofficial
 
-There are currently no inofficial plugins listed here, but if you have some
-you can [edit this page on github
-:ext](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr)
-and send a pull request.
+These are unofficial plugins. This list is moderated and updated
+regularly, but they still aren't developed by the authors of Lektor,
+so they might not keep pace with development on Lektor.
+
+* [s3 :ext](https://github.com/spenczar/lektor-s3):
+  allows deployment of websites to S3 buckets

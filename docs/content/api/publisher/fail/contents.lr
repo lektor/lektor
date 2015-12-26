@@ -1,0 +1,31 @@
+title: fail
+---
+summary: Notifies a failure during publishing
+---
+signature: message
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+This method takes a message and raises an appropriate failure that aborts
+the publishing process.  This is invoked from within the [publish
+:ref](../publish/) method to indicate a failure:
+
+## Example
+
+```python
+from lektor.publisher import Publisher
+
+
+class MyPublisher(Publisher):
+    def publish(self, target_url, credentials=None, **extra):
+        self.fail('This publisher cannot publish :(')
+
+
+class MyPlugin(Plugin):
+    def on_setup_env(self, **extra):
+        self.env.add_publisher('my', MyPublisher)
+```
