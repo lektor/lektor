@@ -107,8 +107,8 @@ class Reporter(object):
         try:
             yield
         finally:
-            self.artifact_stack.pop()
             self.finish_artifact_build(now)
+            self.artifact_stack.pop()
 
     def start_artifact_build(self, is_current):
         pass
@@ -158,8 +158,8 @@ class Reporter(object):
         try:
             yield
         finally:
-            self.source_stack.pop()
             self.leave_source(now)
+            self.source_stack.pop()
 
     def enter_source(self):
         pass
@@ -170,6 +170,80 @@ class Reporter(object):
 
 class NullReporter(Reporter):
     pass
+
+
+class BufferReporter(Reporter):
+
+    def __init__(self, env, verbosity=0):
+        Reporter.__init__(self, env, verbosity)
+        self.buffer = []
+
+    def clear(self):
+        self.buffer = []
+
+    def get_recorded_dependencies(self):
+        rv = set()
+        for event, data in self.buffer:
+            if event == 'debug-info' and \
+               data['key'] == 'dependency':
+                rv.add(data['value'])
+        return sorted(rv)
+
+    def _emit(self, _event, **extra):
+        self.buffer.append((_event, extra))
+
+    def start_build(self, activity):
+        self._emit('start-build', activity=activity)
+
+    def finish_build(self, activity, start_time):
+        self._emit('finish-build', activity=activity, start_time=start_time,
+                   end_time=time.time())
+
+    def start_artifact_build(self, is_current):
+        self._emit('start-artifact-build', artifact=self.current_artifact,
+                   is_current=is_current)
+
+    def finish_artifact_build(self, start_time):
+        self._emit('finish-artifact-build', artifact=self.current_artifact,
+                   start_time=start_time, end_time=time.time())
+
+    def report_build_all_failure(self, failures):
+        self._emit('build-all-failure', failures=failures)
+
+    def report_failure(self, artifact, exc_info):
+        self._emit('failure', artifact=artifact, exc_info=exc_info)
+
+    def report_dirty_flag(self, value):
+        self._emit('dirty-flag', artifact=self.current_artifact,
+                   value=value)
+
+    def report_write_source_info(self, info):
+        self._emit('write-source-info', info=info,
+                   artifact=self.current_artifact)
+
+    def report_prune_source_info(self, source):
+        self._emit('prune-source-info', source=source)
+
+    def report_build_func(self, build_func):
+        self._emit('build-func', func=describe_build_func(build_func))
+
+    def report_sub_artifact(self, artifact):
+        self._emit('sub-artifact', artifact=artifact)
+
+    def report_debug_info(self, key, value):
+        self._emit('debug-info', key=key, value=value)
+
+    def report_generic(self, message):
+        self._emit('generic', message=message)
+
+    def enter_source(self):
+        self._emit('enter-source', source=self.current_source)
+
+    def leave_source(self, start_time):
+        self._emit('leave-source', source=self.current_source)
+
+    def report_pruned_artifact(self, artifact_name):
+        self._emit('pruned-artifact', artifact_name=artifact_name)
 
 
 class CliReporter(Reporter):
