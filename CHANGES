@@ -6,7 +6,7 @@ These are all the changes in Lektor since the first public release.
 1.1
 ---
 
-Bugfix release
+Released on 27th of December 2015
 
 - Fixed a bug where resolving URL paths outside of alts did not
   fall back to asset resolving.
