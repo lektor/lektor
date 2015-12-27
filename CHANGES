@@ -16,6 +16,8 @@ Bugfix release
 - Use requests for URL fetching instead of urllib.  This should fix
   some SSL errors on some Python versions.
 - Parent of page now correctly resolves to the right alt.
+- Publish from a temporary folder on the same device which solves
+  problems on machines with `/tmp` on a different drive.
 
 1.0
 ---

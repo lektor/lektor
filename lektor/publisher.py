@@ -76,7 +76,29 @@ def _get_ssh_cmd(port=None, keyfile=None):
     return 'ssh %s' % ' '.join(ssh_args)
 
 
+@contextmanager
+def _temporary_folder(env):
+    base = env.temp_path
+    try:
+        os.makedirs(base)
+    except OSError:
+        pass
+
+    folder = tempfile.mkdtemp(prefix='.deploytemp', dir=base)
+    scratch = os.path.join(folder, 'scratch')
+    os.mkdir(scratch)
+    os.chmod(scratch, 0755)
+    try:
+        yield scratch
+    finally:
+        try:
+            shutil.rmtree(folder)
+        except (IOError, OSError):
+            pass
+
+
 class PublishError(Exception):
+    """Raised by publishers if something goes wrong."""
     pass
 
 
@@ -142,20 +164,6 @@ class Publisher(object):
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
-    @contextmanager
-    def temporary_folder(self):
-        folder = tempfile.mkdtemp()
-        scratch = os.path.join(folder, 'scratch')
-        os.mkdir(scratch)
-        os.chmod(scratch, 0755)
-        try:
-            yield scratch
-        finally:
-            try:
-                shutil.rmtree(folder)
-            except (IOError, OSError):
-                pass
-
     def publish(self, target_url, credentials=None):
         raise NotImplementedError()
 
@@ -187,7 +195,7 @@ class RsyncPublisher(Publisher):
         return Command(argline, env=env)
 
     def publish(self, target_url, credentials=None):
-        with self.temporary_folder() as tempdir:
+        with _temporary_folder(self.env) as tempdir:
             client = self.get_command(target_url, tempdir, credentials)
             with client:
                 for line in client:
@@ -564,7 +572,7 @@ class GithubPagesPublisher(Publisher):
         else:
             branch = 'gh-pages'
 
-        with self.temporary_folder() as path:
+        with _temporary_folder(self.env) as path:
             ssh_command = None
             def git(args, **kwargs):
                 kwargs['env'] = _patch_git_env(kwargs.pop('env', None),
