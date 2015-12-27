@@ -117,6 +117,10 @@ div.slideshow {
     background: transparent!important;
   }
 
+  .carousel-indicators li {
+    box-shadow: 0 0 4px $gray, 0 0 2px $gray;
+  }
+
   div.slide {
     div.container {
       position: relative;
@@ -150,6 +154,11 @@ div.slideshow {
       @media (max-width: $screen-sm-max) {
         height: auto;
         width: 100%;
+      }
+
+      &.large {
+        width: 100%;
+        height: auto;
       }
     }
   }
@@ -377,6 +386,7 @@ div.screenshot-frame {
   background: white url(../images/swirl.png);
   background-size: 256px 256px;
   border-radius: 10px;
+
   img {
     width: 100%;
     border-radius: 5px;
@@ -692,6 +702,67 @@ div.admonition {
       background: #E0AA8F;
     }
     border: 1px solid #E0AA8F;
+  }
+}
+
+div.showcase {
+  div.project {
+    > a {
+      display: block;
+      padding: 10px;
+      margin: 15px 0;
+      background: lighten($gray, 20) url(../images/mesh.png);
+      background-size: 256px 256px;
+      text-decoration: none;
+      border-radius: 3px;
+
+      h2 {
+        margin: 0 0 10px 0;
+        text-align: center;
+        padding: 0;
+        font-size: 24px;
+        color: white;
+      }
+
+      img {
+        box-shadow: 0 0 6px #444;
+      }
+
+      .frame {
+        background: white;
+      }
+
+      &:hover {
+        box-shadow: inset 0 0 10px $gray;
+
+        img {
+          opacity: 0.9;
+          box-shadow: 0 0 10px #444, 0 0 5px #444;
+        }
+      }
+    }
+  }
+}
+
+div.showcase-site {
+  div.back-link {
+    margin: 15px 0 15px 10px;
+    text-align: left;
+    a {
+      &:before {
+        content: "« ";
+      }
+    }
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  p.site-link {
+    text-align: center;
+    margin: 15px 0 25px 0;
+    text-decoration: underline;
   }
 }
 
