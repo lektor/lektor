@@ -265,6 +265,12 @@ div.page-banner {
     margin-top: 0;
   }
 
+  &.page-banner-500-tall {
+    height: 500px;
+
+    @media (max-width: $screen-xs-max) { height: 400px; }
+  }
+
   &.page-banner-500 {
     height: 500px;
 
@@ -461,7 +467,7 @@ div.lektor-intro {
   height: 100%;
   //background: #3D2824;
 
-  img {
+  img.logo {
     margin-left: -80px;
     max-height: 300px;
     max-width: 700px;
@@ -473,13 +479,14 @@ div.lektor-intro {
   }
 
   p {
-    text-shadow: 0 0 3px #3D3639;
+    text-shadow: 0 0 50px #2D282A, 0 0 30px #2D282A, 0 0 2px #2D282A;
     color: white;
   }
 
   a {
     color: white;
     font-weight: bold;
+    text-decoration: underline;
   }
 
   div.install-row {
@@ -498,6 +505,10 @@ div.lektor-intro {
     @media (max-width: $screen-md-max) {
       left: 10px;
       right: 10px;
+    }
+
+    @media (max-width: $screen-sm-max) {
+      display: none;
     }
   }
 }
