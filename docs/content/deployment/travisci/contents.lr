@@ -87,6 +87,12 @@ To solve this problem we recommend two things:
 Once you have done that travis will start deploying the website on every
 commit.
 
+!!!! When copy/pasting username and password into travis please ensure that
+you do not copy any leading or trailing whitespace with it.  This will not
+just break the build but also reveal the password in the process.  For
+more information see [travis-ci#4139
+:ext](https://github.com/travis-ci/travis-ci/issues/4139).
+
 ## Committer Information
 
 By default the commits to the `gh-pages` branch will be authored by a user
