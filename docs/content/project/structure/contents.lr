@@ -77,6 +77,10 @@ Whatever is stored in the `assets` folder is copied over verbatim to the final
 result.  So if you put a folder named `css` in there with all your static CSS
 files they will appear as such in the final output.
 
+!!! This folder is not just useful for static files that are stylesheets or
+scripts, but because it overlays the entire website you can also use it to
+store things such as `favicon.ico`, `.htaccess` or similar things.
+
 ### `flowblocks/`
 
 The `flowblocks` folder contains models for blocks that are used by the
