@@ -984,13 +984,14 @@ class Database(object):
             try:
                 dir_path = os.path.dirname(fs_path)
                 for filename in os.listdir(dir_path):
+                    if not isinstance(filename, unicode):
+                        try:
+                            filename = filename.decode(fs_enc)
+                        except UnicodeError:
+                            continue
+
                     if filename.endswith('.lr') or \
                        self.env.is_uninteresting_source_name(filename):
-                        continue
-
-                    try:
-                        filename = filename.decode(fs_enc)
-                    except UnicodeError:
                         continue
 
                     # We found an attachment.  Attachments always live

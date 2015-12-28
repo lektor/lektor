@@ -38,6 +38,7 @@ class Reporter(object):
 
     def __enter__(self):
         self.push()
+        return self
 
     def __exit__(self, exc_type, exc_value, tb):
         self.pop()
@@ -194,6 +195,13 @@ class BufferReporter(Reporter):
         for event, data in self.buffer:
             if event not in ('debug-info', 'dirty-flag', 'write-source-info'):
                 rv.append((event, data))
+        return rv
+
+    def get_failures(self):
+        rv = []
+        for event, data in self.buffer:
+            if event == 'failure':
+                rv.append(data)
         return rv
 
     def _emit(self, _event, **extra):

@@ -6,6 +6,11 @@ from itertools import chain
 from lektor.db import Page, Attachment
 from lektor.assets import File, Directory
 from lektor.environment import PRIMARY_ALT
+from lektor.exception import LektorException
+
+
+class BuildError(LektorException):
+    pass
 
 
 builtin_build_programs = []
@@ -165,6 +170,14 @@ class PageBuildProgram(BuildProgram):
                 sources=list(self.source.iter_source_filenames()))
 
     def build_artifact(self, artifact):
+        try:
+            self.source.url_path.encode('ascii')
+        except UnicodeError:
+            raise BuildError('The URL for this record contains non ASCII '
+                             'characters.  This is currently not supported '
+                             'for portability reasons (%r).' %
+                             self.source.url_path)
+
         artifact.render_template_into(
             self.source['_template'], this=self.source)
 
