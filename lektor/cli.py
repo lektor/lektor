@@ -232,7 +232,7 @@ def clean_cmd(ctx, output_path, verbosity):
               'authentication of the deployment.')
 @click.option('--key', envvar='LEKTOR_DEPLOY_KEY',
               help='The contents of a key file directly a string that should '
-             'be used for authentication of the deployment.')
+              'be used for authentication of the deployment.')
 @pass_context
 def deploy_cmd(ctx, server, output_path, **credentials):
     """This command deploys the entire contents of the build folder
@@ -306,7 +306,7 @@ def deploy_cmd(ctx, server, output_path, **credentials):
 def server_cmd(ctx, host, port, output_path, verbosity, build_flags, browse):
     """The server command will launch a local server for development.
 
-    Lektor's developemnt server will automatically build all files into
+    Lektor's development server will automatically build all files into
     pages similar to how the build command with the `--watch` switch
     works, but also at the same time serve up the website on a local
     HTTP server.
@@ -427,7 +427,7 @@ def plugins_cmd():
 @click.argument('name')
 @pass_context
 def plugins_add_cmd(ctx, name):
-    """This command can add a new plugion to the project.  If just given
+    """This command can add a new plugin to the project.  If just given
     the name of the plugin the latest version of that plugin is added to
     the project.
 
@@ -453,7 +453,7 @@ def plugins_add_cmd(ctx, name):
 @click.argument('name')
 @pass_context
 def plugins_remove_cmd(ctx, name):
-    """This command can remove a plugion to the project again.  The name
+    """This command can remove a plugin to the project again.  The name
     of the plugin is the only argument to the function.
     """
     project = ctx.get_project()
@@ -527,7 +527,7 @@ def plugins_flush_cache_cmd(ctx):
     click.echo('All done!')
 
 
-@plugins_cmd.command('reinstall', short_help='Reginstall all plugins.')
+@plugins_cmd.command('reinstall', short_help='Reinstall all plugins.')
 @pass_context
 def plugins_reinstall_cmd(ctx):
     """Forces a re-installation of all plugins.  This will download the
