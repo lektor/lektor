@@ -8,6 +8,9 @@ These are all the changes in Lektor since the first public release.
 
 Release date to be decided
 
+- Fixed an error that caused unicode characters in the project
+  name to be mishandled in the quickstart.
+
 1.1
 ---
 
