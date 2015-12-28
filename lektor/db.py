@@ -14,8 +14,8 @@ from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
 from lektor import metaformat
-from lektor.utils import sort_normalize_string, cleanup_path, to_os_path, \
-     fs_enc
+from lektor.utils import sort_normalize_string, cleanup_path, \
+     untrusted_to_os_path, fs_enc
 from lektor.sourceobj import SourceObject
 from lektor.context import get_ctx
 from lektor.datamodel import load_datamodels, load_flowblocks
@@ -921,7 +921,8 @@ class Database(object):
 
     def to_fs_path(self, path):
         """Convenience function to convert a path into an file system path."""
-        return os.path.join(self.env.root_path, 'content', to_os_path(path))
+        return os.path.join(self.env.root_path, 'content',
+                            untrusted_to_os_path(path))
 
     def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None):
         """Internal helper that loads the raw record data.  This performs

@@ -3,7 +3,7 @@ import sys
 import hashlib
 from inifile import IniFile
 
-from lektor.utils import to_os_path, get_cache_dir
+from lektor.utils import untrusted_to_os_path, get_cache_dir
 
 
 class Project(object):
@@ -29,7 +29,8 @@ class Project(object):
         name = inifile.get('project.name') or os.path.basename(
             filename).rsplit('.')[0].title()
         path = os.path.join(os.path.dirname(filename),
-                            to_os_path(inifile.get('project.path') or '.'))
+                            untrusted_to_os_path(
+                                inifile.get('project.path') or '.'))
         return cls(
             name=name,
             project_file=filename,

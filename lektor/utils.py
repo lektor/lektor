@@ -52,8 +52,11 @@ def cleanup_path(path):
     return '/' + _slashes_re.sub('/', path.strip('/'))
 
 
-def to_os_path(path):
-    return path.strip('/').replace('/', os.path.sep).decode(fs_enc, 'replace')
+def untrusted_to_os_path(path):
+    path = path.strip('/').replace('/', os.path.sep)
+    if not isinstance(path, unicode):
+        path = path.decode(fs_enc, 'replace')
+    return path
 
 
 def is_path(path):

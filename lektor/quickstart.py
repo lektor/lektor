@@ -10,7 +10,7 @@ from functools import partial
 from contextlib import contextmanager
 from jinja2 import Environment, PackageLoader
 
-from .utils import slugify
+from .utils import slugify, fs_enc
 
 
 _var_re = re.compile(r'@([^@]+)@')
@@ -92,6 +92,8 @@ class Generator(object):
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
+                if isinstance(path, unicode):
+                    filename = filename.decode(fs_enc)
                 shutil.move(os.path.join(scratch, filename),
                             os.path.join(path, filename))
             os.rmdir(scratch)

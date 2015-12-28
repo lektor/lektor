@@ -14,7 +14,7 @@ from lektor.context import Context
 from lektor.build_programs import builtin_build_programs
 from lektor.reporter import reporter
 from lektor.sourcesearch import find_files
-from lektor.utils import prune_file_and_folder
+from lektor.utils import prune_file_and_folder, fs_enc
 from lektor.environment import PRIMARY_ALT
 from lektor.buildfailures import FailureController
 
@@ -792,6 +792,8 @@ class PathCache(object):
         if rv is not None:
             return rv
         folder = os.path.abspath(self.env.root_path)
+        if isinstance(folder, unicode) and not isinstance(filename, unicode):
+            filename = filename.decode(fs_enc)
         filename = os.path.normpath(os.path.join(folder, filename))
         if filename.startswith(folder):
             filename = filename[len(folder):].lstrip(os.path.sep)
