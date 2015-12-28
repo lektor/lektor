@@ -61,7 +61,7 @@
   "BROWSE_FS_WINDOWS": "在瀏覽器中開啟",
   "ERROR_CANNOT_BROWSE_FS": "錯誤：檔案還沒有存在。",
   "REMOVE_FLOWBLOCK_PROMPT": "Do you really want to remove this block?",
-  "ADD_FLOWBLOCK": "Add Block",
+  "ADD_FLOWBLOCK": "新增區塊",
   "INVALID_INPUT": "無效的輸入",
   "UP": "上",
   "DOWN": "下",
@@ -100,8 +100,8 @@
   "VIEW_ADMIN_PANEL": "View Admin Panel",
   "QUIT": "離開",
   "FAILED_TO_LOAD_PROJECT": "讀取專案失敗 QAQ",
-  "LOADING_PROJECT": "讀取專案中 ...",
-  "INITIALIZING_LEKTOR": "初始化Lektor中 ...",
+  "LOADING_PROJECT": "讀取專案中...",
+  "INITIALIZING_LEKTOR": "初始化Lektor中...",
   "QUIT_LEKTOR": "離開Lektor",
   "FILE": "檔案",
   "EDIT": "編輯",
@@ -123,5 +123,5 @@
   "OK": "OK",
   "FAILED_TO_OPEN_CONTENT_FILE": "開啟檔案失敗",
   "OPEN_OTHER_PROJECT": "開啟其它專案",
-  "OPEN_OTHER_PROJECT_QUESTION": "Opening this file requires opening another project (%s). The current project will be closed. Do you want to continue?"
+  "OPEN_OTHER_PROJECT_QUESTION": "開啟這份檔案需要連同開啟另一個專案（%s），目前的專案將會被關閉，確定要繼續？"
 }
