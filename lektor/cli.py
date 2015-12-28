@@ -59,7 +59,13 @@ class Context(object):
         if rv is None:
             if silent:
                 return None
-            raise click.UsageError('Could not find project')
+            if self._project_path is None:
+                raise click.UsageError('Could not automatically discover '
+                                       'project.  A Lektor project must '
+                                       'exist in the working directory or '
+                                       'any of the parent directories.')
+            raise click.UsageError('Could not find project "%s"' %
+                                   self._project_path)
         self._project = rv
         return rv
 
