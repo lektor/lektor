@@ -59,7 +59,10 @@ class Context(object):
         if rv is None:
             if silent:
                 return None
-            raise click.UsageError('Could not find project')
+            msg = 'in the current or parent directories.'
+            if self._project_path is not None:
+                msg = 'in the given project path.'
+            raise click.UsageError('Could not find .lektorproject file ' + msg)
         self._project = rv
         return rv
 
