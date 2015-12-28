@@ -18,6 +18,7 @@ Next feature release
 - Allow plugins to provide publishers.
 - Added `|markdown` filter.
 - Added French translations.
+- Unicode filenames as final build artifacts are now explicitly disallowed.
 
 1.2
 ---
