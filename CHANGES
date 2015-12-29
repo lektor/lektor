@@ -19,6 +19,7 @@ Next feature release
 - Added `|markdown` filter.
 - Added French translations.
 - Unicode filenames as final build artifacts are now explicitly disallowed.
+- Serve up a 404.html as an error page in the dev server.
 
 1.2
 ---

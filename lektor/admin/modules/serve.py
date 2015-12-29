@@ -7,6 +7,7 @@ from zlib import adler32
 from flask import Blueprint, current_app, abort, Response, request, \
      render_template
 from werkzeug.datastructures import Headers
+from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import wrap_file
 
 
@@ -119,11 +120,8 @@ def handle_build_failure(failure):
     return render_template('build-failure.html', **failure.data)
 
 
-@bp.route('/', defaults={'path': ''})
-@bp.route('/<path:path>')
-def serve_artifact(path):
+def serve_up_artifact(path):
     li = current_app.lektor_info
-
     pad = li.get_pad()
 
     artifact_name, filename = li.resolve_artifact('/' + path, pad)
@@ -142,3 +140,17 @@ def serve_artifact(path):
         return handle_build_failure(failure)
 
     return send_file(filename)
+
+
+@bp.route('/', defaults={'path': ''})
+@bp.route('/<path:path>')
+def serve_artifact(path):
+    return serve_up_artifact(path)
+
+
+@bp.errorhandler(404)
+def serve_error_page(error):
+    try:
+        return serve_up_artifact('404.html')
+    except NotFound as e:
+        return e
