@@ -64,7 +64,7 @@ show up yet, you can force a sync with the click of a button.
 
 ## Access Credentials
 
-So how do you savely provide your credentials?  Lektor accepts username and
+So how do you safely provide your credentials?  Lektor accepts username and
 password for the `ghpages+https` transport via the `LEKTOR_DEPLOY_USERNAME`
 and `LEKTOR_DEPLOY_PASSWORD` environment variables.  These can be set in the
 Travis-CI settings of your repository on travis-ci.org in secret so they are
