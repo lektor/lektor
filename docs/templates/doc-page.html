@@ -63,7 +63,7 @@
       {% endif %}
 
       {% if this.children %}
-      <div class="child-pages">
+      <div class="child-pages nocontent">
         {% for cols in this.children|batch(2) %}
           <div class="row">
             {% for page in cols if page %}
