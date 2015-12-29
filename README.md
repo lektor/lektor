@@ -20,3 +20,18 @@ For installation instructions head to the official documentation:
 
 * [Installation](https://www.getlektor.com/docs/installation/)
 * [Quickstart](https://www.getlektor.com/docs/quickstart/)
+
+## Want to develop on Lektor?
+
+This gets you started:
+
+```
+$ git clone https://github.com/lektor/lektor
+$ cd lektor
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install --editable .
+$ export LEKTOR_DEV=1
+$ lektor quickstart --path dev-example
+$ lektor --project dev-example server
+```
