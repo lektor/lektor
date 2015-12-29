@@ -875,3 +875,29 @@ div.doc-styling div.gsc-control-cse {
   font-size: 13px;
   padding-top: 5px;
 }
+
+/* gitter */
+aside.gitter-chat-embed {
+  z-index: 10000;
+}
+
+button.js-gitter-toggle-chat-button {
+  color: white;
+  border: none;
+  cursor: pointer;
+  position: fixed;
+  right: 10px;
+  bottom: 0;
+  background-color: $brand-primary;
+  font-family: $font-family-base;
+  font-weight: bold;
+  padding: 7px 20px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+
+  &:hover {
+    background-color: darken($brand-primary, 15);
+    text-decoration: none;
+  }
+}
