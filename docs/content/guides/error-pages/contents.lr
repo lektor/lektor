@@ -34,6 +34,21 @@ url_style = absolute
 For more information about this you can read the [Project File Documentation
 :ref](../../project/file/).
 
+## Creating an Error Page
+
+You can create easy create a 404 page by creating a `404.html/contents.lr`
+file.  If you do not care much about the contents and structure of the file
+you can just point it to an empty model (`none`) and manually select a
+`404.html` template like this:
+
+```
+_model: none
+----
+_template: 404.html
+```
+
+Then just create a `404.html` template with the intended contents.
+
 ## Server Configuration
 
 If you are deploying such pages to your own servers you will need to ensure
