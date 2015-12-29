@@ -122,6 +122,15 @@ def run_server(bindaddr, env, output_path, verbosity=0, lektor_dev=False,
     if browse:
         browse_to_address(bindaddr)
 
+    # serve custom 404 page if one exists
+    pad = app.lektor_info.get_pad()
+    if pad.get('404.html'):
+        @app.errorhandler(404)
+        def page_not_found(e):
+            from .admin.modules.serve import send_file
+            filename = app.lektor_info.resolve_artifact('404.html', pad)[1]
+            return send_file(filename)
+
     try:
         return run_simple(bindaddr[0], bindaddr[1], app,
                           use_debugger=True, threaded=True,
