@@ -21,7 +21,7 @@
   "UPLOAD": "Upload",
   "PROGRESS": "Progress",
   "ERROR_PREFIX": "Error: ",
-  "ERROR_NO_ID_PROVIDED": "Error: No ID provided.",
+  "ERROR_NO_ID_PROVIDED": "No ID provided.",
   "ERROR_PAGE_ID_DUPLICATE": "A page with this ID (%s) exists already.",
   "ERROR_INVALID_ID": "Invalid ID",
   "ERROR_INVALID_DATE": "Invalid date",
