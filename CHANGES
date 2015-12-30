@@ -22,6 +22,8 @@ Next feature release
 - Serve up a 404.html as an error page in the dev server.
 - Improvements to the path normalization and alt handling.  This should support
   URL generation in more complex cases between alts now.
+- Show a clearer error message when URL generation fails because a source
+  object is virtual (does not have a path).
 
 1.2
 ---
