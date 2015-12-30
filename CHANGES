@@ -20,6 +20,8 @@ Next feature release
 - Added French translations.
 - Unicode filenames as final build artifacts are now explicitly disallowed.
 - Serve up a 404.html as an error page in the dev server.
+- Improvements to the path normalization and alt handling.  This should support
+  URL generation in more complex cases between alts now.
 
 1.2
 ---

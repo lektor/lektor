@@ -130,3 +130,11 @@ def test_attachment_api(pad):
     assert img['_attachment_type'] == 'image'
     assert isinstance(img, Image)
     assert img.url_path == '/test.jpg'
+
+
+def test_query_normalization(pad):
+    projects = pad.get('projects')
+    assert pad.get('projects') is projects
+    assert pad.get('/projects') is projects
+    assert pad.get('/projects/.') is projects
+    assert pad.get('//projects/.') is projects

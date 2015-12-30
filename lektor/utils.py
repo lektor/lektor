@@ -33,7 +33,7 @@ is_windows = (os.name == 'nt')
 
 _slash_escape = '\\/' not in json.dumps('/')
 
-_slashes_re = re.compile(r'/+')
+_slashes_re = re.compile(r'(/\.{1,2}(/|$))|/')
 _last_num_re = re.compile(r'^(.*)(\d+)(.*?)$')
 _list_marker = object()
 _value_marker = object()
@@ -49,7 +49,7 @@ except LookupError:
 
 
 def cleanup_path(path):
-    return '/' + _slashes_re.sub('/', path.strip('/'))
+    return '/' + _slashes_re.sub('/', path).strip('/')
 
 
 def untrusted_to_os_path(path):

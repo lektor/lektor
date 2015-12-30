@@ -1277,6 +1277,7 @@ class Pad(object):
 
     def get(self, path, alt=PRIMARY_ALT, page_num=None, persist=True):
         """Loads a record by path."""
+        path = cleanup_path(path)
         rv = self.cache.get(path, alt, page_num)
         if rv is not Ellipsis:
             if rv is not None:
