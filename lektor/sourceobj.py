@@ -102,14 +102,20 @@ class SourceObject(object):
             path = path[1:]
 
         if resolve:
-            if self.path is None:
+            # If we resolve directly to the current path we can make a
+            # shortcut that always works and use the current page's url
+            # path.
+            if path in ('.', ''):
+                path = self.url_path
+            elif self.path is None:
                 raise RuntimeError('Cannot use relative URL generation from '
                                    'sources that do not have a path.  The '
                                    'source object without a path is %r'
                                    % self)
-            source = self.pad.get(posixpath.join(self.path, path), alt=alt)
-            if source is not None:
-                path = source.url_path
+            else:
+                source = self.pad.get(posixpath.join(self.path, path), alt=alt)
+                if source is not None:
+                    path = source.url_path
 
         if absolute:
             return path
