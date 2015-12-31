@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 import click
+import errno
 import shutil
 import tempfile
 import subprocess
@@ -104,6 +105,7 @@ class Generator(object):
         return os.path.join(base, _var_re.sub(_repl, template_filename))[:-3]
 
     def run(self, ctx, path):
+        dirs = []
         with self.make_target_directory(path) as scratch:
             for template in self.jinja_env.list_templates():
                 if not template.endswith('.in'):
@@ -114,11 +116,23 @@ class Generator(object):
                     os.makedirs(directory)
                 except OSError:
                     pass
+                else:
+                    dirs.append(directory)
+
                 tmpl = self.jinja_env.get_template(template)
                 rv = tmpl.render(ctx).strip('\r\n')
                 if rv:
                     with open(fn, 'w') as f:
                         f.write(rv.encode('utf-8') + '\n')
+
+            # remove empty directories
+            dirs.sort(cmp=lambda a, b: cmp(len(b), len(a)))
+            for directory in dirs:
+                try:
+                    os.rmdir(directory)
+                except OSError as e:
+                    if e.errno != errno.ENOTEMPTY:
+                        raise e
 
 
 def get_default_author():
