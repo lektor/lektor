@@ -1072,7 +1072,7 @@ class Database(object):
 
     def process_data(self, data, datamodel, pad):
         # Automatically fill in slugs
-        if is_undefined(data['_slug']):
+        if not data['_slug']:
             data['_slug'] = self.get_default_slug(data, pad)
         else:
             data['_slug'] = data['_slug'].strip('/')
