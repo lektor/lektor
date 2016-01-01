@@ -73,14 +73,25 @@ class Context(object):
     during processing of the object.
     """
 
-    def __init__(self, artifact):
-        self.artifact = artifact
-        self.source = artifact.source_obj
+    def __init__(self, artifact=None, pad=None):
+        if pad is None:
+            if artifact is None:
+                raise TypeError('Either artifact or pad is needed to '
+                                'construct a context.')
+            pad = artifact.build_state.pad
+
+        if artifact is not None:
+            self.artifact = artifact
+            self.source = artifact.source_obj
+            self.build_state = self.artifact.build_state
+        else:
+            self.artifact = None
+            self.source = None
+            self.build_state = None
 
         self.exc_info = None
 
-        self.build_state = self.artifact.build_state
-        self.pad = self.build_state.pad
+        self.pad = pad
 
         # Processing information
         self.referenced_dependencies = set()
@@ -162,6 +173,9 @@ class Context(object):
         artifact needs building.  This function is generally used to record
         this request.
         """
+        if self.build_state is None:
+            raise TypeError('The context does not have a build state which '
+                            'means that artifact declaration is not possible.')
         aft = self.build_state.new_artifact(
             artifact_name=artifact_name,
             sources=sources,
