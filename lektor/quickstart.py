@@ -109,14 +109,14 @@ class Generator(object):
                 if not template.endswith('.in'):
                     continue
                 fn = self.expand_filename(scratch, ctx, template)
-                directory = os.path.dirname(fn)
-                try:
-                    os.makedirs(directory)
-                except OSError:
-                    pass
                 tmpl = self.jinja_env.get_template(template)
                 rv = tmpl.render(ctx).strip('\r\n')
                 if rv:
+                    directory = os.path.dirname(fn)
+                    try:
+                        os.makedirs(directory)
+                    except OSError:
+                        pass
                     with open(fn, 'w') as f:
                         f.write(rv.encode('utf-8') + '\n')
 
