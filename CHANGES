@@ -33,6 +33,7 @@ Release date to be decided
 - Fixed an error that caused unicode characters in the project
   name to be mishandled in the quickstart.
 - Do not create empty folders when the quickstart skips over files.
+- Empty values for the slug field now pull in the default.
 
 1.1
 ---
