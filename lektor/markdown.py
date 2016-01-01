@@ -57,6 +57,9 @@ class Markdown(object):
         self.__html = None
         self.__meta = None
 
+    def __nonzero__(self):
+        return bool(self.source)
+
     def __render(self):
         if self.__html is None:
             self.__html, self.__meta = markdown_to_html(self.source)

@@ -24,6 +24,7 @@ Next feature release
   URL generation in more complex cases between alts now.
 - Show a clearer error message when URL generation fails because a source
   object is virtual (does not have a path).
+- Empty text is now still valid markdown.
 
 1.2
 ---
