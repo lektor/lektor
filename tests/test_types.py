@@ -1,7 +1,7 @@
 from lektor.datamodel import Field
 from lektor.markdown import Markdown
 from lektor.context import Context
-from lektor.types import Undefined
+from lektor.types import Undefined, BadValue
 
 from markupsafe import escape, Markup
 
@@ -65,14 +65,57 @@ def test_text(env, pad):
         assert rv == ' 123 '
 
 
-def test_html(env, pad):
-    field = make_field(env, 'html')
+def test_integer(env, pad):
+    field = make_field(env, 'integer')
 
     with Context(pad=pad):
         rv = field.deserialize_value('', pad=pad)
-        assert isinstance(rv, Markup)
-        assert rv == Markup('')
+        assert isinstance(rv, BadValue)
 
-        rv = field.deserialize_value('<em>Foo</em>', pad=pad)
-        assert isinstance(rv, Markup)
-        assert rv == Markup('<em>Foo</em>')
+        rv = field.deserialize_value(None, pad=pad)
+        assert isinstance(rv, Undefined)
+
+        rv = field.deserialize_value('42', pad=pad)
+        assert rv == 42
+
+        rv = field.deserialize_value(' 23 ', pad=pad)
+        assert rv == 23
+
+
+def test_float(env, pad):
+    field = make_field(env, 'float')
+
+    with Context(pad=pad):
+        rv = field.deserialize_value('', pad=pad)
+        assert isinstance(rv, BadValue)
+
+        rv = field.deserialize_value(None, pad=pad)
+        assert isinstance(rv, Undefined)
+
+        rv = field.deserialize_value('42', pad=pad)
+        assert rv == 42.0
+
+        rv = field.deserialize_value(' 23.0 ', pad=pad)
+        assert rv == 23.0
+
+        rv = field.deserialize_value('-23.5', pad=pad)
+        assert rv == -23.5
+
+
+def test_boolean(env, pad):
+    field = make_field(env, 'boolean')
+
+    with Context(pad=pad):
+        rv = field.deserialize_value('', pad=pad)
+        assert isinstance(rv, BadValue)
+
+        rv = field.deserialize_value(None, pad=pad)
+        assert isinstance(rv, Undefined)
+
+        for s in 'true', 'TRUE', 'True', '1', 'yes':
+            rv = field.deserialize_value(s, pad=pad)
+            assert rv is True
+
+        for s in 'false', 'FALSE', 'False', '0', 'no':
+            rv = field.deserialize_value(s, pad=pad)
+            assert rv is False
