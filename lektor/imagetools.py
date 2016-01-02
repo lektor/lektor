@@ -264,24 +264,27 @@ def find_imagemagick(im=None):
     # If we're not on windows, we locate the executable like we would
     # do normally.
     if os.name != 'nt':
-        return locate_executable('convert')
+        rv = locate_executable('convert')
+        if rv is not None:
+            return rv
 
     # On windows, we only scan the program files for an image magick
     # installation, because this is where this usually goes.  We do
     # this because the convert executable is otherwise the system
     # one which can convert file systems and stuff like this.
-    for key in 'ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)':
-        value = os.environ.get(key)
-        if not value:
-            continue
-        try:
-            for filename in os.listdir(value):
-                if filename.lower().startswith('imagemagick-'):
-                    exe = os.path.join(value, filename, 'convert.exe')
-                    if os.path.isfile(exe):
-                        return exe
-        except OSError:
-            continue
+    else:
+        for key in 'ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)':
+            value = os.environ.get(key)
+            if not value:
+                continue
+            try:
+                for filename in os.listdir(value):
+                    if filename.lower().startswith('imagemagick-'):
+                        exe = os.path.join(value, filename, 'convert.exe')
+                        if os.path.isfile(exe):
+                            return exe
+            except OSError:
+                continue
 
     # Give up.
     raise RuntimeError('Could not locate imagemagick.')

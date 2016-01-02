@@ -421,6 +421,8 @@ def portable_popen(cmd, *args, **kwargs):
     executables before invoking them.  This also looks for executables
     in the bundle bin.
     """
+    if cmd[0] is None:
+        raise RuntimeError('No executable specified')
     exe = locate_executable(cmd[0], kwargs.get('cwd'))
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
