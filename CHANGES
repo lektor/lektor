@@ -39,6 +39,7 @@ Release date to be decided
 - Empty values for the slug field now pull in the default.
 - Corrected a bug in hashing in the FTP publisher that could cause
   files to not upload correctly.
+- Improved error message for when imagemagick cannot be found.
 
 1.1
 ---
