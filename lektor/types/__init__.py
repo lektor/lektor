@@ -39,6 +39,15 @@ class RawValue(object):
                          obj=self.value)
 
 
+class _NameDescriptor(object):
+
+    def __get__(self, obj, type):
+        rv = type.__name__
+        if rv.endswith('Type'):
+            rv = rv[:-4]
+        return rv.lower()
+
+
 class Type(object):
     widget = 'multiline-text'
 
@@ -57,12 +66,7 @@ class Type(object):
     def width(self):
         return self.options.get('width') or '1/1'
 
-    @property
-    def name(self):
-        rv = self.__class__.__name__
-        if rv.endswith('Type'):
-            rv = rv[:-4]
-        return rv.lower()
+    name = _NameDescriptor()
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         return {
