@@ -28,8 +28,8 @@
     <h1>{% if page.type %}{{ get_doc_icon(page) }} {% endif %}{%
       if page.module %}<code class="mod">{{ page.module }}.</code>{% endif
       %}<code class="obj">{{ page.title }}</code>{%
-      if page.type == 'method' or page.type == 'function' or page.type == 'filter'
-        or page.type == 'event'
+      if (page.type == 'method' or page.type == 'function' or page.type == 'filter'
+        or page.type == 'event') or page.signature
       %} <span class="sig">(<code>{{ page.signature }}</code>)</span>{% endif %}</h1>
   {% else %}
     <h1>{{ page.title }}</h1>
