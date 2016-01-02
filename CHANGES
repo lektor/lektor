@@ -12,6 +12,8 @@ Release date to be decided
   name to be mishandled in the quickstart.
 - Do not create empty folders when the quickstart skips over files.
 - Empty values for the slug field now pull in the default.
+- Corrected a bug in hashing in the FTP publisher that could cause
+  files to not upload correctly.
 
 1.1
 ---

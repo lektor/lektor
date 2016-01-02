@@ -400,10 +400,11 @@ class FtpPublisher(Publisher):
                 h = hashlib.sha1()
                 try:
                     with open(full_path, 'rb') as f:
-                        item = f.read(4096)
-                        if not item:
-                            break
-                        h.update(item)
+                        while 1:
+                            item = f.read(4096)
+                            if not item:
+                                break
+                            h.update(item)
                 except IOError as e:
                     if e.errno != errno.ENOENT:
                         raise
