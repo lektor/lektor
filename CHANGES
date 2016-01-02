@@ -25,6 +25,7 @@ Next feature release
 - Show a clearer error message when URL generation fails because a source
   object is virtual (does not have a path).
 - Empty text is now still valid markdown.
+- Lektor clean now loads the plugins as well.
 
 1.2
 ---
