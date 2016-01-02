@@ -37,7 +37,7 @@ class MyThingType(Type):
         return raw.value
 
 def setup_env(self, **extra):
-    self.env.types['mything'] = MyThingType
+    self.env.add_type(MyThingType)
 ```
 
 For more information see [value_from_raw :ref](value-from-raw/).

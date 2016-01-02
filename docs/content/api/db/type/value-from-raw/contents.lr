@@ -36,7 +36,7 @@ class LocationType(Type):
         return (lng, lat)
 
 def setup_env(self, **extra):
-    self.env.types['location'] = LocationType
+    self.env.add_type(LocationType)
 ```
 
 ## Raw Value
