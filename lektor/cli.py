@@ -216,6 +216,7 @@ def clean_cmd(ctx, output_path, verbosity):
     if output_path is None:
         output_path = ctx.get_default_output_path()
 
+    ctx.load_plugins()
     env = ctx.get_env()
 
     reporter = CliReporter(env, verbosity=verbosity)
