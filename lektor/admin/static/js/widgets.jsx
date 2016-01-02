@@ -13,25 +13,21 @@ var i18n = require('./i18n');
 
 
 var widgetComponents = {
-  'string': primitiveWidgets.SingleLineTextInputWidget,
-  'strings': primitiveWidgets.MultiLineTextInputWidget,
-  'date': primitiveWidgets.DateInputWidget,
+  'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
+  'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
+  'datepicker': primitiveWidgets.DateInputWidget,
   'integer': primitiveWidgets.IntegerInputWidget,
   'float': primitiveWidgets.FloatInputWidget,
-  'boolean': primitiveWidgets.BooleanInputWidget,
+  'checkbox': primitiveWidgets.BooleanInputWidget,
   'url': primitiveWidgets.UrlInputWidget,
   'slug': primitiveWidgets.SlugInputWidget,
-  'text': primitiveWidgets.MultiLineTextInputWidget,
-  'html': primitiveWidgets.MultiLineTextInputWidget,
-  'markdown': primitiveWidgets.MultiLineTextInputWidget,
   'flow': flowWidget.FlowWidget,
-  'sortkey': primitiveWidgets.IntegerInputWidget,
   'checkboxes': multiWidgets.CheckboxesInputWidget,
   'select': multiWidgets.SelectInputWidget,
-  'line': fakeWidgets.LineWidget,
-  'spacing': fakeWidgets.SpacingWidget,
-  'info': fakeWidgets.InfoWidget,
-  'heading': fakeWidgets.HeadingWidget,
+  'f-line': fakeWidgets.LineWidget,
+  'f-spacing': fakeWidgets.SpacingWidget,
+  'f-info': fakeWidgets.InfoWidget,
+  'f-heading': fakeWidgets.HeadingWidget,
 }
 
 
@@ -40,7 +36,10 @@ var FallbackWidget = React.createClass({
   render: function() {
     return (
       <div>
-        <em>Widget for "{this.props.type.name}" not implemented</em>
+        <em>
+          Widget "{this.props.type.widget}" not implemented
+          (used by type "{this.props.type.name}")
+        </em>
       </div>
     )
   }
@@ -101,11 +100,11 @@ FieldBox.propTypes = {
 
 
 function getWidgetComponent(type) {
-  return widgetComponents[type.name] || null;
+  return widgetComponents[type.widget] || null;
 }
 
 function getWidgetComponentWithFallback(type) {
-  return widgetComponents[type.name] || FallbackWidget;
+  return widgetComponents[type.widget] || FallbackWidget;
 }
 
 function getFieldColumns(field) {

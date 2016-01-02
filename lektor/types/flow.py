@@ -182,6 +182,7 @@ def process_flowblock_data(raw_value):
 
 
 class FlowType(Type):
+    widget = 'flow'
 
     def __init__(self, env, options):
         Type.__init__(self, env, options)

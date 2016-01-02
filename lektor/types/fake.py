@@ -15,18 +15,19 @@ class FakeType(Type):
 
 
 class LineType(FakeType):
-    pass
+    widget = 'f-line'
 
 
 class SpacingType(FakeType):
-    pass
+    widget = 'f-spacing'
 
 
 class InfoType(FakeType):
-    pass
+    widget = 'f-info'
 
 
 class HeadingType(FakeType):
+    widget = 'f-heading'
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         rv = FakeType.to_json(self, pad, record, alt)

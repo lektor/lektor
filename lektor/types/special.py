@@ -3,6 +3,7 @@ from lektor.types.primitives import SingleInputType
 
 
 class SortKeyType(SingleInputType):
+    widget = 'integer'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -14,6 +15,7 @@ class SortKeyType(SingleInputType):
 
 
 class SlugType(SingleInputType):
+    widget = 'slug'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -22,6 +24,7 @@ class SlugType(SingleInputType):
 
 
 class UrlType(SingleInputType):
+    widget = 'url'
 
     def value_from_raw(self, raw):
         if raw.value is None:

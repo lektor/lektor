@@ -127,6 +127,7 @@ class MultiType(Type):
 
 
 class SelectType(MultiType):
+    widget = 'select'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -135,6 +136,7 @@ class SelectType(MultiType):
 
 
 class CheckboxesType(MultiType):
+    widget = 'checkboxes'
 
     def value_from_raw(self, raw):
         rv = [x.strip() for x in (raw.value or '').split(',')]

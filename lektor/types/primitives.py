@@ -9,6 +9,7 @@ from lektor.i18n import get_i18n_block
 
 
 class SingleInputType(Type):
+    widget = 'singleline-text'
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         rv = Type.to_json(self, pad, record, alt)
@@ -29,12 +30,14 @@ class StringType(SingleInputType):
 
 
 class StringsType(Type):
+    widget = 'multiline-text'
 
     def value_from_raw(self, raw):
         return [x.strip() for x in (raw.value or '').splitlines()]
 
 
 class TextType(Type):
+    widget = 'multiline-text'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -43,6 +46,7 @@ class TextType(Type):
 
 
 class HtmlType(Type):
+    widget = 'multiline-text'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -51,6 +55,7 @@ class HtmlType(Type):
 
 
 class IntegerType(SingleInputType):
+    widget = 'integer'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -65,6 +70,7 @@ class IntegerType(SingleInputType):
 
 
 class FloatType(SingleInputType):
+    widget = 'float'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -76,6 +82,7 @@ class FloatType(SingleInputType):
 
 
 class BooleanType(Type):
+    widget = 'checkbox'
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         rv = Type.to_json(self, pad, record, alt)
@@ -93,6 +100,7 @@ class BooleanType(Type):
 
 
 class DateType(SingleInputType):
+    widget = 'datepicker'
 
     def value_from_raw(self, raw):
         if raw.value is None:

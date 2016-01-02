@@ -30,7 +30,7 @@ class RawValue(object):
             return '%s in field \'%s\': %s' % (prefix, self.field.name, reason)
         return '%s: %s' % (prefix, reason)
 
-    def bad_value(self, reason, value=None):
+    def bad_value(self, reason):
         return BadValue(hint=self._get_hint('Bad value', reason),
                         obj=self.value)
 
@@ -40,6 +40,7 @@ class RawValue(object):
 
 
 class Type(object):
+    widget = 'multiline-text'
 
     def __init__(self, env, options):
         self.env = env
@@ -66,6 +67,7 @@ class Type(object):
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         return {
             'name': self.name,
+            'widget': self.widget,
             'size': self.size,
             'width': self.width,
         }

@@ -26,6 +26,7 @@ Next feature release
   object is virtual (does not have a path).
 - Empty text is now still valid markdown.
 - Lektor clean now loads the plugins as well.
+- Basic support for type customization.
 
 1.2
 ---
