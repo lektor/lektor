@@ -530,6 +530,12 @@ class Environment(object):
             raise RuntimeError('Scheme "%s" is already registered.' % scheme)
         self.publishers[scheme] = publisher
 
+    def add_type(self, type):
+        name = type.name
+        if name in self.types:
+            raise RuntimeError('Type "%s" is already registered.' % name)
+        self.types[name] = type
+
     def urlresolver(self, func):
         self.custom_url_resolvers.append(func)
         return func
