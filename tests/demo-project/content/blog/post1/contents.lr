@@ -5,3 +5,10 @@ pub_date: 2015-12-12
 body:
 
 Look at my [attachment](hello.txt).
+---
+category: My Category
+---
+tags:
+
+tag1
+tag2
