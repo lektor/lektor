@@ -267,8 +267,8 @@ var MultiLineTextInputWidget = React.createClass({
     }
 
     var updateScrollPosition = jQuery(node).is(':focus');
-    var wasAtBottom = utils.scrolledToBottom();
-    var oldScrollTop = document.body.scrollTop;
+    //Cross-browser compatibility for scroll position
+    var oldScrollTop = document.documentElement.scrollTop || document.body.scrollTop;
     var oldHeight = jQuery(node).outerHeight();
 
     node.style.height = 'auto';
