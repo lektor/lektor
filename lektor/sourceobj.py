@@ -107,13 +107,15 @@ class SourceObject(object):
             # path.
             if path in ('.', ''):
                 path = self.url_path
-            elif self.path is None:
-                raise RuntimeError('Cannot use relative URL generation from '
-                                   'sources that do not have a path.  The '
-                                   'source object without a path is %r'
-                                   % self)
             else:
-                source = self.pad.get(posixpath.join(self.path, path), alt=alt)
+                if not path.startswith('/'):
+                    if self.path is None:
+                        raise RuntimeError('Cannot use relative URL generation '
+                                           'from sources that do not have a '
+                                           'path.  The source object without '
+                                           'a path is %r' % self)
+                    path = posixpath.join(self.path, path)
+                source = self.pad.get(path, alt=alt)
                 if source is not None:
                     path = source.url_path
 
