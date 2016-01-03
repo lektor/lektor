@@ -593,12 +593,14 @@ class Artifact(object):
         with self.open('wb') as f:
             f.write(rv.encode('utf-8') + b'\n')
 
-    def _memorize_dependencies(self, dependencies=None):
+    def _memorize_dependencies(self, dependencies=None, for_failure=False):
         """This updates the dependencies recorded for the artifact based
         on the direct sources plus the provided dependencies.  This also
         stores the config hash.
+
+        This normally defers the operation until commit but the `for_failure`
+        more will immediately commit into a new connection.
         """
-        @self._auto_deferred_update_operation
         def operation(con):
             primary_sources = set(self.build_state.to_source_filename(x)
                                   for x in self.sources)
@@ -618,13 +620,14 @@ class Artifact(object):
             reporter.report_dependencies(rows)
 
             cur = con.cursor()
-            cur.execute('delete from artifacts where artifact = ?',
-                        [self.artifact_name])
+            if not for_failure:
+                cur.execute('delete from artifacts where artifact = ?',
+                            [self.artifact_name])
             if rows:
                 cur.executemany('''
-                    insert into artifacts (artifact, source, source_mtime,
-                                           source_size, source_checksum,
-                                           is_dir, is_primary_source)
+                    insert or replace into artifacts (
+                        artifact, source, source_mtime, source_size,
+                        source_checksum, is_dir, is_primary_source)
                     values (?, ?, ?, ?, ?, ?, ?)
                 ''', rows)
 
@@ -640,6 +643,19 @@ class Artifact(object):
                 ''', [self.artifact_name, self.config_hash])
 
             cur.close()
+
+        if for_failure:
+            con = self.build_state.connect_to_database()
+            try:
+                operation(con)
+            except:
+                con.rollback()
+                con.close()
+                raise
+            con.commit()
+            con.close()
+        else:
+            self._auto_deferred_update_operation(operation)
 
     def clear_dirty_flag(self):
         """Clears the dirty flag for all sources."""
@@ -759,10 +775,10 @@ class Artifact(object):
         self.in_update_block = False
         self.updated = True
 
-        # We always want to memoize the dependencies.
-        self._memorize_dependencies(ctx.referenced_dependencies)
-
+        # If there was no error, we memoize the dependencies like normal
+        # and then commit our transaction.
         if exc_info is None:
+            self._memorize_dependencies(ctx.referenced_dependencies)
             self._commit()
             return
 
@@ -771,6 +787,13 @@ class Artifact(object):
         # that a called can respond to our failure, and we also persist
         # it so that the dev server can render it out later.
         self._rollback()
+
+        # This is a special form of dependency memorization where we do
+        # not prune old dependencies and we just append new ones and we
+        # use a new database connection that immediately commits.
+        self._memorize_dependencies(ctx.referenced_dependencies,
+                                    for_failure=True)
+
         ctx.exc_info = exc_info
         self.build_state.notify_failure(self, exc_info)
 

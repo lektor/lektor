@@ -5,6 +5,8 @@ import copy
 from functools import update_wrapper
 
 import jinja2
+from jinja2.loaders import split_template_path
+
 from babel import dates
 
 from inifile import IniFile
@@ -192,11 +194,28 @@ class FormatExpression(object):
 class CustomJinjaEnvironment(jinja2.Environment):
 
     def _load_template(self, name, globals):
-        rv = jinja2.Environment._load_template(self, name, globals)
         ctx = get_ctx()
-        if ctx is not None:
-            ctx.record_dependency(rv.filename)
-        return rv
+
+        try:
+            rv = jinja2.Environment._load_template(self, name, globals)
+            if ctx is not None:
+                ctx.record_dependency(rv.filename)
+            return rv
+        except jinja2.TemplateSyntaxError as e:
+            if ctx is not None:
+                ctx.record_dependency(e.filename)
+            raise
+        except jinja2.TemplateNotFound as e:
+            if ctx is not None:
+                # If we can't find the template we want to record at what
+                # possible locations the template could exist.  This will help
+                # out watcher to pick up templates that will appear in the
+                # future.  This assumes the loader is a file system loader.
+                for template_name in e.templates:
+                    pieces = split_template_path(template_name)
+                    for base in self.loader.searchpath:
+                        ctx.record_dependency(os.path.join(base, *pieces))
+            raise
 
 
 class Config(object):
