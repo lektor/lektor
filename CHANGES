@@ -40,6 +40,7 @@ Release date to be decided
 - Corrected a bug in hashing in the FTP publisher that could cause
   files to not upload correctly.
 - Improved error message for when imagemagick cannot be found.
+- Fixed scrolling in the admin for firefox and some other browsers.
 
 1.1
 ---
