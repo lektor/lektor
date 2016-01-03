@@ -153,3 +153,6 @@ def test_distinct(pad):
     assert distinct_tags == set(['tag1', 'tag2', 'tag3'])
     distinct_pub_dates = posts.distinct('pub_date')
     assert distinct_pub_dates == set([date(2015, 12, 12), date(2015, 12, 13)])
+    assert posts.distinct('foo') == set()
+    # Post 2 has no summary; check we don't include Undefined in distinct().
+    assert posts.distinct('summary') == set(['hello'])

@@ -848,7 +848,7 @@ class Query(object):
                 value = item._data[fieldname]
                 if isinstance(value, (list, tuple)):
                     rv |= set(value)
-                else:
+                elif not isinstance(value, Undefined):
                     rv.add(value)
 
         return rv

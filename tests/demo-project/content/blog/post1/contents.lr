@@ -2,6 +2,8 @@ title: Post 1
 ---
 pub_date: 2015-12-12
 ---
+summary: hello
+---
 body:
 
 Look at my [attachment](hello.txt).
