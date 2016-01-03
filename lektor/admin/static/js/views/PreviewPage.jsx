@@ -73,9 +73,12 @@ class PreviewPage extends RecordComponent {
   }
 
   getFramePath() {
-    var frame = this.refs.iframe;
+    var frameLocation = this.refs.iframe.contentWindow.location;
+    if (frameLocation.href === 'about:blank') {
+        return frameLocation.href;
+    }
     return utils.fsPathFromAdminObservedPath(
-      frame.contentWindow.location.pathname);
+      frameLocation.pathname);
   }
 
   onFrameNavigated() {
