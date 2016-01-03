@@ -85,7 +85,7 @@ store things such as `favicon.ico`, `.htaccess` or similar things.
 
 The `flowblocks` folder contains models for blocks that are used by the
 [Flow System :ref](../../content/flow/).  Flow blocks split a part of a page into
-smaller pieces so that can be individually designed.  They work similar to models
+smaller pieces so those could be individually designed.  They work similar to models
 but are contained within a field of a model.
 
 ### `packages/`
