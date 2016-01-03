@@ -27,6 +27,8 @@ Next feature release
 - Empty text is now still valid markdown.
 - Lektor clean now loads the plugins as well.
 - Basic support for type customization.
+- Fields that are absent in a content file from an alternative are now pulled
+  from the primary content file.
 
 1.2
 ---

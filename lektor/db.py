@@ -869,7 +869,7 @@ class AttachmentsQuery(Query):
         return self.filter(F._attachment_type == 'text')
 
 
-def _iter_filename_choices(fn_base, alts, config):
+def _iter_filename_choices(fn_base, alts, config, fallback=True):
     """Returns an iterator over all possible filename choices to .lr files
     below a base filename that matches any of the given alts.
     """
@@ -879,12 +879,16 @@ def _iter_filename_choices(fn_base, alts, config):
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
             yield os.path.join(fn_base, 'contents+%s.lr' % alt), alt, False
-    yield os.path.join(fn_base, 'contents.lr'), PRIMARY_ALT, False
+
+    if fallback or PRIMARY_ALT in alts:
+        yield os.path.join(fn_base, 'contents.lr'), PRIMARY_ALT, False
 
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
             yield fn_base + '+%s.lr' % alt, alt, True
-    yield fn_base + '.lr', PRIMARY_ALT, True
+
+    if fallback or PRIMARY_ALT in alts:
+        yield fn_base + '.lr', PRIMARY_ALT, True
 
 
 def _iter_content_files(dir_path, alts):
@@ -924,7 +928,8 @@ class Database(object):
         return os.path.join(self.env.root_path, 'content',
                             untrusted_to_os_path(path))
 
-    def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None):
+    def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None,
+                      fallback=True):
         """Internal helper that loads the raw record data.  This performs
         very little data processing on the data.
         """
@@ -935,26 +940,49 @@ class Database(object):
         fn_base = self.to_fs_path(path)
 
         rv = cls()
-        choiceiter = _iter_filename_choices(fn_base, [alt], self.config)
+        rv_type = None
+
+        choiceiter = _iter_filename_choices(fn_base, [alt], self.config,
+                                            fallback=fallback)
         for fs_path, source_alt, is_attachment in choiceiter:
+            # If we already determined what our return value is but the
+            # type mismatches what we try now, we have to abort.  Eg:
+            # a page can not become an attachment or the other way round.
+            if rv_type is not None and rv_type != is_attachment:
+                break
+
             try:
                 with open(fs_path, 'rb') as f:
+                    if rv_type is None:
+                        rv_type = is_attachment
                     for key, lines in metaformat.tokenize(f, encoding='utf-8'):
-                        rv[key] = u''.join(lines)
+                        if key not in rv:
+                            rv[key] = u''.join(lines)
             except IOError as e:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
                 if not is_attachment or not os.path.isfile(fs_path[:-3]):
                     continue
-                rv = {}
-            rv['_path'] = path
-            rv['_id'] = posixpath.basename(path)
-            rv['_gid'] = hashlib.md5(path.encode('utf-8')).hexdigest()
-            rv['_alt'] = alt
-            rv['_source_alt'] = source_alt
-            if is_attachment:
-                rv['_attachment_for'] = posixpath.dirname(path)
-            return rv
+                # Special case: we are loading an attachment but the meta
+                # data file does not exist.  In that case we still want to
+                # record that we're loading an attachment.
+                elif is_attachment:
+                    rv_type = True
+
+            if '_source_alt' not in rv:
+                rv['_source_alt'] = source_alt
+
+        if rv_type is None:
+            return
+
+        rv['_path'] = path
+        rv['_id'] = posixpath.basename(path)
+        rv['_gid'] = hashlib.md5(path.encode('utf-8')).hexdigest()
+        rv['_alt'] = alt
+        if rv_type:
+            rv['_attachment_for'] = posixpath.dirname(path)
+
+        return rv
 
     def iter_items(self, path, alt=PRIMARY_ALT):
         """Iterates over all items below a path and yields them as
@@ -1524,6 +1552,11 @@ class RecordCache(object):
             alt = record_or_path.alt
             page_num = record_or_path.page_num
         return (path, alt, page_num)
+
+    def flush(self):
+        """Flushes the cache"""
+        self.persistent.clear()
+        self.ephemeral.clear()
 
     def is_persistent(self, record):
         """Indicates if a record is in the persistent record cache."""

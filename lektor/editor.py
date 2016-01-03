@@ -29,13 +29,23 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
     if alt != PRIMARY_ALT and not pad.db.config.is_valid_alternative(alt):
         raise BadEdit('Attempted to edit an invalid alternative (%s)' % alt)
 
-    raw_data = pad.db.load_raw_data(path, cls=OrderedDict, alt=alt)
+    raw_data = pad.db.load_raw_data(path, cls=OrderedDict, alt=alt,
+                                    fallback=False)
+    raw_data_fallback = None
+    if alt != PRIMARY_ALT:
+        raw_data_fallback = pad.db.load_raw_data(path, cls=OrderedDict)
+        all_data = OrderedDict()
+        all_data.update(raw_data_fallback or ())
+        all_data.update(raw_data or ())
+    else:
+        all_data = raw_data
+
     id = posixpath.basename(path)
     if not is_valid_id(id):
         raise BadEdit('Invalid ID')
 
     record = None
-    exists = raw_data is not None
+    exists = all_data is not None
     if raw_data is None:
         raw_data = OrderedDict()
 
@@ -43,8 +53,8 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
         if not exists:
             is_attachment = False
         else:
-            is_attachment = bool(raw_data.get('_attachment_for'))
-    elif bool(raw_data.get('_attachment_for')) != is_attachment:
+            is_attachment = bool(all_data.get('_attachment_for'))
+    elif bool(all_data.get('_attachment_for')) != is_attachment:
         raise BadEdit('The attachment flag passed is conflicting with the '
                       'record\'s attachment flag.')
 
@@ -53,7 +63,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
         if datamodel is not None:
             raise BadEdit('When editing an existing record, a datamodel '
                           'must not be provided.')
-        datamodel = pad.db.get_datamodel_for_raw_data(raw_data, pad)
+        datamodel = pad.db.get_datamodel_for_raw_data(all_data, pad)
     else:
         if datamodel is None:
             datamodel = pad.db.get_implied_datamodel(path, is_attachment, pad)
@@ -61,25 +71,29 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
             datamodel = pad.db.datamodels[datamodel]
 
     if exists:
-        record = pad.instance_from_data(dict(raw_data), datamodel)
+        record = pad.instance_from_data(dict(all_data), datamodel)
 
     for key in implied_keys:
         raw_data.pop(key, None)
+        if raw_data_fallback:
+            raw_data_fallback.pop(key, None)
 
-    return EditorSession(pad, id, unicode(path), raw_data, datamodel, record,
-                         exists, is_attachment, alt)
+    return EditorSession(pad, id, unicode(path), raw_data, raw_data_fallback,
+                         datamodel, record, exists, is_attachment, alt)
 
 
 class EditorSession(object):
 
-    def __init__(self, pad, id, path, original_data, datamodel, record,
-                 exists=True, is_attachment=False, alt=PRIMARY_ALT):
+    def __init__(self, pad, id, path, original_data, fallback_data,
+                 datamodel, record, exists=True, is_attachment=False,
+                 alt=PRIMARY_ALT):
         self.id = id
         self.pad = pad
         self.path = path
         self.record = record
         self.exists = exists
         self.original_data = original_data
+        self.fallback_data = fallback_data
         self.datamodel = datamodel
         self.is_root = path.strip('/') == ''
         self.alt = alt
@@ -149,10 +163,20 @@ class EditorSession(object):
             if rv is None:
                 raise KeyError(key)
             return rv
-        return self.original_data[key]
+        if key in self.original_data:
+            return self.original_data[key]
+        if self.fallback_data and key in self.fallback_data:
+            return self.fallback_data[key]
+        raise KeyError(key)
 
     def __setitem__(self, key, value):
-        old_value = self.original_data.get(key)
+        if key in self.original_data:
+            old_value = self.original_data[key]
+        elif self.fallback_data and key in self.fallback_data:
+            old_value = self.fallback_data[key]
+        else:
+            old_value = None
+
         if old_value != value:
             self._changed.add(key)
         else:
@@ -181,7 +205,7 @@ class EditorSession(object):
         for key, value in dict(*args, **kwargs).iteritems():
             self[key] = value
 
-    def iteritems(self):
+    def iteritems(self, fallback=True):
         done = set()
 
         for key, value in self.original_data.iteritems():
@@ -193,6 +217,16 @@ class EditorSession(object):
             if value is not None:
                 yield key, value
 
+        if fallback and self.fallback_data:
+            for key, value in self.fallback_data.iteritems():
+                if key in implied_keys or key in done:
+                    continue
+                done.add(key)
+                if key in self._changed:
+                    value = self._data[key]
+                if value is not None:
+                    yield key, value
+
         for key in sorted(self._data):
             if key in done:
                 continue
@@ -200,22 +234,22 @@ class EditorSession(object):
             if value is not None:
                 yield key, value
 
-    def iterkeys(self):
-        for key, _ in self.iteritems():
+    def iterkeys(self, fallback=True):
+        for key, _ in self.iteritems(fallback=fallback):
             yield key
 
-    def itervalues(self):
-        for _, value in self.iteritems():
+    def itervalues(self, fallback=True):
+        for _, value in self.iteritems(fallback=fallback):
             yield value
 
-    def items(self):
-        return list(self.iteritems())
+    def items(self, fallback=True):
+        return list(self.iteritems(fallback=fallback))
 
-    def keys(self):
-        return list(self.iterkeys())
+    def keys(self, fallback=True):
+        return list(self.iterkeys(fallback=fallback))
 
-    def values(self):
-        return list(self.itervalues())
+    def values(self, fallback=True):
+        return list(self.itervalues(fallback=fallback))
 
     __iter__ = iterkeys
 
@@ -367,7 +401,8 @@ class EditorSession(object):
             pass
 
         with atomic_open(self.fs_path, 'wb') as f:
-            for chunk in serialize(self.iteritems(), encoding='utf-8'):
+            for chunk in serialize(self.iteritems(fallback=False),
+                                   encoding='utf-8'):
                 f.write(chunk)
 
     def __repr__(self):
