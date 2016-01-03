@@ -180,7 +180,8 @@ markup that appears on multiple pages.
 
 ```html+jinja
 {% extends "layout.html" %}
-{% from "macros/projects.html" import render_category_nav %}
+{% from "macros/projects.html" import render_category_nav,
+   render_project_list %}
 {% block title %}Project Category {{ this.name }}{% endblock %}
 {% block body %}
   <h1>Project Category {{ this.name }}</h1>
