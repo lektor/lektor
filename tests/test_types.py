@@ -45,7 +45,7 @@ def test_markdown_linking(pad, builder):
     prog, _ = builder.build(blog_index)
     with prog.artifacts[0].open('rb') as f:
         assert (
-            b'Look at my <a href="../blog/post1/hello.txt">'
+            b'Look at my <a href="../blog/2015/12/post1/hello.txt">'
             b'attachment</a>'
         ) in f.read()
 
@@ -55,7 +55,7 @@ def test_markdown_linking(pad, builder):
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open('rb') as f:
         assert (
-            b'Look at my <a href="../../blog/post1/hello.txt">'
+            b'Look at my <a href="../../../../blog/2015/12/post1/hello.txt">'
             b'attachment</a>'
         ) in f.read()
 
