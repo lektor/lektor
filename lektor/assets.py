@@ -122,9 +122,9 @@ class Directory(Asset):
     def resolve_url_path(self, url_path):
         # Resolve "/path/" to "/path/index.html", as production servers do.
         if not url_path:
-            index_html = self.get_child('index.html')
-            if index_html is not None:
-                return index_html
+            index = self.get_child('index.html') or self.get_child('index.htm')
+            if index is not None:
+                return index
 
         return super(Directory, self).resolve_url_path(url_path)
 
