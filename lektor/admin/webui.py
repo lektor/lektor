@@ -52,7 +52,7 @@ class LektorInfo(object):
             # and it ensures our relative urls work.
             if not path.endswith('/') and \
                source.url_path != '/' and \
-               source.url_path.endswith('/'):
+               source.url_path != path:
                 return abort(append_slash_redirect(request.environ))
 
             with CliReporter(self.env, verbosity=self.verbosity):

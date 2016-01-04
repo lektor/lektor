@@ -119,6 +119,15 @@ class Directory(Asset):
         if ext is not None:
             return get_asset(self.pad, name[:-len(prod_suffix)] + ext, parent=self)
 
+    def resolve_url_path(self, url_path):
+        # Resolve "/path/" to "/path/index.html", as production servers do.
+        if not url_path:
+            index_html = self.get_child('index.html')
+            if index_html is not None:
+                return index_html
+
+        return super(Directory, self).resolve_url_path(url_path)
+
 
 class File(Asset):
     """Represents a static asset file."""
