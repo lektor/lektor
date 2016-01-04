@@ -29,6 +29,7 @@ Next feature release
 - Basic support for type customization.
 - Fields that are absent in a content file from an alternative are now pulled
   from the primary content file.
+- Development server now resolves index.html for assets as well.
 
 1.2
 ---
