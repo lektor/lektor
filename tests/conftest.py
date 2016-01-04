@@ -133,3 +133,20 @@ def reporter(request, env):
     reporter.push()
     request.addfinalizer(reporter.pop)
     return reporter
+
+
+@pytest.fixture(scope='function')
+def webui(request, env, pad):
+    from lektor.admin.webui import WebUI
+    # from lektor.context import Context
+    # ctx = Context(pad=pad)
+    output_path = tempfile.mkdtemp()
+
+    def cleanup():
+        try:
+            shutil.rmtree(output_path)
+        except (OSError, IOError):
+            pass
+    request.addfinalizer(cleanup)
+
+    return WebUI(env, output_path=output_path)
