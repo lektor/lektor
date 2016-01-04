@@ -126,7 +126,7 @@ class Directory(Asset):
             if index is not None:
                 return index
 
-        return super(Directory, self).resolve_url_path(url_path)
+        return Asset.resolve_url_path(self, url_path)
 
 
 class File(Asset):
