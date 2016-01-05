@@ -17,6 +17,7 @@ Release date to be decided
 - Improved error message for when imagemagick cannot be found.
 - Fixed scrolling in the admin for firefox and some other browsers.
 - Fixed a problem with deleting large projects due to sqlite limitations.
+- Fixed admin preview of root page in firefox.
 
 1.1
 ---
