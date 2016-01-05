@@ -80,7 +80,7 @@
   "PUBLISH_STATE_PUBLISH": "이전 공개한 글 변경 중 ...",
   "PUBLISH_STATE_DONE": "공개 완료.",
   "FIND_FILES": "파일 찾기",
-  "FIND_FILES_PLACEHOLDER": "페이지 입름 입력 ...",
+  "FIND_FILES_PLACEHOLDER": "페이지 이름 입력 ...",
   "ATTACHMENT_TYPE": "첨부 파일 형식",
   "URL_SLUG": "URL slug",
   "TEMPLATE": "템플릿",
