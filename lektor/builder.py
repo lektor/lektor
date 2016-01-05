@@ -231,6 +231,7 @@ class BuildState(object):
 
     def prune_source_infos(self):
         """Remove all source infos of files that no longer exist."""
+        MAX_VARS = 999  # Default SQLITE_MAX_VARIABLE_NUMBER.
         con = self.connect_to_database()
         to_clean = []
         try:
@@ -242,11 +243,15 @@ class BuildState(object):
                 fs_path = os.path.join(self.env.root_path, source)
                 if not os.path.exists(fs_path):
                     to_clean.append(source)
+
             if to_clean:
-                cur.execute('''
-                    delete from source_info
-                     where source in (%s)
-                ''' % ', '.join(['?'] * len(to_clean)), to_clean)
+                for i in range(0, len(to_clean), MAX_VARS):
+                    chunk = to_clean[i:i + MAX_VARS]
+                    cur.execute('''
+                        delete from source_info
+                         where source in (%s)
+                    ''' % ', '.join(['?'] * len(chunk)), chunk)
+
                 con.commit()
         finally:
             con.close()
