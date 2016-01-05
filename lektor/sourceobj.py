@@ -84,11 +84,15 @@ class SourceObject(object):
         return this_path[:len(crumbs)] == crumbs and \
             (not strict or len(this_path) > len(crumbs))
 
-    def url_to(self, path, alt=None, absolute=None, external=None):
+    def url_to(self, path, alt=None, absolute=None, external=None,
+               base_url=None):
         """Calculates the URL from the current source object to the given
         other source object.  Alternatively a path can also be provided
         instead of a source object.  If the path starts with a leading
         bang (``!``) then no resolving is performed.
+
+        If a `base_url` is provided then it's used instead of the URL of
+        the record itself.
         """
         if alt is None:
             alt = getattr(path, 'alt', None)
@@ -112,10 +116,14 @@ class SourceObject(object):
             source = self.pad.get(path, alt=alt)
             if source is not None:
                 path = source.url_path
+        else:
+            path = posixpath.join(self.url_path, path)
 
         if absolute:
             return path
-        return self.pad.make_url(path, self.url_path, absolute, external)
+        if base_url is None:
+            base_url = self.url_path
+        return self.pad.make_url(path, base_url, absolute, external)
 
 
 class VirtualSourceObject(SourceObject):
