@@ -30,6 +30,8 @@ Next feature release
 - Fields that are absent in a content file from an alternative are now pulled
   from the primary content file.
 - Development server now resolves index.html for assets as well.
+- Markdown processing now correctly adjusts links relative to where the
+  rendered output is rendered.
 
 1.2
 ---
