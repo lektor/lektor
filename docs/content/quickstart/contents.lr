@@ -50,7 +50,7 @@ $ lektor server
 ```
 
 This will automatically start the server and you can navigate to
-[localhost:5000](http://localhost:5000/) open the project.
+[localhost:5000](http://localhost:5000/) to open the project.
 
 You can keep the server running, it will automatically rebuild your files as
 they change.
@@ -89,7 +89,7 @@ All your generated files will end up in that folder for easy publishing.
 ## Next Steps
 
 Now that you have done that, you might be interested in diving deeper into
-Lektor.  This might be good next steps:
+Lektor.  These might be good next steps:
 
 * The [Guides :ref](../guides/) which cover common setups.
 * The [Deployment Documentation :ref](../deployment/) which shows how to
