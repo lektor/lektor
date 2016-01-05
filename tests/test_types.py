@@ -1,9 +1,13 @@
 from lektor.datamodel import Field
-from lektor.markdown import Markdown
+from lektor.types.formats import MarkdownDescriptor
 from lektor.context import Context
 from lektor.types import Undefined, BadValue
 
 from markupsafe import escape, Markup
+
+
+class DummySource(object):
+    url_path = '/'
 
 
 def make_field(env, type, **options):
@@ -14,9 +18,12 @@ def make_field(env, type, **options):
 def test_markdown(env, pad):
     field = make_field(env, 'markdown')
 
+    source = DummySource()
+
     with Context(pad=pad):
         rv = field.deserialize_value('Hello **World**!', pad=pad)
-        assert isinstance(rv, Markdown)
+        assert isinstance(rv, MarkdownDescriptor)
+        rv = rv.__get__(source)
         assert rv
         assert rv.source == 'Hello **World**!'
         assert escape(rv) == Markup('<p>Hello <strong>World</strong>!</p>\n')
@@ -24,11 +31,33 @@ def test_markdown(env, pad):
 
         for val in '', None:
             rv = field.deserialize_value(val, pad=pad)
-            assert isinstance(rv, Markdown)
+            assert isinstance(rv, MarkdownDescriptor)
+            rv = rv.__get__(source)
             assert not rv
             assert rv.source == ''
             assert escape(rv) == Markup('')
             assert rv.meta == {}
+
+
+def test_markdown_linking(pad, builder):
+    blog_index = pad.get('/blog', page_num=1)
+
+    prog, _ = builder.build(blog_index)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'Look at my <a href="../blog/post1/hello.txt">'
+            b'attachment</a>'
+        ) in f.read()
+
+    blog_post = pad.get('/blog/post1')
+    print blog_post
+
+    prog, _ = builder.build(blog_post)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'Look at my <a href="../../blog/post1/hello.txt">'
+            b'attachment</a>'
+        ) in f.read()
 
 
 def test_string(env, pad):
