@@ -38,6 +38,7 @@ build/imagemagick/convert:
 
 osx-bundle: build/imagemagick/convert icons build-wheels
 	cd ../lektor/admin; npm install
+	npm install
 	npm install --production
 	$(REBUILD_CMD)
 	cd static; ../node_modules/.bin/webpack
@@ -68,6 +69,7 @@ osx-bundle: build/imagemagick/convert icons build-wheels
 	# Manually copy over native modules we depend on
 	mkdir -p $(OSX_BUNDLE_RES)/app/node_modules
 	cp -R node_modules/runas $(OSX_BUNDLE_RES)/app/node_modules/runas
+	cp -R node_modules/nan $(OSX_BUNDLE_RES)/app/node_modules/nan
 	cp -R $(BUILD_DIR)/Python.framework $(OSX_BUNDLE)/Contents/Frameworks/Python.framework
 	./bin/make-python-framework-relocatable $(OSX_BUNDLE)/Contents/Frameworks/Python.framework
 	./bin/install-wheels $(OSX_BUNDLE)/Contents/Frameworks/Python.framework/Versions/Current/lib/python2.7/site-packages
