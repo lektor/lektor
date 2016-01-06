@@ -527,12 +527,18 @@ class Page(Record):
         return AttachmentsQuery(path=self['_path'], pad=self.pad,
                                 alt=self.alt)
 
-    @property
-    def prev_item(self):
+    def get_prev_sibling(self):
+        """Previous record, or None.
+
+        Uses parent's pagination query, if any, else parent's "children" config.
+        """
         return self._siblings[0]
 
-    @property
-    def next_item(self):
+    def get_next_sibling(self):
+        """Next record, or None.
+
+        Uses parent's pagination query, if any, else parent's "children" config.
+        """
         return self._siblings[1]
 
     @cached_property
