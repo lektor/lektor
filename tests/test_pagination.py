@@ -140,6 +140,22 @@ def test_unpaginated_children_other_alt(pad):
     ]
 
 
+def test_prev_next(pad):
+    # coffee, bagpipe, filtered, master have seq numbers 9, 8, 7, 6.
+    # They disagree with alphabetization, to ensure we use the pagination
+    # query order, "-seq".
+    bagpipe = pad.get('/projects/bagpipe')
+    assert bagpipe.prev_item['_id'] == 'coffee'
+
+    # Next child "filtered" is skipped by pagination query, skip to "master".
+    assert bagpipe.next_item['_id'] == 'master'
+
+    # Postage is on the previous page before oven, but prev / next ignore pages.
+    oven = pad.get('/projects/oven')
+    assert oven.prev_item['_id'] == 'master'
+    assert oven.next_item['_id'] == 'postage'
+
+
 def test_url_matching_for_alt_pagination(pad):
     page1 = pad.resolve_url_path('/de/projects/')
     assert page1.alt == 'de'
