@@ -3,3 +3,5 @@ name: Coffee
 website: http://coffeeproject.invalid/
 ---
 description: A project that is all about coffee.
+---
+seq: 9

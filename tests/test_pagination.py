@@ -7,15 +7,15 @@ def test_paginated_children(pad):
 
     assert page1.datamodel.pagination_config.per_page == 4
 
-    assert page1.children.count() == 7
+    assert page1.children.count() == 8
     assert page1.page_num == 1
     assert page1.pagination.items.count() == 4
 
     children = page1.pagination.items.all()
     assert len(children) == 4
     assert [x['name'] for x in children] == [
-        u'Bagpipe',
         u'Coffee',
+        u'Bagpipe',
         u'Master',
         u'Oven',
     ]
@@ -25,7 +25,7 @@ def test_paginated_children(pad):
 
     page2 = pad.get('/projects', page_num=2)
 
-    assert page2.children.count() == 7
+    assert page2.children.count() == 8
     assert page2.page_num == 2
     assert page2.pagination.items.count() == 3
 
@@ -51,8 +51,8 @@ def test_unpaginated_children(pad):
     children = page_all.pagination.items.all()
     assert len(children) == 7
     assert [x['name'] for x in children] == [
-        u'Bagpipe',
         u'Coffee',
+        u'Bagpipe',
         u'Master',
         u'Oven',
         u'Postage',
@@ -129,8 +129,8 @@ def test_unpaginated_children_other_alt(pad):
     children = page_all.pagination.items.all()
     assert len(children) == 8
     assert [x['name'] for x in children] == [
-        u'Dudelsack',
         u'Kaffee',
+        u'Dudelsack',
         u'Meister',
         u'Ofen',
         u'Porto',
