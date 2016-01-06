@@ -32,6 +32,7 @@ Next feature release
 - Development server now resolves index.html for assets as well.
 - Markdown processing now correctly adjusts links relative to where the
   rendered output is rendered.
+- Added Dutch translations.
 
 1.2
 ---
