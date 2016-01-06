@@ -1,0 +1,24 @@
+title: get_next_sibling
+---
+summary: Returns the next record.
+---
+type: method
+---
+body:
+
+Get the next record in this record's parent's list of children.
+
+If the parent record has pagination enabled, then `get_prev_sibling` and
+`get_next_sibling` use the pagination query to filter and order the children.
+Otherwise, the parent's standard configuration for children is used.
+See [the pagination guide :ref](../../../../guides/pagination/) and the
+[page order guide :ref](../../../../guides/page-order/).
+
+## Example
+
+```html+jinja
+{% set newer = this.get_next_sibling() %}
+{% if newer %}
+<a href="{{ newer|url }}">Next article: {{ newer.title }}</a>
+{% endif %}
+```
