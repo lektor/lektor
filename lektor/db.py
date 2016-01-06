@@ -527,6 +527,35 @@ class Page(Record):
         return AttachmentsQuery(path=self['_path'], pad=self.pad,
                                 alt=self.alt)
 
+    def get_prev_sibling(self):
+        """Previous record, or None.
+
+        Uses parent's pagination query, if any, else parent's "children" config.
+        """
+        return self._siblings[0]
+
+    def get_next_sibling(self):
+        """Next record, or None.
+
+        Uses parent's pagination query, if any, else parent's "children" config.
+        """
+        return self._siblings[1]
+
+    @cached_property
+    def _siblings(self):
+        parent = self.parent
+        pagination_enabled = parent.datamodel.pagination_config.enabled
+        if pagination_enabled:
+            pagination = parent.pagination
+            siblings = list(pagination.config.get_pagination_query(parent))
+        else:
+            siblings = list(parent.children)
+
+        me = siblings.index(self)
+        prev_item = siblings[me - 1] if me > 0 else None
+        next_item = siblings[me + 1] if me + 1 < len(siblings) else None
+        return prev_item, next_item
+
 
 class Attachment(Record):
     """This represents a loaded attachment."""

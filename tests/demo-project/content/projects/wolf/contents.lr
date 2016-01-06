@@ -3,3 +3,5 @@ name: Wolf
 website: http://wolfproject.invalid/
 ---
 description: A project that is all about wild animals.
+---
+seq: 1

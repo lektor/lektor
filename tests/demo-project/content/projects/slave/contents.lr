@@ -3,3 +3,5 @@ name: Slave
 website: http://slave.invalid/
 ---
 description: the slave to the master
+---
+seq: 2
