@@ -111,3 +111,67 @@ class ExifDumpPlugin(Plugin):
 This dumps out the EXIF data into a JSON file and returns the artifact name.
 The source image is tracked as direct source for the artifact and within the
 function we also track the plugin's filename to rebuild if the plugin changes.
+
+## Adding New Field Types
+
+Let's say you want to add a "datetime" type to the set of
+[field types :ref](../../api/db/types/) used in your models, because the
+built-in "date" type has no time component. You might update `blog-post.ini`
+from the [blog guide :ref](../../guides/blog) like so:
+
+```ini
+[fields.pub_date]
+label = Publication date
+type = datetime  # Custom "datetime" type.
+```
+
+In a blog post's `contents.lr`, specify its publication date like:
+
+```
+pub_date: 2016-01-02 12:34:56
+```
+
+You can add your "datetime" type to Lektor with a plugin:
+
+```python
+from datetime import datetime
+from lektor.pluginsystem import Plugin
+from lektor.types import Type
+
+class DatetimeType(Type):
+    def value_from_raw(self, raw):
+        return datetime.strptime(raw.value, '%Y-%m-%d %H:%M:%S')
+
+def strftime_filter(dt, fmt='%B %-d, %Y'):
+    return dt.strftime(fmt)
+
+class DatetimeTypePlugin(Plugin):
+    name = u'datetime type'
+    description = u'Adds a new field type, "datetime".'
+
+    def on_setup_env(self, **extra):
+        self.env.types['datetime'] = DatetimeType
+        self.env.jinja_env.filters['strftime'] = strftime_filter
+```
+
+This plugin also adds a `strftime` filter to Jinja.
+Render a datetime with the default format in a template like:
+
+```html+jinja
+Published on {{ this.pub_date|strftime }}
+```
+
+Or a custom format:
+
+```html+jinja
+Published on {{ this.pub_date|strftime('%Y-%m-%d') }}
+```
+
+Python datetime objects implement the standard comparison protocol, so
+ordering still works without modifying `blog.ini`:
+
+```ini
+[children]
+model = blog-post
+order_by = -pub_date, title
+```
