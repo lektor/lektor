@@ -33,6 +33,7 @@ Next feature release
 - Markdown processing now correctly adjusts links relative to where the
   rendered output is rendered.
 - Added Dutch translations.
+- Added Record.get_prev/next_sibling()
 
 1.2
 ---
