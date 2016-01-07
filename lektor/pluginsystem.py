@@ -13,7 +13,7 @@ def get_plugin(plugin_id_or_class, env=None):
     if env is None:
         ctx = get_ctx()
         if ctx is None:
-            raise RuntimeError('Context is unavailable and no enviroment '
+            raise RuntimeError('Context is unavailable and no environment '
                                'was passed to the function.')
         env = ctx.env
     plugin_id = env.plugin_ids_by_class.get(plugin_id_or_class,
