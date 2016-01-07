@@ -1212,7 +1212,7 @@ def _split_alt_from_url(config, clean_path):
         elif prefix.strip('/') == clean_path:
             return alt, ''
 
-    # Now find alternatives taht are identified by a suffix.
+    # Now find alternatives that are identified by a suffix.
     for suffix, alt in config.get_alternative_url_suffixes():
         if clean_path.endswith(suffix):
             return alt, clean_path[:-len(suffix)].strip('/')

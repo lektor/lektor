@@ -5,7 +5,7 @@ set -e
 LEKTOR_APP_NAME=Lektor.app
 SHELL_COMMAND_PATH=/usr/local/bin/lektor
 
-# If LEKTOR_PATH isnt set, check /Applications and then ~/Applications for Lektor.app
+# If LEKTOR_PATH isn't set, check /Applications and then ~/Applications for Lektor.app
 if [ -x "/Applications/$LEKTOR_APP_NAME" ]; then
   LEKTOR_PATH="/Applications"
 elif [ -x "$HOME/Applications/$LEKTOR_APP_NAME" ]; then

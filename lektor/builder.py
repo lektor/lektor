@@ -787,7 +787,7 @@ class Artifact(object):
             self._commit()
             return
 
-        # If an error happend we roll back all changes and record the
+        # If an error happened we roll back all changes and record the
         # stacktrace in two locations: we record it on the context so
         # that a called can respond to our failure, and we also persist
         # it so that the dev server can render it out later.
