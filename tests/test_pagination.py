@@ -104,6 +104,15 @@ def test_url_matching_for_pagination(pad):
     assert page1_explicit is None
 
 
+def test_parent_access(pad):
+    page2 = pad.resolve_url_path('/projects/page/2/')
+    assert page2.page_num == 2
+
+    child = page2.pagination.items.first()
+    assert child.parent.path == page2.path
+    assert child.parent.page_num is None
+
+
 def test_pagination_url_paths(pad):
     # Even though this is paginated, getting to the non paginated version
     # just looks like going to the first page.  We do this because it
