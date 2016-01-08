@@ -26,7 +26,7 @@ successfully*.
 ## The Build Pipeline
 
 So let's cover the building first.  When you use the Lektor server locally,
-Lektor constantly builds our your website into static HTML files behind the
+Lektor constantly builds out your website into static HTML files behind the
 scenes into the default build folder.  This folder is in an operating system
 specific location.  If you want to know where that folder is, you can use this
 command:
