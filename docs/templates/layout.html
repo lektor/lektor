@@ -59,7 +59,7 @@
           <a href="https://gitter.im/lektor/lektor" title="Chat on Gitter"
             ><i class="fa fa-comment"></i></a>
           {%- if this.path %}
-          <a href="https://github.com/lektor/lektor-website/tree/master/content{{ this.path
+          <a href="https://github.com/lektor/lektor-website/tree/master/content{{ this.path.split('@')[0]
             }}/contents.lr" title="View source for this page"><i class="fa fa-code"></i></a>
           {%- endif %}
         </div>
