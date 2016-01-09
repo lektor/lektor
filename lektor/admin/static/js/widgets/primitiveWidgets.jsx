@@ -6,6 +6,15 @@ var utils = require('../utils');
 var userLabel = require('../userLabel');
 var i18n = require('../i18n');
 
+var Moment = require('moment');
+var momentLocalizer = require('react-widgets/lib/localizers/moment');
+momentLocalizer(Moment);
+
+require('react-widgets/lib/less/react-widgets.less');
+var DateTimePicker = require('react-widgets/lib/DateTimePicker');
+
+
+
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
 }
@@ -152,7 +161,7 @@ var FloatInputWidget = React.createClass({
 });
 
 var DateInputWidget = React.createClass({
-  mixins: [InputWidgetMixin],
+  mixins: [BasicWidgetMixin],
 
   postprocessValue: function(value) {
     var value = value.match(/^\s*(.*?)\s*$/)[1];
@@ -186,6 +195,25 @@ var DateInputWidget = React.createClass({
     });
   },
 
+  onChange: function(event) {
+    if (this.props.onChange) {
+      this.props.onChange(event.target.value);
+    }
+  },
+
+  render: function() {
+    var {className, type, onChange, style, ...otherProps} = this.props;
+    var className = (className || '');
+
+    return (
+        <DateTimePicker onChange={this.onChange}
+                        format={"MMM DD YYYY"}
+                        time={false}
+                      />
+    )
+  }
+
+/*
   getInputType: function() {
     return 'text';
   },
@@ -193,6 +221,7 @@ var DateInputWidget = React.createClass({
   getInputAddon: function() {
     return <i className="fa fa-calendar"></i>;
   }
+  */
 });
 
 var UrlInputWidget = React.createClass({
