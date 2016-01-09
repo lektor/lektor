@@ -10,7 +10,7 @@ var Moment = require('moment');
 var momentLocalizer = require('react-widgets/lib/localizers/moment');
 momentLocalizer(Moment);
 
-require('react-widgets/lib/less/react-widgets.less');
+import 'react-widgets/lib/less/react-widgets.less';
 var DateTimePicker = require('react-widgets/lib/DateTimePicker');
 
 
@@ -202,12 +202,9 @@ var DateInputWidget = React.createClass({
   },
 
   render: function() {
-    var {className, type, onChange, style, ...otherProps} = this.props;
-    var className = (className || '');
 
     return (
-        <DateTimePicker onChange={this.onChange}
-                        format={"MMM DD YYYY"}
+        <DateTimePicker format={"MMM DD YYYY"}
                         time={false}
                       />
     )
