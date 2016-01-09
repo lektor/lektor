@@ -10,6 +10,7 @@ var Moment = require('moment');
 var momentLocalizer = require('react-widgets/lib/localizers/moment');
 momentLocalizer(Moment);
 
+//this style import does not work yet... :(
 import 'react-widgets/lib/less/react-widgets.less';
 var DateTimePicker = require('react-widgets/lib/DateTimePicker');
 
@@ -163,66 +164,28 @@ var FloatInputWidget = React.createClass({
 var DateInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
-  postprocessValue: function(value) {
-    var value = value.match(/^\s*(.*?)\s*$/)[1];
-    var match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/);
-    var day, month, year;
-    if (match) {
-      day = parseInt(match[1], 10);
-      month = parseInt(match[2], 10);
-      year = parseInt(match[3], 10);
-      return (
-        year + '-' +
-        (month < 10 ? '0' : '') + month + '-' +
-        (day < 10 ? '0' : '') + day
-      );
-    }
-    return value;
-  },
-
-  getValidationFailureImpl: function() {
-    if (!this.props.value) {
-      return null;
-    }
-
-    var match = this.props.value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/);
-    if (match && isValidDate(match[1], match[2], match[3])) {
-      return null;
-    }
-
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_DATE')
-    });
-  },
-
-  onChange: function(event) {
-    if (this.props.onChange) {
-      this.props.onChange(this.props.value);
+  onChange: function(date, dateStr) {
+    if(this.props.onChange) {
+      var dateForPython = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+      this.props.onChange(dateForPython);
     }
   },
 
   render: function() {
     var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
-
+    var parsedDate = value.split("-");
     return (
-        <DateTimePicker format={"MMM DD YYYY"}
-                        time={false}
-                        className={this.getInputClass()}
-                        onChange={onChange ? this.onChange : null}
-                        value={new Date(value)}
-                        {...otherProps} />
+            <div className={className}>
+                <DateTimePicker
+                  className={this.getInputClass()}
+                  format={"MMM DD YYYY"}
+                  time={false}
+                  onChange={onChange ? this.onChange : undefined}
+                  value={new Date(parsedDate[0], parsedDate[1] - 1, parsedDate[2])}
+                  {...otherProps} />
+            </div>
     )
   }
-
-/*
-  getInputType: function() {
-    return 'text';
-  },
-
-  getInputAddon: function() {
-    return <i className="fa fa-calendar"></i>;
-  }
-  */
 });
 
 var UrlInputWidget = React.createClass({
