@@ -1,0 +1,45 @@
+title: join_path
+---
+module: lektor.utils
+---
+signature: a, b
+---
+summary: Joins two Lektor paths together correctly.
+---
+template_var: 
+---
+type: function
+---
+version_added: 2.0
+---
+body:
+
+Given two Lektor paths this joins them together with the rules that Lektor
+set up for this.  In particular this is important in the presence of
+virtual paths which have their own join semantics.
+
+## Example
+
+```pycon
+>>> from lektor.utils import join_path
+>>> join_path('/blog', 'hello-world')
+'/blog/hello-world'
+>>> join_path('/blog', '@archive')
+'/blog@archive'
+>>> join_path('/blog@archive', '2015')
+'/blog@archive/2015'
+>>> join_path('/blog@archive/2015', '..')
+'/blog@archive'
+>>> join_path('/blog@archive', '..')
+'/blog'
+```
+
+Special note should be taken for the numeric virtual path of paginations.  It
+is considered to be on the same level as the actual record:
+
+```pycon
+>>> join_path('/blog@2', '..')
+'/'
+>>> join_path('/blog@2', '.')
+'/blog@2'
+```

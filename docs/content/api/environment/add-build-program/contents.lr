@@ -19,17 +19,22 @@ artifacts out of source objects.
 ```python
 from lektor.sourceobj import VirtualSourceObject
 from lektor.build_programs import BuildProgram
+from lektor.utils import build_url
 
 class Source(VirtualSourceObject):
 
     @property
+    def path(self):
+        return self.record.path + '@source'
+
+    @property
     def source_content(self):
-        with open(self.parent.source_filename) as f:
+        with open(self.record.source_filename) as f:
             return f.read().decode('utf-8')
 
     @property
     def url_path(self):
-        return self.parent.url_path + 'source.txt'
+        return build_url([self.record.url_path, 'source.txt'])
 
 class SourceBuildProgram(BuildProgram):
 
@@ -43,6 +48,11 @@ class SourceBuildProgram(BuildProgram):
                                       this=self.source)
 
 env.add_build_program(Source, SourceBuildProgram)
+
+@env.virtualpathresolver('source')
+def resolve_virtual_path(record, pieces):
+    if not pieces:
+        return Source(record)
 ```
 
 And here the example `view_source.html` template:

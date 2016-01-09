@@ -29,7 +29,8 @@ The following attributes exist on the pagination object:
 | `for_page()` | Returns the record for a different page.
 
 The `for_page()` function accepts a page number and returns the record for
-the other page.
+the other page.  For more information also see the virtual path example
+below.
 
 !! *Changed in Lektor 2.0:* The `for_page()` method was added.
 
@@ -65,4 +66,24 @@ next page link as well as the number of the current page:
     <span class="disabled">&raquo;</span>
   {% endif %}
 </div>
+```
+
+## Virtual Paths
+
+!! *New in Lektor 2.0:* virtual paths did not exist in earlier Lektor versions.
+
+The pagination is implemented in a way where each page in the pagination is
+a virtual path below the record itself.  The value of the path is just the
+number of the page.  So for instance to link to the second page you can just
+do this:
+
+```html+jinja
+<a href="{{ '@2'|url }}">Go to Page 2</a>
+```
+
+Alternatively you can also use the `for_path()` function which returns the
+entire pagination for a page:
+
+```html+jinja
+<a href="{{ this.pagination.for_page(2)|url }}">Go to Page 2</a>
 ```
