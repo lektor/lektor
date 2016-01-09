@@ -421,16 +421,36 @@ i.feature-circle {
   line-height: 52px;
 }
 
-ul.badges {
-  text-align: right;
-  margin-top: 45px;
-  font-size: 0;
-  list-style: none;
-  padding: 0;
+div.badges {
+  height: 30px;
 
-  li {
-    margin: 10px 0;
+  @media (max-width: $screen-xs-max) {
+    display: none;
+  }
+
+  ul {
+    display: table;
+    height: 28px!important;
+    line-height: 28px!important;
+    margin: 0 auto;
     padding: 0;
+    list-style: none;
+    text-align: center;
+    vertical-align: top;
+    font-size: 0;
+  
+    li {
+      vertical-align: top;
+      display: table-cell;
+      margin: 0;
+      padding: 0 10px;
+  
+      img {
+        height: 28px;
+        margin: 0;
+        padding: 0;
+      }
+    }
   }
 }
 
@@ -486,9 +506,8 @@ div.lektor-intro {
   //background: #3D2824;
 
   img.logo {
-    margin-left: -80px;
-    max-height: 300px;
-    max-width: 700px;
+    max-width: 550px;
+    margin: 30px 0 50px -15px;
 
     @media (max-width: $screen-md-max) {
       width: 100%;
