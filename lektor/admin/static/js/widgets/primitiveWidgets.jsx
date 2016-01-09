@@ -197,16 +197,20 @@ var DateInputWidget = React.createClass({
 
   onChange: function(event) {
     if (this.props.onChange) {
-      this.props.onChange(event.target.value);
+      this.props.onChange(this.props.value);
     }
   },
 
   render: function() {
+    var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
 
     return (
         <DateTimePicker format={"MMM DD YYYY"}
                         time={false}
-                      />
+                        className={this.getInputClass()}
+                        onChange={onChange ? this.onChange : null}
+                        value={new Date(value)}
+                        {...otherProps} />
     )
   }
 
