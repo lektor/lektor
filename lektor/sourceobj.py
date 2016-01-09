@@ -2,7 +2,7 @@ import posixpath
 
 from weakref import ref as weakref
 from lektor.environment import PRIMARY_ALT
-from lektor.utils import cleanup_path
+from lektor.utils import join_path, is_path_child_of
 
 
 class SourceObject(object):
@@ -79,10 +79,7 @@ class SourceObject(object):
             path = path.path
         if self.path is None or path is None:
             return False
-        this_path = cleanup_path(self.path).split('/')
-        crumbs = cleanup_path(path).split('/')
-        return this_path[:len(crumbs)] == crumbs and \
-            (not strict or len(this_path) > len(crumbs))
+        return is_path_child_of(self.path, path, strict=strict)
 
     def url_to(self, path, alt=None, absolute=None, external=None,
                base_url=None):
@@ -112,7 +109,7 @@ class SourceObject(object):
                                        'from sources that do not have a '
                                        'path.  The source object without '
                                        'a path is %r' % self)
-                path = posixpath.join(self.path, path)
+                path = join_path(self.path, path)
             source = self.pad.get(path, alt=alt)
             if source is not None:
                 path = source.url_path
@@ -131,18 +128,22 @@ class VirtualSourceObject(SourceObject):
     originate from the source tree with a separate file.
     """
 
-    def __init__(self, parent):
-        SourceObject.__init__(self, parent.pad)
-        self.parent = parent
+    def __init__(self, record):
+        SourceObject.__init__(self, record.pad)
+        self.record = record
 
-    def is_child_of(self, path, strict=False):
-        # cannot be strict going down
-        return self.parent.is_child_of(path, strict=False)
+    @property
+    def path(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        return self.record
 
     @property
     def alt(self):
-        return self.parent.alt
+        return self.record.alt
 
     @property
     def source_filename(self):
-        return self.parent.source_filename
+        return self.record.source_filename

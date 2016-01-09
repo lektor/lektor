@@ -76,7 +76,7 @@ class PaginationConfig(object):
 
         # Check if we have a cached version
         pad = record.pad
-        rv = pad.cache.get(record.path, alt=record.alt, page_num=page_num)
+        rv = pad.cache.get(record.path, record.alt, str(page_num))
         if rv is not Ellipsis:
             return rv
 

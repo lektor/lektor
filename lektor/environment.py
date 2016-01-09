@@ -439,6 +439,7 @@ class Environment(object):
         self.special_file_suffixes = {}
         self.custom_url_resolvers = []
         self.custom_generators = []
+        self.virtual_sources = {}
 
         if load_plugins:
             self.load_plugins()
@@ -554,6 +555,15 @@ class Environment(object):
         if name in self.types:
             raise RuntimeError('Type "%s" is already registered.' % name)
         self.types[name] = type
+
+    def virtualpathresolver(self, prefix):
+        def decorator(func):
+            if prefix in self.virtual_sources:
+                raise RuntimeError('Prefix "%s" is already registered.'
+                                   % prefix)
+            self.virtual_sources[prefix] = func
+            return func
+        return decorator
 
     def urlresolver(self, func):
         self.custom_url_resolvers.append(func)

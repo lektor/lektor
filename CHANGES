@@ -34,6 +34,8 @@ Next feature release
   rendered output is rendered.
 - Added Dutch translations.
 - Added Record.get_prev/next_sibling()
+- Added various utilties: build_url, join_path, parse_path
+- Added support for virtual paths and made pagination work with it.
 
 1.2
 ---

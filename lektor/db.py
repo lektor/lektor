@@ -25,7 +25,7 @@ from lektor.editor import make_editor_session
 from lektor.environment import PRIMARY_ALT
 from lektor.databags import Databags
 from lektor.filecontents import FileContents
-from lektor.utils import make_relative_url
+from lektor.utils import make_relative_url, split_virtual_path
 
 
 def _process_slug(slug, last_segment=False):
@@ -288,6 +288,10 @@ class Record(SourceObject):
         self.page_num = page_num
 
     @property
+    def record(self):
+        return self
+
+    @property
     def datamodel(self):
         """Returns the data model for this record."""
         try:
@@ -426,6 +430,21 @@ class Page(Record):
     """This represents a loaded record."""
     is_attachment = False
     supports_pagination = True
+
+    @cached_property
+    def path(self):
+        rv = self['_path']
+        if self.page_num is not None:
+            rv = '%s@%s' % (rv, self.page_num)
+        return rv
+
+    @cached_property
+    def record(self):
+        if self.page_num is None:
+            return self
+        return self.pad.get(self['_path'],
+                            persist=self.pad.cache.is_persistent(self),
+                            alt=self.alt)
 
     @property
     def source_filename(self):
@@ -568,6 +587,10 @@ class Attachment(Record):
         else:
             suffix = '.lr'
         return self.pad.db.to_fs_path(self['_path']) + suffix
+
+    @property
+    def record(self):
+        return self
 
     @property
     def attachment_filename(self):
@@ -1332,10 +1355,55 @@ class Pad(object):
         rv.append(self.asset_root)
         return rv
 
-    def get(self, path, alt=PRIMARY_ALT, page_num=None, persist=True):
+    def get_virtual(self, record, virtual_path):
+        """Resolves a virtual path below a record."""
+        pieces = virtual_path.strip('/').split('/')
+        if not pieces or pieces == ['']:
+            return record
+
+        if pieces[0].isdigit():
+            if len(pieces) == 1:
+                return self.get(record['_path'], page_num=int(pieces[0]))
+            return None
+
+        resolver = self.env.virtual_sources.get(pieces[0])
+        if resolver is None:
+            return None
+
+        return resolver(record, pieces[1:])
+
+    def get(self, path, alt=PRIMARY_ALT, page_num=None, persist=True,
+            allow_virtual=True):
         """Loads a record by path."""
+        virt_markers = path.count('@')
+
+        # If the virtual marker is included, we also want to look up the
+        # virtual path below an item.  Special case: if virtual paths are
+        # not allowed but one was passed, we just return `None`.
+        if virt_markers == 1:
+            if page_num is not None:
+                raise RuntimeError('Cannot use both virtual paths and '
+                                   'explicit page number lookups.  You '
+                                   'need to one or the other.')
+            if not allow_virtual:
+                return None
+            path, virtual_path = path.split('@', 1)
+            rv = self.get(path, alt=alt, page_num=page_num,
+                          persist=persist)
+            if rv is None:
+                return None
+            return self.get_virtual(rv, virtual_path)
+
+        # Sanity check: there must only be one or things will get weird.
+        elif virt_markers > 1:
+            return None
+
         path = cleanup_path(path)
-        rv = self.cache.get(path, alt, page_num)
+        virtual_path = None
+        if page_num is not None:
+            virtual_path = str(page_num)
+
+        rv = self.cache.get(path, alt, virtual_path)
         if rv is not Ellipsis:
             if rv is not None:
                 self.db.track_record_dependency(rv)
@@ -1343,7 +1411,7 @@ class Pad(object):
 
         raw_data = self.db.load_raw_data(path, alt=alt)
         if raw_data is None:
-            self.cache.remember_as_missing(path, alt, page_num)
+            self.cache.remember_as_missing(path, alt, virtual_path)
             return
 
         rv = self.instance_from_data(raw_data, page_num=page_num)
@@ -1481,7 +1549,8 @@ class Tree(object):
         label_i18n = None
 
         for alt in chain([PRIMARY_ALT], self.pad.db.config.list_alternatives()):
-            record = self.pad.get(path, alt=alt, persist=persist)
+            record = self.pad.get(path, alt=alt, persist=persist,
+                                  allow_virtual=False)
             if first_record is None:
                 first_record = record
             if record is not None:
@@ -1532,7 +1601,8 @@ class Tree(object):
         """Returns a sorted list of just the IDs of children below a path."""
         path = '/' + (path or '').strip('/')
         names = set()
-        for name, _, is_attachment in self.pad.db.iter_items(path, alt=None):
+        for name, _, is_attachment in self.pad.db.iter_items(
+                path, alt=None):
             if (is_attachment and include_attachments) or \
                (not is_attachment and include_pages):
                 names.add(name)
@@ -1573,14 +1643,16 @@ class RecordCache(object):
         self.persistent = {}
         self.ephemeral = LRUCache(ephemeral_cache_size)
 
-    def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT, page_num=None):
+    def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT,
+                       virtual_path=None):
         if isinstance(record_or_path, basestring):
             path = record_or_path.strip('/')
         else:
-            path = record_or_path['_path'].strip('/')
+            path, virtual_path = split_virtual_path(record_or_path.path)
+            path = path.strip('/')
+            virtual_path = virtual_path or None
             alt = record_or_path.alt
-            page_num = record_or_path.page_num
-        return (path, alt, page_num)
+        return (path, alt, virtual_path)
 
     def flush(self):
         """Flushes the cache"""
@@ -1615,9 +1687,9 @@ class RecordCache(object):
         if cache_key in self.ephemeral:
             self.persist(record)
 
-    def get(self, path, alt=PRIMARY_ALT, page_num=None):
+    def get(self, path, alt=PRIMARY_ALT, virtual_path=None):
         """Looks up a record from the cache."""
-        cache_key = self._get_cache_key(path, alt, page_num)
+        cache_key = self._get_cache_key(path, alt, virtual_path)
         rv = self.persistent.get(cache_key, Ellipsis)
         if rv is not Ellipsis:
             return rv
@@ -1626,7 +1698,7 @@ class RecordCache(object):
             return rv
         return Ellipsis
 
-    def remember_as_missing(self, path, alt=PRIMARY_ALT, page_num=None):
-        cache_key = self._get_cache_key(path, alt, page_num)
+    def remember_as_missing(self, path, alt=PRIMARY_ALT, virtual_path=None):
+        cache_key = self._get_cache_key(path, alt, virtual_path)
         self.persistent.pop(cache_key, None)
         self.ephemeral[cache_key] = None

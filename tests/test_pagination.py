@@ -20,8 +20,8 @@ def test_paginated_children(pad):
         u'Oven',
     ]
 
-    assert ('projects', '_primary', 1) in pad.cache.persistent
-    assert ('projects', '_primary', 2) not in pad.cache.persistent
+    assert ('projects', '_primary', '1') in pad.cache.persistent
+    assert ('projects', '_primary', '2') not in pad.cache.persistent
 
     page2 = pad.get('/projects', page_num=2)
 
@@ -37,7 +37,7 @@ def test_paginated_children(pad):
         u'Wolf',
     ]
 
-    assert ('projects', '_primary', 2) in pad.cache.persistent
+    assert ('projects', '_primary', '2') in pad.cache.persistent
 
 
 def test_unpaginated_children(pad):
@@ -70,6 +70,10 @@ def test_pagination_access(pad):
 
     assert page.pagination.for_page(0) is None
     assert page.pagination.for_page(3) is None
+
+    assert pad.get('/projects@1').page_num == 1
+    assert pad.get('/projects@2').page_num == 2
+    assert pad.get('/projects@3').page_num == 3
 
 
 def test_pagination_attributes(pad):
@@ -106,10 +110,12 @@ def test_url_matching_for_pagination(pad):
 
 def test_parent_access(pad):
     page2 = pad.resolve_url_path('/projects/page/2/')
+    assert page2['_path'] == '/projects'
+    assert page2.path == '/projects@2'
     assert page2.page_num == 2
 
     child = page2.pagination.items.first()
-    assert child.parent.path == page2.path
+    assert child.parent.path == page2['_path']
     assert child.parent.page_num is None
 
 
@@ -195,3 +201,39 @@ def test_pagination_items_filter(pad):
     dummy = blog.children.get('dummy.xml')
     assert dummy is not None
     assert dummy['_model'] == 'none'
+
+
+def test_virtual_path_behavior(pad):
+    # Base record
+    blog = pad.get('/blog')
+    assert blog.path == '/blog'
+    assert blog['_path'] == '/blog'
+    assert blog.page_num is None
+    assert blog.url_path == '/blog/'
+    assert blog.record is blog
+
+    # Record for page 1 which is a bit special
+    blog_page1 = pad.get('/blog@1')
+    assert blog_page1.path == '/blog@1'
+    assert blog_page1['_path'] == '/blog'
+    assert blog_page1.url_path == '/blog/'
+    assert blog_page1.page_num == 1
+    assert blog_page1.parent is pad.root
+    assert blog_page1.record is blog
+
+    # Record for page 2 which is slightly less special
+    blog_page2 = pad.get('/blog@2')
+    assert blog_page2.path == '/blog@2'
+    assert blog_page2['_path'] == '/blog'
+    assert blog_page2.url_path == '/blog/page/2/'
+    assert blog_page2.page_num == 2
+    assert blog_page2.parent is pad.root
+    assert blog_page2.record is blog
+
+    # Make sure URL generation works as you would expect:
+    assert blog.url_to('@1', absolute=True) == '/blog/'
+    assert blog.url_to('@2', absolute=True) == '/blog/page/2/'
+    assert blog.url_to('..', absolute=True) == '/'
+    assert blog_page2.url_to('..', absolute=True) == '/'
+    assert blog_page2.url_to('@1', absolute=True) == '/blog/'
+    assert blog_page2.url_to('@3', absolute=True) == '/blog/page/3/'

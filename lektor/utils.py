@@ -48,8 +48,65 @@ except LookupError:
     pass
 
 
+def split_virtual_path(path):
+    if '@' in path:
+        return path.split('@', 1)
+    return path, None
+
+
+def _norm_join(a, b):
+    return posixpath.normpath(posixpath.join(a, b))
+
+
+def join_path(a, b):
+    a_p, a_v = split_virtual_path(a)
+    b_p, b_v = split_virtual_path(b)
+
+    # Special case: paginations are considered special virtual paths
+    # where the parent is the actual parent of the page.  This however
+    # is explicitly not done if the path we join with refers to the
+    # current path (empty string or dot).
+    if b_p not in ('', '.') and a_v and a_v.isdigit():
+        a_v = None
+
+    # New path has a virtual path, add that to it.
+    if b_v:
+        rv = _norm_join(a_p, b_p) + '@' + b_v
+    elif a_v:
+        rv = a_p + '@' + _norm_join(a_v, b_p)
+    else:
+        rv = _norm_join(a_p, b_p)
+    if rv[-2:] == '@.':
+        rv = rv[:-2]
+    return rv
+
+
 def cleanup_path(path):
     return '/' + _slashes_re.sub('/', path).strip('/')
+
+
+def parse_path(path):
+    x = cleanup_path(path).strip('/').split('/')
+    if x == ['']:
+        return []
+    return x
+
+
+def is_path_child_of(a, b, strict=True):
+    a_p, a_v = split_virtual_path(a)
+    b_p, b_v = split_virtual_path(b)
+    a_p = parse_path(a_p)
+    b_p = parse_path(b_p)
+    a_v = parse_path(a_v or '')
+    b_v = parse_path(b_v or '')
+
+    if not strict and a_p == b_p and a_v == b_v:
+        return True
+    if not a_v and b_v:
+        return False
+    if a_p == b_p and a_v[:len(b_v)] == b_v and len(a_v) > len(b_v):
+        return True
+    return a_p[:len(b_p)] == b_p and len(a_p) > len(b_p)
 
 
 def untrusted_to_os_path(path):
@@ -577,3 +634,35 @@ def get_cache_dir():
     return os.path.join(
         os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
         'lektor')
+
+
+class URLBuilder(object):
+
+    def __init__(self):
+        self.items = []
+
+    def append(self, item):
+        if item is None:
+            return
+        item = unicode(item).strip('/')
+        if item:
+            self.items.append(item)
+
+    def get_url(self, trailing_slash=None):
+        url = '/' + '/'.join(self.items)
+        if trailing_slash is not None and not trailing_slash:
+            return url
+        if url == '/':
+            return url
+        if trailing_slash is None:
+            rest, last = url.split('/', 1)
+            if '.' in last:
+                return url
+        return url + '/'
+
+
+def build_url(iterable, trailing_slash=None):
+    builder = URLBuilder()
+    for item in iterable:
+        builder.append(item)
+    return builder.get_url(trailing_slash=trailing_slash)
