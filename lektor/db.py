@@ -570,10 +570,15 @@ class Page(Record):
         else:
             siblings = list(parent.children)
 
-        me = siblings.index(self)
-        prev_item = siblings[me - 1] if me > 0 else None
-        next_item = siblings[me + 1] if me + 1 < len(siblings) else None
-        return prev_item, next_item
+        try:
+            me = siblings.index(self)
+        except ValueError:
+            # Not in list.
+            return None, None
+        else:
+            prev_item = siblings[me - 1] if me > 0 else None
+            next_item = siblings[me + 1] if me + 1 < len(siblings) else None
+            return prev_item, next_item
 
 
 class Attachment(Record):
