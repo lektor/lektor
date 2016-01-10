@@ -37,6 +37,7 @@ so they might not keep pace with development on Lektor.
 * [github-repos :ext](https://github.com/marksteve/lektor-github-repos):
   fetches your GitHub repos for display in Lektor templates
 * [google-analytics :ext](https://github.com/kmonsoor/lektor-google-analytics): Adds `Google Analytics` support to Lektor-generated site.
+* [atom :ext](https://github.com/ajdavis/lektor-atom): Generate Atom feeds for your content.
 
 ! Have your own plugin and you want to see it here?  Just [edit this page
 on GitHub :ref](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr),
