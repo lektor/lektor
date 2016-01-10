@@ -10,10 +10,7 @@ var Moment = require('moment');
 var momentLocalizer = require('react-widgets/lib/localizers/moment');
 momentLocalizer(Moment);
 
-//this style import does not work yet... :(
-import 'react-widgets/lib/less/react-widgets.less';
 var DateTimePicker = require('react-widgets/lib/DateTimePicker');
-
 
 
 function isTrue(value) {
