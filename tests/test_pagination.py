@@ -191,12 +191,13 @@ def test_pagination_items_filter(pad):
     assert blog.datamodel.pagination_config.items == \
         "this.children.filter(F._model == 'blog-post')"
 
-    assert blog.children.count() == 2
+    assert blog.children.count() == 3
     assert sorted(x['_id'] for x in blog.children) == [
-        'dummy.xml', 'post1']
+        'dummy.xml', 'post1', 'post2']
 
-    assert blog.pagination.items.count() == 1
-    assert blog.pagination.items.first()['_id'] == 'post1'
+    assert blog.pagination.items.count() == 2
+    # Sort order is pub_date descending, so post 2 is first.
+    assert blog.pagination.items.first()['_id'] == 'post2'
 
     dummy = blog.children.get('dummy.xml')
     assert dummy is not None

@@ -844,6 +844,20 @@ class Query(object):
             rv += 1
         return rv
 
+    def distinct(self, fieldname):
+        """Set of unique values for the given field."""
+        rv = set()
+
+        for item in self:
+            if fieldname in item._data:
+                value = item._data[fieldname]
+                if isinstance(value, (list, tuple)):
+                    rv |= set(value)
+                elif not isinstance(value, Undefined):
+                    rv.add(value)
+
+        return rv
+
     def get(self, id, page_num=Ellipsis):
         """Gets something by the local path."""
         # If we're not pristine, we need to query here
