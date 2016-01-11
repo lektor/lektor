@@ -19,14 +19,14 @@ extension or Lektor will not be able to find it.  When Lektor looks for a
 project it looks upwards from the current folder until it finds a single
 file with the `.lektorproject` extension and that's then the root of the project.
 
-!! It's possible to build a Lektor project in the absence of a Project file
-but this usage his heavily discouraged.  It exists primarily for quick
+!! It's possible to build a Lektor project in the absence of a Project file,
+but this usage is heavily discouraged.  It exists primarily for quick
 testing situations.  But don't be confused if you encounter a Lektor project
 that does not come with a corresponding project file.
 
 ## Config Sections
 
-Within the project file there are various configuration selections.  The
+Within the project file there are various configuration sections.  The
 following sections currently exist:
 
 ### `[project]`
