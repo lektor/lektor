@@ -7,8 +7,8 @@ from lektor.environment import PRIMARY_ALT
 from lektor.utils import bool_from_string
 from lektor.i18n import get_i18n_block
 
-from pytz import FixedOffset, timezone
-from pytz.exceptions import UnknownTimeZoneError
+from babel.dates import get_timezone
+from pytz import FixedOffset
 
 
 class SingleInputType(Type):
@@ -129,8 +129,8 @@ class DateTimeType(SingleInputType):
 
             if len(chunks) > 2:
                 try:
-                    tz = timezone(chunks[-1])
-                except UnknownTimeZoneError:
+                    tz = get_timezone(chunks[-1])
+                except LookupError:
                     if len(chunks[-1]) > 5:
                         chunks[-1] = chunks[-1][-5:]
                     delta = int(chunks[-1][1:3]) * 60 + int(chunks[-1][3:])

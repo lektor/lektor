@@ -7,7 +7,7 @@ from lektor.types import Undefined, BadValue
 
 from markupsafe import escape, Markup
 
-from pytz import timezone, utc
+from babel.dates import get_timezone
 
 class DummySource(object):
     url_path = '/'
@@ -189,7 +189,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo is utc
+        assert rv.tzinfo is get_timezone('UTC')
 
         # Known timezone name, EST
         rv = field.deserialize_value('2016-04-30 01:02:03 EST', pad=pad)
@@ -200,7 +200,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo is timezone('EST')
+        assert rv.tzinfo is get_timezone('EST')
 
         # Known location name, Asia/Seoul
         rv = field.deserialize_value('2016-04-30 01:02:03 Asia/Seoul', pad=pad)
@@ -211,7 +211,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo in timezone('Asia/Seoul')._tzinfos.values()
+        assert rv.tzinfo in get_timezone('Asia/Seoul')._tzinfos.values()
 
         # KST - http://www.timeanddate.com/time/zones/kst
         rv = field.deserialize_value('2016-04-30 01:02:03 +0900', pad=pad)
