@@ -25,7 +25,7 @@ and then click in the menu bar on *Lektor ➤ Install Shell Command*.
 ## Command Line Application
 
 If you do not want to install the desktop app then you can just install the command
-line executable.  This runs on more operating systems (OSX, Linux and Windows) but
+line executable.  This runs on most operating systems (OSX, Linux and Windows) but
 the installation is a bit more involved.
 
 You need to make sure you have the following software installed on your computer:
