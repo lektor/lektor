@@ -1,5 +1,4 @@
-recursive-include lektor/quickstart-templates *
-recursive-include lektor/translations *
-recursive-include lektor/admin *
-recursive-exclude lektor/admin/node_modules *
-global-exclude *.py[cdo] __pycache__ *.so *.pyd .DS_Store
+graft lektor
+prune lektor/admin/node_modules
+
+global-exclude *.py[cdo] __pycache__ *.so .DS_Store
