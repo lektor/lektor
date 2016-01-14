@@ -281,7 +281,7 @@ def deploy_cmd(ctx, server, output_path, **credentials):
                              credentials=credentials)
     except PublishError as e:
         raise click.UsageError('Server "%s" is not configured for a valid '
-                               'publishing method: %s' % server)
+                               'publishing method: %s' % (server, e))
 
     click.echo('Deploying to %s' % server_info.name)
     click.echo('  Build cache: %s' % output_path)
