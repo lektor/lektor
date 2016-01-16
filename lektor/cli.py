@@ -278,7 +278,7 @@ def deploy_cmd(ctx, server, output_path, **credentials):
 
     try:
         event_iter = publish(env, server_info.target, output_path,
-                             credentials=credentials)
+                             credentials=credentials, server_info=server_info)
     except PublishError as e:
         raise click.UsageError('Server "%s" is not configured for a valid '
                                'publishing method: %s' % (server, e))
