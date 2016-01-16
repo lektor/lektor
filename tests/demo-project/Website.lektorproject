@@ -15,3 +15,5 @@ url_prefix = /de/
 enabled = yes
 name = Production
 target = rsync://myserver.com/path/to/website
+name[de] = Produktion
+extra_field = extra_value
