@@ -196,11 +196,22 @@ class EXIFInfo(object):
             return (lat, long)
 
 
-def get_suffix(width, height):
-    suffix = str(width)
-    if height is not None:
-        suffix += 'x%s' % height
-    return suffix
+def get_suffix(options):
+    # `size` is a tuple
+    parts = [u'x'.join(map(str, options['size']))]
+    for key, value in sorted(options.iteritems()):
+        if not value or key == 'size':
+            continue
+        if value is True:
+            parts.append(key)
+            continue
+        if not isinstance(value, basestring):
+            try:
+                value = ','.join([unicode(item) for item in value])
+            except TypeError:
+                value = unicode(value)
+        parts.append(u'%s-%s' % (key, value))
+    return u'_'.join(parts)
 
 
 def get_image_info(fp):
@@ -307,11 +318,14 @@ def get_quality(source_filename):
     return 85
 
 
-def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
+def make_thumbnail(ctx, source_image, source_url_path, size, **options):
     """Helper method that can create thumbnails from within the build process
-    of an artifact.
+    of an artifact. `size` is either a one-tuple (width,) or (width, height).
     """
-    suffix = get_suffix(width, height)
+    options['size'] = size
+    size_str ='x'.join(map(str, options['size']))
+
+    suffix = get_suffix(options)
     dst_url_path = get_dependent_url(source_url_path, suffix,
                                      ext=get_thumbnail_ext(source_image))
     quality = get_quality(source_image)
@@ -321,19 +335,16 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
 
     @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
-        resize_key = str(width)
-        if height is not None:
-            resize_key += 'x' + str(height)
         artifact.ensure_dir()
 
-        cmdline = [im, source_image, '-resize', resize_key,
-                   '-auto-orient', '-quality', str(quality),
-                   artifact.dst_filename]
+        cmdline = [im, source_image, '-resize', size_str)),
+                   '-auto-orient', '-quality', str(quality)]
 
+        cmdline.append(artifact.dst_filename)
         reporter.report_debug_info('imagemagick cmd line', cmdline)
         portable_popen(cmdline).wait()
 
-    return Thumbnail(dst_url_path, width, height)
+    return Thumbnail(dst_url_path, *options['size'])
 
 
 class Thumbnail(object):
