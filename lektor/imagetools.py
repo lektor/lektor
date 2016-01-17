@@ -337,8 +337,15 @@ def make_thumbnail(ctx, source_image, source_url_path, size, **options):
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
 
-        cmdline = [im, source_image, '-resize', size_str)),
-                   '-auto-orient', '-quality', str(quality)]
+        cmdline = [im, source_image, '-auto-orient', '-quality', str(quality)]
+
+        if options.get('crop') and len(options['size']) > 1:
+            # we can crop only if there's a height
+            cmdline += ['-thumbnail', size_str + '^',
+                        '-gravity', 'center',
+                        '-extent', size_str]
+        else:
+            cmdline += ['-resize', size_str]
 
         cmdline.append(artifact.dst_filename)
         reporter.report_debug_info('imagemagick cmd line', cmdline)
