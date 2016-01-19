@@ -50,7 +50,6 @@ def test_markdown_linking(pad, builder):
         ) in f.read()
 
     blog_post = pad.get('/blog/post1')
-    print blog_post
 
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open('rb') as f:
