@@ -333,17 +333,27 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
         reporter.report_debug_info('imagemagick cmd line', cmdline)
         portable_popen(cmdline).wait()
 
-    return Thumbnail(dst_url_path, width, height)
+    if height is None:
+        with open(source_image, 'rb') as f:
+            _, w, h = get_image_info(f)
+
+        computed_height = int(float(h) * (float(width) / float(w)))
+    else:
+        computed_height = None
+
+    return Thumbnail(dst_url_path, width, height, computed_height)
 
 
 class Thumbnail(object):
     """Holds information about a thumbnail."""
 
-    def __init__(self, url_path, width, height=None):
+    def __init__(self, url_path, width, height=None, computed_height=None):
         #: the `width` of the thumbnail in pixels.
         self.width = width
         #: the `height` of the thumbnail in pixels.
         self.height = height
+        #: the `computed_height` in pixels, if no height is provided.
+        self.computed_height = computed_height
         #: the URL path of the image.
         self.url_path = url_path
 

@@ -2,4 +2,9 @@
 {% block body %}
   <h1>{{ this.title }}</h1>
   {{ this.body }}
+  {% for img in this.attachments.images %}
+    {# 192 is half test.jpg's original width #}
+    {% set t = img.thumbnail(192) %}
+    <img src="{{ t|url }}" width="{{ t.width }}" height="{{ t.computed_height }}">
+  {% endfor %}
 {% endblock %}
