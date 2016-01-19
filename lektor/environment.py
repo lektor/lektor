@@ -462,6 +462,9 @@ class Environment(object):
         if load_plugins:
             self.load_plugins()
 
+        from lektor.db import siblings_resolver
+        self.virtualpathresolver('siblings')(siblings_resolver)
+
     @property
     def asset_path(self):
         return os.path.join(self.root_path, 'assets')

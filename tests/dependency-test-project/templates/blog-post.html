@@ -1,5 +1,3 @@
-{% set prev = this.get_prev_sibling() %}
-{% if prev %}<a href="{{ prev|url }}">previous</a>{% endif %}
-
-{% set next = this.get_next_sibling() %}
-{% if next %}<a href="{{ next|url }}">next</a>{% endif %}
+{% set siblings = this.get_siblings() %}
+{% if siblings.prev_page %}<a href="{{ siblings.prev_page|url }}">previous</a>{% endif %}
+{% if siblings.next_page %}<a href="{{ siblings.next_page|url }}">next</a>{% endif %}

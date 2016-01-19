@@ -95,6 +95,7 @@ class Context(object):
 
         # Processing information
         self.referenced_dependencies = set()
+        self.referenced_virtual_dependencies = {}
         self.sub_artifacts = []
 
         self.flow_block_render_stack = []
@@ -190,6 +191,13 @@ class Context(object):
         self.referenced_dependencies.add(filename)
         for coll in self._dependency_collectors:
             coll(filename)
+
+    def record_virtual_dependency(self, virtual_source):
+        """Records a dependency from processing."""
+        path = virtual_source.path
+        self.referenced_virtual_dependencies[path] = virtual_source
+        for coll in self._dependency_collectors:
+            coll(virtual_source)
 
     @contextmanager
     def gather_dependencies(self, func):

@@ -8,7 +8,7 @@ import tempfile
 
 from contextlib import contextmanager
 from itertools import chain
-from collections import deque
+from collections import deque, namedtuple
 
 from lektor.context import Context
 from lektor.build_programs import builtin_build_programs
@@ -137,10 +137,19 @@ class BuildState(object):
         return fn
 
     def get_file_info(self, filename):
-        return self.path_cache.get_file_info(filename)
+        if filename:
+            return self.path_cache.get_file_info(filename)
 
     def to_source_filename(self, filename):
         return self.path_cache.to_source_filename(filename)
+    
+    def get_virtual_source_info(self, virtual_source_path):
+        virtual_source = self.pad.get(virtual_source_path)
+        if not virtual_source:
+            return VirtualSourceInfo(virtual_source_path, None, None)
+        mtime = virtual_source.get_mtime(self.path_cache)
+        checksum = virtual_source.get_checksum(self.path_cache)
+        return VirtualSourceInfo(virtual_source_path, mtime, checksum)
 
     def connect_to_database(self):
         """Returns a database connection for the build state db."""
@@ -195,12 +204,15 @@ class BuildState(object):
         rv = cur.fetchall()
 
         found = set()
-        for filename, mtime, size, checksum, is_dir in rv:
-            file_info = FileInfo(self.env, filename, mtime, size, checksum,
-                                 bool(is_dir))
-            filename = self.to_source_filename(file_info.filename)
-            found.add(filename)
-            yield filename, file_info
+        for path, mtime, size, checksum, is_dir in rv:
+            if '@' in path:
+                yield path, VirtualSourceInfo(path, mtime, checksum)
+            else:
+                file_info = FileInfo(self.env, path, mtime, size, checksum,
+                                     bool(is_dir))
+                filename = self.to_source_filename(file_info.filename)
+                found.add(filename)
+                yield filename, file_info
 
         # In any case we also iterate over our direct sources, even if the
         # build state does not know about them yet.  This can be caused by
@@ -315,8 +327,13 @@ class BuildState(object):
                 if info is None:
                     return False
 
+                if isinstance(info, VirtualSourceInfo):
+                    new_vinfo = self.get_virtual_source_info(info.path)
+                    if not info.unchanged(new_vinfo):
+                        return False
+                
                 # If the file info is different, then it clearly changed.
-                if not info.unchanged(self.get_file_info(info.filename)):
+                elif not info.unchanged(self.get_file_info(info.filename)):
                     return False
 
             return True
@@ -493,10 +510,18 @@ class FileInfo(object):
         self._checksum = checksum
         return checksum
 
+    @property
+    def filename_and_checksum(self):
+        """Like 'filename:checksum'."""
+        return '%s:%s' % (self.filename, self.checksum)
+
     def unchanged(self, other):
         """Given another file info checks if the are similar enough to
         not consider it changed.
         """
+        if not isinstance(other, FileInfo):
+            raise TypeError("'other' must be a FileInfo, not %r" % other)
+
         # If mtime and size match, we skip the checksum comparison which
         # might require a file read which we do not want in those cases.
         # (Except if it's a directory, then we won't do that)
@@ -506,6 +531,34 @@ class FileInfo(object):
             return True
 
         return self.checksum == other.checksum
+    
+
+class VirtualSourceInfo(object):
+    def __init__(self, path, mtime=None, checksum=None):
+        self.path = path
+        self.mtime = mtime
+        self.checksum = checksum
+        
+    def unchanged(self, other):
+        if not isinstance(other, VirtualSourceInfo):
+            raise TypeError("'other' must be a VirtualSourceInfo, not %r" 
+                            % other)
+        
+        if self.path != other.path:
+            raise ValueError("trying to compare mismatched virtual paths: "
+                             "%r.unchanged(%r)", self, other)
+
+        return (self.mtime, self.checksum) == (other.mtime, other.checksum)
+
+    def __repr__(self):
+        return 'VirtualSourceInfo(%r, %r, %r)' % (
+            self.path, self.mtime, self.checksum)
+
+
+artifacts_row = namedtuple(
+    'artifacts_row',
+    ['artifact', 'source', 'source_mtime', 'source_size', 'source_checksum',
+     'is_dir', 'is_primary_source'])
 
 
 class Artifact(object):
@@ -598,7 +651,8 @@ class Artifact(object):
         with self.open('wb') as f:
             f.write(rv.encode('utf-8') + b'\n')
 
-    def _memorize_dependencies(self, dependencies=None, for_failure=False):
+    def _memorize_dependencies(self, dependencies=None,
+                               virtual_dependencies=None, for_failure=False):
         """This updates the dependencies recorded for the artifact based
         on the direct sources plus the provided dependencies.  This also
         stores the config hash.
@@ -617,10 +671,28 @@ class Artifact(object):
                 if source in seen:
                     continue
                 info = self.build_state.get_file_info(source)
-                rows.append((self.artifact_name, source, info.mtime,
-                             info.size, info.checksum, info.is_dir,
-                             source in primary_sources))
+                rows.append(artifacts_row(
+                    artifact=self.artifact_name,
+                    source=source,
+                    source_mtime=info.mtime,
+                    source_size=info.size,
+                    source_checksum=info.checksum,
+                    is_dir=info.is_dir,
+                    is_primary_source=source in primary_sources))
+
                 seen.add(source)
+
+            for v_source in virtual_dependencies or ():
+                checksum = v_source.get_checksum(self.build_state.path_cache)
+                mtime = v_source.get_mtime(self.build_state.path_cache)
+                rows.append(artifacts_row(
+                    artifact=self.artifact_name,
+                    source=v_source.path,
+                    source_mtime=mtime,
+                    source_size=None,
+                    source_checksum=checksum,
+                    is_dir=False,
+                    is_primary_source=False))
 
             reporter.report_dependencies(rows)
 
@@ -783,7 +855,9 @@ class Artifact(object):
         # If there was no error, we memoize the dependencies like normal
         # and then commit our transaction.
         if exc_info is None:
-            self._memorize_dependencies(ctx.referenced_dependencies)
+            self._memorize_dependencies(
+                ctx.referenced_dependencies,
+                ctx.referenced_virtual_dependencies.values())
             self._commit()
             return
 
@@ -796,8 +870,10 @@ class Artifact(object):
         # This is a special form of dependency memorization where we do
         # not prune old dependencies and we just append new ones and we
         # use a new database connection that immediately commits.
-        self._memorize_dependencies(ctx.referenced_dependencies,
-                                    for_failure=True)
+        self._memorize_dependencies(
+            ctx.referenced_dependencies,
+            ctx.referenced_virtual_dependencies.values(),
+            for_failure=True)
 
         ctx.exc_info = exc_info
         self.build_state.notify_failure(self, exc_info)
