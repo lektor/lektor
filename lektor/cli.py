@@ -277,8 +277,8 @@ def deploy_cmd(ctx, server, output_path, **credentials):
                                      param_hint='server')
 
     try:
-        event_iter = publish(env, server_info.target, output_path,
-                             credentials=credentials, server_info=server_info)
+        publisher = publish(env, server_info.target, output_path,
+                            credentials=credentials, server_info=server_info)
     except PublishError as e:
         raise click.UsageError('Server "%s" is not configured for a valid '
                                'publishing method: %s' % (server, e))
@@ -286,6 +286,12 @@ def deploy_cmd(ctx, server, output_path, **credentials):
     click.echo('Deploying to %s' % server_info.name)
     click.echo('  Build cache: %s' % output_path)
     click.echo('  Target: %s' % secure_url(server_info.target))
+
+    try:
+        event_iter = iter(publisher)
+    except TypeError:
+        event_iter = []
+
     try:
         for line in event_iter:
             click.echo('  %s' % click.style(line, fg='cyan'))
