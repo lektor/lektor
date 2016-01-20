@@ -39,6 +39,8 @@ Next feature release
 - Added support for Query.distinct
 - Server information can now also contain extra key/value pairs that
   can be used by publishers to affect the processing.
+- The thumbnails will now always have the correct width and height set
+  as an attribute.
 
 1.2
 ---
