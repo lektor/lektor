@@ -333,6 +333,12 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
         reporter.report_debug_info('imagemagick cmd line', cmdline)
         portable_popen(cmdline).wait()
 
+    if height is None:
+        with open(source_image, 'rb') as f:
+            _, w, h = get_image_info(f)
+
+        height = int(float(h) * (float(width) / float(w)))
+
     return Thumbnail(dst_url_path, width, height)
 
 

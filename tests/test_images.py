@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 
@@ -47,3 +48,12 @@ def test_image_attributes(pad):
     assert image.width == 384
     assert image.height == 512
     assert image.format == 'jpeg'
+
+
+def test_thumbnail_height(builder):
+    builder.build_all()
+    with open(os.path.join(builder.destination_path, 'index.html')) as f:
+        html = f.read().decode()
+
+    # Thumbnail is half the original width, so its computed height is half.
+    assert '<img src="./test@192.jpg" width="192" height="256">' in html
