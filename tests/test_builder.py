@@ -8,9 +8,10 @@ def test_basic_build(pad, builder):
     prog, build_state = builder.build(root)
     assert prog.source is root
     assert build_state.failed_artifacts == []
-    assert build_state.updated_artifacts == prog.artifacts
 
     artifact, = prog.artifacts
+    # Root and its thumbnail image were updated.
+    assert artifact in build_state.updated_artifacts
     assert artifact.artifact_name == 'index.html'
     assert artifact.sources == [root.source_filename]
     assert artifact.updated
@@ -67,18 +68,18 @@ def test_child_sources_pagination(pad, builder):
 
 
 def test_basic_artifact_current_test(pad, builder, reporter):
-    root = pad.root
+    post1 = pad.get('blog/post1')
 
     def build():
         reporter.clear()
-        prog, _ = builder.build(root)
+        prog, _ = builder.build(post1)
         return prog.artifacts[0]
 
     artifact = build()
 
     assert reporter.get_major_events() == [
         ('enter-source', {
-            'source': root,
+            'source': post1,
         }),
         ('start-artifact-build', {
             'artifact': artifact,
@@ -91,17 +92,15 @@ def test_basic_artifact_current_test(pad, builder, reporter):
             'artifact': artifact,
         }),
         ('leave-source', {
-            'source': root,
+            'source': post1,
         })
     ]
 
     assert reporter.get_recorded_dependencies() == [
         'Website.lektorproject',
-        'content/contents.lr',
-        'flowblocks/text.ini',
-        'templates/blocks/text.html',
+        'content/blog/post1/contents.lr',
+        'templates/blog-post.html',
         'templates/layout.html',
-        'templates/page.html'
     ]
 
     assert artifact.is_current
@@ -112,7 +111,7 @@ def test_basic_artifact_current_test(pad, builder, reporter):
 
     assert reporter.get_major_events() == [
         ('enter-source', {
-            'source': root
+            'source': post1,
         }),
         ('start-artifact-build', {
             'artifact': artifact,
@@ -125,7 +124,7 @@ def test_basic_artifact_current_test(pad, builder, reporter):
             'artifact': artifact,
         }),
         ('leave-source', {
-            'source': root,
+            'source': post1,
         })
     ]
 
