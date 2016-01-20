@@ -337,23 +337,19 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
         with open(source_image, 'rb') as f:
             _, w, h = get_image_info(f)
 
-        computed_height = int(float(h) * (float(width) / float(w)))
-    else:
-        computed_height = None
+        height = int(float(h) * (float(width) / float(w)))
 
-    return Thumbnail(dst_url_path, width, height, computed_height)
+    return Thumbnail(dst_url_path, width, height)
 
 
 class Thumbnail(object):
     """Holds information about a thumbnail."""
 
-    def __init__(self, url_path, width, height=None, computed_height=None):
+    def __init__(self, url_path, width, height=None):
         #: the `width` of the thumbnail in pixels.
         self.width = width
         #: the `height` of the thumbnail in pixels.
         self.height = height
-        #: the `computed_height` in pixels, if no height is provided.
-        self.computed_height = computed_height
         #: the URL path of the image.
         self.url_path = url_path
 
