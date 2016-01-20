@@ -50,7 +50,6 @@ def test_markdown_linking(pad, builder):
         ) in f.read()
 
     blog_post = pad.get('/blog/post1')
-    print blog_post
 
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open('rb') as f:
@@ -59,6 +58,22 @@ def test_markdown_linking(pad, builder):
             b'attachment</a>'
         ) in f.read()
 
+def test_markdown_images(pad, builder):
+    blog_index = pad.get('/blog', page_num=1)
+
+    prog, _ = builder.build(blog_index)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'This is an image <img src="../blog/2015/12/post1/logo.png" alt="logo">.'
+        ) in f.read()
+
+    blog_post = pad.get('/blog/post1')
+
+    prog, _ = builder.build(blog_post)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'This is an image <img src="../../../../blog/2015/12/post1/logo.png" alt="logo">.'
+        ) in f.read()
 
 def test_string(env, pad):
     field = make_field(env, 'string')
