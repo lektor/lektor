@@ -307,6 +307,27 @@ def get_quality(source_filename):
     return 85
 
 
+def computed_height(source_image, width, actual_width, actual_height):
+    return int(float(actual_height) * (float(width) / float(actual_width)))
+
+
+def resize_image(ctx, source_image, dst_filename, width, height=None):
+    im = find_imagemagick(
+        ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
+
+    quality = get_quality(source_image)
+
+    resize_key = str(width)
+    if height is not None:
+        resize_key += 'x' + str(height)
+
+    cmdline = [im, source_image, '-resize', resize_key, '-auto-orient',
+               '-quality', str(quality), dst_filename]
+
+    reporter.report_debug_info('imagemagick cmd line', cmdline)
+    portable_popen(cmdline).wait()
+
+
 def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
     """Helper method that can create thumbnails from within the build process
     of an artifact.
@@ -314,30 +335,16 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
     suffix = get_suffix(width, height)
     dst_url_path = get_dependent_url(source_url_path, suffix,
                                      ext=get_thumbnail_ext(source_image))
-    quality = get_quality(source_image)
-
-    im = find_imagemagick(
-        ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
-
-    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
-    def build_thumbnail_artifact(artifact):
-        resize_key = str(width)
-        if height is not None:
-            resize_key += 'x' + str(height)
-        artifact.ensure_dir()
-
-        cmdline = [im, source_image, '-resize', resize_key,
-                   '-auto-orient', '-quality', str(quality),
-                   artifact.dst_filename]
-
-        reporter.report_debug_info('imagemagick cmd line', cmdline)
-        portable_popen(cmdline).wait()
 
     if height is None:
         with open(source_image, 'rb') as f:
             _, w, h = get_image_info(f)
+        height = computed_height(source_image, width, w, h)
 
-        height = int(float(h) * (float(width) / float(w)))
+    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
+    def build_thumbnail_artifact(artifact):
+        artifact.ensure_dir()
+        resize_image(ctx, source_image, artifact.dst_filename, width, height)
 
     return Thumbnail(dst_url_path, width, height)
 
