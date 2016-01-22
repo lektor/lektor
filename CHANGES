@@ -57,6 +57,7 @@ Release date to be decided
 - Fixed scrolling in the admin for firefox and some other browsers.
 - Fixed a problem with deleting large projects due to sqlite limitations.
 - Fixed admin preview of root page in firefox.
+- Changed FTPS data channel to use TLS.
 
 1.1
 ---
