@@ -366,7 +366,7 @@ class FtpTlsConnection(FtpConnection):
         return FTP_TLS()
 
     def connect(self):
-        connected = super(FtpTlsConnection, self).connect(self)
+        connected = super(FtpTlsConnection, self).connect()
         if connected:
             # Upgrade data connection to TLS.
             self.con.prot_p()
