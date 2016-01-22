@@ -311,7 +311,12 @@ def computed_height(source_image, width, actual_width, actual_height):
     return int(float(actual_height) * (float(width) / float(actual_width)))
 
 
-def resize_image(ctx, source_image, dst_filename, width, height=None):
+def process_image(ctx, source_image, dst_filename, width, height=None):
+    """Build image from source image, optionally compressing and resizing.
+
+    "source_image" is the absolute path of the source in the content directory,
+    "dst_filename" is the absolute path of the target in the output directory.
+    """
     im = find_imagemagick(
         ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
 
@@ -344,7 +349,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
     @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
-        resize_image(ctx, source_image, artifact.dst_filename, width, height)
+        process_image(ctx, source_image, artifact.dst_filename, width, height)
 
     return Thumbnail(dst_url_path, width, height)
 
