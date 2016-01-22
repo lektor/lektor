@@ -26,6 +26,9 @@ setup(
         'pip',
         'requests[security]',
     ],
+    extras_require={
+        'ftp': ['pyftpsync>=1.0.4'],
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
