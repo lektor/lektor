@@ -570,10 +570,15 @@ class Page(Record):
         else:
             siblings = list(parent.children)
 
-        me = siblings.index(self)
-        prev_item = siblings[me - 1] if me > 0 else None
-        next_item = siblings[me + 1] if me + 1 < len(siblings) else None
-        return prev_item, next_item
+        try:
+            me = siblings.index(self)
+        except ValueError:
+            # Not in list.
+            return None, None
+        else:
+            prev_item = siblings[me - 1] if me > 0 else None
+            next_item = siblings[me + 1] if me + 1 < len(siblings) else None
+            return prev_item, next_item
 
 
 class Attachment(Record):
@@ -837,6 +842,20 @@ class Query(object):
         rv = 0
         for item in self:
             rv += 1
+        return rv
+
+    def distinct(self, fieldname):
+        """Set of unique values for the given field."""
+        rv = set()
+
+        for item in self:
+            if fieldname in item._data:
+                value = item._data[fieldname]
+                if isinstance(value, (list, tuple)):
+                    rv |= set(value)
+                elif not isinstance(value, Undefined):
+                    rv.add(value)
+
         return rv
 
     def get(self, id, page_num=Ellipsis):

@@ -614,9 +614,9 @@ builtin_publishers = {
 }
 
 
-def publish(env, target, output_path, credentials=None):
+def publish(env, target, output_path, credentials=None, **extra):
     url = urls.url_parse(unicode(target))
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)
-    return publisher(env, output_path).publish(url, credentials)
+    return publisher(env, output_path).publish(url, credentials, **extra)

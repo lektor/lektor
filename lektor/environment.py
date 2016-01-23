@@ -132,12 +132,14 @@ SPECIAL_ARTIFACTS = ['.htaccess', '.htpasswd']
 
 class ServerInfo(object):
 
-    def __init__(self, id, name_i18n, target, enabled=True, default=False):
+    def __init__(self, id, name_i18n, target, enabled=True, default=False,
+                 extra=None):
         self.id = id
         self.name_i18n = name_i18n
         self.target = target
         self.enabled = enabled
         self.default = default
+        self.extra = extra or {}
 
     @property
     def name(self):
@@ -160,6 +162,7 @@ class ServerInfo(object):
             'short_target': self.short_target,
             'enabled': self.enabled,
             'default': self.default,
+            'extra': self.extra,
         }
 
 
@@ -261,19 +264,19 @@ class Config(object):
     def get_server(self, name, public=False):
         """Looks up a server info by name."""
         info = self.values['SERVERS'].get(name)
-        if info is None:
+        if info is None or 'target' not in info:
             return None
-        target = info.get('target')
-        if target is None:
-            return None
+        info = info.copy()
+        target = info.pop('target')
         if public:
             target = secure_url(target)
         return ServerInfo(
             id=name,
-            name_i18n=get_i18n_block(info, 'name'),
+            name_i18n=get_i18n_block(info, 'name', pop=True),
             target=target,
-            enabled=bool_from_string(info.get('enabled'), True),
-            default=bool_from_string(info.get('default'), False)
+            enabled=bool_from_string(info.pop('enabled', None), True),
+            default=bool_from_string(info.pop('default', None), False),
+            extra=info
         )
 
     def is_valid_alternative(self, alt):

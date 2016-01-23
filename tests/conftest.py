@@ -138,8 +138,6 @@ def reporter(request, env):
 @pytest.fixture(scope='function')
 def webui(request, env, pad):
     from lektor.admin.webui import WebUI
-    # from lektor.context import Context
-    # ctx = Context(pad=pad)
     output_path = tempfile.mkdtemp()
 
     def cleanup():

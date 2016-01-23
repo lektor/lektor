@@ -36,6 +36,9 @@ Next feature release
 - Added Record.get_prev/next_sibling()
 - Added various utilties: build_url, join_path, parse_path
 - Added support for virtual paths and made pagination work with it.
+- Added support for Query.distinct
+- Server information can now also contain extra key/value pairs that
+  can be used by publishers to affect the processing.
 
 1.2
 ---

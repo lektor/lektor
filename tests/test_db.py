@@ -1,3 +1,6 @@
+from datetime import date
+
+
 def test_root(pad):
     record = pad.root
 
@@ -138,3 +141,18 @@ def test_query_normalization(pad):
     assert pad.get('/projects') is projects
     assert pad.get('/projects/.') is projects
     assert pad.get('//projects/.') is projects
+
+
+def test_distinct(pad):
+    posts = pad.query('blog')
+    distinct_categories = posts.distinct('category')
+    assert isinstance(distinct_categories, set)
+    assert distinct_categories == set(['My Category'])
+    distinct_tags = posts.distinct('tags')
+    assert isinstance(distinct_tags, set)
+    assert distinct_tags == set(['tag1', 'tag2', 'tag3'])
+    distinct_pub_dates = posts.distinct('pub_date')
+    assert distinct_pub_dates == set([date(2015, 12, 12), date(2015, 12, 13)])
+    assert posts.distinct('foo') == set()
+    # Post 2 has no summary; check we don't include Undefined in distinct().
+    assert posts.distinct('summary') == set(['hello'])
