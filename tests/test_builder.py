@@ -172,3 +172,21 @@ def test_asset_processing(pad, builder):
     with prog.artifacts[0].open('rb') as f:
         rv = f.read().decode('utf-8').strip()
         assert 'color: red' in rv
+
+
+def test_included_assets(pad, builder):
+    # In demo-project/Website.lektorproject, included_assets = "_*".
+    root = pad.asset_root
+
+    prog, _ = builder.build(root)
+    assets = list(prog.iter_child_sources())
+    assert '_include_me_despite_underscore' in [a.name for a in assets]
+
+
+def test_excluded_assets(pad, builder):
+    # In demo-project/Website.lektorproject, excluded_assets = "foo*".
+    root = pad.asset_root
+
+    prog, _ = builder.build(root)
+    assets = list(prog.iter_child_sources())
+    assert 'foo-prefix-makes-me-excluded' not in [a.name for a in assets]
