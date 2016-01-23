@@ -214,9 +214,9 @@ class DataModel(object):
 
     def __init__(self, env, id, name_i18n, label_i18n=None,
                  filename=None, hidden=None, protected=None,
-                 child_config=None, attachment_config=None,
-                 pagination_config=None, fields=None,
-                 primary_field=None, parent=None):
+                 always_build=None, child_config=None, 
+                 attachment_config=None, pagination_config=None, 
+                 fields=None, primary_field=None, parent=None):
         self.env = env
         self.filename = filename
         self.id = id
@@ -228,6 +228,9 @@ class DataModel(object):
         if protected is None:
             protected = False
         self.protected = protected
+        if always_build is None:
+            always_build = False
+        self.always_build = always_build
         if child_config is None:
             child_config = ChildConfig()
         self.child_config = child_config
@@ -443,6 +446,7 @@ def datamodel_data_from_ini(id, inifile):
         primary_field=inifile.get('model.primary_field'),
         hidden=inifile.get_bool('model.hidden', default=None),
         protected=inifile.get_bool('model.protected', default=None),
+        always_build=inifile.get_bool('model.always_build', default=False),
         child_config=dict(
             enabled=inifile.get_bool('children.enabled', default=None),
             slug_format=inifile.get('children.slug_format'),
@@ -526,6 +530,7 @@ def datamodel_from_data(env, model_data, parent=None):
         label_i18n=get_value('label_i18n'),
         hidden=get_value('hidden'),
         protected=get_value('protected'),
+        always_build=get_value('always_build'),
         child_config=ChildConfig(
             enabled=get_value('child_config.enabled'),
             slug_format=get_value('child_config.slug_format'),
@@ -680,3 +685,8 @@ add_system_field('_discoverable', type='boolean', default='yes',
 add_system_field('_attachment_for', type='string')
 add_system_field('_attachment_type', type='string',
                  label_i18n='ATTACHMENT_TYPE', addon_label='[[paperclip]]')
+
+# Always build this page even if nothing depends on it.
+add_system_field('_always_build', type='boolean', default='no',
+                 label_i18n='ALWAYS_BUILD',
+                 checkbox_label_i18n='ALWAYS_BUILD_EXPLANATION')
