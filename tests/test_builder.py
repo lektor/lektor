@@ -172,3 +172,17 @@ def test_asset_processing(pad, builder):
     with prog.artifacts[0].open('rb') as f:
         rv = f.read().decode('utf-8').strip()
         assert 'color: red' in rv
+
+
+def test_always_build_record(always_build_builder):
+    builder = always_build_builder
+    q = builder.get_initial_build_queue()
+    # hidden-page/contents.lr has "_always_build = yes".
+    assert builder.pad.get('hidden-page') in q
+
+
+def test_always_build_datamodel(always_build_builder):
+    builder = always_build_builder
+    q = builder.get_initial_build_queue()
+    # The datamodel always-build.ini has "always_build = yes".
+    assert builder.pad.get('always-build-model-record') in q

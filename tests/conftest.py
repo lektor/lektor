@@ -111,6 +111,21 @@ def scratch_builder(request, scratch_pad):
     return make_builder(request, scratch_pad)
 
 
+# Builder for always-build-option-project, a project to test "_always_build".
+@pytest.fixture(scope='function')
+def always_build_builder(request):
+    from lektor.db import Database
+    from lektor.environment import Environment
+    from lektor.project import Project
+
+    project = Project.from_path(os.path.join(os.path.dirname(__file__),
+                                             'always-build-option-project'))
+    env = Environment(project)
+    pad = Database(env).new_pad()
+
+    return make_builder(request, pad)
+
+
 @pytest.fixture(scope='function')
 def F():
     from lektor.db import F

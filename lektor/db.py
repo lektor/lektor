@@ -321,6 +321,11 @@ class Record(SourceObject):
         """Indicates if the page is discoverable without knowing the URL."""
         return self._data['_discoverable'] and not self.is_hidden
 
+    @property
+    def always_build(self):
+        """Always build this record, even if nothing depends on it."""
+        return self._data['_always_build']
+
     @cached_property
     def pagination(self):
         """Returns the pagination controller for the record."""
@@ -1372,6 +1377,11 @@ class Pad(object):
             rv = [self.root]
 
         rv.append(self.asset_root)
+
+        for child in self.root.children.include_undiscoverable(True):
+            if child.always_build or child.datamodel.always_build:
+                rv.append(child)
+
         return rv
 
     def get_virtual(self, record, virtual_path):
