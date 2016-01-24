@@ -41,6 +41,9 @@ Next feature release
   can be used by publishers to affect the processing.
 - The thumbnails will now always have the correct width and height set
   as an attribute.
+- added datetime type
+- added support for the process_image utility functions so that plugins
+  can use it directly.
 
 1.2
 ---
