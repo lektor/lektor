@@ -190,3 +190,20 @@ def test_excluded_assets(pad, builder):
     prog, _ = builder.build(root)
     assets = list(prog.iter_child_sources())
     assert 'foo-prefix-makes-me-excluded' not in [a.name for a in assets]
+
+
+def test_iter_child_pages(child_sources_test_project_builder):
+    # Test that child sources are built even if they're filtered out by a
+    # pagination query like "this.children.filter(F._model == 'doesnt-exist')".
+    builder = child_sources_test_project_builder
+    pad = builder.pad
+    prog, _ = builder.build(pad.root)
+    assert builder.pad.get('filtered-page') in prog.iter_child_sources()
+
+
+def test_iter_child_attachments(child_sources_test_project_builder):
+    # Test that attachments are built, even if a pagination has no items.
+    builder = child_sources_test_project_builder
+    pad = builder.pad
+    prog, _ = builder.build(pad.root)
+    assert builder.pad.get('attachment.txt') in prog.iter_child_sources()
