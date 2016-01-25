@@ -6,6 +6,8 @@ type: method
 ---
 signature: field_name
 ---
+version_added: 2.0
+---
 body:
 
 Returns a `set` with all values for `field_name` of all
