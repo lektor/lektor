@@ -1,3 +1,4 @@
+import fnmatch
 import os
 import re
 import uuid
@@ -128,6 +129,20 @@ IGNORED_FILES = ['thumbs.db', 'desktop.ini', 'Icon\r']
 # These files are important for artifacts and must not be ignored when
 # they are built even though they start with dots.
 SPECIAL_ARTIFACTS = ['.htaccess', '.htpasswd']
+
+# Default glob pattern of ignored files.
+EXCLUDED_ASSETS = ['_*', '.*']
+
+# Default glob pattern of included files (higher-priority than EXCLUDED_ASSETS).
+INCLUDED_ASSETS = []
+
+
+def any_fnmatch(filename, patterns):
+    for pat in patterns:
+        if fnmatch.fnmatch(filename, pat):
+            return True
+
+    return False
 
 
 class ServerInfo(object):
@@ -472,13 +487,16 @@ class Environment(object):
         return Database(self).new_pad()
 
     def is_uninteresting_source_name(self, filename):
-        """These files are always ignored when sources are built into
-        artifacts.
-        """
+        """These files are ignored when sources are built into artifacts."""
         fn = filename.lower()
         if fn in SPECIAL_ARTIFACTS:
             return False
-        return filename[:1] in '._' or fn in IGNORED_FILES
+
+        proj = self.project
+        if any_fnmatch(filename, INCLUDED_ASSETS + proj.included_assets):
+            # Included by the user's project config, thus not uninteresting.
+            return False
+        return any_fnmatch(filename, EXCLUDED_ASSETS + proj.excluded_assets)
 
     def is_ignored_artifact(self, asset_name):
         """This is used by the prune tool to figure out which files in the
