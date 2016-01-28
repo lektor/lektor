@@ -35,32 +35,41 @@ def test_child_sources_basic(pad, builder):
 def test_child_sources_pagination(pad, builder):
     projects = pad.get('/projects')
 
+    def ids(sources):
+        return [x['_id'] for x in sources]
+
     prog, _ = builder.build(projects)
 
     child_sources = get_child_sources(prog)
+    assert ids(child_sources) == [
+        'attachment.txt',
+        'filtered',
+        'projects',
+        'projects',
+        'secret',
+    ]
 
-    assert len(child_sources) == 2
-    assert child_sources[0]['_id'] == 'projects'
-    assert child_sources[0].page_num == 1
-    assert child_sources[1]['_id'] == 'projects'
-    assert child_sources[1].page_num == 2
+    page1 = child_sources[2]
+    assert page1['_id'] == 'projects'
+    assert page1.page_num == 1
+    page2 = child_sources[3]
+    assert page2['_id'] == 'projects'
+    assert page2.page_num == 2
 
-    prog, _ = builder.build(child_sources[0])
+    prog, _ = builder.build(page1)
     child_sources_p1 = get_child_sources(prog)
 
-    assert [x['_id'] for x in child_sources_p1] == [
-        'attachment.txt',
+    assert ids(child_sources_p1) == [
         'bagpipe',
         'coffee',
         'master',
         'oven',
-        'secret',
     ]
 
-    prog, _ = builder.build(child_sources[1])
+    prog, _ = builder.build(page2)
     child_sources_p2 = get_child_sources(prog)
 
-    assert [x['_id'] for x in child_sources_p2] == [
+    assert ids(child_sources_p2) == [
         'postage',
         'slave',
         'wolf',
@@ -190,3 +199,20 @@ def test_excluded_assets(pad, builder):
     prog, _ = builder.build(root)
     assets = list(prog.iter_child_sources())
     assert 'foo-prefix-makes-me-excluded' not in [a.name for a in assets]
+
+
+def test_iter_child_pages(child_sources_test_project_builder):
+    # Test that child sources are built even if they're filtered out by a
+    # pagination query like "this.children.filter(F._model == 'doesnt-exist')".
+    builder = child_sources_test_project_builder
+    pad = builder.pad
+    prog, _ = builder.build(pad.root)
+    assert builder.pad.get('filtered-page') in prog.iter_child_sources()
+
+
+def test_iter_child_attachments(child_sources_test_project_builder):
+    # Test that attachments are built, even if a pagination has no items.
+    builder = child_sources_test_project_builder
+    pad = builder.pad
+    prog, _ = builder.build(pad.root)
+    assert builder.pad.get('attachment.txt') in prog.iter_child_sources()
