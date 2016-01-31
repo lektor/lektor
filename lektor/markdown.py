@@ -21,6 +21,14 @@ class ImprovedRenderer(mistune.Renderer):
                                           base_url=get_ctx().base_url)
         return mistune.Renderer.link(self, link, title, text)
 
+    def image(self, src, title, text):
+        if self.record is not None:
+            url = url_parse(src)
+            if not url.scheme:
+                src = self.record.url_to('!' + src,
+                                         base_url=get_ctx().base_url)
+        return mistune.Renderer.image(self, src, title, text)
+
 
 class MarkdownConfig(object):
 

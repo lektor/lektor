@@ -38,6 +38,14 @@ Next feature release
 - Added support for virtual paths and made pagination work with it.
 - Added support for Query.distinct
 - Add support for pagination url resolving on root URL.
+- Server information can now also contain extra key/value pairs that
+  can be used by publishers to affect the processing.
+- The thumbnails will now always have the correct width and height set
+  as an attribute.
+- added datetime type
+- added support for the process_image utility functions so that plugins
+  can use it directly.
+- added support for included_assets and excluded_assets in the project file.
 
 1.2
 ---
@@ -54,6 +62,7 @@ Release date to be decided
 - Fixed scrolling in the admin for firefox and some other browsers.
 - Fixed a problem with deleting large projects due to sqlite limitations.
 - Fixed admin preview of root page in firefox.
+- Changed FTPS data channel to use TLS.
 
 1.1
 ---

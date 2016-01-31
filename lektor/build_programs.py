@@ -187,17 +187,10 @@ class PageBuildProgram(BuildProgram):
             yield Page(self.source.pad, self.source._data,
                        page_num=page_num)
 
-    def _iter_undiscoverable_children(self):
-        return self.source.children \
-            .include_undiscoverable(True) \
-            .filter(lambda x: x.is_undiscoverable)
-
     def iter_child_sources(self):
-        pagination_enabled = self.source.datamodel.pagination_config.enabled
+        p_config = self.source.datamodel.pagination_config
+        pagination_enabled = p_config.enabled
         child_sources = []
-
-        # TODO: this code is not particularly nice and has too many
-        # branches.  Really needs cleaning up.
 
         # So this requires a bit of explanation:
         #
@@ -206,24 +199,26 @@ class PageBuildProgram(BuildProgram):
         #
         # 1. our build program has page_num = None which means that we
         #    are not yet pointing to a page.  In that case we want to
-        #    itever over all children which will yield the pages.
+        #    iter over all children which will yield the pages.
         # 2. we are pointing to a page, then our child sources are the
         #    items that are shown on that page.
         #
-        # In addition attachments and undiscoverable pages are considered
-        # to go on page 1 if pagination is enabled or to go on the
-        # unpaginated page if pagination is disabled.
+        # In addition, attachments and pages excluded from pagination are
+        # linked to the page with page_num = None.
+        #
+        # If pagination is disabled, all children and attachments are linked
+        # to this page.
+        all_children = self.source.children.include_undiscoverable(True)
         if pagination_enabled:
             if self.source.page_num is None:
                 child_sources.append(self._iter_paginated_children())
+                pq = p_config.get_pagination_query(self.source)
+                child_sources.append(set(all_children) - set(pq))
+                child_sources.append(self.source.attachments)
             else:
                 child_sources.append(self.source.pagination.items)
-                if self.source.page_num == 1:
-                    child_sources.append(self.source.attachments)
-                    child_sources.append(self._iter_undiscoverable_children())
         else:
-            child_sources.append(
-                self.source.children.include_undiscoverable(True))
+            child_sources.append(all_children)
             child_sources.append(self.source.attachments)
 
         return chain(*child_sources)
