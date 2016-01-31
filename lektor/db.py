@@ -478,14 +478,21 @@ class Page(Record):
         )
 
     def resolve_url_path(self, url_path):
+        pg = self.datamodel.pagination_config
+
         # If we hit the end of the url path, then we found our target.
         # However if pagination is enabled we want to resolve the first
         # page instead of the unpaginated version.
         if not url_path:
-            pg = self.datamodel.pagination_config
             if pg.enabled and self.page_num is None:
                 return pg.get_record_for_page(self, 1)
             return self
+
+        # Try to resolve the correctly paginated version here.
+        elif pg.enabled:
+            rv = pg.match_pagination(self, url_path)
+            if rv is not None:
+                return rv
 
         # When we resolve URLs we also want to be able to explicitly
         # target undiscoverable pages.  Those who know the URL are
@@ -511,14 +518,6 @@ class Page(Record):
             rv = node.resolve_url_path(url_path[idx + 1:])
             if rv is not None:
                 return rv
-
-            # Try to resolve the correctly paginated version here.
-            if isinstance(node, Record):
-                pg = node.datamodel.pagination_config
-                if pg.enabled:
-                    rv = pg.match_pagination(node, url_path[idx + 1:])
-                    if rv is not None:
-                        return rv
 
     @cached_property
     def parent(self):
