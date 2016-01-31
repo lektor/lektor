@@ -102,7 +102,10 @@ class _CmpHelper(object):
                 return b < a
             return a < b
         except TypeError:
-            return NotImplemented
+            # Put None at the beginning if reversed, else at the end.
+            if self.reverse:
+                return a is not None
+            return a is None
 
     def __gt__(self, other):
         return not (self.__lt__(other) or self.__eq__(other))
