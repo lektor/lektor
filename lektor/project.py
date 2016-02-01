@@ -124,7 +124,7 @@ class Project(object):
         Combines with default EXCLUDED_ASSETS.
         """
         config = self.open_config()
-        return list(comma_delimited(config.get('site.excluded_assets', '')))
+        return list(comma_delimited(config.get('project.excluded_assets', '')))
     
     @cached_property
     def included_assets(self):
@@ -133,7 +133,7 @@ class Project(object):
         Overrides both excluded_assets and the default excluded patterns.
         """
         config = self.open_config()
-        return list(comma_delimited(config.get('site.included_assets', '')))
+        return list(comma_delimited(config.get('project.included_assets', '')))
 
     def to_json(self):
         return {
