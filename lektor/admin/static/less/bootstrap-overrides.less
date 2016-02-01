@@ -39,6 +39,8 @@
 @border-radius-base: 0;
 @border-radius-large: 0;
 @border-radius-small: 0;
+@border-radius-sm: 0;
+@border-radius: 0;
 @panel-radius: @border-radius-small;
 
 // Colors
@@ -65,6 +67,43 @@
 @toggle-group-color: @brand-primary;
 @input-color: #111;
 @protector-background: fade(@header-taint, 50%);
+
+// React Widgets
+@btn-bg:                    #fff;
+@btn-color:                 #333;
+@btn-border:                #ccc;
+
+@input-height: 2.286em;
+@input-padding:             0.429em 0.857em;
+@input-bg:                  #fff;
+
+@input-border-radius:       @border-radius;
+@input-border:              #ccc;
+@input-border-width:        1px;
+
+@widget-bg:                 #fff;
+@widget-border:             #ccc;
+
+@state-bg-focus:            @widget-bg;
+@state-border-focus:        @input-border-focus;//#66afe9;
+@state-color-focus:         #333;
+
+@state-bg-select:           darken(@btn-border, 12%);
+@state-border-select:       darken(@btn-border, 12%);
+@state-color-select:        #333;
+
+@state-bg-hover:            darken(@btn-bg, 10%);
+@state-border-hover:        darken(@btn-border, 12%);
+@state-color-hover:         #333;
+
+@list-bg-hover:             @state-bg-hover;
+@list-border-hover:         @state-border-hover;
+
+@popup-bg:                  @widget-bg;
+@popup-border:              @widget-border;
+@popup-zindex:              1005;
+
+
 
 // Shadows
 @panel-shadow: 0 0 40px @header-taint;

@@ -1,0 +1,33 @@
+
+@font-face {
+  font-family: 'RwWidgets';
+  src: ~"url('@{rw-font-path}/rw-widgets.eot?v=@{rw-version}')";
+  src: ~"url('@{rw-font-path}/rw-widgets.eot?#iefix&v=@{rw-version}') format('embedded-opentype')",
+    ~"url('@{rw-font-path}/rw-widgets.woff?v=@{rw-version}') format('woff')",
+    ~"url('@{rw-font-path}/rw-widgets.ttf?v=@{rw-version}') format('truetype')",
+    ~"url('@{rw-font-path}/rw-widgets.svg?v=@{rw-version}#fontawesomeregular') format('svg')";
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+.@{rw-css-prefix} {
+  display: inline-block;
+  font-family: RwWidgets;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1em;
+  font-variant: normal;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.@{rw-css-prefix}-caret-down:before { content: '\e803'; }
+.@{rw-css-prefix}-caret-up:before { content: '\e800'; }
+.@{rw-css-prefix}-caret-left:before { content: '\e801';  }
+.@{rw-css-prefix}-caret-right:before { content: '\e802'; }
+
+.@{rw-css-prefix}-clock-o:before { content:'\e805'; }
+.@{rw-css-prefix}-calendar:before { content: '\e804'; }
+.@{rw-css-prefix}-search:before { content: '\e806'; }

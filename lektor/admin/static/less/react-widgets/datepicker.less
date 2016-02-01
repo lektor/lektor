@@ -1,0 +1,121 @@
+
+.rw-datetimepicker {
+  .rw-btn {
+    width: 1.8em;
+  } 
+
+  &.rw-has-neither {
+    padding-left: 0;
+    padding-right: 0;
+
+    .rw-input {
+      border-radius: @input-border-radius;
+    }
+  }
+
+  &.rw-has-both {
+    padding-right: 3.8em;
+
+    &.rw-rtl { 
+      padding-right: 0;
+      padding-left: 3.8em;
+    }
+  }
+
+  &.rw-has-both > .rw-select {
+    width: 3.8em;
+    height: 100%; 
+  }
+}
+
+
+.rw-calendar {
+  background-color: @widget-bg;
+
+  thead > tr {
+    border-bottom: 2px solid @input-border;
+  }
+
+  .rw-btn {
+    
+  }
+  .rw-header {
+    padding-bottom: 5px;
+    
+    .rw-btn-left,
+    .rw-btn-right {
+      width: 12.5%;
+    }
+
+    .rw-btn-view {
+      width: 75%;
+      background-color:   @gray-lighter;
+      border-radius:      @input-border-radius;
+
+      &[disabled] {
+        .state-disabled()
+      }
+    }
+  }
+
+  .rw-footer {
+    border-top: 1px solid @input-border;
+    
+    .rw-btn {
+      width: 100%;
+      white-space: normal;
+      
+      &:hover {
+        background-color:   @state-bg-hover;
+      }
+
+      &[disabled] {
+        .state-disabled()
+      }
+    }
+  }
+}
+
+
+.rw-calendar-grid {
+  height: 200 / 14em;
+  table-layout: fixed;
+  width: 100%;
+
+  th {
+    text-align: right;
+    padding:    0 .4em 0 .1em;
+  }
+
+  .rw-btn {
+    width: 100%;
+    text-align: right;
+  }
+
+  td {
+    .rw-btn {
+      border-radius: @input-border-radius;
+      padding: 0 .4em 0 .1em;
+      outline: 0;
+
+      &:hover {
+        background-color:   @state-bg-hover;
+      }
+
+      &.rw-off-range {
+        color: lighten(@btn-color, 50%)
+      }
+    }
+  }
+
+  &.rw-nav-view {
+
+    .rw-btn {
+      padding: .25em 0 .3em;
+      display: block;
+      overflow: hidden;
+      text-align: center;
+      white-space: normal;
+    }
+  }
+}

@@ -1,0 +1,98 @@
+
+.list-unstyled() {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.list-inline() {
+  .list-unstyled();
+
+  > li {
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+
+
+.border-left-radius(@radius) {
+  border-bottom-left-radius: @radius;
+     border-top-left-radius: @radius;
+}
+
+.border-bottom-radius(@radius) {
+  border-bottom-right-radius: @radius;
+   border-bottom-left-radius: @radius;
+}
+
+.border-top-radius(@radius) {
+  border-top-right-radius: @radius;
+   border-top-left-radius: @radius;
+}
+.border-right-radius(@radius) {
+  border-bottom-right-radius: @radius;
+     border-top-right-radius: @radius;
+}
+
+.box-sizing(@bm) {
+  -webkit-box-sizing: @bm;
+     -moz-box-sizing: @bm;
+          box-sizing: @bm;
+}
+
+.box-shadow(@shadow) {
+  -webkit-box-shadow: @shadow; // iOS <4.3 & Android <4.1
+          box-shadow: @shadow;
+}
+
+.transition(@transition) {
+  -webkit-transition: @transition;
+       -o-transition: @transition;
+          transition: @transition;
+}
+
+.state-select(){
+  background-color: @state-bg-select;
+  border:           @state-border-select 1px solid;
+  color:            @state-color-select;
+}
+
+.state-hover(){
+  background-color: @state-bg-hover;
+  border:           @state-border-hover 1px solid;
+  color:            @state-color-hover;
+}
+
+.state-disabled() {
+  .box-shadow(none);
+  cursor: not-allowed;
+}
+
+.state-focus(){
+  background-color: @state-bg-focus;
+  border:           @state-border-focus 1px solid;
+  color:            @state-color-focus;
+}
+
+.clearfix() {
+  &:before,
+  &:after {
+    content: " "; 
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+.placeholder(@color: @input-color-placeholder) {
+  // Firefox
+  &::-moz-placeholder {
+    color: @color;
+    opacity: 1; // See https://github.com/twbs/bootstrap/pull/11526
+  }
+  &:-ms-input-placeholder { color: @color; } // Internet Explorer 10+
+  &::-webkit-input-placeholder  { color: @color; } // Safari and Chrome
+}

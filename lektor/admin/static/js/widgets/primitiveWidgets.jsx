@@ -175,7 +175,7 @@ var DateInputWidget = React.createClass({
             <div className={className}>
                 <DateTimePicker
                   className={this.getInputClass()}
-                  format={"MMM DD YYYY"}
+                  format={"MMM DD YYYY"} 
                   time={false}
                   onChange={onChange ? this.onChange : undefined}
                   value={new Date(parsedDate[0], parsedDate[1] - 1, parsedDate[2])}
