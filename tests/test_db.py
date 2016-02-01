@@ -198,3 +198,30 @@ def test_root_pagination(scratch_project, scratch_env):
 
     root_2 = scratch_pad.resolve_url_path('/page/2/')
     assert root_2.page_num == 2
+
+
+def test_undefined_order(pad):
+    # A missing value should sort after all others.
+    blog_post = pad.db.datamodels['blog-post']
+
+    from lektor.db import Query
+
+    class TestQuery(Query):
+        def _iterate(self):
+            for day, pub_date in [
+                (3, '2016-01-03'),
+                (4, None),              # No pub_date.
+                (1, '2016-01-01'),
+                (2, '2016-01-02'),
+            ]:
+                yield pad.instance_from_data({
+                    '_id': str(day),
+                    '_path': 'test/%s' % day,
+                    'pub_date': pub_date},
+                    datamodel=blog_post)
+
+    ids = [c['_id'] for c in TestQuery('test', pad).order_by('pub_date')]
+    assert ['4', '1', '2', '3'] == ids
+
+    ids = [c['_id'] for c in TestQuery('test', pad).order_by('-pub_date')]
+    assert ['3', '2', '1', '4'] == ids
