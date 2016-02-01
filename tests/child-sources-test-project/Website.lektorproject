@@ -1,2 +1,2 @@
-[site]
+[project]
 name = Test children are built even if filtered out by a pagination query

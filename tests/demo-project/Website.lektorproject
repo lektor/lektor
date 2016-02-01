@@ -1,4 +1,4 @@
-[site]
+[project]
 name = Demo Project
 excluded_assets = foo*
 included_assets = _*
