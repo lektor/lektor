@@ -163,22 +163,34 @@ var DateInputWidget = React.createClass({
 
   onChange: function(date, dateStr) {
     if(this.props.onChange) {
-      var dateForPython = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
-      this.props.onChange(dateForPython);
+      if(date) {
+        var transformedDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+        this.props.onChange(transformedDate);
+      } else {
+        this.props.onChange("");
+      }
     }
   },
 
   render: function() {
     var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
-    var parsedDate = value.split("-");
+    var date;
+    if(value) {
+      var [year, month, day, ...rest] = value.split("-");
+      month = month - 1;
+      if(isValidDate(year, month, day)) {
+        date = new Date(year, month, day);
+      }
+    }
+
     return (
             <div className={className}>
                 <DateTimePicker
                   className={this.getInputClass()}
-                  format={"MMM DD YYYY"} 
+                  format={"MMM DD YYYY"}
                   time={false}
                   onChange={onChange ? this.onChange : undefined}
-                  value={new Date(parsedDate[0], parsedDate[1] - 1, parsedDate[2])}
+                  value={date ? date : null}
                   {...otherProps} />
             </div>
     )
