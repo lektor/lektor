@@ -160,15 +160,15 @@ def test_prev_next(pad):
     # They disagree with alphabetization, to ensure we use the pagination
     # query order, "-seq".
     bagpipe = pad.get('/projects/bagpipe')
-    assert bagpipe.get_prev_sibling()['_id'] == 'coffee'
+    assert bagpipe.get_siblings().prev_page['_id'] == 'coffee'
 
     # Next child "filtered" is skipped by pagination query, skip to "master".
-    assert bagpipe.get_next_sibling()['_id'] == 'master'
+    assert bagpipe.get_siblings().next_page['_id'] == 'master'
 
     # Postage is on the previous page before oven, but prev / next ignore pages.
     oven = pad.get('/projects/oven')
-    assert oven.get_prev_sibling()['_id'] == 'master'
-    assert oven.get_next_sibling()['_id'] == 'postage'
+    assert oven.get_siblings().prev_page['_id'] == 'master'
+    assert oven.get_siblings().next_page['_id'] == 'postage'
 
 
 def test_url_matching_for_alt_pagination(pad):
