@@ -50,7 +50,7 @@ Next feature release
 1.2
 ---
 
-Release date to be decided
+Released on 1st of February 2016
 
 - Fixed an error that caused unicode characters in the project
   name to be mishandled in the quickstart.
