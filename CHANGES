@@ -47,6 +47,13 @@ Next feature release
   can use it directly.
 - added support for included_assets and excluded_assets in the project file.
 
+1.2.1
+-----
+
+Released on 3rd of February 2016
+
+- Bugfix release primarily for OS X which fixes a code signing issue.
+
 1.2
 ---
 

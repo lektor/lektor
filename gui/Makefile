@@ -71,6 +71,7 @@ osx-bundle: build/imagemagick/convert icons build-wheels
 	cp -R node_modules/runas $(OSX_BUNDLE_RES)/app/node_modules/runas
 	cp -R node_modules/nan $(OSX_BUNDLE_RES)/app/node_modules/nan
 	cp -R $(BUILD_DIR)/Python.framework $(OSX_BUNDLE)/Contents/Frameworks/Python.framework
+	rm $(OSX_BUNDLE)/Contents/Frameworks/Python.framework/Versions/2.7/bin/python{w,w2,w2.7}
 	./bin/make-python-framework-relocatable $(OSX_BUNDLE)/Contents/Frameworks/Python.framework
 	./bin/install-wheels $(OSX_BUNDLE)/Contents/Frameworks/Python.framework/Versions/Current/lib/python2.7/site-packages
 	find $(OSX_BUNDLE)/Contents -name '.DS_Store' -exec rm {} \;
