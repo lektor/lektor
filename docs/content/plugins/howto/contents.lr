@@ -43,7 +43,7 @@ def get_gravatar(email, **options):
 class GravatarPlugin(Plugin):
     name = 'Gravatar'
     def on_setup_env(self, **extra):
-        env.jinja_env.filters['gravatar'] = get_gravatar
+        self.env.jinja_env.filters['gravatar'] = get_gravatar
 ```
 
 ## Configure Plugins
