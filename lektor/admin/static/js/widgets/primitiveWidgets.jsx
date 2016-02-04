@@ -30,6 +30,19 @@ function isValidDate(year, month, day) {
   return false;
 }
 
+function getValidDate(year, month, day) {
+  var year = parseInt(year, 10);
+  var month = parseInt(month, 10);
+  var day = parseInt(day, 10);
+  var date = new Date(year, month - 1, day);
+  if (date.getFullYear() == year &&
+      date.getMonth() == month - 1 &&
+      date.getDate() == day) {
+    return date;
+  }
+  return undefined;
+}
+
 
 var InputWidgetMixin = {
   mixins: [BasicWidgetMixin],
@@ -177,10 +190,7 @@ var DateInputWidget = React.createClass({
     var date;
     if(value) {
       var [year, month, day, ...rest] = value.split("-");
-      month = month - 1;
-      if(isValidDate(year, month, day)) {
-        date = new Date(year, month, day);
-      }
+      date = getValidDate(year, month, day);
     }
 
     return (
