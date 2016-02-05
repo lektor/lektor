@@ -365,6 +365,13 @@ class FtpTlsConnection(FtpConnection):
         from ftplib import FTP_TLS
         return FTP_TLS()
 
+    def connect(self):
+        connected = super(FtpTlsConnection, self).connect()
+        if connected:
+            # Upgrade data connection to TLS.
+            self.con.prot_p()
+        return connected
+
 
 class FtpPublisher(Publisher):
     connection_class = FtpConnection

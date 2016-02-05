@@ -1,3 +1,5 @@
+import datetime
+
 from lektor.datamodel import Field
 from lektor.types.formats import MarkdownDescriptor
 from lektor.context import Context
@@ -5,6 +7,7 @@ from lektor.types import Undefined, BadValue
 
 from markupsafe import escape, Markup
 
+from babel.dates import get_timezone
 
 class DummySource(object):
     url_path = '/'
@@ -50,7 +53,6 @@ def test_markdown_linking(pad, builder):
         ) in f.read()
 
     blog_post = pad.get('/blog/post1')
-    print blog_post
 
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open('rb') as f:
@@ -59,6 +61,22 @@ def test_markdown_linking(pad, builder):
             b'attachment</a>'
         ) in f.read()
 
+def test_markdown_images(pad, builder):
+    blog_index = pad.get('/blog', page_num=1)
+
+    prog, _ = builder.build(blog_index)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'This is an image <img src="../blog/2015/12/post1/logo.png" alt="logo">.'
+        ) in f.read()
+
+    blog_post = pad.get('/blog/post1')
+
+    prog, _ = builder.build(blog_post)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'This is an image <img src="../../../../blog/2015/12/post1/logo.png" alt="logo">.'
+        ) in f.read()
 
 def test_string(env, pad):
     field = make_field(env, 'string')
@@ -148,3 +166,130 @@ def test_boolean(env, pad):
         for s in 'false', 'FALSE', 'False', '0', 'no':
             rv = field.deserialize_value(s, pad=pad)
             assert rv is False
+
+
+def test_datetime(env, pad):
+    field = make_field(env, 'datetime')
+
+    with Context(pad=pad):
+        # default
+        rv = field.deserialize_value('2016-04-30 01:02:03', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo is None
+
+        # It is not datetime, it is None
+        rv = field.deserialize_value(None, pad=pad)
+        assert isinstance(rv, Undefined)
+
+        # It is not datetime, it is empty string
+        rv = field.deserialize_value('', pad=pad)
+        assert isinstance(rv, BadValue)
+
+        # It is not datetime, it is date
+        rv = field.deserialize_value('2016-04-30', pad=pad)
+        assert isinstance(rv, BadValue)
+
+        # Known timezone name, UTC
+        rv = field.deserialize_value('2016-04-30 01:02:03 UTC', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo is get_timezone('UTC')
+
+        # Known timezone name, EST
+        rv = field.deserialize_value('2016-04-30 01:02:03 EST', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo is get_timezone('EST')
+
+        # Known location name, Asia/Seoul
+        rv = field.deserialize_value('2016-04-30 01:02:03 Asia/Seoul', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo in get_timezone('Asia/Seoul')._tzinfos.values()
+
+        # KST - http://www.timeanddate.com/time/zones/kst
+        rv = field.deserialize_value('2016-04-30 01:02:03 +0900', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo._offset == datetime.timedelta(0, 9*60*60)
+
+        # ACST - http://www.timeanddate.com/time/zones/acst
+        rv = field.deserialize_value('2016-04-30 01:02:03 +0930', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo._offset == datetime.timedelta(0, (9*60+30)*60)
+
+        # MST - http://www.timeanddate.com/time/zones/mst
+        rv = field.deserialize_value('2016-04-30 01:02:03 -0700', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo._offset == datetime.timedelta(0, -7*60*60)
+
+        # MART - http://www.timeanddate.com/time/zones/mart
+        rv = field.deserialize_value('2016-04-30 01:02:03 -0930', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo._offset == datetime.timedelta(0, -(9*60+30)*60)
+
+        # with timezone name (case 1)
+        rv = field.deserialize_value('2016-04-30 01:02:03 KST +0900', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo._offset == datetime.timedelta(0, 9*60*60)
+
+        # with timezone name (case 2)
+        rv = field.deserialize_value('2016-04-30 01:02:03 KST+0900', pad=pad)
+        assert isinstance(rv, datetime.datetime)
+        assert rv.year == 2016
+        assert rv.month == 4
+        assert rv.day == 30
+        assert rv.hour == 1
+        assert rv.minute == 2
+        assert rv.second == 3
+        assert rv.tzinfo._offset == datetime.timedelta(0, 9*60*60)

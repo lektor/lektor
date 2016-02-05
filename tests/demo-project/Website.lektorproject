@@ -1,5 +1,7 @@
-[site]
+[project]
 name = Demo Project
+excluded_assets = foo*
+included_assets = _*
 
 [alternatives.en]
 name = English
