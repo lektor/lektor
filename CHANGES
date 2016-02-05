@@ -46,6 +46,7 @@ Next feature release
 - added support for the process_image utility functions so that plugins
   can use it directly.
 - added support for included_assets and excluded_assets in the project file.
+- added Spanish translations.
 
 1.2.1
 -----
