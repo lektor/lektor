@@ -24,6 +24,7 @@
     "react": "^0.14.1",
     "react-addons-update": "^0.14.1",
     "react-dom": "^0.14.1",
+    "react-medium-editor": "^1.6.2",
     "react-router": "^1.0.3",
     "style-loader": "^0.8.3",
     "webpack": "^1.7.2",

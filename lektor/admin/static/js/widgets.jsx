@@ -15,6 +15,7 @@ var i18n = require('./i18n');
 var widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
   'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
+  'wysiwyg': primitiveWidgets.WysiwygWidget,
   'datepicker': primitiveWidgets.DateInputWidget,
   'integer': primitiveWidgets.IntegerInputWidget,
   'float': primitiveWidgets.FloatInputWidget,

@@ -6,6 +6,9 @@ var utils = require('../utils');
 var userLabel = require('../userLabel');
 var i18n = require('../i18n');
 
+// required for medium editor
+var Editor = require('react-medium-editor');
+
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
 }
@@ -341,6 +344,27 @@ var BooleanInputWidget = React.createClass({
   }
 });
 
+var WysiwygWidget = React.createClass({
+  mixins: [BasicWidgetMixin],
+
+  onChange: function(value) {
+    if (this.postprocessValue) {
+      value = this.postprocessValue(value);
+    }
+    this.props.onChange(value);
+  },
+
+  render: function() {
+    return (
+      <div>
+        <Editor
+          text={this.props.value}
+          onChange={this.onChange ? this.onChange : undefined} />
+      </div>
+    )
+  }
+});
+
 module.exports = {
   SingleLineTextInputWidget: SingleLineTextInputWidget,
   SlugInputWidget: SlugInputWidget,
@@ -350,4 +374,5 @@ module.exports = {
   UrlInputWidget: UrlInputWidget,
   MultiLineTextInputWidget: MultiLineTextInputWidget,
   BooleanInputWidget: BooleanInputWidget,
+  WysiwygWidget: WysiwygWidget,
 };
