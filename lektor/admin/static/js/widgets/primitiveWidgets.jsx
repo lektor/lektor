@@ -8,6 +8,8 @@ var i18n = require('../i18n');
 
 // required for medium editor
 var Editor = require('react-medium-editor');
+require('medium-editor/dist/css/medium-editor.css');
+require('medium-editor/dist/css/themes/default.css');
 
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
