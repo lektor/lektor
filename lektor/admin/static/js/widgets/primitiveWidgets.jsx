@@ -1,13 +1,11 @@
 'use strict';
 
 var React = require('react');
+var Editor = require('react-medium-editor');
 var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
 var utils = require('../utils');
 var userLabel = require('../userLabel');
 var i18n = require('../i18n');
-
-// required for medium editor
-var Editor = require('react-medium-editor');
 
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
