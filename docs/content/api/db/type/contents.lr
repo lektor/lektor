@@ -41,3 +41,6 @@ def setup_env(self, **extra):
 ```
 
 For more information see [value_from_raw :ref](value-from-raw/).
+
+There is a more complete example in the
+[Plugin How To :ref](../../../plugins/howto/#adding-new-field-types).
