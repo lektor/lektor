@@ -58,7 +58,7 @@ select the default model based on trying things in this order:
 3. model matching the page ID
 4. the model named `page`
 
-The template is always the name of the model with `.html` as extension.  If
+The template is always the name of the model with `.html` as extension.  It
 can be overridden in the content file with the `_template` field.
 
 ## Content File Format
