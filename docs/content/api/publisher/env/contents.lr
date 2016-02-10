@@ -1,0 +1,12 @@
+title: env
+---
+summary: Reference to the creating environment
+---
+type: property
+---
+version_added: 2.0
+---
+body:
+
+As each publisher is bound to an [Environment :ref](../../environment/) that
+created it.  This is useful to discover related information.

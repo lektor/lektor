@@ -15,6 +15,15 @@ function selectText(text) {
   }
 }
 
+function initBadges() {
+  let badges = $('.badges li').hide();
+  if (badges.length > 0) {
+    window.setTimeout(function() {
+      badges.fadeIn(500);
+    }, 1500);
+  }
+}
+
 function initDownloadButton() {
   let buttons = $('.download-btn');
   if (buttons.length <= 0) {
@@ -143,6 +152,7 @@ function hideThingsForWindows() {
 }
 
 $(function() {
+  initBadges();
   initDownloadButton();
   initInstallRow();
   initGoogleSearch();

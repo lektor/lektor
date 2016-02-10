@@ -8,9 +8,9 @@ signature: expr
 ---
 body:
 
-This filters a query further down by an [Expression :ref](../../expr/).
+This filters a query further down by an [Expression :ref](../../expression/).
 Most expressions involve filtering by fields through [F :ref](../../f/)
-which allows you to perform comparisions with values that fields have.
+which allows you to perform comparisons with values that fields have.
 
 Multiple filter calls can be chained as an alternative to using an `and`
 expression.

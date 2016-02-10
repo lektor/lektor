@@ -57,14 +57,14 @@ configure the access credentials.  We will get to that.
 
 ## Enabling Travis
 
-So now that we have all that configured we need to tellt travis to build the
+So now that we have all that configured we need to tell travis to build the
 repository.  For that just head to your [Travis-CI Profile
 :ext](https://travis-ci.org/profile) and enable the repository.  If it does not
 show up yet, you can force a sync with the click of a button.
 
 ## Access Credentials
 
-So how do you savely provide your credentials?  Lektor accepts username and
+So how do you safely provide your credentials?  Lektor accepts username and
 password for the `ghpages+https` transport via the `LEKTOR_DEPLOY_USERNAME`
 and `LEKTOR_DEPLOY_PASSWORD` environment variables.  These can be set in the
 Travis-CI settings of your repository on travis-ci.org in secret so they are
@@ -86,6 +86,12 @@ To solve this problem we recommend two things:
 
 Once you have done that travis will start deploying the website on every
 commit.
+
+!!!! When copy/pasting username and password into travis please ensure that
+you do not copy any leading or trailing whitespace with it.  This will not
+just break the build but also reveal the password in the process.  For
+more information see [travis-ci#4139
+:ext](https://github.com/travis-ci/travis-ci/issues/4139).
 
 ## Committer Information
 
@@ -117,4 +123,23 @@ cache:
     - $HOME/.cache/lektor/builds
 install: "pip install Lektor"
 script: "lektor build && lektor deploy ghpages"
+```
+
+## Restricting Branches
+
+If you plan on having different branches and contributors you should disable
+the deployment to the master branch only.  You can do this with the following
+config:
+
+```yaml
+language: python
+python: 2.7
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/lektor/builds
+install: "pip install Lektor"
+script:
+  - "lektor build"
+  - 'test "$TRAVIS_PULL_REQUEST" == false && test "$TRAVIS_BRANCH" == master && lektor deploy ghpages'
 ```

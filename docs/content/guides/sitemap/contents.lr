@@ -23,6 +23,10 @@ _model: none
 This instructs Lektor to use the template `sitemap.xml` for this page.  We
 also give it the empty `none` model for good measure.
 
+!!! Starting with Lektor 2.0 you can also add `_discoverable: no` as field
+into the file to hide it from `.children`.  This is useful for such special
+pages which should be excluded from navigation or automatic link generation.
+
 ## Template File
 
 The template loaded will be `templates/sitemap.xml`.  In this file we just
@@ -42,7 +46,7 @@ skips hidden pages so those will not be generated out.
 Note that because sitemaps need to have external URLs (with scheme and
 everything) you will need to configure the `url` of the site before the
 template starts working.  For more information see [Project File
-:ref](../../project/)
+:ref](../../project/file/#[project])
 
 ## Human Readable Sitemap
 

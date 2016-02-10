@@ -15,7 +15,7 @@ This allows you to build complex pages made from individual components.
 
 When you add a `flow` field to one of your models you essentially gain the
 ability to attach as many blocks as you want into this field.  Each block
-corresponds to a specific [Flow Block Models :ref](../../models/flow/) and
+corresponds to a specific [Flow Block Model :ref](../../models/flow/) and
 can render a separate template.
 
 This is a very powerful feature as it allows you to be very flexible in the

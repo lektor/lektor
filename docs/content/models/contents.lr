@@ -15,8 +15,9 @@ easier later to generate beautiful looking HTML.
 Models are the blueprints for your pages.  They define which fields exist and
 what goes into them.  Models are stored in the `models` folder in your project
 and are basic UTF-8 encoded INI files.  Models can have any name but if no
-model has been explicitly selected, the model with the name `page` will be
-used.  So having a model with that name is always a good idea.
+model has been explicitly selected, a default model will be selected.  For
+most situations this will be the model with the name `page`.  Detailed
+information can be found under [Default Model Selection :ref](selection/).
 
 Here is an example of a very basic model (`models/page.ini`):
 

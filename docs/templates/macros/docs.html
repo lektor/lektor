@@ -11,7 +11,7 @@
   <i class="glyphicon glyphicon-console"></i>
   {%- elif page.type == 'event' -%}
   <i class="glyphicon glyphicon-flash"></i>
-  {%- elif page.type == 'type' -%}
+  {%- elif page.type == 'type' or page.type == 'sysfield' -%}
   <i class="glyphicon glyphicon-pencil"></i>
   {%- else -%}
   <i class="glyphicon glyphicon-list-alt"></i>
@@ -28,8 +28,8 @@
     <h1>{% if page.type %}{{ get_doc_icon(page) }} {% endif %}{%
       if page.module %}<code class="mod">{{ page.module }}.</code>{% endif
       %}<code class="obj">{{ page.title }}</code>{%
-      if page.type == 'method' or page.type == 'function' or page.type == 'filter'
-        or page.type == 'event'
+      if (page.type == 'method' or page.type == 'function' or page.type == 'filter'
+        or page.type == 'event') or page.signature
       %} <span class="sig">(<code>{{ page.signature }}</code>)</span>{% endif %}</h1>
   {% else %}
     <h1>{{ page.title }}</h1>

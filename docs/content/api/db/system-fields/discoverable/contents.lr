@@ -1,0 +1,20 @@
+title: _discoverable
+---
+summary: Controls if this page is picked up by collection queries by default.
+---
+type: sysfield
+---
+version_added: 2.0
+---
+body:
+
+By default any non hidden page is returned from `.children` on iteration.  This
+field can be set to `no` to hide a page from such default queries.  This
+implicitly hides a page for most template operations but Lektor will still
+build it.  This for instance is very useful for draft blog posts.  If a post is
+set to not being discoverable it will be hidden from the blog index without
+further custom template code, but someone who knows the URL can still find it.
+
+This is also particularly useful to hide special pages such as `sitemap.xml`
+which would otherwise cause problems because generic code might not expect
+it.

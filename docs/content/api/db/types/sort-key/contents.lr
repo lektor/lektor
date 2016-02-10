@@ -1,0 +1,21 @@
+title: sort_key
+---
+summary: An integer type specific for sorting.
+---
+type: type
+---
+body:
+
+The `sort_key` type is similar to the `integer` type which is one of the most
+basic ones in Lektor.  It can store arbitrary natural numbers both negative and
+positive.  It's intended for giving pages a sort order.  The reason it's a
+special type is that future versions of Lektor can take advantage of this to
+implement a widget for ordering.
+
+## Field Usage
+
+```ini
+[fields.sort_key]
+label = Sort order
+type = sort_key
+```

@@ -26,7 +26,7 @@ successfully*.
 ## The Build Pipeline
 
 So let's cover the building first.  When you use the Lektor server locally,
-Lektor constantly builds our your website into static HTML files behind the
+Lektor constantly builds out your website into static HTML files behind the
 scenes into the default build folder.  This folder is in an operating system
 specific location.  If you want to know where that folder is, you can use this
 command:
@@ -55,7 +55,7 @@ potential deployment target add a `[servers.NAME]` section.  The supported
 keys are `name` for an optional human readable name of the server, `enabled` to
 enable or disable it (defaults to `true`) and `target` which is the URL to
 publish to.  Additionally one of the servers can have `default` set to `yes`
-to set it as default.  Here an example:
+to set it as default.  Here is an example:
 
 ```ini
 [servers.production]
@@ -93,13 +93,17 @@ the `LEKTOR_OUTPUT_PATH` environment variable.
 the credentials directly in the URL.  If you do this, please ensure that
 you keep your project file secure as loss of the project file can mean that
 people get access to your server.  Alternatively you can also provide username
-and password through the command line of environment variables.
+and password through the command line or environment variables.
 
-The following targets are supported for the `target` folder:
+The following targets are supported for the `target` field:
 
 * [rsync](rsync/)
 * [FTP](ftp/)
 * [GitHub Pages](ghpages/)
+
+In addition, third-party plugins are available for these targets:
+
+* [S3 :ext](https://github.com/spenczar/lektor-s3)
 
 ## Manual Deployments
 
