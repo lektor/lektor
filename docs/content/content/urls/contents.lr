@@ -15,15 +15,15 @@ URL which can be customized.  They are roughly speaking something like a
 file name.  For instance `foo-bar` can be a slug in `/foo-bar/`.  The default
 slug of a page is the ID of the page.  So if you have a page called
 `/foo/bar/contents.lr` then the default slug is `bar`.  As you can see the
-full URL is comprised of it's own slug concatenated with all the slugs of
+full URL is comprised of its own slug concatenated with all the slugs of
 all parents.
 
 Can a slug contain slashes?  Yes indeed it can.  A slug is free to contain
 any slashes if it wants and they will be handled just as you expect.  So it's
 perfectly valid for a page to have `2015/5/demo` as slug.  What's not possible
-is for a page to pretent that it belongs to a different parent.  The parent
-paths are always added to it.  So once the page is below `/foo` the URL path
-will always begin with the URL path of the page `foo`.
+is for a page to pretend that it belongs to a different parent.  The parent
+paths are always added to it.  So once a page has a parent page `/foo` 
+its URL path will always begin with the URL path of the page `foo`.
 
 ## Slug Customization
 
@@ -44,7 +44,7 @@ The second option is to use the `_slug` system field.  This field is available
 for all models automatically and overrides the slug explicitly.  This is
 particularly useful to force a slug that could not be represented on the file
 system (for instance because it should contain a slash) or because you want
-to change the slug for a different [Alternative :ref](../alternatives/).  As
+to change the slug for a different [Alternative :ref](../alts/).  As
 an example a page translated to German might want to translate the slug as well.
 
 ### Implied Slug Configuration
@@ -103,7 +103,7 @@ You can pick the default for URL generation in the project configuration.
 For more information read about the [Project Configuration
 :ref](../../project/file/#[project]).
 
-The default of `relative` a realtive URL style means that you can deploy a
+The default of `relative`, a relative URL style, means that you can deploy a
 website to a sub folder without any configuration, however most likely custom
 404 pages will fail to find the needed assets.  Fully canonical URLs are not
 recommended as default style.

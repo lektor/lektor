@@ -15,8 +15,9 @@ easier later to generate beautiful looking HTML.
 Models are the blueprints for your pages.  They define which fields exist and
 what goes into them.  Models are stored in the `models` folder in your project
 and are basic UTF-8 encoded INI files.  Models can have any name but if no
-model has been explicitly selected, the model with the name `page` will be
-used.  So having a model with that name is always a good idea.
+model has been explicitly selected, a default model will be selected.  For
+most situations this will be the model with the name `page`.  Detailed
+information can be found under [Default Model Selection :ref](selection/).
 
 Here is an example of a very basic model (`models/page.ini`):
 
@@ -48,7 +49,7 @@ panel.
 ## Fields
 
 Fields for models are ordered in the UI in the order they appear in the model.
-Most options in the field are specific to the type that is selectd, but some
+Most options in the field are specific to the type that is selected, but some
 are the same for all of them.
 
 Fields not only define the behavior of the data (for instance strings and
@@ -76,7 +77,7 @@ extensively in the [types documentation :ref](../api/db/types/).
 
 ## Model Options
 
-Models have the following options that can cutomize the model itself:
+Models have the following options that can customize the model itself:
 
 - `name`: the name of the model itself.  Usually a more capitalized form of
   the filename which is the ID of the model.
@@ -86,7 +87,7 @@ Models have the following options that can cutomize the model itself:
 - `hidden`: a boolean value that indicates if the model should be hidden from
   the UI or not.  If set to `yes` then new pages cannot select this model.
   This is very useful for models that are implied through configuration.
-- `protected`: if a model is set to protected then all of it's instances
+- `protected`: if a model is set to protected then all of its instances
   cannot be deleted once created.
 - `inherits`: if you want to inherit all fields from another model then this
   can be set to the name of another model.

@@ -30,3 +30,5 @@ def build_stylesheet(artifact):
     with artifact.open('w') as f:
         f.write('Hello World!\n')
 ```
+---
+module: lektor.builder

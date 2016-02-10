@@ -90,9 +90,10 @@ instead of `this.children` which will return only the items for the intended
 page.
 
 ```html+jinja
-{% extends "blog_layout.html" %}
+{% extends "layout.html" %}
 {% from "macros/pagination.html" import render_pagination %}
 {% block title %}My Blog{% endblock %}
+{% block body %}
   <h1>My Blog</h1>
 
   <ul class="blog-index">
@@ -122,7 +123,7 @@ do:
 {% extends "layout.html" %}
 {% block title %}{{ this.title }} | My Blog{% endblock %}
 {% block body %}
-  <1h>{{ this.title }}
+  <h1>{{ this.title }}
   <p class="meta">
     by {{ this.author }}
     on {{ this.pub_date|dateformat('full') }}
@@ -141,7 +142,7 @@ with the name of your blog.  For instance just `content/blog` and put a
 _model: blog
 ```
 
-Now you can head to the admin to create new blog posts.
+Now you can head to the admin UI to create new blog posts.
 
 ## Changing the URL Structure
 

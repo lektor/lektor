@@ -19,12 +19,17 @@ URL path segments.
 
 ```python
 from lektor.sourceobj import VirtualSourceObject
+from lektor.utils import build_url
 
 class Source(VirtualSourceObject):
 
     @property
+    def path(self):
+        return self.record.path + '@source'
+
+    @property
     def url_path(self):
-        return self.parent.url_path + 'source.txt'
+        return build_url([self.record.url_path, 'source.txt'])
 
 @env.urlresolver
 def match_source_file(node, url_path):

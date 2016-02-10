@@ -1,0 +1,22 @@
+title: BuildProgram
+---
+module: lektor.build_programs
+---
+summary: The class for build programs.
+---
+type: class
+---
+body:
+
+A build program is responsible for converting a [Source Object
+:ref](../../db/obj/) into final build artifacts.  Typically such a build
+program implements two methods: [produce_artifacts :ref](produce-artifacts/)
+and [build_artifact :ref](build-artifact/).
+
+The former should invoke [declare_artifact :ref](declare-artifact/) for each
+artifact that should be created from the source.  The builder will then
+invoke [build_artifact :ref](build-artifact/) for each of these declared
+artifacts if the builder determiend that the artifact needs to be built.
+
+For an example refer to the [add_build_program
+:ref](../../environment/add-build-program/) documentation.

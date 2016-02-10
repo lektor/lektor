@@ -33,7 +33,7 @@ merged together.  This means that if you have a file named `i18n.ini`
 with a section `[en]` and a key `CLICK_HERE` the path `i18n.en.CLICK_HERE`
 will target that key.  For JSON files further nesting is possible.  You
 can also just target a section and the return value will be a dictionary
-with can for instance be used with the [tojson :ref](../templates/filters/tojson/)
+which can for instance be used with the [tojson :ref](../templates/filters/tojson/)
 filter.
 
 ## Example Databag

@@ -1,0 +1,14 @@
+title: _attachment_type
+---
+summary: An indication of the attachment type.
+---
+type: sysfield
+---
+body:
+
+This indicates the type of the attachment.  Currently only a small set of
+attachments is detected.  The most useful attachment type is `image` which
+identifies images.  The attachments are detected by the file extension.
+
+!!!! This feature in many ways does not entirely work as you would expect
+and should be taken is something that will improve in future versions.

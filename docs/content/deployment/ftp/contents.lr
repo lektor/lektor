@@ -52,7 +52,7 @@ duplicate entries in that file are resolved.
 ## Using Other Tools
 
 The FTP support in Lektor is quite rudimentary and in some situations you
-might want to use a different tool like filezilla to do your synchronziations
+might want to use a different tool like filezilla to do your synchronizations
 instead.  In that case you just need to point your FTP client to the build
 folder.  To find out where this is, just run this command:
 

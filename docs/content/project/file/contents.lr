@@ -17,11 +17,16 @@ name = My Fancy Project
 The name of the file can be arbitrary but must have the `.lektorproject`
 extension or Lektor will not be able to find it.  When Lektor looks for a
 project it looks upwards from the current folder until it finds a single
-file with the `.lektorproject` extension then that's the root of the project.
+file with the `.lektorproject` extension and that's then the root of the project.
+
+!! It's possible to build a Lektor project in the absence of a Project file,
+but this usage is heavily discouraged.  It exists primarily for quick
+testing situations.  But don't be confused if you encounter a Lektor project
+that does not come with a corresponding project file.
 
 ## Config Sections
 
-Within the project file there are various configuration selections.  The
+Within the project file there are various configuration sections.  The
 following sections currently exist:
 
 ### `[project]`
@@ -84,6 +89,21 @@ This section controls some basics about the project:
 > Note that if this setting is used some functionality in the desktop app
 > might no longer work (for instance opening `.lr` files with a double click).
 
+`excluded_assets`
+> A list of file names or Unix shell-style wildcards, separated by commas.
+> The wildcard syntax follows [fnmatch](https://docs.python.org/2/library/fnmatch.html).
+>
+> By default, filenames beginning with "_" or "." are not copied from the
+> `assets` directory to the output directory. Exclude *additional* files with
+> the `excluded_assets` option.
+
+`included_assets`
+> A comma-separated list of file names or Unix shell-style wildcards, specifying
+> files that should be copied from the `assets` directory to the output
+> directory even if they begin with "_" or "." (the default exclusion patterns)
+> or match your custom `excluded_assets` pattern. The wildcard syntax follows
+> [fnmatch](https://docs.python.org/2/library/fnmatch.html).
+
 Example:
 
 ```ini
@@ -91,6 +111,8 @@ Example:
 name = My Website
 url = https://www.mywebsite.invalid/
 locale = de_DE
+excluded_assets = *.backup, *~
+included_assets = _special_file
 ```
 
 ### `[packages]`

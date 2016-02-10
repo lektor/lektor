@@ -15,6 +15,15 @@ function selectText(text) {
   }
 }
 
+function initBadges() {
+  let badges = $('.badges li').hide();
+  if (badges.length > 0) {
+    window.setTimeout(function() {
+      badges.fadeIn(500);
+    }, 1500);
+  }
+}
+
 function initDownloadButton() {
   let buttons = $('.download-btn');
   if (buttons.length <= 0) {
@@ -136,8 +145,16 @@ function initGoogleSearch() {
   }
 }
 
+function hideThingsForWindows() {
+  if (navigator.appVersion.indexOf('Win') >= 0) {
+    $('.hide-for-windows').hide();
+  }
+}
+
 $(function() {
+  initBadges();
   initDownloadButton();
   initInstallRow();
   initGoogleSearch();
+  hideThingsForWindows();
 });

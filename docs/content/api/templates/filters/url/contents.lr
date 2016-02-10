@@ -4,7 +4,7 @@ type: filter
 ---
 summary: Generates a relative URL from the current page to another.
 ---
-signature: alt=None
+signature: alt=None, absolute=None, external=None
 ---
 body:
 

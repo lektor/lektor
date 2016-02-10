@@ -9,10 +9,16 @@ to a content file.  This allows you to translate your website into many
 different languages or to customize content specifically for some languages
 or regions.
 
+!!!! Alternatives are a fully functional feature in Lektor but very
+underdocumented and lacking in parts.  The result of this is that it might not
+be working exactly as you expect in parts.  In particular one of the limiting
+factors is that you need to have at least one alternative at the URL root or
+the system will refuse to build the website.
+
 ## Enabling Alternatives
 
 To enable alternatives you need to extend your [Project File
-:ref](../../project/).  For each alternative a new
+:ref](../../project/file/).  For each alternative a new
 section has to be added.  It's important that one of the alternatives is
 marked as "primary" which informs the system which of the alternatives is
 the reference.
@@ -66,3 +72,11 @@ targeted, different files will be used.  This table visualizes this:
 |             | ✓              |                | fr     | contents+fr.lr
 |             |                | ✓              | en     | contents+en.lr
 |             |                | ✓              | fr     | *missing*
+
+## Alternatives and Paths
+
+Alternatives have a special behavior with regards to paths.  They alternative
+code does not exist in the path!  This can be confusing at first, but has the
+advantage that they automatically work in most places as the paths are the
+same for differnent alternatives.  For more information see
+[Alternatives and Paths :ref](../paths/#alternatives-and-paths).

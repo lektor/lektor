@@ -1,6 +1,6 @@
 title: Single-Page
 ---
-summary: Some inspiration of how to structure single page apps.
+summary: Some inspiration for structuring single page apps.
 ---
 body:
 
@@ -110,7 +110,7 @@ need to query for all the other pages we have below `doc/`:
 {% block body %}
   {% set pages = site.query('/doc').all() %}
   <header>
-    <h1>{{ this.title }}</h2>
+    <h1>{{ this.title }}</h1>
     <nav>
       <ul>
         {% for page in pages %}

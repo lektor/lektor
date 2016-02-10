@@ -1,6 +1,6 @@
-title: Howto
+title: How To
 ---
-summary: Covers the most common thigns plugins would do and how to implement it.
+summary: Covers the most common things plugins would do and how to implement it.
 ---
 sort_key: 30
 ---
@@ -43,7 +43,7 @@ def get_gravatar(email, **options):
 class GravatarPlugin(Plugin):
     name = 'Gravatar'
     def on_setup_env(self, **extra):
-        env.jinja_env.filters['gravatar'] = get_gravatar
+        self.env.jinja_env.filters['gravatar'] = get_gravatar
 ```
 
 ## Configure Plugins
@@ -111,3 +111,79 @@ class ExifDumpPlugin(Plugin):
 This dumps out the EXIF data into a JSON file and returns the artifact name.
 The source image is tracked as direct source for the artifact and within the
 function we also track the plugin's filename to rebuild if the plugin changes.
+
+## Adding New Field Types
+
+Let's say you want to add an "asciidoc"
+[field type :ref](../../api/db/types/) so you can write with [AsciiDoc](http://www.methods.co.nz/asciidoc) markup.
+
+First [install AsciiDoc](http://www.methods.co.nz/asciidoc/INSTALL.html) so its command-line program is available. Then update `blog-post.ini` from the [blog guide :ref](../../guides/blog) like so:
+
+```ini
+[fields.body]
+label = Body
+type = asciidoc  # Custom type.
+```
+
+In a blog post's `contents.lr`, write some AsciiDoc like:
+
+```
+body:
+
+== Header 1
+
+Some text.
+
+-----
+code here
+-----
+```
+
+You can add your "asciidoc" type to Lektor with a plugin:
+
+```python
+from subprocess import PIPE, Popen
+
+from lektor.pluginsystem import Plugin
+from lektor.types import Type
+
+
+def asciidoc_to_html(text):
+    # The "-" at the end tells asciidoc to read from stdin.
+    p = Popen(
+        ['asciidoc', '--no-header-footer', 
+         '--backend=html5', '-'],
+        stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+    out, err = p.communicate(text)
+    if p.returncode != 0:
+        raise RuntimeError('asciidoc: "%s"' % err)
+
+    return out
+
+
+# Wrapper with an __html__ method prevents
+# Lektor from escaping HTML tags.
+class HTML(object):
+    def __init__(self, html):
+        self.html = html
+
+    def __html__(self):
+        return self.html
+
+
+class AsciiDocType(Type):
+    widget = 'multiline-text'
+
+    def value_from_raw(self, raw):
+        return HTML(asciidoc_to_html(raw.value or u''))
+
+
+class AsciiDocPlugin(Plugin):
+    name = u'AsciiDoc'
+    description = u'Adds AsciiDoc field type to Lektor.'
+
+    def on_setup_env(self, **extra):
+        # Derives type name "asciidoc" from class name.
+        self.env.add_type(AsciiDocType)
+```
