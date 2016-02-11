@@ -7,7 +7,7 @@ body:
 `rsync://username@server/path/to/folder`
 
 This deploys via SSH and rsync to a remote server.  This is the recommended
-way to deploy if the system supports it as it is a very fast and realiable
+way to deploy if the system supports it as it is a very fast and reliable
 way.  It uses the system's SSH config so for authentication just configure
 SSH as you would normally do.  The `username` part is optional and defaults
 to the current user that is signed into the machine or whatever is picked up

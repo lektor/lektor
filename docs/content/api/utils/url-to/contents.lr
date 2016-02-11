@@ -1,6 +1,6 @@
 title: url_to
 ---
-summary: Calculates the URL to a specific page realtive to the current.
+summary: Calculates the URL to a specific page relative to the current.
 ---
 type: function
 ---

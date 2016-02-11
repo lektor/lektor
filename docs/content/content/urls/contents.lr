@@ -96,7 +96,7 @@ Lektor by default will prefer relative URLs.  This makes it possible to easily
 host a website below a certain folder without having to do anything special to
 make this work.  However there are some features which will require the use of
 an absolute or fully canonical (external) URL.  For instance sitemaps or Atom
-feeds do not work with realtive URLs.  In this case the absolute URL path has
+feeds do not work with relative URLs.  In this case the absolute URL path has
 to be configured.
 
 You can pick the default for URL generation in the project configuration.

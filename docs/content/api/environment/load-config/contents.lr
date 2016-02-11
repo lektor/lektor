@@ -7,7 +7,7 @@ summary: Loads the current config from the project file.
 body:
 
 Because the environment is reused between builds, the config is not cached
-on the environment but needs to be expicitly loaded.  This happens with
+on the environment but needs to be explicitly loaded.  This happens with
 the help of the `load_config` method.  It returns a config object that
 gives access to the settings in the project file.
 

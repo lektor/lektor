@@ -15,7 +15,7 @@ body:
 The fields in [Records :ref](../record/) use types to specify the behavior of
 the values.  Lektor comes with a wide range of [built-in field types
 :ref](../types/) but it is possible to build your own by subclassing types
-class.  A type is instanciated with two parameters: a reference to the
+class.  A type is instantiated with two parameters: a reference to the
 [Environment :ref](../../environment/) that it belongs to and a dictionary
 with configuration options from the ini file.
 

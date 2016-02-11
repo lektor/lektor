@@ -10,7 +10,7 @@ body:
 FTP is a very old but well supported protocol.  Lektor can publish through it
 but to speed up the operation it has to make certain concessions.  In
 particular it needs to maintain a “listing file” to remember the state of
-the files as FTP does not support any form of file comparisions.  This means
+the files as FTP does not support any form of file comparisons.  This means
 that you cannot use Lektor in addition to another system to publish files
 to your FTP server.  It's an either/or thing.
 
@@ -33,7 +33,7 @@ target = sftp://myuser:mypassword@ftp.example.com/var/www/example
 
 FTP is considered a largely insecure protocol for Lektor.  As such if you
 want to use it you should keep your project file save as credentials will
-be most likely embedded there.  Alternatively you can set the credentails
+be most likely embedded there.  Alternatively you can set the credentials
 via the command line with the `--username` and `--password` option (or via the
 environment variables `LEKTOR_DEPLOY_USERNAME` and `LEKTOR_DEPLOY_PASSWORD`)
 though this will mean that most likely deploys via the admin interface

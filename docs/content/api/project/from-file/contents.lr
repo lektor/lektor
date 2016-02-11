@@ -8,7 +8,7 @@ summary: Loads a project from a project file.
 ---
 body:
 
-This is the most common way to create a project insteance.  It's a class
+This is the most common way to create a project instance.  It's a class
 method that given the path to a project file will load the project.  If
 the file does not exist then `None` is returned.
 

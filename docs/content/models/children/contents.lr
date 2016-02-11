@@ -76,7 +76,7 @@ keys are available:
 
 * `enabled`: if set to `yes` pagination becomes enabled.  It's off by
   default.
-* `per_page`: this controls how many children are are shown per page.  If
+* `per_page`: this controls how many children are shown per page.  If
   pagination is enabled and this is not set, an implicit default of `20`
   is assumed.
 

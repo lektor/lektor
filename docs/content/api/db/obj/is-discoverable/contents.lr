@@ -14,7 +14,7 @@ check if a record is considered non-discoverable by Lektor or not.  In
 particular a hidden record is also considered undiscoverable.
 
 Undiscoverable records can be queried and final pages will be built but they
-are excempt from queries of the record.  This is useful for pages that should
+are exempt from queries of the record.  This is useful for pages that should
 be built but not show up yet on overview pages.  For instance this can be used
 to implement drafts of blog posts or similar things.
 
