@@ -10,6 +10,6 @@ body:
 
 This attribute holds the path to the folder where the build process put the
 final artifacts.  Usually a publisher walks that folder and does something
-with all contents of it.  The publishers however are heavily encourated to
+with all contents of it.  The publishers however are heavily encouraged to
 ignore the special `.lektor` folder which contains lektor specific information
 that should not end up on the resulting server.

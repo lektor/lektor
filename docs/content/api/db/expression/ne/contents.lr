@@ -7,7 +7,7 @@ type: operator
 body:
 
 This checks if the left side of the expression does not match the right side
-by doing a exact comparision:
+by doing an exact comparison:
 
 ## Example
 

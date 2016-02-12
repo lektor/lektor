@@ -6,7 +6,7 @@ type: operator
 ---
 body:
 
-This evalutes to true if the left side compares larger than the right side.
+This evaluates to true if the left side compares larger than the right side.
 This behavior works best with [integers :ref](../../types/integer/)
 or [floats :ref](../../types/float/).
 

@@ -9,7 +9,7 @@ summary: Formats the latitude and longitude into a string
 body:
 
 This formats a latitude and longitude tuple into a human readable string
-in the format format degrees, minutes and seconds.  See also [latformat
+in the format degrees, minutes and seconds.  See also [latformat
 :ref](../latformat/) and [longformat :ref](../longformat/).
 
 ## Examples

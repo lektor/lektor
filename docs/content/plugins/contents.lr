@@ -23,7 +23,7 @@ Plugins can be added to a Lektor project in two different ways:
 
 ## Installing Plugins
 
-For completely automated plugin managment just open your project file in a
+For completely automated plugin management just open your project file in a
 text editor and edit or extend the `[packages]` section.  Just add a line
 for each plugin in the form `name = version`:
 

@@ -1,6 +1,6 @@
 title: GitHub Pages
 ---
-summary: Deploys to github pages.
+summary: Deploys to GitHub Pages.
 ---
 body:
 
@@ -60,7 +60,7 @@ the feature in the GitHub help center:
 
 ## 404 Pages
 
-Per convenention the file named `404.html` is used as placeholder if a page
+Per convention the file named `404.html` is used as placeholder if a page
 cannot be found.  You can create such a page by creating a `404.html/contents.lr`
 file.
 

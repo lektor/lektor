@@ -23,7 +23,7 @@ unless they are explicitly passed to it.
 
 The filename of the template is passed as `template` but is only available
 if the template was indeed loaded from the templates folder.  There are many
-more places where templates are rendered in in those cases the value will
+more places where templates are rendered in those cases the value will
 not be provided.
 
 ## Example
