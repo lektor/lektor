@@ -8,27 +8,19 @@ Lektor's URLs in general mirror what happens on the file system as much as
 possible.  There are however various cases in which this behavior can be
 changed.
 
-## A URL Made of Slugs
+## A URL Is Composed of Slugs
 
-A URL in Lektor is built of slugs.  What are slugs?  Slugs are parts of the
-URL which can be customized.  They are roughly speaking something like a
-file name.  For instance `foo-bar` can be a slug in `/foo-bar/`.  The default
-slug of a page is the ID of the page.  So if you have a page called
-`/foo/bar/contents.lr` then the default slug is `bar`.  As you can see the
-full URL is comprised of its own slug concatenated with all the slugs of
-all parents.
+Each page in Lektor is associated with a string called a *slug*. The full 
+URL of a page is its own slug concatenated with the slug of each its parents. 
 
-Can a slug contain slashes?  Yes indeed it can.  A slug is free to contain
-any slashes if it wants and they will be handled just as you expect.  So it's
-perfectly valid for a page to have `2015/5/demo` as slug.  What's not possible
-is for a page to pretend that it belongs to a different parent.  The parent
-paths are always added to it.  So once a page has a parent page `/foo` 
-its URL path will always begin with the URL path of the page `foo`.
+The default slug is the ID of the page. So the page 
+`content/foo/bar/contents.lr` has the default slug `bar`, its parent has the
+default slug `foo`, and its default URL would be `/foo/bar/'. 
 
 ## Slug Customization
 
-As mentioned slugs can be customized.  There are three systems that control
-what the slug looks like:
+Slugs can be customized. The can even contain slashed (see below). There are
+three systems that control what the slug looks like:
 
 ### Folder Name
 
@@ -54,6 +46,16 @@ means that the model of the parent page can override the default slug for all
 of the children below it.  This for instance can be used to automatically add
 the date of a blog post into the slug.  For more information about this
 feature see [Children & Pagination :ref](../../models/children/).
+
+## Slugs Containing Slashes 
+
+Slugs can indeed contain slashes. It's perfectly valid for a page to have 
+`2015/5/demo` as slug, and it will still be incorporated into URLs as described
+above.  What's not possible is for a page to pretend that it belongs to a 
+different parent.  The parent paths are always added to it.  So once a page 
+has a parent page `/foo` its URL path will always begin with the URL path of 
+the page `foo`.
+
 
 ## Extensions and File Types
 
