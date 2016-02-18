@@ -244,8 +244,13 @@ class FtpConnection(object):
             return False
 
         try:
-            log.append(self.con.login(self.username.encode('utf-8'),
-                                      self.password.encode('utf-8')))
+            credentials = {}
+            if self.username:
+                credentials["user"] = self.username.encode('utf-8')
+            if self.password:
+                credentials["passwd"] = self.password.encode('utf-8')
+            log.append(self.con.login(**credentials))
+
         except Exception as e:
             log.append('000 Could not authenticate.')
             log.append(str(e))
