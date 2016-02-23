@@ -244,8 +244,13 @@ class FtpConnection(object):
             return False
 
         try:
-            log.append(self.con.login(self.username.encode('utf-8'),
-                                      self.password.encode('utf-8')))
+            credentials = {}
+            if self.username:
+                credentials["user"] = self.username.encode('utf-8')
+            if self.password:
+                credentials["passwd"] = self.password.encode('utf-8')
+            log.append(self.con.login(**credentials))
+
         except Exception as e:
             log.append('000 Could not authenticate.')
             log.append(str(e))
@@ -364,6 +369,13 @@ class FtpTlsConnection(FtpConnection):
     def make_connection(self):
         from ftplib import FTP_TLS
         return FTP_TLS()
+
+    def connect(self):
+        connected = super(FtpTlsConnection, self).connect()
+        if connected:
+            # Upgrade data connection to TLS.
+            self.con.prot_p()
+        return connected
 
 
 class FtpPublisher(Publisher):
@@ -614,9 +626,9 @@ builtin_publishers = {
 }
 
 
-def publish(env, target, output_path, credentials=None):
+def publish(env, target, output_path, credentials=None, **extra):
     url = urls.url_parse(unicode(target))
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)
-    return publisher(env, output_path).publish(url, credentials)
+    return publisher(env, output_path).publish(url, credentials, **extra)

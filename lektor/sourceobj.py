@@ -42,6 +42,9 @@ class SourceObject(object):
         if fn is not None:
             yield self.source_filename
 
+    def iter_virtual_sources(self):
+        return []
+
     @property
     def url_path(self):
         """The URL path of this source object if available."""
@@ -136,6 +139,12 @@ class VirtualSourceObject(SourceObject):
     def path(self):
         raise NotImplementedError()
 
+    def get_mtime(self, path_cache):
+        return None
+
+    def get_checksum(self, path_cache):
+        return None
+
     @property
     def parent(self):
         return self.record
@@ -147,3 +156,6 @@ class VirtualSourceObject(SourceObject):
     @property
     def source_filename(self):
         return self.record.source_filename
+
+    def iter_virtual_sources(self):
+        yield self

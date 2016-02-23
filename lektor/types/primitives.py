@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from markupsafe import Markup
 
@@ -6,6 +6,9 @@ from lektor.types import Type
 from lektor.environment import PRIMARY_ALT
 from lektor.utils import bool_from_string
 from lektor.i18n import get_i18n_block
+
+from babel.dates import get_timezone
+from pytz import FixedOffset
 
 
 class SingleInputType(Type):
@@ -107,5 +110,35 @@ class DateType(SingleInputType):
             return raw.missing_value('Missing date')
         try:
             return date(*map(int, raw.value.split('-')))
+        except Exception:
+            return raw.bad_value('Bad date format')
+
+
+class DateTimeType(SingleInputType):
+    widget = 'singleline-text'
+
+    def value_from_raw(self, raw):
+        if raw.value is None:
+            return raw.missing_value('Missing datetime')
+        try:
+            chunks = raw.value.split(' ')
+            date_info = map(int, chunks[0].split('-'))
+            time_info = map(int, chunks[1].split(':'))
+            datetime_info = date_info + time_info
+            result = datetime(*datetime_info)
+
+            if len(chunks) > 2:
+                try:
+                    tz = get_timezone(chunks[-1])
+                except LookupError:
+                    if len(chunks[-1]) > 5:
+                        chunks[-1] = chunks[-1][-5:]
+                    delta = int(chunks[-1][1:3]) * 60 + int(chunks[-1][3:])
+                    if chunks[-1][0] == '-':
+                        delta *= -1
+                    tz = FixedOffset(delta)
+                return tz.localize(result)
+
+            return result
         except Exception:
             return raw.bad_value('Bad date format')

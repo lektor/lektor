@@ -16,8 +16,8 @@ from werkzeug.utils import cached_property
 from lektor import metaformat
 from lektor.utils import sort_normalize_string, cleanup_path, \
      untrusted_to_os_path, fs_enc
-from lektor.sourceobj import SourceObject
-from lektor.context import get_ctx
+from lektor.sourceobj import SourceObject, VirtualSourceObject
+from lektor.context import get_ctx, Context
 from lektor.datamodel import load_datamodels, load_flowblocks
 from lektor.imagetools import make_thumbnail, read_exif, get_image_info
 from lektor.assets import Directory
@@ -102,7 +102,10 @@ class _CmpHelper(object):
                 return b < a
             return a < b
         except TypeError:
-            return NotImplemented
+            # Put None at the beginning if reversed, else at the end.
+            if self.reverse:
+                return a is not None
+            return a is None
 
     def __gt__(self, other):
         return not (self.__lt__(other) or self.__eq__(other))
@@ -426,6 +429,52 @@ class Record(SourceObject):
         )
 
 
+class Siblings(VirtualSourceObject):
+    def __init__(self, record, prev_page, next_page):
+        """Virtual source representing previous and next sibling of 'record'."""
+        VirtualSourceObject.__init__(self, record)
+        self._path = record.path + '@siblings'
+        self._prev_page = prev_page
+        self._next_page = next_page
+
+    @property
+    def path(self):
+        # Used as a key in Context.referenced_virtual_dependencies.
+        return self._path
+
+    @property
+    def prev_page(self):
+        return self._prev_page
+
+    @property
+    def next_page(self):
+        return self._next_page
+
+    def iter_source_filenames(self):
+        for page in self._prev_page, self._next_page:
+            if page:
+                yield page.source_filename
+
+    def _file_infos(self, path_cache):
+        for page in self._prev_page, self._next_page:
+            if page:
+                yield path_cache.get_file_info(page.source_filename)
+
+    def get_mtime(self, path_cache):
+        mtimes = [i.mtime for i in self._file_infos(path_cache)]
+        return max(mtimes) if mtimes else None
+
+    def get_checksum(self, path_cache):
+        sums = '|'.join(i.filename_and_checksum
+                        for i in self._file_infos(path_cache))
+
+        return sums or None
+
+
+def siblings_resolver(node, url_path):
+    return node.get_siblings()
+
+
 class Page(Record):
     """This represents a loaded record."""
     is_attachment = False
@@ -478,14 +527,21 @@ class Page(Record):
         )
 
     def resolve_url_path(self, url_path):
+        pg = self.datamodel.pagination_config
+
         # If we hit the end of the url path, then we found our target.
         # However if pagination is enabled we want to resolve the first
         # page instead of the unpaginated version.
         if not url_path:
-            pg = self.datamodel.pagination_config
             if pg.enabled and self.page_num is None:
                 return pg.get_record_for_page(self, 1)
             return self
+
+        # Try to resolve the correctly paginated version here.
+        elif pg.enabled:
+            rv = pg.match_pagination(self, url_path)
+            if rv is not None:
+                return rv
 
         # When we resolve URLs we also want to be able to explicitly
         # target undiscoverable pages.  Those who know the URL are
@@ -511,14 +567,6 @@ class Page(Record):
             rv = node.resolve_url_path(url_path[idx + 1:])
             if rv is not None:
                 return rv
-
-            # Try to resolve the correctly paginated version here.
-            if isinstance(node, Record):
-                pg = node.datamodel.pagination_config
-                if pg.enabled:
-                    rv = pg.match_pagination(node, url_path[idx + 1:])
-                    if rv is not None:
-                        return rv
 
     @cached_property
     def parent(self):
@@ -546,39 +594,50 @@ class Page(Record):
         return AttachmentsQuery(path=self['_path'], pad=self.pad,
                                 alt=self.alt)
 
-    def get_prev_sibling(self):
-        """Previous record, or None.
+    def has_prev(self):
+        return self.get_siblings().prev_page is not None
+
+    def has_next(self):
+        return self.get_siblings().next_page is not None
+
+    def get_siblings(self):
+        """The next and previous children of this page's parent.
 
         Uses parent's pagination query, if any, else parent's "children" config.
         """
-        return self._siblings[0]
-
-    def get_next_sibling(self):
-        """Next record, or None.
-
-        Uses parent's pagination query, if any, else parent's "children" config.
-        """
-        return self._siblings[1]
+        siblings = Siblings(self, *self._siblings)
+        ctx = get_ctx()
+        if ctx:
+            ctx.pad.db.track_record_dependency(siblings)
+        return siblings
 
     @cached_property
     def _siblings(self):
         parent = self.parent
         pagination_enabled = parent.datamodel.pagination_config.enabled
-        if pagination_enabled:
-            pagination = parent.pagination
-            siblings = list(pagination.config.get_pagination_query(parent))
-        else:
-            siblings = list(parent.children)
 
-        try:
-            me = siblings.index(self)
-        except ValueError:
-            # Not in list.
-            return None, None
-        else:
-            prev_item = siblings[me - 1] if me > 0 else None
-            next_item = siblings[me + 1] if me + 1 < len(siblings) else None
-            return prev_item, next_item
+        # Don't track dependencies for this part.
+        with Context(pad=self.pad):
+            if pagination_enabled:
+                pagination = parent.pagination
+                siblings = list(pagination.config.get_pagination_query(parent))
+            else:
+                siblings = list(parent.children)
+
+            prev_item, next_item = None, None
+            try:
+                me = siblings.index(self)
+            except ValueError:
+                # Self not in parents.children or not in parents.pagination.
+                pass
+            else:
+                if me > 0:
+                    prev_item = siblings[me - 1]
+
+                if me + 1 < len(siblings):
+                    next_item = siblings[me + 1]
+
+        return prev_item, next_item
 
 
 class Attachment(Record):
@@ -1191,7 +1250,9 @@ class Database(object):
         if ctx is not None:
             for filename in record.iter_source_filenames():
                 ctx.record_dependency(filename)
-            if record.datamodel.filename:
+            for virtual_source in record.iter_virtual_sources():
+                ctx.record_virtual_dependency(virtual_source)
+            if getattr(record, 'datamodel', None) and record.datamodel.filename:
                 ctx.record_dependency(record.datamodel.filename)
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:

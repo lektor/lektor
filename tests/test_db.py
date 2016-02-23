@@ -1,3 +1,4 @@
+import os
 from datetime import date
 
 
@@ -156,3 +157,71 @@ def test_distinct(pad):
     assert posts.distinct('foo') == set()
     # Post 2 has no summary; check we don't include Undefined in distinct().
     assert posts.distinct('summary') == set(['hello'])
+
+
+def test_root_pagination(scratch_project, scratch_env):
+    base = scratch_project.tree
+    with open(os.path.join(base, 'models', 'page.ini'), 'w') as f:
+        f.write(
+            '[model]\n'
+            'label = {{ this.title }}\n\n'
+            '[children]\n'
+            'model = page\n'
+            '[pagination]\n'
+            'enabled = yes\n'
+            'per_page = 1\n'
+            '[fields.title]\n'
+            'type = string\n'
+            '[fields.body]\n'
+            'type = markdown\n'
+        )
+
+    for name in 'a', 'b', 'c':
+        os.mkdir(os.path.join(base, 'content', name))
+        with open(os.path.join(base, 'content', name, 'contents.lr'), 'w') as f:
+            f.write(
+                '_model: page\n'
+                '---\n'
+                'title: Page %s\n'
+                '---\n'
+                'body: Hello World!\n' % name
+            )
+
+    from lektor.db import Database
+    scratch_pad = Database(scratch_env).new_pad()
+
+    root = scratch_pad.root
+    assert root.children.count() == 3
+
+    root_1 = scratch_pad.resolve_url_path('/')
+    assert root_1.page_num == 1
+
+    root_2 = scratch_pad.resolve_url_path('/page/2/')
+    assert root_2.page_num == 2
+
+
+def test_undefined_order(pad):
+    # A missing value should sort after all others.
+    blog_post = pad.db.datamodels['blog-post']
+
+    from lektor.db import Query
+
+    class TestQuery(Query):
+        def _iterate(self):
+            for day, pub_date in [
+                (3, '2016-01-03'),
+                (4, None),              # No pub_date.
+                (1, '2016-01-01'),
+                (2, '2016-01-02'),
+            ]:
+                yield pad.instance_from_data({
+                    '_id': str(day),
+                    '_path': 'test/%s' % day,
+                    'pub_date': pub_date},
+                    datamodel=blog_post)
+
+    ids = [c['_id'] for c in TestQuery('test', pad).order_by('pub_date')]
+    assert ['4', '1', '2', '3'] == ids
+
+    ids = [c['_id'] for c in TestQuery('test', pad).order_by('-pub_date')]
+    assert ['3', '2', '1', '4'] == ids

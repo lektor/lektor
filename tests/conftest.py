@@ -111,6 +111,22 @@ def scratch_builder(request, scratch_pad):
     return make_builder(request, scratch_pad)
 
 
+# Builder for child-sources-test-project, a project to test that child sources
+# are built even if they're filtered out by a pagination query.
+@pytest.fixture(scope='function')
+def child_sources_test_project_builder(request):
+    from lektor.db import Database
+    from lektor.environment import Environment
+    from lektor.project import Project
+
+    project = Project.from_path(os.path.join(os.path.dirname(__file__),
+                                             'child-sources-test-project'))
+    env = Environment(project)
+    pad = Database(env).new_pad()
+
+    return make_builder(request, pad)
+
+
 @pytest.fixture(scope='function')
 def F():
     from lektor.db import F
@@ -138,8 +154,6 @@ def reporter(request, env):
 @pytest.fixture(scope='function')
 def webui(request, env, pad):
     from lektor.admin.webui import WebUI
-    # from lektor.context import Context
-    # ctx = Context(pad=pad)
     output_path = tempfile.mkdtemp()
 
     def cleanup():

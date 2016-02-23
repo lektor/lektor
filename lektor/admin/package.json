@@ -27,7 +27,7 @@
     "react-router": "^1.0.3",
     "style-loader": "^0.8.3",
     "webpack": "^1.7.2",
-    "history": "1.17.0",
+    "history": "^1.17.0",
     "font-awesome": "^4.3.0"
   },
   "scripts": {},

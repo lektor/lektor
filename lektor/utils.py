@@ -666,3 +666,11 @@ def build_url(iterable, trailing_slash=None):
     for item in iterable:
         builder.append(item)
     return builder.get_url(trailing_slash=trailing_slash)
+
+
+def comma_delimited(s):
+    """Split a comma-delimited string."""
+    for part in s.split(','):
+        stripped = part.strip()
+        if stripped:
+            yield stripped

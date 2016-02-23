@@ -50,16 +50,17 @@ def load_i18n_block(key):
     return rv
 
 
-def get_i18n_block(inifile_or_dict, key):
+def get_i18n_block(inifile_or_dict, key, pop=False):
     """Extracts an i18n block from an ini file or dictionary for a given
-    key.
+    key. If "pop", delete keys from "inifile_or_dict".
     """
     rv = {}
-    for k, v in inifile_or_dict.iteritems():
+    for k in list(inifile_or_dict):
         if k == key:
             # English is the internal default language with preferred
             # treatment.
-            rv['en'] = v
+            rv['en'] = inifile_or_dict.pop(k) if pop else inifile_or_dict[k]
         elif k.startswith(key + '['):
-            rv[k[len(key) + 1:-1]] = v
+            rv[k[len(key) + 1:-1]] = (inifile_or_dict.pop(k) if pop
+                                      else inifile_or_dict[k])
     return rv

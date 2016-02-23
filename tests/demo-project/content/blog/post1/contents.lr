@@ -7,6 +7,8 @@ summary: hello
 body:
 
 Look at my [attachment](hello.txt).
+
+This is an image ![logo](logo.png).
 ---
 category: My Category
 ---
