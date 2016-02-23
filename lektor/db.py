@@ -721,14 +721,14 @@ class Image(Attachment):
             return rv
         return Undefined('The format of the image could not be determined.')
 
-    def thumbnail(self, width, height=None):
+    def thumbnail(self, width, height=None, crop=False):
         """Utility to create thumbnails."""
         width = int(width)
         if height is not None:
             height = int(height)
         return make_thumbnail(_require_ctx(self),
             self.attachment_filename, self.url_path,
-            width=width, height=height)
+            width=width, height=height, crop=crop)
 
 
 attachment_classes = {
