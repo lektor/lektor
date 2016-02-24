@@ -5,7 +5,7 @@ summary: Automatic deployments via FTP
 body:
 
 * `ftp://username:password@server:port/path?passive=yes|no`
-* `sftp://username:password@server:port/path?passive=yes|no`
+* `ftps://username:password@server:port/path?passive=yes|no`
 
 FTP is a very old but well supported protocol.  Lektor can publish through it
 but to speed up the operation it has to make certain concessions.  In
@@ -18,7 +18,7 @@ If you have alternatives to using FTP it's recommended to use those.  FTP is
 a very simple transport format, very slow, underspecified, largely insecure
 and not very portable.
 
-The system supports FTP (`ftp://`) and FTP over TLS (`sftp://`).  Passive mode
+The system supports FTP (`ftp://`) and FTP over TLS (`ftps://`).  Passive mode
 can be enabled/disabled with the optional `?passive` parameter.  It defaults
 to true.
 
@@ -26,7 +26,7 @@ to true.
 
 ```ini
 [servers.production]
-target = sftp://myuser:mypassword@ftp.example.com/var/www/example
+target = ftps://myuser:mypassword@ftp.example.com/var/www/example
 ```
 
 ## Credentials
