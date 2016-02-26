@@ -10,7 +10,8 @@
     var $LEKTOR_CONFIG = {
       admin_root: {{ g.admin_context.admin_root|tojson }},
       site_root: {{ g.admin_context.site_root|tojson }},
-      lang: {{ g.admin_context.info.ui_lang|tojson }}
+      lang: {{ g.admin_context.info.ui_lang|tojson }},
+      is_database: {{ g.admin_context.is_database|tojson }}
     };
   </script>
 {% endblock %}

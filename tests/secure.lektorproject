@@ -1,0 +1,4 @@
+[project]
+name = secure-project
+database_uri = sqlite:///lektor.db
+secret_key = 15332a286b29c4c79cecb1600964b980c562eec34b0c1496

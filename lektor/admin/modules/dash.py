@@ -17,6 +17,9 @@ endpoints = [
     ('/<path>/preview', 'preview'),
     ('/<path>/add-child', 'add_child'),
     ('/<path>/upload', 'add_attachment'),
+    ('/users', 'users'),
+    ('/users/add-user', 'add_user'),
+    ('/users/set-password-link', 'set_password_link'),
 ]
 
 
