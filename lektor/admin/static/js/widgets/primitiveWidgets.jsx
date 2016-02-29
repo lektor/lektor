@@ -5,29 +5,15 @@ var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
 var utils = require('../utils');
 var userLabel = require('../userLabel');
 var i18n = require('../i18n');
-
-var Moment = require('moment');
+var moment = require('moment');
 var momentLocalizer = require('react-widgets/lib/localizers/moment');
-momentLocalizer(Moment);
-
 var DateTimePicker = require('react-widgets/lib/DateTimePicker');
 
 
+momentLocalizer(moment);
+
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
-}
-
-function isValidDate(year, month, day) {
-  var year = parseInt(year, 10);
-  var month = parseInt(month, 10);
-  var day = parseInt(day, 10);
-  var date = new Date(year, month - 1, day);
-  if (date.getFullYear() == year &&
-      date.getMonth() == month - 1 &&
-      date.getDate() == day) {
-    return true;
-  }
-  return false;
 }
 
 function getValidDate(year, month, day) {
@@ -174,11 +160,19 @@ var FloatInputWidget = React.createClass({
 var DateInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
-  onChange: function(date, dateStr) {
+  parseDate: function(inputDateStr) {
+    var inputDate = moment(inputDateStr, moment.ISO_8601, true);
+    if(inputDate.isValid()) {
+      return new Date(inputDate.toISOString());
+    }
+  },
+
+  onChange: function(inputDate) {
     if(this.props.onChange) {
-      if(date) {
-        var transformedDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
-        this.props.onChange(transformedDate);
+      if(inputDate) {
+        this.props.onChange(inputDate.getFullYear() + "-" +
+                            ("0" + (inputDate.getMonth() + 1)).slice(-2) + "-" +
+                            ("0" + inputDate.getDate()).slice(-2));
       } else {
         this.props.onChange("");
       }
@@ -187,10 +181,11 @@ var DateInputWidget = React.createClass({
 
   render: function() {
     var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
-    var date;
+    var inputDate;
     if(value) {
-      var [year, month, day, ...rest] = value.split("-");
-      date = getValidDate(year, month, day);
+      //var [year, month, day, ...rest] = value.split("-");
+      //inputDate = getValidDate(year, month, day);
+      inputDate = this.parseDate(value);
     }
 
     return (
@@ -198,9 +193,45 @@ var DateInputWidget = React.createClass({
                 <DateTimePicker
                   className={this.getInputClass()}
                   format={"MMM DD YYYY"}
+                  editFormat={"YYYY-MM-DD"}
+                  parse={this.parseDate}
                   time={false}
                   onChange={onChange ? this.onChange : undefined}
-                  value={date ? date : null}
+                  value={inputDate ? inputDate : null}
+                  {...otherProps} />
+            </div>
+    )
+  }
+});
+
+var DateTimeInputWidget = React.createClass({
+  mixins: [BasicWidgetMixin],
+
+  onChange: function(inputDateTime, inputDateTimeStr) {
+    if(this.props.onChange) {
+      if(inputDateTime) {
+        this.props.onChange(inputDateTime.toISOString());
+      } else {
+        this.props.onChange("");
+      }
+    }
+  },
+
+  render: function() {
+    var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
+    var inputDateTime;
+    if(value) {
+      inputDateTime = new Date(value);
+    }
+
+    return (
+            <div className={className}>
+                <DateTimePicker
+                  className={this.getInputClass()}
+                  format={"MMM DD YYYY HH:mm"}
+                  editFormat={"YYYY-MM-DD HH:mm"}
+                  onChange={onChange ? this.onChange : undefined}
+                  value={inputDateTime ? inputDateTime : null}
                   {...otherProps} />
             </div>
     )
@@ -359,6 +390,7 @@ module.exports = {
   IntegerInputWidget: IntegerInputWidget,
   FloatInputWidget: FloatInputWidget,
   DateInputWidget: DateInputWidget,
+  DateTimeInputWidget: DateTimeInputWidget,
   UrlInputWidget: UrlInputWidget,
   MultiLineTextInputWidget: MultiLineTextInputWidget,
   BooleanInputWidget: BooleanInputWidget,

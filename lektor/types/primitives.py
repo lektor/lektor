@@ -141,4 +141,4 @@ class DateTimeType(SingleInputType):
 
             return result
         except Exception:
-            return raw.bad_value('Bad date format')
+            return raw.bad_value('Bad datetime format')

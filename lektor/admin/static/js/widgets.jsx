@@ -16,6 +16,7 @@ var widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
   'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
   'datepicker': primitiveWidgets.DateInputWidget,
+  'datetimepicker': primitiveWidgets.DateTimeInputWidget,
   'integer': primitiveWidgets.IntegerInputWidget,
   'float': primitiveWidgets.FloatInputWidget,
   'checkbox': primitiveWidgets.BooleanInputWidget,
