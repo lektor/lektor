@@ -180,6 +180,7 @@ def project_quickstart(defaults=None):
             'move a project around later if you do not like the path.  If '
             'you provide a relative path it will be relative to the working '
             'directory.')
+        path = os.path.expanduser(path)
 
     with_blog = g.prompt('Add Basic Blog', True,
         'Do you want to generate a basic blog module?  If you enable this '
