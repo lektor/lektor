@@ -9,7 +9,7 @@ var moment = require('moment');
 var momentLocalizer = require('react-widgets/lib/localizers/moment');
 var DateTimePicker = require('react-widgets/lib/DateTimePicker');
 
-
+moment.locale(i18n.currentLanguage);
 momentLocalizer(moment);
 
 function isTrue(value) {
