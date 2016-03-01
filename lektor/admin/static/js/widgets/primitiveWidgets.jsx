@@ -16,7 +16,7 @@ function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
 }
 
-function getValidDate(year, month, day) {
+function isValidDate(year, month, day) {
   var year = parseInt(year, 10);
   var month = parseInt(month, 10);
   var day = parseInt(day, 10);
@@ -24,9 +24,9 @@ function getValidDate(year, month, day) {
   if (date.getFullYear() == year &&
       date.getMonth() == month - 1 &&
       date.getDate() == day) {
-    return date;
+    return true;
   }
-  return undefined;
+  return false;
 }
 
 
@@ -181,14 +181,15 @@ var DateInputWidget = React.createClass({
 
   render: function() {
     var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
+
+    var className = (className || '')
     var inputDate;
     if(value) {
-      //var [year, month, day, ...rest] = value.split("-");
-      //inputDate = getValidDate(year, month, day);
       inputDate = this.parseDate(value);
     }
 
     return (
+          <div className="form-group">
             <div className={className}>
                 <DateTimePicker
                   className={this.getInputClass()}
@@ -200,6 +201,7 @@ var DateInputWidget = React.createClass({
                   value={inputDate ? inputDate : null}
                   {...otherProps} />
             </div>
+          </div>
     )
   }
 });
