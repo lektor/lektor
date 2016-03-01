@@ -196,13 +196,6 @@ class EXIFInfo(object):
             return (lat, long)
 
 
-def get_suffix(width, height):
-    suffix = str(width)
-    if height is not None:
-        suffix += 'x%s' % height
-    return suffix
-
-
 def get_image_info(fp):
     """Reads some image info from a file descriptor."""
     head = fp.read(32)
@@ -247,111 +240,23 @@ def read_exif(fp):
     return EXIFInfo(exif)
 
 
-def find_imagemagick(im=None):
-    """Finds imagemagick and returns the path to it."""
-    # If it's provided explicitly and it's valid, we go with that one.
-    if im is not None and os.path.isfile(im):
-        return im
-
-    # If we have a shipped imagemagick, then we used this one.
-    if BUNDLE_BIN_PATH is not None:
-        executable = os.path.join(BUNDLE_BIN_PATH, 'convert')
-        if os.name == 'nt':
-            executable += '.exe'
-        if os.path.isfile(executable):
-            return executable
-
-    # If we're not on windows, we locate the executable like we would
-    # do normally.
-    if os.name != 'nt':
-        rv = locate_executable('convert')
-        if rv is not None:
-            return rv
-
-    # On windows, we only scan the program files for an image magick
-    # installation, because this is where this usually goes.  We do
-    # this because the convert executable is otherwise the system
-    # one which can convert file systems and stuff like this.
-    else:
-        for key in 'ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)':
-            value = os.environ.get(key)
-            if not value:
-                continue
-            try:
-                for filename in os.listdir(value):
-                    if filename.lower().startswith('imagemagick-'):
-                        exe = os.path.join(value, filename, 'convert.exe')
-                        if os.path.isfile(exe):
-                            return exe
-            except OSError:
-                continue
-
-    # Give up.
-    raise RuntimeError('Could not locate imagemagick.')
-
-
-def get_thumbnail_ext(source_filename):
-    ext = source_filename.rsplit('.', 1)[-1].lower()
-    # if the extension is already of a format that a browser understands
-    # we will roll with it.
-    if ext.lower() in ('png', 'jpg', 'jpeg', 'gif'):
-        return None
-    # Otherwise we roll with JPEG as default.
-    return '.jpeg'
-
-
-def get_quality(source_filename):
-    ext = source_filename.rsplit('.', 1)[-1].lower()
-    if ext.lower() == 'png':
-        return 75
-    return 85
-
-
-def computed_height(source_image, width, actual_width, actual_height):
-    return int(float(actual_height) * (float(width) / float(actual_width)))
-
-
-def process_image(ctx, source_image, dst_filename, width, height=None):
-    """Build image from source image, optionally compressing and resizing.
-
-    "source_image" is the absolute path of the source in the content directory,
-    "dst_filename" is the absolute path of the target in the output directory.
-    """
-    im = find_imagemagick(
-        ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
-
-    quality = get_quality(source_image)
-
-    resize_key = str(width)
-    if height is not None:
-        resize_key += 'x' + str(height)
-
-    cmdline = [im, source_image, '-resize', resize_key, '-auto-orient',
-               '-quality', str(quality), dst_filename]
-
-    reporter.report_debug_info('imagemagick cmd line', cmdline)
-    portable_popen(cmdline).wait()
-
-
-def make_thumbnail(ctx, source_image, source_url_path, width, height=None):
+def make_thumbnail(ctx, source_image, source_url_path, size, **options):
     """Helper method that can create thumbnails from within the build process
-    of an artifact.
+    of an artifact. `size` is either a one-tuple (width,) or (width, height).
     """
-    suffix = get_suffix(width, height)
-    dst_url_path = get_dependent_url(source_url_path, suffix,
-                                     ext=get_thumbnail_ext(source_image))
+    options['size'] = size
+    options['imagemagick'] = ctx.build_state.config['IMAGEMAGICK_EXECUTABLE']
+    thumbnailer = Thumbnailer(source_image, options)
 
-    if height is None:
-        with open(source_image, 'rb') as f:
-            _, w, h = get_image_info(f)
-        height = computed_height(source_image, width, w, h)
+    dst_url_path = get_dependent_url(source_url_path, thumbnailer.get_suffix(),
+                                     ext=thumbnailer.get_thumbnail_ext())
 
     @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
-        process_image(ctx, source_image, artifact.dst_filename, width, height)
+        thumbnailer.generate(artifact.dst_filename)
 
-    return Thumbnail(dst_url_path, width, height)
+    return Thumbnail(dst_url_path, *options['size'])
 
 
 class Thumbnail(object):
@@ -367,3 +272,129 @@ class Thumbnail(object):
 
     def __unicode__(self):
         return posixpath.basename(self.url_path)
+
+
+class ThumbnailError(Exception):
+    pass
+
+
+class Thumbnailer(object):
+    """Creates thumbnails from images with more control of generation options"""
+
+    def __init__(self, source_image, options):
+        self.source_image = source_image
+        im = self.find_imagemagick(options.pop('imagemagick', None))
+        self.options = options
+        self.cmdline = self.generate_cmdline(im, options)
+
+    def generate_cmdline(self, im, options):
+        cmdline = [im, self.source_image,
+                   # parse EXIF data to show image in correct orientation
+                   # (portrait or landscape)
+                   '-auto-orient',
+                   '-quality', str(self.get_quality())]
+        for k, v in options.items():
+            if hasattr(self, 'parse_%s' % k):
+                result = getattr(self, 'parse_%s' % k)(v)
+                if result:
+                    cmdline += result
+            else:
+                raise ThumbnailError('Unknown thumbnail option: %s' % k)
+
+        if '-resize' not in cmdline:
+            # if no other parameter tried to resize, do it now
+            cmdline += ['-resize', self.size_str]
+        return cmdline
+
+    def find_imagemagick(self, im):
+        """Finds imagemagick and returns the path to it."""
+        # If it's provided explicitly and it's valid, we go with that one.
+        if im is not None and os.path.isfile(im):
+            return im
+
+        # If we have a shipped imagemagick, then we used this one.
+        if BUNDLE_BIN_PATH is not None:
+            executable = os.path.join(BUNDLE_BIN_PATH, 'convert')
+            if os.name == 'nt':
+                executable += '.exe'
+            if os.path.isfile(executable):
+                return executable
+
+        # If we're not on windows, we locate the executable like we would
+        # do normally.
+        if os.name != 'nt':
+            rv = locate_executable('convert')
+            if rv is not None:
+                return rv
+
+        # On windows, we only scan the program files for an image magick
+        # installation, because this is where this usually goes.  We do
+        # this because the convert executable is otherwise the system
+        # one which can convert file systems and stuff like this.
+        else:
+            for key in 'ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)':
+                value = os.environ.get(key)
+                if not value:
+                    continue
+                try:
+                    for filename in os.listdir(value):
+                        if filename.lower().startswith('imagemagick-'):
+                            exe = os.path.join(value, filename, 'convert.exe')
+                            if os.path.isfile(exe):
+                                return exe
+                except OSError:
+                    continue
+
+        # Give up.
+        raise RuntimeError('Could not locate imagemagick.')
+
+    def get_suffix(self):
+        parts = [self.size_str]
+        for key, value in sorted(self.options.iteritems()):
+            if not value or key == 'size':
+                continue
+            if value is True:
+                parts.append(key)
+                continue
+            if not isinstance(value, basestring):
+                try:
+                    value = ','.join([unicode(item) for item in value])
+                except TypeError:
+                    value = unicode(value)
+            parts.append(u'%s-%s' % (key, value))
+        return u'_'.join(parts)
+
+    def get_thumbnail_ext(self):
+        ext = self.source_image.rsplit('.', 1)[-1].lower()
+        # if the extension is already of a format that a browser understands
+        # we will roll with it.
+        if ext.lower() in ('png', 'jpg', 'jpeg', 'gif'):
+            return None
+        # Otherwise we roll with JPEG as default.
+        return '.jpeg'
+
+    def get_quality(self):
+        ext = self.source_image.rsplit('.', 1)[-1].lower()
+        if ext.lower() == 'png':
+            return 75
+        return 85
+
+    @property
+    def size_str(self):
+        return 'x'.join(map(str, self.options['size']))
+
+    def parse_size(self, __):
+        # size does not need to be parsed explicitly
+        pass
+
+    def parse_crop(self, crop):
+        if crop and len(self.options['size']) > 1:
+            # we can crop only if there's a height
+            return ['-resize', self.size_str + '^',
+                    '-gravity', 'Center',
+                    '-extent', self.size_str]
+
+    def generate(self, dst_filename):
+        self.cmdline.append(dst_filename)
+        reporter.report_debug_info('imagemagick cmd line', self.cmdline)
+        portable_popen(self.cmdline).wait()
