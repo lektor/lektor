@@ -15,11 +15,11 @@ URL of a page is its own slug concatenated with the slug of each its parents.
 
 The default slug is the ID of the page. So the page 
 `content/foo/bar/contents.lr` has the default slug `bar`, its parent has the
-default slug `foo`, and its default URL would be `/foo/bar/'. 
+default slug `foo`, and its default URL would be `/foo/bar/`. 
 
 ## Slug Customization
 
-Slugs can be customized. The can even contain slashed (see below). There are
+Slugs can be customized. They can even contain slashes (see below). There are
 three systems that control what the slug looks like:
 
 ### Folder Name
