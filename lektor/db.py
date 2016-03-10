@@ -28,6 +28,37 @@ from lektor.filecontents import FileContents
 from lektor.utils import make_relative_url, split_virtual_path
 
 
+def get_alts(source=None, fallback=False):
+    """Given a source this returns the list of all alts that the source
+    exists as.  It does not include fallbacks unless `fallback` is passed.
+    If no source is provided all configured alts are returned.  If alts are
+    not configured at all, the return value is an empty list.
+    """
+    if source is None:
+        ctx = get_ctx()
+        if ctx is None:
+            raise RuntimeError('This function requires the context to be supplied.')
+        pad = ctx.pad
+    else:
+        pad = source.pad
+    alts = list(pad.config.iter_alternatives())
+    if alts == [PRIMARY_ALT]:
+        return []
+
+    rv = alts
+
+    # If a source is provided and it's not virtual, we look up all alts
+    # of the path on the pad to figure out which records exist.
+    if source is not None and '@' not in source.path:
+        rv = []
+        for alt in alts:
+            if pad.alt_exists(source.path, alt=alt,
+                              fallback=fallback):
+                rv.append(alt)
+
+    return rv
+
+
 def _process_slug(slug, last_segment=False):
     if last_segment:
         return slug
@@ -1502,6 +1533,26 @@ class Pad(object):
             self.cache.remember(rv)
 
         return self.db.track_record_dependency(rv)
+
+    def alt_exists(self, path, alt=PRIMARY_ALT, fallback=False):
+        """Checks if an alt exists."""
+        path = cleanup_path(path)
+        if '@' in path:
+            return False
+
+        # If we find the path in the cache, check if it was loaded from
+        # the right source alt.
+        rv = self.get(path, alt)
+        if rv is not None:
+            if rv['_source_alt'] == alt:
+                return True
+            elif (fallback or
+                  (rv['_source_alt'] == PRIMARY_ALT and
+                   alt == self.config.primary_alternative)):
+                return True
+            return False
+
+        return False
 
     def get_asset(self, path):
         """Loads an asset by path."""
