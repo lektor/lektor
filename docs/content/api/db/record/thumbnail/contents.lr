@@ -4,7 +4,7 @@ summary: Creates a thumbnail for an image.
 ---
 type: method
 ---
-signature: width, height=None
+signature: width, height=None, crop=False
 ---
 body:
 
@@ -12,12 +12,20 @@ This method is available on attachments that are images and can be used to
 automatically generate a thumbnail.  The return value is a thumbnail proxy
 that can be either use directly or with the `|url` filter.
 
+If cropping is not enabled the thumbnail is scaled down to fit into the
+given reactangle of width and height.  If height is not specified it will
+match the width and the height is set accordingly.  If cropping is enabled
+it's cropped around the edges to fit into the center.
+
 It provides the following attributes:
 
 * `width`: the thumbnail width in pixels.
 * `height`: the thumbnail height in pixels.
 * `url_path` the URL path of the thumbnail.  This is absolute and needs to
   be made relative with the `|url` filter.
+
+!!! Starting with Lektor 2.0 you can also pass `crop=True` to crop the image
+to the exact dimensions provided instead of scaling it uncropped.
 
 ## Example
 
