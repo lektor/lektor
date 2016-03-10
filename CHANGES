@@ -47,6 +47,7 @@ Next feature release
   can use it directly.
 - added support for included_assets and excluded_assets in the project file.
 - added Spanish translations.
+- added Japanese translations.
 
 1.2.1
 -----
