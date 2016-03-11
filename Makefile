@@ -19,7 +19,7 @@ pex:
 
 test:
 	@echo "---> running tests"
-	@cd tests; py.test . --tb=short -v
+	@python setup.py test
 
 osx-dmg:
 	$(MAKE) -C gui osx-dmg

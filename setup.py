@@ -25,6 +25,10 @@ setup(
         'setuptools',
         'pip',
         'requests[security]',
+        'pytest-runner',
+    ],
+    tests_require=[
+        'pytest',
     ],
     classifiers=[
         'Environment :: Web Environment',
