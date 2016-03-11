@@ -68,11 +68,13 @@ class Generator(object):
 
     @contextmanager
     def make_target_directory(self, path):
+        here = os.path.abspath(os.getcwd())
         path = os.path.abspath(path)
-        try:
-            os.makedirs(path)
-        except OSError as e:
-            self.abort('Could not create target folder: %s' % e)
+        if here != path:
+            try:
+                os.makedirs(path)
+            except OSError as e:
+                self.abort('Could not create target folder: %s' % e)
 
         if os.path.isdir(path):
             try:
