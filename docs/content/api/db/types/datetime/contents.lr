@@ -4,6 +4,8 @@ type: type
 ---
 summary: A type that can store a date and time.
 ---
+version_added: 2.0
+---
 body:
 
 The `datetime` type can store a date and time.
