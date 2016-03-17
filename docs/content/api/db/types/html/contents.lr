@@ -17,7 +17,7 @@ It renders as a multi-line input field in the admin interface.
 [fields.tracking_code]
 label = Tracking Code
 description = raw HTML that is inserted for ad tracking purposes.
-type = text
+type = html
 ```
 
 ## Template Usage
