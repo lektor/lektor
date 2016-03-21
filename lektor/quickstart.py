@@ -68,11 +68,13 @@ class Generator(object):
 
     @contextmanager
     def make_target_directory(self, path):
+        here = os.path.abspath(os.getcwd())
         path = os.path.abspath(path)
-        try:
-            os.makedirs(path)
-        except OSError as e:
-            self.abort('Could not create target folder: %s' % e)
+        if here != path:
+            try:
+                os.makedirs(path)
+            except OSError as e:
+                self.abort('Could not create target folder: %s' % e)
 
         if os.path.isdir(path):
             try:
@@ -164,6 +166,10 @@ def project_quickstart(defaults=None):
             'confused if multiple projects exist.  You can change this at '
             'any later point.')
 
+    author_name = g.prompt('Author Name', get_default_author(),
+        'Your name.  This is used in a few places in the default template '
+        'to refer to in the default copyright messages.')
+
     path = defaults.get('path')
     if path is None:
         here = os.path.abspath(os.getcwd())
@@ -185,10 +191,6 @@ def project_quickstart(defaults=None):
     with_blog = g.prompt('Add Basic Blog', True,
         'Do you want to generate a basic blog module?  If you enable this '
         'the models for a very basic blog will be generated.')
-
-    author_name = g.prompt('Author Name', get_default_author(),
-        'Your name.  This is used in a few places in the default template '
-        'to refer to in the default copyright messages.')
 
     g.confirm('That\'s all. Create project?')
 

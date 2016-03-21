@@ -33,7 +33,7 @@ def edit_redirect():
         record = g.admin_context.pad.resolve_url_path(path, alt_fallback=False)
     if record is None:
         abort(404)
-    path = fs_path_to_url_path(record.path)
+    path = fs_path_to_url_path(record.path.split('@')[0])
     if record.alt != PRIMARY_ALT:
         path += '+' + record.alt
     return redirect(url_for('dash.edit', path=path))

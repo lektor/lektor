@@ -47,6 +47,9 @@ Next feature release
   can use it directly.
 - added support for included_assets and excluded_assets in the project file.
 - added Spanish translations.
+- added Japanese translations.
+- added support for discovering existing alts of sources.
+- added support for image cropping.
 
 1.2.1
 -----
