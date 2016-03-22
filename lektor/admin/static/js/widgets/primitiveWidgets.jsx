@@ -5,7 +5,7 @@ var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
 var utils = require('../utils');
 var userLabel = require('../userLabel');
 var i18n = require('../i18n');
-var moment = require('moment');
+var moment = require('moment-timezone');
 var momentLocalizer = require('react-widgets/lib/localizers/moment');
 var DateTimePicker = require('react-widgets/lib/DateTimePicker');
 
