@@ -110,7 +110,7 @@ class Command(object):
         environ = dict(os.environ)
         if env:
             environ.update(env)
-        kwargs = {'cwd': cwd, 'env': env}
+        kwargs = {'cwd': cwd, 'env': environ}
         if silent:
             kwargs['stdout'] = devnull
             kwargs['stderr'] = devnull
