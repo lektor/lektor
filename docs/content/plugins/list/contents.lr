@@ -40,6 +40,7 @@ so they might not keep pace with development on Lektor.
 * [atom :ext](https://github.com/ajdavis/lektor-atom): Generate Atom feeds for your content.
 * [surge :ext](https://github.com/ajdavis/lektor-surge): Publish your site to [Surge](https://surge.sh/).
 * [netlify :ext](https://github.com/ajdavis/lektor-netlify): Publish your site to [Netlify](https://www.netlify.com/).
+* [tags :ext](https://github.com/ajdavis/lektor-tags): For each tag on site, build a list of pages with that tag.
 
 ! Have your own plugin and you want to see it here?  Just [edit this page
 on GitHub :ref](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr),
