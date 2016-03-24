@@ -872,7 +872,14 @@ class Query(object):
             return self._order_by
         base_record = self.pad.get(self.path)
         if base_record is not None:
-            return base_record.datamodel.child_config.order_by
+            if self._include_attachments and not self._include_pages:
+                return base_record.datamodel.attachment_config.order_by
+            elif self._include_pages and not self._include_attachments:
+                return base_record.datamodel.child_config.order_by
+            # Otherwise the query includes either both or neither
+            # attachments and/nor children.  I have no idea which
+            # value of order_by to use.  We could punt and return
+            # child_config.order_by, but for now, just return None.
 
     def include_hidden(self, value):
         """Controls if hidden records should be included which will not
