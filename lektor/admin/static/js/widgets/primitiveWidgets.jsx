@@ -109,7 +109,7 @@ var IntegerInputWidget = React.createClass({
   },
 
   getValidationFailureImpl: function(value) {
-    if (value && !value.match(/^\d+$/)) {
+    if (value && !value.match(/^[+,-]?\d+$/)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
       });
@@ -134,7 +134,7 @@ var FloatInputWidget = React.createClass({
   },
 
   getValidationFailureImpl: function(value) {
-    if (value && isNaN(parseFloat(value))) {
+    if (value && !value.match(/^[+,-]?\d+[.]\d+$/)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
       });
