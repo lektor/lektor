@@ -26,9 +26,9 @@ var BasicWidgetMixin = {
     return rv;
   },
 
-  getValidationFailure: function() {
+  getValidationFailure: function(value) {
     if (this.getValidationFailureImpl) {
-      return this.getValidationFailureImpl();
+      return this.getValidationFailureImpl(value);
     }
     return null;
   }

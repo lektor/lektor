@@ -32,13 +32,13 @@ var InputWidgetMixin = {
     if (this.postprocessValue) {
       value = this.postprocessValue(value);
     }
-    this.props.onChange(value);
+    this.props.onChange(value, this.getValidationFailure(value));
   },
 
   render: function() {
     var {type, onChange, className, ...otherProps} = this.props;
     var help = null;
-    var failure = this.getValidationFailure();
+    var failure = this.getValidationFailure(this.props.value);
     var className = (className || '');
     className += ' input-group';
 
@@ -108,8 +108,8 @@ var IntegerInputWidget = React.createClass({
     return value.match(/^\s*(.*?)\s*$/)[1];
   },
 
-  getValidationFailureImpl: function() {
-    if (this.props.value && !this.props.value.match(/^\d+$/)) {
+  getValidationFailureImpl: function(value) {
+    if (value && !value.match(/^\d+$/)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
       });
@@ -133,8 +133,8 @@ var FloatInputWidget = React.createClass({
     return value.match(/^\s*(.*?)\s*$/)[1];
   },
 
-  getValidationFailureImpl: function() {
-    if (this.props.value && isNaN(parseFloat(this.props.value))) {
+  getValidationFailureImpl: function(value) {
+    if (value && isNaN(parseFloat(value))) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
       });
@@ -171,8 +171,8 @@ var DateInputWidget = React.createClass({
     return value;
   },
 
-  getValidationFailureImpl: function() {
-    if (!this.props.value) {
+  getValidationFailureImpl: function(value) {
+    if (!value) {
       return null;
     }
 
@@ -198,8 +198,8 @@ var DateInputWidget = React.createClass({
 var UrlInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  getValidationFailureImpl: function() {
-    if (this.props.value && !utils.isValidUrl(this.props.value)) {
+  getValidationFailureImpl: function(value) {
+    if (value && !utils.isValidUrl(value)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_URL')
       });
