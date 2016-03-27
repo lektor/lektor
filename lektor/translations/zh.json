@@ -63,6 +63,7 @@
   "REMOVE_FLOWBLOCK_PROMPT": "你真的要刪掉這個區塊？",
   "ADD_FLOWBLOCK": "新增區塊",
   "INVALID_INPUT": "無效的輸入",
+  "ERROR_INVALID_FIELDS": "Some fields have invalid values! Please correct them before saving.",
   "UP": "上",
   "DOWN": "下",
   "REMOVE": "移除",

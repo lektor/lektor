@@ -211,9 +211,9 @@ var FlowWidget = React.createClass({
       placeholder = Widget.deserializeValue(placeholder, field.type);
     }
 
-    var onChange = !this.props.onChange ? null : (value) => {
+    var onChange = !this.props.onChange ? null : (value, validationFailure) => {
       blockInfo.data[field.name] = value;
-      this.props.onChange(this.props.value);
+      this.props.onChange(this.props.value, validationFailure);
     };
 
     return (

@@ -237,13 +237,16 @@ class EditPage extends RecordEditComponent {
       ? i18n.trans(this.state.recordInfo.label_i18n)
       : this.state.recordInfo.label;
 
+    var hasInvalidFields = this.state.invalidFields.length > 0;
+
     return (
       <div className="edit-area">
         <h2>{title.replace('%s', label)}</h2>
         {this.renderFormFields()}
         <div className="actions">
           <button type="submit" className="btn btn-primary"
-            disabled={this.state.invalidFields.length > 0}
+            disabled={hasInvalidFields}
+            title={hasInvalidFields? i18n.trans('ERROR_INVALID_FIELDS') : ""}
             onClick={this.saveChanges.bind(this)}>{i18n.trans('SAVE_CHANGES')}</button>
           {deleteButton}
         </div>

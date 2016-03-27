@@ -27,6 +27,7 @@
   "ERROR_INVALID_DATE": "Ungültiges Datum",
   "ERROR_INVALID_NUMBER": "Ungültige Zahl",
   "ERROR_INVALID_URL": "Ungültige URL",
+  "ERROR_INVALID_FIELDS": "Ein paar Felder haben ungültige Werte! Bitte korrigiere diese bevor du speicherst.",
   "ERROR": "Fehler",
   "ERROR_OCURRED": "Ein Fehler ist aufgetreten",
   "ERROR_REQUEST_FAILED": "Ein Befehl konnte nicht an den Server gesendet werden. Eventuell reagiert der Server nicht oder wurde gestoppt.",
