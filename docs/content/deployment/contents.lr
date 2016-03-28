@@ -112,7 +112,7 @@ you can do that easily as well.  For instance if you want to deploy to S3
 with [s3cmd](http://s3tools.org/s3cmd-sync) you could do this:
 
 ```
-$ lektor build && s3cmd sync "$(lektor project-info --output-path)" "s3://my-bucket/some/path"
+$ lektor build && s3cmd sync "$(lektor project-info --output-path)"/* "s3://my-bucket/some/path"
 ```
 
 Assisted deployments are also supported directly from the admin UI.  There is a
