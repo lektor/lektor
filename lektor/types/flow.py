@@ -1,12 +1,13 @@
 import re
 
-from jinja2 import is_undefined, TemplateNotFound
+from jinja2 import TemplateNotFound, is_undefined
 from markupsafe import Markup
 
-from lektor.types import Type
-from lektor.metaformat import tokenize
+from lektor._compat import iteritems
 from lektor.context import get_ctx
 from lektor.environment import PRIMARY_ALT
+from lektor.metaformat import tokenize
+from lektor.types import Type
 
 
 _block_re = re.compile(r'^####\s*([^#]*?)\s*####\s*$')
@@ -24,7 +25,7 @@ def discover_relevant_flowblock_models(flow, pad, record, alt):
     all_blocks = pad.db.flowblocks
     if flow_blocks is None:
         return dict((k, v.to_json(pad, record, alt))
-                    for k, v in all_blocks.iteritems())
+                    for k, v in iteritems(all_blocks))
 
     wanted_blocks = set()
     to_process = flow_blocks[:]
@@ -128,8 +129,9 @@ class Flow(object):
     def __html__(self):
         return Markup(u'\n\n'.join(x.__html__() for x in self.blocks))
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.blocks)
+    __nonzero__ = __bool__
 
     def __repr__(self):
         return '<%s %r>' % (
@@ -228,7 +230,7 @@ class FlowType(Type):
 
         block_order = self.flow_blocks
         if block_order is None:
-            block_order = [k for k, v in sorted(pad.db.flowblocks.items(),
+            block_order = [k for k, v in sorted(iteritems(pad.db.flowblocks),
                                                 key=lambda x: x[1].order)]
         rv['flowblock_order'] = block_order
 

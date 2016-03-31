@@ -4,6 +4,7 @@ import posixpath
 import click
 from flask import Blueprint, jsonify, request, g, current_app
 
+from lektor._compat import iteritems, itervalues
 from lektor.utils import is_valid_id
 from lektor.admin.utils import eventstream
 from lektor.publisher import publish, PublishError
@@ -59,7 +60,7 @@ def get_record_info():
 
     primary_alt = db.config.primary_alternative
     if primary_alt is not None:
-        for alt in tree_item.alts.itervalues():
+        for alt in itervalues(tree_item.alts):
             alt_cfg = db.config.get_alternative(alt.id)
             alts.append({
                 'alt': alt.id,
@@ -182,7 +183,7 @@ def get_new_record_info():
         'can_have_children': can_have_children,
         'implied_model': implied,
         'available_models': dict(
-            (k, describe_model(v)) for k, v in pad.db.datamodels.iteritems()
+            (k, describe_model(v)) for k, v in iteritems(pad.db.datamodels)
             if not v.hidden or k == implied)
     })
 

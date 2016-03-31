@@ -1,27 +1,25 @@
+import copy
 import fnmatch
 import os
 import re
 import uuid
-import copy
 from functools import update_wrapper
 
 import jinja2
-from jinja2.loaders import split_template_path
-
 from babel import dates
-
 from inifile import IniFile
-
-from werkzeug.utils import cached_property
-from werkzeug.urls import url_parse
-
-from lektor.utils import tojson_filter, secure_url, format_lat_long, \
-     bool_from_string
-from lektor.i18n import get_i18n_block
-from lektor.context import url_to, get_asset_url, site_proxy, \
-     config_proxy, get_ctx, get_locale
-from lektor.pluginsystem import PluginController
+from jinja2.loaders import split_template_path
 from lektor.markdown import Markdown
+from werkzeug.urls import url_parse
+from werkzeug.utils import cached_property
+
+from lektor._compat import iteritems, string_types
+from lektor.context import (config_proxy, get_asset_url, get_ctx, get_locale,
+    site_proxy, url_to)
+from lektor.i18n import get_i18n_block
+from lektor.pluginsystem import PluginController
+from lektor.utils import (bool_from_string, format_lat_long, secure_url,
+    tojson_filter)
 
 
 # Special value that identifies a target to the primary alt
@@ -114,7 +112,7 @@ def update_config_from_ini(config, inifile):
                 'locale': inifile.get('alternatives.%s.locale' % alt, 'en_US'),
             }
 
-    for alt, alt_data in config['ALTERNATIVES'].iteritems():
+    for alt, alt_data in iteritems(config['ALTERNATIVES']):
         if alt_data['primary']:
             config['PRIMARY_ALTERNATIVE'] = alt
             break
@@ -325,7 +323,7 @@ class Config(object):
     def get_alternative_url_prefixes(self):
         """Returns a list of alternative url prefixes by length."""
         items = [(v['url_prefix'].lstrip('/'), k)
-                 for k, v in self.values['ALTERNATIVES'].iteritems()
+                 for k, v in iteritems(self.values['ALTERNATIVES'])
                  if v['url_prefix']]
         items.sort(key=lambda x: -len(x[0]))
         return items
@@ -333,7 +331,7 @@ class Config(object):
     def get_alternative_url_suffixes(self):
         """Returns a list of alternative url suffixes by length."""
         items = [(v['url_suffix'].rstrip('/'), k)
-                 for k, v in self.values['ALTERNATIVES'].iteritems()
+                 for k, v in iteritems(self.values['ALTERNATIVES'])
                  if v['url_suffix']]
         items.sort(key=lambda x: -len(x[0]))
         return items
@@ -525,7 +523,7 @@ class Environment(object):
         if alt is None:
             if this is not None:
                 alt = getattr(this, 'alt', None)
-                if not isinstance(alt, basestring):
+                if not isinstance(alt, string_types):
                     alt = None
             if alt is None:
                 alt = PRIMARY_ALT

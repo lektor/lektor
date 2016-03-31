@@ -116,20 +116,20 @@ class Project(object):
         """Create a new environment for this project."""
         from lektor.environment import Environment
         return Environment(self, load_plugins=load_plugins)
-    
+
     @cached_property
     def excluded_assets(self):
         """List of glob patterns matching filenames of excluded assets.
-        
+
         Combines with default EXCLUDED_ASSETS.
         """
         config = self.open_config()
         return list(comma_delimited(config.get('project.excluded_assets', '')))
-    
+
     @cached_property
     def included_assets(self):
         """List of glob patterns matching filenames of included assets.
-        
+
         Overrides both excluded_assets and the default excluded patterns.
         """
         config = self.open_config()

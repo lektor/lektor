@@ -83,8 +83,9 @@ class Markdown(object):
         self.__html = None
         self.__meta = None
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.source)
+    __nonzero__ = __bool__
 
     def __render(self):
         # When the markdown instance is attached to a cached object we can

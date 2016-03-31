@@ -1,14 +1,15 @@
-import os
-import math
 import errno
+import math
+import os
 
 from inifile import IniFile
 
 from lektor import types
-from lektor.utils import slugify, bool_from_string
+from lektor._compat import iteritems, itervalues
 from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
-from lektor.i18n import load_i18n_block, get_i18n_block
+from lektor.i18n import get_i18n_block, load_i18n_block
 from lektor.pagination import Pagination
+from lektor.utils import bool_from_string, slugify
 
 
 class ChildConfig(object):
@@ -249,7 +250,7 @@ class DataModel(object):
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
         self.field_map = dict((x.name, x) for x in fields)
-        for key, (ty, opts) in system_fields.iteritems():
+        for key, (ty, opts) in iteritems(system_fields):
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
         self._child_slug_tmpl = None
@@ -356,7 +357,7 @@ class DataModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in self.field_map.itervalues():
+        for field in itervalues(self.field_map):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv['_model'] = self.id
@@ -407,7 +408,7 @@ class FlowBlockModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in self.field_map.itervalues():
+        for field in itervalues(self.field_map):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv['_flowblock'] = self.id
@@ -632,7 +633,7 @@ def add_system_field(name, **opts):
     for key, value in opts.items():
         if key.endswith('_i18n'):
             base_key = key[:-5]
-            for lang, trans in load_i18n_block(value).iteritems():
+            for lang, trans in iteritems(load_i18n_block(value)):
                 opts['%s[%s]' % (base_key, lang)] = trans
 
     ty = types.builtin_types[opts.pop('type')]

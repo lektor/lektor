@@ -4,6 +4,7 @@ import posixpath
 
 from collections import OrderedDict
 
+from lektor._compat import text_type, iteritems, string_types
 from lektor.metaformat import serialize
 from lektor.utils import atomic_open, is_valid_id, secure_filename, \
      increment_filename
@@ -67,7 +68,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
     else:
         if datamodel is None:
             datamodel = pad.db.get_implied_datamodel(path, is_attachment, pad)
-        elif isinstance(datamodel, basestring):
+        elif isinstance(datamodel, string_types):
             datamodel = pad.db.datamodels[datamodel]
 
     if exists:
@@ -78,7 +79,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
         if raw_data_fallback:
             raw_data_fallback.pop(key, None)
 
-    return EditorSession(pad, id, unicode(path), raw_data, raw_data_fallback,
+    return EditorSession(pad, id, text_type(path), raw_data, raw_data_fallback,
                          datamodel, record, exists, is_attachment, alt)
 
 
@@ -202,7 +203,7 @@ class EditorSession(object):
             self.commit()
 
     def update(self, *args, **kwargs):
-        for key, value in dict(*args, **kwargs).iteritems():
+        for key, value in iteritems(dict(*args, **kwargs)):
             self[key] = value
 
     def iteritems(self, fallback=True):

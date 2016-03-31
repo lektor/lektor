@@ -4,12 +4,12 @@ import imghdr
 import struct
 import exifread
 import posixpath
-
 from datetime import datetime
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
 from lektor.uilink import BUNDLE_BIN_PATH
+from lektor._compat import iteritems
 
 
 # yay shitty library
@@ -35,12 +35,13 @@ class EXIFInfo(object):
     def __init__(self, d):
         self._mapping = d
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._mapping)
+    __nonzero__ = __bool__
 
     def to_dict(self):
         rv = {}
-        for key, value in self.__class__.__dict__.iteritems():
+        for key, value in iteritems(self.__class__.__dict__):
             if key[:1] != '_' and isinstance(value, property):
                 rv[key] = getattr(self, key)
         return rv
