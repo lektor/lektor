@@ -12,7 +12,7 @@ query.  If no such record can be produced, `None` is returned.
 ## Example
 
 ```html+jinja
-{% first_visible = this.children.first() %}
+{% set first_visible = this.children.first() %}
 {% if first_visible %}
   <h2>Explore More ...</h2>
   <p>{{ first_visible.title }}
