@@ -12,6 +12,9 @@ up on either a subdomain or a custom domain (including SSL).
 Because this is all supported by the side of GitLab there is nothing you
 need to configure in Lektor itself other than adding a GitLab config file.
 
+There is also an example project on GitLab with a README you can clone:
+[pages/lektor](https://gitlab.com/pages/lektor)
+
 ## Create a Repository
 
 What you need to do to start is to create a new repository for the project
