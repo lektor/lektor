@@ -41,7 +41,7 @@ class Project(object):
     @classmethod
     def from_path(cls, path, extension_required=False):
         """Locates the project for a path."""
-        path = os.path.abspath(path)
+        path = os.path.abspath(os.path.expanduser(path))
         if os.path.isfile(path) and (not extension_required or
                                      path.endswith('.lektorproject')):
             return cls.from_file(path)
