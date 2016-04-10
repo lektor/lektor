@@ -54,6 +54,7 @@ Next feature release
 - children and attachments can now have a hidden flag configured explicitly.
   Attachments will also no longer inherit the hidden flag of the parent
   record as that is not a sensible default.
+- changed internal sqlite consistency mode to improve performance on HDDs.
 
 1.2.1
 -----
