@@ -50,6 +50,7 @@ Next feature release
 - added Japanese translations.
 - added support for discovering existing alts of sources.
 - added support for image cropping.
+- added preliminary support for publishing on windows.
 
 1.2.1
 -----
