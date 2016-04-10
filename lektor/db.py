@@ -346,9 +346,17 @@ class Record(SourceObject):
         """
         if not is_undefined(self._data['_hidden']):
             return self._data['_hidden']
+        return self._is_considered_hidden()
 
+    def _is_considered_hidden(self):
         parent = self.parent
-        return parent is not None and parent.is_hidden
+        if parent is None:
+            return False
+
+        hidden_children = parent.datamodel.child_config.hidden
+        if hidden_children is not None:
+            return hidden_children
+        return parent.is_hidden
 
     @property
     def is_discoverable(self):
@@ -682,6 +690,15 @@ class Attachment(Record):
         else:
             suffix = '.lr'
         return self.pad.db.to_fs_path(self['_path']) + suffix
+
+    def _is_considered_hidden(self):
+        # Attachments are only considered hidden if they have been
+        # configured as such.  This means that even if a record itself is
+        # hidden, the attachments by default will not.
+        parent = self.parent
+        if parent is None:
+            return False
+        return parent.datamodel.attachment_config.hidden
 
     @property
     def record(self):

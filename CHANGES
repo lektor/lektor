@@ -51,6 +51,9 @@ Next feature release
 - added support for discovering existing alts of sources.
 - added support for image cropping.
 - added preliminary support for publishing on windows.
+- children and attachments can now have a hidden flag configured explicitly.
+  Attachments will also no longer inherit the hidden flag of the parent
+  record as that is not a sensible default.
 
 1.2.1
 -----

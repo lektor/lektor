@@ -14,7 +14,7 @@ from lektor.pagination import Pagination
 class ChildConfig(object):
 
     def __init__(self, enabled=None, slug_format=None, model=None,
-                 order_by=None, replaced_with=None):
+                 order_by=None, replaced_with=None, hidden=None):
         if enabled is None:
             enabled = True
         self.enabled = enabled
@@ -22,6 +22,7 @@ class ChildConfig(object):
         self.model = model
         self.order_by = order_by
         self.replaced_with = replaced_with
+        self.hidden = hidden
 
     def to_json(self):
         return {
@@ -30,6 +31,7 @@ class ChildConfig(object):
             'model': self.model,
             'order_by': self.order_by,
             'replaced_with': self.replaced_with,
+            'hidden': self.hidden,
         }
 
 
@@ -140,18 +142,23 @@ class PaginationConfig(object):
 
 class AttachmentConfig(object):
 
-    def __init__(self, enabled=None, model=None, order_by=None):
+    def __init__(self, enabled=None, model=None, order_by=None,
+                 hidden=None):
         if enabled is None:
             enabled = True
+        if hidden is None:
+            hidden = False
         self.enabled = enabled
         self.model = model
         self.order_by = order_by
+        self.hidden = hidden
 
     def to_json(self):
         return {
             'enabled': self.enabled,
             'model': self.model,
             'order_by': self.order_by,
+            'hidden': self.hidden,
         }
 
 
@@ -449,11 +456,13 @@ def datamodel_data_from_ini(id, inifile):
             model=inifile.get('children.model'),
             order_by=_parse_order(inifile.get('children.order_by')),
             replaced_with=inifile.get('children.replaced_with'),
+            hidden=inifile.get_bool('children.hidden', default=None),
         ),
         attachment_config=dict(
             enabled=inifile.get_bool('attachments.enabled', default=None),
             model=inifile.get('attachments.model'),
             order_by=_parse_order(inifile.get('attachments.order_by')),
+            hidden=inifile.get_bool('attachments.hidden', default=None),
         ),
         pagination_config=dict(
             enabled=inifile.get_bool('pagination.enabled', default=None),
@@ -532,11 +541,13 @@ def datamodel_from_data(env, model_data, parent=None):
             model=get_value('child_config.model'),
             order_by=get_value('child_config.order_by'),
             replaced_with=get_value('child_config.replaced_with'),
+            hidden=get_value('child_config.hidden'),
         ),
         attachment_config=AttachmentConfig(
             enabled=get_value('attachment_config.enabled'),
             model=get_value('attachment_config.model'),
             order_by=get_value('attachment_config.order_by'),
+            hidden=get_value('attachment_config.hidden'),
         ),
         pagination_config=PaginationConfig(env,
             enabled=get_value('pagination_config.enabled'),
