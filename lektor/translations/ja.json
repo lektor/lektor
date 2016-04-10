@@ -18,7 +18,7 @@
   "ATTACHMENTS": "アタッチメント",
   "ADD_ATTACHMENT_TO": "“%s”にアタッチメントを追加する",
   "ADD_ATTACHMENT_NOTE": "ここに新しいアタッチメントをアップロードできます",
-  "UPLOAD": "アンロード",
+  "UPLOAD": "アップロード",
   "PROGRESS": "プログレス",
   "ERROR_PREFIX": "エラー: ",
   "ERROR_NO_ID_PROVIDED": "IDがありません",
