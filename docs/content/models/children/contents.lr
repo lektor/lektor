@@ -37,6 +37,12 @@ Here are the most important options below `[children]`:
   when it really has not.  This can be a query expression and the result
   is then used as the children of the model.  This for instance can be
   used to implement categories with filtering.
+- `hidden`: if this is set it can override the parent's hidden flag for
+  all children.  This is particularly useful if you want to have a folder
+  for error pages or other special pages where the parent itself should not
+  be rendered but all children are.  The default is not set.
+
+!! The `hidden` flag was added in Lektor 2.0
 
 ## Child Slug Behavior
 
@@ -79,8 +85,13 @@ keys are available:
 * `per_page`: this controls how many children are shown per page.  If
   pagination is enabled and this is not set, an implicit default of `20`
   is assumed.
+* `items`: if this is set to a query then the pagination's items will be
+  overridden by it.  This can be used to make the pagination work over a
+  subset of items.
 
 If pagination is enabled then the [pagination attribute
 :ref](../../api/db/record/pagination/) of a record becomes available.  For
 more information have a look at the [pagination guide
 :ref](../../guides/pagination/).
+
+!! The `items` property was added in Lektor 2.0
