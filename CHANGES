@@ -6,7 +6,7 @@ These are all the changes in Lektor since the first public release.
 2.0
 ---
 
-Next feature release
+Released on 11th of April 2016
 
 - Added `_discoverable` system field which controls if a page should show
   up in `children`.  The default is that a page is discoverable.  Setting it
