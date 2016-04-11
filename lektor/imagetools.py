@@ -5,6 +5,7 @@ import struct
 import exifread
 import posixpath
 from datetime import datetime
+from xml.etree import ElementTree as etree
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
@@ -206,12 +207,28 @@ def get_suffix(width, height, crop=False):
     return suffix
 
 
+def get_svg_info(fp):
+    _, svg = next(etree.iterparse(fp, ['start']), (None, None))
+    fp.seek(0)
+    if svg is not None and svg.tag == '{http://www.w3.org/2000/svg}svg':
+        try:
+            width = int(svg.attrib['width'])
+            height = int(svg.attrib['height'])
+            return 'svg', width, height
+        except (ValueError, KeyError):
+            pass
+    return 'unknown', None, None
+
+
 def get_image_info(fp):
     """Reads some image info from a file descriptor."""
     head = fp.read(32)
     fp.seek(0)
     if len(head) < 24:
         return 'unknown', None, None
+
+    if head.strip().startswith('<?xml '):
+        return get_svg_info(fp)
 
     fmt = imghdr.what(None, head)
 
@@ -349,6 +366,11 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
+    with open(source_image, 'rb') as f:
+        format, source_width, source_height = get_image_info(f)
+        if format == 'unknown':
+            raise RuntimeError('Cannot process unknown images')
+
     suffix = get_suffix(width, height, crop=crop)
     dst_url_path = get_dependent_url(source_url_path, suffix,
                                      ext=get_thumbnail_ext(source_image))
@@ -356,14 +378,20 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
     if height is None:
         # we can only crop if a height is specified
         crop = False
-        with open(source_image, 'rb') as f:
-            _, w, h = get_image_info(f)
-        height = computed_height(source_image, width, w, h)
+        height = computed_height(source_image, width, source_width,
+                                 source_height)
+
+    # If we are dealing with an actual svg image, we do not actually
+    # resize anything, we just return it.  This is not ideal but it's
+    # better than outright failing.
+    if format == 'svg':
+        return Thumbnail(source_url_path, width, height)
 
     @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
-        process_image(ctx, source_image, artifact.dst_filename, width, height, crop=crop)
+        process_image(ctx, source_image, artifact.dst_filename,
+                      width, height, crop=crop)
 
     return Thumbnail(dst_url_path, width, height)
 

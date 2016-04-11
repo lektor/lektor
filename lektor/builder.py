@@ -535,6 +535,7 @@ class FileInfo(object):
 
 
 class VirtualSourceInfo(object):
+
     def __init__(self, path, mtime=None, checksum=None):
         self.path = path
         self.mtime = mtime
@@ -977,8 +978,14 @@ class Builder(object):
         return os.path.join(self.meta_path, 'buildstate')
 
     def connect_to_database(self):
-        return sqlite3.connect(self.buildstate_database_filename,
-                               timeout=10, check_same_thread=False)
+        con = sqlite3.connect(self.buildstate_database_filename,
+                              timeout=10, check_same_thread=False)
+        cur = con.cursor()
+        cur.execute('pragma journal_mode=WAL')
+        cur.execute('pragma synchronous=NORMAL')
+        con.commit()
+        cur.close()
+        return con
 
     def touch_site_config(self):
         """Touches the site config which typically will trigger a rebuild."""
@@ -1089,18 +1096,24 @@ class Builder(object):
         """Builds the entire tree.  Returns the number of failures."""
         failures = 0
         path_cache = PathCache(self.env)
-        with reporter.build('build', self):
-            self.env.plugin_controller.emit('before-build-all', builder=self)
-            to_build = self.get_initial_build_queue()
-            while to_build:
-                source = to_build.popleft()
-                prog, build_state = self.build(source, path_cache=path_cache)
-                self.extend_build_queue(to_build, prog)
-                failures += len(build_state.failed_artifacts)
-            self.env.plugin_controller.emit('after-build-all', builder=self)
-            if failures:
-                reporter.report_build_all_failure(failures)
-        return failures
+        # We keep a dummy connection here that does not do anything which
+        # helps us with the WAL handling.  See #144
+        con = self.connect_to_database()
+        try:
+            with reporter.build('build', self):
+                self.env.plugin_controller.emit('before-build-all', builder=self)
+                to_build = self.get_initial_build_queue()
+                while to_build:
+                    source = to_build.popleft()
+                    prog, build_state = self.build(source, path_cache=path_cache)
+                    self.extend_build_queue(to_build, prog)
+                    failures += len(build_state.failed_artifacts)
+                self.env.plugin_controller.emit('after-build-all', builder=self)
+                if failures:
+                    reporter.report_build_all_failure(failures)
+            return failures
+        finally:
+            con.close()
 
     def update_all_source_infos(self):
         """Fast way to update all source infos without having to build

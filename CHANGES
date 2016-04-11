@@ -6,7 +6,7 @@ These are all the changes in Lektor since the first public release.
 2.0
 ---
 
-Next feature release
+Released on 11th of April 2016
 
 - Added `_discoverable` system field which controls if a page should show
   up in `children`.  The default is that a page is discoverable.  Setting it
@@ -50,6 +50,14 @@ Next feature release
 - added Japanese translations.
 - added support for discovering existing alts of sources.
 - added support for image cropping.
+- added preliminary support for publishing on windows.
+- children and attachments can now have a hidden flag configured explicitly.
+  Attachments will also no longer inherit the hidden flag of the parent
+  record as that is not a sensible default.
+- changed internal sqlite consistency mode to improve performance on HDDs.
+- allow SVG files to be treated as images.  This is something that does not
+  work in all situations yet (in particular thumbnailing does not actually
+  do anything for those)
 
 1.2.1
 -----

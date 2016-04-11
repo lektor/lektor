@@ -2,17 +2,19 @@ import errno
 import hashlib
 import os
 import posixpath
+import Queue
 import select
 import shutil
 import subprocess
 import tempfile
-from contextlib import contextmanager
+import threading
 from cStringIO import StringIO
+from contextlib import contextmanager
 
 from werkzeug import urls
 
-from lektor._compat import (iteritems, iterkeys, range_type,
-    string_types, text_type)
+from lektor._compat import (iteritems, iterkeys, range_type, string_types,
+    text_type)
 from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
 
@@ -112,7 +114,7 @@ class Command(object):
         environ = dict(os.environ)
         if env:
             environ.update(env)
-        kwargs = {'cwd': cwd, 'env': env}
+        kwargs = {'cwd': cwd, 'env': environ}
         if silent:
             kwargs['stdout'] = devnull
             kwargs['stderr'] = devnull
@@ -139,16 +141,42 @@ class Command(object):
     def __iter__(self):
         if not self.capture:
             raise RuntimeError('Not capturing')
-        streams = [self._cmd.stdout, self._cmd.stderr]
-        while streams:
-            for l in select.select(streams, [], streams):
-                for stream in l:
+
+        # Windows platforms do not have select() for files
+        if os.name == 'nt':
+            q = Queue.Queue()
+            def reader(stream):
+                while 1:
                     line = stream.readline()
+                    q.put(line)
                     if not line:
-                        if stream in streams:
-                            streams.remove(stream)
                         break
-                    yield line.rstrip().decode('utf-8', 'replace')
+            t1 = threading.Thread(target=reader, args=(self._cmd.stdout,))
+            t1.setDaemon(True)
+            t2 = threading.Thread(target=reader, args=(self._cmd.stderr,))
+            t2.setDaemon(True)
+            t1.start()
+            t2.start()
+            outstanding = 2
+            while outstanding:
+                item = q.get()
+                if not item:
+                    outstanding -= 1
+                else:
+                    yield item.rstrip().decode('utf-8', 'replace')
+
+        # Otherwise we can go with select()
+        else:
+            streams = [self._cmd.stdout, self._cmd.stderr]
+            while streams:
+                for l in select.select(streams, [], streams):
+                    for stream in l:
+                        line = stream.readline()
+                        if not line:
+                            if stream in streams:
+                                streams.remove(stream)
+                            break
+                        yield line.rstrip().decode('utf-8', 'replace')
 
     def safe_iter(self):
         with self:

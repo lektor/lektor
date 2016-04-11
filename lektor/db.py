@@ -347,9 +347,17 @@ class Record(SourceObject):
         """
         if not is_undefined(self._data['_hidden']):
             return self._data['_hidden']
+        return self._is_considered_hidden()
 
+    def _is_considered_hidden(self):
         parent = self.parent
-        return parent is not None and parent.is_hidden
+        if parent is None:
+            return False
+
+        hidden_children = parent.datamodel.child_config.hidden
+        if hidden_children is not None:
+            return hidden_children
+        return parent.is_hidden
 
     @property
     def is_discoverable(self):
@@ -684,6 +692,15 @@ class Attachment(Record):
             suffix = '.lr'
         return self.pad.db.to_fs_path(self['_path']) + suffix
 
+    def _is_considered_hidden(self):
+        # Attachments are only considered hidden if they have been
+        # configured as such.  This means that even if a record itself is
+        # hidden, the attachments by default will not.
+        parent = self.parent
+        if parent is None:
+            return False
+        return parent.datamodel.attachment_config.hidden
+
     @property
     def record(self):
         return self
@@ -873,7 +890,14 @@ class Query(object):
             return self._order_by
         base_record = self.pad.get(self.path)
         if base_record is not None:
-            return base_record.datamodel.child_config.order_by
+            if self._include_attachments and not self._include_pages:
+                return base_record.datamodel.attachment_config.order_by
+            elif self._include_pages and not self._include_attachments:
+                return base_record.datamodel.child_config.order_by
+            # Otherwise the query includes either both or neither
+            # attachments and/nor children.  I have no idea which
+            # value of order_by to use.  We could punt and return
+            # child_config.order_by, but for now, just return None.
 
     def include_hidden(self, value):
         """Controls if hidden records should be included which will not

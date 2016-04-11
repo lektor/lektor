@@ -242,3 +242,53 @@ def test_undefined_order(pad):
 
     ids = [c['_id'] for c in TestQuery('test', pad).order_by('-pub_date')]
     assert ['3', '2', '1', '4'] == ids
+
+
+def test_hidden_flag(pad):
+    # This page is just not hidden at all
+    post = pad.get('blog/post1')
+    assert not post.is_hidden
+
+    # The root is never hidden itself unless forced
+    root = pad.get('/')
+    assert not root.is_hidden
+
+    # The container is hidden
+    container = pad.get('extra/container')
+    assert container.is_hidden
+
+    # But the child of the container is not
+    a = pad.get('extra/container/a')
+    assert not a.is_hidden
+    assert container.children.all() == [a]
+
+    # Attachments are also always visible
+    attachment = pad.get('extra/container/hello.txt')
+    assert not attachment.is_hidden
+
+
+def test_default_order_by(scratch_project, scratch_env):
+    from lektor.db import Database
+
+    tree = scratch_project.tree
+    with open(os.path.join(tree, 'models', 'mymodel.ini'), 'w') as f:
+        f.write(
+            '[children]\n'
+            'order_by = title\n'
+            '[attachments]\n'
+            'order_by = attachment_filename\n'
+            )
+    os.mkdir(os.path.join(tree, 'content', 'myobj'))
+    with open(os.path.join(tree, 'content', 'myobj', 'contents.lr'), 'w') as f:
+        f.write(
+            '_model: mymodel\n'
+            '---\n'
+            'title: My Test Object\n'
+            )
+
+    pad = Database(scratch_env).new_pad()
+    myobj = pad.get('/myobj')
+    children = myobj.children
+    assert list(children.get_order_by()) == ['title']
+    assert list(children.order_by('explicit').get_order_by()) == ['explicit']
+    assert list(myobj.attachments.get_order_by()) == ['attachment_filename']

@@ -39,6 +39,7 @@ DEFAULT_CONFIG = {
         '.jpeg': 'image',
         '.png': 'image',
         '.gif': 'image',
+        '.svg': 'image',
 
         '.avi': 'video',
         '.mpg': 'video',
