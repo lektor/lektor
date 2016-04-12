@@ -3,6 +3,14 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+2.2
+---
+
+Released on 12th of April 2016
+
+- Corrected an issue where certain translations would not make the
+  admin panel load.
+
 2.1
 ---
 
