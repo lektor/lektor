@@ -53,7 +53,7 @@ export function findLektorExecutable() {
 
 export function findLektorProxyExecutable() {
   if (process.platform == 'darwin') {
-    return path.join(getBundleBase(), 'MacOS', 'lektor-proxy');
+    return path.join(getBundleBase(), 'Resources', 'local', 'bin', 'lektor-proxy');
   } else {
     return findLektorExecutable();
   }

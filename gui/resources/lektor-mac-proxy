@@ -23,7 +23,7 @@ fi
 
 # Special commands for installing the proxy command globally.
 if [ "$1" == "--install-shell-command" ]; then
-  ln -fs "$LEKTOR_PATH/$LEKTOR_APP_NAME/Contents/MacOS/lektor-proxy" "$SHELL_COMMAND_PATH"
+  ln -fs "$LEKTOR_PATH/$LEKTOR_APP_NAME/Contents/Resources/local/bin/lektor-proxy" "$SHELL_COMMAND_PATH"
   echo 'Successfully installed the global lektor shell command'
   exit 0
 elif [ "$1" == "--uninstall-shell-command" ]; then

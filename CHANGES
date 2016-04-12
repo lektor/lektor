@@ -3,6 +3,13 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+2.1
+---
+
+Released on 12th of April 2016
+
+- Fixed a code signing issue on OS X 10.10.3 and lower.
+
 2.0
 ---
 
