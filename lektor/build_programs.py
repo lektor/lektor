@@ -245,7 +245,8 @@ class AttachmentBuildProgram(BuildProgram):
 
     def build_artifact(self, artifact):
         with artifact.open('wb') as df:
-            with open(self.source.attachment_filename, 'rb') as sf:
+            vfs = self.source.pad.db.vfs
+            with vfs.open(self.source.attachment_filename, 'rb') as sf:
                 shutil.copyfileobj(sf, df)
 
 
@@ -259,7 +260,8 @@ class FileAssetBuildProgram(BuildProgram):
 
     def build_artifact(self, artifact):
         with artifact.open('wb') as df:
-            with open(self.source.source_filename, 'rb') as sf:
+            vfs = self.source.pad.db.vfs
+            with vfs.open(self.source.source_filename, 'rb') as sf:
                 shutil.copyfileobj(sf, df)
 
 

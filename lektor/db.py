@@ -1,5 +1,4 @@
 import os
-import errno
 import hashlib
 import operator
 import posixpath
@@ -17,7 +16,7 @@ from lektor._compat import string_types, text_type, integer_types, \
      iteritems, range_type
 from lektor import metaformat
 from lektor.utils import sort_normalize_string, cleanup_path, \
-     untrusted_to_os_path, fs_enc
+     untrusted_to_os_path
 from lektor.sourceobj import SourceObject, VirtualSourceObject
 from lektor.context import get_ctx, Context
 from lektor.datamodel import load_datamodels, load_flowblocks
@@ -28,7 +27,7 @@ from lektor.environment import PRIMARY_ALT
 from lektor.databags import Databags
 from lektor.filecontents import FileContents
 from lektor.utils import make_relative_url, split_virtual_path
-from lektor.vfs import FileSystem
+from lektor.vfs import FileSystem, PathNotFound, IncompatiblePathType
 
 
 def get_alts(source=None, fallback=False):
@@ -542,17 +541,17 @@ class Page(Record):
 
     @property
     def source_filename(self):
+        vfs = self.pad.db.vfs
         if self.alt != PRIMARY_ALT:
-            return os.path.join(self.pad.db.to_fs_path(self['_path']),
-                                'contents+%s.lr' % self.alt)
-        return os.path.join(self.pad.db.to_fs_path(self['_path']),
-                            'contents.lr')
+            return vfs.join_path('content', self['_path'],
+                                 'contents+%s.lr' % self.alt)
+        return vfs.join_path('content', self['_path'], 'contents.lr')
 
     def iter_source_filenames(self):
         yield self.source_filename
         if self.alt != PRIMARY_ALT:
-            yield os.path.join(self.pad.db.to_fs_path(self['_path']),
-                               'contents.lr')
+            yield self.pad.db.vfs.join_path('content', self['_path'],
+                                            'contents.lr')
 
     @property
     def url_path(self):
@@ -695,7 +694,7 @@ class Attachment(Record):
             suffix = '+%s.lr' % self.alt
         else:
             suffix = '.lr'
-        return self.pad.db.to_fs_path(self['_path']) + suffix
+        return self.pad.db.vfs.join_path('content', self['_path']) + suffix
 
     def _is_considered_hidden(self):
         # Attachments are only considered hidden if they have been
@@ -712,7 +711,7 @@ class Attachment(Record):
 
     @property
     def attachment_filename(self):
-        return self.pad.db.to_fs_path(self['_path'])
+        return self.pad.db.vfs.join_path('content', self['_path'])
 
     @property
     def parent(self):
@@ -738,7 +737,7 @@ class Image(Attachment):
     def _get_image_info(self):
         rv = getattr(self, '_image_info', None)
         if rv is None:
-            with open(self.attachment_filename, 'rb') as f:
+            with self.pad.db.vfs.open(self.attachment_filename, 'rb') as f:
                 self._image_info = rv = get_image_info(f)
         return rv
 
@@ -747,7 +746,7 @@ class Image(Attachment):
         """Provides access to the exif data."""
         rv = getattr(self, '_exif_cache', None)
         if rv is None:
-            with open(self.attachment_filename, 'rb') as f:
+            with self.pad.db.vfs.open(self.attachment_filename, 'rb') as f:
                 rv = self._exif_cache = read_exif(f)
         return rv
 
@@ -868,7 +867,8 @@ class Query(object):
         # We also always want to record the path itself as dependency.
         ctx = get_ctx()
         if ctx is not None:
-            ctx.record_dependency(self.pad.db.to_fs_path(self.path))
+            ctx.record_dependency(self.pad.db.vfs.join_path(
+                'content', self.path))
 
         for name, _, is_attachment in self.pad.db.iter_items(
                 self.path, alt=self.alt):
@@ -1061,7 +1061,7 @@ class AttachmentsQuery(Query):
         return self.filter(F._attachment_type == 'text')
 
 
-def _iter_filename_choices(fn_base, alts, config, fallback=True):
+def _iter_filename_choices(base, alts, config, fallback=True):
     """Returns an iterator over all possible filename choices to .lr files
     below a base filename that matches any of the given alts.
     """
@@ -1070,20 +1070,20 @@ def _iter_filename_choices(fn_base, alts, config, fallback=True):
     # implicitly say the record exists.
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield os.path.join(fn_base, 'contents+%s.lr' % alt), alt, False
+            yield posixpath.join(base, 'contents+%s.lr' % alt), alt, False
 
     if fallback or PRIMARY_ALT in alts:
-        yield os.path.join(fn_base, 'contents.lr'), PRIMARY_ALT, False
+        yield posixpath.join(base, 'contents.lr'), PRIMARY_ALT, False
 
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield fn_base + '+%s.lr' % alt, alt, True
+            yield base + '+%s.lr' % alt, alt, True
 
     if fallback or PRIMARY_ALT in alts:
-        yield fn_base + '.lr', PRIMARY_ALT, True
+        yield base + '.lr', PRIMARY_ALT, True
 
 
-def _iter_content_files(dir_path, alts):
+def _iter_content_files(vfs, dir_path, alts):
     """Returns an iterator over all existing content files below the given
     directory.  This yields specific files for alts before it falls back
     to the primary alt.
@@ -1091,9 +1091,9 @@ def _iter_content_files(dir_path, alts):
     for alt in alts:
         if alt == PRIMARY_ALT:
             continue
-        if os.path.isfile(os.path.join(dir_path, 'contents+%s.lr' % alt)):
+        if vfs.is_file(vfs.join_path(dir_path, 'contents+%s.lr' % alt)):
             yield alt
-    if os.path.isfile(os.path.join(dir_path, 'contents.lr')):
+    if vfs.is_file(vfs.join_path(dir_path, 'contents.lr')):
         yield PRIMARY_ALT
 
 
@@ -1122,6 +1122,7 @@ class Database(object):
 
     def to_fs_path(self, path):
         """Convenience function to convert a path into an file system path."""
+        # TODO: remove me
         return os.path.join(self.env.root_path, 'content',
                             untrusted_to_os_path(path))
 
@@ -1134,14 +1135,12 @@ class Database(object):
         if cls is None:
             cls = dict
 
-        fn_base = self.to_fs_path(path)
-
         rv = cls()
         rv_type = None
 
-        choiceiter = _iter_filename_choices(fn_base, [alt], self.config,
+        choiceiter = _iter_filename_choices(path, [alt], self.config,
                                             fallback=fallback)
-        for fs_path, source_alt, is_attachment in choiceiter:
+        for f_path, source_alt, is_attachment in choiceiter:
             # If we already determined what our return value is but the
             # type mismatches what we try now, we have to abort.  Eg:
             # a page can not become an attachment or the other way round.
@@ -1149,16 +1148,16 @@ class Database(object):
                 break
 
             try:
-                with open(fs_path, 'rb') as f:
+                with self.vfs.open(self.vfs.join_path(
+                        'content', f_path), 'rb') as f:
                     if rv_type is None:
                         rv_type = is_attachment
                     for key, lines in metaformat.tokenize(f, encoding='utf-8'):
                         if key not in rv:
                             rv[key] = u''.join(lines)
-            except IOError as e:
-                if e.errno not in (errno.ENOTDIR, errno.ENOENT):
-                    raise
-                if not is_attachment or not os.path.isfile(fs_path[:-3]):
+            except (IncompatiblePathType, PathNotFound):
+                if not is_attachment or not self.vfs.is_file(
+                        self.vfs.join_path('content', f_path[:-3])):
                     continue
                 # Special case: we are loading an attachment but the meta
                 # data file does not exist.  In that case we still want to
@@ -1185,8 +1184,6 @@ class Database(object):
         """Iterates over all items below a path and yields them as
         tuples in the form ``(id, alt, is_attachment)``.
         """
-        fn_base = self.to_fs_path(path)
-
         if alt is None:
             alts = self.config.list_alternatives()
             single_alt = False
@@ -1194,10 +1191,15 @@ class Database(object):
             alts = [alt]
             single_alt = True
 
-        choiceiter = _iter_filename_choices(fn_base, alts, self.config)
+        choiceiter = _iter_filename_choices(
+            self.vfs.join_path('content', path), alts, self.config)
 
-        for fs_path, actual_alt, is_attachment in choiceiter:
-            if not os.path.isfile(fs_path):
+        for f_path, actual_alt, is_attachment in choiceiter:
+            try:
+                entry = self.vfs.describe_path(f_path)
+                if not entry.is_file:
+                    continue
+            except PathNotFound:
                 continue
 
             # This path is actually for an attachment, which means that we
@@ -1207,38 +1209,28 @@ class Database(object):
                 break
 
             try:
-                dir_path = os.path.dirname(fs_path)
-                for filename in os.listdir(dir_path):
-                    if not isinstance(filename, text_type):
-                        try:
-                            filename = filename.decode(fs_enc)
-                        except UnicodeError:
-                            continue
-
-                    if filename.endswith('.lr') or \
-                       self.env.is_uninteresting_source_name(filename):
+                for dirent in self.vfs.iter_path(entry.base):
+                    if dirent.name.endswith('.lr'):
                         continue
 
                     # We found an attachment.  Attachments always live
                     # below the primary alt, so we report it as such.
-                    if os.path.isfile(os.path.join(dir_path, filename)):
-                        yield filename, PRIMARY_ALT, True
+                    if dirent.is_file:
+                        yield dirent.name, PRIMARY_ALT, True
 
                     # We found a directory, let's make sure it contains a
                     # contents.lr file (or a contents+alt.lr file).
-                    else:
+                    elif dirent.is_dir:
                         for content_alt in _iter_content_files(
-                                os.path.join(dir_path, filename), alts):
-                            yield filename, content_alt, False
+                                self.vfs, dirent.path, alts):
+                            yield dirent.name, content_alt, False
                             # If we want a single alt, we break here so
                             # that we only produce a single result.
                             # Otherwise this would also return the primary
                             # fallback here.
                             if single_alt:
                                 break
-            except IOError as e:
-                if e.errno != errno.ENOENT:
-                    raise
+            except (PathNotFound, IncompatiblePathType):
                 continue
 
             # If we reach this point, we found our parent, so we can stop
@@ -1485,8 +1477,7 @@ class Pad(object):
     @property
     def asset_root(self):
         """The root of the asset tree."""
-        return Directory(self, name='',
-                         path=os.path.join(self.db.env.root_path, 'assets'))
+        return Directory(self, name='', path='assets')
 
     def get_all_roots(self):
         """Returns all the roots for building."""
@@ -1686,7 +1677,7 @@ class Alt(object):
         self.id = id
         self.record = record
         self.exists = record is not None and \
-            os.path.isfile(record.source_filename)
+            record.pad.db.vfs.is_file(record.source_filename)
 
     def __repr__(self):
         return '<Alt %r%s>' % (self.id, self.exists and '*' or '')

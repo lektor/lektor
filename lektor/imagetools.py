@@ -374,7 +374,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
-    with open(source_image, 'rb') as f:
+    with ctx.vfs.open(source_image, 'rb') as f:
         format, source_width, source_height = get_image_info(f)
         if format == 'unknown':
             raise RuntimeError('Cannot process unknown images')

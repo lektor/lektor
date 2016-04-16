@@ -9,9 +9,11 @@ def get_child_sources(prog):
 def test_basic_build(pad, builder):
     root = pad.root
 
-    prog, build_state = builder.build(root)
-    assert prog.source is root
-    assert build_state.failed_artifacts == []
+    from lektor.reporter import CliReporter
+    with CliReporter(pad.env, verbosity=10):
+        prog, build_state = builder.build(root)
+        assert prog.source is root
+        assert build_state.failed_artifacts == []
 
     artifact, = prog.artifacts
     # Root and its thumbnail image were updated.

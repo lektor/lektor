@@ -54,7 +54,7 @@ _error_mapping = {
     errno.EACCES: (PermissionDenied, u'Path could not be accessed.'),
     errno.EPERM: (PermissionDenied, u'Path could not be accessed.'),
     errno.EISDIR: (IncompatiblePathType, u'The path was a directory not a file.'),
-    errno.EISDIR: (IncompatiblePathType, u'The path was a directory.'),
+    errno.ENOTDIR: (IncompatiblePathType, u'The path was not a directory.'),
 }
 
 
@@ -101,7 +101,8 @@ class Vfs(object):
 
     def join_path(self, a, *other):
         """Joins two virtual paths together."""
-        return posixpath.join(text_type(a), *map(text_type, other))
+        return posixpath.join(text_type(a), *[
+            text_type(x).lstrip('/') for x in other])
 
     def describe_path(self, path):
         """Describes a path."""
@@ -109,11 +110,17 @@ class Vfs(object):
 
     def is_file(self, path):
         """Checks if a path is a file."""
-        return self.describe_path(path).is_file
+        try:
+            return self.describe_path(path).is_file
+        except VfsError:
+            return False
 
     def is_dir(self, path):
         """Checks if a path is a directory."""
-        return self.describe_path(path).is_dir
+        try:
+            return self.describe_path(path).is_dir
+        except VfsError:
+            return False
 
     def open(self, path, mode='rb'):
         """Opens a file in a specific mode.  This can either be rb/wb
@@ -127,6 +134,10 @@ class Vfs(object):
     def iter_path(self, path):
         """Iterates over all items in a path and yields path entries."""
         return self._iter_path(u'/' + path.lstrip(u'/'))
+
+    def list_dir(self, path):
+        """Like :meth:`iter_path` but only returns a list of filenames."""
+        return [x.name for x in self.iter_path(path)]
 
     def rename(self, src, dst):
         """Perform an atomic rename from src to dst."""
@@ -184,6 +195,7 @@ class FileSystem(Vfs):
             raise
 
     def _describe_path_impl(self, base, name, st=None, dirent=None):
+        is_file = is_dir = False
         if dirent is not None:
             if st is None:
                 st = dirent.stat()

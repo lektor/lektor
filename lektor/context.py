@@ -114,6 +114,11 @@ class Context(object):
         return self.pad.db.env
 
     @property
+    def vfs(self):
+        """A reference to the virtualized file system."""
+        return self.pad.db.vfs
+
+    @property
     def record(self):
         """If the source is a record it will be available here."""
         rv = self.source

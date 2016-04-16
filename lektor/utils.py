@@ -464,6 +464,9 @@ class AtomicFile(object):
         self.__f = f
         self.__tmp_filename = tmp_filename
 
+    def __iter__(self):
+        return iter(self.__f)
+
     def __getattr__(self, name):
         return getattr(self.__f, name)
 

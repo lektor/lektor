@@ -1,25 +1,23 @@
 import os
-import stat
 import posixpath
 
 from lektor.sourceobj import SourceObject
+from lektor.vfs import PathNotFound
 
 
-def get_asset(pad, filename, parent=None):
-    env = pad.db.env
-
-    if env.is_uninteresting_source_name(filename):
-        return None
+def get_asset(pad, filename, parent):
+    vfs = pad.db.vfs
 
     try:
-        st = os.stat(os.path.join(parent.source_filename, filename))
-    except OSError:
+        record = vfs.describe_path(vfs.join_path(
+            parent.source_filename, filename))
+    except PathNotFound:
         return None
-    if stat.S_ISDIR(st.st_mode):
-        return Directory(pad, filename, parent=parent)
 
+    if record.is_dir:
+        return Directory(pad, filename, parent=parent)
     ext = os.path.splitext(filename)[1]
-    cls = env.special_file_assets.get(ext, File)
+    cls = pad.db.env.special_file_assets.get(ext, File)
     return cls(pad, filename, parent=parent)
 
 
@@ -43,6 +41,10 @@ class Asset(SourceObject):
         self.parent = parent
 
     @property
+    def vfs(self):
+        return self.pad.db.vfs
+
+    @property
     def url_name(self):
         name = self.name
         base, ext = posixpath.splitext(name)
@@ -58,7 +60,7 @@ class Asset(SourceObject):
     def url_path(self):
         if self.parent is None:
             return '/' + self.name
-        return posixpath.join(self.parent.url_path, self.url_name)
+        return self.pad.db.vfs.join_path(self.parent.url_path, self.url_name)
 
     @property
     def artifact_name(self):
@@ -96,8 +98,8 @@ class Directory(Asset):
     @property
     def children(self):
         try:
-            files = os.listdir(self.source_filename)
-        except OSError:
+            files = self.vfs.list_dir(self.source_filename)
+        except PathNotFound:
             return
 
         for filename in files:
