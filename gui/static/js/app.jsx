@@ -304,7 +304,7 @@ class App extends Component {
           {
             label: i18n.trans('VISIT_WEBSITE'),
             click: () => {
-              shell.openExternal('http://www.github.com/mitsuhiko/lektor');
+              shell.openExternal('https://www.getlektor.com/');
             }
           }
         ]
