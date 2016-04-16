@@ -1,16 +1,18 @@
 import os
 import re
-import uuid
-import click
 import shutil
-import tempfile
 import subprocess
+import tempfile
+import uuid
+from contextlib import contextmanager
 from datetime import datetime
 from functools import partial
-from contextlib import contextmanager
+
+import click
 from jinja2 import Environment, PackageLoader
 
-from .utils import slugify, fs_enc
+from .utils import fs_enc, slugify
+from lektor._compat import text_type
 
 
 _var_re = re.compile(r'@([^@]+)@')
@@ -94,7 +96,7 @@ class Generator(object):
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
-                if isinstance(path, unicode):
+                if isinstance(path, text_type):
                     filename = filename.decode(fs_enc)
                 shutil.move(os.path.join(scratch, filename),
                             os.path.join(path, filename))

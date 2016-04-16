@@ -1,11 +1,12 @@
 import time
-import click
 import traceback
-
-from click import style
-
-from werkzeug.local import LocalProxy, LocalStack
 from contextlib import contextmanager
+
+import click
+from click import style
+from werkzeug.local import LocalProxy, LocalStack
+
+from lektor._compat import text_type
 
 
 _reporter_stack = LocalStack()
@@ -275,7 +276,7 @@ class CliReporter(Reporter):
         click.echo(' ' * (self.indentation * 2) + text)
 
     def _write_kv_info(self, key, value):
-        self._write_line('%s: %s' % (key, style(unicode(value), fg='yellow')))
+        self._write_line('%s: %s' % (key, style(text_type(value), fg='yellow')))
 
     def start_build(self, activity):
         self._write_line(style('Started %s' % activity, fg='cyan'))
@@ -356,7 +357,7 @@ class CliReporter(Reporter):
             self._write_kv_info(key, value)
 
     def report_generic(self, message):
-        self._write_line(style(unicode(message), fg='cyan'))
+        self._write_line(style(text_type(message), fg='cyan'))
 
     def enter_source(self):
         if not self.show_source_internals:

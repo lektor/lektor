@@ -1,20 +1,22 @@
-import os
 import errno
+import hashlib
+import os
+import posixpath
+import Queue
 import select
 import shutil
-import hashlib
-import tempfile
-import posixpath
-import threading
 import subprocess
-import Queue
-from contextlib import contextmanager
+import tempfile
+import threading
 from cStringIO import StringIO
+from contextlib import contextmanager
 
 from werkzeug import urls
 
-from lektor.utils import portable_popen, locate_executable
+from lektor._compat import (iteritems, iterkeys, range_type, string_types,
+    text_type)
 from lektor.exception import LektorException
+from lektor.utils import locate_executable, portable_popen
 
 
 devnull = open(os.devnull, 'rb+')
@@ -63,10 +65,10 @@ def _write_ssh_key_file(temp_fn, credentials):
                 kt, key = parts
             with open(temp_fn, 'wb') as f:
                 f.write(b'-----BEGIN %s PRIVATE KEY-----\n' % kt.upper())
-                for x in xrange(0, len(key), 64):
+                for x in range_type(0, len(key), 64):
                     f.write(key[x:x + 64].encode('utf-8') + b'\n')
                 f.write(b'-----END %s PRIVATE KEY-----\n' % kt.upper())
-            os.chmod(temp_fn, 0600)
+            os.chmod(temp_fn, 0o600)
             return temp_fn
 
 
@@ -90,7 +92,7 @@ def _temporary_folder(env):
     folder = tempfile.mkdtemp(prefix='.deploytemp', dir=base)
     scratch = os.path.join(folder, 'scratch')
     os.mkdir(scratch)
-    os.chmod(scratch, 0755)
+    os.chmod(scratch, 0o755)
     try:
         yield scratch
     finally:
@@ -298,7 +300,7 @@ class FtpConnection(object):
         return True
 
     def mkdir(self, path, recursive=True):
-        if isinstance(path, unicode):
+        if isinstance(path, text_type):
             path = path.encode('utf-8')
         if path in self._known_folders:
             return
@@ -315,7 +317,7 @@ class FtpConnection(object):
         self._known_folders.add(path)
 
     def append(self, filename, data):
-        if isinstance(filename, unicode):
+        if isinstance(filename, text_type):
             filename = filename.encode('utf-8')
         input = StringIO(data)
         try:
@@ -326,7 +328,7 @@ class FtpConnection(object):
         return True
 
     def get_file(self, filename, out=None):
-        if isinstance(filename, unicode):
+        if isinstance(filename, text_type):
             filename = filename.encode('utf-8')
         getvalue = False
         if out is None:
@@ -344,13 +346,13 @@ class FtpConnection(object):
         return out
 
     def upload_file(self, filename, src, mkdir=False):
-        if isinstance(src, basestring):
+        if isinstance(src, string_types):
             src = StringIO(src)
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
                 self.mkdir(directory, recursive=True)
-        if isinstance(filename, unicode):
+        if isinstance(filename, text_type):
             filename = filename.encode('utf-8')
         try:
             self.con.storbinary('STOR ' + filename, src,
@@ -375,7 +377,7 @@ class FtpConnection(object):
                 self.log_buffer.append(str(e))
 
     def delete_file(self, filename):
-        if isinstance(filename, unicode):
+        if isinstance(filename, text_type):
             filename = filename.encode('utf-8')
         try:
             self.con.delete(filename)
@@ -383,7 +385,7 @@ class FtpConnection(object):
             self.log_buffer.append(str(e))
 
     def delete_folder(self, filename):
-        if isinstance(filename, unicode):
+        if isinstance(filename, text_type):
             filename = filename.encode('utf-8')
         try:
             self.con.rmd(filename)
@@ -475,10 +477,10 @@ class FtpPublisher(Publisher):
     def consolidate_listing(self, con, current_artifacts):
         server_artifacts, duplicates = self.read_existing_artifacts(con)
         known_folders = set()
-        for artifact_name in current_artifacts.iterkeys():
+        for artifact_name in iterkeys(current_artifacts):
             known_folders.add(posixpath.dirname(artifact_name))
 
-        for artifact_name, checksum in server_artifacts.iteritems():
+        for artifact_name, checksum in iteritems(server_artifacts):
             if artifact_name not in current_artifacts:
                 con.log_buffer.append('000 Deleting %s' % artifact_name)
                 con.delete_file(artifact_name)
@@ -489,7 +491,7 @@ class FtpPublisher(Publisher):
 
         if duplicates or server_artifacts != current_artifacts:
             listing = []
-            for artifact_name, checksum in current_artifacts.iteritems():
+            for artifact_name, checksum in iteritems(current_artifacts):
                 listing.append('%s|%s\n' % (artifact_name, checksum))
             listing.sort()
             con.upload_file('.lektor/.listing.tmp', ''.join(listing))
@@ -655,7 +657,7 @@ builtin_publishers = {
 
 
 def publish(env, target, output_path, credentials=None, **extra):
-    url = urls.url_parse(unicode(target))
+    url = urls.url_parse(text_type(target))
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)

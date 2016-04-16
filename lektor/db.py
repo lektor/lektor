@@ -13,6 +13,7 @@ from jinja2.exceptions import UndefinedError
 from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
+from lektor._compat import string_types, text_type, iteritems, range_type
 from lektor import metaformat
 from lektor.utils import sort_normalize_string, cleanup_path, \
      untrusted_to_os_path, fs_enc
@@ -97,7 +98,7 @@ class _CmpHelper(object):
 
     @staticmethod
     def coerce(a, b):
-        if isinstance(a, basestring) and isinstance(b, basestring):
+        if isinstance(a, string_types) and isinstance(b, string_types):
             return sort_normalize_string(a), sort_normalize_string(b)
         if type(a) is type(b):
             return a, b
@@ -195,19 +196,19 @@ class Expression(object):
 
     def startswith(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-            lambda a, b: unicode(a).lower().startswith(unicode(b).lower()))
+            lambda a, b: text_type(a).lower().startswith(text_type(b).lower()))
 
     def endswith(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-            lambda a, b: unicode(a).lower().endswith(unicode(b).lower()))
+            lambda a, b: text_type(a).lower().endswith(text_type(b).lower()))
 
     def startswith_cs(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-                        lambda a, b: unicode(a).startswith(unicode(b)))
+                        lambda a, b: text_type(a).startswith(text_type(b)))
 
     def endswith_cs(self, other):
         return _BinExpr(self, _auto_wrap_expr(other),
-                        lambda a, b: unicode(a).endswith(unicode(b)))
+                        lambda a, b: text_type(a).endswith(text_type(b)))
 
     def false(self):
         return _IsBoolExpr(self, False)
@@ -381,7 +382,7 @@ class Record(SourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in (self.datamodel.label_i18n or {}).iteritems():
+        for lang, _ in iteritems((self.datamodel.label_i18n or {})):
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)
@@ -587,7 +588,7 @@ class Page(Record):
         # rewarded.
         q = self.children.include_undiscoverable(True)
 
-        for idx in xrange(len(url_path)):
+        for idx in range_type(len(url_path)):
             piece = '/'.join(url_path[:idx + 1])
             child = q.filter(F._slug == piece).first()
             if child is None:
@@ -983,8 +984,9 @@ class Query(object):
         # otherwise we can load it directly.
         return self._get(id, page_num=page_num)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.first() is not None
+    __nonzero__ = __bool__
 
     def __iter__(self):
         """Iterates over all records matched."""
@@ -1197,7 +1199,7 @@ class Database(object):
             try:
                 dir_path = os.path.dirname(fs_path)
                 for filename in os.listdir(dir_path):
-                    if not isinstance(filename, unicode):
+                    if not isinstance(filename, text_type):
                         try:
                             filename = filename.decode(fs_enc)
                         except UnicodeError:
@@ -1800,7 +1802,7 @@ class RecordCache(object):
 
     def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT,
                        virtual_path=None):
-        if isinstance(record_or_path, basestring):
+        if isinstance(record_or_path, string_types):
             path = record_or_path.strip('/')
         else:
             path, virtual_path = split_virtual_path(record_or_path.path)
