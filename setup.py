@@ -26,6 +26,11 @@ setup(
         'pip',
         'requests[security]',
     ],
+    extras_require={
+        ':python_version=="2.7"': [
+            'scandir',
+        ]
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

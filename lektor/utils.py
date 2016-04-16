@@ -12,7 +12,6 @@ import tempfile
 import traceback
 import unicodedata
 import uuid
-from contextlib import contextmanager
 from threading import Thread
 
 import click
@@ -24,7 +23,7 @@ from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
 from datetime import datetime
-from lektor._compat import (queue, integer_types, iteritems, reraise,
+from lektor._compat import (queue, integer_types, iteritems,
                             string_types, text_type, range_type)
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
 
@@ -446,31 +445,56 @@ def get_dependent_url(url_path, suffix, ext=None):
     return posixpath.join(url_directory, url_base + u'@' + suffix + ext)
 
 
-@contextmanager
 def atomic_open(filename, mode='r'):
-    if 'r' not in mode:
-        fd, tmp_filename = tempfile.mkstemp(
-            dir=os.path.dirname(filename), prefix='.__atomic-write')
-        os.chmod(tmp_filename, 0o644)
-        f = os.fdopen(fd, mode)
-    else:
-        f = open(filename, mode)
-        tmp_filename = None
-    try:
-        yield f
-    except:
-        f.close()
-        exc_type, exc_value, tb = sys.exc_info()
-        if tmp_filename is not None:
+    return AtomicFile(filename, mode)
+
+
+class AtomicFile(object):
+
+    def __init__(self, filename, mode='r'):
+        if 'r' not in mode:
+            fd, tmp_filename = tempfile.mkstemp(
+                dir=os.path.dirname(filename), prefix='.__atomic-write')
+            os.chmod(tmp_filename, 0o644)
+            f = os.fdopen(fd, mode)
+        else:
+            f = open(filename, mode)
+            tmp_filename = None
+        self.name = filename
+        self.__f = f
+        self.__tmp_filename = tmp_filename
+
+    def __getattr__(self, name):
+        return getattr(self.__f, name)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close(rollback=tb is not None)
+
+    def rollback(self):
+        self.__f.close()
+        tmp_fn = self.__tmp_filename
+        if tmp_fn is not None:
             try:
-                os.remove(tmp_filename)
+                os.remove(tmp_fn)
             except OSError:
                 pass
-        reraise(exc_type, exc_value, tb)
-    else:
-        f.close()
-        if tmp_filename is not None:
-            rename(tmp_filename, filename)
+
+    def close(self, rollback=False):
+        if rollback:
+            return self.rollback()
+        self.__f.close()
+        tmp_fn = self.__tmp_filename
+        if tmp_fn is not None:
+            rename(tmp_fn, self.name)
+
+    def __repr__(self):
+        return '<AtomicFile %r %r>' % (
+            self.name,
+            self.mode,
+        )
 
 
 def portable_popen(cmd, *args, **kwargs):

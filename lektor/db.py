@@ -28,6 +28,7 @@ from lektor.environment import PRIMARY_ALT
 from lektor.databags import Databags
 from lektor.filecontents import FileContents
 from lektor.utils import make_relative_url, split_virtual_path
+from lektor.vfs import FileSystem
 
 
 def get_alts(source=None, fallback=False):
@@ -1110,6 +1111,11 @@ class Database(object):
         self.env = env
         if config is None:
             config = env.load_config()
+
+        self.vfs = FileSystem(
+            self.env.root_path,
+            ignore_path_callback=self.env.is_uninteresting_source_name
+        )
         self.config = config
         self.datamodels = load_datamodels(env)
         self.flowblocks = load_flowblocks(env)
