@@ -1,4 +1,3 @@
-import os
 import hashlib
 import operator
 import posixpath
@@ -15,8 +14,7 @@ from werkzeug.utils import cached_property
 from lektor._compat import string_types, text_type, integer_types, \
      iteritems, range_type
 from lektor import metaformat
-from lektor.utils import sort_normalize_string, cleanup_path, \
-     untrusted_to_os_path
+from lektor.utils import sort_normalize_string, cleanup_path
 from lektor.sourceobj import SourceObject, VirtualSourceObject
 from lektor.context import get_ctx, Context
 from lektor.datamodel import load_datamodels, load_flowblocks
@@ -1119,12 +1117,6 @@ class Database(object):
         self.config = config
         self.datamodels = load_datamodels(env)
         self.flowblocks = load_flowblocks(env)
-
-    def to_fs_path(self, path):
-        """Convenience function to convert a path into an file system path."""
-        # TODO: remove me
-        return os.path.join(self.env.root_path, 'content',
-                            untrusted_to_os_path(path))
 
     def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None,
                       fallback=True):

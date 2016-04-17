@@ -14,7 +14,7 @@ def test_basic_editor(scratch_tree):
 
     assert sess.closed
 
-    with open(sess.get_fs_path()) as f:
+    with sess.vfs.open(sess.get_vfs_path()) as f:
         assert f.read().splitlines() == [
             '_model: page',
             '---',
@@ -42,7 +42,7 @@ def test_create_alt(scratch_tree, scratch_pad):
 
     # When we use the editor to change this, we only want the fields that
     # changed compared to the base to be included.
-    with open(sess.get_fs_path(alt='de')) as f:
+    with sess.vfs.open(sess.get_vfs_path(alt='de')) as f:
         assert f.read().splitlines() == [
             'body: Hallo Welt!'
         ]

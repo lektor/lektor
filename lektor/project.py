@@ -4,7 +4,7 @@ import hashlib
 from inifile import IniFile
 from werkzeug.utils import cached_property
 
-from lektor.utils import untrusted_to_os_path, get_cache_dir, comma_delimited
+from lektor.utils import get_cache_dir, comma_delimited
 
 
 class Project(object):
@@ -30,12 +30,11 @@ class Project(object):
         name = inifile.get('project.name') or os.path.basename(
             filename).rsplit('.')[0].title()
         path = os.path.join(os.path.dirname(filename),
-                            untrusted_to_os_path(
-                                inifile.get('project.path') or '.'))
+                            (inifile.get('project.path') or '.').strip('/'))
         return cls(
             name=name,
             project_file=filename,
-            tree=path,
+            tree=os.path.normpath(path),
         )
 
     @classmethod

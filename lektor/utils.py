@@ -108,13 +108,6 @@ def is_path_child_of(a, b, strict=True):
     return a_p[:len(b_p)] == b_p and len(a_p) > len(b_p)
 
 
-def untrusted_to_os_path(path):
-    path = path.strip('/').replace('/', os.path.sep)
-    if not isinstance(path, text_type):
-        path = path.decode(fs_enc, 'replace')
-    return path
-
-
 def is_path(path):
     return os.path.sep in path or (os.path.altsep and os.path.altsep in path)
 

@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from lektor._compat import text_type, iteritems, string_types
 from lektor.metaformat import serialize
-from lektor.utils import atomic_open, is_valid_id, secure_filename, \
+from lektor.utils import is_valid_id, secure_filename, \
      increment_filename
 from lektor.environment import PRIMARY_ALT
 
@@ -120,6 +120,10 @@ class EditorSession(object):
         self._master_delete = False
         self.is_attachment = is_attachment
         self.closed = False
+
+    @property
+    def vfs(self):
+        return self.pad.db.vfs
 
     def to_json(self):
         label = None
@@ -257,9 +261,9 @@ class EditorSession(object):
     def __len__(self):
         return len(self.items())
 
-    def get_fs_path(self, alt=PRIMARY_ALT):
+    def get_vfs_path(self, alt=PRIMARY_ALT):
         """The path to the record file on the file system."""
-        base = self.pad.db.to_fs_path(self.path)
+        base = self.vfs.join_path('content', self.path)
         suffix = '.lr'
         if alt != PRIMARY_ALT:
             suffix = '+%s%s' % (alt, suffix)
@@ -268,15 +272,15 @@ class EditorSession(object):
         return os.path.join(base, 'contents' + suffix)
 
     @property
-    def fs_path(self):
+    def vfs_path(self):
         """The file system path of the content file on disk."""
-        return self.get_fs_path(self.alt)
+        return self.get_vfs_path(self.alt)
 
     @property
-    def attachment_fs_path(self):
+    def attachment_vfs_path(self):
         """The file system path of the actual attachment."""
         if self.is_attachment:
-            return self.pad.db.to_fs_path(self.path)
+            return self.vfs.join_path('content', self.path)
 
     def revert_key(self, key):
         """Reverts a key to the implied value."""
@@ -328,7 +332,7 @@ class EditorSession(object):
             raise BadEdit('Record does not exist.')
         if self.is_attachment:
             raise BadEdit('Cannot attach something to an attachment.')
-        directory = self.pad.db.to_fs_path(self.path)
+        directory = self.vfs.join_path('content', self.path)
 
         safe_filename = secure_filename(filename)
 
@@ -338,16 +342,16 @@ class EditorSession(object):
                 break
             safe_filename = increment_filename(fn)
 
-        with atomic_open(fn, 'wb') as f:
+        with self.vfs.open(fn, 'wb') as f:
             shutil.copyfileobj(fp, f)
         return safe_filename
 
     def _attachment_delete_impl(self):
-        files = [self.fs_path]
+        files = [self.vfs_path]
         if self._master_delete:
-            files.append(self.attachment_fs_path)
+            files.append(self.attachment_vfs_path)
             for alt in self.pad.db.config.list_alternatives():
-                files.append(self.get_fs_path(alt))
+                files.append(self.get_vfs_path(alt))
 
         for fn in files:
             try:
@@ -356,7 +360,7 @@ class EditorSession(object):
                 pass
 
     def _page_delete_impl(self):
-        directory = os.path.dirname(self.fs_path)
+        directory = os.path.dirname(self.vfs_path)
 
         if self._recursive_delete:
             try:
@@ -368,7 +372,7 @@ class EditorSession(object):
             raise BadDelete('Master deletes of pages require that recursive '
                             'deleting is enabled.')
 
-        for fn in self.fs_path, directory:
+        for fn in self.vfs_path, directory:
             try:
                 os.unlink(fn)
             except OSError:
@@ -393,15 +397,15 @@ class EditorSession(object):
         # When creating a new alt from a primary self.exists is True but
         # the file does not exist yet.  In this case we want to explicitly
         # create it anyways instead of bailing.
-        if not self._changed and self.exists and os.path.exists(self.fs_path):
+        if not self._changed and self.exists and os.path.exists(self.vfs_path):
             return
 
         try:
-            os.makedirs(os.path.dirname(self.fs_path))
+            os.makedirs(os.path.dirname(self.vfs_path))
         except OSError:
             pass
 
-        with atomic_open(self.fs_path, 'wb') as f:
+        with self.vfs.open(self.vfs_path, 'wb') as f:
             for chunk in serialize(self.iteritems(fallback=False),
                                    encoding='utf-8'):
                 f.write(chunk)
