@@ -1,5 +1,3 @@
-import os
-import shutil
 import posixpath
 
 from collections import OrderedDict
@@ -269,7 +267,7 @@ class EditorSession(object):
             suffix = '+%s%s' % (alt, suffix)
         if self.is_attachment:
             return base + suffix
-        return os.path.join(base, 'contents' + suffix)
+        return self.vfs.join_path(base, 'contents' + suffix)
 
     @property
     def vfs_path(self):
@@ -337,13 +335,12 @@ class EditorSession(object):
         safe_filename = secure_filename(filename)
 
         while 1:
-            fn = os.path.join(directory, safe_filename)
-            if not os.path.isfile(fn):
+            fn = posixpath.join(directory, safe_filename)
+            if not self.vfs.is_file(fn):
                 break
             safe_filename = increment_filename(fn)
 
-        with self.vfs.open(fn, 'wb') as f:
-            shutil.copyfileobj(fp, f)
+        self.vfs.emplace_file(fn, fp)
         return safe_filename
 
     def _attachment_delete_impl(self):
@@ -354,29 +351,20 @@ class EditorSession(object):
                 files.append(self.get_vfs_path(alt))
 
         for fn in files:
-            try:
-                os.unlink(fn)
-            except OSError:
-                pass
+            self.vfs.delete(fn)
 
     def _page_delete_impl(self):
-        directory = os.path.dirname(self.vfs_path)
+        directory = posixpath.dirname(self.vfs_path)
 
         if self._recursive_delete:
-            try:
-                shutil.rmtree(directory)
-            except (OSError, IOError):
-                pass
+            self.vfs.delete(directory, recursive=True)
             return
         elif self._master_delete:
             raise BadDelete('Master deletes of pages require that recursive '
                             'deleting is enabled.')
 
         for fn in self.vfs_path, directory:
-            try:
-                os.unlink(fn)
-            except OSError:
-                pass
+            self.vfs.delete(fn)
 
     def _delete_impl(self):
         if self.alt != PRIMARY_ALT:
@@ -397,14 +385,10 @@ class EditorSession(object):
         # When creating a new alt from a primary self.exists is True but
         # the file does not exist yet.  In this case we want to explicitly
         # create it anyways instead of bailing.
-        if not self._changed and self.exists and os.path.exists(self.vfs_path):
+        if not self._changed and self.exists and self.vfs.exists(self.vfs_path):
             return
 
-        try:
-            os.makedirs(os.path.dirname(self.vfs_path))
-        except OSError:
-            pass
-
+        self.vfs.make_directories(posixpath.dirname(self.vfs_path))
         with self.vfs.open(self.vfs_path, 'wb') as f:
             for chunk in serialize(self.iteritems(fallback=False),
                                    encoding='utf-8'):

@@ -122,6 +122,14 @@ class Vfs(object):
         except VfsError:
             return False
 
+    def exists(self, path):
+        """Checks if a path exists."""
+        try:
+            self.describe_path(path)
+        except VfsError:
+            return False
+        return True
+
     def open(self, path, mode='rb'):
         """Opens a file in a specific mode.  This can either be rb/wb
         for reading or writing binary.  This operation needs to return a
@@ -130,6 +138,11 @@ class Vfs(object):
         if mode not in ('rb', 'wb'):
             raise TypeError('Invalid open mode %r' % (mode,))
         return self._open_impl(path.lstrip('/'), mode)
+
+    def emplace_file(self, path, stream):
+        """Shortcut for copying a file in from a stream."""
+        with self.open(path, 'wb') as f:
+            shutil.copyfileobj(stream, f)
 
     def iter_path(self, path):
         """Iterates over all items in a path and yields path entries."""
@@ -145,6 +158,11 @@ class Vfs(object):
 
     def delete(self, path, recursive=False):
         """Deletes a file."""
+        raise NotImplementedError()
+
+    def make_directories(self, path):
+        """Creates all the missing directories for the given path."""
+        raise NotImplementedError()
 
     def _is_ignored_file(self, name):
         if self.settings.ignore_path_callback is not None:
@@ -265,3 +283,13 @@ class FileSystem(Vfs):
                     return False
                 raise
             return True
+
+    def make_directories(self, path):
+        with self._translate_io_error(path):
+            try:
+                os.makedirs(self._make_native_path(path))
+            except OSError as e:
+                if e.errno == errno.EISDIR or \
+                   e.errno == errno.EEXIST:
+                    return
+                raise
