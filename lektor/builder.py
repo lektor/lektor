@@ -490,8 +490,7 @@ class FileInfo(object):
             if os.path.isdir(self.filename):
                 h.update(b'DIR\x00')
                 for filename in sorted(os.listdir(self.filename)):
-                    if self.env.is_uninteresting_source_name(filename):
-                        continue
+                    # XXX: skip ignored files?
                     if isinstance(filename, text_type):
                         filename = filename.encode('utf-8')
                     h.update(filename)

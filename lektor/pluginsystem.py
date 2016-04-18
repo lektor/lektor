@@ -1,5 +1,6 @@
 import os
 import sys
+import posixpath
 import pkg_resources
 
 from weakref import ref as weakref
@@ -76,17 +77,18 @@ class Plugin(object):
         will be cached for the current build context but this can be
         disabled by passing ``fresh=True``.
         """
+        config_vfilename = posixpath.join('configs', self.id + '.ini')
         ctx = get_ctx()
         if ctx is not None and not fresh:
             cache = ctx.cache.setdefault(__name__ + ':configs', {})
             cfg = cache.get(self.id)
             if cfg is None:
-                cfg = IniFile(self.config_filename)
+                cfg = IniFile(self.env.vfs, config_vfilename)
                 cache[self.id] = cfg
         else:
-            cfg = IniFile(self.config_filename)
+            cfg = IniFile(self.env.vfs, config_vfilename)
         if ctx is not None:
-            ctx.record_dependency(self.config_filename)
+            ctx.record_dependency(config_vfilename)
         return cfg
 
     def emit(self, event, **kwargs):

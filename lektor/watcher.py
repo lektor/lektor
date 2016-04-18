@@ -61,8 +61,6 @@ class Watcher(BasicWatcher):
         self.output_path = output_path
 
     def is_interesting(self, time, event_type, path):
-        if self.env.is_uninteresting_source_name(os.path.basename(path)):
-            return False
         if self.output_path is not None and \
            os.path.abspath(path).startswith(self.output_path):
             return False

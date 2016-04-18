@@ -7,11 +7,17 @@ from lektor.vfs import PathNotFound
 
 def get_asset(pad, filename, parent):
     vfs = pad.db.vfs
+    path = vfs.join_path(parent.source_filename, filename)
 
     try:
-        record = vfs.describe_path(vfs.join_path(
-            parent.source_filename, filename))
+        record = vfs.describe_path(path)
     except PathNotFound:
+        return None
+
+    # Check if the asset is ignored.  We chop off the leading assets/
+    # in the path here as the db API assumes a path below that folder.
+    if pad.db.is_ignored_asset(path.split('/', 1)[-1]):
+        print 'NO ASSET', path
         return None
 
     if record.is_dir:
@@ -97,6 +103,7 @@ class Directory(Asset):
 
     @property
     def children(self):
+        # TODO: optimize. this stats twice with get_child
         try:
             files = self.vfs.list_dir(self.source_filename)
         except PathNotFound:

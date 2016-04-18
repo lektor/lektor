@@ -20,7 +20,6 @@ setup(
         'mistune',
         'Flask',
         'EXIFRead',
-        'inifile',
         'Babel',
         'setuptools',
         'pip',

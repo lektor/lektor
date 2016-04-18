@@ -1,32 +1,33 @@
 import os
 import sys
 import hashlib
-from inifile import IniFile
-from werkzeug.utils import cached_property
 
-from lektor.utils import get_cache_dir, comma_delimited
+from lektor.utils import get_cache_dir
+from lektor.inifile import IniView
+from lektor.vfs import FileSystem
 
 
 class Project(object):
 
     def __init__(self, name, project_file, tree):
         self.name = name
-        self.project_file = project_file
+        self.project_file = os.path.abspath(project_file)
         self.tree = os.path.normpath(tree)
         self.id = hashlib.md5(self.tree.encode('utf-8')).hexdigest()
+        self.vfs = FileSystem(self.tree)
 
     def open_config(self):
         if self.project_file is None:
             raise RuntimeError('This project has no project file.')
-        return IniFile(self.project_file)
+        return IniView(os.path.abspath(self.project_file))
 
     @classmethod
     def from_file(cls, filename):
         """Reads a project from a project file."""
-        inifile = IniFile(filename)
+        filename = os.path.abspath(filename)
+        inifile = IniView(filename)
         if inifile.is_new:
             return None
-
         name = inifile.get('project.name') or os.path.basename(
             filename).rsplit('.')[0].title()
         path = os.path.join(os.path.dirname(filename),
@@ -115,24 +116,6 @@ class Project(object):
         """Create a new environment for this project."""
         from lektor.environment import Environment
         return Environment(self, load_plugins=load_plugins)
-
-    @cached_property
-    def excluded_assets(self):
-        """List of glob patterns matching filenames of excluded assets.
-
-        Combines with default EXCLUDED_ASSETS.
-        """
-        config = self.open_config()
-        return list(comma_delimited(config.get('project.excluded_assets', '')))
-
-    @cached_property
-    def included_assets(self):
-        """List of glob patterns matching filenames of included assets.
-
-        Overrides both excluded_assets and the default excluded patterns.
-        """
-        config = self.open_config()
-        return list(comma_delimited(config.get('project.included_assets', '')))
 
     def to_json(self):
         return {

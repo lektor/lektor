@@ -19,6 +19,10 @@ else:
     from os import scandir
 
 
+# Special files that should always be ignored.
+IGNORED_FILES = ['thumbs.db', 'desktop.ini', 'Icon\r']
+
+
 class VfsError(LektorException):
 
     def __init__(self, message, path=None):
@@ -88,16 +92,7 @@ class VfsPathEntry(object):
         )
 
 
-class VfsSettings(object):
-
-    def __init__(self, ignore_path_callback=None):
-        self.ignore_path_callback = ignore_path_callback
-
-
 class Vfs(object):
-
-    def __init__(self, **settings):
-        self.settings = VfsSettings(**settings)
 
     def join_path(self, a, *other):
         """Joins two virtual paths together."""
@@ -106,7 +101,7 @@ class Vfs(object):
 
     def describe_path(self, path):
         """Describes a path."""
-        return self._describe_path(*posixpath.split(u'/' + path.lstrip(u'/')))
+        return self._describe_path(*posixpath.split(path.lstrip(u'/')))
 
     def is_file(self, path):
         """Checks if a path is a file."""
@@ -146,7 +141,7 @@ class Vfs(object):
 
     def iter_path(self, path):
         """Iterates over all items in a path and yields path entries."""
-        return self._iter_path(u'/' + path.lstrip(u'/'))
+        return self._iter_path(path.lstrip(u'/'))
 
     def list_dir(self, path):
         """Like :meth:`iter_path` but only returns a list of filenames."""
@@ -164,17 +159,15 @@ class Vfs(object):
         """Creates all the missing directories for the given path."""
         raise NotImplementedError()
 
-    def _is_ignored_file(self, name):
-        if self.settings.ignore_path_callback is not None:
-            if self.settings.ignore_path_callback(name):
-                return True
-        return False
+    def _is_ignored_dirent(self, dirent):
+        return dirent.name[:1] == '.' or \
+            dirent.name in IGNORED_FILES
 
 
 class FileSystem(Vfs):
 
-    def __init__(self, base, fs_enc=None, **settings):
-        Vfs.__init__(self, **settings)
+    def __init__(self, base, fs_enc=None):
+        Vfs.__init__(self)
         if fs_enc is None:
             fs_enc = sys.getfilesystemencoding()
             try:
@@ -249,7 +242,7 @@ class FileSystem(Vfs):
         with self._translate_io_error(path):
             return AtomicFile(self._make_native_path(path), mode)
 
-    def iter_path(self, path):
+    def _iter_path(self, path):
         with self._translate_io_error(path):
             for dirent in scandir(self._make_native_path(path)):
                 name = dirent.name
@@ -260,10 +253,8 @@ class FileSystem(Vfs):
                         # XXX: the virtual file system ignores things that
                         # cannot be decoded to unicode
                         continue
-                if self._is_ignored_file(name):
-                    continue
                 entry = self._describe_path_impl(path, name, dirent=dirent)
-                if entry is not None:
+                if entry is not None and not self._is_ignored_dirent(entry):
                     yield entry
 
     def rename(self, src, dst):
@@ -293,3 +284,6 @@ class FileSystem(Vfs):
                    e.errno == errno.EEXIST:
                     return
                 raise
+
+    def __repr__(self):
+        return '<FileSystem base=%r>' % self.base

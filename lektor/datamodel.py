@@ -1,8 +1,4 @@
-import errno
 import math
-import os
-
-from inifile import IniFile
 
 from lektor import types
 from lektor._compat import iteritems, itervalues
@@ -10,6 +6,8 @@ from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
 from lektor.i18n import get_i18n_block, load_i18n_block, generate_i18n_kvs
 from lektor.pagination import Pagination
 from lektor.utils import bool_from_string, slugify
+from lektor.inifile import IniFile
+from lektor.vfs import PathNotFound
 
 
 class ChildConfig(object):
@@ -572,28 +570,21 @@ def flowblock_from_data(env, block_data):
     )
 
 
-def iter_inis(path):
+def iter_inis(vfs, path):
     try:
-        for filename in os.listdir(path):
-            if not filename.endswith('.ini') or filename[:1] in '_.':
-                continue
-            fn = os.path.join(path, filename)
-            if os.path.isfile(fn):
-                base = filename[:-4]
-                base = base.encode('utf-8').decode('ascii', 'replace')
-                inifile = IniFile(fn)
-                yield base, inifile
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+        for dirent in vfs.iter_path(path):
+            if dirent.name.endswith('.ini') and \
+               dirent.is_file:
+                yield dirent.name[:-4], IniFile(vfs, dirent.path)
+    except PathNotFound:
+        pass
 
 
 def load_datamodels(env):
     """Loads the datamodels for a specific environment."""
-    path = os.path.join(env.root_path, 'models')
     data = {}
 
-    for model_id, inifile in iter_inis(path):
+    for model_id, inifile in iter_inis(env.vfs, 'models'):
         data[model_id] = datamodel_data_from_ini(model_id, inifile)
 
     rv = {}
@@ -628,10 +619,9 @@ def load_datamodels(env):
 
 def load_flowblocks(env):
     """Loads all the flow blocks for a specific environment."""
-    path = os.path.join(env.root_path, 'flowblocks')
     rv = {}
 
-    for flowblock_id, inifile in iter_inis(path):
+    for flowblock_id, inifile in iter_inis(env.vfs, 'flowblocks'):
         rv[flowblock_id] = flowblock_from_data(env,
             flowblock_data_from_ini(flowblock_id, inifile))
 

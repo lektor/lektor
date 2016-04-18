@@ -116,7 +116,7 @@ class Context(object):
     @property
     def vfs(self):
         """A reference to the virtualized file system."""
-        return self.pad.db.vfs
+        return self.pad.db.env.vfs
 
     @property
     def record(self):

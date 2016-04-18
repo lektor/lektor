@@ -3,7 +3,7 @@ import json
 import errno
 
 from collections import OrderedDict
-from inifile import IniFile
+from inifile import IniView
 
 from lektor.context import get_ctx
 from lektor.utils import iter_dotted_path_prefixes, resolve_dotted_value, \
@@ -16,7 +16,7 @@ def load_databag(filename):
             with open(filename, 'r') as f:
                 return json.load(f, object_pairs_hook=OrderedDict)
         elif filename.endswith('.ini'):
-            return decode_flat_data(IniFile(filename).items(),
+            return decode_flat_data(IniView(filename).items(),
                                     dict_cls=OrderedDict)
     except (OSError, IOError) as e:
         if e.errno != errno.ENOENT:

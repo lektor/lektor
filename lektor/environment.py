@@ -1,5 +1,4 @@
 import copy
-import fnmatch
 import os
 import re
 import uuid
@@ -8,19 +7,24 @@ from collections import OrderedDict
 
 import jinja2
 from babel import dates
-from inifile import IniFile
 from jinja2.loaders import split_template_path
 from lektor.markdown import Markdown
 from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
 from lektor._compat import iteritems, string_types
-from lektor.context import (config_proxy, get_asset_url, get_ctx, get_locale,
-    site_proxy, url_to)
+from lektor.context import config_proxy, get_asset_url, get_ctx, get_locale, \
+     site_proxy, url_to
 from lektor.i18n import get_i18n_block
 from lektor.pluginsystem import PluginController
-from lektor.utils import (bool_from_string, format_lat_long, secure_url,
-    tojson_filter)
+from lektor.utils import bool_from_string, format_lat_long, secure_url, \
+     tojson_filter, comma_delimited
+from lektor.vfs import IGNORED_FILES
+
+
+# These files are important for artifacts and must not be ignored when
+# they are built even though they start with dots.
+SPECIAL_ARTIFACTS = ['.htaccess', '.htpasswd']
 
 
 # Special value that identifies a target to the primary alt
@@ -70,6 +74,8 @@ DEFAULT_CONFIG = {
     'PACKAGES': {},
     'ALTERNATIVES': OrderedDict(),
     'PRIMARY_ALTERNATIVE': None,
+    'EXCLUDED_ASSETS': [],
+    'INCLUDED_ASSETS': [],
     'SERVERS': {},
 }
 
@@ -99,6 +105,10 @@ def update_config_from_ini(config, inifile):
 
     config['PROJECT'].update(inifile.section_as_dict('project'))
     config['PACKAGES'].update(inifile.section_as_dict('packages'))
+    config['EXCLUDED_ASSETS'] = list(
+        comma_delimited(inifile.get('project.excluded_assets', '')))
+    config['INCLUDED_ASSETS'] = list(
+        comma_delimited(inifile.get('project.included_assets', '')))
 
     for sect in inifile.sections():
         if sect.startswith('servers.'):
@@ -121,28 +131,6 @@ def update_config_from_ini(config, inifile):
     else:
         if config['ALTERNATIVES']:
             raise RuntimeError('Alternatives defined but no primary set.')
-
-
-# Special files that should always be ignored.
-IGNORED_FILES = ['thumbs.db', 'desktop.ini', 'Icon\r']
-
-# These files are important for artifacts and must not be ignored when
-# they are built even though they start with dots.
-SPECIAL_ARTIFACTS = ['.htaccess', '.htpasswd']
-
-# Default glob pattern of ignored files.
-EXCLUDED_ASSETS = ['_*', '.*']
-
-# Default glob pattern of included files (higher-priority than EXCLUDED_ASSETS).
-INCLUDED_ASSETS = []
-
-
-def any_fnmatch(filename, patterns):
-    for pat in patterns:
-        if fnmatch.fnmatch(filename, pat):
-            return True
-
-    return False
 
 
 class ServerInfo(object):
@@ -238,13 +226,9 @@ class CustomJinjaEnvironment(jinja2.Environment):
 
 class Config(object):
 
-    def __init__(self, filename=None):
-        self.filename = filename
+    def __init__(self, inifile):
         self.values = copy.deepcopy(DEFAULT_CONFIG)
-
-        if filename is not None and os.path.isfile(filename):
-            inifile = IniFile(filename)
-            update_config_from_ini(self.values, inifile)
+        update_config_from_ini(self.values, inifile)
 
     def __getitem__(self, name):
         return self.values[name]
@@ -402,6 +386,7 @@ class Environment(object):
     def __init__(self, project, load_plugins=True):
         self.project = project
         self.root_path = os.path.abspath(project.tree)
+        self.vfs = project.vfs
 
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,
@@ -482,24 +467,12 @@ class Environment(object):
 
     def load_config(self):
         """Loads the current config."""
-        return Config(self.project.project_file)
+        return Config(self.project.open_config())
 
     def new_pad(self):
         """Convenience function to create a database and pad."""
         from lektor.db import Database
         return Database(self).new_pad()
-
-    def is_uninteresting_source_name(self, filename):
-        """These files are ignored when sources are built into artifacts."""
-        fn = filename.lower()
-        if fn in SPECIAL_ARTIFACTS:
-            return False
-
-        proj = self.project
-        if any_fnmatch(filename, INCLUDED_ASSETS + proj.included_assets):
-            # Included by the user's project config, thus not uninteresting.
-            return False
-        return any_fnmatch(filename, EXCLUDED_ASSETS + proj.excluded_assets)
 
     def is_ignored_artifact(self, asset_name):
         """This is used by the prune tool to figure out which files in the

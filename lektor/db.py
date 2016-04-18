@@ -1,6 +1,7 @@
 import hashlib
 import operator
 import posixpath
+import fnmatch
 
 from itertools import islice, chain
 
@@ -25,7 +26,7 @@ from lektor.environment import PRIMARY_ALT
 from lektor.databags import Databags
 from lektor.filecontents import FileContents
 from lektor.utils import make_relative_url, split_virtual_path
-from lektor.vfs import FileSystem, PathNotFound, IncompatiblePathType
+from lektor.vfs import PathNotFound, IncompatiblePathType
 
 
 def get_alts(source=None, fallback=False):
@@ -57,6 +58,15 @@ def get_alts(source=None, fallback=False):
                 rv.append(alt)
 
     return rv
+
+
+def _any_fnmatch(path, patterns):
+    name = posixpath.basename(path)
+    for pat in patterns:
+        if fnmatch.fnmatch(name, pat) or \
+           fnmatch.fnmatch(path, pat):
+            return True
+    return False
 
 
 def _process_slug(slug, last_segment=False):
@@ -1110,13 +1120,21 @@ class Database(object):
         if config is None:
             config = env.load_config()
 
-        self.vfs = FileSystem(
-            self.env.root_path,
-            ignore_path_callback=self.env.is_uninteresting_source_name
-        )
         self.config = config
         self.datamodels = load_datamodels(env)
         self.flowblocks = load_flowblocks(env)
+
+    @property
+    def vfs(self):
+        return self.env.vfs
+
+    def is_ignored_asset(self, path):
+        """Checks if an asset by path is ignored."""
+        if _any_fnmatch(path, chain(['.htaccess', '_htaccess'],
+                                    self.config['INCLUDED_ASSETS'])):
+            return False
+        return _any_fnmatch(path, chain(
+            ['_*', '.*'], self.config['EXCLUDED_ASSETS']))
 
     def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None,
                       fallback=True):
@@ -1202,7 +1220,8 @@ class Database(object):
 
             try:
                 for dirent in self.vfs.iter_path(entry.base):
-                    if dirent.name.endswith('.lr'):
+                    if dirent.name.endswith('.lr') or \
+                       dirent.name[:1] in '._':
                         continue
 
                     # We found an attachment.  Attachments always live
