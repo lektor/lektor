@@ -14,7 +14,7 @@ Flow block models work pretty much exactly the same as [Regular Models
 :ref](../).  The differences are mostly minor and of cosmetic nature.  They
 are stored in the `flowblocks/` folder and are ini files just like models.
 
-Instead of using `[models]` as section, the section is called `[block]`.
+Instead of using `[model]` as section, the section is called `[block]`.
 
 Here a very basic flow block model `flowblocks/text.ini`:
 
