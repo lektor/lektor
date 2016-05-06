@@ -9,7 +9,7 @@ from flask import (Blueprint, Response, abort, current_app, render_template,
 from werkzeug.datastructures import Headers
 from werkzeug.wsgi import wrap_file
 
-from lektor._compat import StringIO, string_types
+from lektor._compat import BytesIO, string_types
 
 
 bp = Blueprint('serve', __name__)
@@ -18,7 +18,7 @@ bp = Blueprint('serve', __name__)
 def rewrite_html_for_editing(fp, edit_url):
     contents = fp.read()
 
-    button = '''
+    button = b'''
     <style type="text/css">
       #lektor-edit-link {
         position: fixed;
@@ -62,10 +62,10 @@ def rewrite_html_for_editing(fp, edit_url):
       })();
     </script>
     ''' % {
-        'edit_url': edit_url.encode('utf-8'),
+        b'edit_url': edit_url.encode('utf-8'),
     }
 
-    return StringIO(contents + button)
+    return BytesIO(contents + button)
 
 
 def send_file(filename):
