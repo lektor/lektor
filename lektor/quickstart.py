@@ -96,7 +96,7 @@ class Generator(object):
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
-                if isinstance(path, text_type):
+                if not isinstance(path, text_type):
                     filename = filename.decode(fs_enc)
                 shutil.move(os.path.join(scratch, filename),
                             os.path.join(path, filename))
@@ -122,7 +122,7 @@ class Generator(object):
                     except OSError:
                         pass
                     with open(fn, 'w') as f:
-                        f.write(rv.encode('utf-8') + '\n')
+                        f.write(rv + '\n')
 
 
 def get_default_author():
