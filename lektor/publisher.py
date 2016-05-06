@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from werkzeug import urls
 
 from lektor._compat import (iteritems, iterkeys, range_type, string_types,
-    text_type, Queue, BytesIO)
+    text_type, queue, BytesIO)
 from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
 
@@ -142,7 +142,7 @@ class Command(object):
 
         # Windows platforms do not have select() for files
         if os.name == 'nt':
-            q = Queue()
+            q = queue.Queue()
             def reader(stream):
                 while 1:
                     line = stream.readline()
