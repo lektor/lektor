@@ -10,7 +10,7 @@ from xml.etree import ElementTree as etree
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
 from lektor.uilink import BUNDLE_BIN_PATH
-from lektor._compat import iteritems
+from lektor._compat import iteritems, text_type
 
 
 # yay shitty library

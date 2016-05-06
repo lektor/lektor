@@ -1,7 +1,6 @@
 import mimetypes
 import os
 import posixpath
-from cStringIO import StringIO
 from werkzeug.exceptions import NotFound
 from zlib import adler32
 
@@ -10,7 +9,7 @@ from flask import (Blueprint, Response, abort, current_app, render_template,
 from werkzeug.datastructures import Headers
 from werkzeug.wsgi import wrap_file
 
-from lektor._compat import string_types
+from lektor._compat import StringIO, string_types
 
 
 bp = Blueprint('serve', __name__)

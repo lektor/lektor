@@ -374,8 +374,8 @@ class WorkerPool(object):
 
 def slugify(value):
     # XXX: not good enough
-    rv = u' '.join(value.strip().encode(
-        'ascii', 'ignore').strip().split()).lower()
+    value_ascii = value.strip().encode('ascii', 'ignore').strip().decode()
+    rv = u' '.join(value_ascii.split()).lower()
     words = _slug_re.findall(rv)
     return '-'.join(words)
 

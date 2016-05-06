@@ -2,19 +2,17 @@ import errno
 import hashlib
 import os
 import posixpath
-import Queue
 import select
 import shutil
 import subprocess
 import tempfile
 import threading
-from cStringIO import StringIO
 from contextlib import contextmanager
 
 from werkzeug import urls
 
 from lektor._compat import (iteritems, iterkeys, range_type, string_types,
-    text_type)
+    text_type, Queue, BytesIO)
 from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
 
@@ -144,7 +142,7 @@ class Command(object):
 
         # Windows platforms do not have select() for files
         if os.name == 'nt':
-            q = Queue.Queue()
+            q = Queue()
             def reader(stream):
                 while 1:
                     line = stream.readline()
@@ -319,7 +317,7 @@ class FtpConnection(object):
     def append(self, filename, data):
         if isinstance(filename, text_type):
             filename = filename.encode('utf-8')
-        input = StringIO(data)
+        input = BytesIO(data)
         try:
             self.con.storbinary('APPE ' + filename, input)
         except Exception as e:
@@ -332,7 +330,7 @@ class FtpConnection(object):
             filename = filename.encode('utf-8')
         getvalue = False
         if out is None:
-            out = StringIO()
+            out = BytesIO()
             getvalue = True
         try:
             self.con.retrbinary('RETR ' + filename, out.write)
@@ -347,7 +345,7 @@ class FtpConnection(object):
 
     def upload_file(self, filename, src, mkdir=False):
         if isinstance(src, string_types):
-            src = StringIO(src)
+            src = BytesIO(src)
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
