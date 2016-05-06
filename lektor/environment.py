@@ -4,6 +4,7 @@ import os
 import re
 import uuid
 from functools import update_wrapper
+from collections import OrderedDict
 
 import jinja2
 from babel import dates
@@ -67,7 +68,7 @@ DEFAULT_CONFIG = {
         'url_style': 'relative',
     },
     'PACKAGES': {},
-    'ALTERNATIVES': {},
+    'ALTERNATIVES': OrderedDict(),
     'PRIMARY_ALTERNATIVE': None,
     'SERVERS': {},
 }

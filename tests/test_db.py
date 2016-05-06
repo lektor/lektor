@@ -41,12 +41,12 @@ def test_alt_fallback(pad):
     assert wolf_page['_source_alt'] == '_primary'
     assert wolf_page['name'] == 'Wolf'
 
-    # If we ask for the lats of that page, we will only get english
+    # If we ask for the alts of that page, we will only get english
     assert get_alts(wolf_page) == ['en']
 
-    # Unless we include fallbacks in which case we will also see english
+    # Unless we include fallbacks in which case we will also see german
     # show up in the list.
-    assert get_alts(wolf_page, fallback=True) == ['de', 'en']
+    assert get_alts(wolf_page, fallback=True) == ['en', 'de']
 
 
 def test_alt_parent(pad):
@@ -66,12 +66,12 @@ def test_url_matching_with_customized_slug_in_alt(pad):
     assert de['_source_alt'] == 'de'
     assert de.path == '/projects/slave'
 
-    assert get_alts(en) == ['de', 'en']
+    assert get_alts(en) == ['en', 'de']
 
 
 def test_basic_alts(pad):
     with Context(pad=pad):
-        assert get_alts() == ['de', 'en']
+        assert get_alts() == ['en', 'de']
 
 
 def test_basic_query_syntax(pad, F):
