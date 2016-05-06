@@ -122,8 +122,8 @@ class DateTimeType(SingleInputType):
             return raw.missing_value('Missing datetime')
         try:
             chunks = raw.value.split(' ')
-            date_info = map(int, chunks[0].split('-'))
-            time_info = map(int, chunks[1].split(':'))
+            date_info = [int(bit) for bit in chunks[0].split('-')]
+            time_info = [int(bit) for bit in chunks[1].split(':')]
             datetime_info = date_info + time_info
             result = datetime(*datetime_info)
 
