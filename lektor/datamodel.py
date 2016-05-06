@@ -7,7 +7,7 @@ from inifile import IniFile
 from lektor import types
 from lektor._compat import iteritems, itervalues
 from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
-from lektor.i18n import get_i18n_block, load_i18n_block
+from lektor.i18n import get_i18n_block, load_i18n_block, generate_i18n_kvs
 from lektor.pagination import Pagination
 from lektor.utils import bool_from_string, slugify
 
@@ -641,12 +641,7 @@ system_fields = {}
 
 
 def add_system_field(name, **opts):
-    for key, value in opts.items():
-        if key.endswith('_i18n'):
-            base_key = key[:-5]
-            for lang, trans in iteritems(load_i18n_block(value)):
-                opts['%s[%s]' % (base_key, lang)] = trans
-
+    opts = dict(generate_i18n_kvs(**opts))
     ty = types.builtin_types[opts.pop('type')]
     system_fields[name] = (ty, opts)
 
