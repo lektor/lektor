@@ -134,15 +134,25 @@ def get_default_author():
     import pwd
     ent = pwd.getpwuid(os.getuid())
     if ent and ent.pw_gecos:
-        return ent.pw_gecos.decode('utf-8', 'replace')
-    return getpass.getuser().decode('utf-8', 'replace')
+        name = ent.pw_gecos
+        if isinstance(name, text_type):
+            return name
+        else:
+            return name.decode('utf-8', 'replace')
+
+    name = getpass.getuser()
+    if isinstance(name, text_type):
+        return name
+    else:
+        return name.decode('utf-8', 'replace')
 
 
 def get_default_author_email():
     try:
-        return subprocess.Popen(['git', 'config', 'user.email'],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE).communicate()[0].strip()
+        value = subprocess.Popen(['git', 'config', 'user.email'],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE).communicate()[0].strip()
+        return value.decode('utf-8')
     except Exception:
         return None
 
