@@ -233,9 +233,9 @@ var utils = {
     });
   },
 
-  apiRequest: function(url, options) {
+  request: function(url, options) {
     options = options || {};
-    options.url = utils.getApiUrl(url);
+    options.url = url;
     if (options.json !== undefined) {
       options.data = JSON.stringify(options.json);
       options.contentType = 'application/json';
@@ -256,6 +256,10 @@ var utils = {
           });
         });
     });
+  },
+
+  apiRequest: function(url, options) {
+    return utils.request(utils.getApiUrl(url), options);
   },
 
   fsToUrlPath: function(fsPath) {

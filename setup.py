@@ -26,6 +26,13 @@ setup(
         'pip',
         'requests[security]',
     ],
+    extras_require={
+        'webadmin': [
+            'flask-login',
+            'flask-sqlalchemy',
+            'flask-wtf',
+        ],
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

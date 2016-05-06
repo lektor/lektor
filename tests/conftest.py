@@ -2,13 +2,17 @@ import os
 import pytest
 import shutil
 import tempfile
+import subprocess
+
+
+def relpath(p):
+    return os.path.join(os.path.dirname(__file__), p)
 
 
 @pytest.fixture(scope='function')
 def project(request):
     from lektor.project import Project
-    return Project.from_path(os.path.join(os.path.dirname(__file__),
-                                          'demo-project'))
+    return Project.from_path(relpath('demo-project'))
 
 
 @pytest.fixture(scope='function')
@@ -158,6 +162,31 @@ def webui(request, env, pad):
 
     def cleanup():
         try:
+            shutil.rmtree(output_path)
+        except (OSError, IOError):
+            pass
+    request.addfinalizer(cleanup)
+
+    return WebUI(env, output_path=output_path)
+
+
+@pytest.fixture(scope='function')
+def webui_secure(request, env, pad):
+    old_proj = env.project.project_file
+
+    shutil.move(old_proj, relpath('old_proj.bak'))
+    shutil.copyfile(relpath('secure.lektorproject'), old_proj)
+    subprocess.call(
+        ['lektor', 'createdb', '--silent', '--username', 'admin',
+         '--password', 'admin'], cwd=env.root_path)
+
+    from lektor.admin.webui import WebUI
+    output_path = tempfile.mkdtemp()
+
+    def cleanup():
+        try:
+            shutil.move(relpath('old_proj.bak'), old_proj)
+            os.remove(os.path.join(env.root_path, 'lektor.db'))
             shutil.rmtree(output_path)
         except (OSError, IOError):
             pass

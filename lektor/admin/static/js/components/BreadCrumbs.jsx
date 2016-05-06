@@ -18,6 +18,7 @@ class BreadCrumbs extends RecordComponent {
     super(props);
     this.state = {
       recordPathInfo: null,
+      is_admin: false,
     };
     this._onKeyPress = this._onKeyPress.bind(this);
   }
@@ -25,6 +26,7 @@ class BreadCrumbs extends RecordComponent {
   componentDidMount() {
     super.componentDidMount();
     this.updateCrumbs();
+    this.isAdmin();
     window.addEventListener('keydown', this._onKeyPress);
   }
 
@@ -57,6 +59,15 @@ class BreadCrumbs extends RecordComponent {
           }
         });
       });
+  }
+
+  isAdmin() {
+    $.ajax('/users/is-admin', {
+      context: this,
+      success: function(is_admin) {
+        this.setState(is_admin);
+      }
+    });
   }
 
   _onKeyPress(event) {
@@ -93,6 +104,34 @@ class BreadCrumbs extends RecordComponent {
     dialogSystem.showDialog(Publish);
   }
 
+  _onUsers(e) {
+    this.props.history.pushState(null, '/admin/users');
+  }
+
+  _onLogout(e) {
+    window.location = utils.getCanonicalUrl('/users/logout');
+  }
+
+  renderUsers() {
+    if (this.state.is_admin) {
+      return (
+        <button className="btn btn-default" onClick={
+          this._onUsers.bind(this)} title={i18n.trans('USERS')}>
+          <i className="fa fa-users fa-fw"></i></button>
+      );
+    }
+  }
+
+  renderLogout() {
+    if ($LEKTOR_CONFIG.is_database) {
+      return (
+        <button className="btn btn-default" onClick={
+          this._onLogout.bind(this)} title={i18n.trans('LOG_OUT')}>
+          <i className="fa fa-sign-out fa-fw"></i></button>
+      );
+    }
+  }
+
   renderGlobalActions() {
     return (
       <div className="btn-group">
@@ -108,6 +147,8 @@ class BreadCrumbs extends RecordComponent {
         <button className="btn btn-default" onClick={
           this._onCloseClick.bind(this)} title={i18n.trans('RETURN_TO_WEBSITE')}>
           <i className="fa fa-eye fa-fw"></i></button>
+        {this.renderUsers()}
+        {this.renderLogout()}
       </div>
     );
   }
