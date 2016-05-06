@@ -63,7 +63,7 @@ class FailureController(object):
             os.makedirs(os.path.dirname(fn))
         except OSError:
             pass
-        with open(fn, 'wb') as f:
+        with open(fn, mode='w') as f:
             json.dump(BuildFailure.from_exc_info(
                 artifact_name, exc_info).to_json(), f)
             f.write('\n')

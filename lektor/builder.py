@@ -496,7 +496,7 @@ class FileInfo(object):
                         filename = filename.encode('utf-8')
                     h.update(filename)
                     h.update(_describe_fs_path_for_checksum(
-                        os.path.join(self.filename, filename)))
+                        os.path.join(self.filename, filename.decode('utf-8'))))
                     h.update(b'\x00')
             else:
                 with open(self.filename, 'rb') as f:

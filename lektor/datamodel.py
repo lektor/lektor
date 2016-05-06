@@ -579,7 +579,8 @@ def iter_inis(path):
                 continue
             fn = os.path.join(path, filename)
             if os.path.isfile(fn):
-                base = filename[:-4].decode('ascii', 'replace')
+                base = filename[:-4]
+                base = base.encode('utf-8').decode('ascii', 'replace')
                 inifile = IniFile(fn)
                 yield base, inifile
     except OSError as e:
