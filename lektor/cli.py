@@ -17,6 +17,13 @@ def echo_json(data):
     click.echo(json.dumps(data, indent=2).rstrip())
 
 
+def pruneflag(cli):
+    return click.option(
+        '--prune/--no-prune', default=True,
+        help='Controls if old '
+        'artifacts should be pruned.  "prune" is the default.')(cli)
+
+
 def buildflag(cli):
     return click.option(
         '-f', '--build-flag', 'build_flags', multiple=True,
@@ -124,8 +131,7 @@ def cli(ctx, project=None, language=None):
 @click.option('--watch', is_flag=True, help='If this is enabled the build '
               'process goes into an automatic loop where it watches the '
               'file system for changes and rebuilds.')
-@click.option('--prune/--no-prune', default=True, help='Controls if old '
-              'artifacts should be pruned.  This is the default.')
+@pruneflag
 @click.option('-v', '--verbose', 'verbosity', count=True,
               help='Increases the verbosity of the logging.')
 @click.option('--source-info-only', is_flag=True,
@@ -305,12 +311,14 @@ def deploy_cmd(ctx, server, output_path, **credentials):
 @click.option('-O', '--output-path', type=click.Path(), default=None,
               help='The dev server will build into the same folder as '
               'the build command by default.')
+@pruneflag
 @click.option('-v', '--verbose', 'verbosity', count=True,
               help='Increases the verbosity of the logging.')
 @buildflag
 @click.option('--browse', is_flag=True)
 @pass_context
-def server_cmd(ctx, host, port, output_path, verbosity, build_flags, browse):
+def server_cmd(ctx, host, port, output_path, prune, verbosity, build_flags,
+               browse):
     """The server command will launch a local server for development.
 
     Lektor's development server will automatically build all files into
@@ -325,7 +333,7 @@ def server_cmd(ctx, host, port, output_path, verbosity, build_flags, browse):
     click.echo(' * Project path: %s' % ctx.get_project().project_path)
     click.echo(' * Output path: %s' % output_path)
     run_server((host, port), env=ctx.get_env(), output_path=output_path,
-               verbosity=verbosity, ui_lang=ctx.ui_lang,
+               prune=prune, verbosity=verbosity, ui_lang=ctx.ui_lang,
                build_flags=build_flags,
                lektor_dev=os.environ.get('LEKTOR_DEV') == '1',
                browse=browse)
