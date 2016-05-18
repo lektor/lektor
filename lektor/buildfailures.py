@@ -42,7 +42,7 @@ class FailureController(object):
         """Looks up a failure for the given artifact name."""
         fn = self.get_filename(artifact_name)
         try:
-            with open(fn, 'rb') as f:
+            with open(fn, 'r') as f:
                 return BuildFailure(json.load(f))
         except IOError as e:
             if e.errno != errno.ENOENT:
