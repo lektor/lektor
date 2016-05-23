@@ -338,7 +338,7 @@ class EditorSession(object):
                 break
             safe_filename = increment_filename(fn)
 
-        with atomic_open(fn, 'w') as f:
+        with atomic_open(fn, 'wb') as f:
             shutil.copyfileobj(fp, f)
         return safe_filename
 
