@@ -43,6 +43,7 @@ so they might not keep pace with development on Lektor.
 * [tags :ext](https://github.com/ajdavis/lektor-tags): For each tag on site, build a list of pages with that tag.
 * [i18n :ext](https://github.com/numericube/lektor-i18n-plugin): Use GetText .PO files to translate your site **content**.
 * [htmlmin :ext](https://github.com/vesuvium/lektor-htmlmin): Automatically minifies .html files in build directory
+* [creative-commons :ext](https://github.com/humrochagf/lektor-creative-commons): Add Creative Commons license to your pages
 
 ! Have your own plugin and you want to see it here?  Just [edit this page
 on GitHub :ref](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr),
