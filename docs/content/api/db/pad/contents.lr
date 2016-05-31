@@ -38,7 +38,7 @@ how to do this through the [get :ref](get/) method:
 
 ## Plugin Usage
 
-Within plugins it's typically not a good idae to construct a new Pad.
+Within plugins it's typically not a good idea to construct a new Pad.
 Instead you can get access to the current pad from the active context:
 
 ```python
