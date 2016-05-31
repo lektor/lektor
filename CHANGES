@@ -3,6 +3,14 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+2.3
+---
+
+Released on 31st of May 2016
+
+- Fixed an issue with `get_alts` not being available in the
+  template environment.
+
 2.2
 ---
 
