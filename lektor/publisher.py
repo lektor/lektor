@@ -2,19 +2,17 @@ import errno
 import hashlib
 import os
 import posixpath
-import Queue
 import select
 import shutil
 import subprocess
 import tempfile
 import threading
-from cStringIO import StringIO
 from contextlib import contextmanager
 
 from werkzeug import urls
 
 from lektor._compat import (iteritems, iterkeys, range_type, string_types,
-    text_type)
+    text_type, queue, StringIO)
 from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
 
@@ -144,7 +142,7 @@ class Command(object):
 
         # Windows platforms do not have select() for files
         if os.name == 'nt':
-            q = Queue.Queue()
+            q = queue.Queue()
             def reader(stream):
                 while 1:
                     line = stream.readline()
@@ -256,7 +254,7 @@ class FtpConnection(object):
         del self.log_buffer[:]
         for chunk in log:
             for line in chunk.splitlines():
-                if isinstance(line, str):
+                if not isinstance(line, text_type):
                     line = line.decode('utf-8', 'replace')
                 yield line.rstrip()
 
@@ -291,7 +289,7 @@ class FtpConnection(object):
         self.con.set_pasv(passive)
 
         try:
-            log.append(self.con.cwd(self.url.path.encode('utf-8')))
+            log.append(self.con.cwd(self.url.path))
         except Exception as e:
             log.append(str(e))
             return False
@@ -300,8 +298,8 @@ class FtpConnection(object):
         return True
 
     def mkdir(self, path, recursive=True):
-        if isinstance(path, text_type):
-            path = path.encode('utf-8')
+        if not isinstance(path, text_type):
+            path = path.decode('utf-8')
         if path in self._known_folders:
             return
         dirname, basename = posixpath.split(path)
@@ -317,8 +315,8 @@ class FtpConnection(object):
         self._known_folders.add(path)
 
     def append(self, filename, data):
-        if isinstance(filename, text_type):
-            filename = filename.encode('utf-8')
+        if not isinstance(filename, text_type):
+            filename = filename.decode('utf-8')
         input = StringIO(data)
         try:
             self.con.storbinary('APPE ' + filename, input)
@@ -328,8 +326,8 @@ class FtpConnection(object):
         return True
 
     def get_file(self, filename, out=None):
-        if isinstance(filename, text_type):
-            filename = filename.encode('utf-8')
+        if not isinstance(filename, text_type):
+            filename = filename.decode('utf-8')
         getvalue = False
         if out is None:
             out = StringIO()
@@ -352,8 +350,8 @@ class FtpConnection(object):
             directory = posixpath.dirname(filename)
             if directory:
                 self.mkdir(directory, recursive=True)
-        if isinstance(filename, text_type):
-            filename = filename.encode('utf-8')
+        if not isinstance(filename, text_type):
+            filename = filename.decode('utf-8')
         try:
             self.con.storbinary('STOR ' + filename, src,
                                 blocksize=32768)
@@ -471,7 +469,7 @@ class FtpPublisher(Publisher):
             con.upload_file(tmp_dst, source, mkdir=True)
             con.rename_file(tmp_dst, artifact_name)
             con.append('.lektor/listing', '%s|%s\n' % (
-                artifact_name.encode('utf-8'), checksum
+                artifact_name, checksum
             ))
 
     def consolidate_listing(self, con, current_artifacts):

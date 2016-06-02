@@ -28,7 +28,7 @@ if PY2:
     iteritems = lambda d: d.iteritems()
 
     from cStringIO import StringIO as BytesIO, StringIO
-    import Queue
+    import Queue as queue
     NativeStringIO = BytesIO
 
     exec('def reraise(tp, value, tb=None):\n raise tp, value, tb')
@@ -46,7 +46,7 @@ else:
     iteritems = lambda d: iter(d.items())
 
     from io import BytesIO, StringIO
-    from queue import Queue
+    import queue
     NativeStringIO = StringIO
 
     def reraise(tp, value, tb=None):

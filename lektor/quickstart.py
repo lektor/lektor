@@ -96,7 +96,7 @@ class Generator(object):
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
-                if isinstance(path, text_type):
+                if not isinstance(path, text_type):
                     filename = filename.decode(fs_enc)
                 shutil.move(os.path.join(scratch, filename),
                             os.path.join(path, filename))
@@ -122,7 +122,7 @@ class Generator(object):
                     except OSError:
                         pass
                     with open(fn, 'w') as f:
-                        f.write(rv.encode('utf-8') + '\n')
+                        f.write(rv + '\n')
 
 
 def get_default_author():
@@ -134,15 +134,25 @@ def get_default_author():
     import pwd
     ent = pwd.getpwuid(os.getuid())
     if ent and ent.pw_gecos:
-        return ent.pw_gecos.decode('utf-8', 'replace')
-    return getpass.getuser().decode('utf-8', 'replace')
+        name = ent.pw_gecos
+        if isinstance(name, text_type):
+            return name
+        else:
+            return name.decode('utf-8', 'replace')
+
+    name = getpass.getuser()
+    if isinstance(name, text_type):
+        return name
+    else:
+        return name.decode('utf-8', 'replace')
 
 
 def get_default_author_email():
     try:
-        return subprocess.Popen(['git', 'config', 'user.email'],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE).communicate()[0].strip()
+        value = subprocess.Popen(['git', 'config', 'user.email'],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE).communicate()[0].strip()
+        return value.decode('utf-8')
     except Exception:
         return None
 

@@ -1,6 +1,8 @@
 import os
+import pwd
 import pytest
 import shutil
+import subprocess
 import tempfile
 
 
@@ -164,3 +166,34 @@ def webui(request, env, pad):
     request.addfinalizer(cleanup)
 
     return WebUI(env, output_path=output_path)
+
+
+@pytest.fixture(scope='function')
+def os_user(monkeypatch):
+    struct = pwd.struct_passwd((
+        'lektortest',  # pw_name
+        'lektorpass',  # pw_passwd
+        9999,  # pw_uid
+        9999,  # pw_gid
+        'Lektor Test',  # pw_gecos
+        '/tmp/lektortest',  # pw_dir
+        '/bin/lektortest',  # pw_shell
+    ))
+    monkeypatch.setattr("pwd.getpwuid", lambda id: struct)
+    monkeypatch.setenv("USER", "lektortest")
+    return "lektortest"
+
+
+@pytest.fixture(scope='function')
+def git_user_email(request):
+    old_email = subprocess.Popen(['git', 'config', 'user.email'],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE).communicate()[0].strip()
+
+    def cleanup():
+        subprocess.check_call(['git', 'config', 'user.email', old_email])
+    request.addfinalizer(cleanup)
+
+    email = "lektortest@example.com"
+    subprocess.check_call(['git', 'config', 'user.email', email])
+    return email

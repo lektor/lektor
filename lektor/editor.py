@@ -209,7 +209,7 @@ class EditorSession(object):
     def iteritems(self, fallback=True):
         done = set()
 
-        for key, value in self.original_data.iteritems():
+        for key, value in iteritems(self.original_data):
             done.add(key)
             if key in implied_keys:
                 continue
@@ -219,7 +219,7 @@ class EditorSession(object):
                 yield key, value
 
         if fallback and self.fallback_data:
-            for key, value in self.fallback_data.iteritems():
+            for key, value in iteritems(self.fallback_data):
                 if key in implied_keys or key in done:
                     continue
                 done.add(key)
@@ -338,7 +338,7 @@ class EditorSession(object):
                 break
             safe_filename = increment_filename(fn)
 
-        with atomic_open(fn, 'w') as f:
+        with atomic_open(fn, 'wb') as f:
             shutil.copyfileobj(fp, f)
         return safe_filename
 

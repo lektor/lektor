@@ -10,7 +10,7 @@ from xml.etree import ElementTree as etree
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
 from lektor.uilink import BUNDLE_BIN_PATH
-from lektor._compat import iteritems
+from lektor._compat import iteritems, text_type
 
 
 # yay shitty library
@@ -49,9 +49,13 @@ class EXIFInfo(object):
 
     def _get_string(self, key):
         try:
-            return self._mapping[key].values.decode('utf-8', 'replace')
+            value = self._mapping[key].values
         except KeyError:
             return None
+        if isinstance(value, text_type):
+            return value
+        else:
+            return value.decode('utf-8', 'replace')
 
     def _get_int(self, key):
         try:
@@ -144,9 +148,13 @@ class EXIFInfo(object):
     @property
     def flash_info(self):
         try:
-            return self._mapping['EXIF Flash'].printable.decode('utf-8')
+            value = self._mapping['EXIF Flash'].printable
         except KeyError:
             return None
+        if isinstance(value, text_type):
+            return value
+        else:
+            return value.decode('utf-8')
 
     @property
     def iso(self):
@@ -227,7 +235,7 @@ def get_image_info(fp):
     if len(head) < 24:
         return 'unknown', None, None
 
-    if head.strip().startswith('<?xml '):
+    if head.strip().startswith(b'<?xml '):
         return get_svg_info(fp)
 
     fmt = imghdr.what(None, head)

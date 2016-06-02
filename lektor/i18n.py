@@ -1,6 +1,7 @@
 import os
 import json
 
+from lektor._compat import iteritems
 from lektor.uilink import UI_LANG
 
 
@@ -64,3 +65,18 @@ def get_i18n_block(inifile_or_dict, key, pop=False):
             rv[k[len(key) + 1:-1]] = (inifile_or_dict.pop(k) if pop
                                       else inifile_or_dict[k])
     return rv
+
+
+def generate_i18n_kvs(**opts):
+    """Generates key-value pairs based on the kwargs passed into this function.
+    For every key ending in "_i18n", its corresponding value will be translated
+    and returned once for every language that has a known translation.
+    """
+    for key, value in opts.items():
+        if key.endswith('_i18n'):
+            base_key = key[:-5]
+            for lang, trans in iteritems(load_i18n_block(value)):
+                lang_key = '%s[%s]' % (base_key, lang)
+                yield lang_key, trans
+        else:
+            yield key, value

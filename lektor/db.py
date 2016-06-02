@@ -13,7 +13,8 @@ from jinja2.exceptions import UndefinedError
 from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
-from lektor._compat import string_types, text_type, iteritems, range_type
+from lektor._compat import string_types, text_type, integer_types, \
+     iteritems, range_type
 from lektor import metaformat
 from lektor.utils import sort_normalize_string, cleanup_path, \
      untrusted_to_os_path, fs_enc
@@ -108,12 +109,12 @@ class _CmpHelper(object):
             if isinstance(b, Undefined):
                 b = None
             return a, b
-        if isinstance(a, (int, long, float)):
+        if isinstance(a, integer_types) or isinstance(a, float):
             try:
                 return a, type(a)(b)
             except (ValueError, TypeError, OverflowError):
                 pass
-        if isinstance(b, (int, long, float)):
+        if isinstance(b, integer_types) or isinstance(b, float):
             try:
                 return type(b)(a), b
             except (ValueError, TypeError, OverflowError):
@@ -458,6 +459,9 @@ class Record(SourceObject):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.path)
 
     def __repr__(self):
         return '<%s model=%r path=%r%s%s>' % (
