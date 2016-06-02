@@ -21,7 +21,7 @@
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          {% for id, item in bag('menu').iteritems() %}
+          {% for id, item in bag('menu').items() %}
             <li{% if this.is_child_of(item.path) %} class="active"{% endif
               %}><a href="{{ item.path|url }}">{{ item.label }}</a></li>
           {% endfor %}
