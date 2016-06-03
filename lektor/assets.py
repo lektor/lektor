@@ -17,7 +17,7 @@ def get_asset(pad, filename, parent):
     # Check if the asset is ignored.  We chop off the leading assets/
     # in the path here as the db API assumes a path below that folder.
     if pad.db.is_ignored_asset(path.split('/', 1)[-1]):
-        print 'NO ASSET', path
+        print('NO ASSET {}'.format(path))
         return None
 
     if record.is_dir:
