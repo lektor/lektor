@@ -30,7 +30,7 @@ the installation is a bit more involved.
 
 You need to make sure you have the following software installed on your computer:
 
-* Python 2.7 (**not** Python 3.x, also `python-dev`, `libssl-dev` and
+* Python 2.7 or above (also `python-dev`, `libssl-dev` and
   `libffi-dev` is required on Ubuntu)
 * ImageMagick (`brew install imagemagick` can get you this on OS X and on
   Ubuntu the `imagemagick` package needs to be installed. On Windows do `choco

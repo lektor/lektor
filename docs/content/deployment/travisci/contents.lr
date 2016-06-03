@@ -28,7 +28,7 @@ file into your repository.  You can copy paste this over:
 
 ```yaml
 language: python
-python: 2.7
+python: 3.5
 install: "pip install Lektor"
 script: "lektor build"
 deploy:
@@ -119,7 +119,7 @@ caching.  Adjust your `.travis.yml` file to look like this:
 
 ```yaml
 language: python
-python: 2.7
+python: 3.5
 cache:
   directories:
     - $HOME/.cache/pip
@@ -139,7 +139,7 @@ config:
 
 ```yaml
 language: python
-python: 2.7
+python: 3.5
 cache:
   directories:
     - $HOME/.cache/pip
