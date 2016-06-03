@@ -30,12 +30,15 @@ file into your repository.  You can copy paste this over:
 language: python
 python: 2.7
 install: "pip install Lektor"
-script: "lektor build && lektor deploy ghpages"
+script: "lektor build"
+deploy:
+  provider: script
+  script: "lektor deploy ghpages"
 ```
 
 Because Travis already comes with all dependencies we need other than
 Lektor itself we just need to pip install Lektor and we're ready to go.  For
-the build step we just invoke `lektor build` and on success we invoke
+the build step we invoke `lektor build`, and for the deploy step we invoke
 `lektor deploy ghpages` to ship it to the ghpages server.  We still need
 to configure that.
 
@@ -122,7 +125,10 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.cache/lektor/builds
 install: "pip install Lektor"
-script: "lektor build && lektor deploy ghpages"
+script: "lektor build"
+deploy:
+  provider: script
+  script: "lektor deploy ghpages"
 ```
 
 ## Restricting Branches
@@ -139,7 +145,10 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.cache/lektor/builds
 install: "pip install Lektor"
-script:
-  - "lektor build"
-  - 'test "$TRAVIS_PULL_REQUEST" == false && test "$TRAVIS_BRANCH" == master && lektor deploy ghpages'
+script: "lektor build"
+deploy:
+  provider: script
+  script: "lektor deploy ghpages"
+  on:
+    branch: master
 ```
