@@ -948,12 +948,16 @@ def process_build_flags(flags):
 
 class Builder(object):
 
-    def __init__(self, pad, destination_path, build_flags=None):
+    def __init__(self, pad, destination_path, buildstate_path=None,
+                 build_flags=None):
         self.build_flags = process_build_flags(build_flags)
         self.pad = pad
         self.destination_path = os.path.abspath(os.path.join(
             pad.db.env.root_path, destination_path))
-        self.meta_path = os.path.join(self.destination_path, '.lektor')
+        if buildstate_path:
+            self.meta_path = buildstate_path
+        else:
+            self.meta_path = os.path.join(self.destination_path, '.lektor')
         self.failure_controller = FailureController(pad, self.destination_path)
 
         try:
