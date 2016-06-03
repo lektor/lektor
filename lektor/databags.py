@@ -3,9 +3,9 @@ import json
 import errno
 
 from collections import OrderedDict
-from inifile import IniView
 
 from lektor.context import get_ctx
+from lektor.inifile import IniView
 from lektor.utils import iter_dotted_path_prefixes, resolve_dotted_value, \
      merge, decode_flat_data
 

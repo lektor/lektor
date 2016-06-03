@@ -4,10 +4,10 @@ import posixpath
 import pkg_resources
 
 from weakref import ref as weakref
-from inifile import IniFile
 
 from lektor._compat import iteritems, itervalues
 from lektor.context import get_ctx
+from lektor.inifile import IniFile
 
 
 def get_plugin(plugin_id_or_class, env=None):
