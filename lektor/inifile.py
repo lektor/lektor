@@ -5,7 +5,8 @@ import posixpath
 
 from collections import MutableMapping, OrderedDict
 
-from lektor._compat import PY2, iteritems
+from lektor._compat import PY2, text_type, string_types, integer_types, \
+     iteritems
 from lektor.vfs import PathNotFound
 
 
@@ -107,11 +108,11 @@ class Dialect(object):
             return self.true[0]
         if value is False:
             return self.false[0]
-        if isinstance(value, (int, long, float)):
-            return str(value)
-        if not isinstance(value, basestring):
+        if isinstance(value, integer_types) or isinstance(value, float):
+            return text_type(value)
+        if not isinstance(value, string_types):
             raise TypeError('Cannot set value of this type')
-        return unicode(value)
+        return text_type(value)
 
     def dict_from_iterable(self, iterable):
         """Builds a mapping of values out of an iterable of lines."""
@@ -414,7 +415,7 @@ class IniView(IniData):
         f = None
         close = False
 
-        if isinstance(filename_or_fp, basestring):
+        if isinstance(filename_or_fp, string_types):
             filename = filename_or_fp
             try:
                 f = open(filename_or_fp, 'rb')
