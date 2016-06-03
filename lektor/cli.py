@@ -133,12 +133,16 @@ def cli(ctx, project=None, language=None):
               'source info is used by the web admin panel to quickly find '
               'information about the source files (for instance jump to '
               'files).')
+@click.option('--buildstate-path', type=click.Path(), default=None,
+              help='Path to a directory that Lektor will use for coordinating '
+              'the state of the build. Defaults to a directory named '
+              '`.lektor` inside the output path.')
 @buildflag
 @click.option('--profile', is_flag=True,
               help='Enable build profiler.')
 @pass_context
 def build_cmd(ctx, output_path, watch, prune, verbosity,
-              source_info_only, profile, build_flags):
+              source_info_only, buildstate_path, profile, build_flags):
     """Builds the entire project into the final artifacts.
 
     The default behavior is to build the project into the default build
@@ -168,6 +172,7 @@ def build_cmd(ctx, output_path, watch, prune, verbosity,
 
     def _build():
         builder = Builder(env.new_pad(), output_path,
+                          buildstate_path=buildstate_path,
                           build_flags=build_flags)
         if source_info_only:
             builder.update_all_source_infos()
