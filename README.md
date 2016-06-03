@@ -36,3 +36,13 @@ $ export LEKTOR_DEV=1
 $ lektor quickstart --path dev-example
 $ lektor --project dev-example server
 ```
+
+If you want to run the test suite instead:
+
+```
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install --editable .
+$ pip install pytest
+$ make test
+```
