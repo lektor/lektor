@@ -11,24 +11,11 @@ var DateTimePicker = require('react-widgets/lib/DateTimePicker');
 
 moment.locale(i18n.currentLanguage);
 momentLocalizer(moment);
+var guessedUserTZ = moment.tz.guess();
 
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
 }
-
-function isValidDate(year, month, day) {
-  var year = parseInt(year, 10);
-  var month = parseInt(month, 10);
-  var day = parseInt(day, 10);
-  var date = new Date(year, month - 1, day);
-  if (date.getFullYear() == year &&
-      date.getMonth() == month - 1 &&
-      date.getDate() == day) {
-    return true;
-  }
-  return false;
-}
-
 
 var InputWidgetMixin = {
   mixins: [BasicWidgetMixin],
@@ -206,36 +193,109 @@ var DateInputWidget = React.createClass({
   }
 });
 
+
 var DateTimeInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
-  onChange: function(inputDateTime, inputDateTimeStr) {
+  parseDateTime: function(inputDateTimeStr) {
+    var dt;
+    var chunks = inputDateTimeStr.split(' ');
+    if (chunks.length > 1 && chunks.length <= 3) {
+      if(chunks.length == 2) {
+        dt = moment.tz(chunks.slice(0,2).join(' '), guessedUserTZ);
+      } else {
+        // TODO if the timezone is invalid momentjs ignores it and moment.isValid still returns true
+        // needs a check for valid timezones
+        dt = moment.tz(chunks.slice(0,2).join(' '), chunks[2]);
+      }
+      if (dt.isValid()) {
+        return dt;
+      }
+    }
+  },
+
+  //2016-01-13 01:02:03 America/Dominica
+  getFormattedDateTime: function() {
+    var rv = this.datetime.getFullYear() + "-" +
+             ("0" + (this.datetime.getMonth() + 1)).slice(-2) + "-" +
+             ("0" + this.datetime.getDate()).slice(-2) + " " +
+             ("0" + this.datetime.getHours()).slice(-2) + ":" +
+             ("0" + this.datetime.getMinutes()).slice(-2) + ":" +
+             ("0" + this.datetime.getSeconds()).slice(-2);
+    if(this.tz) {
+      rv += " " + this.tz;
+    }
+    return rv;
+  },
+
+  getValidationFailureImpl: function() {
+    if (this.props.value && false) {
+      return new ValidationFailure({
+        //XXX: create timezone error message
+        message: i18n.trans('ERROR_INVALID_DATETIME')
+      });
+    }
+    return null;
+  },
+
+  onChange: function() {
     if(this.props.onChange) {
-      if(inputDateTime) {
-        this.props.onChange(inputDateTime.toISOString());
+      if(this.datetime) {
+        this.props.onChange(this.getFormattedDateTime());
       } else {
         this.props.onChange("");
       }
     }
   },
 
+  onDTChange: function(inputDateTime) {
+    this.datetime = inputDateTime? inputDateTime : undefined;
+    this.onChange();
+  },
+
+  onTZChange: function(event) {
+    var value = event.target.value;
+    this.tz = value? value : "";
+    this.onChange();
+  },
+
   render: function() {
     var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
     var inputDateTime;
     if(value) {
-      inputDateTime = new Date(value);
+      inputDateTime = this.parseDateTime(value);
     }
+    if(inputDateTime) {
+      this.datetime = inputDateTime.toDate();
+      this.tz = inputDateTime._z.name;
+    } else {
+      this.tz = guessedUserTZ;
+    }
+    var tzClassName = className;
 
     return (
+          <div className="form-group">
             <div className={className}>
                 <DateTimePicker
                   className={this.getInputClass()}
                   format={"MMM DD YYYY HH:mm"}
                   editFormat={"YYYY-MM-DD HH:mm"}
-                  onChange={onChange ? this.onChange : undefined}
-                  value={inputDateTime ? inputDateTime : null}
+                  onChange={onChange ? this.onDTChange : undefined}
+                  value={this.datetime ? this.datetime : null}
                   {...otherProps} />
+              </div>
+              <div className={tzClassName}>
+                <input
+                  className={this.getInputClass()}
+                  type={'text'}
+                  onChange={onChange ? this.onTZChange : undefined}
+                  value={this.tz ? this.tz : guessedUserTZ}
+                  />
+                <span className="input-group-addon">
+                  <i className="fa fa-globe"></i>
+                </span>
             </div>
+          </div>
     )
   }
 });
