@@ -1,14 +1,16 @@
-import os
 import mimetypes
+import os
 import posixpath
 from cStringIO import StringIO
+from werkzeug.exceptions import NotFound
 from zlib import adler32
 
-from flask import Blueprint, current_app, abort, Response, request, \
-     render_template
+from flask import (Blueprint, Response, abort, current_app, render_template,
+    request)
 from werkzeug.datastructures import Headers
-from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import wrap_file
+
+from lektor._compat import string_types
 
 
 bp = Blueprint('serve', __name__)
@@ -106,7 +108,7 @@ def send_file(filename):
                 os.path.getmtime(filename),
                 os.path.getsize(filename),
                 adler32(
-                    filename.encode('utf-8') if isinstance(filename, basestring)
+                    filename.encode('utf-8') if isinstance(filename, string_types)
                     else filename
                 ) & 0xffffffff,
             ))

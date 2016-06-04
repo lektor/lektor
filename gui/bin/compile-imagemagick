@@ -22,7 +22,7 @@ wget "http://www.ijg.org/files/jpegsrc.v7.tar.gz" -O libjpeg.tar.gz
 mkdir libjpeg
 (cd libjpeg; tar --strip-components=1 -xzf "../libjpeg.tar.gz")
 
-wget "http://downloads.sourceforge.net/project/libpng/libpng16/1.6.19/libpng-1.6.19.tar.gz" -O libpng.tar.gz
+wget "http://downloads.sourceforge.net/project/libpng/libpng16/1.6.21/libpng-1.6.21.tar.gz" -O libpng.tar.gz
 mkdir libpng
 (cd libpng; tar --strip-components=1 -xzf "../libpng.tar.gz")
 

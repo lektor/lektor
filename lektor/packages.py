@@ -10,6 +10,7 @@ import pkg_resources
 from subprocess import PIPE
 
 from .utils import portable_popen
+from lektor._compat import iteritems
 
 
 class PackageException(Exception):
@@ -18,7 +19,7 @@ class PackageException(Exception):
 
 def _get_package_version_from_project(cfg, name):
     choices = (name.lower(), 'lektor-' + name.lower())
-    for pkg, version in cfg.section_as_dict('packages').iteritems():
+    for pkg, version in iteritems(cfg.section_as_dict('packages')):
         if pkg.lower() in choices:
             return {
                 'name': pkg,
@@ -70,7 +71,7 @@ def add_package_to_project(project, req):
 def remove_package_from_project(project, name):
     cfg = project.open_config()
     choices = (name.lower(), 'lektor-' + name.lower())
-    for pkg, version in cfg.section_as_dict('packages').iteritems():
+    for pkg, version in iteritems(cfg.section_as_dict('packages')):
         if pkg.lower() in choices:
             del cfg['packages.%s' % pkg]
             cfg.save()
@@ -239,7 +240,7 @@ def update_cache(package_root, remote_packages, local_package_path,
     all_packages.update((x, None) for x in local_packages)
 
     # step 1: figure out which remote packages to install.
-    for package, version in remote_packages.iteritems():
+    for package, version in iteritems(remote_packages):
         old_version = old_manifest.pop(package, None)
         if old_version is None:
             to_install.append((package, version))
@@ -257,7 +258,7 @@ def update_cache(package_root, remote_packages, local_package_path,
             shutil.rmtree(package_root)
         except OSError:
             pass
-        to_install = all_packages.items()
+        to_install = iteritems(all_packages)
 
     if to_install:
         click.echo('Updating packages in %s for project' % package_root)

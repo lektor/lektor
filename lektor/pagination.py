@@ -1,5 +1,7 @@
 from math import ceil
 
+from lektor._compat import range_type
+
 
 class Pagination(object):
 
@@ -94,7 +96,7 @@ class Pagination(object):
             {% endmacro %}
         """
         last = 0
-        for num in xrange(1, self.pages + 1):
+        for num in range_type(1, self.pages + 1):
             if num <= left_edge or \
                (num > self.page - left_current - 1 and
                 num < self.page + right_current) or \

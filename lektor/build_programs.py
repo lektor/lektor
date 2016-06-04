@@ -3,6 +3,7 @@ import shutil
 
 from itertools import chain
 
+from lektor._compat import iteritems, range_type
 from lektor.db import Page, Attachment
 from lektor.assets import File, Directory
 from lektor.environment import PRIMARY_ALT
@@ -39,7 +40,7 @@ class SourceInfo(object):
         en_title = self.path
         if 'en' in title_i18n:
             en_title = title_i18n['en']
-        for key, value in title_i18n.iteritems():
+        for key, value in iteritems(title_i18n):
             if key == 'en':
                 continue
             if value != en_title:
@@ -183,7 +184,7 @@ class PageBuildProgram(BuildProgram):
 
     def _iter_paginated_children(self):
         total = self.source.datamodel.pagination_config.count_pages(self.source)
-        for page_num in xrange(1, total + 1):
+        for page_num in range_type(1, total + 1):
             yield Page(self.source.pad, self.source._data,
                        page_num=page_num)
 

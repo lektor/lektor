@@ -127,7 +127,7 @@ var FloatInputWidget = React.createClass({
   },
 
   getValidationFailureImpl: function() {
-    if (this.props.value && parseFloat(this.props.value) == NaN) {
+    if (this.props.value && isNaN(parseFloat(this.props.value))) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
       });
