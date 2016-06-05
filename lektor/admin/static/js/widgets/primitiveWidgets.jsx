@@ -198,20 +198,54 @@ var DateTimeInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
   parseDateTime: function(inputDateTimeStr) {
-    var dt;
+
+    var rv;
+    var momentDateTime
     var chunks = inputDateTimeStr.split(' ');
     if (chunks.length > 1 && chunks.length <= 3) {
       if(chunks.length == 2) {
-        dt = moment.tz(chunks.slice(0,2).join(' '), guessedUserTZ);
+        momentDateTime = moment.tz(chunks.slice(0,2).join(' '), guessedUserTZ);
       } else {
         // TODO if the timezone is invalid momentjs ignores it and moment.isValid still returns true
         // needs a check for valid timezones
-        dt = moment.tz(chunks.slice(0,2).join(' '), chunks[2]);
+        momentDateTime = moment.tz(chunks.slice(0,2).join(' '), chunks[2]);
       }
-      if (dt.isValid()) {
-        return dt;
+      if (momentDateTime.isValid()) {
+        rv.datetime = momentDateTime.toDate()
+        if (chunks.length == 3) {
+          if(momentDateTime._z) {
+            rv.tz = momentDateTime._z.name;
+            rv.valid = true;
+          } else {
+            rv.tz = chunks[2];
+            rv.valid = false;
+          }
+        } else {
+          //XXX force giuessed time zone or enable empty value here?
+          rv.tz = guessedUserTZ
+          rv.valid = true;
+        }
+        return rv;
       }
     }
+  },
+
+  isValidTimezone: function(inputDateTimeStr) {
+    var chunks = inputDateTimeStr.split(' ');
+    var dt = this.parseDateTime(inputDateTimeStr);
+    if (chunks.length == 3 && !dt.)
+    var tz = timezone;
+    return false;
+  },
+
+  getValidationFailureImpl: function() {
+    if (this.props.value && !this.isValidTimezone(this.props.value)) {
+      return new ValidationFailure({
+        //TODO: create timezone error message
+        message: i18n.trans('ERROR_INVALID_DATE')
+      });
+    }
+    return null;
   },
 
   //2016-01-13 01:02:03 America/Dominica
@@ -226,16 +260,6 @@ var DateTimeInputWidget = React.createClass({
       rv += " " + this.tz;
     }
     return rv;
-  },
-
-  getValidationFailureImpl: function() {
-    if (this.props.value && false) {
-      return new ValidationFailure({
-        //XXX: create timezone error message
-        message: i18n.trans('ERROR_INVALID_DATETIME')
-      });
-    }
-    return null;
   },
 
   onChange: function() {
@@ -259,19 +283,32 @@ var DateTimeInputWidget = React.createClass({
     this.onChange();
   },
 
+//TODO: add a "Guess TimeZone" Button
+//XXX: force user to use TimeZone or is not timezone also valid?
   render: function() {
     var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
+    var help = null;
+    var className = (className || '');
+    className += ' input-group';
+    this.dtz = this.parseDateTime(value)
+
+    var failure = this.getValidationFailure();
+    if (failure !== null) {
+      className += ' has-feedback has-' + failure.type;
+      var valClassName = 'validation-block validation-block-' + failure.type;
+      help = <div className={valClassName}>{failure.message}</div>;
+    }
+
     var inputDateTime;
     if(value) {
       inputDateTime = this.parseDateTime(value);
     }
     if(inputDateTime) {
       this.datetime = inputDateTime.toDate();
-      this.tz = inputDateTime._z.name;
+      this.tz = inputDateTime._z? inputDateTime._z.name : "";
     } else {
       this.tz = guessedUserTZ;
     }
-    var tzClassName = className;
 
     return (
           <div className="form-group">
@@ -284,7 +321,7 @@ var DateTimeInputWidget = React.createClass({
                   value={this.datetime ? this.datetime : null}
                   {...otherProps} />
               </div>
-              <div className={tzClassName}>
+              <div className={className}>
                 <input
                   className={this.getInputClass()}
                   type={'text'}
@@ -295,6 +332,7 @@ var DateTimeInputWidget = React.createClass({
                   <i className="fa fa-globe"></i>
                 </span>
             </div>
+            {help}
           </div>
     )
   }
