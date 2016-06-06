@@ -36,7 +36,9 @@ def edit_redirect():
     path = fs_path_to_url_path(record.path.split('@')[0])
     if record.alt != PRIMARY_ALT:
         path += '+' + record.alt
-    return redirect(url_for('dash.edit', path=path))
+    response = redirect(url_for('dash.edit', path=path))
+    response.autocorrect_location_header = False
+    return response
 
 
 def generic_endpoint(**kwargs):
