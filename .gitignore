@@ -7,6 +7,7 @@ build
 dist
 venv
 lektor/admin/static/gen
+/dev-example
 
 node_modules
 gui/build
