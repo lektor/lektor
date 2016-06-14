@@ -31,7 +31,18 @@
 @import "~bootstrap/less/responsive-utilities";
 
 // Fonts
-@import url(//fonts.googleapis.com/css?family=Roboto+Slab:400,300,300italic,400italic,500,500italic);
+@font-face {
+  font-family: 'Roboto Slab';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Roboto Slab Light'), local('RobotoSlab-Light'), url('../fonts/RobotoSlab-Light-webfont.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Roboto Slab';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Roboto Slab Regular'), local('RobotoSlab-Regular'), url('../fonts/RobotoSlab-Regular-webfont.ttf') format('truetype');
+}
 @font-family-serif: 'Roboto Slab', 'Georgia', 'Times New Roman', serif;
 @font-family-base: @font-family-serif;
 
