@@ -79,6 +79,15 @@ def test_markdown_images(pad, builder):
             b'This is an image <img src="../../../../blog/2015/12/post1/logo.png" alt="logo">.'
         ) in f.read()
 
+    images_and_custom_slug = pad.get('extra/images_and_custom_slug')
+
+    prog, _ = builder.build(images_and_custom_slug)
+    with prog.artifacts[0].open('rb') as f:
+        assert (
+            b'The image <img src="../../extra/_images_and_custom_slug.html/one_black_pixel.png" alt="one black pixel">'
+        ) in f.read()
+
+
 def test_string(env, pad):
     field = make_field(env, 'string')
 

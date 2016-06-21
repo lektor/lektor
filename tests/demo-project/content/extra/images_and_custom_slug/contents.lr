@@ -1,0 +1,8 @@
+title: Images and custom slug
+---
+body:
+
+#### text####
+content: The image ![one black pixel](one_black_pixel.png)
+---
+_slug: images_and_custom_slug.html
