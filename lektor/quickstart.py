@@ -121,7 +121,7 @@ class Generator(object):
                         os.makedirs(directory)
                     except OSError:
                         pass
-                    with open(fn, 'w') as f:
+                    with open(fn, 'wb') as f:
                         f.write(rv.encode('utf-8') + '\n')
 
 
