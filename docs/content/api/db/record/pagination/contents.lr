@@ -19,7 +19,7 @@ The following attributes exist on the pagination object:
 | ------------ | ------------
 | `current`    | The current record
 | `prev`       | The record for the last page (might be `None`)
-| `next`       | The record for the net page (might be `None`)
+| `next`       | The record for the next page (might be `None`)
 | `total`      | The total number of items across all pages
 | `pages`      | The total number of pages
 | `page`       | The number of current page
