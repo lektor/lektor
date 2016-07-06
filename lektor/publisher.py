@@ -553,7 +553,7 @@ class GithubPagesPublisher(Publisher):
             if keyfile or url.port:
                 ssh_command = _get_ssh_cmd(url.port, keyfile)
         else:
-            push_url = 'https://github.com/%s' % path
+            push_url = 'https://github.com/%s.git' % path
             cred = self.get_credentials(url, credentials)
 
         with open(os.path.join(repo, '.git', 'config'), 'a') as f:
