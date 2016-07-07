@@ -121,8 +121,8 @@ class Generator(object):
                         os.makedirs(directory)
                     except OSError:
                         pass
-                    with open(fn, 'w') as f:
-                        f.write(rv + '\n')
+                    with open(fn, 'wb') as f:
+                        f.write((rv + '\n').encode('utf-8'))
 
 
 def get_default_author():
