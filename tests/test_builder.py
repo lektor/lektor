@@ -33,6 +33,7 @@ def test_child_sources_basic(pad, builder):
         'a',
         'b',
         'hello.txt',
+        'images_and_custom_slug',
     ]
 
 

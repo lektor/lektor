@@ -25,8 +25,22 @@ class ImprovedRenderer(mistune.Renderer):
         if self.record is not None:
             url = url_parse(src)
             if not url.scheme:
-                src = self.record.url_to('!' + src,
-                                         base_url=get_ctx().base_url)
+                context = get_ctx()
+
+                attachment = self.record.attachments.get(src)
+
+                # image is attached to the current record
+                if context.base_url == self.record.url_path and attachment:
+                    # this handle situations where the last path contains
+                    # a "." and therefor will be build in a image instead of
+                    # a directory and the path to the image will be
+                    # _last_path.something/image.jpg instead of
+                    # last_path/image.jpg
+                    src = self.record.url_to(attachment.url_path)
+
+                else:
+                    src = self.record.url_to('!' + src,
+                                             base_url=context.base_url)
         return mistune.Renderer.image(self, src, title, text)
 
 
