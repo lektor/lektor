@@ -3,6 +3,12 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+2.4
+---
+
+- Resolved an issue with unicode errors being caused by the
+  quickstart.
+
 2.3
 ---
 
