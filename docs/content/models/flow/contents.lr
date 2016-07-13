@@ -43,9 +43,14 @@ a flow.
 ## Templates
 
 Now that we have a model for our flow block, we need to create a template
-for it.  When a flow block is added to a Flow, it will automatically
-render it by default through the template `blocks/NAME.html` (so in our
-case `blocks/text.html`).  Here is a suitable template for this:
+for it. Templates for blocks are stored in the `blocks` subdirectory of the
+`templates` folder.
+The name for the block template is automatically derived from the config file
+that keeps the flow block definition (`templates/blocks/NAME.html`):
+In our case the expected template is `templates/blocks/text.html`,
+as our flow block is defined in a file called `text.ini`.
+
+Here is a suitable template for this:
 
 ```html+jinja
 <div class="text-block text-block-{{ this.class }}">
