@@ -3,7 +3,11 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
-=======
+3.0
+---
+
+- Switch to newer mistune (markdown parser).
+
 2.4
 ---
 
