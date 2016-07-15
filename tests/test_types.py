@@ -44,6 +44,32 @@ def test_markdown(env, pad):
             assert rv.meta == {}
 
 
+def test_markdown_links(env, pad):
+    field = make_field(env, 'markdown')
+    source = DummySource()
+
+    def md(s):
+        rv = field.deserialize_value(s, pad=pad)
+        assert isinstance(rv, MarkdownDescriptor)
+        return unicode(rv.__get__(source)).strip()
+
+    with Context(pad=pad):
+        assert md('[foo](http://example.com/)') == (
+            '<p><a href="http://example.com/">foo</a></p>'
+        )
+        assert md('[foo](javascript:foo)') == (
+            '<p><a href="javascript:foo">foo</a></p>'
+        )
+
+        img = (
+            'iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4'
+            '//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='
+        )
+        assert md('![test](data:image/png;base64,%s)' % img) == (
+            '<p><img src="data:image/png;base64,%s" alt="test"></p>'
+        ) % img
+
+
 def test_markdown_linking(pad, builder):
     blog_index = pad.get('/blog', page_num=1)
 
