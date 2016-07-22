@@ -17,7 +17,7 @@ of matching records.
 <h3>Our Top 3</h3>
 <ul>
 {% for item in this.children.order_by('-rating').limit(3) %}
-  <li>{{ item.title }}
+  <li>{{ item.title }}</li>
 {% endfor %}
 </ul>
 ```

@@ -24,7 +24,7 @@ Here a basic example of how to filter something in a template:
 ```html+jinja
 <ul>
 {% for item in this.children.include_hidden(true) %}
-  <li>{{ item.title }}{% if item.is_hidden %} (hidden){% endif %}
+  <li>{{ item.title }}{% if item.is_hidden %} (hidden){% endif %}</li>
 {% endfor %}
 </ul>
 ```

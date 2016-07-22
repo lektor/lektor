@@ -17,7 +17,7 @@ a page that might use different independent models.
 ```html+jinja
 <ul>
 {% for child in this.children %}
-  <li><a href="{{ child|url }}">{{ child.record_label }}</a>
+  <li><a href="{{ child|url }}">{{ child.record_label }}</a></li>
 {% endfor %}
 </ul>
 ```

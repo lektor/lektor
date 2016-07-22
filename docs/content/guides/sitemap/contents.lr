@@ -65,6 +65,7 @@ create a `sitemap/contents.lr` file instead and use a template like
     {% if page.children %}
       <ul>{{ loop(page.children) }}</ul>
     {% endif %}
+  </li>
   {% endfor %}
 </ul>
 {% endblock %}

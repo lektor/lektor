@@ -42,7 +42,7 @@ page:
 ```html+jinja
 <ul>
 {% for child in this.pagination.items %}
-  <li>{{ child.title }}
+  <li>{{ child.title }}</li>
 {% endfor %}
 </ul>
 ```

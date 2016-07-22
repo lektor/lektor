@@ -18,7 +18,7 @@ and will also include hidden pages.
 ```html+jinja
 <ul>
 {% for project in site.query('/projects') %}
-  <li>{{ project.name }}: {{ project.year }}
+  <li>{{ project.name }}: {{ project.year }}</li>
 {% endfor %}
 </ul>
 ```

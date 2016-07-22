@@ -27,7 +27,7 @@ via the [query :ref](../../pad/query/) method of the pad.
 ```html+jinja
 <ul>
 {% for child in this.children %}
-  <li>{{ child.title }}
+  <li>{{ child.title }}</li>
 {% endfor %}
 </ul>
 ```

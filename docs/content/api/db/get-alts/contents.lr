@@ -28,7 +28,7 @@ used to provide alts with a humand readable title.
 <p>Other languages:
 <ul>
 {% for alt in get_alts(this) %}
-  <li><a href="{{ '.'|url(alt=alt) }}">{{ alt|title }}</a>
+  <li><a href="{{ '.'|url(alt=alt) }}">{{ alt|title }}</a></li>
 {% endfor %}
 </ul>
 ```

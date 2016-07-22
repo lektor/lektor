@@ -25,6 +25,7 @@ there is a good reason to use it.
   <li>
     Items on the first page of {{ child.title }}:
     {{ child.pagination.items.count() }}
+  </li>
 {% endfor %}
 </ul>
 ```
