@@ -23,7 +23,7 @@ order by year and within a year it will order by name.
 ```html+jinja
 <ul>
 {% for project in this.children.order_by('-year', 'name') %}
-  <li>{{ project.year }}: {{ project.name }}
+  <li>{{ project.year }}: {{ project.name }}</li>
 {% endif %}
 </ul>
 ```

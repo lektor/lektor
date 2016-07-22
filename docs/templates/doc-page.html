@@ -23,7 +23,7 @@
         <ul class="toc">
         {% for item in this.body.toc recursive %}
           <li><a href="#{{ item.anchor }}">{{ item.title }}</a>{%
-           if item.children %}<ul>{{ loop(item.children) }}</ul>{% endif %}
+           if item.children %}<ul>{{ loop(item.children) }}</ul>{% endif %}</li>
         {% endfor %}
         </ul>
       </div>
@@ -35,19 +35,19 @@
 
       <ul class=page-meta>
       {% if this.type == 'method' %}
-        <li>Method of {{ get_doc_link(this.parent) }}
+        <li>Method of {{ get_doc_link(this.parent) }}</li>
       {% elif this.type == 'property' %}
-        <li>Property of {{ get_doc_link(this.parent) }}
+        <li>Property of {{ get_doc_link(this.parent) }}</li>
       {% elif this.type == 'operator' %}
-        <li>Operator of {{ get_doc_link(this.parent) }}
+        <li>Operator of {{ get_doc_link(this.parent) }}</li>
       {% endif %}
       {% if this.template_var %}
         <li>Template variable: <a href="{{ (
           '/docs/api/templates/globals/' ~ this.template_var|lower ~ '/')|url
-          }}"><code>{{ this.template_var }}</code></a>
+          }}"><code>{{ this.template_var }}</code></a></li>
       {% endif %}
       {% if this.version_added %}
-        <li>New in Lektor Version <em>{{ this.version_added }}</em>
+        <li>New in Lektor Version <em>{{ this.version_added }}</em></li>
       {% endif %}
       </ul>
 

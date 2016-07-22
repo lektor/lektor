@@ -197,7 +197,7 @@ markup that appears on multiple pages.
   <ul>
   {% for category in site.query('/project-categories') %}
     <li{% if category._id == active %} class="active"{% endif
-      %}><a href="{{ category|url }}">{{ category.name }}</a>
+      %}><a href="{{ category|url }}">{{ category.name }}</a></li>
   {% endfor %}
   </ul>
 {% endmacro %}
@@ -205,7 +205,7 @@ markup that appears on multiple pages.
 {% macro render_project_list(projects) %}
   <ul>
   {% for project in projects %}
-    <li><a href="{{ project|url }}">{{ project.name }}</a>
+    <li><a href="{{ project|url }}">{{ project.name }}</a></li>
   {% endfor %}
   </ul>
 {% endmacro %}

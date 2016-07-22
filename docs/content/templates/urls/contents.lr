@@ -27,8 +27,8 @@ Because the path starts with a slash it will be treated as absolute path:
 
 ```html+jinja
 <ul class="nav">
-  <li><a href="{{ '/'|url }}">Index</a>
-  <li><a href="{{ '/about'|url }}">About</a>
+  <li><a href="{{ '/'|url }}">Index</a></li>
+  <li><a href="{{ '/about'|url }}">About</a></li>
 </ul>
 ```
 
@@ -59,7 +59,7 @@ link to all children of a page:
 ```html+jinja
 <ul class="nav">
 {% for page in this.children %}
-  <li><a href="{{ page|url }}">{{ page.title }}</a>
+  <li><a href="{{ page|url }}">{{ page.title }}</a></li>
 {% endfor %}
 </ul>
 ```
