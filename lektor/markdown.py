@@ -44,8 +44,6 @@ class MarkdownConfig(object):
     def __init__(self):
         self.options = {
             'escape': False,
-            'parse_block_html': True,
-            'parse_inline_html': True,
         }
         self.renderer_base = ImprovedRenderer
         self.renderer_mixins = []
