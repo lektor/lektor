@@ -1,6 +1,6 @@
 import datetime
 
-from lektor._compat import itervalues
+from lektor._compat import itervalues, text_type
 from lektor.datamodel import Field
 from lektor.types.formats import MarkdownDescriptor
 from lektor.context import Context
@@ -51,7 +51,7 @@ def test_markdown_links(env, pad):
     def md(s):
         rv = field.deserialize_value(s, pad=pad)
         assert isinstance(rv, MarkdownDescriptor)
-        return unicode(rv.__get__(source)).strip()
+        return text_type(rv.__get__(source)).strip()
 
     with Context(pad=pad):
         assert md('[foo](http://example.com/)') == (
