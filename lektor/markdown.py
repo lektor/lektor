@@ -4,6 +4,7 @@ from weakref import ref as weakref
 
 from markupsafe import Markup, escape
 
+from lektor._compat import PY2
 from lektor.context import get_ctx
 from werkzeug.urls import url_parse
 
@@ -126,6 +127,9 @@ class Markdown(object):
     def __unicode__(self):
         self.__render()
         return self.__html
+
+    if not PY2:
+        __str__ = __unicode__
 
     def __html__(self):
         self.__render()
