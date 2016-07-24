@@ -17,7 +17,7 @@ This field is most useful for filtering when operating on mixed collections.
 ```html+jinja
 <ul class="projects">
 {% for child in this.children.filter(F._model == 'project') %}
-  <li>{{ child.name }}
+  <li>{{ child.name }}</li>
 {% endfor %}
 </ul>
 ```

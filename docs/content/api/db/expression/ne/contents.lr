@@ -15,7 +15,7 @@ by doing an exact comparison:
 <h2>Everything Other Than Houses</h2>
 <ul>
 {% for project in this.children.filter(F.type != 'house') %}
-  <li>{{ project.name }}
+  <li>{{ project.name }}</li>
 {% endfor %}
 </ul>
 ```

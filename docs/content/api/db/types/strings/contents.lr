@@ -6,7 +6,7 @@ type: type
 ---
 body:
 
-The `strings` type one that is a mixture of the [string :ref](../string/) 
+The `strings` type one that is a mixture of the [string :ref](../string/)
 and [text :ref](../text/) type.  It renders as a multi-line text area in the
 admin but the template will see each line of text separately.  It's primarily
 useful for some advanced scenarios where enumerations and other things
@@ -28,7 +28,7 @@ description = A list of things that would be good to buy
 <h2>Shopping List</h2>
 <ul>
 {% for item in this.things_to_buy %}
-  <li>{{ item }}
+  <li>{{ item }}</li>
 {% endfor %}
 </ul>
 ```

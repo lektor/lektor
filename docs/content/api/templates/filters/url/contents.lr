@@ -32,8 +32,8 @@ the website.
 
 ```html+jinja
 <ul class="nav">
-  <li><a href="{{ '/'|url }}">Index</a>
-  <li><a href="{{ '/about'|url }}">About</a>
+  <li><a href="{{ '/'|url }}">Index</a></li>
+  <li><a href="{{ '/about'|url }}">About</a></li>
 </ul>
 ```
 

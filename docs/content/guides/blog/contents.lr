@@ -102,6 +102,7 @@ page.
       <a href="{{ post|url }}">{{ post.title }}</a> —
       by {{ post.author }}
       on {{ post.pub_date|dateformat }}
+    </li>
   {% endfor %}
   </ul>
 

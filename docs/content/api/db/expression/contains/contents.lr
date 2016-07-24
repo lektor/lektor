@@ -19,7 +19,7 @@ contained in another string or a item can be contained within a list.
 <h3>Projects Tagged 'amazing'</h3>
 <ul>
 {% for item in this.children.filter(F.tags.contains('amazing')) %}
-  <li>{{ item.name }}
+  <li>{{ item.name }}</li>
 {% endfor %}
 </ul>
 ```
