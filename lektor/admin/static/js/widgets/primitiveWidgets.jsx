@@ -5,24 +5,17 @@ var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
 var utils = require('../utils');
 var userLabel = require('../userLabel');
 var i18n = require('../i18n');
+var moment = require('moment-timezone');
+var momentLocalizer = require('react-widgets/lib/localizers/moment');
+var DateTimePicker = require('react-widgets/lib/DateTimePicker');
+
+moment.locale(i18n.currentLanguage);
+momentLocalizer(moment);
+var guessedUserTZ = moment.tz.guess();
 
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
 }
-
-function isValidDate(year, month, day) {
-  var year = parseInt(year, 10);
-  var month = parseInt(month, 10);
-  var day = parseInt(day, 10);
-  var date = new Date(year, month - 1, day);
-  if (date.getFullYear() == year &&
-      date.getMonth() == month - 1 &&
-      date.getDate() == day) {
-    return true;
-  }
-  return false;
-}
-
 
 var InputWidgetMixin = {
   mixins: [BasicWidgetMixin],
@@ -152,46 +145,196 @@ var FloatInputWidget = React.createClass({
 });
 
 var DateInputWidget = React.createClass({
-  mixins: [InputWidgetMixin],
+  mixins: [BasicWidgetMixin],
 
-  postprocessValue: function(value) {
-    var value = value.match(/^\s*(.*?)\s*$/)[1];
-    var match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/);
-    var day, month, year;
-    if (match) {
-      day = parseInt(match[1], 10);
-      month = parseInt(match[2], 10);
-      year = parseInt(match[3], 10);
-      return (
-        year + '-' +
-        (month < 10 ? '0' : '') + month + '-' +
-        (day < 10 ? '0' : '') + day
-      );
+  parseDate: function(inputDateStr) {
+    var inputDate = moment(inputDateStr, moment.ISO_8601, true);
+    if(inputDate.isValid()) {
+      return new Date(inputDate.toISOString());
     }
-    return value;
+  },
+
+  onChange: function(inputDate) {
+    if(this.props.onChange) {
+      if(inputDate) {
+        this.props.onChange(inputDate.getFullYear() + "-" +
+                            ("0" + (inputDate.getMonth() + 1)).slice(-2) + "-" +
+                            ("0" + inputDate.getDate()).slice(-2));
+      } else {
+        this.props.onChange("");
+      }
+    }
+  },
+
+  render: function() {
+    var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
+
+    var className = (className || '')
+    var inputDate;
+    if(value) {
+      inputDate = this.parseDate(value);
+    }
+
+    return (
+          <div className="form-group">
+            <div className={className}>
+                <DateTimePicker
+                  className={this.getInputClass()}
+                  format={"MMM DD YYYY"}
+                  editFormat={"YYYY-MM-DD"}
+                  parse={this.parseDate}
+                  time={false}
+                  onChange={onChange ? this.onChange : undefined}
+                  value={inputDate ? inputDate : null}
+                  {...otherProps} />
+            </div>
+          </div>
+    )
+  }
+});
+
+
+var DateTimeInputWidget = React.createClass({
+  mixins: [BasicWidgetMixin],
+
+  parseDateTime: function(inputDateTimeStr) {
+
+    var rv;
+    var momentDateTime
+    var chunks = inputDateTimeStr.split(' ');
+    if (chunks.length > 1 && chunks.length <= 3) {
+      if(chunks.length == 2) {
+        momentDateTime = moment.tz(chunks.slice(0,2).join(' '), guessedUserTZ);
+      } else {
+        // TODO if the timezone is invalid momentjs ignores it and moment.isValid still returns true
+        // needs a check for valid timezones
+        momentDateTime = moment.tz(chunks.slice(0,2).join(' '), chunks[2]);
+      }
+      if (momentDateTime.isValid()) {
+        rv.datetime = momentDateTime.toDate()
+        if (chunks.length == 3) {
+          if(momentDateTime._z) {
+            rv.tz = momentDateTime._z.name;
+            rv.valid = true;
+          } else {
+            rv.tz = chunks[2];
+            rv.valid = false;
+          }
+        } else {
+          //XXX force giuessed time zone or enable empty value here?
+          rv.tz = guessedUserTZ
+          rv.valid = true;
+        }
+        return rv;
+      }
+    }
+  },
+
+  isValidTimezone: function(inputDateTimeStr) {
+    var chunks = inputDateTimeStr.split(' ');
+    var dt = this.parseDateTime(inputDateTimeStr);
+    if (chunks.length == 3 && !dt.)
+    var tz = timezone;
+    return false;
   },
 
   getValidationFailureImpl: function() {
-    if (!this.props.value) {
-      return null;
+    if (this.props.value && !this.isValidTimezone(this.props.value)) {
+      return new ValidationFailure({
+        //TODO: create timezone error message
+        message: i18n.trans('ERROR_INVALID_DATE')
+      });
     }
-
-    var match = this.props.value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/);
-    if (match && isValidDate(match[1], match[2], match[3])) {
-      return null;
-    }
-
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_DATE')
-    });
+    return null;
   },
 
-  getInputType: function() {
-    return 'text';
+  //2016-01-13 01:02:03 America/Dominica
+  getFormattedDateTime: function() {
+    var rv = this.datetime.getFullYear() + "-" +
+             ("0" + (this.datetime.getMonth() + 1)).slice(-2) + "-" +
+             ("0" + this.datetime.getDate()).slice(-2) + " " +
+             ("0" + this.datetime.getHours()).slice(-2) + ":" +
+             ("0" + this.datetime.getMinutes()).slice(-2) + ":" +
+             ("0" + this.datetime.getSeconds()).slice(-2);
+    if(this.tz) {
+      rv += " " + this.tz;
+    }
+    return rv;
   },
 
-  getInputAddon: function() {
-    return <i className="fa fa-calendar"></i>;
+  onChange: function() {
+    if(this.props.onChange) {
+      if(this.datetime) {
+        this.props.onChange(this.getFormattedDateTime());
+      } else {
+        this.props.onChange("");
+      }
+    }
+  },
+
+  onDTChange: function(inputDateTime) {
+    this.datetime = inputDateTime? inputDateTime : undefined;
+    this.onChange();
+  },
+
+  onTZChange: function(event) {
+    var value = event.target.value;
+    this.tz = value? value : "";
+    this.onChange();
+  },
+
+//TODO: add a "Guess TimeZone" Button
+//XXX: force user to use TimeZone or is not timezone also valid?
+  render: function() {
+    var {className, type, value, placeholder, onChange, ...otherProps} = this.props;
+    var help = null;
+    var className = (className || '');
+    className += ' input-group';
+    this.dtz = this.parseDateTime(value)
+
+    var failure = this.getValidationFailure();
+    if (failure !== null) {
+      className += ' has-feedback has-' + failure.type;
+      var valClassName = 'validation-block validation-block-' + failure.type;
+      help = <div className={valClassName}>{failure.message}</div>;
+    }
+
+    var inputDateTime;
+    if(value) {
+      inputDateTime = this.parseDateTime(value);
+    }
+    if(inputDateTime) {
+      this.datetime = inputDateTime.toDate();
+      this.tz = inputDateTime._z? inputDateTime._z.name : "";
+    } else {
+      this.tz = guessedUserTZ;
+    }
+
+    return (
+          <div className="form-group">
+            <div className={className}>
+                <DateTimePicker
+                  className={this.getInputClass()}
+                  format={"MMM DD YYYY HH:mm"}
+                  editFormat={"YYYY-MM-DD HH:mm"}
+                  onChange={onChange ? this.onDTChange : undefined}
+                  value={this.datetime ? this.datetime : null}
+                  {...otherProps} />
+              </div>
+              <div className={className}>
+                <input
+                  className={this.getInputClass()}
+                  type={'text'}
+                  onChange={onChange ? this.onTZChange : undefined}
+                  value={this.tz ? this.tz : guessedUserTZ}
+                  />
+                <span className="input-group-addon">
+                  <i className="fa fa-globe"></i>
+                </span>
+            </div>
+            {help}
+          </div>
+    )
   }
 });
 
@@ -347,6 +490,7 @@ module.exports = {
   IntegerInputWidget: IntegerInputWidget,
   FloatInputWidget: FloatInputWidget,
   DateInputWidget: DateInputWidget,
+  DateTimeInputWidget: DateTimeInputWidget,
   UrlInputWidget: UrlInputWidget,
   MultiLineTextInputWidget: MultiLineTextInputWidget,
   BooleanInputWidget: BooleanInputWidget,

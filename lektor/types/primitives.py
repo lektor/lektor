@@ -115,7 +115,7 @@ class DateType(SingleInputType):
 
 
 class DateTimeType(SingleInputType):
-    widget = 'singleline-text'
+    widget = 'datetimepicker'
 
     def value_from_raw(self, raw):
         if raw.value is None:
@@ -141,4 +141,4 @@ class DateTimeType(SingleInputType):
 
             return result
         except Exception:
-            return raw.bad_value('Bad date format')
+            return raw.bad_value('Bad datetime format')

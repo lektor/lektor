@@ -1,0 +1,89 @@
+
+.rw-multiselect {
+  background-color: @widget-bg;
+
+  &:hover {
+    border-color: @state-border-hover;
+  }
+}
+
+.rw-multiselect-wrapper {
+  border-radius:          @input-border-radius;
+  position:               relative;
+  cursor:                 text;
+  .clearfix();
+  
+  i.rw-loading {
+    position: absolute;
+    right: 3px;
+  }
+
+  > .rw-input {
+    .placeholder();
+    float:                left;
+    outline:              0;
+    border-width:         0;
+    line-height:          normal;
+    width:                auto;
+    max-width:            100%;
+  }
+
+  .rw-state-readonly > &,
+  .rw-state-disabled > & {
+    cursor: not-allowed;
+  }
+
+  .rw-rtl & > .rw-input{
+    float: right;
+  } 
+}
+
+.rw-multiselect-create-tag {
+  border-top:  1px @widget-border solid;
+  padding-top: 5px;
+  margin-top:  5px;
+}
+
+.rw-multiselect-taglist {
+  .list-inline();
+  padding-right: 0;
+
+  > li {
+    float:              left;
+    display:            inline-block;
+    margin:             1px;
+    padding:            0.214em 0.15em 0.214em 0.4em;
+    line-height:        1.4em;
+    text-align:         center;
+    vertical-align:     middle;
+    white-space:        nowrap;
+    border-radius:      @border-radius-sm;
+    border:             1px solid @btn-border;
+    background-color:   @btn-border;
+    cursor:             pointer;
+
+    &.rw-state-focus {
+      .state-focus();
+    }
+
+    &.rw-state-readonly,
+    &.rw-state-disabled,
+    .rw-multiselect.rw-state-readonly &, 
+    .rw-multiselect.rw-state-disabled & {
+      cursor: not-allowed;
+      filter: alpha(opacity=65);
+      opacity: .65;
+    }
+
+    .rw-btn {
+      outline:            0;
+      font-size:          115%;
+      line-height:        normal;
+    }
+  }
+
+  .rw-rtl & > li {
+     float: right;
+  } 
+
+}

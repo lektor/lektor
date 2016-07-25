@@ -1,0 +1,423 @@
+/* for debugging */
+// *:focus {
+//   outline: 1px red solid !important;
+// }
+
+
+
+.rw-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+.rw-widget {
+  &,
+  & * {
+    .box-sizing(border-box);
+  }
+
+  &:before,
+  & *:before,
+  &:after,
+  & *:after, {
+    .box-sizing(border-box);
+  }
+}
+
+
+.rw-widget {
+  outline: 0;
+  -moz-background-clip: border-box;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+
+.rw-btn {
+  color: @btn-color;
+  line-height: @input-height;
+  display: inline-block;
+  margin: 0;
+  text-align: center;
+  vertical-align: middle;
+  background: none;
+  background-image: none;
+  border: 1px solid transparent;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.rw-rtl {
+  direction: rtl;
+}
+
+.rw-input {
+  color:            @input-color;
+  height:           @input-height;
+  padding:          @input-padding;
+  background-color: @input-bg;
+
+  &[disabled] {
+    .state-disabled();
+    opacity: 1;
+    background-color: @input-bg-disabled;
+    border-color: @input-border;
+  }
+
+  &[readonly] {
+    cursor: not-allowed;
+  }
+}
+
+.rw-filter-input {
+  position: relative;
+  width: 100%;
+  padding-right: 1.9em;
+  border: @input-border @input-border-width solid;
+  border-radius: @input-border-radius;
+  margin-bottom: 2px;
+
+  .rw-rtl &{
+    padding-left: 1.9em;
+    padding-right:  0;
+  }
+
+  > .rw-input {
+    width: 100%;
+    border: none;
+    outline: none;
+  }
+
+  > span {
+    margin-top: -2px;
+  }
+}
+
+.rw-i.rw-loading {
+  background: url("../../img/loading.gif") no-repeat center;
+  width: 16px;
+  height: 100%;
+
+  &:before {
+    content: ""
+  }
+}
+
+
+.rw-loading-mask {
+  border-radius:    @input-border-radius;
+  position:         relative;
+
+  &:after{
+    content: '';
+    background: url("../../img/loader-big.gif") no-repeat center;
+    position:   absolute;
+    background-color: #fff;
+    opacity: 0.7;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.rw-now {
+  font-weight: 600;
+}
+
+.rw-state-focus {
+  .state-focus();
+}
+
+.rw-state-selected {
+  .state-select();
+}
+
+&.rw-state-disabled {
+  .state-disabled();
+  opacity: 1;
+}
+
+.rw-btn,
+.rw-dropdownlist {
+  cursor: pointer;
+}
+
+.rw-btn {
+  &[disabled],
+  .rw-state-disabled &,
+  .rw-state-readonly & {
+    .state-disabled();
+    pointer-events: none;
+    cursor: not-allowed;
+    filter: alpha(opacity=65);
+    opacity: .65;
+  }
+}
+
+ul.rw-list {
+  .list-unstyled();
+  padding: 5px 0;
+  overflow: auto;
+  outline: 0;
+  height: 100%;
+
+  > li {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  > li.rw-list-optgroup {
+    font-weight: bold;
+  }
+
+  > li.rw-list-option,
+  > li.rw-list-empty {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  > li.rw-list-option {
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: @border-radius-sm;
+
+    &:hover {
+      background-color: @list-bg-hover;
+      border-color:     @list-border-hover;
+    }
+
+    &.rw-state-focus {
+      .state-focus();
+    }
+
+    &.rw-state-selected {
+      .state-select();
+    }
+
+    &.rw-state-disabled,
+    &.rw-state-readonly {
+      color: @gray-light;
+      cursor: not-allowed;
+
+      &:hover {
+        background: none;
+        border-color: transparent;
+      }
+    }
+  }
+}
+
+ul.rw-list {
+
+  &.rw-list-grouped {
+
+    > li.rw-list-optgroup {
+      padding-left: 10px;
+    }
+
+    > li.rw-list-option {
+      padding-left: 20px;
+    }
+  }
+}
+
+
+.rw-widget {
+  position: relative;
+}
+
+.rw-open.rw-widget,
+.rw-open > .rw-multiselect-wrapper {
+  .border-bottom-radius(0);
+}
+
+.rw-open-up.rw-widget,
+.rw-open-up > .rw-multiselect-wrapper {
+  .border-top-radius(0);
+}
+
+.rw-combobox,
+.rw-datetimepicker,
+.rw-numberpicker,
+.rw-dropdownlist,
+.rw-multiselect {
+  & .rw-list {
+    max-height: 200px;
+    height: auto;
+  }
+}
+
+@focus-rgba: rgba(red(@input-border-focus), green(@input-border-focus), blue(@input-border-focus), .6);
+
+.rw-widget {
+  background-color:   @input-bg;
+  border:             @input-border @input-border-width solid;
+  border-radius:      @input-border-radius;
+
+  .rw-input {
+    .border-left-radius(@input-border-radius);
+
+    .rw-rtl&{
+      .border-left-radius(0);
+      .border-right-radius(@input-border-radius);
+    }
+  }
+
+  > .rw-select {
+    border-left: @input-border 1px solid;
+
+    .rw-rtl&{
+      border-right: @input-border 1px solid;
+      border-left:  none;
+    }
+  }
+
+  &.rw-state-focus,
+  &.rw-state-focus:hover {
+    .box-shadow(~"inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px @{focus-rgba}");
+    border-color: @input-border-focus;
+    outline: 0;
+  }
+
+  &.rw-state-readonly,
+  &.rw-state-readonly > .rw-multiselect-wrapper {
+    cursor: not-allowed;
+  }
+
+  &.rw-state-disabled {
+    &,
+    &:hover,
+    &:active {
+      .box-shadow(none);
+      background-color: @input-bg-disabled;
+      border-color: @input-border;
+    }
+  }
+}
+
+
+.rw-combobox,
+.rw-datetimepicker,
+.rw-numberpicker,
+.rw-dropdownlist {
+  padding-right:    1.9em;
+
+  &.rw-rtl {
+    padding-right: 0;
+    padding-left: 1.9em;
+  }
+
+  > .rw-input {
+    width: 100%;
+    border: none;
+    outline: 0;
+    .placeholder();
+  }
+}
+
+.rw-placeholder {
+  color: @input-color-placeholder;
+}
+
+.rw-select {
+  position: absolute;
+  width: 1.9em;
+  height: 100%;
+  right: 0;
+  top: 0;
+
+  &.rw-btn,
+  & > .rw-btn {
+    height: 100%;
+    vertical-align: middle;
+    outline: 0;
+  }
+
+  .rw-rtl & {
+    left: 0;
+    right: auto;
+  }
+}
+
+
+//input inset
+.rw-multiselect,
+.rw-combobox input.rw-input,
+.rw-datetimepicker input.rw-input,
+.rw-numberpicker input.rw-input {
+  .box-shadow(~"inset 0 1px 1px rgba(0,0,0,.075)");
+}
+
+
+.rw-combobox:active,
+.rw-datetimepicker:active,
+.rw-dropdownlist:active,
+.rw-header > .rw-btn:active,
+.rw-numberpicker .rw-btn.rw-state-active {
+  &,
+  &.rw-state-focus {
+    background-image: none;
+    .box-shadow(inset 0 3px 5px rgba(0,0,0,.125));
+  }
+}
+
+
+.rw-combobox,
+.rw-datetimepicker,
+.rw-numberpicker,
+.rw-dropdownlist {
+  &:hover {
+    background-color: @state-bg-hover;
+    border-color: @state-border-hover;
+  }
+}
+
+.rw-dropdownlist {
+  &.rw-state-disabled,
+  &.rw-state-readonly {
+    cursor: not-allowed;
+  }
+
+  > .rw-input {
+    line-height:      @input-height;
+    background-color:   transparent;
+    padding-top:    0;
+    padding-bottom: 0;
+    padding-right:  0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.rw-rtl > .rw-input {
+    padding:  @input-padding; // grumble resets
+    padding-top:    0;
+    padding-bottom: 0;
+    padding-left: 0;
+  }
+
+  > .rw-select,
+  &.rw-rtl > .rw-select {
+    border-width: 0;
+  }
+}
+
+.rw-numberpicker {
+
+  .rw-btn {
+    display: block;
+    height: @input-height / 2;
+    line-height: @input-height / 2;
+    width: 100%;
+    border-width: 0;
+  }
+}

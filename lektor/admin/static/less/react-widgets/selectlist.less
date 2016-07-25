@@ -1,0 +1,72 @@
+
+.rw-selectlist {
+  padding: 2px;
+}
+
+.rw-selectlist {
+  &:extend(ul.rw-list all);
+
+  > ul {
+    height: 100%;
+    overflow: auto;
+
+    > li {
+
+      &.rw-list-option {
+        position: relative;
+        min-height: 27px;
+        cursor: auto;
+        padding-left: 5px;
+
+        > label > input {
+          position: absolute;
+          margin: 4px 0 0 -20px;
+        }
+
+        > label {
+          padding-left: 20px;
+          line-height:  1.423em;
+          display: inline-block;
+        }
+      }
+    }
+  }
+
+  &.rw-rtl > ul > li.rw-list-option {
+    padding-left: 0;
+    padding-right: 5px;
+
+    > label > input {
+       margin: 4px -20px 0 0px;
+    }
+
+    > label {
+      padding-left: 0;
+      padding-right: 20px;
+    }
+  }
+
+  &.rw-rtl > ul > li.rw-list-option {
+    padding-left: 0;
+    padding-right: 5px;
+
+    > label > input {
+       margin: 4px -20px 0 0px;
+    }
+
+    > label {
+      padding-left: 0;
+      padding-right: 20px;
+    }
+  }
+}
+
+.rw-selectlist {
+  &.rw-state-disabled,
+  &.rw-state-readonly {
+    > ul > li:hover {
+      background: none;
+      border-color: transparent;
+    }
+  }
+}
