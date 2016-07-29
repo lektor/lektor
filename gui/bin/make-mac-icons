@@ -85,7 +85,7 @@ def make_icon(path, text=None, alpha=1.0, offset_func=None,
 
         blend_source = find_blend_source(actual_size, retina)
         if blend_source is None:
-            print 'missing source for', size, retina
+            print('missing source for {} {}'.format(size, retina))
             continue
 
         offset = offset_func(actual_size)

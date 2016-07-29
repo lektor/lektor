@@ -4,6 +4,7 @@ import os
 import re
 import uuid
 from functools import update_wrapper
+from collections import OrderedDict
 
 import jinja2
 from babel import dates
@@ -67,7 +68,7 @@ DEFAULT_CONFIG = {
         'url_style': 'relative',
     },
     'PACKAGES': {},
-    'ALTERNATIVES': {},
+    'ALTERNATIVES': OrderedDict(),
     'PRIMARY_ALTERNATIVE': None,
     'SERVERS': {},
 }
@@ -409,7 +410,7 @@ class Environment(object):
                 os.path.join(self.root_path, 'templates'))
         )
 
-        from lektor.db import F
+        from lektor.db import F, get_alts
         self.jinja_env.filters.update(
             tojson=tojson_filter,
             latformat=lambda x, secs=True: format_lat_long(lat=x, secs=secs),
@@ -431,6 +432,7 @@ class Environment(object):
             site=site_proxy,
             config=config_proxy,
             bag=lookup_from_bag,
+            get_alts=get_alts,
             get_random_id=lambda: uuid.uuid4().hex,
         )
         self.jinja_env.filters.update(

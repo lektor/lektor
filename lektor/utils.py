@@ -24,7 +24,7 @@ from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
 from datetime import datetime
-from lektor._compat import (Queue, integer_types, iteritems, reraise,
+from lektor._compat import (queue, integer_types, iteritems, reraise,
                             string_types, text_type, range_type)
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
 
@@ -361,7 +361,7 @@ class WorkerPool(object):
     def __init__(self, num_threads=None):
         if num_threads is None:
             num_threads = multiprocessing.cpu_count()
-        self.tasks = Queue(num_threads)
+        self.tasks = queue.Queue(num_threads)
         for _ in range(num_threads):
             Worker(self.tasks)
 
@@ -374,8 +374,8 @@ class WorkerPool(object):
 
 def slugify(value):
     # XXX: not good enough
-    rv = u' '.join(value.strip().encode(
-        'ascii', 'ignore').strip().split()).lower()
+    value_ascii = value.strip().encode('ascii', 'ignore').strip().decode()
+    rv = u' '.join(value_ascii.split()).lower()
     words = _slug_re.findall(rv)
     return '-'.join(words)
 

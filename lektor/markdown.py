@@ -2,8 +2,9 @@ import mistune
 import threading
 from weakref import ref as weakref
 
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
+from lektor._compat import PY2
 from lektor.context import get_ctx
 from werkzeug.urls import url_parse
 
@@ -19,7 +20,11 @@ class ImprovedRenderer(mistune.Renderer):
             if not url.scheme:
                 link = self.record.url_to('!' + link,
                                           base_url=get_ctx().base_url)
-        return mistune.Renderer.link(self, link, title, text)
+        link = escape(link)
+        if not title:
+            return '<a href="%s">%s</a>' % (link, text)
+        title = escape(title)
+        return '<a href="%s" title="%s">%s</a>' % (link, title, text)
 
     def image(self, src, title, text):
         if self.record is not None:
@@ -27,13 +32,20 @@ class ImprovedRenderer(mistune.Renderer):
             if not url.scheme:
                 src = self.record.url_to('!' + src,
                                          base_url=get_ctx().base_url)
-        return mistune.Renderer.image(self, src, title, text)
+        src = escape(src)
+        text = escape(text)
+        if title:
+            title = escape(title)
+            return '<img src="%s" alt="%s" title="%s">' % (src, text, title)
+        return '<img src="%s" alt="%s">' % (src, text)
 
 
 class MarkdownConfig(object):
 
     def __init__(self):
-        self.options = {}
+        self.options = {
+            'escape': False,
+        }
         self.renderer_base = ImprovedRenderer
         self.renderer_mixins = []
 
@@ -115,6 +127,9 @@ class Markdown(object):
     def __unicode__(self):
         self.__render()
         return self.__html
+
+    if not PY2:
+        __str__ = __unicode__
 
     def __html__(self):
         self.__render()

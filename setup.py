@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Lektor',
-    version='2.2',
+    version='3.0',
     url='http://github.com/lektor/lektor/',
     description='A static content management system.',
     license='BSD',
@@ -17,7 +17,7 @@ setup(
         'Jinja2>=2.4',
         'click>=6.0',
         'watchdog',
-        'mistune',
+        'mistune>=0.7.0',
         'Flask',
         'EXIFRead',
         'inifile',
@@ -32,8 +32,10 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules'
+        'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     entry_points='''
         [console_scripts]

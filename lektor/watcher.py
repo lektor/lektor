@@ -4,10 +4,10 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, DirModifiedEvent
 
-from lektor._compat import Queue
+from lektor._compat import queue
 
 # Alias this as this can be called during interpreter shutdown
-_Empty = Queue.Empty
+_Empty = queue.Empty
 
 
 class EventHandler(FileSystemEventHandler):
@@ -17,7 +17,7 @@ class EventHandler(FileSystemEventHandler):
             self.queue = None
             self.callback = callback
         else:
-            self.queue = Queue.Queue()
+            self.queue = queue.Queue()
             self.callback = self.queue.put
 
     def on_any_event(self, event):

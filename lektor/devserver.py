@@ -24,13 +24,15 @@ class SilentWSGIRequestHandler(WSGIRequestHandler):
 
 class BackgroundBuilder(threading.Thread):
 
-    def __init__(self, env, output_path, verbosity=0, build_flags=None):
+    def __init__(self, env, output_path, prune=True, verbosity=0,
+                 build_flags=None):
         threading.Thread.__init__(self)
         watcher = Watcher(env, output_path)
         watcher.observer.start()
         self.env = env
         self.watcher = watcher
         self.output_path = output_path
+        self.prune = prune
         self.verbosity = verbosity
         self.last_build = time.time()
         self.build_flags = build_flags
@@ -43,7 +45,8 @@ class BackgroundBuilder(threading.Thread):
             if update_source_info_first:
                 builder.update_all_source_infos()
             builder.build_all()
-            builder.prune()
+            if self.prune:
+                builder.prune()
         except Exception:
             traceback.print_exc()
         else:
@@ -93,8 +96,8 @@ def browse_to_address(addr):
     t.start()
 
 
-def run_server(bindaddr, env, output_path, verbosity=0, lektor_dev=False,
-               ui_lang='en', browse=False, build_flags=None):
+def run_server(bindaddr, env, output_path, prune=True, verbosity=0,
+               lektor_dev=False, ui_lang='en', browse=False, build_flags=None):
     """This runs a server but also spawns a background process.  It's
     not safe to call this more than once per python process!
     """
@@ -103,8 +106,9 @@ def run_server(bindaddr, env, output_path, verbosity=0, lektor_dev=False,
     build_flags = process_build_flags(build_flags)
 
     if in_main_process:
-        background_builder = BackgroundBuilder(env, output_path, verbosity,
-                                               build_flags)
+        background_builder = BackgroundBuilder(env, output_path=output_path,
+                                               prune=prune, verbosity=verbosity,
+                                               build_flags=build_flags)
         background_builder.setDaemon(True)
         background_builder.start()
         env.plugin_controller.emit('server-spawn', bindaddr=bindaddr,

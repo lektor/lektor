@@ -1,6 +1,6 @@
 import datetime
 
-from lektor._compat import itervalues
+from lektor._compat import itervalues, text_type
 from lektor.datamodel import Field
 from lektor.types.formats import MarkdownDescriptor
 from lektor.context import Context
@@ -9,6 +9,7 @@ from lektor.types import Undefined, BadValue
 from markupsafe import escape, Markup
 
 from babel.dates import get_timezone
+
 
 class DummySource(object):
     url_path = '/'
@@ -43,6 +44,32 @@ def test_markdown(env, pad):
             assert rv.meta == {}
 
 
+def test_markdown_links(env, pad):
+    field = make_field(env, 'markdown')
+    source = DummySource()
+
+    def md(s):
+        rv = field.deserialize_value(s, pad=pad)
+        assert isinstance(rv, MarkdownDescriptor)
+        return text_type(rv.__get__(source)).strip()
+
+    with Context(pad=pad):
+        assert md('[foo](http://example.com/)') == (
+            '<p><a href="http://example.com/">foo</a></p>'
+        )
+        assert md('[foo](javascript:foo)') == (
+            '<p><a href="javascript:foo">foo</a></p>'
+        )
+
+        img = (
+            'iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4'
+            '//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='
+        )
+        assert md('![test](data:image/png;base64,%s)' % img) == (
+            '<p><img src="data:image/png;base64,%s" alt="test"></p>'
+        ) % img
+
+
 def test_markdown_linking(pad, builder):
     blog_index = pad.get('/blog', page_num=1)
 
@@ -62,13 +89,15 @@ def test_markdown_linking(pad, builder):
             b'attachment</a>'
         ) in f.read()
 
+
 def test_markdown_images(pad, builder):
     blog_index = pad.get('/blog', page_num=1)
 
     prog, _ = builder.build(blog_index)
     with prog.artifacts[0].open('rb') as f:
         assert (
-            b'This is an image <img src="../blog/2015/12/post1/logo.png" alt="logo">.'
+            b'This is an image <img src="../blog/2015/12/'
+            b'post1/logo.png" alt="logo">.'
         ) in f.read()
 
     blog_post = pad.get('/blog/post1')
@@ -76,8 +105,10 @@ def test_markdown_images(pad, builder):
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open('rb') as f:
         assert (
-            b'This is an image <img src="../../../../blog/2015/12/post1/logo.png" alt="logo">.'
+            b'This is an image <img src="../../../../blog/'
+            b'2015/12/post1/logo.png" alt="logo">.'
         ) in f.read()
+
 
 def test_string(env, pad):
     field = make_field(env, 'string')
@@ -238,7 +269,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9*60*60)
+        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
 
         # ACST - http://www.timeanddate.com/time/zones/acst
         rv = field.deserialize_value('2016-04-30 01:02:03 +0930', pad=pad)
@@ -249,7 +280,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, (9*60+30)*60)
+        assert rv.tzinfo._offset == datetime.timedelta(0, (9 * 60 + 30) * 60)
 
         # MST - http://www.timeanddate.com/time/zones/mst
         rv = field.deserialize_value('2016-04-30 01:02:03 -0700', pad=pad)
@@ -260,7 +291,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, -7*60*60)
+        assert rv.tzinfo._offset == datetime.timedelta(0, -7 * 60 * 60)
 
         # MART - http://www.timeanddate.com/time/zones/mart
         rv = field.deserialize_value('2016-04-30 01:02:03 -0930', pad=pad)
@@ -271,7 +302,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, -(9*60+30)*60)
+        assert rv.tzinfo._offset == datetime.timedelta(0, -(9 * 60 + 30) * 60)
 
         # with timezone name (case 1)
         rv = field.deserialize_value('2016-04-30 01:02:03 KST +0900', pad=pad)
@@ -282,7 +313,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9*60*60)
+        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
 
         # with timezone name (case 2)
         rv = field.deserialize_value('2016-04-30 01:02:03 KST+0900', pad=pad)
@@ -293,4 +324,4 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9*60*60)
+        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)

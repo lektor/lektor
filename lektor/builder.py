@@ -492,11 +492,11 @@ class FileInfo(object):
                 for filename in sorted(os.listdir(self.filename)):
                     if self.env.is_uninteresting_source_name(filename):
                         continue
-                    if isinstance(filename, unicode):
+                    if isinstance(filename, text_type):
                         filename = filename.encode('utf-8')
                     h.update(filename)
                     h.update(_describe_fs_path_for_checksum(
-                        os.path.join(self.filename, filename)))
+                        os.path.join(self.filename, filename.decode('utf-8'))))
                     h.update(b'\x00')
             else:
                 with open(self.filename, 'rb') as f:
@@ -948,12 +948,16 @@ def process_build_flags(flags):
 
 class Builder(object):
 
-    def __init__(self, pad, destination_path, build_flags=None):
+    def __init__(self, pad, destination_path, buildstate_path=None,
+                 build_flags=None):
         self.build_flags = process_build_flags(build_flags)
         self.pad = pad
         self.destination_path = os.path.abspath(os.path.join(
             pad.db.env.root_path, destination_path))
-        self.meta_path = os.path.join(self.destination_path, '.lektor')
+        if buildstate_path:
+            self.meta_path = buildstate_path
+        else:
+            self.meta_path = os.path.join(self.destination_path, '.lektor')
         self.failure_controller = FailureController(pad, self.destination_path)
 
         try:
