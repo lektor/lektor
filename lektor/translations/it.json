@@ -27,6 +27,7 @@
   "ERROR_INVALID_DATE": "Data non valida",
   "ERROR_INVALID_NUMBER": "Non è un numero valido",
   "ERROR_INVALID_URL": "Non è un indirizzo valido",
+  "ERROR_INVALID_FIELDS": "Some fields have invalid values! Please correct them before saving.",
   "ERROR": "Errore",
   "ERROR_OCURRED": "È capitato un errore",
   "ERROR_REQUEST_FAILED": "Impossibile inviare comandi al server.  Magari il server è stato spento o è sovraccarico?",
