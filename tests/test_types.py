@@ -1,5 +1,6 @@
 import datetime
 
+from lektor._compat import itervalues
 from lektor.datamodel import Field
 from lektor.types.formats import MarkdownDescriptor
 from lektor.context import Context
@@ -226,7 +227,7 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo in get_timezone('Asia/Seoul')._tzinfos.values()
+        assert rv.tzinfo in itervalues(get_timezone('Asia/Seoul')._tzinfos)
 
         # KST - http://www.timeanddate.com/time/zones/kst
         rv = field.deserialize_value('2016-04-30 01:02:03 +0900', pad=pad)

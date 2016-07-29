@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
-import os
-import sys
-import re
-import json
-import uuid
 import codecs
-import subprocess
-import tempfile
+import hashlib
+import json
+import multiprocessing
+import os
 import posixpath
+import re
+import subprocess
+import sys
+import tempfile
 import traceback
 import unicodedata
-import multiprocessing
-import hashlib
-from Queue import Queue
-from threading import Thread
-from datetime import datetime
+import uuid
 from contextlib import contextmanager
+from threading import Thread
 
 import click
-
-from werkzeug.http import http_date
-from werkzeug.urls import url_parse
-from werkzeug import urls
-from werkzeug.posixemulation import rename
 from jinja2 import is_undefined
 from markupsafe import Markup
+from werkzeug import urls
+from werkzeug.http import http_date
+from werkzeug.posixemulation import rename
+from werkzeug.urls import url_parse
 
+from datetime import datetime
+from lektor._compat import (Queue, integer_types, iteritems, reraise,
+                            string_types, text_type, range_type)
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
 
 
@@ -111,7 +111,7 @@ def is_path_child_of(a, b, strict=True):
 
 def untrusted_to_os_path(path):
     path = path.strip('/').replace('/', os.path.sep)
-    if not isinstance(path, unicode):
+    if not isinstance(path, text_type):
         path = path.decode(fs_enc, 'replace')
     return path
 
@@ -151,7 +151,7 @@ def iter_dotted_path_prefixes(dotted_path):
     if len(pieces) == 1:
         yield dotted_path, None
     else:
-        for x in xrange(1, len(pieces)):
+        for x in range_type(1, len(pieces)):
             yield '.'.join(pieces[:x]), '.'.join(pieces[x:])
 
 
@@ -204,7 +204,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
             return _convert(container)
         elif container.pop(_list_marker, False):
             return [_convert(x[1]) for x in sorted(container.items())]
-        return dict_cls((k, _convert(v)) for k, v in container.iteritems())
+        return dict_cls((k, _convert(v)) for k, v in iteritems(container))
 
     result = dict_cls()
 
@@ -216,7 +216,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
         for part in parts:
             last_container = container
             container = _enter_container(container, part)
-            last_container[_list_marker] = isinstance(part, (int, long))
+            last_container[_list_marker] = isinstance(part, integer_types)
         container[_value_marker] = [value]
 
     return _convert(result)
@@ -232,7 +232,7 @@ def merge(a, b):
         for idx, (item_1, item_2) in enumerate(zip(a, b)):
             a[idx] = merge(item_1, item_2)
     if isinstance(a, dict) and isinstance(b, dict):
-        for key, value in b.iteritems():
+        for key, value in iteritems(b):
             a[key] = merge(a.get(key), value)
         return a
     return a
@@ -313,7 +313,7 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, uuid.UUID):
             return str(o)
         if hasattr(o, '__html__'):
-            return unicode(o.__html__())
+            return text_type(o.__html__())
         return json.JSONEncoder.default(self, o)
 
 
@@ -435,7 +435,7 @@ def prune_file_and_folder(name, base):
 
 
 def sort_normalize_string(s):
-    return unicodedata.normalize('NFD', unicode(s).lower().strip())
+    return unicodedata.normalize('NFD', text_type(s).lower().strip())
 
 
 def get_dependent_url(url_path, suffix, ext=None):
@@ -451,7 +451,7 @@ def atomic_open(filename, mode='r'):
     if 'r' not in mode:
         fd, tmp_filename = tempfile.mkstemp(
             dir=os.path.dirname(filename), prefix='.__atomic-write')
-        os.chmod(tmp_filename, 0644)
+        os.chmod(tmp_filename, 0o644)
         f = os.fdopen(fd, mode)
     else:
         f = open(filename, mode)
@@ -466,7 +466,7 @@ def atomic_open(filename, mode='r'):
                 os.remove(tmp_filename)
             except OSError:
                 pass
-        raise exc_type, exc_value, tb
+        reraise(exc_type, exc_value, tb)
     else:
         f.close()
         if tmp_filename is not None:
@@ -484,7 +484,7 @@ def portable_popen(cmd, *args, **kwargs):
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
 
-    if isinstance(exe, unicode):
+    if isinstance(exe, text_type):
         exe = exe.encode(sys.getfilesystemencoding())
     cmd[0] = exe
     return subprocess.Popen(cmd, *args, **kwargs)
@@ -514,7 +514,7 @@ def secure_url(url):
 def bool_from_string(val, default=None):
     if val in (True, False, 1, 0):
         return bool(val)
-    if isinstance(val, basestring):
+    if isinstance(val, string_types):
         val = val.lower()
         if val in ('true', 'yes', '1'):
             return True
@@ -566,11 +566,11 @@ def get_structure_hash(params):
             h.update('L%d;' % len(obj))
             for item in obj:
                 _hash(item)
-        elif isinstance(obj, (int, long)):
+        elif isinstance(obj, integer_types):
             h.update('T%d;' % obj)
         elif isinstance(obj, bytes):
             h.update('B%d;%s;' % (len(obj), obj))
-        elif isinstance(obj, unicode):
+        elif isinstance(obj, text_type):
             h.update('S%d;%s;' % (len(obj), obj.encode('utf-8')))
         elif hasattr(obj, '__get_lektor_param_hash__'):
             obj.__get_lektor_param_hash__(h)
@@ -644,7 +644,7 @@ class URLBuilder(object):
     def append(self, item):
         if item is None:
             return
-        item = unicode(item).strip('/')
+        item = text_type(item).strip('/')
         if item:
             self.items.append(item)
 

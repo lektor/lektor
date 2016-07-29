@@ -1,9 +1,10 @@
 import os
 import time
-import Queue
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, DirModifiedEvent
+
+from lektor._compat import Queue
 
 # Alias this as this can be called during interpreter shutdown
 _Empty = Queue.Empty

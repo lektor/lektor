@@ -5,7 +5,8 @@ OSX_BUNDLE=$(OSX_BUNDLE_BASE)/Lektor.app
 OSX_BUNDLE_RES=$(OSX_BUNDLE)/Contents/Resources
 
 # The identity to use for code signing
-CODESIGN_IDENTITY=5DA541005F2A61656E1DAC24798CA6C14FFC40CE
+CODESIGN_IDENTITY='Developer ID Application'
+CODESIGN_FLAGS=--force --verbose --strict --sign $(CODESIGN_IDENTITY) --preserve-metadata=i,e,req --timestamp=none
 
 REBUILD_CMD=./node_modules/.bin/electron-rebuild -w runas
 
@@ -62,7 +63,7 @@ osx-bundle: build/imagemagick/convert icons build-wheels
 	cp build/File.icns $(OSX_BUNDLE_RES)
 	mkdir -p $(OSX_BUNDLE_RES)/local/bin
 	cp build/imagemagick/convert $(OSX_BUNDLE_RES)/local/bin
-	cp resources/lektor-mac-proxy $(OSX_BUNDLE)/Contents/MacOS/lektor-proxy
+	cp resources/lektor-mac-proxy $(OSX_BUNDLE_RES)/local/bin/lektor-proxy
 	cp resources/lektor $(OSX_BUNDLE_RES)/lektor
 	rm $(OSX_BUNDLE_RES)/atom.icns
 	rm -rf $(OSX_BUNDLE_RES)/default_app
@@ -77,15 +78,15 @@ osx-bundle: build/imagemagick/convert icons build-wheels
 	find $(OSX_BUNDLE)/Contents -name '.DS_Store' -exec rm {} \;
 
 osx-signed-bundle: osx-bundle
-	find $(OSX_BUNDLE) -name '*.dylib' -exec codesign --force --verbose --sign $(CODESIGN_IDENTITY) {} \;
-	find $(OSX_BUNDLE) -name '*.so' -exec codesign --force --verbose --sign $(CODESIGN_IDENTITY) {} \;
-	find $(OSX_BUNDLE) -type f -perm +0111 -exec codesign --force --verbose --sign $(CODESIGN_IDENTITY) {} \;
+	find $(OSX_BUNDLE) -name '*.dylib' -exec codesign $(CODESIGN_FLAGS) {} \;
+	find $(OSX_BUNDLE) -name '*.so' -exec codesign $(CODESIGN_FLAGS) {} \;
+	find $(OSX_BUNDLE) -type f -perm +0111 -exec codesign $(CODESIGN_FLAGS) {} \;
 	codesign --force --verbose --sign $(CODESIGN_IDENTITY) $(OSX_BUNDLE)/Contents/Frameworks/Python.framework/Versions/Current/Resources/Python.app
-	find $(OSX_BUNDLE) -name '*.app' -exec codesign --force --verbose --sign $(CODESIGN_IDENTITY) {} \;
-	find $(OSX_BUNDLE) -name '*.framework' -exec codesign --force --verbose --sign $(CODESIGN_IDENTITY) {} \;
-	codesign --force --verbose --sign $(CODESIGN_IDENTITY) $(OSX_BUNDLE)/Contents/MacOS/Electron
-	codesign --force --verbose --sign $(CODESIGN_IDENTITY) $(OSX_BUNDLE)/Contents/MacOS/lektor-proxy
-	codesign --force --verbose --sign $(CODESIGN_IDENTITY) $(OSX_BUNDLE)
+	find $(OSX_BUNDLE) -name '*.app' -exec codesign $(CODESIGN_FLAGS) {} \;
+	find $(OSX_BUNDLE) -name '*.framework' -exec codesign $(CODESIGN_FLAGS) {} \;
+	codesign $(CODESIGN_FLAGS) $(OSX_BUNDLE)/Contents/MacOS/Electron
+	codesign $(CODESIGN_FLAGS) $(OSX_BUNDLE_RES)/local/bin/lektor-proxy
+	codesign $(CODESIGN_FLAGS) $(OSX_BUNDLE)
 	codesign --verify --verbose --deep $(OSX_BUNDLE)
 
 node_modules/.bin/appdmg:

@@ -1,20 +1,21 @@
-import os
-import math
 import errno
+import math
+import os
 
 from inifile import IniFile
 
 from lektor import types
-from lektor.utils import slugify, bool_from_string
+from lektor._compat import iteritems, itervalues
 from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
-from lektor.i18n import load_i18n_block, get_i18n_block
+from lektor.i18n import get_i18n_block, load_i18n_block
 from lektor.pagination import Pagination
+from lektor.utils import bool_from_string, slugify
 
 
 class ChildConfig(object):
 
     def __init__(self, enabled=None, slug_format=None, model=None,
-                 order_by=None, replaced_with=None):
+                 order_by=None, replaced_with=None, hidden=None):
         if enabled is None:
             enabled = True
         self.enabled = enabled
@@ -22,6 +23,7 @@ class ChildConfig(object):
         self.model = model
         self.order_by = order_by
         self.replaced_with = replaced_with
+        self.hidden = hidden
 
     def to_json(self):
         return {
@@ -30,6 +32,7 @@ class ChildConfig(object):
             'model': self.model,
             'order_by': self.order_by,
             'replaced_with': self.replaced_with,
+            'hidden': self.hidden,
         }
 
 
@@ -140,18 +143,23 @@ class PaginationConfig(object):
 
 class AttachmentConfig(object):
 
-    def __init__(self, enabled=None, model=None, order_by=None):
+    def __init__(self, enabled=None, model=None, order_by=None,
+                 hidden=None):
         if enabled is None:
             enabled = True
+        if hidden is None:
+            hidden = False
         self.enabled = enabled
         self.model = model
         self.order_by = order_by
+        self.hidden = hidden
 
     def to_json(self):
         return {
             'enabled': self.enabled,
             'model': self.model,
             'order_by': self.order_by,
+            'hidden': self.hidden,
         }
 
 
@@ -249,7 +257,7 @@ class DataModel(object):
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
         self.field_map = dict((x.name, x) for x in fields)
-        for key, (ty, opts) in system_fields.iteritems():
+        for key, (ty, opts) in iteritems(system_fields):
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
         self._child_slug_tmpl = None
@@ -356,7 +364,7 @@ class DataModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in self.field_map.itervalues():
+        for field in itervalues(self.field_map):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv['_model'] = self.id
@@ -407,7 +415,7 @@ class FlowBlockModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in self.field_map.itervalues():
+        for field in itervalues(self.field_map):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv['_flowblock'] = self.id
@@ -449,11 +457,13 @@ def datamodel_data_from_ini(id, inifile):
             model=inifile.get('children.model'),
             order_by=_parse_order(inifile.get('children.order_by')),
             replaced_with=inifile.get('children.replaced_with'),
+            hidden=inifile.get_bool('children.hidden', default=None),
         ),
         attachment_config=dict(
             enabled=inifile.get_bool('attachments.enabled', default=None),
             model=inifile.get('attachments.model'),
             order_by=_parse_order(inifile.get('attachments.order_by')),
+            hidden=inifile.get_bool('attachments.hidden', default=None),
         ),
         pagination_config=dict(
             enabled=inifile.get_bool('pagination.enabled', default=None),
@@ -532,11 +542,13 @@ def datamodel_from_data(env, model_data, parent=None):
             model=get_value('child_config.model'),
             order_by=get_value('child_config.order_by'),
             replaced_with=get_value('child_config.replaced_with'),
+            hidden=get_value('child_config.hidden'),
         ),
         attachment_config=AttachmentConfig(
             enabled=get_value('attachment_config.enabled'),
             model=get_value('attachment_config.model'),
             order_by=get_value('attachment_config.order_by'),
+            hidden=get_value('attachment_config.hidden'),
         ),
         pagination_config=PaginationConfig(env,
             enabled=get_value('pagination_config.enabled'),
@@ -632,7 +644,7 @@ def add_system_field(name, **opts):
     for key, value in opts.items():
         if key.endswith('_i18n'):
             base_key = key[:-5]
-            for lang, trans in load_i18n_block(value).iteritems():
+            for lang, trans in iteritems(load_i18n_block(value)):
                 opts['%s[%s]' % (base_key, lang)] = trans
 
     ty = types.builtin_types[opts.pop('type')]

@@ -10,6 +10,9 @@ from contextlib import contextmanager
 from itertools import chain
 from collections import deque, namedtuple
 
+from werkzeug.posixemulation import rename
+
+from lektor._compat import iteritems, text_type
 from lektor.context import Context
 from lektor.build_programs import builtin_build_programs
 from lektor.reporter import reporter
@@ -17,8 +20,6 @@ from lektor.sourcesearch import find_files
 from lektor.utils import prune_file_and_folder, fs_enc
 from lektor.environment import PRIMARY_ALT
 from lektor.buildfailures import FailureController
-
-from werkzeug.posixemulation import rename
 
 
 def create_tables(con):
@@ -142,7 +143,7 @@ class BuildState(object):
 
     def to_source_filename(self, filename):
         return self.path_cache.to_source_filename(filename)
-    
+
     def get_virtual_source_info(self, virtual_source_path):
         virtual_source = self.pad.get(virtual_source_path)
         if not virtual_source:
@@ -231,7 +232,7 @@ class BuildState(object):
         con = self.connect_to_database()
         try:
             cur = con.cursor()
-            for lang, title in info.title_i18n.iteritems():
+            for lang, title in iteritems(info.title_i18n):
                 cur.execute('''
                     insert or replace into source_info
                         (path, alt, lang, type, source, title)
@@ -331,7 +332,7 @@ class BuildState(object):
                     new_vinfo = self.get_virtual_source_info(info.path)
                     if not info.unchanged(new_vinfo):
                         return False
-                
+
                 # If the file info is different, then it clearly changed.
                 elif not info.unchanged(self.get_file_info(info.filename)):
                     return False
@@ -413,12 +414,12 @@ def _describe_fs_path_for_checksum(path):
     # contents from alternatives.  However for the moment it's good
     # enough.
     if os.path.isfile(path):
-        return '\x01'
+        return b'\x01'
     if os.path.isfile(os.path.join(path, 'contents.lr')):
-        return '\x02'
+        return b'\x02'
     if os.path.isdir(path):
-        return '\x03'
-    return '\x00'
+        return b'\x03'
+    return b'\x00'
 
 
 class FileInfo(object):
@@ -487,7 +488,7 @@ class FileInfo(object):
         try:
             h = hashlib.sha1()
             if os.path.isdir(self.filename):
-                h.update('DIR\x00')
+                h.update(b'DIR\x00')
                 for filename in sorted(os.listdir(self.filename)):
                     if self.env.is_uninteresting_source_name(filename):
                         continue
@@ -496,7 +497,7 @@ class FileInfo(object):
                     h.update(filename)
                     h.update(_describe_fs_path_for_checksum(
                         os.path.join(self.filename, filename)))
-                    h.update('\x00')
+                    h.update(b'\x00')
             else:
                 with open(self.filename, 'rb') as f:
                     while 1:
@@ -531,19 +532,20 @@ class FileInfo(object):
             return True
 
         return self.checksum == other.checksum
-    
+
 
 class VirtualSourceInfo(object):
+
     def __init__(self, path, mtime=None, checksum=None):
         self.path = path
         self.mtime = mtime
         self.checksum = checksum
-        
+
     def unchanged(self, other):
         if not isinstance(other, VirtualSourceInfo):
-            raise TypeError("'other' must be a VirtualSourceInfo, not %r" 
+            raise TypeError("'other' must be a VirtualSourceInfo, not %r"
                             % other)
-        
+
         if self.path != other.path:
             raise ValueError("trying to compare mismatched virtual paths: "
                              "%r.unchanged(%r)", self, other)
@@ -622,7 +624,7 @@ class Artifact(object):
         if self._new_artifact_file is None:
             fd, tmp_filename = tempfile.mkstemp(
                 dir=os.path.dirname(self.dst_filename), prefix='.__trans')
-            os.chmod(tmp_filename, 0644)
+            os.chmod(tmp_filename, 0o644)
             self._new_artifact_file = tmp_filename
             return os.fdopen(fd, mode)
         return open(self._new_artifact_file, mode)
@@ -896,7 +898,7 @@ class PathCache(object):
         if rv is not None:
             return rv
         folder = os.path.abspath(self.env.root_path)
-        if isinstance(folder, unicode) and not isinstance(filename, unicode):
+        if isinstance(folder, text_type) and not isinstance(filename, text_type):
             filename = filename.decode(fs_enc)
         filename = os.path.normpath(os.path.join(folder, filename))
         if filename.startswith(folder):
@@ -976,8 +978,14 @@ class Builder(object):
         return os.path.join(self.meta_path, 'buildstate')
 
     def connect_to_database(self):
-        return sqlite3.connect(self.buildstate_database_filename,
-                               timeout=10, check_same_thread=False)
+        con = sqlite3.connect(self.buildstate_database_filename,
+                              timeout=10, check_same_thread=False)
+        cur = con.cursor()
+        cur.execute('pragma journal_mode=WAL')
+        cur.execute('pragma synchronous=NORMAL')
+        con.commit()
+        cur.close()
+        return con
 
     def touch_site_config(self):
         """Touches the site config which typically will trigger a rebuild."""
@@ -1088,18 +1096,24 @@ class Builder(object):
         """Builds the entire tree.  Returns the number of failures."""
         failures = 0
         path_cache = PathCache(self.env)
-        with reporter.build('build', self):
-            self.env.plugin_controller.emit('before-build-all', builder=self)
-            to_build = self.get_initial_build_queue()
-            while to_build:
-                source = to_build.popleft()
-                prog, build_state = self.build(source, path_cache=path_cache)
-                self.extend_build_queue(to_build, prog)
-                failures += len(build_state.failed_artifacts)
-            self.env.plugin_controller.emit('after-build-all', builder=self)
-            if failures:
-                reporter.report_build_all_failure(failures)
-        return failures
+        # We keep a dummy connection here that does not do anything which
+        # helps us with the WAL handling.  See #144
+        con = self.connect_to_database()
+        try:
+            with reporter.build('build', self):
+                self.env.plugin_controller.emit('before-build-all', builder=self)
+                to_build = self.get_initial_build_queue()
+                while to_build:
+                    source = to_build.popleft()
+                    prog, build_state = self.build(source, path_cache=path_cache)
+                    self.extend_build_queue(to_build, prog)
+                    failures += len(build_state.failed_artifacts)
+                self.env.plugin_controller.emit('after-build-all', builder=self)
+                if failures:
+                    reporter.report_build_all_failure(failures)
+            return failures
+        finally:
+            con.close()
 
     def update_all_source_infos(self):
         """Fast way to update all source infos without having to build

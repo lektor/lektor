@@ -1,6 +1,8 @@
 import os
 from datetime import datetime
 
+from lektor._compat import iteritems
+
 
 def almost_equal(a, b, e=0.00001):
     return abs(a - b) < e
@@ -37,7 +39,7 @@ def test_exif(pad):
 
     assert isinstance(image.exif.to_dict(), dict)
 
-    for key, value in image.exif.to_dict().iteritems():
+    for key, value in iteritems(image.exif.to_dict()):
         assert getattr(image.exif, key) == value
 
 

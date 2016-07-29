@@ -1,3 +1,6 @@
+from lektor._compat import text_type
+
+
 class LektorException(Exception):
 
     def __init__(self, message=None):
@@ -13,7 +16,7 @@ class LektorException(Exception):
         }
 
     def __unicode__(self):
-        return unicode(self.message)
+        return text_type(self.message)
 
     def __str__(self):
         return self.message.encode('utf-8')
