@@ -3,6 +3,10 @@ python:
   - "2.7"
   - "3.5"
 
+cache:
+  directories:
+    - lektor/admin/node_modules
+
 install:
   - pip install --editable .
 
