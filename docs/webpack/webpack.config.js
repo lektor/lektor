@@ -22,7 +22,10 @@ var options = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader'
+        loader: 'babel',
+        query: {
+          presets: ['es2015'],
+        }
       },
       {
         test: /\.scss$/,
@@ -39,7 +42,11 @@ var options = {
     ]
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      }
+    }),
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.ProvidePlugin({
