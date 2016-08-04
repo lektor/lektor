@@ -17,11 +17,15 @@ pex:
 		--not-zip-safe Lektor
 	rm -rf pex-build-cache
 
-test:
+test-python:
 	@echo "---> running tests"
 	@cd tests; py.test . --tb=short -v
+
+test-js:
 	@echo "---> running javascript tests"
 	@cd lektor/admin; npm test
+
+test: test-python test-js
 
 osx-dmg:
 	$(MAKE) -C gui osx-dmg
