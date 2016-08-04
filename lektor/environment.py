@@ -95,7 +95,7 @@ def update_config_from_ini(config, inifile):
 
     config['ATTACHMENT_TYPES'].update(
         (k.encode('ascii', 'replace'), v.encode('ascii', 'replace'))
-        for k, v in inifile.section_as_dict('attachment_types'))
+        for k, v in iteritems(inifile.section_as_dict('attachment_types')))
 
     config['PROJECT'].update(inifile.section_as_dict('project'))
     config['PACKAGES'].update(inifile.section_as_dict('packages'))
