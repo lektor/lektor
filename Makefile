@@ -20,6 +20,8 @@ pex:
 test:
 	@echo "---> running tests"
 	@cd tests; py.test . --tb=short -v
+	@echo "---> running javascript tests"
+	@cd lektor/admin; npm test
 
 osx-dmg:
 	$(MAKE) -C gui osx-dmg

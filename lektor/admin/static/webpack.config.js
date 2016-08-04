@@ -30,7 +30,13 @@ module.exports = {
     loaders: [
       {
         test: /\.jsx$/,
-        loader: 'babel-loader'
+        exclude: /node_modules/,
+        loader: 'babel',
+        query: {
+          presets: ['react', 'es2015'],
+          plugins: ['transform-object-rest-spread'],
+          cacheDirectory: true
+        }
       },
       {
         test: /\.less$/,
