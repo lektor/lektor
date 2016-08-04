@@ -47,6 +47,7 @@ DEFAULT_CONFIG = {
         '.mpeg': 'video',
         '.wmv': 'video',
         '.ogv': 'video',
+        '.mp4': 'video',
 
         '.mp3': 'audio',
         '.wav': 'audio',
