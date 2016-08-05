@@ -1,8 +1,8 @@
-import webpack from 'webpack';
-import path from 'path';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+var webpack = require('webpack');
+var path = require('path');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-export default {
+module.exports = {
   entry: {
     'app': './js/main.jsx',
     'styles': './less/main.less',
@@ -90,4 +90,4 @@ export default {
   resolveLoader: {
     root: path.join(__dirname, '..', 'node_modules')
   }
-};
+}
