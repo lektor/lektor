@@ -43,7 +43,7 @@ function slug(string, opts) {
   result = result.replace(/^\s+|\s+$/g, ''); // trim leading/trailing spaces
   result = result.replace(/[-\s]+/g, opts.replacement); // convert spaces
   return result.replace(opts.replacement+"$",''); // remove trailing separator
-};
+}
 
 slug.defaults = {
     mode: 'pretty',
@@ -139,28 +139,28 @@ slug.defaults.modes = {
 var utils = {
   slugify: slug,
 
-  getCanonicalUrl: function(localPath) {
+  getCanonicalUrl(localPath) {
     return $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1] +
       '/' + utils.stripLeadingSlash(localPath);
   },
 
-  isValidUrl: function(url) {
+  isValidUrl(url) {
     return !!url.match(/^(https?|ftp):\/\/\S+$/);
   },
 
-  stripLeadingSlash: function(string) {
+  stripLeadingSlash(string) {
     return string.match(/^\/*(.*?)$/)[1];
   },
 
-  stripTrailingSlash: function(string) {
+  stripTrailingSlash(string) {
     return string.match(/^(.*?)\/*$/)[1];
   },
 
-  joinFsPath: function(a, b) {
+  joinFsPath(a, b) {
     return utils.stripTrailingSlash(a) + '/' + utils.stripLeadingSlash(b);
   },
 
-  flipSetValue: function(originalSet, value, isActive) {
+  flipSetValue(originalSet, value, isActive) {
     if (isActive) {
       return utils.addToSet(originalSet || [], value);
     } else {
@@ -168,7 +168,7 @@ var utils = {
     }
   },
 
-  addToSet: function(originalSet, value) {
+  addToSet(originalSet, value) {
     for (var i = 0; i < originalSet.length; i++) {
       if (originalSet[i] === value) {
         return originalSet;
@@ -179,7 +179,7 @@ var utils = {
     return rv;
   },
 
-  removeFromSet: function(originalSet, value) {
+  removeFromSet(originalSet, value) {
     var rv = null;
     var off = 0;
     for (var i = 0; i < originalSet.length; i++) {
@@ -193,14 +193,14 @@ var utils = {
     return (rv === null) ? originalSet : rv;
   },
 
-  urlPathsConsideredEqual: function(a, b) {
+  urlPathsConsideredEqual(a, b) {
     if ((a == null) || (b == null)) {
       return false;
     }
     return utils.stripTrailingSlash(a) == utils.stripTrailingSlash(b);
   },
 
-  fsPathFromAdminObservedPath: function(adminPath) {
+  fsPathFromAdminObservedPath(adminPath) {
     var base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1];
     if (adminPath.substr(0, base.length) != base) {
       return null;
@@ -208,15 +208,15 @@ var utils = {
     return '/' + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1];
   },
 
-  getParentFsPath: function(fsPath) {
+  getParentFsPath(fsPath) {
     return fsPath.match(/^(.*?)\/([^\/]*)$/)[1];
   },
 
-  getApiUrl: function(url) {
+  getApiUrl(url) {
     return $LEKTOR_CONFIG.admin_root + '/api' + url;
   },
 
-  loadData: function(url, params, options) {
+  loadData(url, params, options) {
     options = options || {};
     return makeRichPromise((resolve, reject) => {
       jQuery.ajax({
@@ -233,7 +233,7 @@ var utils = {
     });
   },
 
-  apiRequest: function(url, options) {
+  apiRequest(url, options) {
     options = options || {};
     options.url = utils.getApiUrl(url);
     if (options.json !== undefined) {
@@ -258,7 +258,7 @@ var utils = {
     });
   },
 
-  fsToUrlPath: function(fsPath) {
+  fsToUrlPath(fsPath) {
     var segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/');
     if (segments.length == 1 && segments[0] == '') {
       segments = [];
@@ -267,7 +267,7 @@ var utils = {
     return segments.join(':');
   },
 
-  urlToFsPath: function(urlPath) {
+  urlToFsPath(urlPath) {
     var segments = urlPath.match(/^:*(.*?):*$/)[1].split(':');
     if (segments.length < 1 || segments[0] != 'root') {
       return null;
@@ -276,7 +276,7 @@ var utils = {
     return segments.join('/');
   },
 
-  urlPathToSegments: function(urlPath) {
+  urlPathToSegments(urlPath) {
     if (!urlPath) {
       return null;
     }
@@ -287,12 +287,12 @@ var utils = {
     return null;
   },
 
-  scrolledToBottom: function() {
+  scrolledToBottom() {
     return document.body.offsetHeight + document.body.scrollTop
       >= document.body.scrollHeight;
   },
 
-  getPlatform: function() {
+  getPlatform() {
     if (navigator.appVersion.indexOf('Win') != -1) {
       return 'windows';
     } else if (navigator.appVersion.indexOf('Mac') != -1) {
@@ -304,7 +304,7 @@ var utils = {
     return 'other';
   },
 
-  isMetaKey: function(event) {
+  isMetaKey(event) {
     if (utils.getPlatform() == 'mac') {
       return event.metaKey;
     } else {
@@ -313,4 +313,4 @@ var utils = {
   }
 };
 
-module.exports = utils;
+export default utils;

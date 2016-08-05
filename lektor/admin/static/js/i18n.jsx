@@ -1,8 +1,3 @@
-// this modules is re-used in the lektor gui system, so be careful with
-// imports here.
-
-'use strict';
-
 function loadTranslations() {
   var ctx = require.context('../../../translations', true, /\.json$/);
   var rv = {};
@@ -18,7 +13,7 @@ var i18n = {
 
   currentLanguage: 'en',
 
-  setLanguageFromLocale: function(locale) {
+  setLanguageFromLocale(locale) {
     if (locale) {
       let lang = locale.split(/[-_]/)[0].toLowerCase();
       if (this.translations[lang] !== undefined) {
@@ -27,7 +22,7 @@ var i18n = {
     }
   },
 
-  trans: function(key) {
+  trans(key) {
     var rv;
     if (typeof key === 'object') {
       rv = key[i18n.currentLanguage];
@@ -41,4 +36,4 @@ var i18n = {
 };
 
 
-module.exports = i18n;
+export default i18n;

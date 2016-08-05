@@ -33,6 +33,6 @@ function makeRichPromise(callback, fallback) {
 }
 
 
-module.exports = {
+export default {
   makeRichPromise: makeRichPromise
-}
+};
