@@ -23,4 +23,4 @@ class BaseComponent extends React.Component {
   }
 }
 
-module.exports = BaseComponent;
+export default BaseComponent;

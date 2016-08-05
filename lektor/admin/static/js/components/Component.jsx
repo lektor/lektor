@@ -88,4 +88,4 @@ class Component extends BaseComponent {
   }
 }
 
-module.exports = Component;
+export default Component;

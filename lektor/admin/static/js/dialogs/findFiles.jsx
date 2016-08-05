@@ -1,14 +1,14 @@
 'use strict';
 
-var React = require('react');
-var Router = require("react-router");
+import React from 'react';
+import Router from "react-router";
 var {Link, RouteHandler} = Router;
 
-var RecordComponent = require('../components/RecordComponent');
-var SlideDialog = require('../components/SlideDialog');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var dialogSystem = require('../dialogSystem');
+import RecordComponent from '../components/RecordComponent';
+import SlideDialog from '../components/SlideDialog';
+import utils from '../utils';
+import i18n from '../i18n';
+import dialogSystem from '../dialogSystem';
 
 
 class FindFiles extends RecordComponent {
@@ -141,4 +141,4 @@ class FindFiles extends RecordComponent {
   }
 }
 
-module.exports = FindFiles;
+export default FindFiles;

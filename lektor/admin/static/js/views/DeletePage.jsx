@@ -1,14 +1,13 @@
 'use strict';
 
-var qs = require('querystring');
-var React = require('react');
-var Router = require('react-router');
-
-var RecordComponent = require('../components/RecordEditComponent');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var hub = require('../hub');
-var {AttachmentsChangedEvent} = require('../events');
+import qs from 'querystring';
+import React from 'react';
+import Router from 'react-router';
+import RecordComponent from '../components/RecordEditComponent';
+import utils from '../utils';
+import i18n from '../i18n';
+import hub from '../hub';
+import {AttachmentsChangedEvent} from '../events';
 
 
 class DeletePage extends RecordComponent {
@@ -175,7 +174,7 @@ class DeletePage extends RecordComponent {
         </ul>
       );
     }
-    
+
     var label = ri.label_i18n ? i18n.trans(ri.label_i18n) : ri.id;
     if (this.getRecordAlt() !== '_primary' && altInfo != null) {
       label += ' (' + i18n.trans(altInfo.name_i18n) + ')';
@@ -214,4 +213,4 @@ class DeletePage extends RecordComponent {
   }
 }
 
-module.exports = DeletePage;
+export default DeletePage;

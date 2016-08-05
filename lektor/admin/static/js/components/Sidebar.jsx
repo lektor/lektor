@@ -1,13 +1,12 @@
 'use strict';
 
-var React = require('react');
-
-var utils = require('../utils');
-var i18n = require('../i18n');
-var hub = require('../hub');
-var {AttachmentsChangedEvent} = require('../events');
-var RecordComponent = require('./RecordComponent');
-var Link = require('../components/Link');
+import React from 'react';
+import utils from '../utils';
+import i18n from '../i18n';
+import hub from '../hub';
+import {AttachmentsChangedEvent} from '../events';
+import RecordComponent from './RecordComponent';
+import Link from '../components/Link';
 
 
 function getBrowseButtonTitle() {
@@ -380,4 +379,4 @@ class Sidebar extends RecordComponent {
   }
 }
 
-module.exports = Sidebar;
+export default Sidebar;

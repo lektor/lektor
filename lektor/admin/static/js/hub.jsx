@@ -1,6 +1,6 @@
 'use strict';
 
-var React = require('react');
+import React from 'react';
 
 
 class Hub {
@@ -70,4 +70,4 @@ class Hub {
 var hub = new Hub();
 
 
-module.exports = hub;
+export default hub;

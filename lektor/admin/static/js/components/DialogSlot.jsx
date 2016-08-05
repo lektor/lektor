@@ -1,12 +1,11 @@
 'use strict';
 
-var React = require('react');
-var Router = require("react-router");
-
-var Component = require('../components/Component');
-var dialogSystem = require('../dialogSystem');
-var {DialogChangedEvent} = require('../events');
-var hub = require('../hub');
+import React from 'react';
+import Router from "react-router";
+import Component from '../components/Component';
+import dialogSystem from '../dialogSystem';
+import {DialogChangedEvent} from '../events';
+import hub from '../hub';
 
 
 class DialogSlot extends Component {
@@ -67,4 +66,4 @@ class DialogSlot extends Component {
   }
 }
 
-module.exports = DialogSlot;
+export default DialogSlot;

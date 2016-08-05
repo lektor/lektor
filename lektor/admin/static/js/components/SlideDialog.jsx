@@ -1,10 +1,9 @@
 'use strict';
 
-var React = require('react');
-
-var Component = require('../components/Component');
-var dialogSystem = require('../dialogSystem');
-var i18n = require('../i18n');
+import React from 'react';
+import Component from '../components/Component';
+import dialogSystem from '../dialogSystem';
+import i18n from '../i18n';
 
 
 class SlideDialog extends Component {
@@ -44,7 +43,7 @@ class SlideDialog extends Component {
     return (
       <div className={className} {...props}>
         <div className="col-md-6 col-md-offset-4">
-          {hasCloseButton ?
+          {hasCloseButton}
             <a href="#" className="close-btn" onClick={
               this._onCloseClick.bind(this)}>{i18n.trans('CLOSE')}</a> : null}
           <h3>{title}</h3>
@@ -62,4 +61,4 @@ SlideDialog.propTypes = {
 };
 
 
-module.exports = SlideDialog;
+export default SlideDialog;

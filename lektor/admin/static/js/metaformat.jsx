@@ -1,6 +1,6 @@
 'use strict';
 
-var React = require('react');
+import React from 'react';
 
 
 function lineIsDashes(line) {
@@ -106,7 +106,7 @@ function serialize(blocks) {
 }
 
 
-module.exports = {
+export default {
   tokenize: tokenize,
   serialize: serialize
 };

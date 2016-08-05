@@ -1,7 +1,7 @@
 'use strict';
 
-var React = require('react');
-var Component = require('./Component');
+import React from 'react';
+import Component from './Component';
 
 
 class ToggleGroup extends Component {
@@ -48,4 +48,4 @@ ToggleGroup.propTypes = {
   defaultVisibility: React.PropTypes.bool
 };
 
-module.exports = ToggleGroup;
+export default ToggleGroup;

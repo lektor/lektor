@@ -1,15 +1,14 @@
 'use strict';
 
-var React = require('react');
-
-var primitiveWidgets = require('./widgets/primitiveWidgets');
-var multiWidgets = require('./widgets/multiWidgets');
-var flowWidget = require('./widgets/flowWidget');
-var fakeWidgets = require('./widgets/fakeWidgets');
-var {BasicWidgetMixin} = require('./widgets/mixins');
-var Component = require('./components/Component');
-var ToggleGroup = require('./components/ToggleGroup');
-var i18n = require('./i18n');
+import React from 'react';
+import primitiveWidgets from './widgets/primitiveWidgets';
+import multiWidgets from './widgets/multiWidgets';
+import flowWidget from './widgets/flowWidget';
+import fakeWidgets from './widgets/fakeWidgets';
+import {BasicWidgetMixin} from './widgets/mixins';
+import Component from './components/Component';
+import ToggleGroup from './components/ToggleGroup';
+import i18n from './i18n';
 
 
 var widgetComponents = {
@@ -185,7 +184,7 @@ function renderFieldRows(fields, isIllegalField, renderFunc) {
 }
 
 
-module.exports = {
+export default {
   getWidgetComponent: getWidgetComponent,
   getWidgetComponentWithFallback: getWidgetComponentWithFallback,
   getFieldRows: getFieldRows,

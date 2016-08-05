@@ -1,12 +1,11 @@
 'use strict';
 
-var React = require('react');
-var Component = require('../components/Component');
-
-var SlideDialog = require('../components/SlideDialog');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var dialogSystem = require('../dialogSystem');
+import React from 'react';
+import Component from '../components/Component';
+import SlideDialog from '../components/SlideDialog';
+import utils from '../utils';
+import i18n from '../i18n';
+import dialogSystem from '../dialogSystem';
 
 
 class Refresh extends Component {
@@ -82,4 +81,4 @@ class Refresh extends Component {
   }
 }
 
-module.exports = Refresh;
+export default Refresh;

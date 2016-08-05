@@ -1,7 +1,7 @@
 'use strict';
 
-var React = require('react');
-var Component = require('../components/Component');
+import React from 'react';
+import Component from '../components/Component';
 
 
 class Dash extends Component {
@@ -17,4 +17,4 @@ class Dash extends Component {
   }
 }
 
-module.exports = Dash;
+export default Dash;

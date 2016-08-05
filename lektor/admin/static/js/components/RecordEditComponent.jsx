@@ -1,7 +1,7 @@
 'use strict';
 
-var RecordComponent = require('./RecordComponent');
-var i18n = require('../i18n');
+import RecordComponent from './RecordComponent';
+import i18n from '../i18n';
 
 
 class RecordEditComponent extends RecordComponent {
@@ -21,4 +21,4 @@ class RecordEditComponent extends RecordComponent {
   }
 }
 
-module.exports = RecordEditComponent;
+export default RecordEditComponent;

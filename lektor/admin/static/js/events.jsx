@@ -1,6 +1,6 @@
 'use strict';
 
-var React = require('react');
+import React from 'react';
 
 
 class Event {
@@ -51,7 +51,7 @@ class DialogChangedEvent extends Event {
 }
 
 
-module.exports = {
+export default {
   Event: Event,
   RecordEvent: RecordEvent,
   AttachmentsChangedEvent: AttachmentsChangedEvent,

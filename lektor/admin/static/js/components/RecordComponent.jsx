@@ -1,10 +1,9 @@
 'use strict';
 
-var React = require('react');
-var Router = require('react-router');
-
-var Component = require('./Component');
-var utils = require('../utils');
+import React from 'react';
+import Router from 'react-router';
+import Component from './Component';
+import utils from '../utils';
 
 
 /* a react component baseclass that has some basic knowledge about
@@ -98,4 +97,4 @@ class RecordComponent extends Component {
   }
 }
 
-module.exports = RecordComponent;
+export default RecordComponent;

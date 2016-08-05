@@ -1,14 +1,13 @@
 'use strict';
 
-var qs = require('querystring');
-var React = require('react');
-var Router = require('react-router');
-
-var RecordComponent = require('../components/RecordComponent');
-var i18n = require('../i18n');
-var userLabel = require('../userLabel');
-var utils = require('../utils');
-var widgets = require('../widgets');
+import qs from 'querystring';
+import React from 'react';
+import Router from 'react-router';
+import RecordComponent from '../components/RecordComponent';
+import i18n from '../i18n';
+import userLabel from '../userLabel';
+import utils from '../utils';
+import widgets from '../widgets';
 
 
 function getGoodDefaultModel(models) {
@@ -210,4 +209,4 @@ class AddChildPage extends RecordComponent {
   }
 }
 
-module.exports = AddChildPage;
+export default AddChildPage;

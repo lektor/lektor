@@ -1,4 +1,4 @@
-var {makeRichPromise} = require('./richPromise');
+import {makeRichPromise} from './richPromise';
 
 
 function slug(string, opts) {

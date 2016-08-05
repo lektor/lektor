@@ -1,8 +1,8 @@
 'use strict';
 
-var React = require('react');
-var ReactRouter = require('react-router');
-var Component = require('./Component');
+import React from 'react';
+import ReactRouter from 'react-router';
+import Component from './Component';
 
 
 class Link extends Component {
@@ -25,4 +25,4 @@ Link.propTypes = {
 }
 
 
-module.exports = Link;
+export default Link;

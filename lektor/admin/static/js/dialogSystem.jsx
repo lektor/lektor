@@ -1,9 +1,8 @@
 "use strict";
 
-var React = require('react');
-
-var hub = require('./hub');
-var {DialogChangedEvent} = require('./events');
+import React from 'react';
+import hub from './hub';
+import {DialogChangedEvent} from './events';
 
 
 class DialogSystem {
@@ -57,4 +56,4 @@ class DialogSystem {
 var dialogSystem = new DialogSystem();
 
 
-module.exports = dialogSystem;
+export default dialogSystem;

@@ -1,15 +1,14 @@
 'use strict';
 
-var React = require('react');
-
-var RecordComponent = require('./RecordComponent');
-var Link = require('./Link');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var dialogSystem = require('../dialogSystem');
-var FindFiles = require('../dialogs/findFiles');
-var Publish = require('../dialogs/publish');
-var Refresh = require('../dialogs/Refresh');
+import React from 'react';
+import RecordComponent from './RecordComponent';
+import Link from './Link';
+import utils from '../utils';
+import i18n from '../i18n';
+import dialogSystem from '../dialogSystem';
+import FindFiles from '../dialogs/findFiles';
+import Publish from '../dialogs/publish';
+import Refresh from '../dialogs/Refresh';
 
 
 class BreadCrumbs extends RecordComponent {
@@ -166,4 +165,4 @@ class BreadCrumbs extends RecordComponent {
   }
 }
 
-module.exports = BreadCrumbs;
+export default BreadCrumbs;

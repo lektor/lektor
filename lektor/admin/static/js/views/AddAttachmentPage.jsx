@@ -1,15 +1,14 @@
 'use strict';
 
-var qs = require('querystring');
-var React = require('react');
-var Router = require('react-router');
-
-var RecordComponent = require('../components/RecordComponent');
-var hub = require('../hub');
-var {AttachmentsChangedEvent} = require('../events');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var widgets = require('../widgets');
+import qs from 'querystring';
+import React from 'react';
+import Router from 'react-router';
+import RecordComponent from '../components/RecordComponent';
+import hub from '../hub';
+import {AttachmentsChangedEvent} from '../events';
+import utils from '../utils';
+import i18n from '../i18n';
+import widgets from '../widgets';
 
 
 function getGoodDefaultModel(models) {
@@ -140,4 +139,4 @@ class AddAttachmentPage extends RecordComponent {
   }
 }
 
-module.exports = AddAttachmentPage;
+export default AddAttachmentPage;

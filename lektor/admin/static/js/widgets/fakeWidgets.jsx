@@ -1,9 +1,9 @@
 'use strict';
 
-var React = require('react');
-var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
-var utils = require('../utils');
-var i18n = require('../i18n');
+import React from 'react';
+import {BasicWidgetMixin, ValidationFailure} from './mixins';
+import utils from '../utils';
+import i18n from '../i18n';
 
 
 var FakeWidgetMixin = {
@@ -61,7 +61,7 @@ var HeadingWidget = React.createClass({
 });
 
 
-module.exports = {
+export default {
   LineWidget: LineWidget,
   SpacingWidget: SpacingWidget,
   InfoWidget: InfoWidget,
