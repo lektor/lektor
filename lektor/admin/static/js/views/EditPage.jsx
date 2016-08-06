@@ -1,12 +1,12 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import Router from 'react-router';
-import update from 'react-addons-update';
-import RecordEditComponent from '../components/RecordEditComponent';
-import utils from '../utils';
-import i18n from '../i18n';
-import widgets from '../widgets';
+import React from 'react'
+import Router from 'react-router'
+import update from 'react-addons-update'
+import RecordEditComponent from '../components/RecordEditComponent'
+import utils from '../utils'
+import i18n from '../i18n'
+import widgets from '../widgets'
 
 
 class EditPage extends RecordEditComponent {
@@ -236,4 +236,4 @@ class EditPage extends RecordEditComponent {
   }
 }
 
-export default EditPage;
+export default EditPage

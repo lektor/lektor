@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import RecordComponent from './RecordComponent';
-import Link from './Link';
-import utils from '../utils';
-import i18n from '../i18n';
-import dialogSystem from '../dialogSystem';
-import FindFiles from '../dialogs/findFiles';
-import Publish from '../dialogs/publish';
-import Refresh from '../dialogs/Refresh';
+import React from 'react'
+import RecordComponent from './RecordComponent'
+import Link from './Link'
+import utils from '../utils'
+import i18n from '../i18n'
+import dialogSystem from '../dialogSystem'
+import FindFiles from '../dialogs/findFiles'
+import Publish from '../dialogs/publish'
+import Refresh from '../dialogs/Refresh'
 
 
 class BreadCrumbs extends RecordComponent {
@@ -39,7 +39,7 @@ class BreadCrumbs extends RecordComponent {
   }
 
   updateCrumbs() {
-    var path = this.getRecordPath();
+    const path = this.getRecordPath();
     if (path === null) {
       this.setState({
         recordPathInfo: null
@@ -112,15 +112,15 @@ class BreadCrumbs extends RecordComponent {
   }
 
   render() {
-    var crumbs = [];
-    var target = this.isRecordPreviewActive() ? '.preview' : '.edit';
-    var lastItem = null;
+    let crumbs = [];
+    const target = this.isRecordPreviewActive() ? '.preview' : '.edit';
+    let lastItem = null;
 
     if (this.state.recordPathInfo != null) {
       crumbs = this.state.recordPathInfo.segments.map((item) => {
-        var urlPath = this.getUrlRecordPathWithAlt(item.path);
-        var label = item.label_i18n ? i18n.trans(item.label_i18n) : item.label;
-        var className = 'record-crumb';
+        const urlPath = this.getUrlRecordPathWithAlt(item.path);
+        let label = item.label_i18n ? i18n.trans(item.label_i18n) : item.label;
+        let className = 'record-crumb';
 
         if (!item.exists) {
           label = item.id;
@@ -128,7 +128,7 @@ class BreadCrumbs extends RecordComponent {
         }
         lastItem = item;
 
-        var adminPath = this.getPathToAdminPage(target, {path: urlPath});
+        const adminPath = this.getPathToAdminPage(target, {path: urlPath});
 
         return (
           <li key={item.path} className={className}>
@@ -165,4 +165,4 @@ class BreadCrumbs extends RecordComponent {
   }
 }
 
-export default BreadCrumbs;
+export default BreadCrumbs

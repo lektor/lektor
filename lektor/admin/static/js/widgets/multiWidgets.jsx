@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var {BasicWidgetMixin} = require('./mixins');
+import React from 'react'
+import utils from '../utils'
+import i18n from '../i18n'
+import {BasicWidgetMixin} from './mixins'
 
 
 var CheckboxesInputWidget = React.createClass({
@@ -116,7 +116,7 @@ var SelectInputWidget = React.createClass({
 });
 
 
-module.exports = {
+export default {
   CheckboxesInputWidget: CheckboxesInputWidget,
   SelectInputWidget: SelectInputWidget,
-};
+}

@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import i18n from './i18n';
+import React from 'react'
+import i18n from './i18n'
 
-var userLabel = {
+const userLabel = {
 
   // formats a user label appropriately
   format(inputConfig) {
@@ -31,4 +31,4 @@ var userLabel = {
 };
 
 
-export default userLabel;
+export default userLabel

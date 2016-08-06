@@ -1,20 +1,19 @@
-'use strict';
+'use strict'
 
-import React from 'react';
+import React from 'react'
 import Component from '../components/Component';
-
 
 class Dash extends Component {
 
   componentDidMount() {
-    super.componentDidMount();
-    var rootPreview = $LEKTOR_CONFIG.admin_root + '/root/preview';
-    this.props.history.pushState(null, rootPreview);
+    super.componentDidMount()
+    const rootPreview = $LEKTOR_CONFIG.admin_root + '/root/preview'
+    this.props.history.pushState(null, rootPreview)
   }
 
   render() {
-    return null;
+    return null
   }
 }
 
-export default Dash;
+export default Dash

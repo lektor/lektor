@@ -1,8 +1,8 @@
-"use strict";
+"use strict"
 
-import React from 'react';
-import hub from './hub';
-import {DialogChangedEvent} from './events';
+import React from 'react'
+import hub from './hub'
+import {DialogChangedEvent} from './events'
 
 
 class DialogSystem {
@@ -53,7 +53,7 @@ class DialogSystem {
   }
 }
 
-var dialogSystem = new DialogSystem();
+const dialogSystem = new DialogSystem()
 
 
-export default dialogSystem;
+export default dialogSystem

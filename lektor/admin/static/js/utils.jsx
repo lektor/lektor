@@ -1,4 +1,4 @@
-import {makeRichPromise} from './richPromise';
+import {makeRichPromise} from './richPromise'
 
 
 function slug(string, opts) {
@@ -7,22 +7,22 @@ function slug(string, opts) {
   if ('string' === typeof opts)
     opts = {replacement:opts};
   opts.mode = opts.mode || slug.defaults.mode;
-  var defaults = slug.defaults.modes[opts.mode];
+  const defaults = slug.defaults.modes[opts.mode];
   ['replacement','multicharmap','charmap','remove'].forEach(function (key) {
     opts[key] = opts[key] || defaults[key];
   });
   if ('undefined' === typeof opts.symbols)
     opts.symbols = defaults.symbols;
-  var lengths = [];
+  const lengths = []
   Object.keys(opts.multicharmap).forEach(function (key) {
-    var len = key.length;
+    const len = key.length
     if (lengths.indexOf(len) === -1)
       lengths.push(len);
   });
-  var code, unicode, result = "";
-  for (var char, i = 0, l = string.length; i < l; i++) { char = string[i];
+  let code, unicode, result = "";
+  for (let char, i = 0, l = string.length; i < l; i++) { char = string[i];
     if (!lengths.some(function (len) {
-      var str = string.substr(i, len);
+      const str = string.substr(i, len)
       if (opts.multicharmap[str]) {
         i += len - 1;
         char = opts.multicharmap[str];
@@ -136,7 +136,7 @@ slug.defaults.modes = {
 };
 
 
-var utils = {
+const utils = {
   slugify: slug,
 
   getCanonicalUrl(localPath) {
@@ -169,20 +169,20 @@ var utils = {
   },
 
   addToSet(originalSet, value) {
-    for (var i = 0; i < originalSet.length; i++) {
+    for (let i = 0; i < originalSet.length; i++) {
       if (originalSet[i] === value) {
         return originalSet;
       }
     }
-    var rv = originalSet.slice();
+    const rv = originalSet.slice()
     rv.push(value);
     return rv;
   },
 
   removeFromSet(originalSet, value) {
-    var rv = null;
-    var off = 0;
-    for (var i = 0; i < originalSet.length; i++) {
+    let rv = null;
+    let off = 0;
+    for (let i = 0; i < originalSet.length; i++) {
       if (originalSet[i] === value) {
         if (rv === null) {
           rv = originalSet.slice();
@@ -201,7 +201,7 @@ var utils = {
   },
 
   fsPathFromAdminObservedPath(adminPath) {
-    var base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1];
+    const base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1]
     if (adminPath.substr(0, base.length) != base) {
       return null;
     }
@@ -259,7 +259,7 @@ var utils = {
   },
 
   fsToUrlPath(fsPath) {
-    var segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/');
+    let segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/');
     if (segments.length == 1 && segments[0] == '') {
       segments = [];
     }
@@ -268,7 +268,7 @@ var utils = {
   },
 
   urlToFsPath(urlPath) {
-    var segments = urlPath.match(/^:*(.*?):*$/)[1].split(':');
+    const segments = urlPath.match(/^:*(.*?):*$/)[1].split(':')
     if (segments.length < 1 || segments[0] != 'root') {
       return null;
     }
@@ -280,7 +280,7 @@ var utils = {
     if (!urlPath) {
       return null;
     }
-    var rv = urlPath.match(/^:*(.*?):*$/)[1].split('/');
+    const rv = urlPath.match(/^:*(.*?):*$/)[1].split('/')
     if (rv.length >= 1 && rv[0] == 'root') {
       return rv.slice(1);
     }
@@ -313,4 +313,4 @@ var utils = {
   }
 };
 
-export default utils;
+export default utils

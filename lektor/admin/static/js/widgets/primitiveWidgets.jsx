@@ -1,10 +1,10 @@
 'use strict';
 
-var React = require('react');
-var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
-var utils = require('../utils');
-var userLabel = require('../userLabel');
-var i18n = require('../i18n');
+import React from 'react'
+import {BasicWidgetMixin, ValidationFailure} from './mixins'
+import utils from '../utils'
+import userLabel from '../userLabel'
+import i18n from '../i18n'
 
 function isTrue(value) {
   return value == 'true' || value == 'yes' || value == '1';
@@ -331,7 +331,7 @@ var BooleanInputWidget = React.createClass({
         <label>
           <input type="checkbox"
             {...otherProps}
-            ref='checkbox'
+            ref="checkbox"
             checked={isTrue(value)}
             onChange={onChange ? this.onChange : undefined} />
           {type.checkbox_label_i18n ? i18n.trans(type.checkbox_label_i18n) : null}
@@ -339,9 +339,9 @@ var BooleanInputWidget = React.createClass({
       </div>
     )
   }
-});
+})
 
-module.exports = {
+export default {
   SingleLineTextInputWidget: SingleLineTextInputWidget,
   SlugInputWidget: SlugInputWidget,
   IntegerInputWidget: IntegerInputWidget,
@@ -349,5 +349,5 @@ module.exports = {
   DateInputWidget: DateInputWidget,
   UrlInputWidget: UrlInputWidget,
   MultiLineTextInputWidget: MultiLineTextInputWidget,
-  BooleanInputWidget: BooleanInputWidget,
-};
+  BooleanInputWidget: BooleanInputWidget
+}

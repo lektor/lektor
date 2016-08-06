@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-import RecordComponent from './RecordComponent';
-import i18n from '../i18n';
+import RecordComponent from './RecordComponent'
+import i18n from '../i18n'
 
 
 class RecordEditComponent extends RecordComponent {
@@ -11,7 +11,7 @@ class RecordEditComponent extends RecordComponent {
   }
 
   routerWillLeave(nextLocation) {
-    var rv = super.routerWillLeave(nextLocation);
+    const rv = super.routerWillLeave(nextLocation);
     if (rv !== undefined) {
       return rv;
     }
@@ -21,4 +21,4 @@ class RecordEditComponent extends RecordComponent {
   }
 }
 
-export default RecordEditComponent;
+export default RecordEditComponent

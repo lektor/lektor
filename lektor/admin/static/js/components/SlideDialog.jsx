@@ -1,40 +1,40 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import Component from '../components/Component';
-import dialogSystem from '../dialogSystem';
-import i18n from '../i18n';
+import React from 'react'
+import Component from '../components/Component'
+import dialogSystem from '../dialogSystem'
+import i18n from '../i18n'
 
 
 class SlideDialog extends Component {
 
   constructor(props) {
     super(props);
-    this._onKeyPress = this._onKeyPress.bind(this);
+    this._onKeyPress = this._onKeyPress.bind(this)
   }
 
   componentDidMount() {
-    super.componentDidMount();
+    super.componentDidMount()
     if (this.props.closeOnEscape) {
-      window.addEventListener('keydown', this._onKeyPress);
+      window.addEventListener('keydown', this._onKeyPress)
     }
   }
 
   componentWillUnmount() {
     window.removeEventListener('keydown', this._onKeyPress);
-    super.componentWillUnmount();
+    super.componentWillUnmount()
   }
 
   _onKeyPress(event) {
     if (event.which == 27 && this.props.closeOnEscape) {
-      event.preventDefault();
-      dialogSystem.dismissDialog();
+      event.preventDefault()
+      dialogSystem.dismissDialog()
     }
   }
 
   _onCloseClick(event) {
-    event.preventDefault();
-    dialogSystem.dismissDialog();
+    event.preventDefault()
+    dialogSystem.dismissDialog()
   }
 
   render() {
@@ -50,7 +50,7 @@ class SlideDialog extends Component {
           {children}
         </div>
       </div>
-    );
+    )
   }
 }
 
@@ -58,7 +58,7 @@ SlideDialog.propTypes = {
   title: React.PropTypes.string,
   hasCloseButton: React.PropTypes.bool,
   closeOnEscape: React.PropTypes.bool
-};
+}
 
 
-export default SlideDialog;
+export default SlideDialog

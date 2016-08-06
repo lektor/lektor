@@ -58,7 +58,7 @@ var routes = (function() {
   );
 })();
 
-var dash = document.getElementById('dash');
+var dash = document.getElementById('dash')
 if (dash) {
   ReactDOM.render((
     <Router history={useBeforeUnload(createBrowserHistory)()}>

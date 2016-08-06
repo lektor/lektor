@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import Router from 'react-router';
-import utils from '../utils';
-import RecordComponent from '../components/RecordComponent';
+import React from 'react'
+import Router from 'react-router'
+import utils from '../utils'
+import RecordComponent from '../components/RecordComponent'
 
 
 class PreviewPage extends RecordComponent {
@@ -103,4 +103,4 @@ class PreviewPage extends RecordComponent {
   }
 }
 
-export default PreviewPage;
+export default PreviewPage

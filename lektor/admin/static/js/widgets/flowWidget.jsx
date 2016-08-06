@@ -1,10 +1,10 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var i18n = require('../i18n');
-var metaformat = require('../metaformat');
-var {BasicWidgetMixin} = require('./mixins');
-var userLabel = require('../userLabel');
+import React from 'react'
+import i18n from '../i18n'
+import metaformat from '../metaformat'
+import {BasicWidgetMixin} from './mixins'
+import userLabel from '../userLabel'
 
 
 /* circular references require us to do this */
@@ -318,6 +318,6 @@ var FlowWidget = React.createClass({
   }
 });
 
-module.exports = {
+export default {
   FlowWidget: FlowWidget
-};
+}

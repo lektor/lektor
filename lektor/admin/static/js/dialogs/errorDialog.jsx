@@ -1,10 +1,10 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import RecordComponent from '../components/RecordComponent';
-import SlideDialog from '../components/SlideDialog';
-import dialogSystem from '../dialogSystem';
-import i18n from '../i18n';
+import React from 'react'
+import RecordComponent from '../components/RecordComponent'
+import SlideDialog from '../components/SlideDialog'
+import dialogSystem from '../dialogSystem'
+import i18n from '../i18n'
 
 
 class ErrorDialog extends RecordComponent {
@@ -36,4 +36,4 @@ ErrorDialog.propTypes = {
   error: React.PropTypes.object
 }
 
-export default ErrorDialog;
+export default ErrorDialog

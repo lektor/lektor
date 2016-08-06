@@ -1,21 +1,21 @@
-'use strict';
+'use strict'
 
-import qs from 'querystring';
-import React from 'react';
-import Router from 'react-router';
-import RecordComponent from '../components/RecordComponent';
-import hub from '../hub';
-import {AttachmentsChangedEvent} from '../events';
-import utils from '../utils';
-import i18n from '../i18n';
-import widgets from '../widgets';
+import qs from 'querystring'
+import React from 'react'
+import Router from 'react-router'
+import RecordComponent from '../components/RecordComponent'
+import hub from '../hub'
+import {AttachmentsChangedEvent} from '../events'
+import utils from '../utils'
+import i18n from '../i18n'
+import widgets from '../widgets'
 
 
 function getGoodDefaultModel(models) {
   if (models.page !== undefined) {
     return 'page';
   }
-  var choices = Object.keys(models);
+  const choices = Object.keys(models);
   choices.sort();
   return choices[0];
 }
@@ -55,7 +55,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   onUploadProgress(event) {
-    var newProgress = Math.round((event.loaded * 100) / event.total);
+    const newProgress = Math.round((event.loaded * 100) / event.total)
     if (newProgress != this.state.currentProgress) {
       this.setState({
         currentProgress: newProgress
@@ -82,20 +82,20 @@ class AddAttachmentPage extends RecordComponent {
       return;
     }
 
-    var files = this.refs.file.files;
+    const files = this.refs.file.files;
     this.setState({
       currentFiles: Array.prototype.slice.call(files, 0),
       isUploading: true
     });
 
-    var formData = new FormData();
+    const formData = new FormData();
     formData.append('path', this.getRecordPath());
 
-    for (var i = 0; i < files.length; i++) {
+    for (let i = 0; i < files.length; i++) {
       formData.append('file', files[i], files[i].name);
     }
 
-    var xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open('POST', utils.getApiUrl('/newattachment'));
     xhr.onload = (event) => {
       this.onUploadComplete(JSON.parse(xhr.responseText), event);
@@ -107,7 +107,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   renderCurrentFiles() {
-    var files = this.state.currentFiles.map((file) => {
+    const files = this.state.currentFiles.map((file) => {
       return (
         <li key={file.name}>{file.name} ({file.type})</li>
       );
@@ -116,7 +116,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   render() {
-    var nai = this.state.newAttachmentInfo;
+    const nai = this.state.newAttachmentInfo;
 
     if (!nai) {
       return null;
@@ -139,4 +139,4 @@ class AddAttachmentPage extends RecordComponent {
   }
 }
 
-export default AddAttachmentPage;
+export default AddAttachmentPage

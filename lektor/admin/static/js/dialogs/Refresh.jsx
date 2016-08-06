@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import Component from '../components/Component';
-import SlideDialog from '../components/SlideDialog';
-import utils from '../utils';
-import i18n from '../i18n';
-import dialogSystem from '../dialogSystem';
+import React from 'react'
+import Component from '../components/Component'
+import SlideDialog from '../components/SlideDialog'
+import utils from '../utils'
+import i18n from '../i18n'
+import dialogSystem from '../dialogSystem'
 
 
 class Refresh extends Component {
@@ -49,7 +49,7 @@ class Refresh extends Component {
   }
 
   render() {
-    var progress = null;
+    let progress = null;
     if (this.state.currentState !== 'IDLE') {
       progress = (
         <div>
@@ -81,4 +81,4 @@ class Refresh extends Component {
   }
 }
 
-export default Refresh;
+export default Refresh

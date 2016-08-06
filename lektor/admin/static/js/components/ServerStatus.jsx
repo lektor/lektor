@@ -28,7 +28,7 @@ class ServerStatus extends Component {
   componentWillUnmount() {
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
-      this.intervalId = null;
+      this.intervalId = null
     }
     super.componentWillUnmount();
   }
@@ -66,4 +66,4 @@ class ServerStatus extends Component {
   }
 }
 
-export default ServerStatus;
+export default ServerStatus

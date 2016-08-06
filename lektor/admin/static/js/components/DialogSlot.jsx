@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import Router from "react-router";
-import Component from '../components/Component';
-import dialogSystem from '../dialogSystem';
-import {DialogChangedEvent} from '../events';
-import hub from '../hub';
+import React from 'react'
+import Router from "react-router"
+import Component from '../components/Component'
+import dialogSystem from '../dialogSystem'
+import {DialogChangedEvent} from '../events'
+import hub from '../hub'
 
 
 class DialogSlot extends Component {
@@ -42,7 +42,7 @@ class DialogSlot extends Component {
   }
 
   render() {
-    var dialog = null;
+    let dialog = null;
     if (this.state.currentDialog) {
       dialog = <this.state.currentDialog
         ref={(ref) => this.initDialogInstance(ref)}
@@ -66,4 +66,4 @@ class DialogSlot extends Component {
   }
 }
 
-export default DialogSlot;
+export default DialogSlot
