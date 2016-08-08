@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
 export function isDevMode() {
-  return process.env.LEKTOR_DEV === '1';
+  return process.env.LEKTOR_DEV === '1'
 }
 
 export function attachDevMenu(menu) {
@@ -13,7 +13,7 @@ export function attachDevMenu(menu) {
         focusedWindow.reload();
       }
     }
-  });
+  })
   menu.push({
     label: 'Toggle Developer Tools',
     accelerator: process.platform == 'darwin'
@@ -23,5 +23,5 @@ export function attachDevMenu(menu) {
         focusedWindow.toggleDevTools();
       }
     }
-  });
+  })
 }
