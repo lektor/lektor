@@ -21,4 +21,4 @@ name[de] = Produktion
 extra_field = extra_value
 
 [attachment_types]
-.md = text
+.foo = text
