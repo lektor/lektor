@@ -15,5 +15,5 @@ filters and global variables.
 
 ```python
 def on_setup_env(self, **extra):
-    env.jinja_env.globals['my_variable'] = 'my value'
+    self.env.jinja_env.globals['my_variable'] = 'my value'
 ```
