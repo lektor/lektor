@@ -93,12 +93,9 @@ def update_config_from_ini(config, inifile):
     set_simple(target='LESSC_EXECUTABLE',
                source_path='env.lessc_executable')
 
-    config['ATTACHMENT_TYPES'].update(
-        (k.encode('ascii', 'replace'), v.encode('ascii', 'replace'))
-        for k, v in iteritems(inifile.section_as_dict('attachment_types')))
-
-    config['PROJECT'].update(inifile.section_as_dict('project'))
-    config['PACKAGES'].update(inifile.section_as_dict('packages'))
+    for section_name in ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES'):
+        section_config = inifile.section_as_dict(section_name.lower())
+        config[section_name].update(section_config)
 
     for sect in inifile.sections():
         if sect.startswith('servers.'):
