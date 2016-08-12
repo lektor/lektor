@@ -5,6 +5,19 @@ import shutil
 import subprocess
 import tempfile
 
+from pytest_server_fixtures.http import SimpleHTTPTestServer
+
+@pytest.yield_fixture(scope='function')
+def simple_http_server():
+    def hooray_its_up(self):
+        return True
+    original_check_server_up = SimpleHTTPTestServer.check_server_up
+    SimpleHTTPTestServer.check_server_up = hooray_its_up
+    with SimpleHTTPTestServer() as s:
+        s.start()
+        yield s
+    SimpleHTTPTestServer.check_server_up = original_check_server_up
+
 
 @pytest.fixture(scope='function')
 def project(request):
@@ -24,6 +37,12 @@ def scratch_project(request):
             'primary = yes\n'
             '[alternatives.de]\n'
             'url_prefix = /de/\n'
+            '[servers.production]\n'
+            'enabled = yes\n'
+            'name = Production\n'
+            'target = rsync://example.com/path/to/website\n'
+            'name[de] = Produktion\n'
+            'extra_field = extra_value\n'
         )
 
     os.mkdir(os.path.join(base, 'content'))
@@ -154,21 +173,6 @@ def reporter(request, env):
 
 
 @pytest.fixture(scope='function')
-def webui(request, env, pad):
-    from lektor.admin.webui import WebUI
-    output_path = tempfile.mkdtemp()
-
-    def cleanup():
-        try:
-            shutil.rmtree(output_path)
-        except (OSError, IOError):
-            pass
-    request.addfinalizer(cleanup)
-
-    return WebUI(env, output_path=output_path)
-
-
-@pytest.fixture(scope='function')
 def os_user(monkeypatch):
     struct = pwd.struct_passwd((
         'lektortest',  # pw_name
@@ -197,3 +201,8 @@ def git_user_email(request):
     email = "lektortest@example.com"
     subprocess.check_call(['git', 'config', 'user.email', email])
     return email
+
+
+@pytest.fixture(scope='session')
+def splinter_screenshot_dir(request):
+    return os.path.join(os.path.abspath(request.config.option.splinter_screenshot_dir), 'tmp')
