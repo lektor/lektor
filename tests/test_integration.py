@@ -18,8 +18,8 @@ def test_publication(live_server, browser, simple_http_server):
     browser.visit(live_server.url())
     browser.find_by_css('#lektor-edit-link').click()
     assert browser.title == 'Lektor Admin'
-
-    browser.find_by_css('.form-control').fill('Melissa is cool')
+    browser.is_element_present_by_css('.form-control', wait_time=10)
+    browser.find_by_css('.form-control').first.fill('Melissa is cool')
     browser.find_by_css('.btn-primary').click()
 
     browser.find_by_css('.fa-cloud-upload').click()
