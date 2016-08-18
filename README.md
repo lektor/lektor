@@ -45,3 +45,8 @@ $ . venv/bin/activate
 $ pip install --editable . .[test]
 $ make test
 ```
+
+If a browser test fails, the test suite will provide a filepath link 
+to a folder called `error-screenshots` that displays a screenshot 
+of the moment when the test failed. The links `.png` and `.html` files can be found
+under the `pytest-splinter screenshots` flag in the terminal.

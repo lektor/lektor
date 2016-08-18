@@ -2,9 +2,11 @@ from setuptools import setup, find_packages
 
 tests_require=[
     'pytest',
-    'pytest-splinter',
     'pytest-flask',
-    'pytest-server-fixtures'
+    'pytest-mock',
+    'pytest-shutil',
+    'pytest-server-fixtures',
+    'pytest-splinter'
 ]
 
 setup(

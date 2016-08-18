@@ -1,21 +1,21 @@
 import pytest
+import mock
+import sys
 
 from lektor.admin.webui import WebUI
-from lektor.publisher import RsyncPublisher
 
 @pytest.yield_fixture(scope='function')
-def app(request, scratch_env, pad, simple_http_server):
-    original_publish = RsyncPublisher.publish
-    def fake_publish(self, target_url, credentials=None, **extra):
-        pass
-    RsyncPublisher.publish = fake_publish
-    try:
-        yield WebUI(scratch_env, output_path=simple_http_server.document_root)
-    finally:
-        RsyncPublisher.publish = original_publish
+def app(mocker, scratch_env, simple_http_server):
+    mocker.patch("lektor.publisher.RsyncPublisher.publish")
+    yield WebUI(scratch_env, output_path=simple_http_server.document_root)
 
+
+@pytest.mark.skipif(sys.version_info > (3,0),
+                    reason="python 3 currently not compatible pytest plugin")
 def test_publication(live_server, browser, simple_http_server):
-    browser.visit(live_server.url())
+    test_server = live_server.url()
+
+    browser.visit(test_server)
     browser.find_by_css('#lektor-edit-link').click()
     assert browser.title == 'Lektor Admin'
 
@@ -28,5 +28,5 @@ def test_publication(live_server, browser, simple_http_server):
     browser.find_by_css('.actions .btn-primary').click()
     assert browser.is_text_present('Status: Publishing done', wait_time=1)
 
-    browser.visit('http://0.0.0.0:%d' % simple_http_server.port)
+    browser.visit('http://0.0.0.0:{port}'.format(port=simple_http_server.port))
     assert browser.is_text_present('Melissa is cool', wait_time=1)

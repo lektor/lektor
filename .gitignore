@@ -12,5 +12,5 @@ node_modules
 gui/build
 gui/node_modules
 gui/static/gen
-tmp/
+error-screenshots/
 .eggs/
