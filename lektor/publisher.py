@@ -288,8 +288,19 @@ class FtpConnection(object):
         log.append('000 Using passive mode: %s' % (passive and 'yes' or 'no'))
         self.con.set_pasv(passive)
 
+        # Concerning stripping the leading slash from self.url.path:
+        # For ftp://example.com/foo, self.url.path would be /foo, but paths in
+        # FTP URLs are relative to the initial working directory which may not
+        # be /; it's commonly of the form /home/username, for example. Suppose
+        # it is /home/username; then, ftp://example.com/foo corresponds to
+        # /home/username/foo, not /foo, and `CWD foo` is what's needed, not
+        # `CWD /foo`. If you actually want /foo, ftp://example.com/../../foo
+        # and ftp://example.com//foo will both work.
+        path = self.url.path
+        if path.startswith('/'):
+            path = path[1:]
         try:
-            log.append(self.con.cwd(self.url.path))
+            log.append(self.con.cwd(path))
         except Exception as e:
             log.append(str(e))
             return False
