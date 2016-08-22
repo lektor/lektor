@@ -2,7 +2,7 @@ import os
 import time
 
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, DirModifiedEvent
+from watchdog.events import FileSystemEventHandler, DirModifiedEvent, FileMovedEvent
 
 from lektor._compat import queue
 
@@ -22,7 +22,8 @@ class EventHandler(FileSystemEventHandler):
 
     def on_any_event(self, event):
         if not isinstance(event, DirModifiedEvent):
-            item = (time.time(), event.event_type, event.src_path)
+            path = event.dest_path if isinstance(event, FileMovedEvent) else event.src_path
+            item = (time.time(), event.event_type, path)
             if self.queue is not None:
                 self.queue.put(item)
             else:
