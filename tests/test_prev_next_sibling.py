@@ -3,7 +3,6 @@ import shutil
 
 import pytest
 
-from conftest import make_builder
 from lektor.builder import Builder
 from lektor.reporter import Reporter
 
@@ -55,9 +54,9 @@ def pntest_reporter(request, pntest_env):
     return reporter
 
 
-def test_prev_next_dependencies(request, pntest_env, pntest_reporter):
+def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
     env, reporter = pntest_env, pntest_reporter
-    builder = make_builder(request, env.new_pad())
+    builder = Builder(env.new_pad(), str(tmpdir.mkdir("output")))
     builder.build_all()
 
     # We start with posts 1, 2, and 4. Posts 1 and 2 depend on each other,
