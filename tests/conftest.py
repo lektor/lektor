@@ -178,7 +178,7 @@ def webui(request, env, pad):
         try:
             shutil.rmtree(output_path)
         except (OSError, IOError):
-            git pass
+            pass
     request.addfinalizer(cleanup)
 
     return WebUI(env, output_path=output_path)
