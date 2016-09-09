@@ -26,7 +26,7 @@ addons:
 
 install:
   - pip install --editable . .[test]
-  - sed -i 's/import cmdline/from . import cmdline/' /home/travis/home/travis/virtualenv/python3.5.2/lib/python3.5/site-packages/pytest_shutil/workspace.py || true
+  - sed -i 's/import cmdline/from . import cmdline/' /home/travis/virtualenv/python3.5.2/lib/python3.5/site-packages/pytest_shutil/workspace.py || true
   - sed -i 's/RqlRuntimeError, err/RqlRuntimeError as err/' /home/travis/virtualenv/python3.5.2/lib/python3.5/site-packages/pytest_server_fixtures/rethink.py || true
   - travis retry
 
