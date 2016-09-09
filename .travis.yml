@@ -12,10 +12,8 @@ before_install:
   - source $HOME/.nvm/nvm.sh
   - nvm install stable
   - node --version
-
+  - pip install -U pip
   - pip install pytest==2.9.2
-
-  - pip install pytest-mock
   - pip install travis
   - make build-js
   - export DISPLAY=:99.0
@@ -27,21 +25,14 @@ addons:
 
 
 install:
-  - curl -s -o $HOME/.nvm/nvm.sh https:/raw.githubusercontent.com/creationix/nvm/v0.31.4/nvm.sh
-  - source $HOME/.nvm/nvm.sh
-  - nvm install stable
-  - node --version
-  - pip install -U pip pytest
   - pip install --editable . .[test]
-  - travis retry make build-js
-  - export DISPLAY=:99.0
-  - sh -e /etc/init/d/xvfb start
-
-
+  - sed -i 's/import cmdline/from . import cmdline/' /home/travis/home/travis/virtualenv/python3.5.2/lib/python3.5/site-packages/pytest_shutil/workspace.py || true
+  - sed -i 's/RqlRuntimeError, err/RqlRuntimeError as err/' /home/travis/virtualenv/python3.5.2/lib/python3.5/site-packages/pytest_server_fixtures/rethink.py || true
+  - travis retry
 
 script: make test
 
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/f0c538cdfc9883f81e34
+      - https://webhooks.gitter.im/e/f0c538cdfc9883f81e34z
