@@ -220,7 +220,7 @@ class RsyncPublisher(Publisher):
             target.append(username.encode('utf-8') + '@')
 
         target.append(target_url.ascii_host)
-        target.append(':' + target_url.path.encode('utf-8').rstrip('/') + '/')
+        target.append(':' + target_url.path.rstrip('/') + '/')
 
         argline.append(self.output_path.rstrip('/\\') + '/')
         argline.append(''.join(target))
