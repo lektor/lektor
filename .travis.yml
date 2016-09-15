@@ -14,7 +14,8 @@ before_install:
   - node --version
 
 install:
-  - pip install --editable .
+  - travis_retry pip install --upgrade pytest
+  - travis_retry pip install --editable .[test]
   - travis_retry make build-js
 
 script: make test
