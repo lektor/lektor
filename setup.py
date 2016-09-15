@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
 
+tests_require = [
+    'pytest',
+    'pytest-mock',
+]
 
 setup(
     name='Lektor',
@@ -26,6 +30,8 @@ setup(
         'pip',
         'requests[security]',
     ],
+    tests_require=tests_require,
+    extras_require={'test': tests_require},
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

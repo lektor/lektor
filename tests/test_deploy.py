@@ -1,5 +1,5 @@
 import textwrap
-from lektor.publisher import GithubPagesPublisher
+from lektor.publisher import GithubPagesPublisher, RsyncPublisher
 from werkzeug.urls import url_parse
 
 def test_get_server(env):
@@ -40,3 +40,52 @@ def test_ghpages_update_git_config_https(tmpdir, env):
         fetch = +refs/heads/lektor:refs/remotes/origin/lektor
     """).strip()
     assert repo_config.read().strip() == expected
+
+
+def test_rsync_command(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = RsyncPublisher(env, str(output_path))
+    target_url = url_parse("http://example.com")
+    ssh_path = tmpdir.mkdir("ssh")
+    mock_popen = mocker.patch("lektor.publisher.portable_popen")
+    command = publisher.get_command(target_url, str(ssh_path), credentials=None)
+    assert mock_popen.called
+    assert mock_popen.call_args[0] == ([
+        'rsync', '-rclzv', '--exclude=.lektor',
+        str(output_path) + '/',
+        'example.com:/'
+    ],)
+
+
+def test_rsync_command_credentials(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = RsyncPublisher(env, str(output_path))
+    target_url = url_parse("http://example.com")
+    ssh_path = tmpdir.mkdir("ssh")
+    credentials = {
+        "username": "fakeuser",
+        "password": "fakepass",
+    }
+    mock_popen = mocker.patch("lektor.publisher.portable_popen")
+    command = publisher.get_command(target_url, str(ssh_path), credentials)
+    assert mock_popen.called
+    assert mock_popen.call_args[0] == ([
+        'rsync', '-rclzv', '--exclude=.lektor',
+        str(output_path) + '/',
+        'fakeuser@example.com:/'
+    ],)
+
+
+def test_rsync_command_username_in_url(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = RsyncPublisher(env, str(output_path))
+    target_url = url_parse("http://fakeuser@example.com")
+    ssh_path = tmpdir.mkdir("ssh")
+    mock_popen = mocker.patch("lektor.publisher.portable_popen")
+    command = publisher.get_command(target_url, str(ssh_path), credentials=None)
+    assert mock_popen.called
+    assert mock_popen.call_args[0] == ([
+        'rsync', '-rclzv', '--exclude=.lektor',
+        str(output_path) + '/',
+        'fakeuser@example.com:/'
+    ],)

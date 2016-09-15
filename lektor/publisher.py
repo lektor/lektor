@@ -217,10 +217,10 @@ class RsyncPublisher(Publisher):
 
         username = credentials.get('username') or target_url.username
         if username:
-            target.append(username.encode('utf-8') + '@')
+            target.append(username + '@')
 
         target.append(target_url.ascii_host)
-        target.append(':' + target_url.path.encode('utf-8').rstrip('/') + '/')
+        target.append(':' + target_url.path.rstrip('/') + '/')
 
         argline.append(self.output_path.rstrip('/\\') + '/')
         argline.append(''.join(target))
