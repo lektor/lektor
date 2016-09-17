@@ -28,7 +28,7 @@ command line scripts.
 ## Template Usage
 
 A ready-configured pad is always available under the `site` name which
-allows you to easily discover other pages.  Here a basic example of
+allows you to easily discover other pages.  Here is a basic example of
 how to do this through the [get :ref](get/) method:
 
 ```html+jinja

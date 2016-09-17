@@ -4,7 +4,7 @@ summary: Alternatives allow you to localize or internationalize a site.
 ---
 body:
 
-One particular useful feature of Lektor is the ability to define alternatives
+One particularly useful feature of Lektor is the ability to define alternatives
 to a content file.  This allows you to translate your website into many
 different languages or to customize content specifically for some languages
 or regions.

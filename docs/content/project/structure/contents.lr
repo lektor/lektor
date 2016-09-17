@@ -36,7 +36,7 @@ built into the final project.  Each folder within corresponds to a record
 and the data of it is stored in the file by the name `contents.lr` within
 which is a Lektor content file.  All other files are considered attachments.
 
-Here a basic example layout to get an idea how this can look like:
+Here is a basic example layout to get an idea how this can look like:
 
 ```
 content/
@@ -103,5 +103,5 @@ files in there are named `<plugin-id>.ini`.
 Lektor also supports [Data Bags :ref](../../content/databags/) which go into a
 folder named `databags/`.  These are files with some general information
 that can be accessed from templates.  For instance you could store menus and
-navigations there, API keys and much more.  This is generally just information 
+navigations there, API keys and much more.  This is generally just information
 you want to access from different places and maybe not keep in templates directly.

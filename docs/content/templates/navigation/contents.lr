@@ -41,7 +41,7 @@ a child of the given path.  Based on that information we automatically
 add a class to the link.
 
 The index page requires a bit of special casing as we do not want it to
-be active if any of it's children are active.  So we just check if the
+be active if any of its children are active.  So we just check if the
 path of the current page is actually the path of the index page.
 
 ## Fully Automatic Navigation
