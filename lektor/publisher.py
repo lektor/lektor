@@ -219,6 +219,9 @@ class RsyncPublisher(Publisher):
         if username:
             target.append(username + '@')
 
+        if target_url.ascii_host is None: 
+            self.fail('host name missing')
+
         target.append(target_url.ascii_host)
         target.append(':' + target_url.path.rstrip('/') + '/')
 
@@ -609,6 +612,8 @@ class GithubPagesPublisher(Publisher):
     def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):
             self.fail('git executable not found; cannot deploy.')
+        if target_url.host is None:
+            self.fail('host name missing')
 
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
@@ -636,9 +641,15 @@ class GithubPagesPublisher(Publisher):
 
             self.link_artifacts(path)
             self.write_cname(path, target_url)
+
+            default_message = 'Synchronized build'
+            message = extra.get('message')
+            if message is None:
+                message = default_message
+
             for line in git(['add', '-f', '--all', '.']):
                 yield line
-            for line in git(['commit', '-qm', 'Synchronized build']):
+            for line in git(['commit', '-qm', message]):
                 yield line
             for line in git(['push', 'origin', branch]):
                 yield line
@@ -657,6 +668,9 @@ builtin_publishers = {
 def publish(env, target, output_path, credentials=None, **extra):
     url = urls.url_parse(text_type(target))
     publisher = env.publishers.get(url.scheme)
+    if url.host is None:
+        raise PublishError('missing host name')
     if publisher is None:
-        raise PublishError('"%s" is an unknown scheme.' % url.scheme)
+        raise PublishError('Server "%s" is not configured for a valid '
+            'publishing method: %s is an unknown scheme.' % (url.host, url.scheme))
     return publisher(env, output_path).publish(url, credentials, **extra)
