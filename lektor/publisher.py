@@ -219,9 +219,6 @@ class RsyncPublisher(Publisher):
         if username:
             target.append(username + '@')
 
-        if target_url.ascii_host is None: 
-            self.fail('host name missing')
-
         target.append(target_url.ascii_host)
         target.append(':' + target_url.path.rstrip('/') + '/')
 
@@ -668,9 +665,6 @@ builtin_publishers = {
 def publish(env, target, output_path, credentials=None, **extra):
     url = urls.url_parse(text_type(target))
     publisher = env.publishers.get(url.scheme)
-    if url.host is None:
-        raise PublishError('missing host name')
     if publisher is None:
-        raise PublishError('Server "%s" is not configured for a valid '
-            'publishing method: %s is an unknown scheme.' % (url.host, url.scheme))
+        raise PublishError('"%s" is an unknown scheme.' % url.scheme)
     return publisher(env, output_path).publish(url, credentials, **extra)
