@@ -657,6 +657,9 @@ builtin_publishers = {
 def publish(env, target, output_path, credentials=None, **extra):
     url = urls.url_parse(text_type(target))
     publisher = env.publishers.get(url.scheme)
+    if url.host is None:
+        raise PublishError('missing host name')
     if publisher is None:
-        raise PublishError('"%s" is an unknown scheme.' % url.scheme)
+        raise PublishError('Server "%s" is not configured for a valid '
+            'publishing method: %s is an unknown scheme.' % (url.host, url.scheme))
     return publisher(env, output_path).publish(url, credentials, **extra)
