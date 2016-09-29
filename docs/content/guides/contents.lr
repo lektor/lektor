@@ -8,7 +8,7 @@ allow_comments: no
 ---
 body:
 
-Because Lektor is quite a generic system, sometimes I might not be quite
+Because Lektor is quite a generic system, sometimes it might not be quite
 obvious what the best course of action is.  This part of the documentation
-contains some guides that should help find inspiration for solving certain
+contains some guides that should help you find inspiration for solving certain
 problems.
