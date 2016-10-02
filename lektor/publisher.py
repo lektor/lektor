@@ -604,7 +604,7 @@ class GithubPagesPublisher(Publisher):
         cname = params.get('cname')
         if cname is not None:
             with open(os.path.join(path, 'CNAME'), 'w') as f:
-                f.write('%s\n' % cname.encode('utf-8'))
+                f.write('%s\n' % cname)
 
     def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):

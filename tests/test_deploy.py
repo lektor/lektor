@@ -42,6 +42,14 @@ def test_ghpages_update_git_config_https(tmpdir, env):
     assert repo_config.read().strip() == expected
 
 
+def test_ghpages_write_cname(tmpdir, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = GithubPagesPublisher(env, str(output_path))
+    target_url = url_parse("ghpages+https://pybee/pybee.github.io?cname=pybee.org")
+    publisher.write_cname(str(output_path), target_url)
+    assert (output_path / 'CNAME').read() == "pybee.org\n"
+
+
 def test_rsync_command(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
