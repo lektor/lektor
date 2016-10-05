@@ -39,7 +39,10 @@ class EXIFInfo(object):
     def __bool__(self):
         return bool(self._mapping)
     __nonzero__ = __bool__
-
+    
+    def raw(self):
+        return self._mapping
+    
     def to_dict(self):
         rv = {}
         for key, value in iteritems(self.__class__.__dict__):
