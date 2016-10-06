@@ -639,10 +639,8 @@ class GithubPagesPublisher(Publisher):
             self.link_artifacts(path)
             self.write_cname(path, target_url)
 
-            default_message = 'Synchronized build'
-            message = extra.get('message')
-            if message is None:
-                message = default_message
+            # passes in commit message from command line or with a fallback msg
+            message = extra.get('message') or 'Synchronized build'
 
             for line in git(['add', '-f', '--all', '.']):
                 yield line
