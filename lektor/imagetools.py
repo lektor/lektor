@@ -205,6 +205,13 @@ class EXIFInfo(object):
         if lat is not None and long is not None:
             return (lat, long)
 
+    @property
+    def documentname(self):
+        return self._get_string('Image DocumentName')
+
+    @property
+    def description(self):
+        return self._get_string('Image ImageDescription')        
 
 def get_suffix(width, height, crop=False):
     suffix = str(width)

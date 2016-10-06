@@ -26,7 +26,7 @@ def test_exif(pad):
     assert image.exif.f == u'\u0192/2.2'
     assert almost_equal(image.exif.f_num, 2.2)
     assert image.exif.flash_info == 'Flash did not fire, compulsory flash mode'
-    assert image.exif.focal_length == '4.15mm'
+    assert image.exif.focal_length == '4.2mm'
     assert image.exif.focal_length_35mm == '29mm'
     assert image.exif.iso == 160
     assert almost_equal(image.exif.latitude, 46.6338333)
@@ -36,6 +36,9 @@ def test_exif(pad):
     assert almost_equal(image.exif.longitude, 13.4048333)
     assert image.exif.location == (image.exif.latitude, image.exif.longitude)
     assert image.exif.shutter_speed == '1/33'
+
+    assert image.exif.documentname == 'testName'
+    assert image.exif.description == 'testDescription'
 
     assert isinstance(image.exif.to_dict(), dict)
 
