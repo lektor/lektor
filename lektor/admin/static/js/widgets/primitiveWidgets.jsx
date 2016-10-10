@@ -198,44 +198,43 @@ var DateTimeInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
   parseDateTime: function(inputDateTimeStr) {
-
-    var rv;
-    var momentDateTime
-    var chunks = inputDateTimeStr.split(' ');
-    if (chunks.length > 1 && chunks.length <= 3) {
-      if(chunks.length == 2) {
-        momentDateTime = moment.tz(chunks.slice(0,2).join(' '), guessedUserTZ);
-      } else {
-        // TODO if the timezone is invalid momentjs ignores it and moment.isValid still returns true
-        // needs a check for valid timezones
-        momentDateTime = moment.tz(chunks.slice(0,2).join(' '), chunks[2]);
-      }
-      if (momentDateTime.isValid()) {
-        rv.datetime = momentDateTime.toDate()
-        if (chunks.length == 3) {
-          if(momentDateTime._z) {
-            rv.tz = momentDateTime._z.name;
-            rv.valid = true;
-          } else {
-            rv.tz = chunks[2];
-            rv.valid = false;
-          }
+    if (inputDateTimeStr) {
+      var rv = {datetime: undefined, tz: undefined, valid: false};
+      var momentDateTime
+      var chunks = inputDateTimeStr.split(' ');
+      if (chunks.length > 1 && chunks.length <= 3) {
+        if(chunks.length == 2) {
+          momentDateTime = moment.tz(chunks.slice(0,2).join(' '), guessedUserTZ);
         } else {
-          //XXX force giuessed time zone or enable empty value here?
-          rv.tz = guessedUserTZ
-          rv.valid = true;
+          momentDateTime = moment.tz(chunks.slice(0,2).join(' '), chunks[2]);
         }
-        return rv;
+        if (momentDateTime.isValid()) {
+          rv.datetime = momentDateTime.toDate()
+          // if the timezone is invalid momentjs ignores it and moment.isValid still returns true
+          if (chunks.length == 3) {
+            if(momentDateTime._z) {
+              rv.tz = momentDateTime._z.name;
+              rv.valid = true;
+            } else {
+              rv.tz = chunks[2];
+              rv.valid = false;
+            }
+          } else {
+            //XXX force guessed time zone or enable empty value here?
+            rv.tz = guessedUserTZ
+            rv.valid = true;
+          }
+          return rv;
+        }
       }
     }
   },
 
   isValidTimezone: function(inputDateTimeStr) {
-    var chunks = inputDateTimeStr.split(' ');
     var dt = this.parseDateTime(inputDateTimeStr);
-    if (chunks.length == 3 && !dt.)
-    var tz = timezone;
-    return false;
+    if (dt) {
+      return dt.valid;
+    }
   },
 
   getValidationFailureImpl: function() {
@@ -303,11 +302,9 @@ var DateTimeInputWidget = React.createClass({
     if(value) {
       inputDateTime = this.parseDateTime(value);
     }
-    if(inputDateTime) {
-      this.datetime = inputDateTime.toDate();
-      this.tz = inputDateTime._z? inputDateTime._z.name : "";
-    } else {
-      this.tz = guessedUserTZ;
+    if(inputDateTime && inputDateTime.valid) {
+      this.datetime = inputDateTime.datetime;
+      this.tz = inputDateTime.tz;
     }
 
     return (
