@@ -111,5 +111,4 @@ def test_cli_commit_msg_empty(tmpdir, mocker, env):
     target_url = url_parse("ghpages+https://pybee/pybee.github.io?cname=pybee.org")
     mocked_deploy = mocker.patch.object(publisher, 'publish')
     
-    print mocked_deploy.extra.get('message')
-
+    assert "extra" not in publisher.publish.__dict__
