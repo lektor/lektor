@@ -102,4 +102,14 @@ def test_cli_commit_msg(tmpdir, mocker, env):
     publisher.publish.extra = {'message': expected}
     
     assert mocked_deploy.extra.get('message') == expected
+
+def test_cli_commit_msg_empty(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = GithubPagesPublisher(env, str(output_path))
+    repo_path = tmpdir.mkdir("repo")
+    repo_config = repo_path.mkdir(".git").join("config").ensure(file=True)
+    target_url = url_parse("ghpages+https://pybee/pybee.github.io?cname=pybee.org")
+    mocked_deploy = mocker.patch.object(publisher, 'publish')
     
+    print mocked_deploy.extra.get('message')
+
