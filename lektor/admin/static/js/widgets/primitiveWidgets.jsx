@@ -1,6 +1,7 @@
 'use strict';
 
 var React = require('react');
+var Editor = require('react-medium-editor');
 var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
 var utils = require('../utils');
 var userLabel = require('../userLabel');
@@ -341,6 +342,27 @@ var BooleanInputWidget = React.createClass({
   }
 });
 
+var WysiwygWidget = React.createClass({
+  mixins: [BasicWidgetMixin],
+
+  onChange: function(value) {
+    if (this.postprocessValue) {
+      value = this.postprocessValue(value);
+    }
+    this.props.onChange(value);
+  },
+
+  render: function() {
+    return (
+      <div>
+        <Editor
+          text={this.props.value}
+          onChange={this.onChange ? this.onChange : undefined} />
+      </div>
+    )
+  }
+});
+
 module.exports = {
   SingleLineTextInputWidget: SingleLineTextInputWidget,
   SlugInputWidget: SlugInputWidget,
@@ -350,4 +372,5 @@ module.exports = {
   UrlInputWidget: UrlInputWidget,
   MultiLineTextInputWidget: MultiLineTextInputWidget,
   BooleanInputWidget: BooleanInputWidget,
+  WysiwygWidget: WysiwygWidget,
 };

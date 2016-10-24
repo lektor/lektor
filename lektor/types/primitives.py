@@ -57,6 +57,10 @@ class HtmlType(Type):
         return Markup(raw.value)
 
 
+class WysiwygType(HtmlType):
+    widget = 'wysiwyg'
+
+
 class IntegerType(SingleInputType):
     widget = 'integer'
 
