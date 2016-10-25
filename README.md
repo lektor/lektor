@@ -33,8 +33,8 @@ $ . venv/bin/activate
 $ pip install --editable .
 $ make build-js
 $ export LEKTOR_DEV=1
-$ lektor quickstart --path dev-example
-$ lektor --project dev-example server
+$ lektor quickstart --path example-project
+$ lektor --project example-project server
 ```
 
 If you want to run the test suite instead:
