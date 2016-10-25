@@ -23,6 +23,21 @@ def test_unicode_project_folder(tmpdir):
         assert f.read() == b'<h1>Hello</h1>\n<p>W\xc3\xb6rld</p>\n\n'
 
 
+def test_unicode_attachment_filename(tmpdir):
+    from lektor.reporter import BufferReporter
+
+    pad, builder = get_unicode_builder(tmpdir)
+
+    with BufferReporter(builder.env) as reporter:
+        prog, _ = builder.build(pad.root.attachments.first())
+
+        failures = reporter.get_failures()
+        assert len(failures) == 0
+
+        with prog.artifacts[0].open('rb') as f:
+            assert f.read() == b'attachment\n'
+
+
 def test_bad_file_ignored(tmpdir):
     from lektor.reporter import BufferReporter
     from lektor.build_programs import BuildError
