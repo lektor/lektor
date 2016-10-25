@@ -27,6 +27,7 @@
   "ERROR_INVALID_DATE": "잘못된 날짜",
   "ERROR_INVALID_NUMBER": "유효한 숫자 아님",
   "ERROR_INVALID_URL": "유효한 URL 아님",
+  "ERROR_INVALID_FIELDS": "Some fields have invalid values! Please correct them before saving.",
   "ERROR": "에러",
   "ERROR_OCURRED": "오류 발생",
   "ERROR_REQUEST_FAILED": "서버에 명령을 보내지 못했습니다. 서버가 중지되었거나 응답하지 않을 수도 있네요?",

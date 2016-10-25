@@ -20,7 +20,8 @@ class EditPage extends RecordEditComponent {
       recordData: null,
       recordDataModel: null,
       recordInfo: null,
-      hasPendingChanges: false
+      hasPendingChanges: false,
+      invalidFields: null
     };
     this._onKeyPress = this._onKeyPress.bind(this);
   }
@@ -88,18 +89,27 @@ class EditPage extends RecordEditComponent {
         recordData: {},
         recordDataModel: resp.datamodel,
         recordInfo: resp.record_info,
-        hasPendingChanges: false
+        hasPendingChanges: false,
+        invalidFields: []
       });
     });
   }
 
-  onValueChange(field, value) {
+  onValueChange(field, value, validationFailure) {
     var updates = {};
     updates[field.name] = {$set: value || ''};
     var rd = update(this.state.recordData, updates);
+    var idx = this.state.invalidFields.indexOf(field.name);
+    var vf = this.state.invalidFields;
+    if (validationFailure && idx === -1) {
+      vf = update(this.state.invalidFields, {$push: [field.name]});
+    } else if (!validationFailure && idx >= 0) {
+      vf = update(this.state.invalidFields, {$splice: [[idx, 1]]});
+    }
     this.setState({
       recordData: rd,
-      hasPendingChanges: true
+      hasPendingChanges: true,
+      invalidFields: vf
     });
   }
 
@@ -131,6 +141,10 @@ class EditPage extends RecordEditComponent {
   }
 
   saveChanges() {
+    if(this.state.invalidFields.length > 0) {
+      //TODO: show info message here
+      return;
+    }
     var path = this.getRecordPath();
     var alt = this.getRecordAlt();
     var newData = this.getValues();
@@ -223,12 +237,16 @@ class EditPage extends RecordEditComponent {
       ? i18n.trans(this.state.recordInfo.label_i18n)
       : this.state.recordInfo.label;
 
+    var hasInvalidFields = this.state.invalidFields.length > 0;
+
     return (
       <div className="edit-area">
         <h2>{title.replace('%s', label)}</h2>
         {this.renderFormFields()}
         <div className="actions">
           <button type="submit" className="btn btn-primary"
+            disabled={hasInvalidFields}
+            title={hasInvalidFields? i18n.trans('ERROR_INVALID_FIELDS') : ""}
             onClick={this.saveChanges.bind(this)}>{i18n.trans('SAVE_CHANGES')}</button>
           {deleteButton}
         </div>

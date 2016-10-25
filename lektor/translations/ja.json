@@ -27,6 +27,7 @@
   "ERROR_INVALID_DATE": "日付が不正です",
   "ERROR_INVALID_NUMBER": "不正な番号です",
   "ERROR_INVALID_URL": "URLが不正です",
+  "ERROR_INVALID_FIELDS": "Some fields have invalid values! Please correct them before saving.",
   "ERROR": "エラー",
   "ERROR_OCURRED": "エラーが発生しました",
   "ERROR_REQUEST_FAILED": "サーバーにコマンドが送れませんでした、サーバーが止まっているか応答がないのかもしれません",

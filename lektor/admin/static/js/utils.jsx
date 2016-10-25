@@ -145,6 +145,8 @@ var utils = {
   },
 
   isValidUrl: function(url) {
+    // see https://mathiasbynens.be/demo/url-regex and
+    // https://gist.github.com/dperini/729294 if a stricter version is needed
     return !!url.match(/^(https?|ftp):\/\/\S+$/);
   },
 

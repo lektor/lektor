@@ -27,6 +27,7 @@
   "ERROR_INVALID_DATE": "Błędna data",
   "ERROR_INVALID_NUMBER": "Błędny numer",
   "ERROR_INVALID_URL": "Błędny adres URL",
+  "ERROR_INVALID_FIELDS": "Some fields have invalid values! Please correct them before saving.",
   "ERROR": "Błąd",
   "ERROR_OCURRED": "Wystąpił błąd",
   "ERROR_REQUEST_FAILED": "Nie można wysłać żądania do serwera. Może został zatrzymany, albo nie odpowiada?",
