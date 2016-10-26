@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var ReactRouter = require('react-router');
-var Component = require('./Component');
+import React from 'react'
+import ReactRouter from 'react-router'
+import Component from './Component'
 
 
 class Link extends Component {
 
   render() {
-    var path = this.props.to;
+    let path = this.props.to;
     if (path.substr(0, 1) !== '/') {
       path = $LEKTOR_CONFIG.admin_root + '/' + path;
     }
@@ -25,4 +25,4 @@ Link.propTypes = {
 }
 
 
-module.exports = Link;
+module.exports = Link

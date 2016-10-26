@@ -1,12 +1,12 @@
 'use strict';
 
-var React = require('react');
-var {BasicWidgetMixin, ValidationFailure} = require('./mixins');
-var utils = require('../utils');
-var i18n = require('../i18n');
+import React from 'react'
+import {BasicWidgetMixin, ValidationFailure} from './mixins'
+import utils from '../utils'
+import i18n from '../i18n'
 
 
-var FakeWidgetMixin = {
+const FakeWidgetMixin = {
   mixins: [BasicWidgetMixin],
   propTypes: {
     field: React.PropTypes.any,
@@ -18,7 +18,7 @@ var FakeWidgetMixin = {
 };
 
 
-var LineWidget = React.createClass({
+const LineWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
   render: function() {
@@ -26,7 +26,7 @@ var LineWidget = React.createClass({
   }
 });
 
-var SpacingWidget = React.createClass({
+const SpacingWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
   render: function() {
@@ -34,11 +34,11 @@ var SpacingWidget = React.createClass({
   }
 });
 
-var InfoWidget = React.createClass({
+const InfoWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
   render: function() {
-    var label = i18n.trans(this.props.field.label_i18n);
+    const label = i18n.trans(this.props.field.label_i18n)
     return (
       <div className="info">
         <p>
@@ -50,7 +50,7 @@ var InfoWidget = React.createClass({
   }
 });
 
-var HeadingWidget = React.createClass({
+const HeadingWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
   render: function() {
@@ -61,9 +61,9 @@ var HeadingWidget = React.createClass({
 });
 
 
-module.exports = {
+export default {
   LineWidget: LineWidget,
   SpacingWidget: SpacingWidget,
   InfoWidget: InfoWidget,
   HeadingWidget: HeadingWidget,
-};
+}

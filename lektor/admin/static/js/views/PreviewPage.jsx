@@ -1,10 +1,9 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var Router = require('react-router');
-
-var utils = require('../utils');
-var RecordComponent = require('../components/RecordComponent');
+import React from 'react'
+import Router from 'react-router'
+import utils from '../utils'
+import RecordComponent from '../components/RecordComponent'
 
 
 class PreviewPage extends RecordComponent {
@@ -104,4 +103,4 @@ class PreviewPage extends RecordComponent {
   }
 }
 
-module.exports = PreviewPage;
+export default PreviewPage

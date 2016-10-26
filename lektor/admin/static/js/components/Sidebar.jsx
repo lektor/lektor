@@ -1,17 +1,16 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-
-var utils = require('../utils');
-var i18n = require('../i18n');
-var hub = require('../hub');
-var {AttachmentsChangedEvent} = require('../events');
-var RecordComponent = require('./RecordComponent');
-var Link = require('../components/Link');
+import React from 'react'
+import utils from '../utils'
+import i18n from '../i18n'
+import hub from '../hub'
+import {AttachmentsChangedEvent} from '../events'
+import RecordComponent from './RecordComponent'
+import Link from '../components/Link'
 
 
 function getBrowseButtonTitle() {
-  var platform = utils.getPlatform();
+  const platform = utils.getPlatform();
   if (platform === 'mac') {
     return i18n.trans('BROWSE_FS_MAC');
   } else if (platform === 'windows') {
@@ -110,7 +109,7 @@ class Sidebar extends RecordComponent {
   }
 
   _updateRecordInfo() {
-    var path = this.getRecordPath();
+    const path = this.getRecordPath();
     if (path === null) {
       this.setState(this._getInitialState());
       return;
@@ -125,10 +124,10 @@ class Sidebar extends RecordComponent {
           if (path !== this.state.lastRecordRequest) {
             return;
           }
-          var alts = resp.alts;
+          const alts = resp.alts;
           alts.sort((a, b) => {
-            var nameA = (a.is_primary ? 'A' : 'B') + i18n.trans(a.name_i18n);
-            var nameB = (b.is_primary ? 'A' : 'B') + i18n.trans(b.name_i18n);
+            const nameA = (a.is_primary ? 'A' : 'B') + i18n.trans(a.name_i18n);
+            const nameB = (b.is_primary ? 'A' : 'B') + i18n.trans(b.name_i18n);
             return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
           });
           this.setState({
@@ -161,10 +160,10 @@ class Sidebar extends RecordComponent {
   }
 
   renderPageActions() {
-    var urlPath = this.getUrlRecordPathWithAlt();
-    var links = [];
-    var linkParams = {path: urlPath};
-    var deleteLink = null;
+    const urlPath = this.getUrlRecordPathWithAlt();
+    const links = [];
+    const linkParams = {path: urlPath};
+    const deleteLink = null;
 
     links.push(
       <li key='edit'>
@@ -212,7 +211,7 @@ class Sidebar extends RecordComponent {
       );
     }
 
-    var title = this.state.isAttachment
+    const title = this.state.isAttachment
       ? i18n.trans('ATTACHMENT_ACTIONS')
       : i18n.trans('PAGE_ACTIONS');
 
@@ -232,11 +231,11 @@ class Sidebar extends RecordComponent {
       return null;
     }
 
-    var alt = this.getRecordAlt();
+    const alt = this.getRecordAlt();
 
-    var items = this.state.recordAlts.map((item) => {
-      var title = i18n.trans(item.name_i18n);
-      var className = 'alt';
+    const items = this.state.recordAlts.map((item) => {
+      let title = i18n.trans(item.name_i18n);
+      let className = 'alt';
       if (item.is_primary) {
         title += ' (' + i18n.trans('PRIMARY_ALT') + ')';
       } else if (item.primary_overlay) {
@@ -246,7 +245,7 @@ class Sidebar extends RecordComponent {
         className += ' alt-missing';
       }
 
-      var path = this.getPathToAdminPage(null, {
+      const path = this.getPathToAdminPage(null, {
         path: this.getUrlRecordPathWithAlt(null, item.alt)
       });
       return (
@@ -295,14 +294,14 @@ class Sidebar extends RecordComponent {
   }
 
   renderChildActions() {
-    var target = this.isRecordPreviewActive() ? 'preview' : 'edit';
+    const target = this.isRecordPreviewActive() ? 'preview' : 'edit';
 
-    var children = this.state.recordChildren.slice(
+    const children = this.state.recordChildren.slice(
       (this.state.childrenPage - 1) * CHILDREN_PER_PAGE,
       this.state.childrenPage * CHILDREN_PER_PAGE);
 
-    var items = children.map((child) => {
-      var urlPath = this.getUrlRecordPathWithAlt(child.path);
+    const items = children.map((child) => {
+      const urlPath = this.getUrlRecordPathWithAlt(child.path);
       return (
         <li key={child.id}>
           <Link to={`${urlPath}/${target}`}>
@@ -331,8 +330,8 @@ class Sidebar extends RecordComponent {
   }
 
   renderAttachmentActions() {
-    var items = this.state.recordAttachments.map((atch) => {
-      var urlPath = this.getUrlRecordPathWithAlt(atch.path);
+    const items = this.state.recordAttachments.map((atch) => {
+      const urlPath = this.getUrlRecordPathWithAlt(atch.path);
       return (
         <li key={atch.id}>
           <Link to={`${urlPath}/edit`}>
@@ -360,7 +359,7 @@ class Sidebar extends RecordComponent {
   }
 
   render() {
-    var sections = [];
+    const sections = [];
 
     if (this.getRecordPath() !== null) {
       sections.push(this.renderPageActions());
@@ -380,4 +379,4 @@ class Sidebar extends RecordComponent {
   }
 }
 
-module.exports = Sidebar;
+export default Sidebar

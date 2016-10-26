@@ -1,12 +1,11 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var Component = require('../components/Component');
-
-var SlideDialog = require('../components/SlideDialog');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var dialogSystem = require('../dialogSystem');
+import React from 'react'
+import Component from '../components/Component'
+import SlideDialog from '../components/SlideDialog'
+import utils from '../utils'
+import i18n from '../i18n'
+import dialogSystem from '../dialogSystem'
 
 
 class Publish extends Component {
@@ -81,10 +80,10 @@ class Publish extends Component {
       currentState: 'PUBLISH'
     });
 
-    var es = new EventSource(utils.getApiUrl('/publish') +
+    const es = new EventSource(utils.getApiUrl('/publish') +
       '?server=' + encodeURIComponent(this.state.activeTarget));
     es.addEventListener('message', (event) => {
-      var data = JSON.parse(event.data);
+      const data = JSON.parse(event.data);
       if (data === null) {
         this.setState({
           currentState: 'DONE'
@@ -106,14 +105,14 @@ class Publish extends Component {
 
   componentDidUpdate() {
     super.componentDidUpdate();
-    var node = this.refs.log;
+    const node = this.refs.log;
     if (node !== null) {
       node.scrollTop = node.scrollHeight;
     }
   }
 
   render() {
-    var servers = this.state.servers.map((server) => {
+    const servers = this.state.servers.map((server) => {
       return (
         <option value={server.id} key={server.id}>
           {i18n.trans(server.name_i18n) + ' (' + server.short_target + ')'}
@@ -121,7 +120,7 @@ class Publish extends Component {
       );
     });
 
-    var progress = null;
+    let progress = null;
     if (this.state.currentState !== 'IDLE') {
       progress = (
         <div>
@@ -164,4 +163,4 @@ class Publish extends Component {
   }
 }
 
-module.exports = Publish;
+export default Publish

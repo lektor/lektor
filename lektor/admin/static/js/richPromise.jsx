@@ -1,7 +1,7 @@
 function bringUpDialog(error) {
   // we need to import this here due to circular dependencies
-  var ErrorDialog = require('./dialogs/errorDialog');
-  var dialogSystem = require('./dialogSystem');
+  const ErrorDialog = require('./dialogs/errorDialog')
+  const dialogSystem = require('./dialogSystem')
   if (!dialogSystem.dialogIsOpen()) {
     dialogSystem.showDialog(ErrorDialog, {
       error: error
@@ -15,9 +15,9 @@ function makeRichPromise(callback, fallback) {
     fallback = bringUpDialog;
   }
 
-  var rv = new Promise(callback);
-  var then = rv.then;
-  var hasRejectionHandler = false;
+  const rv = new Promise(callback)
+  const then = rv.then
+  let hasRejectionHandler = false;
   rv.then(null, (value) => {
     if (!hasRejectionHandler) {
       return fallback(value);
@@ -33,6 +33,6 @@ function makeRichPromise(callback, fallback) {
 }
 
 
-module.exports = {
+export default {
   makeRichPromise: makeRichPromise
 }

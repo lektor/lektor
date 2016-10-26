@@ -1,14 +1,13 @@
-'use strict';
+'use strict'
 
-var qs = require('querystring');
-var React = require('react');
-var Router = require('react-router');
-
-var RecordComponent = require('../components/RecordEditComponent');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var hub = require('../hub');
-var {AttachmentsChangedEvent} = require('../events');
+import qs from 'querystring'
+import React from 'react'
+import Router from 'react-router'
+import RecordComponent from '../components/RecordEditComponent'
+import utils from '../utils'
+import i18n from '../i18n'
+import hub from '../hub'
+import {AttachmentsChangedEvent} from '../events'
 
 
 class DeletePage extends RecordComponent {
@@ -43,9 +42,9 @@ class DeletePage extends RecordComponent {
   }
 
   deleteRecord(event) {
-    var path = this.getRecordPath();
-    var parent = utils.getParentFsPath(path);
-    var targetPath;
+    const path = this.getRecordPath()
+    const parent = utils.getParentFsPath(path)
+    let targetPath;
     if (parent === null) {
       targetPath = 'root';
     } else {
@@ -69,7 +68,7 @@ class DeletePage extends RecordComponent {
   }
 
   cancelDelete(event) {
-    var urlPath = this.getUrlRecordPathWithAlt();
+    const urlPath = this.getUrlRecordPathWithAlt()
     this.transitionToAdminPage('.edit', {path: urlPath});
   }
 
@@ -84,21 +83,21 @@ class DeletePage extends RecordComponent {
   }
 
   render() {
-    var ri = this.state.recordInfo;
+    const ri = this.state.recordInfo
 
     if (!ri || !ri.can_be_deleted) {
       return null;
     }
 
-    var elements = [];
-    var children = [];
-    var alts = [];
-    var attachments = [];
-    var deleteAllBox = null;
-    var altInfo = null;
-    var altCount = 0;
+    const elements = []
+    let children = []
+    const alts = []
+    let attachments = [];
+    const deleteAllBox = null
+    let altInfo = null
+    let altCount = 0
 
-    for (var i = 0; i < ri.alts.length; i++) {
+    for (let i = 0; i < ri.alts.length; i++) {
       if (ri.alts[i].alt === this.getRecordAlt()) {
         altInfo = ri.alts[i];
       }
@@ -147,7 +146,7 @@ class DeletePage extends RecordComponent {
         if (!item.exists) {
           return;
         }
-        var title = i18n.trans(item.name_i18n);
+        let title = i18n.trans(item.name_i18n);
         if (item.is_primary) {
           title += ' (' + i18n.trans('PRIMARY_ALT') + ')';
         } else if (item.primary_overlay) {
@@ -175,8 +174,8 @@ class DeletePage extends RecordComponent {
         </ul>
       );
     }
-    
-    var label = ri.label_i18n ? i18n.trans(ri.label_i18n) : ri.id;
+
+    let label = ri.label_i18n ? i18n.trans(ri.label_i18n) : ri.id;
     if (this.getRecordAlt() !== '_primary' && altInfo != null) {
       label += ' (' + i18n.trans(altInfo.name_i18n) + ')';
     }
@@ -214,4 +213,4 @@ class DeletePage extends RecordComponent {
   }
 }
 
-module.exports = DeletePage;
+export default DeletePage

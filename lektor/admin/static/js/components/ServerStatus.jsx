@@ -1,11 +1,10 @@
 'use strict';
 
-var React = require('react');
-var Router = require("react-router");
-
-var Component = require('../components/Component');
-var utils = require('../utils');
-var i18n = require('../i18n');
+import React from 'react';
+import Router from "react-router";
+import Component from '../components/Component';
+import utils from '../utils';
+import i18n from '../i18n';
 
 
 class ServerStatus extends Component {
@@ -29,7 +28,7 @@ class ServerStatus extends Component {
   componentWillUnmount() {
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
-      this.intervalId = null;
+      this.intervalId = null
     }
     super.componentWillUnmount();
   }
@@ -67,4 +66,4 @@ class ServerStatus extends Component {
   }
 }
 
-module.exports = ServerStatus;
+export default ServerStatus

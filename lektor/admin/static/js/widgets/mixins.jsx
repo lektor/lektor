@@ -1,14 +1,12 @@
-var React = require('react');
+import React from 'react'
+import i18n from '../i18n'
 
-var i18n = require('../i18n');
-
-
-function ValidationFailure(options) {
-  this.message = options.message || i18n.trans('INVALID_INPUT');
-  this.type = options.type || 'error';
+function ValidationFailure (options) {
+  this.message = options.message || i18n.trans('INVALID_INPUT')
+  this.type = options.type || 'error'
 }
 
-var BasicWidgetMixin = {
+const BasicWidgetMixin = {
   propTypes: {
     value: React.PropTypes.any,
     type: React.PropTypes.object,
@@ -17,7 +15,7 @@ var BasicWidgetMixin = {
   },
 
   getInputClass() {
-    var rv = 'form-control';
+    let rv = 'form-control';
     if (this.props.type.size === 'small') {
       rv = 'input-sm ' + rv;
     } else if (this.props.type.size === 'large') {
@@ -30,12 +28,12 @@ var BasicWidgetMixin = {
     if (this.getValidationFailureImpl) {
       return this.getValidationFailureImpl();
     }
-    return null;
+    return null
   }
-}
+};
 
 
-module.exports = {
+export default {
   ValidationFailure: ValidationFailure,
   BasicWidgetMixin: BasicWidgetMixin
-};
+}

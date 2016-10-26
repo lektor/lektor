@@ -1,4 +1,4 @@
-var {makeRichPromise} = require('./richPromise');
+import {makeRichPromise} from './richPromise'
 
 
 function slug(string, opts) {
@@ -7,22 +7,22 @@ function slug(string, opts) {
   if ('string' === typeof opts)
     opts = {replacement:opts};
   opts.mode = opts.mode || slug.defaults.mode;
-  var defaults = slug.defaults.modes[opts.mode];
+  const defaults = slug.defaults.modes[opts.mode];
   ['replacement','multicharmap','charmap','remove'].forEach(function (key) {
     opts[key] = opts[key] || defaults[key];
   });
   if ('undefined' === typeof opts.symbols)
     opts.symbols = defaults.symbols;
-  var lengths = [];
+  const lengths = []
   Object.keys(opts.multicharmap).forEach(function (key) {
-    var len = key.length;
+    const len = key.length
     if (lengths.indexOf(len) === -1)
       lengths.push(len);
   });
-  var code, unicode, result = "";
-  for (var char, i = 0, l = string.length; i < l; i++) { char = string[i];
+  let code, unicode, result = "";
+  for (let char, i = 0, l = string.length; i < l; i++) { char = string[i];
     if (!lengths.some(function (len) {
-      var str = string.substr(i, len);
+      const str = string.substr(i, len)
       if (opts.multicharmap[str]) {
         i += len - 1;
         char = opts.multicharmap[str];
@@ -43,7 +43,7 @@ function slug(string, opts) {
   result = result.replace(/^\s+|\s+$/g, ''); // trim leading/trailing spaces
   result = result.replace(/[-\s]+/g, opts.replacement); // convert spaces
   return result.replace(opts.replacement+"$",''); // remove trailing separator
-};
+}
 
 slug.defaults = {
     mode: 'pretty',
@@ -136,31 +136,31 @@ slug.defaults.modes = {
 };
 
 
-var utils = {
+const utils = {
   slugify: slug,
 
-  getCanonicalUrl: function(localPath) {
+  getCanonicalUrl(localPath) {
     return $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1] +
       '/' + utils.stripLeadingSlash(localPath);
   },
 
-  isValidUrl: function(url) {
+  isValidUrl(url) {
     return !!url.match(/^(https?|ftp):\/\/\S+$/);
   },
 
-  stripLeadingSlash: function(string) {
+  stripLeadingSlash(string) {
     return string.match(/^\/*(.*?)$/)[1];
   },
 
-  stripTrailingSlash: function(string) {
+  stripTrailingSlash(string) {
     return string.match(/^(.*?)\/*$/)[1];
   },
 
-  joinFsPath: function(a, b) {
+  joinFsPath(a, b) {
     return utils.stripTrailingSlash(a) + '/' + utils.stripLeadingSlash(b);
   },
 
-  flipSetValue: function(originalSet, value, isActive) {
+  flipSetValue(originalSet, value, isActive) {
     if (isActive) {
       return utils.addToSet(originalSet || [], value);
     } else {
@@ -168,21 +168,21 @@ var utils = {
     }
   },
 
-  addToSet: function(originalSet, value) {
-    for (var i = 0; i < originalSet.length; i++) {
+  addToSet(originalSet, value) {
+    for (let i = 0; i < originalSet.length; i++) {
       if (originalSet[i] === value) {
         return originalSet;
       }
     }
-    var rv = originalSet.slice();
+    const rv = originalSet.slice()
     rv.push(value);
     return rv;
   },
 
-  removeFromSet: function(originalSet, value) {
-    var rv = null;
-    var off = 0;
-    for (var i = 0; i < originalSet.length; i++) {
+  removeFromSet(originalSet, value) {
+    let rv = null;
+    let off = 0;
+    for (let i = 0; i < originalSet.length; i++) {
       if (originalSet[i] === value) {
         if (rv === null) {
           rv = originalSet.slice();
@@ -193,30 +193,30 @@ var utils = {
     return (rv === null) ? originalSet : rv;
   },
 
-  urlPathsConsideredEqual: function(a, b) {
+  urlPathsConsideredEqual(a, b) {
     if ((a == null) || (b == null)) {
       return false;
     }
     return utils.stripTrailingSlash(a) == utils.stripTrailingSlash(b);
   },
 
-  fsPathFromAdminObservedPath: function(adminPath) {
-    var base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1];
+  fsPathFromAdminObservedPath(adminPath) {
+    const base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1]
     if (adminPath.substr(0, base.length) != base) {
       return null;
     }
     return '/' + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1];
   },
 
-  getParentFsPath: function(fsPath) {
+  getParentFsPath(fsPath) {
     return fsPath.match(/^(.*?)\/([^\/]*)$/)[1];
   },
 
-  getApiUrl: function(url) {
+  getApiUrl(url) {
     return $LEKTOR_CONFIG.admin_root + '/api' + url;
   },
 
-  loadData: function(url, params, options) {
+  loadData(url, params, options) {
     options = options || {};
     return makeRichPromise((resolve, reject) => {
       jQuery.ajax({
@@ -233,7 +233,7 @@ var utils = {
     });
   },
 
-  apiRequest: function(url, options) {
+  apiRequest(url, options) {
     options = options || {};
     options.url = utils.getApiUrl(url);
     if (options.json !== undefined) {
@@ -258,8 +258,8 @@ var utils = {
     });
   },
 
-  fsToUrlPath: function(fsPath) {
-    var segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/');
+  fsToUrlPath(fsPath) {
+    let segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/');
     if (segments.length == 1 && segments[0] == '') {
       segments = [];
     }
@@ -267,8 +267,8 @@ var utils = {
     return segments.join(':');
   },
 
-  urlToFsPath: function(urlPath) {
-    var segments = urlPath.match(/^:*(.*?):*$/)[1].split(':');
+  urlToFsPath(urlPath) {
+    const segments = urlPath.match(/^:*(.*?):*$/)[1].split(':')
     if (segments.length < 1 || segments[0] != 'root') {
       return null;
     }
@@ -276,23 +276,23 @@ var utils = {
     return segments.join('/');
   },
 
-  urlPathToSegments: function(urlPath) {
+  urlPathToSegments(urlPath) {
     if (!urlPath) {
       return null;
     }
-    var rv = urlPath.match(/^:*(.*?):*$/)[1].split('/');
+    const rv = urlPath.match(/^:*(.*?):*$/)[1].split('/')
     if (rv.length >= 1 && rv[0] == 'root') {
       return rv.slice(1);
     }
     return null;
   },
 
-  scrolledToBottom: function() {
+  scrolledToBottom() {
     return document.body.offsetHeight + document.body.scrollTop
       >= document.body.scrollHeight;
   },
 
-  getPlatform: function() {
+  getPlatform() {
     if (navigator.appVersion.indexOf('Win') != -1) {
       return 'windows';
     } else if (navigator.appVersion.indexOf('Mac') != -1) {
@@ -304,7 +304,7 @@ var utils = {
     return 'other';
   },
 
-  isMetaKey: function(event) {
+  isMetaKey(event) {
     if (utils.getPlatform() == 'mac') {
       return event.metaKey;
     } else {
@@ -313,4 +313,4 @@ var utils = {
   }
 };
 
-module.exports = utils;
+export default utils

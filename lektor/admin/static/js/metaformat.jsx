@@ -1,6 +1,6 @@
-'use strict';
+'use strict'
 
-var React = require('react');
+import React from 'react'
 
 
 function lineIsDashes(line) {
@@ -9,7 +9,7 @@ function lineIsDashes(line) {
 }
 
 function processBuf(buf) {
-  var lines = buf.map(function(line) {
+  const lines = buf.map(function (line) {
     if (lineIsDashes(line)) {
       line = line.substr(1);
     }
@@ -17,7 +17,7 @@ function processBuf(buf) {
   });
 
   if (lines.length > 0) {
-    var lastLine = lines[lines.length - 1];
+    const lastLine = lines[lines.length - 1]
     if (lastLine.substr(lastLine.length - 1) == '\n') {
       lines[lines.length - 1] = lastLine.substr(0, lastLine.length - 1);
     }
@@ -27,19 +27,19 @@ function processBuf(buf) {
 }
 
 function tokenize(lines) {
-  var key = null;
-  var buf = [];
-  var wantNewline = false;
-  var rv = [];
+  let key = null;
+  let buf = [];
+  let wantNewline = false;
+  const rv = []
 
   function flushItem() {
     rv.push([key, processBuf(buf)]);
-    key = null;
-    buf = [];
+    key = null
+    buf = []
   }
 
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].match(/^(.*?)(\r?\n)*$/m)[1] + '\n';
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].match(/^(.*?)(\r?\n)*$/m)[1] + '\n'
 
     if (line.match(/^(.*?)\s*$/m)[1] == '---') {
       wantNewline = false;
@@ -55,10 +55,10 @@ function tokenize(lines) {
       }
       buf.push(line);
     } else {
-      var bits = line.split(':');
+      const bits = line.split(':')
       if (bits.length >= 2) {
         key = bits.shift().match(/^\s*(.*?)\s*$/m)[1];
-        var firstBit = bits.join(':').match(/^[\t ]*(.*?)[\t ]*$/m)[1];
+        const firstBit = bits.join(':').match(/^[\t ]*(.*?)[\t ]*$/m)[1]
         if (!firstBit.match(/^\s*$/)) {
           buf = [firstBit];
         } else {
@@ -77,17 +77,17 @@ function tokenize(lines) {
 }
 
 function serialize(blocks) {
-  var rv = [];
+  const rv = [];
 
   blocks.forEach(function(item, idx) {
-    var [key, value] = item;
+    const [key, value] = item
     if (idx > 0) {
       rv.push('---\n');
     }
     if (value.match(/([\r\n]|(^[\t ])|([\t ]$))/m)) {
       rv.push(key + ':\n');
       rv.push('\n');
-      var lines = value.split(/\n/);
+      const lines = value.split(/\n/)
       if (lines[lines.length - 1] === '') {
         lines.pop();
       }
@@ -106,7 +106,7 @@ function serialize(blocks) {
 }
 
 
-module.exports = {
+export default {
   tokenize: tokenize,
   serialize: serialize
-};
+}

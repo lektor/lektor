@@ -1,22 +1,22 @@
-'use strict';
+'use strict'
 
-import remote from 'remote';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import ipc from 'ipc';
-import shell from 'shell';
+import remote from 'remote'
+import React from 'react'
+import ReactDOM from 'react-dom'
+import ipc from 'ipc'
+import shell from 'shell'
 
-import Component from './components/Component';
-import { LektorInterop, installShellCommands } from './lektorInterop';
-import i18n from './i18n';
-import { isDevMode, attachDevMenu } from './utils';
+import Component from './components/Component'
+import { LektorInterop, installShellCommands } from './lektorInterop'
+import i18n from './i18n'
+import { isDevMode, attachDevMenu } from './utils'
 
-const app = remote.require('app');
-const dialog = remote.require('dialog');
-const Menu = remote.require('menu');
+const app = remote.require('app')
+const dialog = remote.require('dialog')
+const Menu = remote.require('menu')
 
 
-i18n.setLanguageFromLocale(app.getLocale());
+i18n.setLanguageFromLocale(app.getLocale())
 
 
 class App extends Component {
@@ -33,9 +33,9 @@ class App extends Component {
       buttonTitle: null
     };
 
-    this.onRequestOpenFiles = this.onRequestOpenFiles.bind(this);
-    this.onBeforeUnload = this.onBeforeUnload.bind(this);
-    this.lektorInterop = new LektorInterop();
+    this.onRequestOpenFiles = this.onRequestOpenFiles.bind(this)
+    this.onBeforeUnload = this.onBeforeUnload.bind(this)
+    this.lektorInterop = new LektorInterop()
   }
 
   openProject(path, filesToOpen) {
@@ -55,8 +55,8 @@ class App extends Component {
           this.setState({
             projectState: 'loaded',
             projectData: project,
-          }, this.openFilesAsync.bind(this, filesToOpen));
-          this.spawnServerForProject(project.project_path);
+          }, this.openFilesAsync.bind(this, filesToOpen))
+          this.spawnServerForProject(project.project_path)
         }
       }, (failure) => {
         this.setState({
@@ -87,7 +87,7 @@ class App extends Component {
 
   closeProject() {
     if (this.state.projectServer) {
-      this.state.projectServer.shutdown();
+      this.state.projectServer.shutdown()
     }
     this.setState({
       projectPath: null,
@@ -104,11 +104,11 @@ class App extends Component {
     }
 
     let projectPath = this.state.projectData
-      ? this.state.projectData.project_path : null;
+      ? this.state.projectData.project_path : null
 
     function couldNotOpen(message) {
       dialog.showErrorBox(i18n.trans('FAILED_TO_OPEN_CONTENT_FILE'),
-                          message.toString());
+                          message.toString())
     }
 
     this.lektorInterop.discoverProjectForFiles(filesToOpen)
@@ -320,8 +320,8 @@ class App extends Component {
   }
 
   onRequestOpenFiles(pathsToOpen) {
-    var projectToOpen = null;
-    var filesToOpen = [];
+    let projectToOpen = null;
+    const filesToOpen = [];
     pathsToOpen.forEach((path) => {
       if (path.match(/\.lektorproject$/)) {
         projectToOpen = path;
@@ -352,10 +352,10 @@ class App extends Component {
 
   renderNav() {
     let rv = [];
-    var uiLock = this.uiIsLocked();
+    const uiLock = this.uiIsLocked();
 
     let addButton = (state, icon, title, callback) => {
-      var disabled = uiLock;
+      let disabled = uiLock;
       if (state !== null && this.state.projectState === state) {
         disabled = true;
       }

@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-let i18n = require('./i18n');
+import React from 'react'
+import i18n from './i18n'
 
-var userLabel = {
+const userLabel = {
 
   // formats a user label appropriately
   format(inputConfig) {
@@ -31,4 +31,4 @@ var userLabel = {
 };
 
 
-module.exports = userLabel;
+export default userLabel

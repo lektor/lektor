@@ -1,13 +1,12 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var Router = require('react-router');
-var update = require('react-addons-update');
-
-var RecordEditComponent = require('../components/RecordEditComponent');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var widgets = require('../widgets');
+import React from 'react'
+import Router from 'react-router'
+import update from 'react-addons-update'
+import RecordEditComponent from '../components/RecordEditComponent'
+import utils from '../utils'
+import i18n from '../i18n'
+import widgets from '../widgets'
 
 
 class EditPage extends RecordEditComponent {
@@ -237,4 +236,4 @@ class EditPage extends RecordEditComponent {
   }
 }
 
-module.exports = EditPage;
+export default EditPage

@@ -1,6 +1,6 @@
-'use strict';
+'use strict'
 
-var React = require('react');
+import React from 'react'
 
 
 class Hub {
@@ -15,12 +15,12 @@ class Hub {
       event = event.getEventType();
     }
 
-    var subs = this._subscriptions[event];
+    let subs = this._subscriptions[event];
     if (subs === undefined) {
       this._subscriptions[event] = subs = [];
     }
 
-    for (var i = 0; i < subs.length; i++) {
+    for (let i = 0; i < subs.length; i++) {
       if (subs[i] === callback) {
         return false;
       }
@@ -36,12 +36,12 @@ class Hub {
       event = event.getEventType();
     }
 
-    var subs = this._subscriptions[event];
+    const subs = this._subscriptions[event]
     if (subs === undefined) {
       return false;
     }
 
-    for (var i = 0; i < subs.length; i++) {
+    for (let i = 0; i < subs.length; i++) {
       if (subs[i] === callback) {
         subs.splice(i, 1);
         return true;
@@ -52,7 +52,7 @@ class Hub {
 
   /* emits an event with some parameters */
   emit(event) {
-    var subs = this._subscriptions[event.type];
+    const subs = this._subscriptions[event.type]
     if (subs !== undefined) {
       subs.forEach(function(callback) {
         try {
@@ -67,7 +67,7 @@ class Hub {
 }
 
 
-var hub = new Hub();
+const hub = new Hub()
 
 
-module.exports = hub;
+export default hub

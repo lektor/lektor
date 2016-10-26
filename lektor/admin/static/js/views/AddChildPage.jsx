@@ -1,21 +1,20 @@
-'use strict';
+'use strict'
 
-var qs = require('querystring');
-var React = require('react');
-var Router = require('react-router');
-
-var RecordComponent = require('../components/RecordComponent');
-var i18n = require('../i18n');
-var userLabel = require('../userLabel');
-var utils = require('../utils');
-var widgets = require('../widgets');
+import qs from 'querystring'
+import React from 'react'
+import Router from 'react-router'
+import RecordComponent from '../components/RecordComponent'
+import i18n from '../i18n'
+import userLabel from '../userLabel'
+import utils from '../utils'
+import widgets from '../widgets'
 
 
 function getGoodDefaultModel(models) {
   if (models.page !== undefined) {
     return 'page';
   }
-  var choices = Object.keys(models);
+  const choices = Object.keys(models)
   choices.sort();
   return choices[0];
 }
@@ -45,7 +44,7 @@ class AddChildPage extends RecordComponent {
   syncDialog() {
     utils.loadData('/newrecord', {path: this.getRecordPath()})
       .then((resp) => {
-        var selectedModel = resp.implied_model;
+        let selectedModel = resp.implied_model;
         if (!selectedModel) {
           selectedModel = getGoodDefaultModel(resp.available_models);
         }
@@ -60,15 +59,15 @@ class AddChildPage extends RecordComponent {
   }
 
   onValueChange(id, value) {
-    var obj = {};
+    const obj = {};
     obj[id] = value;
     this.setState(obj);
   }
 
   getAvailableModels() {
-    var rv = [];
-    for (var key in this.state.newChildInfo.available_models) {
-      var model = this.state.newChildInfo.available_models[key];
+    const rv = [];
+    for (const key in this.state.newChildInfo.available_models) {
+      const model = this.state.newChildInfo.available_models[key];
       rv.push(model);
     }
     rv.sort((a, b) => {
@@ -97,18 +96,18 @@ class AddChildPage extends RecordComponent {
       alert(i18n.trans('ERROR_PREFIX') + text);
     }
 
-    var id = this.state.id || this.getImpliedId();
+    const id = this.state.id || this.getImpliedId();
     if (!id) {
       errMsg(i18n.trans('ERROR_NO_ID_PROVIDED'));
       return;
     }
 
-    var data = {};
-    var params = {id: id, path: this.getRecordPath(), data: data};
+    const data = {};
+    const params = {id: id, path: this.getRecordPath(), data: data};
     if (!this.state.newChildInfo.implied_model) {
       data['_model'] = this.state.selectedModel;
     }
-    var primaryField = this.getPrimaryField();
+    const primaryField = this.getPrimaryField();
     if (primaryField) {
       data[primaryField.name] = this.state.primary;
     }
@@ -120,17 +119,17 @@ class AddChildPage extends RecordComponent {
         } else if (!resp.valid_id) {
           errMsg(i18n.trans('ERROR_INVALID_ID').replace('%s', id));
         } else {
-          var urlPath = this.getUrlRecordPathWithAlt(resp.path);
+          const urlPath = this.getUrlRecordPathWithAlt(resp.path);
           this.transitionToAdminPage('.edit', {path: urlPath});
         }
       });
   }
 
   renderFields() {
-    var fields = [];
+    const fields = [];
 
     if (!this.state.newChildInfo.implied_model) {
-      var choices = this.getAvailableModels().map((model) => {
+      const choices = this.getAvailableModels().map((model) => {
         return (
           <option value={model.id} key={model.id}>{i18n.trans(model.name_i18n)}</option>
         );
@@ -151,9 +150,9 @@ class AddChildPage extends RecordComponent {
       );
     }
 
-    var addField = (id, field, placeholder) => {
-      var value = this.state[id];
-      var Widget = widgets.getWidgetComponentWithFallback(field.type);
+    const addField = (id, field, placeholder) => {
+      let value = this.state[id];
+      const Widget = widgets.getWidgetComponentWithFallback(field.type);
       if (Widget.deserializeValue) {
         value = Widget.deserializeValue(value, field.type);
       }
@@ -174,7 +173,7 @@ class AddChildPage extends RecordComponent {
       );
     };
 
-    var primaryField = this.getPrimaryField();
+    const primaryField = this.getPrimaryField();
     if (primaryField) {
       addField('primary', primaryField);
     }
@@ -189,7 +188,7 @@ class AddChildPage extends RecordComponent {
   }
 
   render() {
-    var nci = this.state.newChildInfo;
+    const nci = this.state.newChildInfo;
 
     if (!nci) {
       return null;
@@ -210,4 +209,4 @@ class AddChildPage extends RecordComponent {
   }
 }
 
-module.exports = AddChildPage;
+export default AddChildPage

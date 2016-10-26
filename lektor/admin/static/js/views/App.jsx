@@ -1,15 +1,14 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-
-var BreadCrumbs = require('../components/BreadCrumbs');
-var Sidebar = require('../components/Sidebar');
-var Component = require('../components/Component');
-var DialogSlot = require('../components/DialogSlot');
-var ServerStatus = require('../components/ServerStatus');
-var dialogSystem = require('../dialogSystem');
-var {DialogChangedEvent} = require('../events');
-var hub = require('../hub');
+import React from 'react'
+import BreadCrumbs from '../components/BreadCrumbs'
+import Sidebar from '../components/Sidebar'
+import Component from '../components/Component'
+import DialogSlot from '../components/DialogSlot'
+import ServerStatus from '../components/ServerStatus'
+import dialogSystem from '../dialogSystem'
+import {DialogChangedEvent} from '../events'
+import hub from '../hub'
 
 
 class App extends Component {
@@ -46,4 +45,4 @@ class App extends Component {
   }
 }
 
-module.exports = App;
+export default App

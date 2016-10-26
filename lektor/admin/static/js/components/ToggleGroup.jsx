@@ -1,32 +1,31 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var Component = require('./Component');
-
+import React from 'react'
+import Component from './Component'
 
 class ToggleGroup extends Component {
 
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
     this.state = {
       isVisible: props.defaultVisibility
     }
   }
 
-  toggle(event) {
-    event.preventDefault();
+  toggle (event) {
+    event.preventDefault()
     this.setState({
       isVisible: !this.state.isVisible
     })
   }
 
-  render() {
-    var {className, groupTitle, children, ...otherProps} = this.props;
-    className = (className || '') + ' toggle-group';
+  render () {
+    var {className, groupTitle, children, ...otherProps} = this.props
+    className = (className || '') + ' toggle-group'
     if (this.state.isVisible) {
-      className += ' toggle-group-open';
+      className += ' toggle-group-open'
     } else {
-      className += ' toggle-group-closed';
+      className += ' toggle-group-closed'
     }
 
     return (
@@ -46,6 +45,6 @@ class ToggleGroup extends Component {
 ToggleGroup.propTypes = {
   groupTitle: React.PropTypes.string,
   defaultVisibility: React.PropTypes.bool
-};
+}
 
-module.exports = ToggleGroup;
+export default ToggleGroup
