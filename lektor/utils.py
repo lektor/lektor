@@ -625,9 +625,11 @@ def get_app_dir():
 
 def get_cache_dir():
     if is_windows:
-        folder = os.environ.get('APPDATA')
+        folder = os.environ.get('LOCALAPPDATA')
         if folder is None:
-            folder = os.path.expanduser('~')
+            folder = os.environ.get('APPDATA')
+            if folder is None:
+                folder = os.path.expanduser('~')
         return os.path.join(folder, 'Lektor', 'Cache')
     if sys.platform == 'darwin':
         return os.path.join(os.path.expanduser('~/Library/Caches/Lektor'))
