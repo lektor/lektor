@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 import stat
@@ -12,7 +13,7 @@ from collections import deque, namedtuple
 
 from werkzeug.posixemulation import rename
 
-from lektor._compat import iteritems, text_type
+from lektor._compat import PY2, iteritems, text_type
 from lektor.context import Context
 from lektor.build_programs import builtin_build_programs
 from lektor.reporter import reporter
@@ -984,6 +985,20 @@ class Builder(object):
     def connect_to_database(self):
         con = sqlite3.connect(self.buildstate_database_filename,
                               timeout=10, check_same_thread=False)
+        if PY2:
+            # This code block solve lektor/lektor#243 issue
+            # `os.walk` return :class:`str` type string. But :class:`str` mean
+            # diffrent type between Python 2 and 3.
+            # (:class:`str` on PY2 is equivalent to :class:`bytes` on PY3)
+            # :mod:`sqlite` can not consume multibyte input string because
+            # it expect :class:`unicode` on PY2, not bytes.
+            # If sqlite make connection without text_factory, Multibyte
+            # filename must raise :class:`ProgrammingError`
+            # So we must decode filename as system encoding for on PY2 via
+            # text_factory.
+
+            system_encoding = locale.getdefaultlocale()[1]
+            con.text_factory = lambda x: x.decode(system_encoding, 'ignore')
         cur = con.cursor()
         cur.execute('pragma journal_mode=WAL')
         cur.execute('pragma synchronous=NORMAL')
