@@ -257,7 +257,7 @@ def clean_cmd(ctx, output_path, verbosity):
 def deploy_cmd(ctx, server, output_path, message, **credentials):
     """This command deploys the entire contents of the build folder
     (`--output-path`) onto a configured remote server.  The name of the
-    server must fit the n ame from a target in the project configuration.
+    server must fit the name from a target in the project configuration.
     If no server is supplied then the default server from the config is
     used.
 
@@ -288,7 +288,7 @@ def deploy_cmd(ctx, server, output_path, message, **credentials):
         server_info = config.get_server(server)
         if server_info is None:
             raise click.BadParameter('Server "%s" does not exist.' % server,
-                                     param_hint='server')    
+                                     param_hint='server')  
     try:
         event_iter = publish(env, server_info.target, output_path,
                              credentials=credentials, server_info=server_info, 
