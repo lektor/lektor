@@ -103,7 +103,7 @@ def test_cli_commit_msg(tmpdir, mocker, env):
     
     assert mocked_deploy.extra.get('message') == expected
 
-    def test_cli_commit_msg_empty(tmpdir, mocker, env):
+def test_cli_commit_msg_empty(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = GithubPagesPublisher(env, str(output_path))
     repo_path = tmpdir.mkdir("repo")
