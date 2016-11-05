@@ -658,7 +658,7 @@ def publish(env, target, output_path, credentials=None, **extra):
     url = urls.url_parse(text_type(target))
     publisher = env.publishers.get(url.scheme)
     if url.host is None:
-        raise PublishError('missing host name')
+        raise PublishError(('Publishing target does not have a host name: %s' % target))
     if publisher is None:
         raise PublishError('Server "%s" is not configured for a valid '
             'publishing method: %s is an unknown scheme.' % (url.host, url.scheme))

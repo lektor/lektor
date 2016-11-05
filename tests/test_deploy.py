@@ -1,6 +1,8 @@
 import textwrap
-from lektor.publisher import GithubPagesPublisher, RsyncPublisher
+from lektor.publisher import GithubPagesPublisher, RsyncPublisher, publish
 from werkzeug.urls import url_parse
+import pytest
+
 
 def test_get_server(env):
     server = env.load_config().get_server('production')
@@ -89,3 +91,23 @@ def test_rsync_command_username_in_url(tmpdir, mocker, env):
         str(output_path) + '/',
         'fakeuser@example.com:/'
     ],)
+
+
+def test_publish_target_url_error_handling(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    target_url = None
+    # publisher = None
+    mocked_publish = mocker.patch("lektor.publisher.publish")
+    with pytest.raises(Exception) as mocked_publish:   
+        raise Exception('PublishError: Publishing target does not have a host name: ')   
+    assert mocked_publish.value.message == 'PublishError: Publishing target does not have a host name: ' 
+    # assert mock_publish == "PublishError: Publishing target does not have a host name: None"
+
+def test_publisher_error_handling(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    target_url = url_parse("ghpages+https://pybee/pybee.github.io?cname=pybee.org")
+    publisher = None
+    mocked_publish = mocker.patch("lektor.publisher.publish")
+    with pytest.raises(Exception) as mocked_publish:   
+        raise Exception('Server "%s" is not configured for a valid '
+            'publishing method: %s is an unknown scheme.' % (mocked_publish.url.host, mocked_publish.url.scheme))   
