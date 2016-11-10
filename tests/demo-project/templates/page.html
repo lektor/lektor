@@ -6,5 +6,7 @@
     {# 192 is half test.jpg's original width #}
     {% set t = img.thumbnail(192) %}
     <img src="{{ t|url }}" width="{{ t.width }}" height="{{ t.height }}">
+    {% set tq = img.thumbnail(192, 256, False, quality=20) %}
+    <img src="{{ tq|url }}" width="{{ tq.width }}" height="{{ tq.height }}">
   {% endfor %}
 {% endblock %}

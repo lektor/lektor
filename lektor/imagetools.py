@@ -213,12 +213,14 @@ class EXIFInfo(object):
     def description(self):
         return self._get_string('Image ImageDescription')        
 
-def get_suffix(width, height, crop=False):
+def get_suffix(width, height, crop=False, quality=None):
     suffix = str(width)
     if height is not None:
         suffix += 'x%s' % height
     if crop:
         suffix += '_crop'
+    if quality is not None:
+        suffix += '_q%s' % quality
     return suffix
 
 
@@ -347,7 +349,7 @@ def computed_height(source_image, width, actual_width, actual_height):
 
 
 def process_image(ctx, source_image, dst_filename, width, height=None,
-                  crop=False):
+                  crop=False, quality=None):
     """Build image from source image, optionally compressing and resizing.
 
     "source_image" is the absolute path of the source in the content directory,
@@ -356,7 +358,8 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
     im = find_imagemagick(
         ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
 
-    quality = get_quality(source_image)
+    if quality is None:
+        quality = get_quality(source_image)
 
     resize_key = str(width)
     if height is not None:
@@ -377,7 +380,7 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
 
 
 def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
-                   crop=False):
+                   crop=False, quality=None):
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
@@ -386,7 +389,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
         if format == 'unknown':
             raise RuntimeError('Cannot process unknown images')
 
-    suffix = get_suffix(width, height, crop=crop)
+    suffix = get_suffix(width, height, crop=crop, quality=quality)
     dst_url_path = get_dependent_url(source_url_path, suffix,
                                      ext=get_thumbnail_ext(source_image))
     report_height = height
@@ -407,7 +410,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
         process_image(ctx, source_image, artifact.dst_filename,
-                      width, height, crop=crop)
+                      width, height, crop=crop, quality=quality)
 
     return Thumbnail(dst_url_path, width, report_height)
 
