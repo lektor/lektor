@@ -18,7 +18,10 @@ install:
   - travis_retry pip install --editable .[test]
   - travis_retry make build-js
 
-script: make test
+script: make coverage
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 
 notifications:
   webhooks:

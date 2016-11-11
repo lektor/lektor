@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 tests_require = [
     'pytest',
+    'pytest-cov',
     'pytest-mock',
 ]
 
