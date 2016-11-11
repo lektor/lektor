@@ -1,4 +1,5 @@
-import ToggleGroup from '../../static/js/components/ToggleGroup';
+import { expect } from 'chai';
+import ToggleGroup from './ToggleGroup';
 import jsdomify from 'jsdomify';
 let React, ReactDOM, ReactTestUtils;
 
@@ -25,7 +26,7 @@ describe('ToggleGroup', () => {
     });
 
     it('renders a closed toggle group', () => {
-      expect(document.getElementById('container').innerHTML).toContain('toggle-group-closed');
+      expect(document.getElementById('container').innerHTML).to.contain('toggle-group-closed');
     });
 
     describe('when toggled', () => {
@@ -34,7 +35,7 @@ describe('ToggleGroup', () => {
       });
 
       it('renders an open toggle group', () => {
-        expect(document.getElementById('container').innerHTML).toContain('toggle-group-open');
+        expect(document.getElementById('container').innerHTML).to.contain('toggle-group-open');
       });
     });
   });
@@ -50,7 +51,7 @@ describe('ToggleGroup', () => {
     });
 
     it('renders an open toggle group', () => {
-      expect(document.getElementById('container').innerHTML).toContain('toggle-group-open');
+      expect(document.getElementById('container').innerHTML).to.contain('toggle-group-open');
     });
   });
 });

@@ -18,14 +18,22 @@ pex:
 	rm -rf pex-build-cache
 
 test-python:
-	@echo "---> running tests"
-	@cd tests; py.test . --tb=short -v
+	@echo "---> running python tests"
+	@cd tests; py.test . --tb=short -v --cov=lektor
+
+coverage-python: test-python
+	@cd tests; coverage xml
 
 test-js: build-js
 	@echo "---> running javascript tests"
 	@cd lektor/admin; npm test
 
+coverage-js: test-js
+	@cd lektor/admin; npm run report-coverage
+
 test: test-python test-js
+
+coverage: coverage-python coverage-js
 
 osx-dmg:
 	$(MAKE) -C gui osx-dmg

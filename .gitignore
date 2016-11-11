@@ -9,6 +9,12 @@ venv
 lektor/admin/static/gen
 example-project
 
+coverage/
+.coverage
+coverage.xml
+coverage.lcov
+.nyc_output
+
 node_modules
 gui/build
 gui/node_modules
