@@ -21,7 +21,7 @@ test-python:
 	@echo "---> running tests"
 	@cd tests; py.test . --tb=short -v
 
-test-js:
+test-js: build-js
 	@echo "---> running javascript tests"
 	@cd lektor/admin; npm test
 
