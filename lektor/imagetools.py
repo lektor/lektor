@@ -213,6 +213,11 @@ class EXIFInfo(object):
     def description(self):
         return self._get_string('Image ImageDescription')        
 
+    @property
+    def rotated(self):
+        # cd. <http://www.impulseadventure.com/photo/images/orient_flag.gif>
+        return self._get_int('Image Orientation') in [5, 6, 7, 8]
+
 def get_suffix(width, height, crop=False, quality=None):
     suffix = str(width)
     if height is not None:
