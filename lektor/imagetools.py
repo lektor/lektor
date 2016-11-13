@@ -214,9 +214,15 @@ class EXIFInfo(object):
         return self._get_string('Image ImageDescription')        
 
     @property
-    def rotated(self):
-        # cd. <http://www.impulseadventure.com/photo/images/orient_flag.gif>
-        return self._get_int('Image Orientation') in [5, 6, 7, 8]
+    def is_rotated(self):
+        """Return if the image is rotated according to the Orientation header.
+
+        The Orientation header in EXIF stores an integer value between
+        1 and 8, where the values 5-8 represent "portrait" orientations
+        (rotated 90deg left, right, and mirrored versions of those), i.e.,
+        the image is rotated.
+        """
+        return self._get_int('Image Orientation') in {5, 6, 7, 8}
 
 def get_suffix(width, height, crop=False, quality=None):
     suffix = str(width)
@@ -356,9 +362,8 @@ def computed_height(source_image, format, width, actual_width, actual_height):
     # 100x50 image, but to 100x200.
     if format == 'jpeg':
         exif = read_exif(open(source_image, 'rb'))
-        if exif.rotated:
-            return int(float(actual_width) *
-                       (float(width) / float(actual_height)))
+        if exif.is_rotated:
+            actual_width, actual_height = actual_height, actual_width
     return int(float(actual_height) * (float(width) / float(actual_width)))
 
 
