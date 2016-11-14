@@ -213,6 +213,17 @@ class EXIFInfo(object):
     def description(self):
         return self._get_string('Image ImageDescription')        
 
+    @property
+    def is_rotated(self):
+        """Return if the image is rotated according to the Orientation header.
+
+        The Orientation header in EXIF stores an integer value between
+        1 and 8, where the values 5-8 represent "portrait" orientations
+        (rotated 90deg left, right, and mirrored versions of those), i.e.,
+        the image is rotated.
+        """
+        return self._get_int('Image Orientation') in {5, 6, 7, 8}
+
 def get_suffix(width, height, crop=False, quality=None):
     suffix = str(width)
     if height is not None:
@@ -344,7 +355,15 @@ def get_quality(source_filename):
     return 85
 
 
-def computed_height(source_image, width, actual_width, actual_height):
+def computed_height(source_image, format, width, actual_width, actual_height):
+    # If the file is a JPEG file and the EXIF header shows that the image
+    # is rotated, imagemagick will auto-orient the file. That is, a 400x200
+    # file where the target width is 100px will *not* be converted to a
+    # 100x50 image, but to 100x200.
+    if format == 'jpeg':
+        exif = read_exif(open(source_image, 'rb'))
+        if exif.is_rotated:
+            actual_width, actual_height = actual_height, actual_width
     return int(float(actual_height) * (float(width) / float(actual_width)))
 
 
@@ -365,7 +384,7 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
     if height is not None:
         resize_key += 'x' + str(height)
 
-    cmdline = [im, source_image]
+    cmdline = [im, source_image, '-auto-orient']
     if crop:
         cmdline += ['-resize', resize_key + '^',
                     '-gravity', 'Center',
@@ -373,7 +392,7 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
     else:
         cmdline += ['-resize', resize_key]
 
-    cmdline += ['-auto-orient', '-quality', str(quality), dst_filename]
+    cmdline += ['-quality', str(quality), dst_filename]
 
     reporter.report_debug_info('imagemagick cmd line', cmdline)
     portable_popen(cmdline).wait()
@@ -397,8 +416,8 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
     if height is None:
         # we can only crop if a height is specified
         crop = False
-        report_height = computed_height(source_image, width, source_width,
-                                        source_height)
+        report_height = computed_height(source_image, format, width,
+                                        source_width, source_height)
 
     # If we are dealing with an actual svg image, we do not actually
     # resize anything, we just return it.  This is not ideal but it's

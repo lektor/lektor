@@ -39,6 +39,7 @@ def test_exif(pad):
 
     assert image.exif.documentname == 'testName'
     assert image.exif.description == 'testDescription'
+    assert image.exif.is_rotated
 
     assert isinstance(image.exif.to_dict(), dict)
 
@@ -50,8 +51,8 @@ def test_image_attributes(pad):
     image = pad.root.attachments.images.get('test.jpg')
     assert image is not None
 
-    assert image.width == 384
-    assert image.height == 512
+    assert image.width == 512
+    assert image.height == 384
     assert image.format == 'jpeg'
 
 
