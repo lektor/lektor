@@ -1,6 +1,6 @@
 # Lektor
 
-[![Build Status](https://travis-ci.org/lektor/lektor.svg)](https://travis-ci.org/lektor/lektor) [![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://badge.fury.io/py/Lektor) [![Join the chat at https://gitter.im/lektor/lektor](https://badges.gitter.im/lektor/lektor.svg)](https://gitter.im/lektor/lektor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/lektor/lektor.svg)](https://travis-ci.org/lektor/lektor) [![Code Coverage](https://codecov.io/gh/lektor/lektor/branch/master/graph/badge.svg)](https://codecov.io/gh/lektor/lektor) [![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://badge.fury.io/py/Lektor) [![Join the chat at https://gitter.im/lektor/lektor](https://badges.gitter.im/lektor/lektor.svg)](https://gitter.im/lektor/lektor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Lektor is a static website generator.  It builds out an entire project
 from static files into many individual HTML pages and has a built-in

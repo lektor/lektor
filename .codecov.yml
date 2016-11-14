@@ -1,0 +1,12 @@
+# https://codecov.io/gh/lektor/lektor/
+comment: false
+coverage:
+  precision: 2
+  range:
+  - 70.0
+  - 100.0
+  round: down
+  status:
+    changes: false
+    patch: true
+    project: true
