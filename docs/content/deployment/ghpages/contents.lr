@@ -45,13 +45,16 @@ with behavior for GitHub Pages.
 ## CNAME Support
 
 If you want to use a [CNAME :ext](https://en.wikipedia.org/wiki/CNAME) with
-GitHub pages and Lektor you can provide the intended CNAME with the `?cname`
-parameter:
+custom domain configured GitHub pages and Lektor you can provide the intended 
+CNAME with the `?cname` parameter:
 
 ```ini
 [servers.production]
 target = ghpages://your-user/your-repository?cname=www.example.com
 ```
+
+Note that this will overwrite your Github page's custom domain setting
+with given `?cname` parameter on every deployment.
 
 For more information about how CNAMEs work with GitHub you can read about
 the feature in the GitHub help center:
