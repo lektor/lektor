@@ -251,8 +251,10 @@ def clean_cmd(ctx, output_path, verbosity):
 @click.option('--key', envvar='LEKTOR_DEPLOY_KEY',
               help='The contents of a key file directly a string that should '
               'be used for authentication of the deployment.')
+@click.option('--message', default=None,
+               help='Add custom commit message upon deployment')
 @pass_context
-def deploy_cmd(ctx, server, output_path, **credentials):
+def deploy_cmd(ctx, server, output_path, message, **credentials):
     """This command deploys the entire contents of the build folder
     (`--output-path`) onto a configured remote server.  The name of the
     server must fit the name from a target in the project configuration.
@@ -268,6 +270,7 @@ def deploy_cmd(ctx, server, output_path, **credentials):
     For more information see the deployment chapter in the documentation.
     """
     from lektor.publisher import publish, PublishError
+
 
     if output_path is None:
         output_path = ctx.get_default_output_path()
@@ -285,14 +288,15 @@ def deploy_cmd(ctx, server, output_path, **credentials):
         server_info = config.get_server(server)
         if server_info is None:
             raise click.BadParameter('Server "%s" does not exist.' % server,
-                                     param_hint='server')
-
+                                     param_hint='server')  
     try:
         event_iter = publish(env, server_info.target, output_path,
-                             credentials=credentials, server_info=server_info)
+                             credentials=credentials, server_info=server_info, 
+                             message=message)
     except PublishError as e:
         raise click.UsageError('Server "%s" is not configured for a valid '
-                               'publishing method: %s' % (server, e))
+                                'publishing method: %s' % (server, e))
+
 
     click.echo('Deploying to %s' % server_info.name)
     click.echo('  Build cache: %s' % output_path)

@@ -609,6 +609,8 @@ class GithubPagesPublisher(Publisher):
     def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):
             self.fail('git executable not found; cannot deploy.')
+        if target_url.host is None:
+            self.fail('host name missing')
 
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
@@ -636,9 +638,13 @@ class GithubPagesPublisher(Publisher):
 
             self.link_artifacts(path)
             self.write_cname(path, target_url)
+
+            # passes in commit message from command line or with a fallback msg
+            message = extra.get('message') or 'Synchronized build'
+
             for line in git(['add', '-f', '--all', '.']):
                 yield line
-            for line in git(['commit', '-qm', 'Synchronized build']):
+            for line in git(['commit', '-qm', message]):
                 yield line
             for line in git(['push', 'origin', branch]):
                 yield line
