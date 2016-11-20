@@ -934,7 +934,7 @@ class PathCache(object):
         return rv
 
 
-def process_build_flags(flags):
+def process_extra_flags(flags):
     if isinstance(flags, dict):
         return flags
     rv = {}
@@ -950,8 +950,8 @@ def process_build_flags(flags):
 class Builder(object):
 
     def __init__(self, pad, destination_path, buildstate_path=None,
-                 build_flags=None):
-        self.build_flags = process_build_flags(build_flags)
+                 extra_flags=None):
+        self.extra_flags = process_extra_flags(extra_flags)
         self.pad = pad
         self.destination_path = os.path.abspath(os.path.join(
             pad.db.env.root_path, destination_path))

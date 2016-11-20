@@ -1,6 +1,7 @@
 import os
 import pwd
 import pytest
+import shutil
 import subprocess
 import textwrap
 
@@ -171,3 +172,18 @@ def git_user_email(request):
     email = "lektortest@example.com"
     subprocess.check_call(['git', 'config', 'user.email', email])
     return email
+
+
+@pytest.fixture(scope='function')
+def project_cli_runner(isolated_cli_runner, project):
+    """
+    Copy the project files into the isolated file system used by the
+    Click test runner.
+    """
+    for entry in os.listdir(project.tree):
+        entry_path = os.path.join(project.tree, entry)
+        if os.path.isdir(entry_path):
+            shutil.copytree(entry_path, entry)
+        else:
+            shutil.copy2(entry_path, entry)
+    return isolated_cli_runner
