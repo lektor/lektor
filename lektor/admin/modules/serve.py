@@ -18,7 +18,7 @@ bp = Blueprint('serve', __name__)
 def rewrite_html_for_editing(fp, edit_url):
     contents = fp.read()
 
-    button = '''
+    button = u'''
     <style type="text/css">
       #lektor-edit-link {
         position: fixed;

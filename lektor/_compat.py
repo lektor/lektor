@@ -37,7 +37,7 @@ if PY2:
 
 else:
     unichr = chr
-    range_type = range
+    range_type = range  # pylint: disable=redefined-variable-type
     text_type = str
     string_types = (str,)
     integer_types = (int,)
