@@ -6,7 +6,7 @@ import threading
 from werkzeug.serving import run_simple, WSGIRequestHandler
 
 from lektor.db import Database
-from lektor.builder import Builder, process_build_flags
+from lektor.builder import Builder, process_extra_flags
 from lektor.watcher import Watcher
 from lektor.reporter import CliReporter
 from lektor.admin import WebAdmin
@@ -25,7 +25,7 @@ class SilentWSGIRequestHandler(WSGIRequestHandler):
 class BackgroundBuilder(threading.Thread):
 
     def __init__(self, env, output_path, prune=True, verbosity=0,
-                 build_flags=None):
+                 extra_flags=None):
         threading.Thread.__init__(self)
         watcher = Watcher(env, output_path)
         watcher.observer.start()
@@ -35,13 +35,13 @@ class BackgroundBuilder(threading.Thread):
         self.prune = prune
         self.verbosity = verbosity
         self.last_build = time.time()
-        self.build_flags = build_flags
+        self.extra_flags = extra_flags
 
     def build(self, update_source_info_first=False):
         try:
             db = Database(self.env)
             builder = Builder(db.new_pad(), self.output_path,
-                              build_flags=self.build_flags)
+                              extra_flags=self.extra_flags)
             if update_source_info_first:
                 builder.update_all_source_infos()
             builder.build_all()
@@ -97,26 +97,26 @@ def browse_to_address(addr):
 
 
 def run_server(bindaddr, env, output_path, prune=True, verbosity=0,
-               lektor_dev=False, ui_lang='en', browse=False, build_flags=None):
+               lektor_dev=False, ui_lang='en', browse=False, extra_flags=None):
     """This runs a server but also spawns a background process.  It's
     not safe to call this more than once per python process!
     """
     wz_as_main = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
     in_main_process = not lektor_dev or wz_as_main
-    build_flags = process_build_flags(build_flags)
+    extra_flags = process_extra_flags(extra_flags)
 
     if in_main_process:
         background_builder = BackgroundBuilder(env, output_path=output_path,
                                                prune=prune, verbosity=verbosity,
-                                               build_flags=build_flags)
+                                               extra_flags=extra_flags)
         background_builder.setDaemon(True)
         background_builder.start()
         env.plugin_controller.emit('server-spawn', bindaddr=bindaddr,
-                                   build_flags=build_flags)
+                                   extra_flags=extra_flags)
 
     app = WebAdmin(env, output_path=output_path, verbosity=verbosity,
                    debug=lektor_dev, ui_lang=ui_lang,
-                   build_flags=build_flags)
+                   extra_flags=extra_flags)
 
     dt = None
     if lektor_dev and not wz_as_main:

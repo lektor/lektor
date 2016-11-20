@@ -7,6 +7,8 @@ These are all the changes in Lektor since the first public release.
 ---
 
 - Switch to newer mistune (markdown parser).
+- Rename `--build-flags` to `--extra-flags`, allow the deploy command to also
+  accept extra flags.
 
 2.4
 ---

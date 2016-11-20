@@ -3,7 +3,9 @@ import sys
 import json
 import time
 import click
+import itertools
 import pkg_resources
+import warnings
 
 from .i18n import get_default_lang, is_valid_language
 from .utils import secure_url
@@ -24,12 +26,28 @@ def pruneflag(cli):
         'artifacts should be pruned.  "prune" is the default.')(cli)
 
 
+def extraflag(cli):
+    return click.option(
+        '-f', '--extra-flag', 'extra_flags', multiple=True,
+        help='Defines an arbitrary flag.  These can be used by plugins '
+        'to customize the build and deploy process.  More information can be '
+        'found in the documentation of affected plugins.')(cli)
+
+
+def buildflag_deprecated(ctx, param, value):
+    if value:
+        warnings.warn(
+            'use --extra-flag instead of --build-flag',
+            DeprecationWarning,
+        )
+    return value
+
+
 def buildflag(cli):
     return click.option(
-        '-f', '--build-flag', 'build_flags', multiple=True,
-        help='Defines an arbitrary build flag.  These can be used by plugins '
-        'to customize the build process.  More information can be found in '
-        'the documentation of affected plugins.')(cli)
+        '--build-flag', 'build_flags', multiple=True,
+        help='Deprecated. Use --extra-flag instead.',
+        callback=buildflag_deprecated)(cli)
 
 
 class Context(object):
@@ -119,6 +137,7 @@ def cli(ctx, project=None, language=None):
     This command can invoke lektor locally and serve up the website.  It's
     intended for local development of websites.
     """
+    warnings.simplefilter('default')
     if language is not None:
         ctx.ui_lang = language
     if project is not None:
@@ -143,12 +162,14 @@ def cli(ctx, project=None, language=None):
               help='Path to a directory that Lektor will use for coordinating '
               'the state of the build. Defaults to a directory named '
               '`.lektor` inside the output path.')
+@extraflag
 @buildflag
 @click.option('--profile', is_flag=True,
               help='Enable build profiler.')
 @pass_context
 def build_cmd(ctx, output_path, watch, prune, verbosity,
-              source_info_only, buildstate_path, profile, build_flags):
+              source_info_only, buildstate_path, profile,
+              extra_flags, build_flags):
     """Builds the entire project into the final artifacts.
 
     The default behavior is to build the project into the default build
@@ -169,6 +190,8 @@ def build_cmd(ctx, output_path, watch, prune, verbosity,
     from lektor.builder import Builder
     from lektor.reporter import CliReporter
 
+    extra_flags = tuple(itertools.chain(extra_flags or (), build_flags or ()))
+
     if output_path is None:
         output_path = ctx.get_default_output_path()
 
@@ -179,7 +202,7 @@ def build_cmd(ctx, output_path, watch, prune, verbosity,
     def _build():
         builder = Builder(env.new_pad(), output_path,
                           buildstate_path=buildstate_path,
-                          build_flags=build_flags)
+                          extra_flags=extra_flags)
         if source_info_only:
             builder.update_all_source_infos()
             return True
@@ -251,8 +274,9 @@ def clean_cmd(ctx, output_path, verbosity):
 @click.option('--key', envvar='LEKTOR_DEPLOY_KEY',
               help='The contents of a key file directly a string that should '
               'be used for authentication of the deployment.')
+@extraflag
 @pass_context
-def deploy_cmd(ctx, server, output_path, **credentials):
+def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
     """This command deploys the entire contents of the build folder
     (`--output-path`) onto a configured remote server.  The name of the
     server must fit the name from a target in the project configuration.
@@ -289,7 +313,8 @@ def deploy_cmd(ctx, server, output_path, **credentials):
 
     try:
         event_iter = publish(env, server_info.target, output_path,
-                             credentials=credentials, server_info=server_info)
+                             credentials=credentials, server_info=server_info,
+                             extra_flags=extra_flags)
     except PublishError as e:
         raise click.UsageError('Server "%s" is not configured for a valid '
                                'publishing method: %s' % (server, e))
@@ -319,11 +344,12 @@ def deploy_cmd(ctx, server, output_path, **credentials):
 @pruneflag
 @click.option('-v', '--verbose', 'verbosity', count=True,
               help='Increases the verbosity of the logging.')
+@extraflag
 @buildflag
 @click.option('--browse', is_flag=True)
 @pass_context
-def server_cmd(ctx, host, port, output_path, prune, verbosity, build_flags,
-               browse):
+def server_cmd(ctx, host, port, output_path, prune, verbosity,
+               extra_flags, build_flags, browse):
     """The server command will launch a local server for development.
 
     Lektor's development server will automatically build all files into
@@ -332,6 +358,7 @@ def server_cmd(ctx, host, port, output_path, prune, verbosity, build_flags,
     HTTP server.
     """
     from lektor.devserver import run_server
+    extra_flags = tuple(itertools.chain(extra_flags or (), build_flags or ()))
     if output_path is None:
         output_path = ctx.get_default_output_path()
     ctx.load_plugins()
@@ -339,7 +366,7 @@ def server_cmd(ctx, host, port, output_path, prune, verbosity, build_flags,
     click.echo(' * Output path: %s' % output_path)
     run_server((host, port), env=ctx.get_env(), output_path=output_path,
                prune=prune, verbosity=verbosity, ui_lang=ctx.ui_lang,
-               build_flags=build_flags,
+               extra_flags=extra_flags,
                lektor_dev=os.environ.get('LEKTOR_DEV') == '1',
                browse=browse)
 
