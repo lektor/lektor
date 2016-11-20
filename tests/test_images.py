@@ -69,11 +69,7 @@ def test_thumbnail_quality(builder):
     image_file = os.path.join(builder.destination_path, 'test@192x256_q20.jpg')
     image_size = os.path.getsize(image_file)
 
-    # See if the image file with said quality suffix exists 
+    # See if the image file with said quality suffix exists
     assert os.path.isfile(image_file)
     # And the filesize is less than 9000 bytes
     assert image_size < 9000
-
-
-
-

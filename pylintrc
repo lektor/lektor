@@ -1,0 +1,22 @@
+[MASTER]
+ignore = .git
+
+[FORMAT]
+max-line-length=100
+max-module-lines=2000
+
+[DESIGN]
+max-attributes=20
+max-locals=30
+max-branches=20
+max-nested-blocks=8
+max-returns=8
+
+[MESSAGES CONTROL]
+disable =
+    missing-docstring, unused-argument, unused-variable, bad-continuation,
+    locally-disabled, locally-enabled, no-self-use, redefined-outer-name,
+    invalid-name, protected-access, star-args, fixme, broad-except,
+    redefined-builtin,
+    too-many-arguments, too-few-public-methods, too-many-public-methods,
+    cyclic-import, duplicate-code

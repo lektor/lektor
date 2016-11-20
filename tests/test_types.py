@@ -227,6 +227,10 @@ def test_datetime(env, pad):
         rv = field.deserialize_value('2016-04-30', pad=pad)
         assert isinstance(rv, BadValue)
 
+
+def test_datetime_timezone_utc(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # Known timezone name, UTC
         rv = field.deserialize_value('2016-04-30 01:02:03 UTC', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -238,6 +242,10 @@ def test_datetime(env, pad):
         assert rv.second == 3
         assert rv.tzinfo is get_timezone('UTC')
 
+
+def test_datetime_timezone_est(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # Known timezone name, EST
         rv = field.deserialize_value('2016-04-30 01:02:03 EST', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -249,6 +257,10 @@ def test_datetime(env, pad):
         assert rv.second == 3
         assert rv.tzinfo is get_timezone('EST')
 
+
+def test_datetime_timezone_location(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # Known location name, Asia/Seoul
         rv = field.deserialize_value('2016-04-30 01:02:03 Asia/Seoul', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -258,8 +270,13 @@ def test_datetime(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo in itervalues(get_timezone('Asia/Seoul')._tzinfos)
+        tzinfos = get_timezone('Asia/Seoul')._tzinfos  # pylint: disable=no-member
+        assert rv.tzinfo in itervalues(tzinfos)
 
+
+def test_datetime_timezone_kst(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # KST - http://www.timeanddate.com/time/zones/kst
         rv = field.deserialize_value('2016-04-30 01:02:03 +0900', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -271,6 +288,10 @@ def test_datetime(env, pad):
         assert rv.second == 3
         assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
 
+
+def test_datetime_timezone_acst(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # ACST - http://www.timeanddate.com/time/zones/acst
         rv = field.deserialize_value('2016-04-30 01:02:03 +0930', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -282,6 +303,10 @@ def test_datetime(env, pad):
         assert rv.second == 3
         assert rv.tzinfo._offset == datetime.timedelta(0, (9 * 60 + 30) * 60)
 
+
+def test_datetime_timezone_mst(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # MST - http://www.timeanddate.com/time/zones/mst
         rv = field.deserialize_value('2016-04-30 01:02:03 -0700', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -293,6 +318,10 @@ def test_datetime(env, pad):
         assert rv.second == 3
         assert rv.tzinfo._offset == datetime.timedelta(0, -7 * 60 * 60)
 
+
+def test_datetime_timezone_mart(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # MART - http://www.timeanddate.com/time/zones/mart
         rv = field.deserialize_value('2016-04-30 01:02:03 -0930', pad=pad)
         assert isinstance(rv, datetime.datetime)
@@ -304,6 +333,10 @@ def test_datetime(env, pad):
         assert rv.second == 3
         assert rv.tzinfo._offset == datetime.timedelta(0, -(9 * 60 + 30) * 60)
 
+
+def test_datetime_timezone_name(env, pad):
+    field = make_field(env, 'datetime')
+    with Context(pad=pad):
         # with timezone name (case 1)
         rv = field.deserialize_value('2016-04-30 01:02:03 KST +0900', pad=pad)
         assert isinstance(rv, datetime.datetime)

@@ -57,7 +57,7 @@ def shell_cmd(ctx):
     startup = os.environ.get('PYTHONSTARTUP')
     if startup and os.path.isfile(startup):
         with open(startup, 'r') as f:
-            eval(compile(f.read(), startup, 'exec'), ns)
+            eval(compile(f.read(), startup, 'exec'), ns)  # pylint: disable=eval-used
     pad = ctx.get_env().new_pad()
     ns.update(
         project=ctx.get_project(),

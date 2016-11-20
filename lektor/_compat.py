@@ -9,6 +9,7 @@
 
     Taken from jinja2/_compat.py
 """
+# pylint: disable=invalid-name, import-error, unused-import, undefined-variable, reimported
 import sys
 
 
@@ -31,12 +32,12 @@ if PY2:
     import Queue as queue
     NativeStringIO = BytesIO
 
-    exec('def reraise(tp, value, tb=None):\n raise tp, value, tb')
+    exec('def reraise(tp, value, tb=None):\n raise tp, value, tb') # pylint: disable=exec-used
 
 
 else:
     unichr = chr
-    range_type = range
+    range_type = range  # pylint: disable=redefined-variable-type
     text_type = str
     string_types = (str,)
     integer_types = (int,)

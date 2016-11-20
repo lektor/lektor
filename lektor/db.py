@@ -29,6 +29,7 @@ from lektor.databags import Databags
 from lektor.filecontents import FileContents
 from lektor.utils import make_relative_url, split_virtual_path
 
+# pylint: disable=no-member
 
 def get_alts(source=None, fallback=False):
     """Given a source this returns the list of all alts that the source
@@ -473,7 +474,7 @@ class Record(SourceObject):
         )
 
 
-class Siblings(VirtualSourceObject):
+class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
     def __init__(self, record, prev_page, next_page):
         """Virtual source representing previous and next sibling of 'record'."""
         VirtualSourceObject.__init__(self, record)
@@ -733,22 +734,24 @@ class Attachment(Record):
 
 class Image(Attachment):
     """Specific class for image attachments."""
+    def __init__(self, pad, data, page_num=None):
+        Attachment.__init__(self, pad, data, page_num)
+        self._image_info = None
+        self._exif_cache = None
 
     def _get_image_info(self):
-        rv = getattr(self, '_image_info', None)
-        if rv is None:
+        if self._image_info is None:
             with open(self.attachment_filename, 'rb') as f:
-                self._image_info = rv = get_image_info(f)
-        return rv
+                self._image_info = get_image_info(f)
+        return self._image_info
 
     @property
     def exif(self):
         """Provides access to the exif data."""
-        rv = getattr(self, '_exif_cache', None)
-        if rv is None:
+        if self._exif_cache is None:
             with open(self.attachment_filename, 'rb') as f:
-                rv = self._exif_cache = read_exif(f)
-        return rv
+                self._exif_cache = read_exif(f)
+        return self._exif_cache
 
     @property
     def width(self):
@@ -1002,7 +1005,7 @@ class Query(object):
                 iterable, key=lambda x: x.get_sort_key(order_by))
 
         if self._offset is not None or self._limit is not None:
-            iterable = islice(iterable, self._offset or 0,
+            iterable = islice(iterable, self._offset or 0,  # pylint: disable=redefined-variable-type
                               (self._offset or 0) + self._limit)
 
         for item in iterable:

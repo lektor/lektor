@@ -1,13 +1,13 @@
 import mimetypes
 import os
 import posixpath
-from werkzeug.exceptions import NotFound
 from zlib import adler32
 
 from flask import (Blueprint, Response, abort, current_app, render_template,
     request)
 from werkzeug.datastructures import Headers
 from werkzeug.wsgi import wrap_file
+from werkzeug.exceptions import NotFound
 
 from lektor._compat import BytesIO, string_types
 
@@ -18,7 +18,7 @@ bp = Blueprint('serve', __name__)
 def rewrite_html_for_editing(fp, edit_url):
     contents = fp.read()
 
-    button = '''
+    button = u'''
     <style type="text/css">
       #lektor-edit-link {
         position: fixed;

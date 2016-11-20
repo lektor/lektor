@@ -1,7 +1,7 @@
-import mistune
 import threading
 from weakref import ref as weakref
 
+import mistune
 from markupsafe import Markup, escape
 
 from lektor._compat import PY2

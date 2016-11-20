@@ -19,10 +19,10 @@ pex:
 
 test-python:
 	@echo "---> running python tests"
-	@cd tests; py.test . --tb=short -v --cov=lektor
+	py.test . --tb=short -v --cov=lektor
 
 coverage-python: test-python
-	@cd tests; coverage xml
+	coverage xml
 
 test-js: build-js
 	@echo "---> running javascript tests"

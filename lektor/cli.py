@@ -2,17 +2,17 @@ import os
 import sys
 import json
 import time
-import click
 import itertools
-import pkg_resources
 import warnings
+import pkg_resources
+import click
 
 from .i18n import get_default_lang, is_valid_language
 from .utils import secure_url
 from .project import Project
 
 
-version = pkg_resources.get_distribution('Lektor').version
+version = pkg_resources.get_distribution('Lektor').version  # pylint: disable=no-member
 
 
 def echo_json(data):
@@ -596,7 +596,7 @@ def quickstart_cmd(ctx, **options):
     project_quickstart(options)
 
 
-from .devcli import cli as devcli
+from .devcli import cli as devcli  # pylint: disable=wrong-import-position
 cli.add_command(devcli, 'dev')
 
 

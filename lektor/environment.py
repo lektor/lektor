@@ -7,10 +7,9 @@ from functools import update_wrapper
 from collections import OrderedDict
 
 import jinja2
+from jinja2.loaders import split_template_path
 from babel import dates
 from inifile import IniFile
-from jinja2.loaders import split_template_path
-from lektor.markdown import Markdown
 from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
@@ -18,6 +17,7 @@ from lektor._compat import iteritems, string_types
 from lektor.context import (config_proxy, get_asset_url, get_ctx, get_locale,
     site_proxy, url_to)
 from lektor.i18n import get_i18n_block
+from lektor.markdown import Markdown
 from lektor.pluginsystem import PluginController
 from lektor.utils import (bool_from_string, format_lat_long, secure_url,
     tojson_filter)

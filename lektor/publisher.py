@@ -127,8 +127,8 @@ class Command(object):
         return self._cmd.wait()
 
     @property
-    def status(self):
-        return self._cmd.status
+    def returncode(self):
+        return self._cmd.returncode
 
     def __enter__(self):
         return self
@@ -181,10 +181,9 @@ class Command(object):
             for line in self:
                 yield line
 
-    def proc(self):
-        if self.capture:
-            return self.safe_iter()
-        return self
+    @property
+    def output(self):
+        return self.safe_iter()
 
 
 class Publisher(object):
@@ -402,7 +401,7 @@ class FtpTlsConnection(FtpConnection):
         connected = super(FtpTlsConnection, self).connect()
         if connected:
             # Upgrade data connection to TLS.
-            self.con.prot_p()
+            self.con.prot_p()  # pylint: disable=no-member
         return connected
 
 
@@ -622,13 +621,13 @@ class GithubPagesPublisher(Publisher):
             def git(args, **kwargs):
                 kwargs['env'] = _patch_git_env(kwargs.pop('env', None),
                                                ssh_command)
-                return Command(['git'] + args, cwd=path, **kwargs).proc()
+                return Command(['git'] + args, cwd=path, **kwargs)
 
-            for line in git(['init']):
+            for line in git(['init']).output:
                 yield line
             ssh_command = self.update_git_config(path, target_url, branch,
                                                  credentials)
-            for line in git(['remote', 'update']):
+            for line in git(['remote', 'update']).output:
                 yield line
 
             if git(['checkout', '-q', branch], silent=True).wait() != 0:
@@ -636,11 +635,11 @@ class GithubPagesPublisher(Publisher):
 
             self.link_artifacts(path)
             self.write_cname(path, target_url)
-            for line in git(['add', '-f', '--all', '.']):
+            for line in git(['add', '-f', '--all', '.']).output:
                 yield line
-            for line in git(['commit', '-qm', 'Synchronized build']):
+            for line in git(['commit', '-qm', 'Synchronized build']).output:
                 yield line
-            for line in git(['push', 'origin', branch]):
+            for line in git(['push', 'origin', branch]).output:
                 yield line
 
 

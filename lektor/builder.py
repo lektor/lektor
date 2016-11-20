@@ -128,9 +128,9 @@ class BuildState(object):
         This can be usedful in some scenarious when building with external
         tools.
         """
-        dir = os.path.join(self.builder.meta_path, 'tmp')
+        tmpdir = os.path.join(self.builder.meta_path, 'tmp')
         try:
-            os.makedirs(dir)
+            os.makedirs(tmpdir)
         except OSError:
             pass
         fn = os.path.join(dir, 'nt-%s-%s.tmp' % (identifier or 'generic',
@@ -604,9 +604,9 @@ class Artifact(object):
 
     def ensure_dir(self):
         """Creates the directory if it does not exist yet."""
-        dir = os.path.dirname(self.dst_filename)
+        dst_dir = os.path.dirname(self.dst_filename)
         try:
-            os.makedirs(dir)
+            os.makedirs(dst_dir)
         except OSError:
             pass
 
@@ -796,7 +796,7 @@ class Artifact(object):
         ctx = self.begin_update()
         try:
             yield ctx
-        except:
+        except:  # pylint: disable=bare-except
             exc_info = sys.exc_info()
             self.finish_update(ctx, exc_info)
         else:

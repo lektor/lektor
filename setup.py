@@ -5,6 +5,7 @@ tests_require = [
     'pytest-cov',
     'pytest-mock',
     'pytest-click',
+    'pytest-pylint',
 ]
 
 setup(

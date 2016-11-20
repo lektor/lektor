@@ -1,9 +1,9 @@
 import os
 import pwd
-import pytest
 import shutil
 import subprocess
 import textwrap
+import pytest
 
 
 @pytest.fixture(scope='function')
@@ -135,12 +135,6 @@ def reporter(request, env):
     reporter.push()
     request.addfinalizer(reporter.pop)
     return reporter
-
-
-@pytest.fixture(scope='function')
-def webui(tmpdir, env):
-    from lektor.admin.webui import WebUI
-    return WebUI(env, output_path=str(tmpdir.mkdir("webui")))
 
 
 @pytest.fixture(scope='function')
