@@ -3,12 +3,14 @@ import os
 import flask
 import pytest
 from werkzeug.exceptions import HTTPException
+from lektor.admin.webui import WebAdmin
 
 app = flask.Flask(__name__)
 
 
-def test_index_html(webui):
-    info = webui.lektor_info
+def test_index_html(tmpdir, env):
+    webadmin = WebAdmin(env, output_path=str(tmpdir.mkdir("webadmin")))
+    info = webadmin.lektor_info
 
     def resolve(to_resolve):
         with app.test_request_context(to_resolve):

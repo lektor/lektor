@@ -138,12 +138,6 @@ def reporter(request, env):
 
 
 @pytest.fixture(scope='function')
-def webui(tmpdir, env):
-    from lektor.admin.webui import WebUI
-    return WebUI(env, output_path=str(tmpdir.mkdir("webui")))
-
-
-@pytest.fixture(scope='function')
 def os_user(monkeypatch):
     struct = pwd.struct_passwd((
         'lektortest',  # pw_name
