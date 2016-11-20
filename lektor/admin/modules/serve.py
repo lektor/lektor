@@ -1,13 +1,13 @@
 import mimetypes
 import os
 import posixpath
-from werkzeug.exceptions import NotFound
 from zlib import adler32
 
 from flask import (Blueprint, Response, abort, current_app, render_template,
     request)
 from werkzeug.datastructures import Headers
 from werkzeug.wsgi import wrap_file
+from werkzeug.exceptions import NotFound
 
 from lektor._compat import BytesIO, string_types
 

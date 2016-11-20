@@ -115,4 +115,4 @@ def test_prev_next_virtual_resolver(pntest_pad):
         assert siblings.next_page['_id'] == 'post4'
 
         with pytest.raises(NotImplementedError):
-            siblings.url_path
+            siblings.url_path  # pylint: disable=pointless-statement

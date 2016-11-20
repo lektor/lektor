@@ -12,6 +12,7 @@ import tempfile
 import traceback
 import unicodedata
 import uuid
+from datetime import datetime
 from contextlib import contextmanager
 from threading import Thread
 
@@ -23,7 +24,6 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from datetime import datetime
 from lektor._compat import (queue, integer_types, iteritems, reraise,
                             string_types, text_type, range_type)
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
@@ -305,7 +305,7 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
 
 class JSONEncoder(json.JSONEncoder):
 
-    def default(self, o):
+    def default(self, o):  # pylint: disable=method-hidden
         if is_undefined(o):
             return None
         if isinstance(o, datetime):
@@ -458,7 +458,7 @@ def atomic_open(filename, mode='r'):
         tmp_filename = None
     try:
         yield f
-    except:
+    except:  # pylint: disable=bare-except
         f.close()
         exc_type, exc_value, tb = sys.exc_info()
         if tmp_filename is not None:

@@ -2,14 +2,14 @@ import os
 import sys
 import site
 import errno
-import click
 import shutil
 import tempfile
+from subprocess import PIPE
+import click
 import requests
 import pkg_resources
-from subprocess import PIPE
 
-from .utils import portable_popen
+from lektor.utils import portable_popen
 from lektor._compat import iteritems
 
 

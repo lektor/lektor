@@ -7,7 +7,7 @@ from inifile import IniFile
 from lektor import types
 from lektor._compat import iteritems, itervalues
 from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
-from lektor.i18n import get_i18n_block, load_i18n_block, generate_i18n_kvs
+from lektor.i18n import get_i18n_block, generate_i18n_kvs
 from lektor.pagination import Pagination
 from lektor.utils import bool_from_string, slugify
 
@@ -618,7 +618,7 @@ def load_datamodels(env):
         rv[model_id] = mod = datamodel_from_data(env, model_data, parent)
         return mod
 
-    for model_id in data.keys():
+    for model_id in data:
         get_model(model_id)
 
     rv['none'] = DataModel(env, 'none', {'en': 'None'}, hidden=True)

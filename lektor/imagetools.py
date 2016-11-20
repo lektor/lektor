@@ -2,10 +2,10 @@
 import os
 import imghdr
 import struct
-import exifread
 import posixpath
 from datetime import datetime
 from xml.etree import ElementTree as etree
+import exifread
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
@@ -211,7 +211,7 @@ class EXIFInfo(object):
 
     @property
     def description(self):
-        return self._get_string('Image ImageDescription')        
+        return self._get_string('Image ImageDescription')
 
     @property
     def is_rotated(self):

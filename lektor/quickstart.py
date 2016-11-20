@@ -11,7 +11,7 @@ from functools import partial
 import click
 from jinja2 import Environment, PackageLoader
 
-from .utils import fs_enc, slugify
+from lektor.utils import fs_enc, slugify
 from lektor._compat import text_type
 
 
@@ -51,10 +51,9 @@ class Generator(object):
         text = '> ' + click.style(text, fg='green')
 
         if default is True or default is False:
-            rv = click.confirm(text, default=default)
+            return click.confirm(text, default=default)
         else:
-            rv = click.prompt(text, default=default, show_default=True)
-        return rv
+            return click.prompt(text, default=default, show_default=True)
 
     def title(self, title):
         self.e(title, fg='cyan')
@@ -225,10 +224,10 @@ def plugin_quickstart(defaults=None, project=None):
 
     plugin_name = defaults.get('plugin_name')
     if plugin_name is None:
-        plugin_name = g.prompt('Plugin Name', None,
-            'This is the human readable name for this plugin')
+        plugin_name = g.prompt('Plugin Name', default=None,
+            info='This is the human readable name for this plugin')
 
-    plugin_id = plugin_name.lower()
+    plugin_id = plugin_name.lower()  # pylint: disable=no-member
     if plugin_id.startswith('lektor'):
         plugin_id = plugin_id[6:]
     if plugin_id.endswith('plugin'):

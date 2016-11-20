@@ -51,9 +51,7 @@ def discover_relevant_flowblock_models(flow, pad, record, alt):
 
 
 class BadFlowBlock(Exception):
-
-    def __init__(self, message):
-        self.message = message
+    pass
 
 
 class FlowBlock(object):
@@ -218,7 +216,7 @@ class FlowType(Type):
                     d[key] = u''.join(lines)
                 rv.append(flowblock.process_raw_data(d, pad=raw.pad))
         except BadFlowBlock as e:
-            return raw.bad_value(e.message)
+            return raw.bad_value(str(e))
 
         return FlowDescriptor(rv, raw.pad)
 

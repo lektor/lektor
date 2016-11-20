@@ -1,9 +1,9 @@
 import os
 import pwd
-import pytest
 import shutil
 import subprocess
 import textwrap
+import pytest
 
 
 @pytest.fixture(scope='function')

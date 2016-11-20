@@ -153,7 +153,7 @@ class EditorSession(object):
 
     def __contains__(self, key):
         try:
-            self[key]
+            self[key]  # pylint: disable=pointless-statement
             return True
         except KeyError:
             return False

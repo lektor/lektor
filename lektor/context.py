@@ -1,6 +1,5 @@
-from jinja2 import Undefined
 from contextlib import contextmanager
-
+from jinja2 import Undefined
 from werkzeug.local import LocalStack, LocalProxy
 
 from lektor.reporter import reporter

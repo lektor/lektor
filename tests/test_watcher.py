@@ -1,11 +1,12 @@
-import py.path
 import functools
+import py
 
 from lektor import utils
 from lektor import watcher
 
 
 def test_is_interesting(env):
+    # pylint: disable=no-member
     cache_dir = py.path.local(utils.get_cache_dir())
     build_dir = py.path.local("build")
 

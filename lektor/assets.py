@@ -12,10 +12,10 @@ def get_asset(pad, filename, parent=None):
         return None
 
     try:
-        st = os.stat(os.path.join(parent.source_filename, filename))
+        stat_obj = os.stat(os.path.join(parent.source_filename, filename))
     except OSError:
         return None
-    if stat.S_ISDIR(st.st_mode):
+    if stat.S_ISDIR(stat_obj.st_mode):
         return Directory(pad, filename, parent=parent)
 
     ext = os.path.splitext(filename)[1]
@@ -106,9 +106,9 @@ class Directory(Asset):
                 yield asset
 
     def get_child(self, name, from_url=False):
-        rv = get_asset(self.pad, name, parent=self)
-        if rv is not None or not from_url:
-            return rv
+        asset = get_asset(self.pad, name, parent=self)
+        if asset is not None or not from_url:
+            return asset
 
         # This this point it means we did not find a child yet, but we
         # came from an URL.  We can try to chop of product suffixes to

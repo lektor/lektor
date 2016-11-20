@@ -1,5 +1,4 @@
 import re
-import shutil
 from lektor.cli import cli
 
 
