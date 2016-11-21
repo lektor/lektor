@@ -38,6 +38,8 @@ into a dictionary that can be dumped to JSON for instance.
 | `latitude`          | The longitude as floating point value.
 | `longitude`         | The longitude as floating point value.
 | `altitude`          | The altitude in meters as floating point value.
+| `documentname`      | The image document name as a string.
+| `description`       | The image description as a string.
 
 ## Example
 
