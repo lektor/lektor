@@ -37,8 +37,14 @@ Now you need to configure webpack.  The plugin expects a webpack project in the
 This file instructs `npm` which packages we will need.  All we need for a
 start is to create an almost empty file:
 
+Recent versions of `npm` require `name` and `version` fields in your
+`package.json` (see [npm package.json docs
+:ext](https://docs.npmjs.com/files/package.json)).
+
 ```json
 {
+  "name": "foobar",
+  "version": "0.1.0",
   "private": true
 }
 ```
