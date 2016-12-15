@@ -9,7 +9,7 @@ type: class
 body:
 
 Records are [Source Objects :ref](../obj/) that come from the `content/`
-folder and correspond to [Data Models :ref](../../../models/).  The provide
+folder and correspond to [Data Models :ref](../../../models/).  They provide
 a wider range of functionality compared to a standard source object but
 they also provide all the functionality a regular source object does.
 
