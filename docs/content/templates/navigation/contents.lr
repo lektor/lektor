@@ -52,7 +52,7 @@ a page.  This is easy to accomplish as well:
 ```html+jinja
 <nav>
   <ul class="nav">
-    {% for project in site.get('/projects') %}
+    {% for project in site.get('/projects').children %}
       <li{% if this == project %} class="active"{% endif
         %}><a href="{{ project|url }}">{{ project.name }}</a></li>
     {% endfor %}
