@@ -17,9 +17,6 @@ from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
 
 
-devnull = open(os.devnull, 'rb+')
-
-
 def _patch_git_env(env_overrides, ssh_command=None):
     env = dict(os.environ)
     env.update(env_overrides or ())
@@ -114,8 +111,9 @@ class Command(object):
             environ.update(env)
         kwargs = {'cwd': cwd, 'env': environ}
         if silent:
-            kwargs['stdout'] = devnull
-            kwargs['stderr'] = devnull
+            self.devnull = open(os.devnull, 'rb+')
+            kwargs['stdout'] = self.devnull
+            kwargs['stderr'] = self.devnull
             capture = False
         if capture:
             kwargs['stdout'] = subprocess.PIPE
@@ -124,7 +122,10 @@ class Command(object):
         self._cmd = portable_popen(argline, **kwargs)
 
     def wait(self):
-        return self._cmd.wait()
+        returncode = self._cmd.wait()
+        if hasattr(self, "devnull"):
+            self.devnull.close()
+        return returncode
 
     @property
     def returncode(self):
