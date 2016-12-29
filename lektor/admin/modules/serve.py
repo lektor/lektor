@@ -85,8 +85,10 @@ def send_file(filename):
     rewritten = False
     if mimetype == 'text/html':
         rewritten = True
-        file = rewrite_html_for_editing(file,
+        new_file = rewrite_html_for_editing(file,
             edit_url=posixpath.join('/', request.script_root, 'admin/edit'))
+        file.close()
+        file = new_file
         del headers['Content-Length']
 
     headers['Cache-Control'] = 'no-cache, no-store'
