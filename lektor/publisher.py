@@ -612,7 +612,8 @@ class GithubPagesPublisher(Publisher):
 
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
-        if target_url.host + '.github.io' == target_url.path.strip('/'):
+        if (target_url.host.lower() + '.github.io' ==
+                target_url.path.strip('/').lower()):
             branch = 'master'
         else:
             branch = 'gh-pages'
