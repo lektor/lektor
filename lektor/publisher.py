@@ -606,10 +606,7 @@ class GithubPagesPublisher(Publisher):
             with open(os.path.join(path, 'CNAME'), 'w') as f:
                 f.write('%s\n' % cname)
 
-    def publish(self, target_url, credentials=None, **extra):
-        if not locate_executable('git'):
-            self.fail('git executable not found; cannot deploy.')
-
+    def detect_target_branch(self, target_url):
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
         if (target_url.host.lower() + '.github.io' ==
@@ -617,6 +614,13 @@ class GithubPagesPublisher(Publisher):
             branch = 'master'
         else:
             branch = 'gh-pages'
+        return branch
+
+    def publish(self, target_url, credentials=None, **extra):
+        if not locate_executable('git'):
+            self.fail('git executable not found; cannot deploy.')
+
+        branch = self.detect_target_branch(target_url)
 
         with _temporary_folder(self.env) as path:
             ssh_command = None
