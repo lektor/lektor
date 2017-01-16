@@ -75,7 +75,7 @@ targeted, different files will be used.  This table visualizes this:
 
 ## Alternatives and Paths
 
-Alternatives have a special behavior with regards to paths.  They alternative
+Alternatives have a special behavior with regards to paths.  The alternative
 code does not exist in the path!  This can be confusing at first, but has the
 advantage that they automatically work in most places as the paths are the
 same for different alternatives.  For more information see
