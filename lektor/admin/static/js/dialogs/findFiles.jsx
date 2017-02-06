@@ -1,14 +1,13 @@
 'use strict'
 
-import React from 'react'
-import Router from 'react-router'
-var {Link, RouteHandler} = Router
+import React from 'react';
+import { Link, RouteHandler } from 'react-router';
 
-import RecordComponent from '../components/RecordComponent'
-import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
-import i18n from '../i18n'
-import dialogSystem from '../dialogSystem'
+import RecordComponent from '../components/RecordComponent';
+import SlideDialog from '../components/SlideDialog';
+import utils from '../utils';
+import i18n from '../i18n';
+import dialogSystem from '../dialogSystem';
 
 class FindFiles extends RecordComponent {
 

@@ -3,7 +3,7 @@ all: build-js
 build-js:
 	@echo "---> building static files"
 	@cd lektor/admin; npm install .
-	@cd lektor/admin/static; ../node_modules/.bin/webpack
+	@cd lektor/admin; npm run webpack
 
 pex:
 	virtualenv pex-build-cache

@@ -8,6 +8,7 @@ import utils from '../utils'
 import i18n from '../i18n'
 import hub from '../hub'
 import {AttachmentsChangedEvent} from '../events'
+import makeRichPromise from '../richPromise';
 
 
 class DeletePage extends RecordComponent {
@@ -32,7 +33,7 @@ class DeletePage extends RecordComponent {
   }
 
   syncDialog() {
-    utils.loadData('/recordinfo', {path: this.getRecordPath()})
+    utils.loadData('/recordinfo', {path: this.getRecordPath()}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordInfo: resp,

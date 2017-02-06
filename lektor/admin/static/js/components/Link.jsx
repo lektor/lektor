@@ -1,11 +1,11 @@
 'use strict'
 
-import React from 'react'
-import ReactRouter from 'react-router'
-import Component from './Component'
+import React from 'react';
+import { Link } from 'react-router';
+import Component from './Component';
 
 
-class Link extends Component {
+class LektorLink extends Component {
 
   render() {
     let path = this.props.to;
@@ -13,16 +13,16 @@ class Link extends Component {
       path = $LEKTOR_CONFIG.admin_root + '/' + path;
     }
     return (
-      <ReactRouter.Link to={path} activeClassName="active">
+      <Link to={path} activeClassName="active">
         {this.props.children}
-      </ReactRouter.Link>
+      </Link>
     );
   }
 }
 
-Link.propTypes = {
+LektorLink.propTypes = {
   to: React.PropTypes.string
-}
+};
 
 
-module.exports = Link
+module.exports = LektorLink;

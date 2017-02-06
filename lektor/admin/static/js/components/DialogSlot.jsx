@@ -4,7 +4,7 @@ import React from 'react'
 import Router from "react-router"
 import Component from '../components/Component'
 import dialogSystem from '../dialogSystem'
-import {DialogChangedEvent} from '../events'
+import { DialogChangedEvent } from '../events'
 import hub from '../hub'
 
 
@@ -66,4 +66,4 @@ class DialogSlot extends Component {
   }
 }
 
-export default DialogSlot
+export default DialogSlot;

@@ -43,9 +43,16 @@ class SlideDialog extends Component {
     return (
       <div className={className} {...props}>
         <div className="col-md-6 col-md-offset-4">
-          {hasCloseButton}
-            <a href="#" className="close-btn" onClick={
-              this._onCloseClick.bind(this)}>{i18n.trans('CLOSE')}</a> : null}
+          {
+            hasCloseButton &&
+            <a
+                href="#"
+                className="close-btn"
+                onClick={this._onCloseClick.bind(this)}
+            >
+                { i18n.trans('CLOSE') }
+            </a>
+          }
           <h3>{title}</h3>
           {children}
         </div>

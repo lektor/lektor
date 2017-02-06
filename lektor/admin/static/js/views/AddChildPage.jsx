@@ -8,6 +8,7 @@ import i18n from '../i18n'
 import userLabel from '../userLabel'
 import utils from '../utils'
 import widgets from '../widgets'
+import makeRichPromise from '../richPromise';
 
 
 function getGoodDefaultModel(models) {
@@ -42,7 +43,7 @@ class AddChildPage extends RecordComponent {
   }
 
   syncDialog() {
-    utils.loadData('/newrecord', {path: this.getRecordPath()})
+    utils.loadData('/newrecord', {path: this.getRecordPath()}, null, makeRichPromise)
       .then((resp) => {
         let selectedModel = resp.implied_model;
         if (!selectedModel) {

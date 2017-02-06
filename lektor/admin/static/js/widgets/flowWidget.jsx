@@ -1,22 +1,20 @@
 'use strict'
 
-import React from 'react'
-import i18n from '../i18n'
-import metaformat from '../metaformat'
-import {BasicWidgetMixin} from './mixins'
-import userLabel from '../userLabel'
-
+import React from 'react';
+import i18n from '../i18n';
+import metaformat from '../metaformat';
+import {BasicWidgetMixin} from './mixins';
+import userLabel from '../userLabel';
+import widgets from '../widgets';;
 
 /* circular references require us to do this */
 function getWidgetComponent(type) {
-  var widgets = require('../widgets');
   return widgets.getWidgetComponent(type);
 }
 
 function getWidgets() {
-  return require('../widgets');
+  return widgets;
 }
-
 
 function parseFlowFormat(value) {
   var blocks = [];
