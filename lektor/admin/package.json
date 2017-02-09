@@ -40,7 +40,8 @@
   },
   "scripts": {
     "test": "nyc mocha static/js/**/*.test.js",
-    "report-coverage": "nyc report --reporter=lcov > coverage.lcov"
+    "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
+    "webpack": "webpack --config ./static/webpack.config.js --context ./static"
   },
   "babel": {
     "presets": [

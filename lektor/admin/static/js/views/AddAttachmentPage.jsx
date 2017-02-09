@@ -9,6 +9,7 @@ import {AttachmentsChangedEvent} from '../events'
 import utils from '../utils'
 import i18n from '../i18n'
 import widgets from '../widgets'
+import makeRichPromise from '../richPromise';
 
 
 function getGoodDefaultModel(models) {
@@ -42,7 +43,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   syncDialog() {
-    utils.loadData('/newattachment', {path: this.getRecordPath()})
+    utils.loadData('/newattachment', {path: this.getRecordPath()}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           newAttachmentInfo: resp

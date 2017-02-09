@@ -7,7 +7,7 @@ import hub from '../hub'
 import {AttachmentsChangedEvent} from '../events'
 import RecordComponent from './RecordComponent'
 import Link from '../components/Link'
-
+import makeRichPromise from '../richPromise';
 
 function getBrowseButtonTitle() {
   const platform = utils.getPlatform();
@@ -118,7 +118,7 @@ class Sidebar extends RecordComponent {
     this.setState({
       lastRecordRequest: path,
     }, () => {
-      utils.loadData('/recordinfo', {path: path})
+      utils.loadData('/recordinfo', {path: path}, null, makeRichPromise)
         .then((resp) => {
           // we're already fetching something else.
           if (path !== this.state.lastRecordRequest) {
@@ -151,7 +151,7 @@ class Sidebar extends RecordComponent {
     utils.apiRequest('/browsefs', {data: {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
-    }, method: 'POST'})
+    }, method: 'POST'}, makeRichPromise)
       .then((resp) => {
         if (!resp.okay) {
           alert(i18n.trans('ERROR_CANNOT_BROWSE_FS'));

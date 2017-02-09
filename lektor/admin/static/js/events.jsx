@@ -1,7 +1,6 @@
 'use strict'
 
-import React from 'react'
-
+import React from 'react';
 
 class Event {
 
@@ -51,9 +50,9 @@ class DialogChangedEvent extends Event {
 }
 
 
-export default {
-  Event: Event,
-  RecordEvent: RecordEvent,
-  AttachmentsChangedEvent: AttachmentsChangedEvent,
-  DialogChangedEvent: DialogChangedEvent,
-}
+export {
+  Event,
+  RecordEvent,
+  AttachmentsChangedEvent,
+  DialogChangedEvent
+};

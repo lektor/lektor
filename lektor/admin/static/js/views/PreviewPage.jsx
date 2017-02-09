@@ -4,6 +4,7 @@ import React from 'react'
 import Router from 'react-router'
 import utils from '../utils'
 import RecordComponent from '../components/RecordComponent'
+import makeRichPromise from '../richPromise';
 
 
 class PreviewPage extends RecordComponent {
@@ -39,7 +40,7 @@ class PreviewPage extends RecordComponent {
     }
 
     var recordUrl = this.getUrlRecordPathWithAlt();
-    utils.loadData('/previewinfo', {path: path, alt: alt})
+    utils.loadData('/previewinfo', {path: path, alt: alt}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           pageUrl: resp.url,
@@ -85,7 +86,7 @@ class PreviewPage extends RecordComponent {
     if (fsPath === null) {
       return;
     }
-    utils.loadData('/matchurl', {url_path: fsPath})
+    utils.loadData('/matchurl', {url_path: fsPath}, null, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           var urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);

@@ -6,6 +6,7 @@ import SlideDialog from '../components/SlideDialog'
 import utils from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
+import makeRichPromise from '../richPromise';
 
 
 class Refresh extends Component {
@@ -37,7 +38,7 @@ class Refresh extends Component {
     });
     utils.apiRequest('/clean', {
       method: 'POST'
-    }).then((resp) => {
+    }, makeRichPromise).then((resp) => {
       this.setState({
         currentState: 'DONE'
       })

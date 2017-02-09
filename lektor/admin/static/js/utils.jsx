@@ -1,6 +1,3 @@
-import {makeRichPromise} from './richPromise'
-
-
 function slug(string, opts) {
   opts = opts || {};
   string = string.toString();
@@ -216,9 +213,9 @@ const utils = {
     return $LEKTOR_CONFIG.admin_root + '/api' + url;
   },
 
-  loadData(url, params, options) {
+  loadData(url, params, options, createPromise) {
     options = options || {};
-    return makeRichPromise((resolve, reject) => {
+    return createPromise((resolve, reject) => {
       jQuery.ajax({
         url: utils.getApiUrl(url),
         data: params,
@@ -233,7 +230,7 @@ const utils = {
     });
   },
 
-  apiRequest(url, options) {
+  apiRequest(url, options, createPromise) {
     options = options || {};
     options.url = utils.getApiUrl(url);
     if (options.json !== undefined) {
@@ -245,7 +242,7 @@ const utils = {
       options.method = 'GET';
     }
 
-    return makeRichPromise((resolve, reject) => {
+    return createPromise((resolve, reject) => {
       jQuery.ajax(options)
         .done((data) => {
           resolve(data);

@@ -5,7 +5,7 @@ import Router from "react-router";
 import Component from '../components/Component';
 import utils from '../utils';
 import i18n from '../i18n';
-
+import makeRichPromise from '../richPromise';
 
 class ServerStatus extends Component {
 
@@ -34,7 +34,7 @@ class ServerStatus extends Component {
   }
 
   onInterval() {
-    utils.loadData('/ping')
+    utils.loadData('/ping', {}, null, makeRichPromise)
       .then((resp) => {
         if (this.state.projectId === null) {
           this.setState({

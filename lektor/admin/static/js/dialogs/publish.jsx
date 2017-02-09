@@ -6,7 +6,7 @@ import SlideDialog from '../components/SlideDialog'
 import utils from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
-
+import makeRichPromise from '../richPromise';
 
 class Publish extends Component {
 
@@ -39,12 +39,14 @@ class Publish extends Component {
   }
 
   syncDialog() {
-    utils.loadData('/servers')
-      .then((resp) => {
+    utils.loadData('/servers', {}, null, makeRichPromise)
+      .then(({ servers }) => {
         this.setState({
-          servers: resp.servers,
-          activeTarget: resp.servers[0].id
-        })
+          servers: servers,
+          activeTarget: servers && servers.length
+                     ?  servers[0].id
+                      : null
+        });
       });
   }
 
@@ -70,7 +72,7 @@ class Publish extends Component {
     });
     utils.apiRequest('/build', {
       method: 'POST'
-    }).then((resp) => {
+    }, makeRichPromise).then((resp) => {
       this._beginPublish();
     });
   }
@@ -106,7 +108,7 @@ class Publish extends Component {
   componentDidUpdate() {
     super.componentDidUpdate();
     const node = this.refs.log;
-    if (node !== null) {
+    if (node) {
       node.scrollTop = node.scrollHeight;
     }
   }
@@ -142,11 +144,16 @@ class Publish extends Component {
         <p>{i18n.trans('PUBLISH_NOTE')}</p>
         <dl>
           <dt>{i18n.trans('PUBLISH_SERVER')}</dt>
-          <dd><div className="input-group">
-            <select value={this.state.activeTarget}
-              onChange={this.onSelectServer.bind(this)}
-              className="form-control">{servers}</select>
-          </div></dd>
+          <dd>
+              <div className="input-group">
+                  <select
+                      value={this.state.activeTarget}
+                      onChange={this.onSelectServer.bind(this)}
+                      className="form-control">
+                      {servers}
+                  </select>
+              </div>
+          </dd>
         </dl>
         <div className="actions">
           <button type="submit" className="btn btn-primary"
@@ -163,4 +170,4 @@ class Publish extends Component {
   }
 }
 
-export default Publish
+export default Publish;

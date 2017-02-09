@@ -1,5 +1,5 @@
-import React from 'react'
-import i18n from '../i18n'
+import React from 'react';
+import i18n from '../i18n';
 
 function ValidationFailure (options) {
   this.message = options.message || i18n.trans('INVALID_INPUT')
@@ -33,7 +33,7 @@ const BasicWidgetMixin = {
 };
 
 
-export default {
-  ValidationFailure: ValidationFailure,
-  BasicWidgetMixin: BasicWidgetMixin
+export {
+  ValidationFailure,
+  BasicWidgetMixin
 }

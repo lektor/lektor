@@ -9,7 +9,7 @@ import dialogSystem from '../dialogSystem'
 import FindFiles from '../dialogs/findFiles'
 import Publish from '../dialogs/publish'
 import Refresh from '../dialogs/Refresh'
-
+import makeRichPromise from '../richPromise';
 
 class BreadCrumbs extends RecordComponent {
 
@@ -47,7 +47,7 @@ class BreadCrumbs extends RecordComponent {
       return;
     }
 
-    utils.loadData('/pathinfo', {path: path})
+    utils.loadData('/pathinfo', {path: path}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordPathInfo: {
@@ -70,7 +70,7 @@ class BreadCrumbs extends RecordComponent {
     utils.loadData('/previewinfo', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
-    })
+    }, null, makeRichPromise)
     .then((resp) => {
       if (resp.url === null) {
         window.location.href = utils.getCanonicalUrl('/');

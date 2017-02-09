@@ -7,6 +7,7 @@ import RecordEditComponent from '../components/RecordEditComponent'
 import utils from '../utils'
 import i18n from '../i18n'
 import widgets from '../widgets'
+import makeRichPromise from '../richPromise';
 
 
 class EditPage extends RecordEditComponent {
@@ -80,7 +81,7 @@ class EditPage extends RecordEditComponent {
     utils.loadData('/rawrecord', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
-    })
+    }, null, makeRichPromise)
     .then((resp) => {
       this.setState({
         recordInitialData: resp.data,
@@ -134,7 +135,7 @@ class EditPage extends RecordEditComponent {
     var alt = this.getRecordAlt();
     var newData = this.getValues();
     utils.apiRequest('/rawrecord', {json: {
-        data: newData, path: path, alt: alt}, method: 'PUT'})
+        data: newData, path: path, alt: alt}, method: 'PUT'}, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false

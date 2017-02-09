@@ -5,7 +5,7 @@
 
 'use strict'
 
-import React from 'react'
+import React from 'react';
 
 
 class BaseComponent extends React.Component {
@@ -21,6 +21,7 @@ class BaseComponent extends React.Component {
 
   componentWillReceiveProps(nextProps) {
   }
+
 }
 
-export default BaseComponent
+export default BaseComponent;

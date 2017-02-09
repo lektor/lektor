@@ -1,20 +1,29 @@
 'use strict';
 
-var React = require('react');
-var ReactDOM = require('react-dom');
-var {Router, Route, IndexRoute} = require('react-router');
-var Component = require('./components/Component');
-var i18n = require('./i18n');
-var {useBeforeUnload} = require('history');
-var createBrowserHistory = require('history/lib/createBrowserHistory');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Router, Route, IndexRoute} from 'react-router';
+import Component from './components/Component';
+import i18n from './i18n';
+import {useBeforeUnload} from 'history';
+import createBrowserHistory from 'history/lib/createBrowserHistory';
 
-require('bootstrap');
-require('./bootstrap-extras');
-require('font-awesome/css/font-awesome.css');
+import Bootstrap from 'bootstrap';
+import BootstrapExtras from './bootstrap-extras';
+import FACss from 'font-awesome/css/font-awesome.css';
 
 // polyfill for internet explorer
-require('native-promise-only');
-require('event-source-polyfill');
+import PromiseOnly from 'native-promise-only';
+import EventSource from 'event-source-polyfill';
+
+// route targets
+import App from './views/App';
+import Dash from './views/Dash';
+import EditPage from './views/EditPage';
+import DeletePage from './views/DeletePage';
+import PreviewPage from './views/PreviewPage';
+import AddChildPage from './views/AddChildPage';
+import AddAttachmentPage from './views/AddAttachmentPage';
 
 i18n.currentLanguage = $LEKTOR_CONFIG.lang;
 
@@ -35,15 +44,6 @@ BadRoute.contextTypes = {
 };
 
 var routes = (function() {
-  // route targets
-  var App = require('./views/App');
-  var Dash = require('./views/Dash');
-  var EditPage = require('./views/EditPage');
-  var DeletePage = require('./views/DeletePage');
-  var PreviewPage = require('./views/PreviewPage');
-  var AddChildPage = require('./views/AddChildPage');
-  var AddAttachmentPage = require('./views/AddAttachmentPage');
-
   // route setup
   return (
     <Route name="app" path={$LEKTOR_CONFIG.admin_root} component={App}>
@@ -58,7 +58,8 @@ var routes = (function() {
   );
 })();
 
-var dash = document.getElementById('dash')
+var dash = document.getElementById('dash');
+
 if (dash) {
   ReactDOM.render((
     <Router history={useBeforeUnload(createBrowserHistory)()}>
