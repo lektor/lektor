@@ -50,6 +50,30 @@ def test_ghpages_write_cname(tmpdir, env):
     assert (output_path / 'CNAME').read() == "pybee.org\n"
 
 
+def test_ghpages_detect_branch_username(tmpdir, env):
+    output_path = tmpdir.mkdir('output')
+    publisher = GithubPagesPublisher(env, str(output_path))
+    target_url = url_parse('ghpages+https://MacDownApp/MacDownApp.github.io')
+    branch = publisher.detect_target_branch(target_url)
+    assert branch == 'master'
+
+
+def test_ghpages_detect_branch_username_case_insensitive(tmpdir, env):
+    output_path = tmpdir.mkdir('output')
+    publisher = GithubPagesPublisher(env, str(output_path))
+    target_url = url_parse('ghpages+https://MacDownApp/macdownapp.github.io')
+    branch = publisher.detect_target_branch(target_url)
+    assert branch == 'master'
+
+
+def test_ghpages_detect_branch_project(tmpdir, env):
+    output_path = tmpdir.mkdir('output')
+    publisher = GithubPagesPublisher(env, str(output_path))
+    target_url = url_parse('ghpages+https://MacDownApp/MacDownApp.github.io/macdown')
+    branch = publisher.detect_target_branch(target_url)
+    assert branch == 'gh-pages'
+
+
 def test_rsync_command(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
