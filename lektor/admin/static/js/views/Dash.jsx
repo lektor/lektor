@@ -1,17 +1,15 @@
 'use strict'
 
-import React from 'react'
-import Component from '../components/Component';
+import Component from '../components/Component'
 
 class Dash extends Component {
-
-  componentDidMount() {
+  componentDidMount () {
     super.componentDidMount()
     const rootPreview = $LEKTOR_CONFIG.admin_root + '/root/preview'
     this.props.history.pushState(null, rootPreview)
   }
 
-  render() {
+  render () {
     return null
   }
 }

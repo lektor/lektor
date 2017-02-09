@@ -1,32 +1,30 @@
 'use strict'
 
-import React from 'react';
-import { Link, RouteHandler } from 'react-router';
+import React from 'react'
 
-import RecordComponent from '../components/RecordComponent';
-import SlideDialog from '../components/SlideDialog';
-import utils from '../utils';
-import i18n from '../i18n';
-import dialogSystem from '../dialogSystem';
-import makeRichPromise from '../richPromise';
+import RecordComponent from '../components/RecordComponent'
+import SlideDialog from '../components/SlideDialog'
+import utils from '../utils'
+import i18n from '../i18n'
+import dialogSystem from '../dialogSystem'
+import makeRichPromise from '../richPromise'
 
 class FindFiles extends RecordComponent {
-
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       query: '',
       currentSelection: -1,
       results: []
-    };
+    }
   }
 
-  componentDidMount() {
+  componentDidMount () {
     super.componentDidMount()
     this.refs.q.focus()
   }
 
-  onInputChange(e) {
+  onInputChange (e) {
     var q = e.target.value
 
     if (q === '') {
@@ -57,24 +55,24 @@ class FindFiles extends RecordComponent {
     }
   }
 
-  onInputKey(e) {
+  onInputKey (e) {
     var sel = this.state.currentSelection
     var max = this.state.results.length
-    if (e.which == 40) {
+    if (e.which === 40) {
       e.preventDefault()
       sel = (sel + 1) % max
-    } else if (e.which == 38) {
+    } else if (e.which === 38) {
       e.preventDefault()
       sel = (sel - 1 + max) % max
-    } else if (e.which == 13) {
+    } else if (e.which === 13) {
       this.onActiveItem(this.state.currentSelection)
     }
     this.setState({
       currentSelection: sel
-    });
+    })
   }
 
-  onActiveItem(index) {
+  onActiveItem (index) {
     var item = this.state.results[index]
     if (item !== undefined) {
       var target = this.isRecordPreviewActive() ? '.preview' : '.edit'
@@ -90,13 +88,11 @@ class FindFiles extends RecordComponent {
     })
   }
 
-  renderResults() {
-    var rv = []
-
+  renderResults () {
     var rv = this.state.results.map((result, idx) => {
       var parents = result.parents.map((item, idx) => {
         return (
-          <span className="parent" key={idx}>
+          <span className='parent' key={idx}>
             {item.title}
           </span>
         )
@@ -105,7 +101,7 @@ class FindFiles extends RecordComponent {
       return (
         <li
           key={idx}
-          className={idx == this.state.currentSelection ? 'active': ''}
+          className={idx === this.state.currentSelection ? 'active' : ''}
           onClick={this.onActiveItem.bind(this, idx)}
           onMouseEnter={this.selectItem.bind(this, idx)}>
           {parents}
@@ -115,20 +111,20 @@ class FindFiles extends RecordComponent {
     })
 
     return (
-      <ul className="search-results">{rv}</ul>
+      <ul className='search-results'>{rv}</ul>
     )
   }
 
   render () {
     return (
       <SlideDialog
-        hasCloseButton={true}
-        closeOnEscape={true}
+        hasCloseButton
+        closeOnEscape
         title={i18n.trans('FIND_FILES')}>
-        <div className="form-group">
-          <input type="text"
-            ref="q"
-            className="form-control"
+        <div className='form-group'>
+          <input type='text'
+            ref='q'
+            className='form-control'
             value={this.state.query}
             onChange={this.onInputChange.bind(this)}
             onKeyDown={this.onInputKey.bind(this)}

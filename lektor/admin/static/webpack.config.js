@@ -1,6 +1,6 @@
-var webpack = require('webpack');
-var path = require('path');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var webpack = require('webpack')
+var path = require('path')
+var ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
   entry: {
@@ -18,7 +18,7 @@ module.exports = {
     ]
   },
   output: {
-    path: __dirname + '/gen',
+    path: path.join(__dirname, '/gen'),
     filename: '[name].js'
   },
   devtool: '#cheap-module-eval-source-map',
@@ -77,16 +77,13 @@ module.exports = {
     new webpack.optimize.DedupePlugin(),
     new webpack.ProvidePlugin({
       $: 'jquery',
-      jQuery: 'jquery',
+      jQuery: 'jquery'
     }),
     new ExtractTextPlugin('styles.css', {
       allChunks: true
     })
   ],
   externals: {},
-  resolve: {
-    extensions: ['', '.js', '.jsx']
-  },
   resolveLoader: {
     root: path.join(__dirname, '..', 'node_modules')
   }

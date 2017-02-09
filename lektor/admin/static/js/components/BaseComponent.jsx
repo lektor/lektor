@@ -5,23 +5,20 @@
 
 'use strict'
 
-import React from 'react';
-
+import React from 'react'
 
 class BaseComponent extends React.Component {
-
-  componentDidMount() {
+  componentDidMount () {
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
   }
 
-  componentDidUpdate() {
+  componentDidUpdate () {
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
   }
-
 }
 
-export default BaseComponent;
+export default BaseComponent
