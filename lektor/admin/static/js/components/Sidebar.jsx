@@ -1,6 +1,6 @@
 'use strict'
 
-/* global alert */
+/* eslint-env browser */
 
 import React from 'react'
 import utils from '../utils'

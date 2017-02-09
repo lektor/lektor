@@ -1,6 +1,6 @@
 'use strict'
 
-/* global EventSource */
+/* eslint-env browser */
 
 import React from 'react'
 import Component from '../components/Component'

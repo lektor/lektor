@@ -1,6 +1,6 @@
 'use strict'
 
-/* global confirm */
+/* eslint-env browser */
 
 import React from 'react'
 import i18n from '../i18n'

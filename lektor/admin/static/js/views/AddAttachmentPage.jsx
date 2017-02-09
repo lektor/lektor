@@ -1,6 +1,6 @@
 'use strict'
 
-/* global FormData, XMLHttpRequest */
+/* eslint-env browser */
 
 import React from 'react'
 import RecordComponent from '../components/RecordComponent'
