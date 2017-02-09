@@ -2,7 +2,6 @@ import ErrorDialog from './dialogs/errorDialog';
 import dialogSystem from './dialogSystem';
 
 function bringUpDialog(error) {
-  // we need to import this here due to circular dependencies
   if (!dialogSystem.dialogIsOpen()) {
     dialogSystem.showDialog(ErrorDialog, {
       error: error
