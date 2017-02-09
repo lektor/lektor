@@ -113,7 +113,7 @@ class AddChildPage extends RecordComponent {
       data[primaryField.name] = this.state.primary;
     }
 
-    utils.apiRequest('/newrecord', {json: params, method: 'POST'})
+    utils.apiRequest('/newrecord', {json: params, method: 'POST'}, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           errMsg(i18n.trans('ERROR_PAGE_ID_DUPLICATE').replace('%s', id));

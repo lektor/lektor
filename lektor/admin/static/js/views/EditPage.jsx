@@ -135,7 +135,7 @@ class EditPage extends RecordEditComponent {
     var alt = this.getRecordAlt();
     var newData = this.getValues();
     utils.apiRequest('/rawrecord', {json: {
-        data: newData, path: path, alt: alt}, method: 'PUT'})
+        data: newData, path: path, alt: alt}, method: 'PUT'}, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false

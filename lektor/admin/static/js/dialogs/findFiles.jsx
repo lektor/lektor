@@ -8,6 +8,7 @@ import SlideDialog from '../components/SlideDialog';
 import utils from '../utils';
 import i18n from '../i18n';
 import dialogSystem from '../dialogSystem';
+import makeRichPromise from '../richPromise';
 
 class FindFiles extends RecordComponent {
 
@@ -46,7 +47,7 @@ class FindFiles extends RecordComponent {
           lang: i18n.currentLanguage
         },
         method: 'POST'
-      }).then((resp) => {
+      }, makeRichPromise).then((resp) => {
         this.setState({
           results: resp.results,
           currentSelection: Math.min(this.state.currentSelection,

@@ -151,7 +151,7 @@ class Sidebar extends RecordComponent {
     utils.apiRequest('/browsefs', {data: {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
-    }, method: 'POST'})
+    }, method: 'POST'}, makeRichPromise)
       .then((resp) => {
         if (!resp.okay) {
           alert(i18n.trans('ERROR_CANNOT_BROWSE_FS'));

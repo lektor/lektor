@@ -72,7 +72,7 @@ class Publish extends Component {
     });
     utils.apiRequest('/build', {
       method: 'POST'
-    }).then((resp) => {
+    }, makeRichPromise).then((resp) => {
       this._beginPublish();
     });
   }
