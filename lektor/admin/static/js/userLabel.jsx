@@ -17,7 +17,7 @@ const userLabel = {
       return <span className='' />
     }
 
-    let iconData = label.match(/^\[\[\s*(.*?)\s*(;\s*(.*?))?\s*\]\]$/)
+    let iconData = label.match(/^\[\[\s*(.*?)\s*(;\s*(.*?))?\s*\]\]$/)  // eslint-disable-line no-useless-escape
     if (iconData) {
       let className = 'fa fa-' + iconData[1]
       if ((iconData[3] || '').match(/90|180|270/)) {

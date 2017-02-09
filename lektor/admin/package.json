@@ -34,7 +34,7 @@
     "react-addons-update": "^15.3.0",
     "react-dom": "^15.3.0",
     "react-router": "^2.6.0",
-    "standard": "*",
+    "standard": ">8.5.0",
     "style-loader": "^0.8.3",
     "url-loader": "^0.5.6",
     "webpack": "^1.7.2"
