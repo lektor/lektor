@@ -7,11 +7,11 @@ import utils from '../utils'
 import userLabel from '../userLabel'
 import i18n from '../i18n'
 
-function isTrue (value) {
+const isTrue = (value) => {
   return value === 'true' || value === 'yes' || value === '1'
 }
 
-function isValidDate (year, month, day) {
+const isValidDate = (year, month, day) => {
   year = parseInt(year, 10)
   month = parseInt(month, 10)
   day = parseInt(day, 10)
@@ -24,32 +24,32 @@ function isValidDate (year, month, day) {
   return false
 }
 
-var InputWidgetMixin = {
+const InputWidgetMixin = {
   mixins: [BasicWidgetMixin],
 
-  onChange: function (event) {
-    var value = event.target.value
+  onChange (event) {
+    let value = event.target.value
     if (this.postprocessValue) {
       value = this.postprocessValue(value)
     }
     this.props.onChange(value)
   },
 
-  render: function () {
-    var {type, onChange, className, ...otherProps} = this.props
-    var help = null
-    var failure = this.getValidationFailure()
+  render () {
+    let {type, onChange, className, ...otherProps} = this.props
+    let help = null
+    const failure = this.getValidationFailure()
     className = (className || '')
     className += ' input-group'
 
     if (failure !== null) {
       className += ' has-feedback has-' + failure.type
-      var valClassName = 'validation-block validation-block-' + failure.type
+      const valClassName = 'validation-block validation-block-' + failure.type
       help = <div className={valClassName}>{failure.message}</div>
     }
 
-    var addon = null
-    var configuredAddon = type.addon_label_i18n
+    let addon = null
+    const configuredAddon = type.addon_label_i18n
     if (configuredAddon) {
       addon = userLabel.format(configuredAddon)
     } else if (this.getInputAddon) {
@@ -72,42 +72,42 @@ var InputWidgetMixin = {
   }
 }
 
-var SingleLineTextInputWidget = React.createClass({
+const SingleLineTextInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  getInputType: function () {
+  getInputType () {
     return 'text'
   },
 
-  getInputAddon: function () {
+  getInputAddon () {
     return <i className='fa fa-paragraph' />
   }
 })
 
-var SlugInputWidget = React.createClass({
+const SlugInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  postprocessValue: function (value) {
+  postprocessValue (value) {
     return value.replace(/\s+/g, '-')
   },
 
-  getInputType: function () {
+  getInputType () {
     return 'text'
   },
 
-  getInputAddon: function () {
+  getInputAddon () {
     return <i className='fa fa-link' />
   }
 })
 
-var IntegerInputWidget = React.createClass({
+const IntegerInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  postprocessValue: function (value) {
+  postprocessValue (value) {
     return value.match(/^\s*(.*?)\s*$/)[1]
   },
 
-  getValidationFailureImpl: function () {
+  getValidationFailureImpl () {
     if (this.props.value && !this.props.value.match(/^\d+$/)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
@@ -116,23 +116,23 @@ var IntegerInputWidget = React.createClass({
     return null
   },
 
-  getInputType: function () {
+  getInputType () {
     return 'text'
   },
 
-  getInputAddon: function () {
+  getInputAddon () {
     return '0'
   }
 })
 
-var FloatInputWidget = React.createClass({
+const FloatInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  postprocessValue: function (value) {
+  postprocessValue (value) {
     return value.match(/^\s*(.*?)\s*$/)[1]
   },
 
-  getValidationFailureImpl: function () {
+  getValidationFailureImpl () {
     if (this.props.value && isNaN(parseFloat(this.props.value))) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
@@ -141,22 +141,22 @@ var FloatInputWidget = React.createClass({
     return null
   },
 
-  getInputType: function () {
+  getInputType () {
     return 'text'
   },
 
-  getInputAddon: function () {
+  getInputAddon () {
     return '0.0'
   }
 })
 
-var DateInputWidget = React.createClass({
+const DateInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  postprocessValue: function (value) {
+  postprocessValue (value) {
     value = value.match(/^\s*(.*?)\s*$/)[1]
-    var match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/)
-    var day, month, year
+    const match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/)
+    let day, month, year
     if (match) {
       day = parseInt(match[1], 10)
       month = parseInt(match[2], 10)
@@ -170,12 +170,12 @@ var DateInputWidget = React.createClass({
     return value
   },
 
-  getValidationFailureImpl: function () {
+  getValidationFailureImpl () {
     if (!this.props.value) {
       return null
     }
 
-    var match = this.props.value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/)
+    const match = this.props.value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/)
     if (match && isValidDate(match[1], match[2], match[3])) {
       return null
     }
@@ -185,19 +185,19 @@ var DateInputWidget = React.createClass({
     })
   },
 
-  getInputType: function () {
+  getInputType () {
     return 'date'
   },
 
-  getInputAddon: function () {
+  getInputAddon () {
     return <i className='fa fa-calendar' />
   }
 })
 
-var UrlInputWidget = React.createClass({
+const UrlInputWidget = React.createClass({
   mixins: [InputWidgetMixin],
 
-  getValidationFailureImpl: function () {
+  getValidationFailureImpl () {
     if (this.props.value && !utils.isValidUrl(this.props.value)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_URL')
@@ -206,51 +206,51 @@ var UrlInputWidget = React.createClass({
     return null
   },
 
-  getInputType: function () {
+  getInputType () {
     return 'text'
   },
 
-  getInputAddon: function () {
+  getInputAddon () {
     return <i className='fa fa-external-link' />
   }
 })
 
-var MultiLineTextInputWidget = React.createClass({
+const MultiLineTextInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
-  onChange: function (event) {
+  onChange (event) {
     this.recalculateSize()
     if (this.props.onChange) {
       this.props.onChange(event.target.value)
     }
   },
 
-  componentDidMount: function () {
+  componentDidMount () {
     this.recalculateSize()
     window.addEventListener('resize', this.recalculateSize)
   },
 
-  componentWillUnmount: function () {
+  componentWillUnmount () {
     window.removeEventListener('resize', this.recalculateSize)
   },
 
-  componentDidUpdate: function (prevProps) {
+  componentDidUpdate (prevProps) {
     this.recalculateSize()
   },
 
-  isInAutoResizeMode: function () {
+  isInAutoResizeMode () {
     return this.props.rows === undefined
   },
 
-  recalculateSize: function () {
+  recalculateSize () {
     if (!this.isInAutoResizeMode()) {
       return
     }
-    var diff
-    var node = this.refs.ta
+    let diff
+    let node = this.refs.ta
 
     if (window.getComputedStyle) {
-      var s = window.getComputedStyle(node)
+      const s = window.getComputedStyle(node)
       if (s.getPropertyValue('box-sizing') === 'border-box' ||
           s.getPropertyValue('-moz-box-sizing') === 'border-box' ||
           s.getPropertyValue('-webkit-box-sizing') === 'border-box') {
@@ -265,13 +265,13 @@ var MultiLineTextInputWidget = React.createClass({
       diff = 0
     }
 
-    var updateScrollPosition = jQuery(node).is(':focus')
+    const updateScrollPosition = jQuery(node).is(':focus')
     // Cross-browser compatibility for scroll position
-    var oldScrollTop = document.documentElement.scrollTop || document.body.scrollTop
-    var oldHeight = jQuery(node).outerHeight()
+    const oldScrollTop = document.documentElement.scrollTop || document.body.scrollTop
+    const oldHeight = jQuery(node).outerHeight()
 
     node.style.height = 'auto'
-    var newHeight = (node.scrollHeight - diff)
+    const newHeight = (node.scrollHeight - diff)
     node.style.height = newHeight + 'px'
 
     if (updateScrollPosition) {
@@ -280,8 +280,8 @@ var MultiLineTextInputWidget = React.createClass({
     }
   },
 
-  render: function () {
-    var {className, type, onChange, style, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
+  render () {
+    let {className, type, onChange, style, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
     className = (className || '')
 
     style = style || {}
@@ -304,15 +304,15 @@ var MultiLineTextInputWidget = React.createClass({
   }
 })
 
-var BooleanInputWidget = React.createClass({
+const BooleanInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
-  onChange: function (event) {
+  onChange (event) {
     this.props.onChange(event.target.checked ? 'yes' : 'no')
   },
 
-  componentDidMount: function () {
-    var checkbox = this.refs.checkbox
+  componentDidMount () {
+    const checkbox = this.refs.checkbox
     if (!this.props.value && this.props.placeholder) {
       checkbox.indeterminate = true
       checkbox.checked = isTrue(this.props.placeholder)
@@ -321,8 +321,8 @@ var BooleanInputWidget = React.createClass({
     }
   },
 
-  render: function () {
-    var {className, type, placeholder, onChange, value, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
+  render () {
+    let {className, type, placeholder, onChange, value, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
     return (

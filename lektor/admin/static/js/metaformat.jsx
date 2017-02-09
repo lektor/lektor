@@ -1,12 +1,12 @@
 'use strict'
 
-function lineIsDashes (line) {
+const lineIsDashes = (line) => {
   line = line.match(/^\s*(.*?)\s*$/)[1]
   return line.length >= 3 && line === (new Array(line.length + 1)).join('-')
 }
 
-function processBuf (buf) {
-  const lines = buf.map(function (line) {
+const processBuf = (buf) => {
+  const lines = buf.map((line) => {
     if (lineIsDashes(line)) {
       line = line.substr(1)
     }
@@ -23,13 +23,13 @@ function processBuf (buf) {
   return lines
 }
 
-function tokenize (lines) {
+const tokenize = (lines) => {
   let key = null
   let buf = []
   let wantNewline = false
   const rv = []
 
-  function flushItem () {
+  const flushItem = () => {
     rv.push([key, processBuf(buf)])
     key = null
     buf = []
@@ -73,10 +73,10 @@ function tokenize (lines) {
   return rv
 }
 
-function serialize (blocks) {
+const serialize = (blocks) => {
   const rv = []
 
-  blocks.forEach(function (item, idx) {
+  blocks.forEach((item, idx) => {
     const [key, value] = item
     if (idx > 0) {
       rv.push('---\n')
@@ -88,7 +88,7 @@ function serialize (blocks) {
       if (lines[lines.length - 1] === '') {
         lines.pop()
       }
-      lines.forEach(function (line, idx, arr) {
+      lines.forEach((line, idx, arr) => {
         if (lineIsDashes(line)) {
           line = '-' + line
         }

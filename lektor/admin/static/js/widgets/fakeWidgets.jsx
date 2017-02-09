@@ -18,7 +18,7 @@ const FakeWidgetMixin = {
 const LineWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
-  render: function () {
+  render () {
     return <hr />
   }
 })
@@ -26,7 +26,7 @@ const LineWidget = React.createClass({
 const SpacingWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
-  render: function () {
+  render () {
     return <div className='spacing' />
   }
 })
@@ -34,7 +34,7 @@ const SpacingWidget = React.createClass({
 const InfoWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
-  render: function () {
+  render () {
     const label = i18n.trans(this.props.field.label_i18n)
     return (
       <div className='info'>
@@ -50,7 +50,7 @@ const InfoWidget = React.createClass({
 const HeadingWidget = React.createClass({
   mixins: [FakeWidgetMixin],
 
-  render: function () {
+  render () {
     return (
       <h3>{i18n.trans(this.props.type.heading_i18n)}</h3>
     )

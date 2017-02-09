@@ -1,4 +1,4 @@
-function loadTranslations () {
+const loadTranslations = () => {
   const ctx = require.context('../../../translations', true, /\.json$/)
   const rv = {}
   ctx.keys().forEach((key) => {

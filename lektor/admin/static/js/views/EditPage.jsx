@@ -91,9 +91,9 @@ class EditPage extends RecordEditComponent {
   }
 
   onValueChange (field, value) {
-    var updates = {}
+    let updates = {}
     updates[field.name] = {$set: value || ''}
-    var rd = update(this.state.recordData, updates)
+    const rd = update(this.state.recordData, updates)
     this.setState({
       recordData: rd,
       hasPendingChanges: true
@@ -101,16 +101,16 @@ class EditPage extends RecordEditComponent {
   }
 
   getValues () {
-    var rv = {}
+    let rv = {}
     this.state.recordDataModel.fields.forEach((field) => {
       if (this.isIllegalField(field)) {
         return
       }
 
-      var value = this.state.recordData[field.name]
+      let value = this.state.recordData[field.name]
 
       if (value !== undefined) {
-        var Widget = widgets.getWidgetComponentWithFallback(field.type)
+        const Widget = widgets.getWidgetComponentWithFallback(field.type)
         if (Widget.serializeValue) {
           value = Widget.serializeValue(value, field.type)
         }
@@ -128,16 +128,16 @@ class EditPage extends RecordEditComponent {
   }
 
   saveChanges () {
-    var path = this.getRecordPath()
-    var alt = this.getRecordAlt()
-    var newData = this.getValues()
+    const path = this.getRecordPath()
+    const alt = this.getRecordAlt()
+    const newData = this.getValues()
     utils.apiRequest('/rawrecord', {json: {
       data: newData, path: path, alt: alt},
       method: 'PUT'}, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false
-        }, function () {
+        }, () => {
           this.transitionToAdminPage('.preview', {
             path: this.getUrlRecordPathWithAlt(path)
           })
@@ -152,7 +152,7 @@ class EditPage extends RecordEditComponent {
   }
 
   getValueForField (widget, field) {
-    var value = this.state.recordData[field.name]
+    let value = this.state.recordData[field.name]
     if (value === undefined) {
       value = this.state.recordInitialData[field.name] || ''
       if (widget.deserializeValue) {
@@ -179,7 +179,7 @@ class EditPage extends RecordEditComponent {
   }
 
   renderFormField (field, idx) {
-    var widget = widgets.getWidgetComponentWithFallback(field.type)
+    const widget = widgets.getWidgetComponentWithFallback(field.type)
     return (
       <widgets.FieldBox
         key={idx}
@@ -205,7 +205,7 @@ class EditPage extends RecordEditComponent {
       return null
     }
 
-    var deleteButton = null
+    let deleteButton = null
     if (this.state.recordInfo.can_be_deleted) {
       deleteButton = (
         <button type='submit' className='btn btn-default'
@@ -213,11 +213,11 @@ class EditPage extends RecordEditComponent {
       )
     }
 
-    var title = this.state.recordInfo.is_attachment
+    const title = this.state.recordInfo.is_attachment
       ? i18n.trans('EDIT_ATTACHMENT_METADATA_OF')
       : i18n.trans('EDIT_PAGE_NAME')
 
-    var label = this.state.recordInfo.label_i18n
+    const label = this.state.recordInfo.label_i18n
       ? i18n.trans(this.state.recordInfo.label_i18n)
       : this.state.recordInfo.label
 

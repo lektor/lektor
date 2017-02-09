@@ -29,14 +29,14 @@ class PreviewPage extends RecordComponent {
   }
 
   syncState () {
-    var alt = this.getRecordAlt()
-    var path = this.getRecordPath()
+    const alt = this.getRecordAlt()
+    const path = this.getRecordPath()
     if (path === null) {
       this.setState(this.getInitialState())
       return
     }
 
-    var recordUrl = this.getUrlRecordPathWithAlt()
+    const recordUrl = this.getUrlRecordPathWithAlt()
     utils.loadData('/previewinfo', {path: path, alt: alt}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
@@ -54,10 +54,10 @@ class PreviewPage extends RecordComponent {
   }
 
   componentDidUpdate () {
-    var frame = this.refs.iframe
-    var intendedPath = this.getIntendedPath()
+    const frame = this.refs.iframe
+    const intendedPath = this.getIntendedPath()
     if (intendedPath !== null) {
-      var framePath = this.getFramePath()
+      const framePath = this.getFramePath()
 
       if (!utils.urlPathsConsideredEqual(intendedPath, framePath)) {
         frame.src = utils.getCanonicalUrl(intendedPath)
@@ -70,7 +70,7 @@ class PreviewPage extends RecordComponent {
   }
 
   getFramePath () {
-    var frameLocation = this.refs.iframe.contentWindow.location
+    const frameLocation = this.refs.iframe.contentWindow.location
     if (frameLocation.href === 'about:blank') {
       return frameLocation.href
     }
@@ -79,14 +79,14 @@ class PreviewPage extends RecordComponent {
   }
 
   onFrameNavigated () {
-    var fsPath = this.getFramePath()
+    const fsPath = this.getFramePath()
     if (fsPath === null) {
       return
     }
     utils.loadData('/matchurl', {url_path: fsPath}, null, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
-          var urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt)
+          const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt)
           this.transitionToAdminPage('.preview', {path: urlPath})
         }
       })

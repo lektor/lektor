@@ -1,7 +1,7 @@
 import ErrorDialog from './dialogs/errorDialog'
 import dialogSystem from './dialogSystem'
 
-function bringUpDialog (error) {
+const bringUpDialog = (error) => {
   if (!dialogSystem.dialogIsOpen()) {
     dialogSystem.showDialog(ErrorDialog, {
       error: error
@@ -9,7 +9,7 @@ function bringUpDialog (error) {
   }
 }
 
-function makeRichPromise (callback, fallback = bringUpDialog) {
+const makeRichPromise = (callback, fallback = bringUpDialog) => {
   const rv = new Promise(callback)
   const then = rv.then
   let hasRejectionHandler = false

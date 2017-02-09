@@ -1,7 +1,7 @@
 import React from 'react'
 import i18n from '../i18n'
 
-function ValidationFailure (options) {
+const ValidationFailure = (options) => {
   this.message = options.message || i18n.trans('INVALID_INPUT')
   this.type = options.type || 'error'
 }
@@ -24,7 +24,7 @@ const BasicWidgetMixin = {
     return rv
   },
 
-  getValidationFailure: function () {
+  getValidationFailure () {
     if (this.getValidationFailureImpl) {
       return this.getValidationFailureImpl()
     }

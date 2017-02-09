@@ -1,24 +1,24 @@
 import jQuery from 'jquery'
 
-function slug (string, opts) {
+const slug = (string, opts) => {
   opts = opts || {}
   string = string.toString()
   if (typeof opts === 'string') { opts = {replacement: opts} }
   opts.mode = opts.mode || slug.defaults.mode
   const defaults = slug.defaults.modes[opts.mode];
-  ['replacement', 'multicharmap', 'charmap', 'remove'].forEach(function (key) {
+  ['replacement', 'multicharmap', 'charmap', 'remove'].forEach((key) => {
     opts[key] = opts[key] || defaults[key]
   })
   if (typeof opts.symbols === 'undefined') { opts.symbols = defaults.symbols }
   const lengths = []
-  Object.keys(opts.multicharmap).forEach(function (key) {
+  Object.keys(opts.multicharmap).forEach((key) => {
     const len = key.length
     if (lengths.indexOf(len) === -1) { lengths.push(len) }
   })
   let result = ''
   for (let char, i = 0, l = string.length; i < l; i++) {
     char = string[i]
-    if (!lengths.some(function (len) {
+    if (!lengths.some((len) => {
       const str = string.substr(i, len)
       if (opts.multicharmap[str]) {
         i += len - 1

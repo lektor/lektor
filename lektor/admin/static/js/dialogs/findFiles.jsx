@@ -25,7 +25,7 @@ class FindFiles extends RecordComponent {
   }
 
   onInputChange (e) {
-    var q = e.target.value
+    const q = e.target.value
 
     if (q === '') {
       this.setState({
@@ -56,8 +56,8 @@ class FindFiles extends RecordComponent {
   }
 
   onInputKey (e) {
-    var sel = this.state.currentSelection
-    var max = this.state.results.length
+    let sel = this.state.currentSelection
+    const max = this.state.results.length
     if (e.which === 40) {
       e.preventDefault()
       sel = (sel + 1) % max
@@ -73,10 +73,10 @@ class FindFiles extends RecordComponent {
   }
 
   onActiveItem (index) {
-    var item = this.state.results[index]
+    const item = this.state.results[index]
     if (item !== undefined) {
-      var target = this.isRecordPreviewActive() ? '.preview' : '.edit'
-      var urlPath = this.getUrlRecordPathWithAlt(item.path)
+      const target = this.isRecordPreviewActive() ? '.preview' : '.edit'
+      const urlPath = this.getUrlRecordPathWithAlt(item.path)
       dialogSystem.dismissDialog()
       this.transitionToAdminPage(target, {path: urlPath})
     }
@@ -89,8 +89,8 @@ class FindFiles extends RecordComponent {
   }
 
   renderResults () {
-    var rv = this.state.results.map((result, idx) => {
-      var parents = result.parents.map((item, idx) => {
+    const rv = this.state.results.map((result, idx) => {
+      const parents = result.parents.map((item, idx) => {
         return (
           <span className='parent' key={idx}>
             {item.title}

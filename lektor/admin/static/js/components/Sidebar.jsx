@@ -11,7 +11,7 @@ import RecordComponent from './RecordComponent'
 import Link from '../components/Link'
 import makeRichPromise from '../richPromise'
 
-function getBrowseButtonTitle () {
+const getBrowseButtonTitle = () => {
   const platform = utils.getPlatform()
   if (platform === 'mac') {
     return i18n.trans('BROWSE_FS_MAC')

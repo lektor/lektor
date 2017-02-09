@@ -5,15 +5,15 @@ import utils from '../utils'
 import i18n from '../i18n'
 import {BasicWidgetMixin} from './mixins'
 
-var CheckboxesInputWidget = React.createClass({
+const CheckboxesInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
   statics: {
-    deserializeValue: function (value) {
+    deserializeValue: (value) => {
       if (value === '') {
         return null
       }
-      var rv = value.split(',').map(function (x) {
+      let rv = value.split(',').map((x) => {
         return x.match(/^\s*(.*?)\s*$/)[1]
       })
       if (rv.length === 1 && rv[0] === '') {
@@ -22,40 +22,40 @@ var CheckboxesInputWidget = React.createClass({
       return rv
     },
 
-    serializeValue: function (value) {
+    serializeValue: (value) => {
       return (value || '').join(', ')
     }
   },
 
-  onChange: function (field, event) {
-    var newValue = utils.flipSetValue(this.props.value,
+  onChange: (field, event) => {
+    const newValue = utils.flipSetValue(this.props.value,
                                       field, event.target.checked)
     if (this.props.onChange) {
       this.props.onChange(newValue)
     }
   },
 
-  isActive: function (field) {
-    var value = this.props.value
+  isActive: (field) => {
+    let value = this.props.value
     if (value == null) {
       value = this.props.placeholder
       if (value == null) {
         return false
       }
     }
-    for (var i = 0; i < value.length; i++) {
-      if (value[i] === field) {
+    for (const item of value) {
+      if (item === field) {
         return true
       }
     }
     return false
   },
 
-  render: function () {
+  render () {
     let {className, value, placeholder, type, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
-    var choices = this.props.type.choices.map(function (item) {
+    const choices = this.props.type.choices.map((item) => {
       return (
         <div className={className} key={item[0]}>
           <label>
@@ -67,7 +67,7 @@ var CheckboxesInputWidget = React.createClass({
           </label>
         </div>
       )
-    }.bind(this))
+    })
     return (
       <div className='checkboxes'>
         {choices}
@@ -76,18 +76,18 @@ var CheckboxesInputWidget = React.createClass({
   }
 })
 
-var SelectInputWidget = React.createClass({
+const SelectInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
-  onChange: function (event) {
+  onChange (event) {
     this.props.onChange(event.target.value)
   },
 
-  render: function () {
-    var {className, type, value, placeholder, onChange, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
+  render () {
+    let {className, type, value, placeholder, onChange, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
     value = value || placeholder
 
-    var choices = this.props.type.choices.map((item) => {
+    let choices = this.props.type.choices.map((item) => {
       return (
         <option key={item[0]} value={item[0]}>
           {i18n.trans(item[1])}

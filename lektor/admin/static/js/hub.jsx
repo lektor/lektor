@@ -50,7 +50,7 @@ class Hub {
   emit (event) {
     const subs = this._subscriptions[event.type]
     if (subs !== undefined) {
-      subs.forEach(function (callback) {
+      subs.forEach((callback) => {
         try {
           callback(event)
         } catch (e) {

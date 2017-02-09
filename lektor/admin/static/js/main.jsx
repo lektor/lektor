@@ -44,7 +44,7 @@ BadRoute.contextTypes = {
   router: React.PropTypes.func
 }
 
-var routes = (function () {
+const routes = (() => {
   // route setup
   return (
     <Route name='app' path={$LEKTOR_CONFIG.admin_root} component={App}>
@@ -59,7 +59,7 @@ var routes = (function () {
   )
 })()
 
-var dash = document.getElementById('dash')
+const dash = document.getElementById('dash')
 
 if (dash) {
   ReactDOM.render((

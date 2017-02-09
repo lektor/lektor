@@ -10,7 +10,7 @@ import utils from '../utils'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
 
-function getGoodDefaultModel (models) {
+const getGoodDefaultModel = (models) => {
   if (models.page !== undefined) {
     return 'page'
   }
@@ -90,7 +90,7 @@ class AddChildPage extends RecordComponent {
   }
 
   createRecord () {
-    function errMsg (text) {
+    const errMsg = (text) => {
       alert(i18n.trans('ERROR_PREFIX') + text)
     }
 

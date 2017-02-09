@@ -121,7 +121,7 @@ class DeletePage extends RecordComponent {
       )
 
       if (ri.children.length > 0) {
-        children = ri.children.map(function (child) {
+        children = ri.children.map((child) => {
           return (
             <li key={child.id}>{i18n.trans(child.label_i18n)}</li>
           )
@@ -131,7 +131,7 @@ class DeletePage extends RecordComponent {
         }
       }
 
-      attachments = ri.attachments.map(function (atch) {
+      attachments = ri.attachments.map((atch) => {
         return (
           <li key={atch.id}>{atch.id} ({atch.type})</li>
         )

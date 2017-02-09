@@ -30,7 +30,7 @@ const widgetComponents = {
 
 const FallbackWidget = React.createClass({
   mixins: [BasicWidgetMixin],
-  render: function () {
+  render () {
     return (
       <div>
         <em>
@@ -93,21 +93,21 @@ FieldBox.propTypes = {
   placeholder: React.PropTypes.any
 }
 
-function getWidgetComponent (type) {
+const getWidgetComponent = (type) => {
   return widgetComponents[type.widget] || null
 }
 
-function getWidgetComponentWithFallback (type) {
+const getWidgetComponentWithFallback = (type) => {
   return widgetComponents[type.widget] || FallbackWidget
 }
 
-function getFieldColumns (field) {
+const getFieldColumns = (field) => {
   const widthSpec = (field.type.width || '1/1').split('/')
   return Math.min(12, Math.max(2, parseInt(
     12 * +widthSpec[0] / +widthSpec[1])))
 }
 
-function getFieldRows (fields, isIllegalField) {
+const getFieldRows = (fields, isIllegalField) => {
   const normalFields = []
   const systemFields = []
 
@@ -151,7 +151,7 @@ function getFieldRows (fields, isIllegalField) {
   return rv
 }
 
-function renderFieldRows (fields, isIllegalField, renderFunc) {
+const renderFieldRows = (fields, isIllegalField, renderFunc) => {
   const rv = {
     normal: [],
     system: []

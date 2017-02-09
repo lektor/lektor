@@ -1,10 +1,10 @@
 'use strict'
 
-export function isDevMode() {
+export const isDevMode = () => {
   return process.env.LEKTOR_DEV === '1'
 }
 
-export function attachDevMenu(menu) {
+export const attachDevMenu = (menu) => {
   menu.push({
     label: 'Reload',
     accelerator: 'CmdOrCtrl+R',
