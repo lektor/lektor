@@ -187,7 +187,7 @@ var DateInputWidget = React.createClass({
   },
 
   getInputType: function() {
-    return 'text';
+    return 'date';
   },
 
   getInputAddon: function() {
