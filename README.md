@@ -27,9 +27,9 @@ This gets you started:
 
 ```
 $ git clone https://github.com/lektor/lektor
-$ cd lektor
 $ virtualenv venv
-$ . venv/bin/activate
+$ cd lektor
+$ . ../venv/bin/activate
 $ pip install --editable .
 $ make build-js
 $ export LEKTOR_DEV=1
@@ -41,7 +41,8 @@ If you want to run the test suite instead:
 
 ```
 $ virtualenv venv
-$ . venv/bin/activate
+$ cd lektor
+$ . ../venv/bin/activate
 $ pip install --editable .[test]
 $ make test
 ```
