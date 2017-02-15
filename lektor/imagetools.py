@@ -164,11 +164,20 @@ class EXIFInfo(object):
 
     @property
     def created_at(self):
-        try:
-            return datetime.strptime(self._mapping['Image DateTime'].printable,
-                                     '%Y:%m:%d %H:%M:%S')
-        except (KeyError, ValueError):
-            return None
+        date_tags = (
+            'GPS GPSDate',
+            'Image DateTimeOriginal',
+            'EXIF DateTimeOriginal',
+            'EXIF DateTimeDigitized',
+            'Image DateTime',
+        )
+        for tag in date_tags:
+            try:
+                return datetime.strptime(self._mapping[tag].printable,
+                                         '%Y:%m:%d %H:%M:%S')
+            except (KeyError, ValueError):
+                continue
+        return None
 
     @property
     def longitude(self):
