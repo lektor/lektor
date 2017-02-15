@@ -1,31 +1,18 @@
 'use strict'
 
-import qs from 'querystring'
+/* eslint-env browser */
+
 import React from 'react'
-import Router from 'react-router'
 import RecordComponent from '../components/RecordComponent'
 import hub from '../hub'
 import {AttachmentsChangedEvent} from '../events'
 import utils from '../utils'
 import i18n from '../i18n'
-import widgets from '../widgets'
-import makeRichPromise from '../richPromise';
-
-
-function getGoodDefaultModel(models) {
-  if (models.page !== undefined) {
-    return 'page';
-  }
-  const choices = Object.keys(models);
-  choices.sort();
-  return choices[0];
-}
-
+import makeRichPromise from '../richPromise'
 
 class AddAttachmentPage extends RecordComponent {
-
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
     this.state = {
       newAttachmentInfo: null,
       currentFiles: [],
@@ -34,37 +21,37 @@ class AddAttachmentPage extends RecordComponent {
     }
   }
 
-  componentDidMount() {
-    this.syncDialog();
+  componentDidMount () {
+    this.syncDialog()
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.syncDialog();
+  componentWillReceiveProps (nextProps) {
+    this.syncDialog()
   }
 
-  syncDialog() {
+  syncDialog () {
     utils.loadData('/newattachment', {path: this.getRecordPath()}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           newAttachmentInfo: resp
-        });
-      });
+        })
+      })
   }
 
-  uploadFile(event) {
-    this.refs.file.click();
+  uploadFile (event) {
+    this.refs.file.click()
   }
 
-  onUploadProgress(event) {
+  onUploadProgress (event) {
     const newProgress = Math.round((event.loaded * 100) / event.total)
-    if (newProgress != this.state.currentProgress) {
+    if (newProgress !== this.state.currentProgress) {
       this.setState({
         currentProgress: newProgress
-      });
+      })
     }
   }
 
-  onUploadComplete(resp, event) {
+  onUploadComplete (resp, event) {
     this.setState({
       isUploading: false,
       newProgress: 100
@@ -72,55 +59,55 @@ class AddAttachmentPage extends RecordComponent {
       hub.emit(new AttachmentsChangedEvent({
         recordPath: this.getRecordPath(),
         attachmentsAdded: resp.buckets.map((bucket) => {
-          return bucket.stored_filename;
+          return bucket.stored_filename
         })
-      }));
-    });
+      }))
+    })
   }
 
-  onFileSelected(event) {
+  onFileSelected (event) {
     if (this.state.isUploading) {
-      return;
+      return
     }
 
-    const files = this.refs.file.files;
+    const files = this.refs.file.files
     this.setState({
       currentFiles: Array.prototype.slice.call(files, 0),
       isUploading: true
-    });
+    })
 
-    const formData = new FormData();
-    formData.append('path', this.getRecordPath());
+    const formData = new FormData()
+    formData.append('path', this.getRecordPath())
 
     for (let i = 0; i < files.length; i++) {
-      formData.append('file', files[i], files[i].name);
+      formData.append('file', files[i], files[i].name)
     }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', utils.getApiUrl('/newattachment'));
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', utils.getApiUrl('/newattachment'))
     xhr.onload = (event) => {
-      this.onUploadComplete(JSON.parse(xhr.responseText), event);
-    };
+      this.onUploadComplete(JSON.parse(xhr.responseText), event)
+    }
     xhr.upload.onprogress = (event) => {
-      this.onUploadProgress(event);
-    };
-    xhr.send(formData);
+      this.onUploadProgress(event)
+    }
+    xhr.send(formData)
   }
 
-  renderCurrentFiles() {
+  renderCurrentFiles () {
     const files = this.state.currentFiles.map((file) => {
       return (
         <li key={file.name}>{file.name} ({file.type})</li>
-      );
-    });
-    return <ul>{files}</ul>;
+      )
+    })
+    return <ul>{files}</ul>
   }
 
-  render() {
-    const nai = this.state.newAttachmentInfo;
+  render () {
+    const nai = this.state.newAttachmentInfo
 
     if (!nai) {
-      return null;
+      return null
     }
 
     return (
@@ -129,14 +116,14 @@ class AddAttachmentPage extends RecordComponent {
         <p>{i18n.trans('ADD_ATTACHMENT_NOTE')}</p>
         {this.renderCurrentFiles()}
         <p>{i18n.trans('PROGRESS')}: {this.state.currentProgress}%</p>
-        <input type="file" ref="file" multiple={true}
+        <input type='file' ref='file' multiple
           style={{display: 'none'}} onChange={this.onFileSelected.bind(this)} />
-        <div className="actions">
-          <button className="btn btn-primary" onClick={this.uploadFile.bind(this)}>{
+        <div className='actions'>
+          <button className='btn btn-primary' onClick={this.uploadFile.bind(this)}>{
             i18n.trans('UPLOAD')}</button>
         </div>
       </div>
-    );
+    )
   }
 }
 

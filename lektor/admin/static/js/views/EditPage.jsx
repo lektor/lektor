@@ -1,19 +1,16 @@
 'use strict'
 
 import React from 'react'
-import Router from 'react-router'
 import update from 'react-addons-update'
 import RecordEditComponent from '../components/RecordEditComponent'
 import utils from '../utils'
 import i18n from '../i18n'
 import widgets from '../widgets'
-import makeRichPromise from '../richPromise';
-
+import makeRichPromise from '../richPromise'
 
 class EditPage extends RecordEditComponent {
-
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
 
     this.state = {
       recordInitialData: null,
@@ -21,17 +18,17 @@ class EditPage extends RecordEditComponent {
       recordDataModel: null,
       recordInfo: null,
       hasPendingChanges: false
-    };
-    this._onKeyPress = this._onKeyPress.bind(this);
+    }
+    this._onKeyPress = this._onKeyPress.bind(this)
   }
 
-  componentDidMount() {
-    super.componentDidMount();
-    this.syncEditor();
-    window.addEventListener('keydown', this._onKeyPress);
+  componentDidMount () {
+    super.componentDidMount()
+    this.syncEditor()
+    window.addEventListener('keydown', this._onKeyPress)
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
     /*
     if (nextProps.params.path !== this.props.params.path) {
       this.syncEditor();
@@ -39,29 +36,29 @@ class EditPage extends RecordEditComponent {
     */
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate (prevProps, prevState) {
     if (prevProps.params.path !== this.props.params.path) {
-      this.syncEditor();
+      this.syncEditor()
     }
   }
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this._onKeyPress);
+  componentWillUnmount () {
+    window.removeEventListener('keydown', this._onKeyPress)
   }
 
-  hasPendingChanges() {
-    return this.state.hasPendingChanges;
+  hasPendingChanges () {
+    return this.state.hasPendingChanges
   }
 
-  _onKeyPress(event) {
+  _onKeyPress (event) {
     // meta+s is open find files
-    if (event.which == 83 && utils.isMetaKey(event)) {
-      event.preventDefault();
-      this.saveChanges();
+    if (event.which === 83 && utils.isMetaKey(event)) {
+      event.preventDefault()
+      this.saveChanges()
     }
   }
 
-  isIllegalField(field) {
+  isIllegalField (field) {
     switch (field.name) {
       case '_id':
       case '_path':
@@ -70,14 +67,14 @@ class EditPage extends RecordEditComponent {
       case '_source_alt':
       case '_model':
       case '_attachment_for':
-        return true;
+        return true
       case '_attachment_type':
-        return !this.state.recordInfo.is_attachment;
+        return !this.state.recordInfo.is_attachment
     }
-    return false;
+    return false
   }
 
-  syncEditor() {
+  syncEditor () {
     utils.loadData('/rawrecord', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
@@ -89,99 +86,100 @@ class EditPage extends RecordEditComponent {
         recordDataModel: resp.datamodel,
         recordInfo: resp.record_info,
         hasPendingChanges: false
-      });
-    });
+      })
+    })
   }
 
-  onValueChange(field, value) {
-    var updates = {};
-    updates[field.name] = {$set: value || ''};
-    var rd = update(this.state.recordData, updates);
+  onValueChange (field, value) {
+    let updates = {}
+    updates[field.name] = {$set: value || ''}
+    const rd = update(this.state.recordData, updates)
     this.setState({
       recordData: rd,
       hasPendingChanges: true
-    });
+    })
   }
 
-  getValues() {
-    var rv = {};
+  getValues () {
+    let rv = {}
     this.state.recordDataModel.fields.forEach((field) => {
       if (this.isIllegalField(field)) {
-        return;
+        return
       }
 
-      var value = this.state.recordData[field.name];
+      let value = this.state.recordData[field.name]
 
       if (value !== undefined) {
-        var Widget = widgets.getWidgetComponentWithFallback(field.type);
+        const Widget = widgets.getWidgetComponentWithFallback(field.type)
         if (Widget.serializeValue) {
-          value = Widget.serializeValue(value, field.type);
+          value = Widget.serializeValue(value, field.type)
         }
       } else {
-        value = this.state.recordInitialData[field.name];
+        value = this.state.recordInitialData[field.name]
         if (value === undefined) {
-          value = null;
+          value = null
         }
       }
 
-      rv[field.name] = value;
-    });
+      rv[field.name] = value
+    })
 
-    return rv;
+    return rv
   }
 
-  saveChanges() {
-    var path = this.getRecordPath();
-    var alt = this.getRecordAlt();
-    var newData = this.getValues();
+  saveChanges () {
+    const path = this.getRecordPath()
+    const alt = this.getRecordAlt()
+    const newData = this.getValues()
     utils.apiRequest('/rawrecord', {json: {
-        data: newData, path: path, alt: alt}, method: 'PUT'}, makeRichPromise)
+      data: newData, path: path, alt: alt},
+      method: 'PUT'}, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false
-        }, function() {
+        }, () => {
           this.transitionToAdminPage('.preview', {
             path: this.getUrlRecordPathWithAlt(path)
-          });
-        });
-      });
+          })
+        })
+      })
   }
 
-  deleteRecord(event) {
+  deleteRecord (event) {
     this.transitionToAdminPage('.delete', {
       path: this.getUrlRecordPathWithAlt()
-    });
+    })
   }
 
-  getValueForField(widget, field) {
-    var value = this.state.recordData[field.name];
+  getValueForField (widget, field) {
+    let value = this.state.recordData[field.name]
     if (value === undefined) {
-      var value = this.state.recordInitialData[field.name] || '';
+      value = this.state.recordInitialData[field.name] || ''
       if (widget.deserializeValue) {
-        value = widget.deserializeValue(value, field.type);
+        value = widget.deserializeValue(value, field.type)
       }
     }
-    return value;
+    return value
   }
 
-  getPlaceholderForField(widget, field) {
+  getPlaceholderForField (widget, field) {
     if (field['default'] !== null) {
       if (widget.deserializeValue) {
-        return widget.deserializeValue(field['default'], field.type);
+        return widget.deserializeValue(field['default'], field.type)
       }
-      return field['default'];
-    } else if (field.name == '_slug') {
-      return this.state.recordInfo.slug_format;
-    } else if (field.name == '_template') {
-      return this.state.recordInfo.default_template;
-    } else if (field.name == '_attachment_type') {
-      return this.state.recordInfo.implied_attachment_type;
+      return field['default']
+    } else if (field.name === '_slug') {
+      return this.state.recordInfo.slug_format
+    } else if (field.name === '_template') {
+      return this.state.recordInfo.default_template
+    } else if (field.name === '_attachment_type') {
+      return this.state.recordInfo.implied_attachment_type
     }
-    return null;
+    return null
   }
 
-  renderFormField(field, idx) {
-    var widget = widgets.getWidgetComponentWithFallback(field.type);
+  renderFormField (field, idx) {
+    const widget = widgets.getWidgetComponentWithFallback(field.type)
     return (
       <widgets.FieldBox
         key={idx}
@@ -190,50 +188,50 @@ class EditPage extends RecordEditComponent {
         field={field}
         onChange={this.onValueChange.bind(this, field)}
       />
-    );
+    )
   }
 
-  renderFormFields() {
+  renderFormFields () {
     return widgets.renderFieldRows(
       this.state.recordDataModel.fields,
       this.isIllegalField.bind(this),
       this.renderFormField.bind(this)
-    );
+    )
   }
 
-  render() {
+  render () {
     // we have not loaded anything yet.
     if (this.state.recordInfo === null) {
-      return null;
+      return null
     }
 
-    var deleteButton = null;
+    let deleteButton = null
     if (this.state.recordInfo.can_be_deleted) {
       deleteButton = (
-        <button type="submit" className="btn btn-default"
+        <button type='submit' className='btn btn-default'
           onClick={this.deleteRecord.bind(this)}>{i18n.trans('DELETE')}</button>
-      );
+      )
     }
 
-    var title = this.state.recordInfo.is_attachment
+    const title = this.state.recordInfo.is_attachment
       ? i18n.trans('EDIT_ATTACHMENT_METADATA_OF')
-      : i18n.trans('EDIT_PAGE_NAME');
+      : i18n.trans('EDIT_PAGE_NAME')
 
-    var label = this.state.recordInfo.label_i18n
+    const label = this.state.recordInfo.label_i18n
       ? i18n.trans(this.state.recordInfo.label_i18n)
-      : this.state.recordInfo.label;
+      : this.state.recordInfo.label
 
     return (
-      <div className="edit-area">
+      <div className='edit-area'>
         <h2>{title.replace('%s', label)}</h2>
         {this.renderFormFields()}
-        <div className="actions">
-          <button type="submit" className="btn btn-primary"
+        <div className='actions'>
+          <button type='submit' className='btn btn-primary'
             onClick={this.saveChanges.bind(this)}>{i18n.trans('SAVE_CHANGES')}</button>
           {deleteButton}
         </div>
       </div>
-    );
+    )
   }
 }
 

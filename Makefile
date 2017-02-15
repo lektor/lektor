@@ -26,6 +26,7 @@ coverage-python: test-python
 
 test-js: build-js
 	@echo "---> running javascript tests"
+	@cd lektor/admin; npm run lint
 	@cd lektor/admin; npm test
 
 coverage-js: test-js

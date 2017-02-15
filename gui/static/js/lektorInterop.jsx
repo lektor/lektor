@@ -8,16 +8,16 @@ import i18n from './i18n'
 const app = remote.require('app')
 const dialog = remote.require('dialog')
 
-function getResourceFolder () {
+const getResourceFolder = () => {
   // XXX: windows support
   return path.dirname(app.getAppPath());
 }
 
-function getBundleBase () {
+const getBundleBase = () => {
   return path.dirname(getResourceFolder())
 }
 
-function findBundledLektorExecutable () {
+const findBundledLektorExecutable = () => {
   let res = getResourceFolder()
   try {
     if (process.platform === 'darwin') {
@@ -33,7 +33,7 @@ function findBundledLektorExecutable () {
   return null
 }
 
-function findGlobalLektorExecutable () {
+const findGlobalLektorExecutable = () => {
   let rv
   if (process.platform === 'win32') {
     rv = childProcess.spawnSync('where.exe', ['lektor'])
@@ -46,11 +46,11 @@ function findGlobalLektorExecutable () {
   return null
 }
 
-export function findLektorExecutable () {
+export const findLektorExecutable = () => {
   return findBundledLektorExecutable() || findGlobalLektorExecutable()
 }
 
-export function findLektorProxyExecutable () {
+export const findLektorProxyExecutable = () => {
   if (process.platform == 'darwin') {
     return path.join(getBundleBase(), 'Resources', 'local', 'bin', 'lektor-proxy')
   } else {
@@ -58,7 +58,7 @@ export function findLektorProxyExecutable () {
   }
 }
 
-export function installShellCommands () {
+export const installShellCommands = () => {
   let runas = require('runas')
   let exe = findLektorProxyExecutable()
   let rv = runas(exe, ['--install-shell-command'], {
@@ -76,7 +76,7 @@ class LektorServer {
     this._statusLineCallback = options.statusLineCallback
 
     child.stdout.on('data', (data) => {
-      var lines = (data + '').split(/\r?\n/)
+      const lines = (data + '').split(/\r?\n/)
       lines.forEach((line) => {
         this._statusLineCallback(line.trimRight())
       })
@@ -105,8 +105,8 @@ class LektorServer {
   }
 }
 
-function spawnLektor (exe, args) {
-  var env = {}
+const spawnLektor = (exe, args) => {
+  let env = {}
   Object.keys(process.env).forEach((key) => {
     env[key] = process.env[key]
   })

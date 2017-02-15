@@ -4,7 +4,6 @@ import React from 'react'
 import Component from './Component'
 
 class ToggleGroup extends Component {
-
   constructor (props) {
     super(props)
     this.state = {
@@ -20,7 +19,7 @@ class ToggleGroup extends Component {
   }
 
   render () {
-    var {className, groupTitle, children, ...otherProps} = this.props
+    let {className, groupTitle, children, ...otherProps} = this.props
     className = (className || '') + ' toggle-group'
     if (this.state.isVisible) {
       className += ' toggle-group-open'
@@ -30,11 +29,11 @@ class ToggleGroup extends Component {
 
     return (
       <div className={className} {...otherProps}>
-        <div className="header">
-          <h4 className="toggle" onClick={
+        <div className='header'>
+          <h4 className='toggle' onClick={
             this.toggle.bind(this)}>{groupTitle}</h4>
         </div>
-        <div className="children">
+        <div className='children'>
           {children}
         </div>
       </div>

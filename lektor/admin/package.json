@@ -34,11 +34,13 @@
     "react-addons-update": "^15.3.0",
     "react-dom": "^15.3.0",
     "react-router": "^2.6.0",
+    "standard": ">8.5.0",
     "style-loader": "^0.8.3",
     "url-loader": "^0.5.6",
     "webpack": "^1.7.2"
   },
   "scripts": {
+    "lint": "standard",
     "test": "nyc mocha static/js/**/*.test.js",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
     "webpack": "webpack --config ./static/webpack.config.js --context ./static"
@@ -60,8 +62,18 @@
     }
   },
   "nyc": {
-    "extension": [".jsx"],
-    "require": ["babel-register"]
+    "extension": [
+      ".jsx"
+    ],
+    "require": [
+      "babel-register"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "static/gen/"
+    ],
+    "globals": ["$LEKTOR_CONFIG"]
   },
   "author": "",
   "license": "ISC"

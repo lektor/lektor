@@ -1,35 +1,33 @@
-import ErrorDialog from './dialogs/errorDialog';
-import dialogSystem from './dialogSystem';
+import ErrorDialog from './dialogs/errorDialog'
+import dialogSystem from './dialogSystem'
 
-function bringUpDialog(error) {
-  // we need to import this here due to circular dependencies
+const bringUpDialog = (error) => {
   if (!dialogSystem.dialogIsOpen()) {
     dialogSystem.showDialog(ErrorDialog, {
       error: error
-    });
+    })
   }
 }
 
-function makeRichPromise(callback, fallback = bringUpDialog) {
-  const rv = new Promise(callback);
-  const then = rv.then;
-  let hasRejectionHandler = false;
+const makeRichPromise = (callback, fallback = bringUpDialog) => {
+  const rv = new Promise(callback)
+  const then = rv.then
+  let hasRejectionHandler = false
 
   rv.then(null, (value) => {
     if (!hasRejectionHandler) {
-      return fallback(value);
+      return fallback(value)
     }
-  });
+  })
 
   rv.then = (onFulfilled, onRejected) => {
     if (onRejected) {
-      hasRejectionHandler = true;
+      hasRejectionHandler = true
     }
-    return then.call(rv, onFulfilled, onRejected);
-  };
+    return then.call(rv, onFulfilled, onRejected)
+  }
 
-  return rv;
+  return rv
 }
 
-
-export default makeRichPromise;
+export default makeRichPromise

@@ -106,7 +106,7 @@ class App extends Component {
     let projectPath = this.state.projectData
       ? this.state.projectData.project_path : null
 
-    function couldNotOpen(message) {
+    const couldNotOpen = (message) => {
       dialog.showErrorBox(i18n.trans('FAILED_TO_OPEN_CONTENT_FILE'),
                           message.toString())
     }

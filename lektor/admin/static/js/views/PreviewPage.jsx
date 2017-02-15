@@ -1,106 +1,103 @@
 'use strict'
 
 import React from 'react'
-import Router from 'react-router'
 import utils from '../utils'
 import RecordComponent from '../components/RecordComponent'
-import makeRichPromise from '../richPromise';
-
+import makeRichPromise from '../richPromise'
 
 class PreviewPage extends RecordComponent {
-
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
     this.state = {
       pageUrl: null,
       pageUrlFor: null
-    };
+    }
   }
 
-  componentWillReceiveProps(nextProps) {
-    super.componentWillReceiveProps(nextProps);
-    this.setState({}, this.syncState.bind(this));
+  componentWillReceiveProps (nextProps) {
+    super.componentWillReceiveProps(nextProps)
+    this.setState({}, this.syncState.bind(this))
   }
 
-  componentDidMount() {
-    super.componentDidMount();
-    this.syncState();
+  componentDidMount () {
+    super.componentDidMount()
+    this.syncState()
   }
 
-  shouldComponentUpdate() {
-    return this.getUrlRecordPathWithAlt() != this.state.pageUrlFor;
+  shouldComponentUpdate () {
+    return this.getUrlRecordPathWithAlt() !== this.state.pageUrlFor
   }
 
-  syncState() {
-    var alt = this.getRecordAlt();
-    var path = this.getRecordPath();
+  syncState () {
+    const alt = this.getRecordAlt()
+    const path = this.getRecordPath()
     if (path === null) {
-      this.setState(this.getInitialState());
-      return;
+      this.setState(this.getInitialState())
+      return
     }
 
-    var recordUrl = this.getUrlRecordPathWithAlt();
+    const recordUrl = this.getUrlRecordPathWithAlt()
     utils.loadData('/previewinfo', {path: path, alt: alt}, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           pageUrl: resp.url,
           pageUrlFor: recordUrl
-        });
-      });
+        })
+      })
   }
 
-  getIntendedPath() {
-    if (this.state.pageUrlFor == this.getUrlRecordPathWithAlt()) {
-      return this.state.pageUrl;
+  getIntendedPath () {
+    if (this.state.pageUrlFor === this.getUrlRecordPathWithAlt()) {
+      return this.state.pageUrl
     }
-    return null;
+    return null
   }
 
-  componentDidUpdate() {
-    var frame = this.refs.iframe;
-    var intendedPath = this.getIntendedPath();
+  componentDidUpdate () {
+    const frame = this.refs.iframe
+    const intendedPath = this.getIntendedPath()
     if (intendedPath !== null) {
-      var framePath = this.getFramePath();
+      const framePath = this.getFramePath()
 
       if (!utils.urlPathsConsideredEqual(intendedPath, framePath)) {
-        frame.src = utils.getCanonicalUrl(intendedPath);
+        frame.src = utils.getCanonicalUrl(intendedPath)
       }
 
       frame.onload = (event) => {
-        this.onFrameNavigated();
-      };
+        this.onFrameNavigated()
+      }
     }
   }
 
-  getFramePath() {
-    var frameLocation = this.refs.iframe.contentWindow.location;
+  getFramePath () {
+    const frameLocation = this.refs.iframe.contentWindow.location
     if (frameLocation.href === 'about:blank') {
-        return frameLocation.href;
+      return frameLocation.href
     }
     return utils.fsPathFromAdminObservedPath(
-      frameLocation.pathname);
+      frameLocation.pathname)
   }
 
-  onFrameNavigated() {
-    var fsPath = this.getFramePath();
+  onFrameNavigated () {
+    const fsPath = this.getFramePath()
     if (fsPath === null) {
-      return;
+      return
     }
     utils.loadData('/matchurl', {url_path: fsPath}, null, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
-          var urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
-          this.transitionToAdminPage('.preview', {path: urlPath});
+          const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt)
+          this.transitionToAdminPage('.preview', {path: urlPath})
         }
-      });
+      })
   }
 
-  render() {
+  render () {
     return (
-      <div className="preview">
-        <iframe ref="iframe"></iframe>
+      <div className='preview'>
+        <iframe ref='iframe' />
       </div>
-    );
+    )
   }
 }
 

@@ -10,7 +10,6 @@ import Component from './components/Component'
 import ToggleGroup from './components/ToggleGroup'
 import i18n from './i18n'
 
-
 const widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
   'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
@@ -26,13 +25,12 @@ const widgetComponents = {
   'f-line': fakeWidgets.LineWidget,
   'f-spacing': fakeWidgets.SpacingWidget,
   'f-info': fakeWidgets.InfoWidget,
-  'f-heading': fakeWidgets.HeadingWidget,
+  'f-heading': fakeWidgets.HeadingWidget
 }
-
 
 const FallbackWidget = React.createClass({
   mixins: [BasicWidgetMixin],
-  render: function() {
+  render () {
     return (
       <div>
         <em>
@@ -44,30 +42,28 @@ const FallbackWidget = React.createClass({
   }
 })
 
-
 class FieldBox extends Component {
-
-  render() {
+  render () {
     const {field, value, onChange, placeholder} = this.props
     const className = 'col-md-' + getFieldColumns(field) + ' field-box'
-    let innerClassName = 'field';
-    let inner;
+    let innerClassName = 'field'
+    let inner
 
-    if (field.name.substr(0, 1) == '_') {
-      innerClassName += ' system-field';
+    if (field.name.substr(0, 1) === '_') {
+      innerClassName += ' system-field'
     }
 
     const Widget = getWidgetComponentWithFallback(field.type)
     if (Widget.isFakeWidget) {
-      inner = <Widget key={field.name} type={field.type} field={field} />;
+      inner = <Widget key={field.name} type={field.type} field={field} />
     } else {
-      let description = null;
+      let description = null
       if (field.description_i18n) {
         description = (
-          <div className="help-text">
+          <div className='help-text'>
             {i18n.trans(field.description_i18n)}
           </div>
-        );
+        )
       }
       inner = (
         <dl className={innerClassName}>
@@ -79,14 +75,14 @@ class FieldBox extends Component {
             placeholder={placeholder}
           /></dd>
         </dl>
-      );
+      )
     }
 
     return (
       <div className={className} key={field.name}>
         {inner}
       </div>
-    );
+    )
   }
 }
 
@@ -94,25 +90,24 @@ FieldBox.propTypes = {
   value: React.PropTypes.any,
   onChange: React.PropTypes.func,
   field: React.PropTypes.any,
-  placeholder: React.PropTypes.any,
+  placeholder: React.PropTypes.any
 }
 
-
-function getWidgetComponent(type) {
-  return widgetComponents[type.widget] || null;
+const getWidgetComponent = (type) => {
+  return widgetComponents[type.widget] || null
 }
 
-function getWidgetComponentWithFallback(type) {
-  return widgetComponents[type.widget] || FallbackWidget;
+const getWidgetComponentWithFallback = (type) => {
+  return widgetComponents[type.widget] || FallbackWidget
 }
 
-function getFieldColumns(field) {
+const getFieldColumns = (field) => {
   const widthSpec = (field.type.width || '1/1').split('/')
   return Math.min(12, Math.max(2, parseInt(
-    12 * +widthSpec[0] / +widthSpec[1])));
+    12 * +widthSpec[0] / +widthSpec[1])))
 }
 
-function getFieldRows(fields, isIllegalField) {
+const getFieldRows = (fields, isIllegalField) => {
   const normalFields = []
   const systemFields = []
 
@@ -122,7 +117,7 @@ function getFieldRows(fields, isIllegalField) {
 
   fields.forEach((field) => {
     if (!isIllegalField(field)) {
-      if (field.name.substr(0, 1) == '_') {
+      if (field.name.substr(0, 1) === '_') {
         systemFields.push(field)
       } else {
         normalFields.push(field)
@@ -156,7 +151,7 @@ function getFieldRows(fields, isIllegalField) {
   return rv
 }
 
-function renderFieldRows(fields, isIllegalField, renderFunc) {
+const renderFieldRows = (fields, isIllegalField, renderFunc) => {
   const rv = {
     normal: [],
     system: []
@@ -167,7 +162,7 @@ function renderFieldRows(fields, isIllegalField, renderFunc) {
   rows.forEach((item, idx) => {
     const [rowType, row] = item
     rv[rowType].push(
-      <div className="row field-row" key={rowType + '-' + idx}>
+      <div className='row field-row' key={rowType + '-' + idx}>
         {row.map(renderFunc)}
       </div>
     )
@@ -175,8 +170,8 @@ function renderFieldRows(fields, isIllegalField, renderFunc) {
 
   return [
     rv.normal,
-    rv.system.length > 1 ?
-      <ToggleGroup
+    rv.system.length > 1
+      ? <ToggleGroup
         key='sys'
         groupTitle={i18n.trans('SYSTEM_FIELDS')}
         defaultVisibility={false}>{rv.system}</ToggleGroup> : null
