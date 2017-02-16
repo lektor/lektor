@@ -165,6 +165,15 @@ class EXIFInfo(object):
     @property
     def created_at(self):
         try:
+            print(self._mapping)
+            return datetime.strptime(self._mapping['EXIF DateTimeOriginal'].printable,
+                                     '%Y:%m:%d %H:%M:%S')
+        except (KeyError, ValueError):
+            return None
+
+    @property
+    def modified_at(self):
+        try:
             return datetime.strptime(self._mapping['Image DateTime'].printable,
                                      '%Y:%m:%d %H:%M:%S')
         except (KeyError, ValueError):
