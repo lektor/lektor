@@ -21,7 +21,7 @@ def test_exif(pad):
     assert image.exif.camera_make == 'Apple'
     assert image.exif.camera_model == 'iPhone 6'
     assert image.exif.copyright is None
-    assert image.exif.created_at == datetime(2015, 12, 6, 11, 37, 34)
+    assert image.exif.created_at == datetime(2015, 12, 6, 11, 37, 38)
     assert image.exif.exposure_time == '1/33'
     assert image.exif.f == u'\u0192/2.2'
     assert almost_equal(image.exif.f_num, 2.2)
@@ -72,4 +72,4 @@ def test_thumbnail_quality(builder):
     # See if the image file with said quality suffix exists
     assert os.path.isfile(image_file)
     # And the filesize is less than 9000 bytes
-    assert image_size < 9000
+    assert image_size < 9200
