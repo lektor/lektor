@@ -71,5 +71,5 @@ def test_thumbnail_quality(builder):
 
     # See if the image file with said quality suffix exists
     assert os.path.isfile(image_file)
-    # And the filesize is less than 9000 bytes
+    # And the filesize is less than 9200 bytes
     assert image_size < 9200
