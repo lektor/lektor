@@ -43,5 +43,6 @@ If you want to run the test suite instead:
 $ virtualenv venv
 $ . venv/bin/activate
 $ pip install --editable .[test]
+$ make build-js
 $ make test
 ```
