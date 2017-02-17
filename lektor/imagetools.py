@@ -39,7 +39,10 @@ class EXIFInfo(object):
     def __bool__(self):
         return bool(self._mapping)
     __nonzero__ = __bool__
-
+    
+    def raw(self):
+        return self._mapping
+    
     def to_dict(self):
         rv = {}
         for key, value in iteritems(self.__class__.__dict__):
@@ -213,6 +216,14 @@ class EXIFInfo(object):
         long = self.longitude
         if lat is not None and long is not None:
             return (lat, long)
+    
+    @property
+    def documentname(self):
+        return self._get_string('Image DocumentName')
+
+    @property
+    def description(self):
+        return self._get_string('Image ImageDescription')
 
     @property
     def documentname(self):
