@@ -67,6 +67,34 @@ class Pagination(object):
         return self.config.get_record_for_page(self.current,
                                                self.page + 1)
 
+    @property
+    def first_num(self):
+        """Number of the first page"""
+        num = list(range_type(1, self.pages + 1))
+        return min(num)
+
+    @property
+    def last_num(self):
+        """Number of the last page"""
+        num = list(range_type(1, self.pages + 1))
+        return max(num)
+
+    @property
+    def first_page(self):
+        """Returns the record for first page of pagination"""
+        if self.pages == 0:
+            return None
+        else:
+            return self.config.get_record_for_page(self.current, self.first_num)
+
+    @property
+    def last_page(self):
+        """Reutrns the record for last page of pagination"""
+        if self.pages == 0:
+            return None
+        else:
+            return self.config.get_record_for_page(self.current, self.last_num)
+
     def for_page(self, page):
         """Returns the pagination for a specific page."""
         if 1 <= page <= self.pages:
