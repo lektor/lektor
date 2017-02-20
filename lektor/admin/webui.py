@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, request, abort
 from flask.helpers import safe_join
 from werkzeug.utils import append_slash_redirect
@@ -66,6 +68,11 @@ class LektorInfo(object):
 
         if filename is None:
             filename = safe_join(self.output_path, path.strip('/'))
+            if os.path.isdir(filename):
+                if os.path.isfile(safe_join(filename, 'index.html')):
+                    filename = safe_join(filename, 'index.html')
+                elif os.path.isfile(safe_join(filename, 'index.htm')):
+                    filename = safe_join(filename, 'index.htm')
 
         return artifact_name, filename
 

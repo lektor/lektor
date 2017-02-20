@@ -159,6 +159,18 @@ def git_user_email(request):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE).communicate()[0].strip()
 
+    dir_have_index_html = os.path.join(output_path, 'dir_have_index_html')
+    os.mkdir(dir_have_index_html)
+    index_html = os.path.join(dir_have_index_html, 'index.html')
+    with open(index_html, 'w') as f:
+        f.write('<h1>It works!</h1>')
+
+    dir_have_index_htm = os.path.join(output_path, 'dir_have_index_htm')
+    os.mkdir(dir_have_index_htm)
+    index_htm = os.path.join(dir_have_index_htm, 'index.htm')
+    with open(index_htm, 'w') as f:
+        f.write('<h1>It works also!</h1>')
+
     def cleanup():
         subprocess.check_call(['git', 'config', 'user.email', old_email])
     request.addfinalizer(cleanup)

@@ -43,3 +43,12 @@ def test_index_html(tmpdir, env):
     assert resolve('/empty') == (None, artifact_path)
     artifact_path = os.path.join(info.output_path, 'doesnt_exist')
     assert resolve('/doesnt_exist') == (None, artifact_path)
+
+    # If givin artifact_path is dir and it have index.htm(l) file, resolve it.
+    artifact_path = os.path.join(info.output_path, 'dir_have_index_html',
+                                 'index.html')
+    assert resolve('/dir_have_index_html') == (None, artifact_path)
+
+    artifact_path = os.path.join(info.output_path, 'dir_have_index_htm',
+                                 'index.htm')
+    assert resolve('/dir_have_index_htm') == (None, artifact_path)
