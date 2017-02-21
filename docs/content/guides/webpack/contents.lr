@@ -44,7 +44,11 @@ $ npm init
 ```
 
 This will ask you a bunch of questions (invoke with ``--yes`` to use default
-values) and then generate the file for you:
+values) and then generate a ``package.json`` file for you.
+
+It should look similar to the following example. Please **do not** just
+copy-paste this! Instead run the tool, so that your ``package.json`` meets
+the latest format specification.
 
 ```json
 {
