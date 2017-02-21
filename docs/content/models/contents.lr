@@ -89,7 +89,7 @@ Models have the following options that can customize the model itself:
   This is very useful for models that are implied through configuration.
 - `protected`: if a model is set to protected then all of its instances
   cannot be deleted once created.
-- `inherits`: if you want to inherit all fields from another model then this
+- `inherits`: if you want to inherit all fields and model option settings from another model then this
   can be set to the name of another model.
 
 In addition to that, there are some configuration sections in the model file
