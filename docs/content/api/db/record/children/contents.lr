@@ -6,7 +6,7 @@ type: property
 ---
 body:
 
-Because of Lektor's tree based nature it almost all records can have children
+Because of Lektor's tree based nature almost all records can have children
 below them.  The `children` attribute provides a convenient way to access
 those.  It returns a [Query :ref](../../query/) object that can be used to
 further filter down children.
