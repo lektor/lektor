@@ -34,12 +34,33 @@ Now you need to configure webpack.  The plugin expects a webpack project in the
 
 ### `package.json`
 
-This file instructs `npm` which packages we will need.  All we need for a
-start is to create an almost empty file:
+This file instructs `npm` which packages we will need.
+
+[npm-init :ext](https://docs.npmjs.com/cli/init) is a command-line tool to
+interactively create a ``package.json`` file.
+
+```
+$ npm init
+```
+
+This will ask you a bunch of questions (invoke with ``--yes`` to use default
+values) and then generate a ``package.json`` file for you.
+
+It should look similar to the following example. Please **do not** just
+copy-paste this! Instead run the tool, so that your ``package.json`` meets
+the latest format specification.
 
 ```json
 {
-  "private": true
+  "name": "lektor-example",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
 }
 ```
 
