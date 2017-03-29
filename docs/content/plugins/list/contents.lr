@@ -47,6 +47,7 @@ so they might not keep pace with development on Lektor.
 * [creative-commons :ext](https://github.com/humrochagf/lektor-creative-commons): Add Creative Commons license to your pages
 * [nofollow :ext](https://github.com/yargies/lektor-nofollow): Easily create nofollow links in markdown
 * [minify :ext](https://github.com/pietroalbini/lektor-minify): Minify changed files automatically during the build
+* [asciidoc :ext](https://github.com/ajdavis/lektor-asciidoc/): Add asciidoc field type
 
 ! Have your own plugin and you want to see it here?  Just [edit this page
 on GitHub :ref](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr),
