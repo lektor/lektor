@@ -26,7 +26,7 @@ def get_asset_url(asset):
         return Undefined('Asset not found')
     info = ctx.build_state.get_file_info(asset.source_filename)
     return '%s?h=%s' % (
-        ctx.source.url_to('!' + asset.url_path),
+        ctx.source.url_to('!' + asset.url_path, absolute=True),
         info.checksum[:8],
     )
 
