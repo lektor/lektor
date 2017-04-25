@@ -29,7 +29,7 @@
   "ERROR_INVALID_URL": "URL non valide",
   "ERROR": "Erreur",
   "ERROR_OCURRED": "Une erreur a été rencontrée",
-  "ERROR_REQUEST_FAILED": "La commande n'a pas pu être envoyée au serveur. Le serveur a peut être été arrêté ou ne répond plus ?",
+  "ERROR_REQUEST_FAILED": "La commande n'a pas pu être envoyée au serveur. Le serveur a peut-être été arrêté ou ne répond plus ?",
   "ERROR_SERVER_UNAVAILABLE": "Serveur indisponible",
   "ERROR_SERVER_UNAVAILABLE_MESSAGE": "Le serveur ne répond pas. Il a dû être arrêté ou une erreur critique l'a rendu inopérant et il doit être redémarré.",
   "MODEL": "Modèle",
