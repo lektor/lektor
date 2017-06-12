@@ -52,8 +52,7 @@ class Generator(object):
 
         if default is True or default is False:
             return click.confirm(text, default=default)
-        else:
-            return click.prompt(text, default=default, show_default=True)
+        return click.prompt(text, default=default, show_default=True)
 
     def title(self, title):
         self.e(title, fg='cyan')
@@ -136,14 +135,12 @@ def get_default_author():
         name = ent.pw_gecos
         if isinstance(name, text_type):
             return name
-        else:
-            return name.decode('utf-8', 'replace')
+        return name.decode('utf-8', 'replace')
 
     name = getpass.getuser()
     if isinstance(name, text_type):
         return name
-    else:
-        return name.decode('utf-8', 'replace')
+    return name.decode('utf-8', 'replace')
 
 
 def get_default_author_email():

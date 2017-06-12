@@ -19,4 +19,5 @@ disable =
     invalid-name, protected-access, star-args, fixme, broad-except,
     redefined-builtin,
     too-many-arguments, too-few-public-methods, too-many-public-methods,
-    cyclic-import, duplicate-code
+    cyclic-import, duplicate-code, consider-merging-isinstance,
+    len-as-condition

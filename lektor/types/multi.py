@@ -84,7 +84,7 @@ class ChoiceSource(object):
                 iterable = self.source.evaluate(pad, alt=alt, values=values)
             except Exception:
                 traceback.print_exc()
-                iterable = ()  # pylint: disable=redefined-variable-type
+                iterable = ()
 
         for item in iterable or ():
             key = self.item_key.evaluate(pad, this=item, alt=alt,
