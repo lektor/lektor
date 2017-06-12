@@ -304,7 +304,7 @@ class BuildState(object):
              where artifact = ?
         ''', [artifact_name])
         rv = cur.fetchone()
-        return rv and rv[0] or None
+        return rv[0] if rv else None
 
     def check_artifact_is_current(self, artifact_name, sources, config_hash):
         con = self.connect_to_database()
