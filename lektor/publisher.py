@@ -58,11 +58,11 @@ def _write_ssh_key_file(temp_fn, credentials):
                 kt = 'RSA'
             else:
                 kt, key = parts
-            with open(temp_fn, 'wb') as f:
-                f.write(b'-----BEGIN %s PRIVATE KEY-----\n' % kt.upper())
+            with open(temp_fn, 'w') as f:
+                f.write('-----BEGIN %s PRIVATE KEY-----\n' % kt.upper())
                 for x in range_type(0, len(key), 64):
-                    f.write(key[x:x + 64].encode('utf-8') + b'\n')
-                f.write(b'-----END %s PRIVATE KEY-----\n' % kt.upper())
+                    f.write(key[x:x + 64] + '\n')
+                f.write('-----END %s PRIVATE KEY-----\n' % kt.upper())
             os.chmod(temp_fn, 0o600)
             return temp_fn
 
