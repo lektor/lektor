@@ -32,7 +32,7 @@ To enable support for Lektor you need to create a `.gitlab-ci.yml` config
 next to your `.lektorproject` file with the following contents:
 
 ```yaml
-image: python:2.7
+image: python:latest
 
 pages:
   script:

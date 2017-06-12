@@ -21,5 +21,5 @@ encounters a dependency it will invoke the passed function.
 deps = set()
 with get_ctx().gather_dependencies(deps.add):
     items = pad.query('/path/to/some/pages').all()
-print 'The dependencies are: %s' % deps
+print('The dependencies are: %s' % deps)
 ```

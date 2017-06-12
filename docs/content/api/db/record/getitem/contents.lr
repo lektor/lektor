@@ -18,5 +18,5 @@ as system fields which are prefixed by an underscore).
 
 ```python
 for child in this.children:
-    print 'ID: %s' % child['_id']
+    print('ID: %s' % child['_id'])
 ```
