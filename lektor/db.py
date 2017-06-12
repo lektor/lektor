@@ -1005,7 +1005,7 @@ class Query(object):
                 iterable, key=lambda x: x.get_sort_key(order_by))
 
         if self._offset is not None or self._limit is not None:
-            iterable = islice(iterable, self._offset or 0,  # pylint: disable=redefined-variable-type
+            iterable = islice(iterable, self._offset or 0,
                               (self._offset or 0) + self._limit)
 
         for item in iterable:

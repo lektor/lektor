@@ -1,4 +1,5 @@
 import re
+import warnings
 from lektor.cli import cli
 
 
@@ -29,10 +30,12 @@ def test_build_extra_flag(project_cli_runner, mocker):
 def test_deprecated_build_flag(project_cli_runner, mocker):
     mock_builder = mocker.patch('lektor.builder.Builder')
     mock_builder.return_value.build_all.return_value = 0
-    result = project_cli_runner.invoke(cli, ["build", "--build-flag", "webpack"])
-    assert result.exit_code == 0
-    assert mock_builder.call_args[1]["extra_flags"] == ("webpack",)
-    assert 'use --extra-flag instead of --build-flag' in result.output
+    with warnings.catch_warnings(record=True) as w:
+        result = project_cli_runner.invoke(cli, ["build", "--build-flag", "webpack"])
+        assert result.exit_code == 0
+        assert mock_builder.call_args[1]["extra_flags"] == ("webpack",)
+        assert len(w) == 1
+        assert 'use --extra-flag instead of --build-flag' in str(w[0].message)
 
 
 def test_deploy_extra_flag(project_cli_runner, mocker):

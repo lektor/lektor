@@ -19,7 +19,7 @@ datetime.strptime('', '')
 
 def _convert_gps(coords, hem):
     deg, min, sec = [float(x.num) / float(x.den) for x in coords]
-    sign = hem in 'SW' and -1 or 1
+    sign = -1 if hem in 'SW' else 1
     return sign * (deg + min / 60.0 + sec / 3600.0)
 
 
@@ -54,8 +54,7 @@ class EXIFInfo(object):
             return None
         if isinstance(value, text_type):
             return value
-        else:
-            return value.decode('utf-8', 'replace')
+        return value.decode('utf-8', 'replace')
 
     def _get_int(self, key):
         try:
@@ -131,7 +130,7 @@ class EXIFInfo(object):
     def shutter_speed(self):
         val = self._get_float('EXIF ShutterSpeedValue')
         if val is not None:
-            return '1/%d' % round(1 / (2 ** -val))
+            return '1/%d' % round(1 / (2 ** -val))  # pylint: disable=invalid-unary-operand-type
 
     @property
     def focal_length(self):
@@ -153,8 +152,7 @@ class EXIFInfo(object):
             return None
         if isinstance(value, text_type):
             return value
-        else:
-            return value.decode('utf-8')
+        return value.decode('utf-8')
 
     @property
     def iso(self):
