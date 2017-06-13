@@ -3,8 +3,17 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+3.0.1
+-----
+
+Released on 13th of June 2017.
+
+- (fill me in)
+
 3.0
 ---
+
+Released on 15th of July 2016.
 
 - Switch to newer mistune (markdown parser).
 - Rename `--build-flags` to `--extra-flags`, allow the deploy command to also
@@ -12,6 +21,8 @@ These are all the changes in Lektor since the first public release.
 
 2.4
 ---
+
+Released on 7th of July 2016.
 
 - Resolved an issue with unicode errors being caused by the
   quickstart.
