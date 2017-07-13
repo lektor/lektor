@@ -127,7 +127,10 @@ def get_default_author():
     import getpass
 
     if os.name == 'nt':
-        return getpass.getuser().decode('mbcs')
+        user = getpass.getuser()
+        if isinstance(user, text_type):
+            return user
+        return user.decode('mbcs')
 
     import pwd
     ent = pwd.getpwuid(os.getuid())
