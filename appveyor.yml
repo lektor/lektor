@@ -1,0 +1,54 @@
+# https://ci.appveyor.com/project/lektor/lektor
+
+environment:
+  matrix:
+    # Node 6
+    - PYTHON: "C:\\Python27"
+      NODE_JS_VERSION: "6"
+    - PYTHON: "C:\\Python35"
+      NODE_JS_VERSION: "6"
+    - PYTHON: "C:\\Python36"
+      NODE_JS_VERSION: "6"
+    # Node 7
+    - PYTHON: "C:\\Python27"
+      NODE_JS_VERSION: "7"
+    - PYTHON: "C:\\Python35"
+      NODE_JS_VERSION: "7"
+    - PYTHON: "C:\\Python36"
+      NODE_JS_VERSION: "7"
+    # Node 8
+    - PYTHON: "C:\\Python27"
+      NODE_JS_VERSION: "8"
+    - PYTHON: "C:\\Python35"
+      NODE_JS_VERSION: "8"
+    - PYTHON: "C:\\Python36"
+      NODE_JS_VERSION: "8"
+
+
+install:
+  # Install python dependencies and package
+  - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+  - "%PYTHON%\\python.exe setup.py develop"
+  # Get the latest stable version of Node.js or io.js
+  - ps: Install-Product node $env:NODE_JS_VERSION
+  # Install node modules
+  - cd lektor\admin
+  - npm install .
+  - npm run webpack
+  - cd ..
+  - cd ..
+
+
+# Not a .NET project
+build: false
+
+
+test_script:
+  # Run Python tests
+  - "%PYTHON%\\python.exe --version"
+  - "%PYTHON%\\Scripts\\pytest.exe . --tb=short -v --cov=lektor"
+  # Run JS tests
+  - node --version
+  - npm --version
+  - npm run lint
+  - npm test
