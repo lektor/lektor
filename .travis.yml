@@ -13,6 +13,10 @@ cache:
   directories:
     - lektor/admin/node_modules
 
+before_install:
+  - python --version
+  - node --version
+
 install:
   - travis_retry pip install --upgrade pytest
   - travis_retry pip install --upgrade codecov
