@@ -27,8 +27,9 @@ environment:
 
 install:
   # Install python dependencies and package
-  - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
-  - "%PYTHON%\\python.exe setup.py develop"
+  - "%PYTHON%\\python.exe -m pip install --upgrade pytest"
+  - "%PYTHON%\\python.exe -m pip install --upgrade codecov"
+  - "%PYTHON%\\python.exe -m pip install --editable .[test]"
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:NODE_JS_VERSION
   # Install node modules
