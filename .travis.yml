@@ -4,16 +4,40 @@ python:
   - "3.5"
   - "3.6"
 
-env:
-  - TRAVIS_NODE_VERSION="6"
-  - TRAVIS_NODE_VERSION="7"
-  - TRAVIS_NODE_VERSION="8"
+matrix:
+  include:
+    # Node 6
+    - python: 2.7
+      env:  TRAVIS_NODE_VERSION=6
+    - python: 3.5
+      env:  TRAVIS_NODE_VERSION=6
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=6
+    # Node 7
+    - python: 2.7
+      env:  TRAVIS_NODE_VERSION=7
+    - python: 3.5
+      env:  TRAVIS_NODE_VERSION=7
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=7
+    # Node 8
+    - python: 2.7
+      env:  TRAVIS_NODE_VERSION=8
+    - python: 3.5
+      env:  TRAVIS_NODE_VERSION=8
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=8
 
 cache:
   directories:
     - lektor/admin/node_modules
 
 before_install:
+  - rm -rf ~/.nvm
+  - git clone https://github.com/creationix/nvm.git ~/.nvm
+  - (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`)
+  - source ~/.nvm/nvm.sh
+  - nvm install $TRAVIS_NODE_VERSION
   - python --version
   - node --version
 
