@@ -1,3 +1,5 @@
+language: python
+
 matrix:
   include:
     # Node 6
