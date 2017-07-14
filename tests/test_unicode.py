@@ -35,7 +35,7 @@ def test_unicode_attachment_filename(tmpdir):
         assert len(failures) == 0
 
         with prog.artifacts[0].open('rb') as f:
-            assert f.read() == b'attachment\n'
+            assert f.read().rstrip() == b'attachment'
 
 
 def test_bad_file_ignored(tmpdir):

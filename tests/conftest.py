@@ -1,5 +1,4 @@
 import os
-import pwd
 import shutil
 import subprocess
 import textwrap
@@ -139,6 +138,12 @@ def reporter(request, env):
 
 @pytest.fixture(scope='function')
 def os_user(monkeypatch):
+    if os.name == 'nt':
+        import getpass
+        monkeypatch.setattr('getpass.getuser', lambda: 'Lektor Test')
+        return "lektortest"
+
+    import pwd
     struct = pwd.struct_passwd((
         'lektortest',  # pw_name
         'lektorpass',  # pw_passwd
