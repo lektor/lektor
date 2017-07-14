@@ -5,12 +5,11 @@ watchdog
 mistune>=0.7.0
 Flask
 EXIFRead
-inifile'
+inifile
 Babel
 setuptools
 pip
 requests[security]
-
 # Test requirements
 pytest
 pytest-cov

@@ -1,0 +1,40 @@
+# https://ci.appveyor.com/project/lektor/lektor
+
+environment:
+  global:
+    # Test against the latest version of this Node.js version
+    NODE_JS_VERSION: "6"
+
+  matrix:
+    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python35"
+    - PYTHON: "C:\\Python36"
+
+
+install:
+  # Install python dependencies and package
+  - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+  - "%PYTHON%\\python.exe setup.py develop"
+  # Get the latest stable version of Node.js or io.js
+  - ps: Install-Product node $env:NODE_JS_VERSION
+  # Install node modules
+  - cd lektor\admin
+  - npm install .
+  - npm run webpack
+  - cd ..
+  - cd ..
+
+
+# Not a .NET project
+build: false
+
+
+test_script:
+  # Run Python tests
+  - "%PYTHON%\\python.exe --version"
+  - "%PYTHON%\\Scripts\\pytest.exe . --tb=short -v --cov=lektor"
+  # Run JS tests
+  - node --version
+  - npm --version
+  - npm run lint
+  - npm test
