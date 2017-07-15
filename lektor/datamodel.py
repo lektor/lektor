@@ -194,6 +194,8 @@ class Field(object):
             'description_i18n': self.description_i18n,
             'type': self.type.to_json(pad, record, alt),
             'default': self.default,
+            'alts_enabled': bool_from_string(self.options.get('alts_enabled'),
+                                             default=None),
         }
 
     def deserialize_value(self, value, pad=None):
