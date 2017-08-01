@@ -599,7 +599,7 @@ class GithubPagesPublisher(Publisher):
                     pass
                 try:
                     link(full_path, dst)
-                except OSError:
+                except OSError: # Different Filesystems
                     shutil.copy(full_path, dst)
 
     def write_cname(self, path, target_url):
