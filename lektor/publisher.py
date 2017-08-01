@@ -597,7 +597,10 @@ class GithubPagesPublisher(Publisher):
                     os.makedirs(os.path.dirname(dst))
                 except (OSError, IOError):
                     pass
-                link(full_path, dst)
+                try:
+                    link(full_path, dst)
+                except OSError: # Different Filesystems
+                    shutil.copy(full_path, dst)
 
     def write_cname(self, path, target_url):
         params = target_url.decode_query()
