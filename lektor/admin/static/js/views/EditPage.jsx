@@ -187,7 +187,7 @@ class EditPage extends RecordEditComponent {
         placeholder={this.getPlaceholderForField(widget, field)}
         field={field}
         onChange={this.onValueChange.bind(this, field)}
-        disabled={!(field.alts_enabled==null || (field.alts_enabled ^ this.state.recordInfo.alt == '_primary'))}
+        disabled={!(field.alts_enabled == null || (field.alts_enabled ^ this.state.recordInfo.alt === '_primary'))}
       />
     )
   }
