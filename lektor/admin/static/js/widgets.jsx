@@ -44,7 +44,7 @@ const FallbackWidget = React.createClass({
 
 class FieldBox extends Component {
   render () {
-    const {field, value, onChange, placeholder} = this.props
+    const {field, value, onChange, placeholder, disabled} = this.props
     const className = 'col-md-' + getFieldColumns(field) + ' field-box'
     let innerClassName = 'field'
     let inner
@@ -73,6 +73,7 @@ class FieldBox extends Component {
             onChange={onChange}
             type={field.type}
             placeholder={placeholder}
+            disabled={disabled}
           /></dd>
         </dl>
       )
