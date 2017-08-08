@@ -3,6 +3,30 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+3.1.0.dev1
+-----
+
+Release date DBD.
+
+- Improved exif image data.
+- Improved date handling in admin.
+- Make GitHub Pages branch detection case insensitive.
+- Set sqlite isolation to autocommit.
+- Fixed errors in the example project.
+- Enabling pylint and standard.js.
+- Improved image rotation.
+- Now measuring tests and pull requests with code coverage.
+- Thumbnails can now have a defined quality.
+- Moved Windows cache to local appdata.
+- README tweaks.
+- Beter translations.
+- Better file tracking in watcher.
+- Upgraded many node dependencies.
+- Upgraded from ES5 to ES6.
+- Added mp4 attachment type.
+- Improved testing.
+- Bugfixes for Python 3.
+
 3.0.1
 -----
 
