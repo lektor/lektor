@@ -45,7 +45,7 @@ in the project file would be to use `ghpages+https` like this:
 
 ```ini
 [servers.ghpages]
-target = ghpages+https://username/repository
+target = ghpages+https://username/repository.git
 ```
 
 You need to add this to your `.lektorproject` file.
