@@ -158,7 +158,7 @@ const FlowWidget = React.createClass({
 
   // XXX: the modification of props is questionable
 
-  moveBlock: function(idx, offset, event) {
+  moveBlock: function (idx, offset, event) {
     event.preventDefault()
 
     const newIndex = idx + offset
@@ -175,7 +175,7 @@ const FlowWidget = React.createClass({
     }
   },
 
-  removeBlock: function(idx, event) {
+  removeBlock: function (idx, event) {
     event.preventDefault()
 
     if (confirm(i18n.trans('REMOVE_FLOWBLOCK_PROMPT'))) {
@@ -186,7 +186,7 @@ const FlowWidget = React.createClass({
     }
   },
 
-  addNewBlock: function(key, event) {
+  addNewBlock: function (key, event) {
     event.preventDefault()
 
     const flowBlockModel = this.props.type.flowblocks[key]
@@ -199,7 +199,7 @@ const FlowWidget = React.createClass({
     }
   },
 
-  renderFormField: function(blockInfo, field, idx) {
+  renderFormField: function (blockInfo, field, idx) {
     const widgets = getWidgets()
     const value = blockInfo.data[field.name]
     let placeholder = field['default']

@@ -27,7 +27,7 @@ const CheckboxesInputWidget = React.createClass({
     }
   },
 
-  onChange: function(field, event) {
+  onChange: function (field, event) {
     const newValue = utils.flipSetValue(this.props.value,
                                       field, event.target.checked)
     if (this.props.onChange) {
@@ -35,7 +35,7 @@ const CheckboxesInputWidget = React.createClass({
     }
   },
 
-  isActive: function(field) {
+  isActive: function (field) {
     let value = this.props.value
     if (value == null) {
       value = this.props.placeholder
@@ -55,7 +55,7 @@ const CheckboxesInputWidget = React.createClass({
     let {className, value, placeholder, type, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
-    const choices = this.props.type.choices.map(function(item) {
+    const choices = this.props.type.choices.map(function (item) {
       return (
         <div className={className} key={item[0]}>
           <label>
