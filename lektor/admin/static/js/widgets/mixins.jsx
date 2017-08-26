@@ -1,7 +1,7 @@
 import React from 'react'
 import i18n from '../i18n'
 
-const ValidationFailure = (options) => {
+function ValidationFailure (options) {
   this.message = options.message || i18n.trans('INVALID_INPUT')
   this.type = options.type || 'error'
 }
