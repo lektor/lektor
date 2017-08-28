@@ -6,8 +6,13 @@ These are all the changes in Lektor since the first public release.
 3.1.0.dev1
 -----
 
-Release date DBD.
+Release date TBD.
 
+- Added ability to publish from different filesystems.
+- Adding new option to turn disable editing fields on alternatives.
+- Added automated testing for Windows.
+- Expanded automated testing environments to Python 2.7, 3.5, 3.6, & Node 6, 7, 8.
+- Windows bugfixes.
 - Improved exif image data.
 - Improved date handling in admin.
 - Make GitHub Pages branch detection case insensitive.
@@ -24,7 +29,6 @@ Release date DBD.
 - Upgraded many node dependencies.
 - Upgraded from ES5 to ES6.
 - Added mp4 attachment type.
-- Improved testing.
 - Bugfixes for Python 3.
 
 3.0.1
