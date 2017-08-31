@@ -36,6 +36,7 @@ $ virtualenv venv
 $ . venv/bin/activate
 $ pip install --editable .
 $ make build-js
+$ make install-git-hooks
 $ export LEKTOR_DEV=1
 $ lektor quickstart --path example-project
 $ lektor --project example-project server

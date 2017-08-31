@@ -38,3 +38,6 @@ coverage: coverage-python coverage-js
 
 osx-dmg:
 	$(MAKE) -C gui osx-dmg
+
+install-git-hooks:
+	ln -sT $(PWD)/bin/pre-commit .git/hooks/pre-commit
