@@ -484,7 +484,7 @@ def portable_popen(cmd, *args, **kwargs):
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
 
-    if isinstance(exe, text_type):
+    if isinstance(exe, text_type) and sys.platform != 'win32':
         exe = exe.encode(sys.getfilesystemencoding())
     cmd[0] = exe
     return subprocess.Popen(cmd, *args, **kwargs)

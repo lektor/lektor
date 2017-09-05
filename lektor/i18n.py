@@ -7,7 +7,7 @@ from lektor.uilink import UI_LANG
 
 
 translations_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            'translations')
+                                 'translations')
 KNOWN_LANGUAGES = list(x[:-5] for x in os.listdir(translations_path)
                        if x.endswith('.json'))
 
@@ -18,7 +18,7 @@ for _lang in KNOWN_LANGUAGES:
     # (because the encoding can't de selected)
     # See https://github.com/lektor/lektor/issues/378
     with io.open(os.path.join(translations_path, _lang + '.json'),
-              encoding="utf8") as f:
+                 encoding="utf8") as f:
         translations[_lang] = json.load(f)
 
 
