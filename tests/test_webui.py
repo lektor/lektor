@@ -23,8 +23,14 @@ def test_index_html(tmpdir, env):
     assert exc.value.response.status_code == 301
     assert exc.value.response.headers['Location'] == 'dir_with_index_html/'
 
-    artifact = 'dir_with_index_html/index.html'
-    artifact_path = os.path.join(info.output_path, artifact)
+    artifact_folder = 'dir_with_index_html'
+    artifact_item = 'index.html'
+    artifact = '{}/{}'.format(artifact_folder, artifact_item)
+    artifact_path = os.path.join(
+        info.output_path,
+        artifact_folder,
+        artifact_item,
+    )
     assert resolve('/dir_with_index_html/') == (artifact, artifact_path)
 
     # Same for index.htm as for index.html.
@@ -34,8 +40,14 @@ def test_index_html(tmpdir, env):
     assert exc.value.response.status_code == 301
     assert exc.value.response.headers['Location'] == 'dir_with_index_htm/'
 
-    artifact = 'dir_with_index_htm/index.htm'
-    artifact_path = os.path.join(info.output_path, artifact)
+    artifact_folder = 'dir_with_index_htm'
+    artifact_item = 'index.htm'
+    artifact = '{}/{}'.format(artifact_folder, artifact_item)
+    artifact_path = os.path.join(
+        info.output_path,
+        artifact_folder,
+        artifact_item,
+    )
     assert resolve('/dir_with_index_htm/') == (artifact, artifact_path)
 
     # Empty or absent directory has default resolution behavior.

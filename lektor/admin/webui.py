@@ -1,3 +1,5 @@
+import os
+import sys
 from flask import Flask, request, abort
 from flask.helpers import safe_join
 from werkzeug.utils import append_slash_redirect
@@ -65,7 +67,11 @@ class LektorInfo(object):
                 filename = artifact.dst_filename
 
         if filename is None:
-            filename = safe_join(self.output_path, path.strip('/'))
+            path_list = path.strip('/').split('/')
+            if sys.platform == 'win32':
+                filename = os.path.join(self.output_path, *path_list)
+            else:
+                filename = safe_join(self.output_path, *path_list)
 
         return artifact_name, filename
 
