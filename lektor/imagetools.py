@@ -308,38 +308,21 @@ def find_imagemagick(im=None):
     if im is not None and os.path.isfile(im):
         return im
 
+    # On windows, image magick was renamed to magick, because
+    # convert is system utility for fs manipulation.
+    imagemagick_exe = 'convert' if os.name != 'nt' else 'magick'
+
     # If we have a shipped imagemagick, then we used this one.
     if BUNDLE_BIN_PATH is not None:
-        executable = os.path.join(BUNDLE_BIN_PATH, 'convert')
+        executable = os.path.join(BUNDLE_BIN_PATH, imagemagick_exe)
         if os.name == 'nt':
             executable += '.exe'
         if os.path.isfile(executable):
             return executable
 
-    # If we're not on windows, we locate the executable like we would
-    # do normally.
-    if os.name != 'nt':
-        rv = locate_executable('convert')
-        if rv is not None:
-            return rv
-
-    # On windows, we only scan the program files for an image magick
-    # installation, because this is where this usually goes.  We do
-    # this because the convert executable is otherwise the system
-    # one which can convert file systems and stuff like this.
-    else:
-        for key in 'ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)':
-            value = os.environ.get(key)
-            if not value:
-                continue
-            try:
-                for filename in os.listdir(value):
-                    if filename.lower().startswith('imagemagick-'):
-                        exe = os.path.join(value, filename, 'convert.exe')
-                        if os.path.isfile(exe):
-                            return exe
-            except OSError:
-                continue
+    rv = locate_executable(imagemagick_exe)
+    if rv is not None:
+        return rv
 
     # Give up.
     raise RuntimeError('Could not locate imagemagick.')
@@ -368,7 +351,8 @@ def computed_height(source_image, format, width, actual_width, actual_height):
     # file where the target width is 100px will *not* be converted to a
     # 100x50 image, but to 100x200.
     if format == 'jpeg':
-        exif = read_exif(open(source_image, 'rb'))
+        with open(source_image, 'rb') as image_file:
+            exif = read_exif(image_file)
         if exif.is_rotated:
             actual_width, actual_height = actual_height, actual_width
     return int(float(actual_height) * (float(width) / float(actual_width)))
