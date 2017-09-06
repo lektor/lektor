@@ -308,7 +308,7 @@ def find_imagemagick(im=None):
     if im is not None and os.path.isfile(im):
         return im
 
-    # On windows, image magick was renamed to magick, because
+    # On windows, imagemagick was renamed to magick, because
     # convert is system utility for fs manipulation.
     imagemagick_exe = 'convert' if os.name != 'nt' else 'magick'
 
