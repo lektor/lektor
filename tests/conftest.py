@@ -143,7 +143,9 @@ def os_user(monkeypatch):
         monkeypatch.setattr('getpass.getuser', lambda: 'Lektor Test')
         return "lektortest"
 
-    import pwd
+    # we disable pylint, because there is no such
+    # modules on windows & it's false positive
+    import pwd  # pylint: disable=import-error
     struct = pwd.struct_passwd((
         'lektortest',  # pw_name
         'lektorpass',  # pw_passwd
