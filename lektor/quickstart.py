@@ -132,8 +132,10 @@ def get_default_author():
             return user
         return user.decode('mbcs')
 
-    import pwd
-    ent = pwd.getpwuid(os.getuid())
+    # we disable pylint, because there is no such
+    # modules on windows & it's false positive
+    import pwd  # pylint: disable=import-error
+    ent = pwd.getpwuid(os.getuid())  # pylint: disable=no-member
     if ent and ent.pw_gecos:
         name = ent.pw_gecos
         if isinstance(name, text_type):
