@@ -55,6 +55,7 @@ test_script:
   - "%PYTHON%\\python.exe --version"
   - "%PYTHON%\\Scripts\\pytest.exe . --tb=short -v --cov=lektor"
   # Run JS tests
+  - cd lektor\admin
   - node --version
   - npm --version
   - npm run lint
