@@ -20,7 +20,7 @@ class ToggleGroup extends Component {
   }
 
   render () {
-    let {className, groupTitle, children, ...otherProps} = this.props
+    let {className, groupTitle, children, defaultVisibility, ...otherProps} = this.props
     className = (className || '') + ' toggle-group'
     if (this.state.isVisible) {
       className += ' toggle-group-open'

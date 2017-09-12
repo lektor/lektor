@@ -31,7 +31,6 @@
     "prop-types": "^15.5.10",
     "querystring": "^0.2.0",
     "react": "^15.3.0",
-    "react-addons-test-utils": "^15.3.0",
     "react-addons-update": "^15.3.0",
     "react-dom": "^15.3.0",
     "react-router": "^2.6.0",
