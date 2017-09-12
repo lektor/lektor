@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import primitiveWidgets from './widgets/primitiveWidgets'
 import multiWidgets from './widgets/multiWidgets'
@@ -88,10 +89,10 @@ class FieldBox extends Component {
 }
 
 FieldBox.propTypes = {
-  value: React.PropTypes.any,
-  onChange: React.PropTypes.func,
-  field: React.PropTypes.any,
-  placeholder: React.PropTypes.any
+  value: PropTypes.any,
+  onChange: PropTypes.func,
+  field: PropTypes.any,
+  placeholder: PropTypes.any
 }
 
 const getWidgetComponent = (type) => {

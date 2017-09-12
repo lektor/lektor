@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import Component from './Component'
 
@@ -42,8 +43,8 @@ class ToggleGroup extends Component {
 }
 
 ToggleGroup.propTypes = {
-  groupTitle: React.PropTypes.string,
-  defaultVisibility: React.PropTypes.bool
+  groupTitle: PropTypes.string,
+  defaultVisibility: PropTypes.bool
 }
 
 export default ToggleGroup

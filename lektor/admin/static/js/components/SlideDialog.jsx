@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import Component from '../components/Component'
 import dialogSystem from '../dialogSystem'
@@ -60,9 +61,9 @@ class SlideDialog extends Component {
 }
 
 SlideDialog.propTypes = {
-  title: React.PropTypes.string,
-  hasCloseButton: React.PropTypes.bool,
-  closeOnEscape: React.PropTypes.bool
+  title: PropTypes.string,
+  hasCloseButton: PropTypes.bool,
+  closeOnEscape: PropTypes.bool
 }
 
 export default SlideDialog

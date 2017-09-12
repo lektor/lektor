@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Link } from 'react-router'
 import Component from './Component'
@@ -19,7 +20,7 @@ class LektorLink extends Component {
 }
 
 LektorLink.propTypes = {
-  to: React.PropTypes.string
+  to: PropTypes.string
 }
 
 module.exports = LektorLink

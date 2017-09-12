@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import RecordComponent from '../components/RecordComponent'
 import SlideDialog from '../components/SlideDialog'
@@ -31,7 +32,7 @@ class ErrorDialog extends RecordComponent {
 }
 
 ErrorDialog.propTypes = {
-  error: React.PropTypes.object
+  error: PropTypes.object
 }
 
 export default ErrorDialog
