@@ -1,4 +1,4 @@
-import React from 'react'
+import PropTypes from 'prop-types'
 import i18n from '../i18n'
 
 function ValidationFailure (options) {
@@ -8,10 +8,10 @@ function ValidationFailure (options) {
 
 const BasicWidgetMixin = {
   propTypes: {
-    value: React.PropTypes.any,
-    type: React.PropTypes.object,
-    placeholder: React.PropTypes.any,
-    onChange: React.PropTypes.func
+    value: PropTypes.any,
+    type: PropTypes.object,
+    placeholder: PropTypes.any,
+    onChange: PropTypes.func
   },
 
   getInputClass () {

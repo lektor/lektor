@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import {BasicWidgetMixin} from './mixins'
 import i18n from '../i18n'
@@ -7,7 +8,7 @@ import i18n from '../i18n'
 const FakeWidgetMixin = {
   mixins: [BasicWidgetMixin],
   propTypes: {
-    field: React.PropTypes.any
+    field: PropTypes.any
   },
 
   statics: {
