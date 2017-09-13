@@ -13,14 +13,14 @@ from inifile import IniFile
 from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
-from lektor._compat import iteritems, string_types
+from lektor._compat import iteritems, string_types, PY2
 from lektor.context import (config_proxy, get_asset_url, get_ctx, get_locale,
     site_proxy, url_to)
 from lektor.i18n import get_i18n_block
 from lektor.markdown import Markdown
 from lektor.pluginsystem import PluginController
 from lektor.utils import (bool_from_string, format_lat_long, secure_url,
-    tojson_filter)
+    tojson_filter, is_windows)
 
 
 # Special value that identifies a target to the primary alt
@@ -215,7 +215,13 @@ class CustomJinjaEnvironment(jinja2.Environment):
         try:
             rv = jinja2.Environment._load_template(self, name, globals)
             if ctx is not None:
-                ctx.record_dependency(rv.filename)
+                filename = rv.filename
+                if PY2 and is_windows:
+                    try:
+                        filename = filename.decode('utf-8')
+                    except UnicodeDecodeError:
+                        pass
+                ctx.record_dependency(filename)
             return rv
         except jinja2.TemplateSyntaxError as e:
             if ctx is not None:
