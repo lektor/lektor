@@ -633,6 +633,24 @@ class Page(Record):
             return repl_query.include_undiscoverable(False)
         return Query(path=self['_path'], pad=self.pad, alt=self.alt)
 
+    def generate_descendants(self, path=None, rv=None):
+        if not path:
+            path = self.path
+            rv = []
+        children = self.pad.get(path).children.all()
+        if children:
+            for child in children:
+                rv.append(child)
+                self.generate_descendants(child.path, rv=rv)
+        return rv
+
+    @property
+    def descendants(self):
+        """A query over all children  recursively that are not hidden or undiscoverable.
+        want undiscoverable then use ``descendants.include_undiscoverable(True)``.
+        """
+        return self.generate_descendants()
+
     @property
     def attachments(self):
         """Returns a query for the attachments of this record."""
@@ -1790,6 +1808,18 @@ class Tree(object):
         return [self.get(posixpath.join(path, name), persist=False)
                 for name in self._get_child_ids(
                     path, include_attachments, include_pages)[offset:end]]
+
+    def get_descendants(self, path=None, offset=0, limit=None,
+                        include_attachments=True, include_pages=True,
+                        rv=[]):
+        """Returns a slice of descendants."""
+        path = '/' + (path or '').strip('/')
+        children = self.get_children(path)
+        if children:
+            for child in children:
+                rv.append(child)
+                self.get_descendants(child.path, rv=rv)
+        return rv
 
     def edit(self, path, is_attachment=None, alt=PRIMARY_ALT, datamodel=None):
         """Edits a record by path."""
