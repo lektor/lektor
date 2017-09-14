@@ -1,7 +1,7 @@
 # Lektor
 
 [![Unix Build Status](https://api.travis-ci.org/lektor/lektor.svg?branch=master)](https://travis-ci.org/lektor/lektor)
-[![Windows Build Status](https://ci.appveyor.com/api/projects/status/nbcuw1555j9jujtg/branch/master?svg=true)](https://ci.appveyor.com/project/lektor/lektor)
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/lektor/lektor?branch=master&svg=true)](https://ci.appveyor.com/project/lektor/lektor)
 [![Code Coverage](https://codecov.io/gh/lektor/lektor/branch/master/graph/badge.svg)](https://codecov.io/gh/lektor/lektor)
 [![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://badge.fury.io/py/Lektor)
 [![Join the chat at https://gitter.im/lektor/lektor](https://badges.gitter.im/lektor/lektor.svg)](https://gitter.im/lektor/lektor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
