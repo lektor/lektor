@@ -1,5 +1,6 @@
 'use strict'
 
+import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {Router, Route, IndexRoute} from 'react-router'
@@ -41,7 +42,7 @@ class BadRoute extends Component {
 }
 
 BadRoute.contextTypes = {
-  router: React.PropTypes.func
+  router: PropTypes.func
 }
 
 const routes = (() => {

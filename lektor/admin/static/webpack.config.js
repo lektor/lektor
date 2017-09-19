@@ -21,18 +21,20 @@ module.exports = {
     path: path.join(__dirname, '/gen'),
     filename: '[name].js'
   },
-  devtool: '#cheap-module-eval-source-map',
+  devtool: 'source-map',
   resolve: {
-    modulesDirectories: ['../node_modules'],
-    extensions: ['', '.jsx', '.js', '.json']
+    modules: [
+      '../node_modules'
+    ],
+    extensions: ['.jsx', '.js', '.json']
   },
   module: {
     loaders: [
       {
         test: /\.jsx$/,
         exclude: /node_modules/,
-        loader: 'babel',
-        query: {
+        loader: 'babel-loader',
+        options: {
           presets: ['react', 'es2015'],
           plugins: ['transform-object-rest-spread'],
           cacheDirectory: true
@@ -40,41 +42,33 @@ module.exports = {
       },
       {
         test: /\.less$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader')
+        loader: ExtractTextPlugin.extract({
+          use: 'css-loader!less-loader?sourceMap',
+          fallback: 'style-loader?sourceMap'
+        })
       },
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader')
+        loader: ExtractTextPlugin.extract({
+          use: 'css-loader?sourceMap',
+          fallback: 'style-loader?sourceMap'
+        })
       },
       {
         test: /\.json$/,
         loader: 'json-loader'
       },
       {
-        test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        loader: 'url?limit=10000&mimetype=application/font-woff'
-      },
-      {
-        test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        loader: 'url?limit=10000&mimetype=application/font-woff'
-      },
-      {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        loader: 'url?limit=10000&mimetype=application/octet-stream'
-      },
-      {
-        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        loader: 'file'
-      },
-      {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        loader: 'url?limit=10000&mimetype=image/svg+xml'
+        test: /\.(ttf|eot|svg|woff2?)(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'file-loader'
       }
     ]
   },
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.js'),
-    new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      filename: 'vendor.js'
+    }),
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery'
@@ -83,8 +77,5 @@ module.exports = {
       allChunks: true
     })
   ],
-  externals: {},
-  resolveLoader: {
-    root: path.join(__dirname, '..', 'node_modules')
-  }
+  externals: {}
 }

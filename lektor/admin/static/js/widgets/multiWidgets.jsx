@@ -55,7 +55,7 @@ const CheckboxesInputWidget = React.createClass({
     let {className, value, placeholder, type, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
-    const choices = this.props.type.choices.map(function (item) {
+    const choices = this.props.type.choices.map((item) => {
       return (
         <div className={className} key={item[0]}>
           <label>
