@@ -38,7 +38,7 @@ $ pip install --editable .
 $ make build-js
 $ make install-git-hooks
 $ export LEKTOR_DEV=1
-$ lektor quickstart --path example-project
+$ cp -r example example-project
 $ lektor --project example-project server
 ```
 
