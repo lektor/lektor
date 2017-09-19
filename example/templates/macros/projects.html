@@ -1,0 +1,17 @@
+{% macro render_category_nav(active=none) %}
+  <ul>
+  {% for category in site.query('/project-categories') %}
+    <li{% if category._id == active %} class="active"{% endif %}>
+      <a href="{{ category|url }}">{{ category.name }}</a>
+    </li>
+  {% endfor %}
+  </ul>
+{% endmacro %}
+
+{% macro render_project_list(projects) %}
+  <ul>
+    {% for project in projects %}
+      <li><a href="{{ project|url }}">{{ project.name }}</a></li>
+    {% endfor %}
+  </ul>
+{% endmacro %}
