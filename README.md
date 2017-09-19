@@ -16,7 +16,9 @@ To see how it works look at the ``example`` folder which contains a
 very basic project to get started.
 
 For a more complete website look at [lektor/lektor-website](https://github.com/lektor/lektor-website)
-which contains the sourcecode for the official lektor website.
+which contains the sourcecode for the official lektor website. We also have the example project at the
+top level of this repository `example/` that is a lean example of the wide variety of the features
+of Lektor.
 
 ## How do I use this?
 
