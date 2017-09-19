@@ -2,6 +2,12 @@ import os
 import sys
 import click
 
+try:
+    from IPython import embed
+    from traitlets.config.loader import Config
+except ImportError:
+    pass # fallback to normal Python InteractiveConsole
+
 from .packages import get_package_info, register_package, publish_package
 from .cli import pass_context
 
@@ -69,7 +75,12 @@ def shell_cmd(ctx):
                                      ctx.get_default_output_path()),
         F=F
     )
-    code.interact(banner=banner, local=ns)
+    try:
+        c = Config()
+        c.TerminalInteractiveShell.banner2 = banner
+        embed(config=c, user_ns=ns)
+    except NameError: # No IPython
+        code.interact(banner=banner, local=ns)
 
 
 @cli.command('publish-plugin', short_help='Publish a plugin to PyPI.')

@@ -34,7 +34,10 @@ setup(
         'requests[security]',
     ],
     tests_require=tests_require,
-    extras_require={'test': tests_require},
+    extras_require={
+        'test': tests_require,
+        'ipython': ['ipython'],
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
