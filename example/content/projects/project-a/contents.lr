@@ -3,3 +3,5 @@ name: Project A
 date: 2017-09-13
 ---
 description: Project A description
+---
+categories: category-1, category-2, category-3

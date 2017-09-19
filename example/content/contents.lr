@@ -1,6 +1,13 @@
-title: Welcome to the Example!
+title: Welcome to the Example Site!
 ---
 body:
 
-This is a basic demo website that shows how to use Lektor for a basic
-website with some pages and a blog.
+This is a basic demo website that shows how to use Lektor. Since this is a working example of a Lektor based site, you can dive into the code that has produced it to better learn and experiment. This example site contains examples of:
+
+* pages
+* basic page navigation
+* a blog
+    * blog posts
+    * pagination
+    * navigation between blog posts
+* project categories
