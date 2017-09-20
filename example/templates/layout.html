@@ -1,10 +1,14 @@
 <!doctype html>
 <meta charset="utf-8">
-<link rel="stylesheet" href="{{ '/static/style.css'|url }}">
+<link rel="stylesheet" href="{{ '/static/style.css'|asseturl }}">
+<link rel="icon" href="{{ '/static/favicon.png'|asseturl }}">
 <title>{% block title %}Welcome{% endblock %} — Example</title>
 <body>
   <header>
-    <h1>Example</h1>
+    <a href="{{ site.root|url }}" style="text-decoration: none;">
+      <img class="logo" src="{{ site.root.attachments.images.get('logo.png').thumbnail(250)|url }}">
+      <h1 class="logo">Example</h1>
+    </a>
     <nav>
       <ul class="nav navbar-nav">
         <li{% if this._path == '/' %} class="active"{% endif

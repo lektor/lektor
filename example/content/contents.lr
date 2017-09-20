@@ -11,3 +11,7 @@ This is a basic demo website that shows how to use Lektor. Since this is a worki
     * pagination
     * navigation between blog posts
 * project categories
+* assets - asseturl for style.css and favicon.png
+* images
+    * a favicon
+    * thumbnail on an image attachment
