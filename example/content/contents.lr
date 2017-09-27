@@ -5,6 +5,7 @@ body:
 This is a basic demo website that shows how to use Lektor. Since this is a working example of a Lektor based site, you can dive into the code that has produced it to better learn and experiment. This example site contains examples of:
 
 * pages
+* alternatives
 * basic page navigation
 * a blog
     * blog posts

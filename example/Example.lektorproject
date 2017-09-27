@@ -1,2 +1,17 @@
 [project]
 name = Example
+
+[alternatives.en]
+name = English
+primary = yes
+locale = en_US
+
+[alternatives.fr]
+name = French
+url_prefix = /fr/
+locale = fr
+
+[alternatives.de]
+name = German
+url_prefix = /de/
+locale = de
