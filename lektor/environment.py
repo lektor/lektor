@@ -406,12 +406,31 @@ class Environment(object):
     def __init__(self, project, load_plugins=True):
         self.project = project
         self.root_path = os.path.abspath(project.tree)
+        self.theme_path = None
+
+        if self.project.theme is not None:
+            self.theme_path = os.path.join(self.root_path, 'themes',
+                                           self.project.theme)
+        else:
+            # load the first directory in the themes directory as the theme
+            try:
+                for fname in os.listdir(os.path.join(self.root_path, 'themes')):
+                    f = os.path.join(self.root_path, 'themes', fname)
+                    if os.path.isdir(f):
+                        self.theme_path = f
+                        break
+            except OSError:
+                self.theme_path = None
+
+        template_paths = [os.path.join(self.root_path, 'templates')]
+        if self.theme_path:
+            template_paths.append(os.path.join(self.theme_path, 'templates'))
 
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,
             extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_'],
             loader=jinja2.FileSystemLoader(
-                os.path.join(self.root_path, 'templates'))
+                template_paths)
         )
 
         from lektor.db import F, get_alts
