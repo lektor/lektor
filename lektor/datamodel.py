@@ -592,11 +592,13 @@ def iter_inis(path):
 
 def load_datamodels(env):
     """Loads the datamodels for a specific environment."""
-    path = os.path.join(env.root_path, 'models')
+    paths = filter(None, [env.theme_path, env.root_path])
+    paths = [os.path.join(p, 'models') for p in paths]
     data = {}
 
-    for model_id, inifile in iter_inis(path):
-        data[model_id] = datamodel_data_from_ini(model_id, inifile)
+    for path in paths:
+        for model_id, inifile in iter_inis(path):
+            data[model_id] = datamodel_data_from_ini(model_id, inifile)
 
     rv = {}
 
@@ -630,12 +632,14 @@ def load_datamodels(env):
 
 def load_flowblocks(env):
     """Loads all the flow blocks for a specific environment."""
-    path = os.path.join(env.root_path, 'flowblocks')
+    paths = filter(None, [env.theme_path, env.root_path])
+    paths = [os.path.join(p, 'flowblocks') for p in paths]
     rv = {}
 
-    for flowblock_id, inifile in iter_inis(path):
-        rv[flowblock_id] = flowblock_from_data(env,
-            flowblock_data_from_ini(flowblock_id, inifile))
+    for path in paths:
+        for flowblock_id, inifile in iter_inis(path):
+            rv[flowblock_id] = flowblock_from_data(env,
+                flowblock_data_from_ini(flowblock_id, inifile))
 
     return rv
 
