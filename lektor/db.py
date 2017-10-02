@@ -1471,7 +1471,10 @@ class Pad(object):
                 return rv
 
         if include_assets:
-            return self.asset_root.resolve_url_path(pieces)
+            rv = self.asset_root.resolve_url_path(pieces)
+            if rv is None and self.theme_asset_root is not None:
+                rv = self.theme_asset_root.resolve_url_path(pieces)
+            return rv
 
     def get_root(self, alt=PRIMARY_ALT):
         """The root page of the database."""
@@ -1485,6 +1488,14 @@ class Pad(object):
         return Directory(self, name='',
                          path=os.path.join(self.db.env.root_path, 'assets'))
 
+    @property
+    def theme_asset_root(self):
+        """The root of the asset tree of the theme."""
+        if self.db.env.theme_path is None:
+            return None
+        return Directory(self, name='',
+                         path=os.path.join(self.db.env.theme_path, 'assets'))
+
     def get_all_roots(self):
         """Returns all the roots for building."""
         rv = []
@@ -1497,6 +1508,8 @@ class Pad(object):
             rv = [self.root]
 
         rv.append(self.asset_root)
+        if self.theme_asset_root is not None:
+            rv.append(self.theme_asset_root)
         return rv
 
     def get_virtual(self, record, virtual_path):
@@ -1590,12 +1603,14 @@ class Pad(object):
     def get_asset(self, path):
         """Loads an asset by path."""
         clean_path = cleanup_path(path).strip('/')
-        node = self.asset_root
-        for piece in clean_path.split('/'):
-            node = node.get_child(piece)
-            if node is None:
-                break
-        return node
+        nodes = filter(None, [self.asset_root, self.theme_asset_root])
+        for node in nodes:
+            for piece in clean_path.split('/'):
+                node = node.get_child(piece)
+                if node is None:
+                    break
+            if node is not None:
+                return node
 
     def instance_from_data(self, raw_data, datamodel=None, page_num=None):
         """This creates an instance from the given raw data."""
