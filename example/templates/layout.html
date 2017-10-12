@@ -44,23 +44,34 @@
   </div>
   <footer>
     Recursive tree navigation of this example site:
-    <ul class="tree-nav">
+    <button onclick="myFunction()">Toggle hide/show</button>
+    <ul id="footer-nav" class="tree-nav" style="display: none;">
       {% set root = site.get('/') %}
       <li>
         <a href="{{ root|url }}">{{ root.title }}</a>
       </li>
       {% for child in root.children recursive %}
-        {% if child.title %}
-          <li>
-            <a href="{{ child|url }}">{{ child.title }}</a>
-          </li>
-        {% endif %}
+        <li>
+          <a href="{{ child|url }}">{{ child.path }}</a>
+        </li>
         {% if child.children %}
           <ul>{{ loop(child.children) }}</ul>
         {% endif %}
       {% endfor %}
     </ul>
 
-    &copy; Copyright 2015 by Armin Ronacher.
+    <div>
+      &copy; Copyright 2015 by Armin Ronacher.
+    </div>
   </footer>
+  <script>
+    function myFunction() {
+      var x = document.getElementById("footer-nav");
+      if (x.style.display === "none") {
+          x.style.display = "block";
+      } else {
+          x.style.display = "none";
+      }
+    }
+  </script>
 </body>
