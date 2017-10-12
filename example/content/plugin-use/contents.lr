@@ -1,0 +1,22 @@
+_model: page
+---
+title: Plugin Use
+---
+body:
+
+Here the lektor-markdown-highlighter is being used.
+
+```python
+from sys import exit
+
+def say_hi():
+    print "Hello World!" # Engage in conversation
+
+def ignore_everything():
+    exit(0) # Successful exit
+
+if being_looked_at is True:
+    say_hi()
+else:
+    ignore_everything()
+```

@@ -15,3 +15,6 @@ locale = fr
 name = German
 url_prefix = /de/
 locale = de
+
+[packages]
+lektor-markdown-highlighter = 0.1

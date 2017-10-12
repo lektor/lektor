@@ -2,16 +2,5 @@
 {% block title %}{{ this.title }}{% endblock %}
 {% block body %}
   <h2>{{ this.title }}</h2>
-  {% if this._path == '/' %}
-    <ul>
-      Available alts:
-      {% for alt in get_alts() %}
-        <li style="display: inline;">
-          <a href="{{ '.'|url(alt=alt) }}">{{ alt }}</a>
-        </li>
-      {% endfor %}
-    </ul>
-    {{ this.alt_note }}
-  {% endif %}
   {{ this.body }}
 {% endblock %}
