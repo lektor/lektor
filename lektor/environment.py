@@ -68,6 +68,7 @@ DEFAULT_CONFIG = {
         'url': None,
         'url_style': 'relative',
     },
+    'THEME_SETTINGS': {},
     'PACKAGES': {},
     'ALTERNATIVES': OrderedDict(),
     'PRIMARY_ALTERNATIVE': None,
@@ -94,7 +95,7 @@ def update_config_from_ini(config, inifile):
     set_simple(target='LESSC_EXECUTABLE',
                source_path='env.lessc_executable')
 
-    for section_name in ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES'):
+    for section_name in ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES', 'THEME_SETTINGS'):
         section_config = inifile.section_as_dict(section_name.lower())
         config[section_name].update(section_config)
 
