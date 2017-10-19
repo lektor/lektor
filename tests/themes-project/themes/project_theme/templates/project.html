@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h1>{{ this.name }}</h1>
+  <div class="description">
+    {{ this.description }}
+  </div>
+  {% if this.website %}
+    <p>Visit website: <a href="{{ this.website }}">{{ this.website.host }}</a>
+  {% endif %}
+{% endblock %}

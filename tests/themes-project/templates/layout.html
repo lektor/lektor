@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+{% block head %}
+<title>My Website</title>
+<meta charset=utf-8>
+<link href="{{ '/static/style.css'|url }}" rel="stylesheet">
+{% endblock %}
+</head>
+<body>
+  <div class="container">
+    {% block body %}{% endblock %}
+  </div> <!-- /container -->
+</body>
+</html>
