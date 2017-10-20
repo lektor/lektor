@@ -82,3 +82,11 @@ def test_loading_theme_path_if_not_setted(theme_project_tmpdir):
     project = Project.from_path(str(theme_project_tmpdir))
     env = theme_env(project)
     assert os.path.basename(env.theme_path) == 'project_theme'
+
+
+def test_theme_assest_loading(theme_pad):
+    # dummy.txt wil be loaded from themes-project assets not from blog_theme assets
+    assert "themes" not in theme_pad.get_asset('dummy.txt').source_filename.split(os.path.sep)
+
+    # static/blog.css will be loaded from blog_theme assets
+    assert "blog_theme" in theme_pad.get_asset('static/blog.css').source_filename.split(os.path.sep)
