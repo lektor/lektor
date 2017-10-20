@@ -3,11 +3,12 @@ import textwrap
 import shutil
 import pytest
 
+sep = os.path.sep
 
 @pytest.fixture(scope='function')
 def theme_project_tmpdir(tmpdir):
+    """Copy themes-project to a temp dir, and copy demo-project content to it"""
 
-    # Copy themes-project to a temp dir, and copy demo-project content to it
     themes_dir = os.path.join(os.path.dirname(__file__), 'themes-project')
     content_dir = os.path.join(os.path.dirname(__file__), 'demo-project', 'content')
 
@@ -21,6 +22,7 @@ def theme_project_tmpdir(tmpdir):
 
 @pytest.fixture(scope='function')
 def theme_project(theme_project_tmpdir):
+    """Return the theme project created in a temp dir."""
     from lektor.project import Project
 
     # Create the .lektorproject file
@@ -32,7 +34,6 @@ def theme_project(theme_project_tmpdir):
     theme_project_tmpdir.join("themes.lektorproject").write_text(lektorfile_text,
                                                                  "utf8",
                                                                  ensure=True)
-
     return Project.from_path(str(theme_project_tmpdir))
 
 
@@ -63,10 +64,11 @@ def test_loading_theme_path(theme_env):
 
 
 def test_loading_theme_path_if_not_setted(theme_project_tmpdir):
-    """When project doesn't have theme,
+    """When project doesn't have theme variable,
     the first theme found in the themes folder will be loaded.
 
-    So removing blog_theme will cause project_theme to be loaded.
+    Removing blog_theme will cause project_theme to be loaded.
+    (otherwise blog_theme will be loaded because is the first theme to be found)
     """
     from lektor.project import Project
 
@@ -85,31 +87,42 @@ def test_loading_theme_path_if_not_setted(theme_project_tmpdir):
 
 
 def test_theme_assest_loading(theme_pad):
-    # dummy.txt wil be loaded from themes-project assets not from blog_theme assets
-    assert "themes" not in theme_pad.get_asset('dummy.txt').source_filename.split(os.path.sep)
+    # - themes-project/assets/dummy.txt
+    # - themes-project/themes/blog_theme/assets/dummy.txt
+    # wil be loaded from themes-project assets not from blog_theme assets
+    assert "themes" not in theme_pad.get_asset('dummy.txt').source_filename.split(sep)
 
-    # static/blog.css will be loaded from blog_theme assets
-    assert "blog_theme" in theme_pad.get_asset('static/blog.css').source_filename.split(os.path.sep)
+    # - themes-project/themes/blog_theme/static/blog.css
+    # only exist in blog_theme assets will be loaded from there
+    assert "blog_theme" in theme_pad.get_asset('static/blog.css').source_filename.split(sep)
 
 
 def test_theme_models_loading(theme_pad):
-    # blog.ini will be loaded from blog_theme
-    assert "blog_theme" in theme_pad.get('/blog').datamodel.filename.split(os.path.sep)
+    # - themes-project/themes/blog_theme/models/blog.ini
+    # only exist in blog_theme will be loaded from there
+    assert "blog_theme" in theme_pad.get('/blog').datamodel.filename.split(sep)
 
-    # blog-post.ini will be loaded from project models
+    # - themes-project/models/blog-post.ini
+    # - themes-project/themes/blog_theme/models/blog-post.ini
+    # will be loaded from themes-project models
     assert theme_pad.get('/blog/post1').datamodel.name == 'Blog Post'
-    assert "themes" not in theme_pad.get('/blog/post1').datamodel.filename.split(os.path.sep)
+    assert "themes" not in theme_pad.get('/blog/post1').datamodel.filename.split(sep)
 
-    # page.ini wllbe loaded from project models
-    assert "themes" not in theme_pad.get('/').datamodel.filename.split(os.path.sep)
+    # - themes-project/models/page.ini
+    # only exist in themes-project will be loaded from there
+    assert "themes" not in theme_pad.get('/').datamodel.filename.split(sep)
 
 
 def test_theme_templates_loading(theme_env):
-    # layout.html will be loaded from project templates
-    assert "themes" not in theme_env.jinja_env.get_template("layout.html").filename.split(os.path.sep)
+    # - themes-project/templates/layout.html
+    # - themes-project/themes/blog_theme/templates/layout.html
+    # will be loaded from themes-project templates
+    assert "themes" not in theme_env.jinja_env.get_template("layout.html").filename.split(sep)
 
-    # blog.html will be loaded from blog_theme
-    assert "blog_theme" in theme_env.jinja_env.get_template("blog.html").filename.split(os.path.sep)
+    # - themes-project/themes/blog_theme/templates/blog.html
+    # only exist in blog_theme will be loaded from there
+    assert "blog_theme" in theme_env.jinja_env.get_template("blog.html").filename.split(sep)
 
-    # page html will be loaded from project templates
-    assert "themes" not in theme_env.jinja_env.get_template("page.html").filename.split(os.path.sep)
+    # - themes-project/templates/page.html
+    # only exist in themes-project will be loaded from there
+    assert "themes" not in theme_env.jinja_env.get_template("page.html").filename.split(sep)
