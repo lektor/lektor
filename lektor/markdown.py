@@ -59,6 +59,7 @@ def make_markdown(env):
     cfg = MarkdownConfig()
     env.plugin_controller.emit('markdown-config', config=cfg)
     renderer = cfg.make_renderer()
+    env.plugin_controller.emit('markdown-lexer-config', config=cfg, renderer=renderer)
     return mistune.Markdown(renderer, **cfg.options)
 
 
