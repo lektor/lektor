@@ -92,11 +92,23 @@ def test_theme_assest_loading(theme_pad):
     # only exist in blog_theme assets will be loaded from there
     assert "blog_theme" in theme_pad.get_asset('static/blog.css').source_filename.split(sep)
 
+    # - themes-project/themes/project_theme/static/project.css
+    # only exist in project_theme assets will be loaded from there
+    assert "project_theme" in theme_pad.get_asset('static/project.css').source_filename.split(sep)
+
+    # - themes-project/themes/blog_theme/assets/dummy2.txt
+    # - themes-project/themes/blog_theme/assets/dummy2.txt
+    # wil be loaded from blog_theme assets because is included first
+    assert "blog_theme" in theme_pad.get_asset('dummy2.txt').source_filename.split(sep)
 
 def test_theme_models_loading(theme_pad):
     # - themes-project/themes/blog_theme/models/blog.ini
     # only exist in blog_theme will be loaded from there
     assert "blog_theme" in theme_pad.get('/blog').datamodel.filename.split(sep)
+
+    # - themes-project/themes/project_theme/models/projects.ini
+    # only exist in project_theme will be loaded from there
+    assert "project_theme" in theme_pad.get('/projects').datamodel.filename.split(sep)
 
     # - themes-project/models/blog-post.ini
     # - themes-project/themes/blog_theme/models/blog-post.ini
@@ -108,10 +120,17 @@ def test_theme_models_loading(theme_pad):
     # only exist in themes-project will be loaded from there
     assert "themes" not in theme_pad.get('/').datamodel.filename.split(sep)
 
+    # - themes-project/themes/blog_theme/models/project.ini
+    # - themes-project/themes/project_theme/models/project.ini
+    # wil be loaded from blog_theme assets because is included first
+    assert theme_pad.get('/projects/bagpipe').datamodel.name == 'Project'
+    assert "blog_theme" in theme_pad.get('/projects/bagpipe').datamodel.filename.split(sep)
+
 
 def test_theme_templates_loading(theme_env):
     # - themes-project/templates/layout.html
     # - themes-project/themes/blog_theme/templates/layout.html
+    # - themes-project/themes/project_theme/templates/layout.html
     # will be loaded from themes-project templates
     assert "themes" not in theme_env.jinja_env.get_template("layout.html").filename.split(sep)
 
@@ -119,6 +138,15 @@ def test_theme_templates_loading(theme_env):
     # only exist in blog_theme will be loaded from there
     assert "blog_theme" in theme_env.jinja_env.get_template("blog.html").filename.split(sep)
 
+    # - themes-project/themes/project_theme/templates/project.html
+    # only exist in project_theme will be loaded from there
+    assert "project_theme" in theme_env.jinja_env.get_template("project.html").filename.split(sep)
+
     # - themes-project/templates/page.html
     # only exist in themes-project will be loaded from there
     assert "themes" not in theme_env.jinja_env.get_template("page.html").filename.split(sep)
+
+    # - themes-project/themes/blog_theme/templates/dummy.html
+    # - themes-project/themes/project_theme/templates/dummy.html
+    # wil be loaded from blog_theme assets because is included first
+    assert "blog_theme" in theme_env.jinja_env.get_template("dummy.html").filename.split(sep)
