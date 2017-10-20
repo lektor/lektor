@@ -102,3 +102,14 @@ def test_theme_models_loading(theme_pad):
 
     # page.ini wllbe loaded from project models
     assert "themes" not in theme_pad.get('/').datamodel.filename.split(os.path.sep)
+
+
+def test_theme_templates_loading(theme_env):
+    # layout.html will be loaded from project templates
+    assert "themes" not in theme_env.jinja_env.get_template("layout.html").filename.split(os.path.sep)
+
+    # blog.html will be loaded from blog_theme
+    assert "blog_theme" in theme_env.jinja_env.get_template("blog.html").filename.split(os.path.sep)
+
+    # page html will be loaded from project templates
+    assert "themes" not in theme_env.jinja_env.get_template("page.html").filename.split(os.path.sep)
