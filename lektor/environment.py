@@ -407,25 +407,22 @@ class Environment(object):
     def __init__(self, project, load_plugins=True):
         self.project = project
         self.root_path = os.path.abspath(project.tree)
-        self.theme_path = None
 
-        if self.project.theme is not None:
-            self.theme_path = os.path.join(self.root_path, 'themes',
-                                           self.project.theme)
-        else:
-            # load the first directory in the themes directory as the theme
+        self.theme_paths = [os.path.join(self.root_path, 'themes', theme)
+                            for theme in self.project.themes]
+
+        if not self.theme_paths:
+            # load the directories in the themes directory as the themes
             try:
                 for fname in os.listdir(os.path.join(self.root_path, 'themes')):
                     f = os.path.join(self.root_path, 'themes', fname)
                     if os.path.isdir(f):
-                        self.theme_path = f
-                        break
+                        self.theme_paths.append(f)
             except OSError:
-                self.theme_path = None
+                pass
 
-        template_paths = [os.path.join(self.root_path, 'templates')]
-        if self.theme_path:
-            template_paths.append(os.path.join(self.theme_path, 'templates'))
+        template_paths = [os.path.join(path, 'templates')
+                          for path in [self.root_path] + self.theme_paths]
 
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,

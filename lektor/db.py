@@ -1471,9 +1471,10 @@ class Pad(object):
                 return rv
 
         if include_assets:
-            rv = self.asset_root.resolve_url_path(pieces)
-            if rv is None and self.theme_asset_root is not None:
-                rv = self.theme_asset_root.resolve_url_path(pieces)
+            for asset_root in [self.asset_root] + self.theme_asset_roots:
+                rv = asset_root.resolve_url_path(pieces)
+                if rv is not None:
+                    break
             return rv
 
     def get_root(self, alt=PRIMARY_ALT):
@@ -1489,12 +1490,13 @@ class Pad(object):
                          path=os.path.join(self.db.env.root_path, 'assets'))
 
     @property
-    def theme_asset_root(self):
-        """The root of the asset tree of the theme."""
-        if self.db.env.theme_path is None:
-            return None
-        return Directory(self, name='',
-                         path=os.path.join(self.db.env.theme_path, 'assets'))
+    def theme_asset_roots(self):
+        """The root of the asset tree of each theme."""
+        asset_roots = []
+        for theme_path in self.db.env.theme_paths:
+            asset_roots.append(Directory(self, name='',
+                                          path=os.path.join(theme_path, 'assets')))
+        return asset_roots
 
     def get_all_roots(self):
         """Returns all the roots for building."""
@@ -1508,8 +1510,7 @@ class Pad(object):
             rv = [self.root]
 
         rv.append(self.asset_root)
-        if self.theme_asset_root is not None:
-            rv.append(self.theme_asset_root)
+        rv.extend(self.theme_asset_roots)
         return rv
 
     def get_virtual(self, record, virtual_path):
@@ -1603,7 +1604,7 @@ class Pad(object):
     def get_asset(self, path):
         """Loads an asset by path."""
         clean_path = cleanup_path(path).strip('/')
-        nodes = filter(None, [self.asset_root, self.theme_asset_root])
+        nodes = [self.asset_root] + self.theme_asset_roots
         for node in nodes:
             for piece in clean_path.split('/'):
                 node = node.get_child(piece)

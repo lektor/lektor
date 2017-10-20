@@ -592,7 +592,9 @@ def iter_inis(path):
 
 def load_datamodels(env):
     """Loads the datamodels for a specific environment."""
-    paths = filter(None, [env.theme_path, env.root_path])
+    # Models will override previous loaded models with the same name
+    # So models paths are loaded in reverse order
+    paths = list(reversed(env.theme_paths)) + [env.root_path]
     paths = [os.path.join(p, 'models') for p in paths]
     data = {}
 
@@ -632,7 +634,7 @@ def load_datamodels(env):
 
 def load_flowblocks(env):
     """Loads all the flow blocks for a specific environment."""
-    paths = filter(None, [env.theme_path, env.root_path])
+    paths = env.theme_paths + [env.root_path]
     paths = [os.path.join(p, 'flowblocks') for p in paths]
     rv = {}
 
