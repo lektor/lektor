@@ -90,3 +90,15 @@ def test_theme_assest_loading(theme_pad):
 
     # static/blog.css will be loaded from blog_theme assets
     assert "blog_theme" in theme_pad.get_asset('static/blog.css').source_filename.split(os.path.sep)
+
+
+def test_theme_models_loading(theme_pad):
+    # blog.ini will be loaded from blog_theme
+    assert "blog_theme" in theme_pad.get('/blog').datamodel.filename.split(os.path.sep)
+
+    # blog-post.ini will be loaded from project models
+    assert theme_pad.get('/blog/post1').datamodel.name == 'Blog Post'
+    assert "themes" not in theme_pad.get('/blog/post1').datamodel.filename.split(os.path.sep)
+
+    # page.ini wllbe loaded from project models
+    assert "themes" not in theme_pad.get('/').datamodel.filename.split(os.path.sep)
