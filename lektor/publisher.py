@@ -540,7 +540,7 @@ class GithubPagesPublisher(Publisher):
         rv = username
         if username and password:
             rv += ':' + password
-        return rv.encode('utf-8') if rv else None
+        return rv if rv else None
 
     def update_git_config(self, repo, url, branch, credentials=None):
         ssh_command = None

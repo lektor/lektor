@@ -42,6 +42,31 @@ def test_ghpages_update_git_config_https(tmpdir, env):
     assert repo_config.read().strip() == expected
 
 
+def test_ghpages_update_git_config_https_credentials(tmpdir, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = GithubPagesPublisher(env, str(output_path))
+    repo_path = tmpdir.mkdir("repo")
+    repo_config = repo_path.mkdir(".git").join("config").ensure(file=True)
+    target_url = url_parse("ghpages+https://pybee/pybee.github.io?cname=pybee.org")
+    branch = "lektor"
+    credentials_file = repo_path.join('.git', 'credentials')
+    credentials = {
+        "username": "fakeuser",
+        "password": "fakepass",
+    }
+    publisher.update_git_config(str(repo_path), target_url, branch, credentials=credentials)
+    expected = textwrap.dedent("""
+        [remote "origin"]
+        url = https://github.com/pybee/pybee.github.io.git
+        fetch = +refs/heads/lektor:refs/remotes/origin/lektor
+        [credential]
+        helper = store --file "{}"
+    """).format(credentials_file).strip()
+    assert repo_config.read().strip() == expected
+
+    assert credentials_file.read().strip() == "https://fakeuser:fakepass@github.com".strip()
+
+
 def test_ghpages_write_cname(tmpdir, env):
     output_path = tmpdir.mkdir("output")
     publisher = GithubPagesPublisher(env, str(output_path))
