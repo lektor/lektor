@@ -105,7 +105,7 @@ def test_loading_theme_path_variable_dont_set(theme_env):
         # only exist in project_theme assets will be loaded from there
         ('static/project.css', 'project'),
         # - themes-project/themes/blog_theme/assets/dummy2.txt
-        # - themes-project/themes/blog_theme/assets/dummy2.txt
+        # - themes-project/themes/project_theme/assets/dummy2.txt
         # wil be loaded from blog_theme assets because is included first
         ('dummy2.txt', 'blog'),
     ])
