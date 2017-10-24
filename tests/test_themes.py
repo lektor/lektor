@@ -91,6 +91,9 @@ def test_loading_theme_path_variable_dont_set(theme_env):
 @pytest.mark.parametrize(
     'asset_name, found_in',
     [
+        # - themes-project/assets/asset.txt
+        # only exist in themes-project assets will be loaded from there
+        ('asset.txt', 'root'),
         # - themes-project/assets/dummy.txt
         # - themes-project/themes/blog_theme/assets/dummy.txt
         # wil be loaded from themes-project assets not from blog_theme assets
