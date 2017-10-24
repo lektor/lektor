@@ -73,10 +73,19 @@ def test_loading_theme_variable(theme_project, themes):
     assert theme_project.themes == themes
 
 
-@pytest.mark.parametrize('theme_project', (True, False), indirect=True)
+@pytest.mark.parametrize('theme_project', (True,), indirect=True)
 def test_loading_theme_path(theme_env):
     assert [os.path.basename(p)
             for p in theme_env.theme_paths] == ['blog_theme', 'project_theme']
+
+
+@pytest.mark.parametrize('theme_project', (False,), indirect=True)
+def test_loading_theme_path_variable_dont_set(theme_env):
+    """Themes will be loaded, but the order could change."""
+    paths = [os.path.basename(p) for p in theme_env.theme_paths]
+    assert len(paths) == 2
+    for path in paths:
+        assert path in ['blog_theme', 'project_theme']
 
 
 @pytest.mark.parametrize(
