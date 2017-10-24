@@ -103,6 +103,9 @@ def test_theme_asset_loading(theme_pad, asset_name, found_in):
     Loading should take in account the order of the themes
     """
     path_list = theme_pad.get_asset(asset_name).source_filename.split(sep)
+    path_list_from_url = theme_pad.resolve_url_path(asset_name).source_filename.split(sep)
+
+    assert path_list == path_list_from_url
 
     assert (found_in == 'root') == ('themes' not in path_list)
     assert (found_in == 'blog') == ('blog_theme' in path_list)
