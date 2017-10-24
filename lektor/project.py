@@ -13,9 +13,7 @@ class Project(object):
         self.name = name
         self.project_file = project_file
         self.tree = os.path.normpath(tree)
-        self.themes = themes
-        if themes is None:
-            self.themes = []
+        self.themes = themes or []
         self.id = hashlib.md5(self.tree.encode('utf-8')).hexdigest()
 
     def open_config(self):
