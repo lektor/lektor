@@ -1,0 +1,16 @@
+title: Themes
+---
+sort_key: 95
+---
+summary: A quick introduction into Lektor Themes.
+---
+body:
+
+!!!! This is under development and isn't released yet. It should be considerer
+unstable and could change in the future
+
+Lektor provides a themes system for easy implement, reuse and distibute themes.
+Themes are created by the Lektor community, see avalaibles themes [here](/themes)
+
+Lektor Themes work like an extension of the project, and theme files could be
+overrided by project files.
