@@ -1,6 +1,7 @@
 import os
-import json
 import io
+
+from flask import json
 
 from lektor._compat import iteritems
 from lektor.uilink import UI_LANG
@@ -14,11 +15,9 @@ KNOWN_LANGUAGES = list(x[:-5] for x in os.listdir(translations_path)
 
 translations = {}
 for _lang in KNOWN_LANGUAGES:
-    # Using standard open cause an error in python 2.7
-    # (because the encoding can't de selected)
-    # See https://github.com/lektor/lektor/issues/378
-    with io.open(os.path.join(translations_path, _lang + '.json'),
-                 encoding="utf8") as f:
+    # We use flask.json here which can deal with bytes unlike the stdlib
+    # json module which barfs on bytes on 3.x
+    with open(os.path.join(translations_path, _lang + '.json'), 'rb') as f:
         translations[_lang] = json.load(f)
 
 
