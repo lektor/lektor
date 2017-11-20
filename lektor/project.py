@@ -9,10 +9,11 @@ from lektor.utils import untrusted_to_os_path, get_cache_dir, comma_delimited
 
 class Project(object):
 
-    def __init__(self, name, project_file, tree):
+    def __init__(self, name, project_file, tree, themes=None):
         self.name = name
         self.project_file = project_file
         self.tree = os.path.normpath(tree)
+        self.themes = themes or []
         self.id = hashlib.md5(self.tree.encode('utf-8')).hexdigest()
 
     def open_config(self):
@@ -32,10 +33,18 @@ class Project(object):
         path = os.path.join(os.path.dirname(filename),
                             untrusted_to_os_path(
                                 inifile.get('project.path') or '.'))
+
+        themes = inifile.get('project.themes')
+        if themes is not None:
+            themes = [x.strip() for x in themes.split(',')]
+        else:
+            themes = []
+
         return cls(
             name=name,
             project_file=filename,
             tree=path,
+            themes=themes,
         )
 
     @classmethod

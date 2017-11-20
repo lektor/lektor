@@ -68,6 +68,7 @@ DEFAULT_CONFIG = {
         'url': None,
         'url_style': 'relative',
     },
+    'THEME_SETTINGS': {},
     'PACKAGES': {},
     'ALTERNATIVES': OrderedDict(),
     'PRIMARY_ALTERNATIVE': None,
@@ -94,7 +95,7 @@ def update_config_from_ini(config, inifile):
     set_simple(target='LESSC_EXECUTABLE',
                source_path='env.lessc_executable')
 
-    for section_name in ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES'):
+    for section_name in ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES', 'THEME_SETTINGS'):
         section_config = inifile.section_as_dict(section_name.lower())
         config[section_name].update(section_config)
 
@@ -407,11 +408,27 @@ class Environment(object):
         self.project = project
         self.root_path = os.path.abspath(project.tree)
 
+        self.theme_paths = [os.path.join(self.root_path, 'themes', theme)
+                            for theme in self.project.themes]
+
+        if not self.theme_paths:
+            # load the directories in the themes directory as the themes
+            try:
+                for fname in os.listdir(os.path.join(self.root_path, 'themes')):
+                    f = os.path.join(self.root_path, 'themes', fname)
+                    if os.path.isdir(f):
+                        self.theme_paths.append(f)
+            except OSError:
+                pass
+
+        template_paths = [os.path.join(path, 'templates')
+                          for path in [self.root_path] + self.theme_paths]
+
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,
             extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_'],
             loader=jinja2.FileSystemLoader(
-                os.path.join(self.root_path, 'templates'))
+                template_paths)
         )
 
         from lektor.db import F, get_alts

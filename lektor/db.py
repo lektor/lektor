@@ -1471,7 +1471,11 @@ class Pad(object):
                 return rv
 
         if include_assets:
-            return self.asset_root.resolve_url_path(pieces)
+            for asset_root in [self.asset_root] + self.theme_asset_roots:
+                rv = asset_root.resolve_url_path(pieces)
+                if rv is not None:
+                    break
+            return rv
 
     def get_root(self, alt=PRIMARY_ALT):
         """The root page of the database."""
@@ -1485,6 +1489,15 @@ class Pad(object):
         return Directory(self, name='',
                          path=os.path.join(self.db.env.root_path, 'assets'))
 
+    @property
+    def theme_asset_roots(self):
+        """The root of the asset tree of each theme."""
+        asset_roots = []
+        for theme_path in self.db.env.theme_paths:
+            asset_roots.append(Directory(self, name='',
+                                          path=os.path.join(theme_path, 'assets')))
+        return asset_roots
+
     def get_all_roots(self):
         """Returns all the roots for building."""
         rv = []
@@ -1497,6 +1510,7 @@ class Pad(object):
             rv = [self.root]
 
         rv.append(self.asset_root)
+        rv.extend(self.theme_asset_roots)
         return rv
 
     def get_virtual(self, record, virtual_path):
@@ -1590,12 +1604,14 @@ class Pad(object):
     def get_asset(self, path):
         """Loads an asset by path."""
         clean_path = cleanup_path(path).strip('/')
-        node = self.asset_root
-        for piece in clean_path.split('/'):
-            node = node.get_child(piece)
-            if node is None:
-                break
-        return node
+        nodes = [self.asset_root] + self.theme_asset_roots
+        for node in nodes:
+            for piece in clean_path.split('/'):
+                node = node.get_child(piece)
+                if node is None:
+                    break
+            if node is not None:
+                return node
 
     def instance_from_data(self, raw_data, datamodel=None, page_num=None):
         """This creates an instance from the given raw data."""
