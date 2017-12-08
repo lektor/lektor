@@ -6,10 +6,15 @@ These are all the changes in Lektor since the first public release.
 3.1.0.dev1
 -----
 
-Release date TBD.
+Next release date TBD.
 
+- Added Lektor theming.
+- Fix: Potential infinite build/prune loop due to pathing issue.
+- Added markdown-lexer-config plugin hook.
+- Fix GitHub deploy on Python 3.
+- Added ability for dev shell to use IPython if it's available.
 - Added ability to publish from different filesystems.
-- Adding new option to turn disable editing fields on alternatives.
+- Adding new option to turn on disabling of editing fields on alternatives.
 - Added automated testing for Windows.
 - Expanded automated testing environments to Python 2.7, 3.5, 3.6, & Node 6, 7, 8.
 - Windows bugfixes.

@@ -10,7 +10,7 @@ tests_require = [
 
 setup(
     name='Lektor',
-    version='3.0',
+    version='3.1.0.dev1',
     url='http://github.com/lektor/lektor/',
     description='A static content management system.',
     license='BSD',
