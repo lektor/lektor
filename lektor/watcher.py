@@ -70,7 +70,7 @@ class Watcher(BasicWatcher):
             return False
         if path.startswith(self.cache_dir):
             return False
-        if self.output_path is not None and path.startswith(self.output_path):
+        if self.output_path is not None and path.startswith(os.path.abspath(self.output_path)):
             return False
         return True
 
