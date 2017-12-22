@@ -27,7 +27,7 @@ the query.  For instance this iterates over all attached images of a page:
 To access images from a different content folder, you would use:
 
 ```html+jinja
-{% for image in site.query('/myfolder').attachments.images %}
+{% for image in site.get('/myfolder').attachments.images %}
   <div class="image"><img src="{{ image|url }}"></div>
 {% endfor %}
 ```
@@ -35,7 +35,7 @@ To access images from a different content folder, you would use:
 To retrieve only a specific image or attachment with a certain name you would use
 
 ```html+jinja
-{% set my_image site.query('/myfolder').attachments.get('imagenameexample.jpg') %}
+{% set my_image site.get('/myfolder').attachments.get('imagenameexample.jpg') %}
   <div class="image"><img src="{{ my_image|url }}"></div>
 ```
 
