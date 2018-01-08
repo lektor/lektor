@@ -1,9 +1,9 @@
+from werkzeug.wsgi import extract_path_info
 from flask import Blueprint, render_template, abort, redirect, request, \
      g, url_for
 
 from lektor.admin.utils import fs_path_to_url_path
 from lektor.environment import PRIMARY_ALT
-from werkzeug.wsgi import extract_path_info
 
 
 bp = Blueprint('dash', __name__, url_prefix='/admin')

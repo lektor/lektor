@@ -1,9 +1,9 @@
 import os
 import sys
 from weakref import ref as weakref
-
-import pkg_resources
 from inifile import IniFile
+import pkg_resources
+
 from lektor._compat import iteritems, itervalues
 from lektor.context import get_ctx
 

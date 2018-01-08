@@ -1,14 +1,13 @@
 import datetime
 
+from markupsafe import escape, Markup
+from babel.dates import get_timezone
+
 from lektor._compat import itervalues, text_type
 from lektor.datamodel import Field
 from lektor.types.formats import MarkdownDescriptor
 from lektor.context import Context
 from lektor.types import Undefined, BadValue
-
-from markupsafe import escape, Markup
-
-from babel.dates import get_timezone
 
 
 class DummySource(object):
