@@ -989,7 +989,7 @@ class Builder(object):
         if PY2:
             # This code block solve lektor/lektor#243 issue
             # `os.walk` return :class:`str` type string. But :class:`str` mean
-            # diffrent type between Python 2 and 3.
+            # different type between Python 2 and 3.
             # (:class:`str` on PY2 is equivalent to :class:`bytes` on PY3)
             # :mod:`sqlite` can not consume multibyte input string because
             # it expect :class:`unicode` on PY2, not bytes.
