@@ -34,14 +34,18 @@ before_install:
   - (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`)
   - source ~/.nvm/nvm.sh
   - nvm install $TRAVIS_NODE_VERSION
-  - python --version
-  - node --version
 
 install:
   - travis_retry pip install --upgrade pytest
   - travis_retry pip install --upgrade codecov
   - travis_retry pip install --editable .[test]
   - travis_retry make build-js
+
+before_script:
+  - python --version
+  - node --version
+  - pip list
+  - (cd lektor/admin/; npm list)
 
 script: make coverage
 
