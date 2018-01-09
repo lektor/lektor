@@ -65,7 +65,7 @@ def _write_ssh_key_file(temp_fn, credentials):
                 f.write('-----END %s PRIVATE KEY-----\n' % kt.upper())
             os.chmod(temp_fn, 0o600)
             return temp_fn
-
+    return None
 
 def _get_ssh_cmd(port=None, keyfile=None):
     ssh_args = []

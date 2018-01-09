@@ -612,6 +612,7 @@ class Page(Record):
             rv = node.resolve_url_path(url_path[idx + 1:])
             if rv is not None:
                 return rv
+        return None
 
     @cached_property
     def parent(self):
@@ -622,6 +623,7 @@ class Page(Record):
             return self.pad.get(parent_path,
                                 persist=self.pad.cache.is_persistent(self),
                                 alt=self.alt)
+        return None
 
     @property
     def children(self):
@@ -905,6 +907,8 @@ class Query(object):
             # attachments and/nor children.  I have no idea which
             # value of order_by to use.  We could punt and return
             # child_config.order_by, but for now, just return None.
+            return None
+        return None
 
     def include_hidden(self, value):
         """Controls if hidden records should be included which will not
@@ -1167,7 +1171,7 @@ class Database(object):
                 rv['_source_alt'] = source_alt
 
         if rv_type is None:
-            return
+            return None
 
         rv['_path'] = path
         rv['_id'] = posixpath.basename(path)
@@ -1476,6 +1480,7 @@ class Pad(object):
                 if rv is not None:
                     break
             return rv
+        return None
 
     def get_root(self, alt=PRIMARY_ALT):
         """The root page of the database."""
@@ -1570,7 +1575,7 @@ class Pad(object):
         raw_data = self.db.load_raw_data(path, alt=alt)
         if raw_data is None:
             self.cache.remember_as_missing(path, alt, virtual_path)
-            return
+            return None
 
         rv = self.instance_from_data(raw_data, page_num=page_num)
 
@@ -1612,6 +1617,7 @@ class Pad(object):
                     break
             if node is not None:
                 return node
+        return None
 
     def instance_from_data(self, raw_data, datamodel=None, page_num=None):
         """This creates an instance from the given raw data."""
@@ -1670,6 +1676,7 @@ class TreeItem(object):
         """Returns a child within this item."""
         if self.exists:
             return self.tree.get(posixpath.join(self.path, path))
+        return None
 
     def iter_children(self, include_attachments=True, include_pages=True):
         """Iterates over all children."""

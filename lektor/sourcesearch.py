@@ -16,6 +16,7 @@ def _find_info(infos, alt, lang):
     for info in infos:
         if info['alt'] == alt and info['lang'] == lang:
             return info
+    return None
 
 
 def _id_from_path(path):
@@ -45,6 +46,7 @@ def _find_best_info(infos, alt, lang):
         rv = _find_info(infos, _alt, _lang)
         if rv is not None:
             return rv
+    return None
 
 
 def _build_parent_path(path, mapping, alt, lang):

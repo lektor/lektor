@@ -277,6 +277,7 @@ class EditorSession(object):
         """The file system path of the actual attachment."""
         if self.is_attachment:
             return self.pad.db.to_fs_path(self.path)
+        return None
 
     def revert_key(self, key):
         """Reverts a key to the implied value."""
