@@ -45,7 +45,6 @@ before_script:
   - python --version
   - node --version
   - pip list
-  - (cd lektor/admin/; npm list)
 
 script: make coverage
 
