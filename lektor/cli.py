@@ -4,8 +4,8 @@ import json
 import time
 import itertools
 import warnings
-import pkg_resources
 import click
+import pkg_resources
 
 from .i18n import get_default_lang, is_valid_language
 from .utils import secure_url

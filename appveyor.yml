@@ -53,10 +53,12 @@ build: false
 test_script:
   # Run Python tests
   - "%PYTHON%\\python.exe --version"
+  - "%PYTHON%\\python.exe -m pip list"
   - "%PYTHON%\\Scripts\\pytest.exe . --tb=short -v --cov=lektor"
   # Run JS tests
   - cd lektor\admin
   - node --version
   - npm --version
+  - npm list
   - npm run lint
   - npm test

@@ -92,26 +92,26 @@ class PaginationConfig(object):
     def match_pagination(self, record, url_path):
         """Matches the pagination from the URL path."""
         if not self.enabled:
-            return
+            return None
         suffixes = self.url_suffix.strip('/').split('/')
         if url_path[:len(suffixes)] != suffixes:
-            return
-
+            return None
         try:
             page_num = int(url_path[len(suffixes)])
         except (ValueError, IndexError):
-            return
+            return None
 
         # It's important we do not allow "1" here as the first page is always
         # on the root.  Changing this would mean the URLs are incorrectly
         # generated if someone manually went to /page/1/.
         if page_num == 1 or len(url_path) != len(suffixes) + 1:
-            return
+            return None
 
         # Page needs to have at least a single child.
         rv = self.get_record_for_page(record, page_num)
         if rv.pagination.items.first() is not None:
             return rv
+        return None
 
     def get_pagination_controller(self, record):
         if not self.enabled:
@@ -520,6 +520,7 @@ def datamodel_from_data(env, model_data, parent=None):
             for item in path:
                 node = getattr(node, item)
             return node
+        return None
 
     fields = fields_from_data(env, model_data['fields'],
                               parent and parent.fields or None)
@@ -610,6 +611,7 @@ def load_datamodels(env):
             return model
         if model_id in data:
             return create_model(model_id)
+        return None
 
     def create_model(model_id):
         model_data = data.get(model_id)

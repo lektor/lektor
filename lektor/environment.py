@@ -280,6 +280,7 @@ class Config(object):
                 choices.append(server_info)
         if len(choices) == 1:
             return choices[0]
+        return None
 
     def get_server(self, name, public=False):
         """Looks up a server info by name."""
@@ -379,6 +380,7 @@ class Config(object):
         url = self.values['PROJECT'].get('url')
         if url and url_parse(url).scheme:
             return url.rstrip('/') + '/'
+        return None
 
     @cached_property
     def base_path(self):
@@ -578,6 +580,7 @@ class Environment(object):
             rv = resolver(obj, url_path)
             if rv is not None:
                 return rv
+        return None
 
     # -- methods for the plugin system
 

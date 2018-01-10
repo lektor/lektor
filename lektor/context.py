@@ -118,6 +118,7 @@ class Context(object):
         rv = self.source
         if rv is not None and rv.source_classification == 'record':
             return rv
+        return None
 
     @property
     def locale(self):
@@ -129,6 +130,7 @@ class Context(object):
             alt_cfg = self.pad.db.config['ALTERNATIVES'].get(source.alt)
             if alt_cfg:
                 return alt_cfg['locale']
+        return None
 
     def push(self):
         _ctx_stack.push(self)

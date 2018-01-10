@@ -1,6 +1,6 @@
 import textwrap
-from lektor.publisher import GithubPagesPublisher, RsyncPublisher
 from werkzeug.urls import url_parse
+from lektor.publisher import GithubPagesPublisher, RsyncPublisher
 
 def test_get_server(env):
     server = env.load_config().get_server('production')

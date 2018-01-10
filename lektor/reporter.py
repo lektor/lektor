@@ -48,16 +48,19 @@ class Reporter(object):
     def builder(self):
         if self.builder_stack:
             return self.builder_stack[-1]
+        return None
 
     @property
     def current_artifact(self):
         if self.artifact_stack:
             return self.artifact_stack[-1]
+        return None
 
     @property
     def current_source(self):
         if self.source_stack:
             return self.source_stack[-1]
+        return None
 
     @property
     def show_build_info(self):

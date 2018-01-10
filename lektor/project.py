@@ -71,6 +71,7 @@ class Project(object):
                 project_file=None,
                 tree=path,
             )
+        return None
 
     @classmethod
     def discover(cls, base=None):
@@ -86,6 +87,7 @@ class Project(object):
             if node == here:
                 break
             here = node
+        return None
 
     @property
     def project_path(self):
@@ -120,6 +122,7 @@ class Project(object):
         prefix = os.path.commonprefix([content_path, file_path])
         if prefix == content_path:
             return '/' + '/'.join(file_path[len(content_path):])
+        return None
 
     def make_env(self, load_plugins=True):
         """Create a new environment for this project."""

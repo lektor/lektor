@@ -299,6 +299,7 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
             for ext in extensions:
                 if os.access(path + ext, os.X_OK):
                     return path + ext
+        return None
     except OSError:
         pass
 

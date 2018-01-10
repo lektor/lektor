@@ -36,6 +36,7 @@ class Pagination(object):
         """Number of the previous page."""
         if self.page > 1:
             return self.page - 1
+        return None
 
     @property
     def has_prev(self):
@@ -59,6 +60,7 @@ class Pagination(object):
         """Number of the next page"""
         if self.page < self.pages:
             return self.page + 1
+        return None
 
     @property
     def next(self):
@@ -71,6 +73,7 @@ class Pagination(object):
         """Returns the pagination for a specific page."""
         if 1 <= page <= self.pages:
             return self.config.get_record_for_page(self.current, page)
+        return None
 
     def iter_pages(self, left_edge=2, left_current=2,
                    right_current=5, right_edge=2):

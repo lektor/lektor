@@ -141,6 +141,7 @@ class BuildState(object):
     def get_file_info(self, filename):
         if filename:
             return self.path_cache.get_file_info(filename)
+        return None
 
     def to_source_filename(self, filename):
         return self.path_cache.to_source_filename(filename)
@@ -549,7 +550,7 @@ class VirtualSourceInfo(object):
 
         if self.path != other.path:
             raise ValueError("trying to compare mismatched virtual paths: "
-                             "%r.unchanged(%r)", self, other)
+                             "%r.unchanged(%r)" % (self, other))
 
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
 
@@ -1034,7 +1035,8 @@ class Builder(object):
                                   reversed(builtin_build_programs)):
             if isinstance(source, cls):
                 return builder(source, build_state)
-        raise RuntimeError('I do not know how to build %r' % source)
+        # TODO: re-enable pylint when https://github.com/PyCQA/pylint/issues/1782 is fixed.
+        raise RuntimeError('I do not know how to build %r' % source) # pylint: disable=inconsistent-return-statements
 
     def build_artifact(self, artifact, build_func):
         """Various parts of the system once they have an artifact and a
@@ -1057,6 +1059,7 @@ class Builder(object):
                         ctx.record_dependency(project_file)
                     build_func(artifact)
                 return ctx
+        return None
 
     def update_source_info(self, prog, build_state):
         """Updates a single source info based on a program.  This is done

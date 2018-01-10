@@ -73,6 +73,7 @@ class SourceObject(object):
         """
         if not url_path:
             return self
+        return None
 
     def is_child_of(self, path, strict=False):
         """Checks if the current object is a child of the passed object

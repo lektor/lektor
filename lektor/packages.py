@@ -25,6 +25,7 @@ def _get_package_version_from_project(cfg, name):
                 'name': pkg,
                 'version': version
             }
+    return None
 
 
 def add_package_to_project(project, req):
@@ -79,6 +80,7 @@ def remove_package_from_project(project, name):
                 'name': pkg,
                 'version': version
             }
+    return None
 
 
 def download_and_install_package(package_root, package=None, version=None,

@@ -131,18 +131,21 @@ class EXIFInfo(object):
         val = self._get_float('EXIF ShutterSpeedValue')
         if val is not None:
             return '1/%d' % round(1 / (2 ** -val))  # pylint: disable=invalid-unary-operand-type
+        return None
 
     @property
     def focal_length(self):
         val = self._get_float('EXIF FocalLength')
         if val is not None:
             return u'%smm' % val
+        return None
 
     @property
     def focal_length_35mm(self):
         val = self._get_float('EXIF FocalLengthIn35mmFilm')
         if val is not None:
             return u'%dmm' % val
+        return None
 
     @property
     def flash_info(self):
@@ -159,6 +162,7 @@ class EXIFInfo(object):
         val = self._get_int('EXIF ISOSpeedRatings')
         if val is not None:
             return val
+        return None
 
     @property
     def created_at(self):
@@ -204,6 +208,7 @@ class EXIFInfo(object):
             if ref == 1:
                 val *= -1
             return val
+        return None
 
     @property
     def location(self):
@@ -211,6 +216,7 @@ class EXIFInfo(object):
         long = self.longitude
         if lat is not None and long is not None:
             return (lat, long)
+        return None
 
     @property
     def documentname(self):

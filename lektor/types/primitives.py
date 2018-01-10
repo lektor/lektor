@@ -1,14 +1,13 @@
 from datetime import date, datetime
 
 from markupsafe import Markup
+from babel.dates import get_timezone
+from pytz import FixedOffset
 
 from lektor.types import Type
 from lektor.environment import PRIMARY_ALT
 from lektor.utils import bool_from_string
 from lektor.i18n import get_i18n_block
-
-from babel.dates import get_timezone
-from pytz import FixedOffset
 
 
 class SingleInputType(Type):
