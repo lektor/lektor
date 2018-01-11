@@ -18,7 +18,7 @@ project
     └── lektor-theme-nix
 ```
 
-Themes are normally distibute by github repos, so you could install a theme by
+Themes are normally distributed by public Git repositories, so you could install a theme by
 cloning the repo:
 
 ```bash
@@ -32,12 +32,12 @@ cd themes
 git clone https://github.com/rlaverde/lektor-theme-nix.git
 ```
 
-If you download several themes, setting `themes` variable will allow to only load
+If you download several themes, setting `themes` variable will allow you to only load
 a particular theme.
 
-!!!! Not implemeted yet.
+!!!! Not implemented yet.
 
-You could add the `themes` variable to the `.lektorproject` file and lektor will
+You could add the `themes` variable to the `.lektorproject` file and Lektor will
 search in the (community themes)[/themes] and automatically install it.
 
 ```ini
@@ -47,7 +47,7 @@ themes = lextor-theme-nix
 
 ## Installing multiple themes
 
-Lektor also support installing several themes, copy them to the `themes/`
+Lektor also supports installing several themes. Copy them to the `themes/`
 folder, and set the `themes` variable to indicate the precedence (optional).
 
 ```
@@ -63,11 +63,12 @@ project
 
 ```ini
 [project]
-themes = lextor-theme-nix,lektor-theme-other-theme
+themes = lextor-theme-nix, lektor-theme-other-theme
 ```
 
-This will make `lektor-theme-nix`, to have a higher precedence, and files present
-in both themes will be loaded from it.
+This will make `lektor-theme-nix`, because it's listed first, have a higher precedence.
+Files present in multiple themes will be loaded from right to left, so that the first (left-most)
+theme is preferred over the theme(s) to its right.
 
-!! If you don't set `themes` variable, all themes will be loaded, but the order
+!! If you don't set the `themes` variable, all themes will be loaded, but the order
 isn't preserved.
