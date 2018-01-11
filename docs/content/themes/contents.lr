@@ -6,11 +6,11 @@ summary: A quick introduction into Lektor Themes.
 ---
 body:
 
-!!!! This is under development and isn't released yet. It should be considerer
-unstable and could change in the future
+!!!! This is under development and isn't released yet. It should be considered
+unstable and could change in the future.
 
-Lektor provides a themes system for easy implement, reuse and distibute themes.
-Themes are created by the Lektor community, see avalaibles themes [here](/themes)
+Lektor provides a themes system to easily implement, reuse, and distribute themes.
+This allows you to use assets, templates, models, and / or flowblocks built into the theme.
+Themes are created by the Lektor community. See available themes [here](/themes).
 
-Lektor Themes work like an extension of the project, and theme files could be
-overrided by project files.
+Lektor Themes work like an extension of the project, allowing you to easily adopt features of the theme such as styles, models, or templates. Theme files are loaded first, and any conflicting project files override the theme, allowing for customization.
