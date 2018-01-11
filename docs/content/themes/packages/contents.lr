@@ -1,4 +1,4 @@
-title: Installing plugins with a theme.
+title: Installing Plugins with a Theme.
 ---
 sort_key: 40
 ---
@@ -6,7 +6,7 @@ summary: Explains how a theme could depend or include several plugins.
 ---
 body:
 
-!!!! Not implemeted yet.
+!!!! Not implemented yet.
 
 Themes could depend on [plugins](../../plugins), and they will be loaded along
 the theme.
