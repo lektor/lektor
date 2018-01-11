@@ -1,4 +1,4 @@
-title: Customizing a theme
+title: Customizing a Theme
 ---
 sort_key: 20
 ---
@@ -6,8 +6,8 @@ summary: Explains how models, templates, or assets could be overrided.
 ---
 body:
 
-You could personalize a theme by overrided some files, for example if a theme
-provide a blog model in:
+You could personalize a theme by overriding files, for example if a theme
+provides a blog model in:
 
 ```
 /themes/<theme>/models/blog.ini
