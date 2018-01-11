@@ -38,7 +38,7 @@ so they might not keep pace with development on Lektor.
   fetches your GitHub repos for display in Lektor templates
 * [google-analytics :ext](https://github.com/kmonsoor/lektor-google-analytics): Adds `Google Analytics` support to Lektor-generated site.
 * [yandex-metrica :ext](https://github.com/gagoman/lektor-yandex-metrica): Adds `Yandex Metrica` support to Lektor-generated site.
-* [atom :ext](https://github.com/ajdavis/lektor-atom): Generate Atom feeds for your content.
+* [atom :ext](https://github.com/dwt/lektor-atom): Generate Atom feeds for your content.
 * [surge :ext](https://github.com/ajdavis/lektor-surge): Publish your site to [Surge](https://surge.sh/).
 * [netlify :ext](https://github.com/ajdavis/lektor-netlify): Publish your site to [Netlify](https://www.netlify.com/).
 * [tags :ext](https://github.com/ajdavis/lektor-tags): For each tag on site, build a list of pages with that tag.
