@@ -6,7 +6,7 @@ summary: Explains themes structure and theme.ini file.
 ---
 body:
 
-!!!! Not implemeted yet
+!!!! Not implemented yet.
 
 You could create a basic empty theme with the following command:
 
@@ -21,9 +21,9 @@ $ lektor new theme demo-theme
 ```
 
 
-## Theme components:
+## Theme Components:
 
-A theme could provide templates, assets, and models (also flowdocks):
+A theme could provide templates, assets, and models (also flowblocks):
 
 ```
 demo-theme
@@ -33,9 +33,9 @@ demo-theme
 └── flowdocks
 ```
 
-## The theme_settings variable
+## The theme_settings Variable
 
-A `theme_settings` section in `.lektorproject` file could be used for
+A `theme_settings` section in `.lektorproject` file could be used to
 parametrize themes:
 
 ```ini
@@ -59,7 +59,7 @@ will output:
 <a href="https://github.com/lektor/lektor">Github</a>
 ```
 
-## The theme.ini file
+## The theme.ini File
 
 Themes could provide a `theme.ini` file, that is optional, but it's required if
 you want to add your theme to the lektor community themes.
@@ -91,20 +91,20 @@ lektor-disqus-comments = 0.2
 
 The `[original]` section is only required if you are porting an existing theme.
 
-!!!! Not implemeted yet
+!!!! Not implemented yet
 
 The `lektor_minimum_required_version` is used by Lektor to check the
 compatibility when installing a theme.
 
-## Releasing a theme
+## Releasing a Theme
 
-!!!! Not implemeted yet
+!!!! Not implemented yet
 
-You could add a theme to lektor community theme, open a pull request against
+You could add a theme to Lektor community theme, open a pull request against
 (lektor themes)[https://github.com/lektor/lektor-themes] adding it as a git
 submodule.
 
-You should also include an `images/` folder with an screenshot and a thumbnail:
+You should also include an `images/` folder with a screenshot and a thumbnail:
 
 ```
 demo-theme
@@ -113,5 +113,5 @@ demo-theme
     └── screenshot.png
 ```
 
-Themes added to this lektor-themes repository, will automatically added to the
+Themes added to this lektor-themes repository, will automatically be added to the
 lektor website.
