@@ -45,7 +45,7 @@ search in the (community themes)[/themes] and automatically install it.
 themes = lextor-theme-nix
 ```
 
-## Installing multiple themes
+## Installing Multiple Themes
 
 Lektor also supports installing several themes. Copy them to the `themes/`
 folder, and set the `themes` variable to indicate the precedence (optional).
