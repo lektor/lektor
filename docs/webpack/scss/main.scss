@@ -47,6 +47,10 @@ blockquote {
   margin: 15px 0 15px 30px;
 }
 
+code {
+  white-space: nowrap;
+}
+
 nav.navbar-static-top {
   margin-bottom: 0;
 }
@@ -438,13 +442,13 @@ div.badges {
     text-align: center;
     vertical-align: top;
     font-size: 0;
-  
+
     li {
       vertical-align: top;
       display: table-cell;
       margin: 0;
       padding: 0 10px;
-  
+
       img {
         height: 28px;
         margin: 0;
