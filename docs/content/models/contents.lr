@@ -36,13 +36,13 @@ label = Body
 type = markdown
 ```
 
-In this particular case we have a model with the id `model` (as defined by the
+In this particular case, we have a model with the id `page` (as defined by the
 filename) and a name `Page` which will appear like that in the UI.  Pages that
 use this model will use the template expression `{{ this.title }}` to be
-displayed in the UI.  In this case it uses the title of the page.
+displayed in the UI.  In this case, it uses the title of the page.
 
 There are two fields defined: a `title` and a `body`.  The former is just an
-unformatted string which is show larger in the UI (`size = large`) and the
+unformatted string which is shown larger in the UI (`size = large`) and the
 latter uses markdown for rendering.  This will give it a text area in the admin
 panel.
 
@@ -62,8 +62,8 @@ The following options are used for all types:
 - `description`: an optional string that provides some description for the
   field that is shown in the UI to give a bit more explanation.
 - `addon_label`: an optional string that is supported by all types that are
-  rendered as an input field.  This string is shown as a UI label on the
-  right side of the input field to give it more context.  For instance it can
+  rendered as an input field.  This string is shown as an UI label on the 
+right side of the input field to give it more context.  For instance, it can
   be used to clarify units of a field (pixel, percent etc.).
 - `width`: defines the width of the input in the admin as a fraction.  For
   instance `1/4` sets it to a quarter of the width, `1/2` to a half etc.
@@ -89,7 +89,7 @@ Models have the following options that can customize the model itself:
   This is very useful for models that are implied through configuration.
 - `protected`: if a model is set to protected then all of its instances
   cannot be deleted once created.
-- `inherits`: if you want to inherit all fields from another model then this
+- `inherits`: if you want to inherit all fields and model option settings from another model then this
   can be set to the name of another model.
 
 In addition to that, there are some configuration sections in the model file

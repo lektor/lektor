@@ -24,7 +24,7 @@ file into your repository.  You can copy paste this over:
 
 ```yaml
 language: python
-python: 2.7
+python: 3.5
 install: "pip install Lektor"
 script: "lektor build"
 deploy:
@@ -45,7 +45,7 @@ in the project file would be to use `ghpages+https` like this:
 
 ```ini
 [servers.ghpages]
-target = ghpages+https://username/repository
+target = ghpages+https://username/repository.git
 ```
 
 You need to add this to your `.lektorproject` file.
@@ -115,7 +115,7 @@ caching.  Adjust your `.travis.yml` file to look like this:
 
 ```yaml
 language: python
-python: 2.7
+python: 3.5
 cache:
   directories:
     - $HOME/.cache/pip
@@ -135,7 +135,7 @@ config:
 
 ```yaml
 language: python
-python: 2.7
+python: 3.5
 cache:
   directories:
     - $HOME/.cache/pip

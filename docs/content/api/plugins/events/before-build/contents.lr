@@ -31,5 +31,5 @@ in future versions.
 
 ```python
 def on_before_build(self, source, prog, **extra):
-    print 'building %s' % source.source_filename
+    print('building %s' % source.source_filename)
 ```

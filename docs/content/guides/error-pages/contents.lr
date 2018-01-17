@@ -36,7 +36,7 @@ For more information about this you can read the [Project File Documentation
 
 ## Creating an Error Page
 
-You can create easy create a 404 page by creating a `404.html/contents.lr`
+You can easily add a 404 page by creating a `404.html/contents.lr`
 file.  If you do not care much about the contents and structure of the file
 you can just point it to an empty model (`none`) and manually select a
 `404.html` template like this:

@@ -43,6 +43,6 @@ get the comment box:
 <div class="comments">{{ render_disqus_comments() }}</div>
 ```
 
-Optionally the function accepts two arguemnts: `identifier` and
+Optionally the function accepts two arguments: `identifier` and
 `url` to override the defaults.  For more information have a look at
 the disqus widget documentation.

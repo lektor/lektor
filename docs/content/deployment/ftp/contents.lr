@@ -32,7 +32,7 @@ target = ftps://myuser:mypassword@ftp.example.com/var/www/example
 ## Credentials
 
 FTP is considered a largely insecure protocol for Lektor.  As such if you
-want to use it you should keep your project file save as credentials will
+want to use it you should keep your project file safe as credentials will
 be most likely embedded there.  Alternatively you can set the credentials
 via the command line with the `--username` and `--password` option (or via the
 environment variables `LEKTOR_DEPLOY_USERNAME` and `LEKTOR_DEPLOY_PASSWORD`)

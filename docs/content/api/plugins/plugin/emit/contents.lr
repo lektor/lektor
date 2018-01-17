@@ -32,7 +32,7 @@ from lektor.pluginsystem import Plugin
 class MyPlugin(Plugin):
 
     def on_my_plugin_setup(self, foo, **extra):
-        print 'got %s' % foo
+        print('got %s' % foo)
 ```
 
 (This assumes the plugin id is set to `my-plugin` in `setup.py`)

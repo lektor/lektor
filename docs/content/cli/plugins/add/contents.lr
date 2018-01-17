@@ -10,7 +10,7 @@ body:
 
 `lektor plugins add NAME`
 
-This command can add a new plugion to the project.  If just given
+This command can add a new plugin to the project.  If just given
 the name of the plugin the latest version of that plugin is added to
 the project.
 

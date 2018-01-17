@@ -1,0 +1,74 @@
+title: Installing a Theme
+---
+sort_key: 10
+---
+summary: Explains how to install Lektor themes.
+---
+body:
+
+For installing a theme you just need to copy it to the `themes/` folder
+
+```
+project
+├── assets
+├── models
+├── content
+...
+└── themes
+    └── lektor-theme-nix
+```
+
+Themes are normally distributed by public Git repositories, so you could install a theme by
+cloning the repo:
+
+```bash
+cd themes
+git clone URL_TO_THEME_REPO
+```
+
+For example, for installing `lektor-theme-nix`:
+```bash
+cd themes
+git clone https://github.com/rlaverde/lektor-theme-nix.git
+```
+
+If you download several themes, setting `themes` variable will allow you to only load
+a particular theme.
+
+!!!! Not implemented yet.
+
+You could add the `themes` variable to the `.lektorproject` file and Lektor will
+search in the (community themes)[/themes] and automatically install it.
+
+```ini
+[project]
+themes = lextor-theme-nix
+```
+
+## Installing Multiple Themes
+
+Lektor also supports installing several themes. Copy them to the `themes/`
+folder, and set the `themes` variable to indicate the precedence (optional).
+
+```
+project
+├── assets
+├── models
+├── content
+...
+└── themes
+    ├── lektor-theme-other-theme/
+    └── lektor-theme-nix/
+```
+
+```ini
+[project]
+themes = lextor-theme-nix, lektor-theme-other-theme
+```
+
+This will make `lektor-theme-nix`, because it's listed first, have a higher precedence.
+Files present in multiple themes will be loaded from right to left, so that the first (left-most)
+theme is preferred over the theme(s) to its right.
+
+!! If you don't set the `themes` variable, all themes will be loaded, but the order
+isn't preserved.

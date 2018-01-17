@@ -25,5 +25,5 @@ the return value will be `None`.
 from lektor.context import get_ctx
 
 ctx = get_ctx()
-print 'The current source is %s' % ctx.source
+print('The current source is %s' % ctx.source)
 ```

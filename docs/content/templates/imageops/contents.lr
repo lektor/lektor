@@ -23,6 +23,25 @@ the query.  For instance this iterates over all attached images of a page:
   <div class="image"><img src="{{ image|url }}"></div>
 {% endfor %}
 ```
+<br/>
+To access images from a different content folder, you would use:
+
+```html+jinja
+{% for image in site.get('/myfolder').attachments.images %}
+  <div class="image"><img src="{{ image|url }}"></div>
+{% endfor %}
+```
+<br/>
+To retrieve only a specific image or attachment with a certain name you would use
+
+```html+jinja
+{% set my_image site.get('/myfolder').attachments.get('imagenameexample.jpg') %}
+  <div class="image"><img src="{{ my_image|url }}"></div>
+```
+
+
+
+
 
 ## Accessing Image Data
 

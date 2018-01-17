@@ -93,7 +93,7 @@ _model: doc-pages
 _hidden: yes
 ```
 
-This will set up our index model and our doc-pages model for the `docs/`
+This will set up our index model and our doc-pages model for the `doc/`
 folder.  The latter is also set to `_hidden` which will make Lektor prevent
 the generation of those files: they are invisible.  So we need to find other
 ways to render them.
@@ -108,7 +108,7 @@ need to query for all the other pages we have below `doc/`:
 {% extends "layout.html" %}
 {% block title %}{{ this.title }}{% endblock %}
 {% block body %}
-  {% set pages = site.query('/doc').all() %}
+  {% set pages = site.query('/doc').include_undiscoverable(true).all() %}
   <header>
     <h1>{{ this.title }}</h1>
     <nav>

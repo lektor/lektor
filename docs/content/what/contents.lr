@@ -32,17 +32,17 @@ traffic a static website will stay up for longer on the same server than a
 dynamic one that needs to execute code.
 
 Sure, there are some things you cannot do on a static website, but those are not
-things you would not use Lektor for.  For small dynamic sections, JavaScript
+things you would use Lektor for.  For small dynamic sections, JavaScript
 paired up with other services is a good solution.
 
 <img src="static.png" alt="" class="screenshot">
 
 ## Lektor is a CMS
 
-However, Lektor also takes from content management systems like WordPress
-and provides a flexible browser-based admin interface from which you can
-edit your website's contents.  Unlike traditional CMS solutions, however, it
-runs entirely on your own computer.
+Lektor takes from content management systems like WordPress and provides a
+flexible browser-based admin interface from which you can edit your website's
+contents.  Unlike traditional CMS solutions, however, it runs entirely on your
+own computer.
 
 This means you can give a Lektor website to people that have no understanding
 of programming and they can still modify the content and update the website.
