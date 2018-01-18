@@ -10,14 +10,14 @@ body:
 
 This method is available on attachments that are images and can be used to
 automatically generate a thumbnail.  The return value is a thumbnail proxy
-that can be either use directly or with the `|url` filter.
+that can be either used directly or with the `|url` filter.
 
 If cropping is not enabled the thumbnail is scaled down to fit into the
 given reactangle of width and height.  If height is not specified it will
 match the width and the height is set accordingly.  If cropping is enabled
 it's cropped around the edges to fit into the center.
 
-Quality parameter determines the compression of images where possible. If not passed the jpeg images get a default quality of 85 and png images get a default quality of 75.
+The quality parameter determines the compression of images where possible. If not passed the jpeg images get a default quality of 85 and png images get a default quality of 75.
 
 It provides the following attributes:
 
@@ -40,5 +40,3 @@ to the exact dimensions provided instead of scaling it uncropped.
 ```html+jinja
 <img src="{{ image.thumbnail(1920, 1080, crop=True, quality=40)|url }}">
 ```
-
-
