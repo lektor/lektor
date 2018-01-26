@@ -8,6 +8,10 @@ These are all the changes in Lektor since the first public release.
 
 Release date TBD.
 
+- Adding ability to use Lektor Themes.
+- Adding Markdown event hook between instantiating the Renderer and creating the Markdown Processor
+- Improving tests for GitHub deployment.
+- Added the ability to use IPython in the lektor dev shell if it's available.
 - Added ability to publish from different filesystems.
 - Adding new option to turn disable editing fields on alternatives.
 - Added automated testing for Windows.
