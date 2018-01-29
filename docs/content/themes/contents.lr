@@ -6,8 +6,10 @@ summary: A quick introduction into Lektor Themes.
 ---
 body:
 
-!!!! This is under development and isn't released yet. It should be considered
+!!!! Lektor theme support is new. It should be considered
 unstable and could change in the future.
+
+!! *New in Lektor Version 3.1:* Themes did not exist in earlier Lektor versions.
 
 Lektor provides a themes system to easily implement, reuse, and distribute themes.
 This allows you to use assets, templates, models, and / or flowblocks built into the theme.
