@@ -3,10 +3,10 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
-3.1.0.dev1
+3.1.0
 -----
 
-Release date TBD.
+Release date 29th of January 2018.
 
 - Adding ability to use Lektor Themes.
 - Adding Markdown event hook between instantiating the Renderer and creating the Markdown Processor
