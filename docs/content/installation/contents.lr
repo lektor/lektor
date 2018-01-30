@@ -13,6 +13,8 @@ in an easy to use package which heavily simplifies installation.
 
 ## Desktop Application
 
+!! Info: Support for the Mac Desktop Application is paused as of version 3.1. See [note](/blog/2018/1/lektor-31-released/#support-for-mac-installer-paused).
+
 Currently the desktop application is only available for OS X and can be
 [downloaded from the Lektor website](../../downloads/).  It comes as a downloadable
 disk image that you can mount which contains one application by the name of
