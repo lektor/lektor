@@ -134,12 +134,18 @@ def test_undiscoverable_basics(pad):
 
 
 def test_attachment_api(pad):
-    from lektor.db import Image
+    from lektor.db import Image, Video
 
     root = pad.root
-    assert root.attachments.count() == 4
-    assert sorted(x['_id'] for x in root.attachments) == [
-        'hello.txt', 'test-progressive.jpg', 'test-sof-last.jpg', 'test.jpg']
+    root_attachments = [
+        'hello.txt',
+        'test-progressive.jpg',
+        'test-sof-last.jpg',
+        'test.jpg',
+        'test.mp4',
+    ]
+    assert root.attachments.count() == len(root_attachments)
+    assert sorted(x['_id'] for x in root.attachments) == root_attachments
 
     txt = root.attachments.get('hello.txt')
     assert txt is not None
@@ -151,6 +157,12 @@ def test_attachment_api(pad):
     assert img['_attachment_type'] == 'image'
     assert isinstance(img, Image)
     assert img.url_path == '/test.jpg'
+
+    video = root.attachments.get('test.mp4')
+    assert video is not None
+    assert video['_attachment_type'] == 'video'
+    assert isinstance(video, Video)
+    assert video.url_path == '/test.mp4'
 
 
 def test_query_normalization(pad):

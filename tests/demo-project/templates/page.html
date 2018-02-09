@@ -27,4 +27,22 @@
     {% set t0 = img.thumbnail(400, 600) %}
     <img alt="original" src="{{ t0|url }}" width="{{ t0.width }}" height="{{ t0.height }}">
   {% endfor %}
+
+  {# Not all subpages have a video clip, so we test for that here #}
+  {% if this.attachments.videos.count() %}
+    {% set video = this.attachments.videos|first %}
+    <video src="{{ video|url }}" autoplay loop></video>
+
+    {# We can only render this if ffmpeg/ffprobe is available #}
+    {% if video.width is defined %}
+      {% set td = video.frame().thumbnail() %}
+      <img src="{{ td|url }}" width="{{ td.width }}" height="{{ td.height }}">
+
+      {% set tv = video.frame(0).thumbnail(160) %}
+      <img src="{{ tv|url }}" width="{{ tv.width }}" height="{{ tv.height }}">
+
+      {% set sq = video.frame(2).thumbnail(160, 160, mode="crop") %}
+      <img src="{{ sq|url }}" width="{{ sq.width }}" height="{{ sq.height }}">
+    {% endif %}
+  {% endif %}
 {% endblock %}

@@ -38,6 +38,7 @@ environment:
 install:
   # some tests require imagemagick
   - choco install --timeout 600 imagemagick.tool || true
+  - choco install --timeout 600 ffmpeg || true
   - choco install --timeout 600 codecov || true
   # Install lektor, dependencies and test package requirements
   - "%PYTHON%\\python.exe -m pip install --upgrade pytest"

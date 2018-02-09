@@ -38,6 +38,13 @@ before_install:
   - (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`)
   - source ~/.nvm/nvm.sh
   - nvm install $TRAVIS_NODE_VERSION
+  - mkdir -p local/bin
+  - pushd local/bin
+  - wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
+  - tar -xf ffmpeg-release-64bit-static.tar.xz --strip-components 1 --wildcards "*/ffmpeg" "*/ffprobe"
+  - rm ffmpeg-release-64bit-static.tar.xz
+  - popd
+  - export LEKTOR_RESOURCES=$(pwd)
 
 install:
   - travis_retry pip install --upgrade pytest
@@ -50,7 +57,7 @@ before_script:
   - pip list
   - node --version
   - npm --version
-
+  - $LEKTOR_RESOURCES/local/bin/ffmpeg -version
 
 script: make coverage
 
