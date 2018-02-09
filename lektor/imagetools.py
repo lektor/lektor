@@ -507,9 +507,9 @@ def process_image(ctx, source_image, dst_filename,
     portable_popen(cmdline).wait()
 
 
-def make_thumbnail(ctx, source_image, source_url_path,
-                   width=None, height=None, mode=ThumbnailMode.DEFAULT,
-                   upscale=None, quality=None):
+def make_image_thumbnail(ctx, source_image, source_url_path,
+                         width=None, height=None, mode=ThumbnailMode.DEFAULT,
+                         upscale=None, quality=None):
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
