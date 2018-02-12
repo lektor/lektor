@@ -4,13 +4,13 @@ title: Plugin Use
 ---
 body:
 
-Here the lektor-markdown-highlighter is being used.
+Here the lektor-markdown-highlighter is being used for a very serious Python snippet.
 
 ```python
 from sys import exit
 
 def say_hi():
-    print "Hello World!" # Engage in conversation
+    print("Hello World!") # Engage in conversation
 
 def ignore_everything():
     exit(0) # Successful exit
