@@ -133,7 +133,7 @@ class EditPage extends RecordEditComponent {
     const newData = this.getValues()
     utils.apiRequest('/rawrecord', {json: {
       data: newData, path: path, alt: alt},
-    method: 'PUT'}, makeRichPromise)
+      method: 'PUT'}, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false
