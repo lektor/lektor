@@ -53,7 +53,7 @@ class DeletePage extends RecordComponent {
       alt: this.getRecordAlt(),
       delete_master: this.state.deleteMasterRecord ? '1' : '0'
     },
-      method: 'POST'}, makeRichPromise)
+    method: 'POST'}, makeRichPromise)
       .then((resp) => {
         if (this.state.recordInfo.is_attachment) {
           hub.emit(new AttachmentsChangedEvent({

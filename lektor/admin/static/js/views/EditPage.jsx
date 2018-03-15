@@ -79,15 +79,15 @@ class EditPage extends RecordEditComponent {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
-    .then((resp) => {
-      this.setState({
-        recordInitialData: resp.data,
-        recordData: {},
-        recordDataModel: resp.datamodel,
-        recordInfo: resp.record_info,
-        hasPendingChanges: false
+      .then((resp) => {
+        this.setState({
+          recordInitialData: resp.data,
+          recordData: {},
+          recordDataModel: resp.datamodel,
+          recordInfo: resp.record_info,
+          hasPendingChanges: false
+        })
       })
-    })
   }
 
   onValueChange (field, value) {
@@ -133,7 +133,7 @@ class EditPage extends RecordEditComponent {
     const newData = this.getValues()
     utils.apiRequest('/rawrecord', {json: {
       data: newData, path: path, alt: alt},
-      method: 'PUT'}, makeRichPromise)
+    method: 'PUT'}, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false

@@ -149,7 +149,7 @@ class Sidebar extends RecordComponent {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     },
-      method: 'POST'}, makeRichPromise)
+    method: 'POST'}, makeRichPromise)
       .then((resp) => {
         if (!resp.okay) {
           alert(i18n.trans('ERROR_CANNOT_BROWSE_FS'))
@@ -166,8 +166,8 @@ class Sidebar extends RecordComponent {
       <li key='edit'>
         <Link to={`${urlPath}/edit`}>
           {this.state.isAttachment
-           ? i18n.trans('EDIT_METADATA')
-           : i18n.trans('EDIT')}
+            ? i18n.trans('EDIT_METADATA')
+            : i18n.trans('EDIT')}
         </Link>
       </li>
     )

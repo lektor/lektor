@@ -70,13 +70,13 @@ class BreadCrumbs extends RecordComponent {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
-    .then((resp) => {
-      if (resp.url === null) {
-        window.location.href = utils.getCanonicalUrl('/')
-      } else {
-        window.location.href = utils.getCanonicalUrl(resp.url)
-      }
-    })
+      .then((resp) => {
+        if (resp.url === null) {
+          window.location.href = utils.getCanonicalUrl('/')
+        } else {
+          window.location.href = utils.getCanonicalUrl(resp.url)
+        }
+      })
   }
 
   _onFindFiles (e) {
@@ -151,7 +151,7 @@ class BreadCrumbs extends RecordComponent {
             <li className='new-record-crumb'>
               <Link to={this.getPathToAdminPage('.add-child', {
                 path: this.getUrlRecordPathWithAlt(
-                lastItem.path)})}>+</Link>
+                  lastItem.path)})}>+</Link>
             </li>
           ) : null}
           {' ' /* this space is needed for chrome ... */}

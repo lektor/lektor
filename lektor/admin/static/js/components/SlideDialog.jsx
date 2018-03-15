@@ -49,7 +49,7 @@ class SlideDialog extends Component {
               className='close-btn'
               onClick={this._onCloseClick.bind(this)}
             >
-                { i18n.trans('CLOSE') }
+              { i18n.trans('CLOSE') }
             </a>
           }
           <h3>{title}</h3>
