@@ -149,6 +149,7 @@ class Sidebar extends RecordComponent {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     },
+      // eslint-disable-next-line indent
       method: 'POST'}, makeRichPromise)
       .then((resp) => {
         if (!resp.okay) {
@@ -166,8 +167,8 @@ class Sidebar extends RecordComponent {
       <li key='edit'>
         <Link to={`${urlPath}/edit`}>
           {this.state.isAttachment
-           ? i18n.trans('EDIT_METADATA')
-           : i18n.trans('EDIT')}
+            ? i18n.trans('EDIT_METADATA')
+            : i18n.trans('EDIT')}
         </Link>
       </li>
     )

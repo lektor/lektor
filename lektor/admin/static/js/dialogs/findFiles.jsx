@@ -49,7 +49,7 @@ class FindFiles extends RecordComponent {
         this.setState({
           results: resp.results,
           currentSelection: Math.min(this.state.currentSelection,
-                                     resp.results.length - 1)
+            resp.results.length - 1)
         })
       })
     }

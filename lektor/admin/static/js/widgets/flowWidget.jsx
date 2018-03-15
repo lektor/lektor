@@ -193,7 +193,7 @@ const FlowWidget = React.createClass({
 
     // this is a rather ugly way to do this, but hey, it works.
     this.props.value.push(deserializeFlowBlock(flowBlockModel, [],
-                                               ++lastBlockId))
+      ++lastBlockId))
     if (this.props.onChange) {
       this.props.onChange(this.props.value)
     }

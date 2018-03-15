@@ -281,7 +281,7 @@ const MultiLineTextInputWidget = React.createClass({
   },
 
   render () {
-    let {className, type, onChange, style, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
+    let {className, type, onChange, style, ...otherProps} = this.props // eslint-disable-line no-unused-vars
     className = (className || '')
 
     style = style || {}
@@ -322,7 +322,7 @@ const BooleanInputWidget = React.createClass({
   },
 
   render () {
-    let {className, type, placeholder, onChange, value, ...otherProps} = this.props  // eslint-disable-line no-unused-vars
+    let {className, type, placeholder, onChange, value, ...otherProps} = this.props // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
     return (

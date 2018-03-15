@@ -45,8 +45,8 @@ class Publish extends Component {
         this.setState({
           servers: servers,
           activeTarget: servers && servers.length
-                     ? servers[0].id
-                      : null
+            ? servers[0].id
+            : null
         })
       })
   }

@@ -55,7 +55,7 @@ class Hub {
           callback(event)
         } catch (e) {
           console.log('Event callback failed: ', e, 'callback=',
-                      callback, 'event=', event)
+            callback, 'event=', event)
         }
       })
     }
