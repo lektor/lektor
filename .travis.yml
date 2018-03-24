@@ -23,6 +23,14 @@ matrix:
       env:  TRAVIS_NODE_VERSION=8
     - python: 3.6
       env:  TRAVIS_NODE_VERSION=8
+    # Node 9
+    - python: 2.7
+      env:  TRAVIS_NODE_VERSION=9
+    - python: 3.5
+      env:  TRAVIS_NODE_VERSION=9
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=9
+
 
 cache:
   directories:
