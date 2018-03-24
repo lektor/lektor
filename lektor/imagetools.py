@@ -282,11 +282,23 @@ def get_image_info(fp):
     elif fmt == 'gif':
         width, height = struct.unpack('<HH', head[6:10])
     elif fmt == 'jpeg':
+        # note: some of the markers in the range
+        # ffc0 - ffcf are not SOF markers
+        SOF_MARKERS = (
+            # nondifferential Hufmann-coding frames
+            0xc0, 0xc1, 0xc2, 0xc3,
+            # differential Hufmann-coding frames
+            0xc5, 0xc6, 0xc7,
+            # nondifferential arithmetic-coding frames
+            0xc9, 0xca, 0xcb,
+            # differential arithmetic-coding frames
+            0xcd, 0xce, 0xcf,
+        )
         try:
             fp.seek(0)
             size = 2
             ftype = 0
-            while not 0xc0 <= ftype <= 0xcf:
+            while ftype not in SOF_MARKERS:
                 fp.seek(size, 1)
                 byte = fp.read(1)
                 while ord(byte) == 0xff:
