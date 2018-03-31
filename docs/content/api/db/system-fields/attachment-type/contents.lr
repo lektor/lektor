@@ -6,9 +6,12 @@ type: sysfield
 ---
 body:
 
-This indicates the type of the attachment.  Currently only a small set of
-attachments is detected.  The most useful attachment type is `image` which
-identifies images.  The attachments are detected by the file extension.
+This indicates the type of the attachment, which is detected by file extension.
+Currently only a small set of attachment types are detected, with the most
+useful one being `image`.
 
 !!!! This feature in many ways does not entirely work as you would expect
-and should be taken is something that will improve in future versions.
+and should be taken as something that will improve in future versions.
+
+Read more about attachments 
+[in the content section :ref](../../../../content/attachments/contents.lr)
