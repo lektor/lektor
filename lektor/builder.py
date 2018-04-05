@@ -6,12 +6,12 @@ import shutil
 import sqlite3
 import hashlib
 import tempfile
-import click
 
 from contextlib import contextmanager
 from itertools import chain
 from collections import deque, namedtuple
 
+import click
 from werkzeug.posixemulation import rename
 
 from lektor._compat import PY2, iteritems, text_type
