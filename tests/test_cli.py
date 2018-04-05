@@ -1,7 +1,18 @@
 import re
 import warnings
+import os
+
 from lektor.cli import cli
 
+def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
+    result = project_cli_runner.invoke(cli, ["build", "-O", os.getcwd()], input='n\n')
+    assert "Aborted!" in result.output
+    assert result.exit_code == 1
+
+def test_build_continue_in_existing_nonempty_dir(project_cli_runner):
+    result = project_cli_runner.invoke(cli, ["build", "-O", os.getcwd()], input='y\n')
+    assert "Finished prune" in result.output
+    assert result.exit_code == 0
 
 def test_build_no_project(isolated_cli_runner):
     result = isolated_cli_runner.invoke(cli, ["build"])
