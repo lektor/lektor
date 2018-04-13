@@ -50,6 +50,21 @@ def buildflag(cli):
         callback=buildflag_deprecated)(cli)
 
 
+class AliasedGroup(click.Group):
+
+    def get_command(self, ctx, cmd_name):
+        rv = click.Group.get_command(self, ctx, cmd_name)
+        if rv is not None:
+            return rv
+        matches = [x for x in self.list_commands(ctx)
+                   if x.startswith(cmd_name)]
+        if not matches:
+            return None
+        elif len(matches) == 1:
+            return click.Group.get_command(self, ctx, matches[0])
+        ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
+
+
 class Context(object):
 
     def __init__(self):
@@ -124,7 +139,7 @@ def validate_language(ctx, param, value):
     return value
 
 
-@click.group()
+@click.group(cls=AliasedGroup)
 @click.option('--project', type=click.Path(),
               help='The path to the lektor project to work with.')
 @click.option('--language', default=None, callback=validate_language,

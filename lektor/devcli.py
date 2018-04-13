@@ -9,7 +9,7 @@ except ImportError:
     pass # fallback to normal Python InteractiveConsole
 
 from .packages import get_package_info, register_package, publish_package
-from .cli import pass_context
+from .cli import pass_context, AliasedGroup
 
 
 def ensure_plugin():
@@ -24,7 +24,7 @@ def ensure_plugin():
     return info
 
 
-@click.group(short_help='Development commands.')
+@click.group(cls=AliasedGroup, short_help='Development commands.')
 def cli():
     """Development commands for Lektor.
 
