@@ -9,6 +9,12 @@ def test_alias(project_cli_runner):
     assert "Name: Demo Project" in result.output
 
 
+def test_dev_cmd_alias(isolated_cli_runner):
+    result = isolated_cli_runner.invoke(cli, ["dev", "p"])
+    assert result.exit_code == 2
+    assert "Error: This command must be run in a Lektor plugin folder" in result.output
+
+
 def test_alias_multiple_matches(project_cli_runner):
     result = project_cli_runner.invoke(cli, ["p"])
     assert result.exit_code == 2
