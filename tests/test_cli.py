@@ -4,19 +4,19 @@ from lektor.cli import cli
 
 
 def test_alias(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["pr"])
+    result = project_cli_runner.invoke(cli, ["pr"]) # short for 'project-info'
     assert result.exit_code == 0
     assert "Name: Demo Project" in result.output
 
 
 def test_dev_cmd_alias(isolated_cli_runner):
-    result = isolated_cli_runner.invoke(cli, ["dev", "p"])
+    result = isolated_cli_runner.invoke(cli, ["dev", "p"]) # short for 'publish-plugin'
     assert result.exit_code == 2
     assert "Error: This command must be run in a Lektor plugin folder" in result.output
 
 
 def test_alias_multiple_matches(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["p"])
+    result = project_cli_runner.invoke(cli, ["p"]) # short for 'project-info' & 'plugins'
     assert result.exit_code == 2
     assert "Error: Too many matches" in result.output
 
