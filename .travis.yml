@@ -9,13 +9,7 @@ matrix:
       env:  TRAVIS_NODE_VERSION=6
     - python: 3.6
       env:  TRAVIS_NODE_VERSION=6
-    # Node 7
-    - python: 2.7
-      env:  TRAVIS_NODE_VERSION=7
-    - python: 3.5
-      env:  TRAVIS_NODE_VERSION=7
-    - python: 3.6
-      env:  TRAVIS_NODE_VERSION=7
+    # Node 7 is End-of-Life
     # Node 8
     - python: 2.7
       env:  TRAVIS_NODE_VERSION=8
