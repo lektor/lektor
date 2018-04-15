@@ -363,16 +363,14 @@ def get_quality(source_filename):
     return 85
 
 
-def computed_height(source_image, width, actual_width, actual_height, format=None):
+def computed_height(source_image, width, actual_width, actual_height):
     # If the file is a JPEG file and the EXIF header shows that the image
     # is rotated, imagemagick will auto-orient the file. That is, a 400x200
     # file where the target width is 100px will *not* be converted to a
     # 100x50 image, but to 100x200.
 
-    # Detect the format, as none has been passed.
-    if format is None:
-        with open(source_image, 'rb') as f:
-            format = get_image_info(f)[0]
+    with open(source_image, 'rb') as f:
+        format = get_image_info(f)[0]
 
     if format == 'jpeg':
         with open(source_image, 'rb') as image_file:
@@ -432,7 +430,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
         # we can only crop if a height is specified
         crop = False
         report_height = computed_height(source_image, width, source_width,
-                                        source_height, format)
+                                        source_height)
 
     # If we are dealing with an actual svg image, we do not actually
     # resize anything, we just return it.  This is not ideal but it's
