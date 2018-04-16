@@ -3,6 +3,11 @@
 matrix:
   fast_finish: true
 
+# Cache imagemagick
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+
 
 environment:
   matrix:
