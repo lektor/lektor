@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from itertools import chain
 from collections import deque, namedtuple
 
+import click
 from werkzeug.posixemulation import rename
 
 from lektor._compat import PY2, iteritems, text_type
@@ -964,6 +965,15 @@ class Builder(object):
 
         try:
             os.makedirs(self.meta_path)
+            if os.listdir(self.destination_path) != ['.lektor']:
+                if not click.confirm(click.style(
+                        "The build dir %s hasn't been used before, and other "
+                        "files or folders already exist there. If you prune "
+                        "(which normally follows the build step), "
+                        "they will be deleted. Proceed with building?"
+                        % self.destination_path, fg='yellow')):
+                    os.rmdir(self.meta_path)
+                    raise click.Abort()
         except OSError:
             pass
 

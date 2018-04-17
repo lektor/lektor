@@ -1,6 +1,25 @@
 import re
 import warnings
+import os
+
 from lektor.cli import cli
+
+def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
+    os.mkdir('build_dir')
+    with open('build_dir/test', 'w'):
+        pass
+    result = project_cli_runner.invoke(cli, ["build", "-O", "build_dir"], input='n\n')
+    assert "Aborted!" in result.output
+    assert result.exit_code == 1
+
+
+def test_build_continue_in_existing_nonempty_dir(project_cli_runner):
+    os.mkdir('build_dir')
+    with open('build_dir/test', 'w'):
+        pass
+    result = project_cli_runner.invoke(cli, ["build", "-O", "build_dir"], input='y\n')
+    assert "Finished prune" in result.output
+    assert result.exit_code == 0
 
 
 def test_alias(project_cli_runner):
@@ -35,11 +54,17 @@ def test_build_no_project(isolated_cli_runner):
 
 def test_build(project_cli_runner):
     result = project_cli_runner.invoke(cli, ["build"])
+    assert "files or folders already exist" not in result.output # No warning on fresh build
     assert result.exit_code == 0
     start_matches = re.findall(r"Started build", result.output)
     assert len(start_matches) == 1
     finish_matches = re.findall(r"Finished build in \d+\.\d{2} sec", result.output)
     assert len(finish_matches) == 1
+
+    # rebuild
+    result = project_cli_runner.invoke(cli, ["build"])
+    assert "files or folders already exist" not in result.output # No warning on repeat build
+    assert result.exit_code == 0
 
 
 def test_build_extra_flag(project_cli_runner, mocker):
