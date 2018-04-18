@@ -14,7 +14,7 @@ The `Pad` is a helper class that provides basic access to querying the
 database.  Inside templates an instance of it is available under the
 `site` variable automatically.
 
-To understand what the pad does you need to consider what it does.  The
+To understand what the pad does you need to consider what it is.  The
 pad is similar to a `connection` in a regular database.  Whenever you
 load a record it's temporarily cached on the pad.  So unless you overflow
 the cache, loading the object a second time will most likely return an
