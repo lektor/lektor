@@ -56,6 +56,8 @@ so they might not keep pace with development on Lektor.
 * [slugify :ext](https://github.com/terminal-labs/lektor-slugify) Add a Jinja filter to slugify unicode.
 * [natural-language :ext](https://github.com/terminal-labs/lektor-natural-language) Add filters to do basic natural language processing with NLTK. Find keywords and sentence structure naturally.
 * [strip-html-tags :ext](https://github.com/terminal-labs/lektor-strip-html-tags) Add a filter to transform HTML into simple text by stripping HTML tags.
+* [npm-support :ext](https://github.com/sterin/lektor-npm-support): adds support for using npm/yarn to build assets in Lektor using tools such as [Parcel](https://parcel.js.org), [webpack](https://webpack.js.org), etc.
+
 
 ! Have your own plugin and you want to see it here?  Just [edit this page
 on GitHub :ref](https://github.com/lektor/lektor-website/edit/master/content/docs/plugins/list/contents.lr),
