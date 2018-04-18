@@ -3,6 +3,16 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+3.1.1
+-----
+
+Release date 18th of April 2018
+
+- Better Image dimension detection.
+- Fix backwards compatibility with thumbnail generation.
+- Adding safety check when runnning new build in non-empty dir since that could delete data.
+- Adding command aliases.
+
 3.1.0
 -----
 
