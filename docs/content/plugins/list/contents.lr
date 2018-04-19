@@ -21,6 +21,7 @@ ___
 * [i18n :ext](https://github.com/numericube/lektor-i18n-plugin): Use GetText .PO files to translate your site **content**.
 * [make :ext](https://github.com/BarnabyShearer/lektor-make): Run `make lektor` for custom build systems
 * [minify :ext](https://github.com/pietroalbini/lektor-minify): Minify changed files automatically during the build
+* [npm-support :ext](https://github.com/sterin/lektor-npm-support): adds support for using npm/yarn to build assets in Lektor using tools such as [Parcel](https://parcel.js.org), [webpack](https://webpack.js.org), etc.
 
 ## Content
 
