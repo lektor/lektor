@@ -616,4 +616,16 @@ from .devcli import cli as devcli  # pylint: disable=wrong-import-position
 cli.add_command(devcli, 'dev')
 
 
-main = cli
+def main(as_module=False):
+    args = sys.argv[1:]
+    name = None
+
+    if as_module:
+        name = 'python -m lektor'
+        sys.argv = ['-m', 'lektor'] + args
+
+    cli.main(args=args, prog_name=name)
+
+
+if __name__ == '__main__':
+    main(as_module=True)
