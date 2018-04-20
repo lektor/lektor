@@ -9,7 +9,7 @@ version_added: 2.0
 body:
 
 Records can be discoverable or non discoverable.  This is controlled by the
-`_discoverable` system field which defaults to `yes.  This property can quickly
+`_discoverable` system field which defaults to `yes`.  This property can quickly
 check if a record is considered non-discoverable by Lektor or not.  In
 particular a hidden record is also considered undiscoverable.
 
