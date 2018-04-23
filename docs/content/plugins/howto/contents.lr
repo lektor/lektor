@@ -86,7 +86,7 @@ depending on the situation you might have to use two different mechanisms.
    through the [sub_artifact :ref](../../api/build/context/sub-artifact/)
    method which declares a new artifact.
 
-Here examples for both of those in one:
+Here is an example of both ways in one plugin:
 
 ```python
 import os
