@@ -60,7 +60,7 @@ create a `sitemap/contents.lr` file instead and use a template like
 {% block title %}Sitemap{% endblock %}
 {% block body %}
 <ul class="sitemap">
-  {% for page in [site.root] recursive if page.record_label %}
+  {% for page in [site.root] if page.record_label recursive %}
   <li><a href="{{ page|url }}">{{ page.record_label }}</a>
     {% if page.children %}
       <ul>{{ loop(page.children) }}</ul>
