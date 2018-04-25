@@ -39,6 +39,7 @@ setup(
         'ipython': ['ipython'],
     },
     classifiers=[
+        'Framework :: Lektor',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
