@@ -11,15 +11,8 @@ body:
 You could create a basic empty theme with the following command:
 
 ```bash
-$ lektor new theme <theme-name>
+$ lektor dev new-theme
 ```
-
-Example:
-
-```bash
-$ lektor new theme demo-theme
-```
-
 
 ## Theme Components:
 
@@ -30,7 +23,7 @@ demo-theme
 ├── assets
 ├── models
 ├── templates
-└── flowdocks
+└── flowblocks
 ```
 
 ## The theme_settings Variable
