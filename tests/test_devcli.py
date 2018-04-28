@@ -13,8 +13,8 @@ def test_new_plugin(project_cli_runner):
                                        'y\n'
     )
     assert "Create Plugin?" in result.output
-    assert set(os.listdir(os.path.join('packages', 'plugin-name')
-    )) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    path = os.path.join(os.path.abspath('packages'), 'plugin-name')
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
 
     # gitignore
@@ -25,7 +25,7 @@ def test_new_plugin(project_cli_runner):
         *.pyo
         *.egg-info
     """).strip()
-    with open(os.path.join('packages', 'plugin-name', '.gitignore')) as f:
+    with open(os.path.join(path, '.gitignore')) as f:
         gitignore_contents = f.read().strip()
     assert gitignore_contents == gitignore_expected
 
@@ -47,7 +47,7 @@ def test_new_plugin(project_cli_runner):
             }
         )
     """).strip()
-    with open(os.path.join('packages', 'plugin-name', 'setup.py')) as f:
+    with open(os.path.join(path, 'setup.py')) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
 
@@ -66,14 +66,15 @@ def test_new_plugin(project_cli_runner):
                     return 'Value from plugin %s' % self.name
                 context['test_function'] = test_function
     """).strip()
-    with open(os.path.join('packages', 'plugin-name', 'lektor_plugin_name.py')) as f:
+    with open(os.path.join(path, 'lektor_plugin_name.py')) as f:
         plugin_contents = f.read().strip()
     assert plugin_contents == plugin_expected
 
 
 def test_new_plugin_abort_plugin_exists(project_cli_runner):
-    os.mkdir('packages')
-    os.mkdir(os.path.join('packages', 'plugin-name'))
+    path = os.path.abspath('packages')
+    os.mkdir(path)
+    os.mkdir(os.path.join(path, 'plugin-name'))
     result = project_cli_runner.invoke(cli, ["dev", "new-plugin"],
                                        input='Plugin Name\n'
                                        '\n'
@@ -105,8 +106,8 @@ def test_new_plugin_name_only(project_cli_runner):
                                        '\n'
                                        'y\n'
     )
-    assert set(os.listdir(os.path.join('packages', 'plugin-name')
-    )) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    path = os.path.abspath('packages')
+    assert os.listdir(path) == ['plugin-name']
     assert result.exit_code == 0
 
     # setup.py
@@ -129,7 +130,7 @@ def test_new_plugin_name_only(project_cli_runner):
             }}
         )
     """).format(author, author_email).strip()
-    with open(os.path.join('packages', 'plugin-name', 'setup.py')) as f:
+    with open(os.path.join(path, 'plugin-name', 'setup.py')) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
 
@@ -141,7 +142,8 @@ def test_new_plugin_name_param(project_cli_runner):
                                        'author@email.com\n'
                                        'y\n'
     )
-    assert os.listdir('packages') == ['plugin-name']
+    path = os.path.abspath('packages')
+    assert os.listdir(path) == ['plugin-name']
     assert result.exit_code == 0
 
 
