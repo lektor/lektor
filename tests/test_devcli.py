@@ -1,6 +1,7 @@
 import textwrap
 import os
 
+from lektor._compat import PY2
 from lektor.cli import cli
 from lektor.quickstart import get_default_author, get_default_author_email
 
@@ -36,17 +37,21 @@ def test_new_plugin(project_cli_runner):
         setup(
             name='lektor-plugin-name',
             version='0.1',
-            author='Author Name',
-            author_email='author@email.com',
+            author={}'Author Name',
+            author_email={}'author@email.com',
             license='MIT',
             py_modules=['lektor_plugin_name'],
-            entry_points={
+            entry_points={{
                 'lektor.plugins': [
                     'plugin-name = lektor_plugin_name:PluginNamePlugin',
                 ]
-            }
+            }}
         )
     """).strip()
+    if PY2:
+        setup_expected = setup_expected.format("u", "u")
+    else:
+        setup_expected = setup_expected.format("", "")
     with open(os.path.join(path, 'setup.py')) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
@@ -119,8 +124,8 @@ def test_new_plugin_name_only(project_cli_runner):
         setup(
             name='lektor-plugin-name',
             version='0.1',
-            author='{}',
-            author_email='{}',
+            author={}'{}',
+            author_email={}'{}',
             license='MIT',
             py_modules=['lektor_plugin_name'],
             entry_points={{
@@ -129,7 +134,11 @@ def test_new_plugin_name_only(project_cli_runner):
                 ]
             }}
         )
-    """).format(author, author_email).strip()
+    """).strip()
+    if PY2:
+        setup_expected = setup_expected.format("u", author, "u", author_email)
+    else:
+        setup_expected = setup_expected.format("", author, "", author_email)
     with open(os.path.join(path, 'plugin-name', 'setup.py')) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
