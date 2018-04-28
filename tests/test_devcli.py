@@ -13,8 +13,8 @@ def test_new_plugin(project_cli_runner):
                                        'y\n'
     )
     assert "Create Plugin?" in result.output
-    assert os.listdir(os.path.join('packages', 'plugin-name')
-    ) == ['lektor_plugin_name.py', 'setup.py', '.gitignore']
+    assert set(os.listdir(os.path.join('packages', 'plugin-name')
+    )) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
 
     # gitignore
@@ -105,8 +105,8 @@ def test_new_plugin_name_only(project_cli_runner):
                                        '\n'
                                        'y\n'
     )
-    assert os.listdir(os.path.join('packages', 'plugin-name')
-    ) == ['lektor_plugin_name.py', 'setup.py', '.gitignore']
+    assert set(os.listdir(os.path.join('packages', 'plugin-name')
+    )) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
 
     # setup.py
@@ -153,7 +153,8 @@ def test_new_plugin_path(project_cli_runner):
                                        'author@email.com\n'
                                        'y\n'
     )
-    assert os.listdir('path') == ['lektor_plugin_name.py', 'setup.py', '.gitignore']
+    path = os.path.abspath('path')
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
 
 
@@ -164,7 +165,8 @@ def test_new_plugin_path_param(project_cli_runner):
                                        'author@email.com\n'
                                        'y\n'
     )
-    assert os.listdir('path') == ['lektor_plugin_name.py', 'setup.py', '.gitignore']
+    path = os.path.abspath('path')
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
 
 
@@ -174,5 +176,6 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
                                        'author@email.com\n'
                                        'y\n'
     )
-    assert os.listdir('path') == ['lektor_plugin_name.py', 'setup.py', '.gitignore']
+    path = os.path.abspath('path')
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
