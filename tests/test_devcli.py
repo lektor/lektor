@@ -63,7 +63,7 @@ def test_new_plugin(project_cli_runner):
 
 
         class PluginNamePlugin(Plugin):
-            name = 'Plugin Name'
+            name = {}'Plugin Name'
             description = u'Add your description here.'
 
             def on_process_template_context(self, context, **extra):
@@ -71,6 +71,10 @@ def test_new_plugin(project_cli_runner):
                     return 'Value from plugin %s' % self.name
                 context['test_function'] = test_function
     """).strip()
+    if PY2:
+        plugin_expected = plugin_expected.format("u")
+    else:
+        plugin_expected = plugin_expected.format("")
     with open(os.path.join(path, 'lektor_plugin_name.py')) as f:
         plugin_contents = f.read().strip()
     assert plugin_contents == plugin_expected
