@@ -38,7 +38,7 @@ def test_new_plugin(project_cli_runner):
             name='lektor-plugin-name',
             version='0.1',
             author={}'Author Name',
-            author_email={}'author@email.com',
+            author_email='author@email.com',
             license='MIT',
             py_modules=['lektor_plugin_name'],
             entry_points={{
@@ -49,9 +49,9 @@ def test_new_plugin(project_cli_runner):
         )
     """).strip()
     if PY2:
-        setup_expected = setup_expected.format("u", "u")
+        setup_expected = setup_expected.format("u")
     else:
-        setup_expected = setup_expected.format("", "")
+        setup_expected = setup_expected.format("")
     with open(os.path.join(path, 'setup.py')) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
@@ -125,7 +125,7 @@ def test_new_plugin_name_only(project_cli_runner):
             name='lektor-plugin-name',
             version='0.1',
             author={}'{}',
-            author_email={}'{}',
+            author_email='{}',
             license='MIT',
             py_modules=['lektor_plugin_name'],
             entry_points={{
@@ -136,9 +136,9 @@ def test_new_plugin_name_only(project_cli_runner):
         )
     """).strip()
     if PY2:
-        setup_expected = setup_expected.format("u", author, "u", author_email)
+        setup_expected = setup_expected.format("u", author, author_email)
     else:
-        setup_expected = setup_expected.format("", author, "", author_email)
+        setup_expected = setup_expected.format("", author, author_email)
     with open(os.path.join(path, 'plugin-name', 'setup.py')) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
