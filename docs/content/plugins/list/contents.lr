@@ -58,6 +58,7 @@ ___
 * [natural-language :ext](https://github.com/terminal-labs/lektor-natural-language) Add filters to do basic natural language processing with NLTK. Find keywords and sentence structure naturally.
 * [strip-html-tags :ext](https://github.com/terminal-labs/lektor-strip-html-tags) Add a filter to transform HTML into simple text by stripping HTML tags.
 * [thumbnail-generator :ext](https://github.com/skorokithakis/lektor-thumbnail-generator): Allows you to generate configurable thumbnails for all your attachment images, so you can link them in your pages.
+* [webdav :ext](https://github.com/mesbahamin/lektor-webdav): Get a list of files hosted on a WebDAV server.
 * [yandex-metrica :ext](https://github.com/gagoman/lektor-yandex-metrica): Adds `Yandex Metrica` support to Lektor-generated site.
 
 ! Have your own plugin and you want to see it here?  Just [edit this page
