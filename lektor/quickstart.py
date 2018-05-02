@@ -34,7 +34,8 @@ class Generator(object):
             comment_end_string='**/',
         )
         self.options = {}
-        self.term_width = min(click.get_terminal_size()[0], 78)
+        # term width in [1, 78]
+        self.term_width = min(max(click.get_terminal_size()[0], 1), 78)
         self.e = click.secho
         self.w = partial(click.wrap_text, width=self.term_width)
 
@@ -47,7 +48,7 @@ class Generator(object):
         self.e('')
         self.e('Step %d:' % self.question, fg='yellow')
         if info is not None:
-            self.e(click.wrap_text(info, self.term_width - 2, '| ', '| '))
+            self.e(click.wrap_text(info, self.term_width, '| ', '| '))
         text = '> ' + click.style(text, fg='green')
 
         if default is True or default is False:

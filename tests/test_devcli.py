@@ -6,17 +6,19 @@ from lektor.cli import cli
 from lektor.quickstart import get_default_author, get_default_author_email
 
 def test_new_plugin(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin"],
-                                       input='Plugin Name\n'
-                                       '\n'
-                                       'Author Name\n'
-                                       'author@email.com\n'
-                                       'y\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin"],
+        input='Plugin Name\n'
+        '\n'
+        'Author Name\n'
+        'author@email.com\n'
+        'y\n',
     )
     assert "Create Plugin?" in result.output
-    path = os.path.join(os.path.abspath('packages'), 'plugin-name')
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
     assert result.exit_code == 0
+    path = os.path.join('packages', 'plugin-name')
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+
 
     # gitignore
     gitignore_expected = textwrap.dedent("""
@@ -81,43 +83,48 @@ def test_new_plugin(project_cli_runner):
 
 
 def test_new_plugin_abort_plugin_exists(project_cli_runner):
-    path = os.path.abspath('packages')
+    path = 'packages'
     os.mkdir(path)
     os.mkdir(os.path.join(path, 'plugin-name'))
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin"],
-                                       input='Plugin Name\n'
-                                       '\n'
-                                       'Author Name\n'
-                                       'author@email.com\n'
-                                       'y\n'
+    input = 'Plugin Name\n\nAuthor Name\nauthor@email.com\ny\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin"],
+        input='Plugin Name\n'
+        '\n'
+        'Author Name\n'
+        'author@email.com\n'
+        'y\n',
     )
     assert "Aborted!" in result.output
     assert result.exit_code == 1
 
 
 def test_new_plugin_abort_cancel(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin"],
-                                       input='Plugin Name\n'
-                                       '\n'
-                                       'Author Name\n'
-                                       'author@email.com\n'
-                                       'n\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin"],
+        input='Plugin Name\n'
+        '\n'
+        'Author Name\n'
+        'author@email.com\n'
+        'n\n',
     )
     assert "Aborted!" in result.output
     assert result.exit_code == 1
 
 
 def test_new_plugin_name_only(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin"],
-                                       input='Plugin Name\n'
-                                       '\n'
-                                       '\n'
-                                       '\n'
-                                       'y\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin"],
+        input='Plugin Name\n'
+        '\n'
+        '\n'
+        '\n'
+        'y\n',
     )
-    path = os.path.abspath('packages')
-    assert os.listdir(path) == ['plugin-name']
+    assert "Create Plugin?" in result.output
     assert result.exit_code == 0
+    path = 'packages'
+    assert os.listdir(path) == ['plugin-name']
 
     # setup.py
     author = get_default_author()
@@ -149,48 +156,56 @@ def test_new_plugin_name_only(project_cli_runner):
 
 
 def test_new_plugin_name_param(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin", "plugin-name"],
-                                       input='\n'
-                                       'Author Name\n'
-                                       'author@email.com\n'
-                                       'y\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin", "plugin-name"],
+        input='\n'
+        'Author Name\n'
+        'author@email.com\n'
+        'y\n',
     )
-    path = os.path.abspath('packages')
-    assert os.listdir(path) == ['plugin-name']
+    assert "Create Plugin?" in result.output
     assert result.exit_code == 0
+    path = 'packages'
+    assert os.listdir(path) == ['plugin-name']
 
 
 def test_new_plugin_path(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin"],
-                                       input='Plugin Name\n'
-                                       'path\n'
-                                       'Author Name\n'
-                                       'author@email.com\n'
-                                       'y\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin"],
+        input='Plugin Name\n'
+        'path\n'
+        'Author Name\n'
+        'author@email.com\n'
+        'y\n',
     )
-    path = os.path.abspath('path')
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    assert "Create Plugin?" in result.output
     assert result.exit_code == 0
+    path = 'path'
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
 
 
 def test_new_plugin_path_param(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin", "--path", "path"],
-                                       input='Plugin Name\n'
-                                       'Author Name\n'
-                                       'author@email.com\n'
-                                       'y\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin", "--path", "path"],
+        input='Plugin Name\n'
+        'Author Name\n'
+        'author@email.com\n'
+        'y\n',
     )
-    path = os.path.abspath('path')
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    assert "Create Plugin?" in result.output
     assert result.exit_code == 0
+    path = 'path'
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
 
 
 def test_new_plugin_path_and_name_params(project_cli_runner):
-    result = project_cli_runner.invoke(cli, ["dev", "new-plugin", "plugin-name", "--path", "path"],
-                                       input='Author Name\n'
-                                       'author@email.com\n'
-                                       'y\n'
+    result = project_cli_runner.invoke(
+        cli, ["dev", "new-plugin", "plugin-name", "--path", "path"],
+        input='Author Name\n'
+        'author@email.com\n'
+        'y\n',
     )
-    path = os.path.abspath('path')
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    assert "Create Plugin?" in result.output
     assert result.exit_code == 0
+    path = 'path'
+    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
