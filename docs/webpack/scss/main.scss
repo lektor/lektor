@@ -592,6 +592,12 @@ p.meta {
   color: lighten($gray, 30);
 }
 
+ul.button-nav {
+  margin: 25px 0;
+  padding-left: 10px;
+  list-style: none;
+}
+
 ul.toc, ul.toc ul {
   font-size: 14px;
   padding-left: 25px;

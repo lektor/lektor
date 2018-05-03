@@ -8,7 +8,7 @@ body:
 
 Once you are happy with a plugin you can publish it so that other people
 can use it.  Publishing of plugins happens through the
-[Python Package Index :ext](https://pypi.python.org/) and can be
+[Python Package Index :ext](https://pypi.org/) and can be
 automatically done with the help of the lektor shell command.
 
 ## Enhance your setup.py
@@ -21,6 +21,8 @@ set.  Here is a basic example of doing this:
 ```python
 from setuptools import setup
 
+with open('README.md', encoding="utf8") as f:
+    readme = f.read()
 
 setup(
     name='lektor-your-plugin',
@@ -31,6 +33,12 @@ setup(
     license='MIT',
     packages=['lektor_your_plugin'],
     description='Basic description goes here',
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    classifiers=[
+        'Framework :: Lektor',
+        'Environment :: Plugins',
+    ],
     entry_points={
         'lektor.plugins': [
             'hello-world = lektor_hello_world:HelloWorldPlugin',
@@ -55,3 +63,15 @@ $ lektor dev publish-plugin
 
 When you use this for the first time it will prompt you for your login
 credentials for `pypi`.  Next time it will have remembered them.
+
+## Listing on this site
+
+We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely, including
+
+* long_description and long_description_content_type
+* author and author_email
+* classifiers, such as
+    * `Framework :: Lektor`
+    * `Environment :: Plugins`
+* keywords
+
