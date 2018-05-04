@@ -3,6 +3,7 @@
 *.egg-info
 *.pex
 .cache
+#*
 build
 dist
 venv
@@ -14,6 +15,7 @@ coverage/
 coverage.xml
 coverage.lcov
 .nyc_output
+.pytest_cache
 
 node_modules
 gui/build

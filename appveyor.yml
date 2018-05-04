@@ -60,7 +60,7 @@ test_script:
   # Run Python tests
   - "%PYTHON%\\python.exe --version"
   - "%PYTHON%\\python.exe -m pip list"
-  - "%PYTHON%\\Scripts\\pytest.exe . --tb=short -v --cov=lektor"
+  - "%PYTHON%\\Scripts\\pytest.exe . --tb=long -svv --cov=lektor"
   # Run JS tests
   - cd lektor\admin
   - node --version
@@ -68,3 +68,6 @@ test_script:
   - npm list
   - npm run lint
   - npm test
+
+# on_failure:
+#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
