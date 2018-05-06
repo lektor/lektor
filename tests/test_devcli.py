@@ -66,17 +66,18 @@ def test_new_plugin(project_cli_runner):
                 f.read().decode('utf-8')).group(1)))
 
         setup(
-            name=name,
-            version='0.1',
             author={}'Author Name',
             author_email='author@email.com',
-            license='MIT',
-            packages=find_packages(),
-            py_modules=['lektor_plugin_name'],
             description=description,
+            keywords='Lektor plugin',
+            license='MIT',
             long_description=readme,
             long_description_content_type='text/markdown',
-            keywords='Lektor plugin',
+            name=name,
+            packages=find_packages(),
+            py_modules=['lektor_plugin_name'],
+            # url='[link to your repository]',
+            version='0.1',
             classifiers=[
                 'Framework :: Lektor',
                 'Environment :: Plugins',
@@ -189,17 +190,18 @@ def test_new_plugin_name_only(project_cli_runner):
                 f.read().decode('utf-8')).group(1)))
 
         setup(
-            name=name,
-            version='0.1',
             author={}'{}',
             author_email='{}',
-            license='MIT',
-            packages=find_packages(),
-            py_modules=['lektor_plugin_name'],
             description=description,
+            keywords='Lektor plugin',
+            license='MIT',
             long_description=readme,
             long_description_content_type='text/markdown',
-            keywords='Lektor plugin',
+            name=name,
+            packages=find_packages(),
+            py_modules=['lektor_plugin_name'],
+            # url='[link to your repository]',
+            version='0.1',
             classifiers=[
                 'Framework :: Lektor',
                 'Environment :: Plugins',

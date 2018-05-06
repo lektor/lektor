@@ -19,17 +19,18 @@ with open('lektor_dsdf.py', 'rb') as f:
         f.read().decode('utf-8')).group(1)))
 
 setup(
-    name=name,
-    version='0.1',
     author=${author_name|pprint},
     author_email='${author_email}',
-    license='MIT',
-    packages=find_packages(),
-    py_modules=['${plugin_module}'],
     description=description,
+    keywords='Lektor plugin',
+    license='MIT',
     long_description=readme,
     long_description_content_type='text/markdown',
-    keywords='Lektor plugin',
+    name=name,
+    packages=find_packages(),
+    py_modules=['${plugin_module}'],
+    # url='[link to your repository]',
+    version='0.1',
     classifiers=[
         'Framework :: Lektor',
         'Environment :: Plugins',
