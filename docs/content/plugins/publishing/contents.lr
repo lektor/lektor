@@ -68,10 +68,14 @@ credentials for `pypi`.  Next time it will have remembered them.
 
 We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely, including
 
-* long_description and long_description_content_type
-* author and author_email
-* classifiers, such as
+* `author` and `author_email`
+* `classifiers`, such as
     * `Framework :: Lektor`
     * `Environment :: Plugins`
-* keywords
+* `keywords`
+* `long_description` and `long_description_content_type`
+* `project_urls` (optional)
+* `url` to link to your repository
+
+The `long_description` can be set to be your README file, and is especially important. Without it, your plugins page will look a little sparse.
 
