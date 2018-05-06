@@ -16,25 +16,43 @@ automatically done with the help of the lektor shell command.
 Before you can go about publishing your plugin there needs to be at least
 some information added about it to your `setup.py`.  At least the keys
 `name`, `version`, `author`, `author_email`, `url` and `description` need to be
-set.  Here is a basic example of doing this:
+set.  Here is an example of doing this, largely taken from what is given by
+the CLI command `lektor dev new-plugin`:
 
 ```python
-from setuptools import setup
+import ast
+import io
+import re
 
-with open('README.md', encoding="utf8") as f:
+from setuptools import setup, find_packages
+
+with io.open('README.md', 'rt', encoding="utf8") as f:
     readme = f.read()
 
+_name_re = re.compile(r'name\s+=\s+(?P<name>.*)')
+_description_re = re.compile(r'description\s+=\s+(?P<description>.*)')
+
+with open('lektor_dsdf.py', 'rb') as f:
+    name = str(ast.literal_eval(_name_re.search(
+        f.read().decode('utf-8')).group(1)))
+
+with open('lektor_dsdf.py', 'rb') as f:
+    description = str(ast.literal_eval(_description_re.search(
+        f.read().decode('utf-8')).group(1)))
+
 setup(
-    name='lektor-your-plugin',
     author='Your Name',
     author_email='your.email@your.domain.invalid',
-    version='1.0',
-    url='http://github.com/youruser/lektor-yourplugin',
+    description=description,
+    keywords='Lektor plugin',
     license='MIT',
-    packages=['lektor_your_plugin'],
-    description='Basic description goes here',
     long_description=readme,
     long_description_content_type='text/markdown',
+    name=name,
+    packages=find_packages(),
+    py_modules=['lektor_hello_world'],
+    url='http://github.com/youruser/lektor-yourplugin',
+    version='1.0',
     classifiers=[
         'Framework :: Lektor',
         'Environment :: Plugins',
@@ -43,9 +61,12 @@ setup(
         'lektor.plugins': [
             'hello-world = lektor_hello_world:HelloWorldPlugin',
         ]
-    },
+    }
 )
 ```
+
+This is not the most basic `setup.py` that is strictly necessary, but instead a more full, ideal `setup.py` that will help your plugin be discovered and and understood most easily. Note that is assumes there is a `README.md` file, and that `name` and `description` are defined in your plugin's `.py` module file, which is their preferred location for Lektor.
+
 
 ## Publishing
 
@@ -66,7 +87,7 @@ credentials for `pypi`.  Next time it will have remembered them.
 
 ## Listing on this site
 
-We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely, including
+We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository :ext](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely (as in [the above snippet :ref](/docs/plugins/publishing/#enhance-your-setup.py)), including
 
 * `author` and `author_email`
 * `classifiers`, such as
@@ -77,5 +98,4 @@ We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). T
 * `project_urls` (optional)
 * `url` to link to your repository
 
-The `long_description` can be set to be your README file, and is especially important. Without it, your plugins page will look a little sparse.
-
+The `long_description` can be set to be your `README.md` file, and is especially important. Without it, your plugin's page will look a little sparse.
