@@ -1,12 +1,31 @@
-from setuptools import setup
+import re
+
+from setuptools import setup, find_packages
+
+with open('README.md', encoding="utf8") as f:
+    readme = f.read()
+
+with open('${plugin_module}', encoding='utf8') as f:
+    name = re.search(r'name = \'(.*?)\'', f.read()).group(1)
+    description = re.search(r'description = \'(.*?)\'', f.read()).group(1)
+
 
 setup(
-    name='lektor-${plugin_id}',
+    name=name,
     version='0.1',
     author=${author_name|pprint},
     author_email='${author_email}',
     license='MIT',
+    packages=find_packages(),
     py_modules=['${plugin_module}'],
+    description=description,
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    keywords='Lektor plugin',
+    classifiers=[
+        'Framework :: Lektor',
+        'Environment :: Plugins',
+    ],
     entry_points={
         'lektor.plugins': [
             '${plugin_id} = ${plugin_module}:${plugin_class}',
