@@ -45,16 +45,25 @@ def test_new_plugin(project_cli_runner):
 
     # setup.py
     setup_expected = textwrap.dedent("""
+        import ast
+        import io
         import re
 
         from setuptools import setup, find_packages
 
-        with open('README.md', encoding="utf8") as f:
+        with io.open('README.md', 'rt', encoding="utf8") as f:
             readme = f.read()
 
-        with open('lektor_plugin_name.py', encoding='utf8') as f:
-            name = re.search(r'name = \\'(.*?)\\'', f.read()).group(1)
-            description = re.search(r'description = \\'(.*?)\\'', f.read()).group(1)
+        _name_re = re.compile(r'name\\s+=\\s+(?P<name>.*)')
+        _description_re = re.compile(r'description\\s+=\\s+(?P<description>.*)')
+
+        with open('lektor_dsdf.py', 'rb') as f:
+            name = str(ast.literal_eval(_name_re.search(
+                f.read().decode('utf-8')).group(1)))
+
+        with open('lektor_dsdf.py', 'rb') as f:
+            description = str(ast.literal_eval(_description_re.search(
+                f.read().decode('utf-8')).group(1)))
 
         setup(
             name=name,
@@ -159,16 +168,25 @@ def test_new_plugin_name_only(project_cli_runner):
     author = get_default_author()
     author_email = get_default_author_email()
     setup_expected = textwrap.dedent("""
+        import ast
+        import io
         import re
 
         from setuptools import setup, find_packages
 
-        with open('README.md', encoding="utf8") as f:
+        with io.open('README.md', 'rt', encoding="utf8") as f:
             readme = f.read()
 
-        with open('lektor_plugin_name.py', encoding='utf8') as f:
-            name = re.search(r'name = \\'(.*?)\\'', f.read()).group(1)
-            description = re.search(r'description = \\'(.*?)\\'', f.read()).group(1)
+        _name_re = re.compile(r'name\\s+=\\s+(?P<name>.*)')
+        _description_re = re.compile(r'description\\s+=\\s+(?P<description>.*)')
+
+        with open('lektor_dsdf.py', 'rb') as f:
+            name = str(ast.literal_eval(_name_re.search(
+                f.read().decode('utf-8')).group(1)))
+
+        with open('lektor_dsdf.py', 'rb') as f:
+            description = str(ast.literal_eval(_description_re.search(
+                f.read().decode('utf-8')).group(1)))
 
         setup(
             name=name,
