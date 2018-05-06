@@ -5,10 +5,9 @@ from setuptools import setup, find_packages
 with open('README.md', encoding="utf8") as f:
     readme = f.read()
 
-with open('${plugin_module}', encoding='utf8') as f:
+with open('${plugin_module}.py', encoding='utf8') as f:
     name = re.search(r'name = \'(.*?)\'', f.read()).group(1)
     description = re.search(r'description = \'(.*?)\'', f.read()).group(1)
-
 
 setup(
     name=name,

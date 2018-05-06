@@ -17,8 +17,8 @@ def test_new_plugin(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = os.path.join('packages', 'plugin-name')
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
-
+    assert set(os.listdir(path)) == set(
+        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
 
     # gitignore
     gitignore_expected = textwrap.dedent("""
@@ -32,17 +32,46 @@ def test_new_plugin(project_cli_runner):
         gitignore_contents = f.read().strip()
     assert gitignore_contents == gitignore_expected
 
+    # README.md
+    readme_expected = textwrap.dedent("""
+        # Plugin Name
+
+        This is where a description of your plugin goes.
+        Provide usage instructions here.
+    """).strip()
+    with open(os.path.join(path, 'README.md')) as f:
+        readme_contents = f.read().strip()
+    assert readme_contents == readme_expected
+
     # setup.py
     setup_expected = textwrap.dedent("""
-        from setuptools import setup
+        import re
+
+        from setuptools import setup, find_packages
+
+        with open('README.md', encoding="utf8") as f:
+            readme = f.read()
+
+        with open('lektor_plugin_name.py', encoding='utf8') as f:
+            name = re.search(r'name = \\'(.*?)\\'', f.read()).group(1)
+            description = re.search(r'description = \\'(.*?)\\'', f.read()).group(1)
 
         setup(
-            name='lektor-plugin-name',
+            name=name,
             version='0.1',
             author={}'Author Name',
             author_email='author@email.com',
             license='MIT',
+            packages=find_packages(),
             py_modules=['lektor_plugin_name'],
+            description=description,
+            long_description=readme,
+            long_description_content_type='text/markdown',
+            keywords='Lektor plugin',
+            classifiers=[
+                'Framework :: Lektor',
+                'Environment :: Plugins',
+            ],
             entry_points={{
                 'lektor.plugins': [
                     'plugin-name = lektor_plugin_name:PluginNamePlugin',
@@ -130,15 +159,33 @@ def test_new_plugin_name_only(project_cli_runner):
     author = get_default_author()
     author_email = get_default_author_email()
     setup_expected = textwrap.dedent("""
-        from setuptools import setup
+        import re
+
+        from setuptools import setup, find_packages
+
+        with open('README.md', encoding="utf8") as f:
+            readme = f.read()
+
+        with open('lektor_plugin_name.py', encoding='utf8') as f:
+            name = re.search(r'name = \\'(.*?)\\'', f.read()).group(1)
+            description = re.search(r'description = \\'(.*?)\\'', f.read()).group(1)
 
         setup(
-            name='lektor-plugin-name',
+            name=name,
             version='0.1',
             author={}'{}',
             author_email='{}',
             license='MIT',
+            packages=find_packages(),
             py_modules=['lektor_plugin_name'],
+            description=description,
+            long_description=readme,
+            long_description_content_type='text/markdown',
+            keywords='Lektor plugin',
+            classifiers=[
+                'Framework :: Lektor',
+                'Environment :: Plugins',
+            ],
             entry_points={{
                 'lektor.plugins': [
                     'plugin-name = lektor_plugin_name:PluginNamePlugin',
@@ -181,7 +228,8 @@ def test_new_plugin_path(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = 'path'
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    assert set(os.listdir(path)) == set(
+        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
 
 
 def test_new_plugin_path_param(project_cli_runner):
@@ -195,7 +243,8 @@ def test_new_plugin_path_param(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = 'path'
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    assert set(os.listdir(path)) == set(
+        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
 
 
 def test_new_plugin_path_and_name_params(project_cli_runner):
@@ -208,4 +257,5 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = 'path'
-    assert set(os.listdir(path)) == set(['lektor_plugin_name.py', 'setup.py', '.gitignore'])
+    assert set(os.listdir(path)) == set(
+        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
