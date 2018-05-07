@@ -54,14 +54,9 @@ def test_new_plugin(project_cli_runner):
         with io.open('README.md', 'rt', encoding="utf8") as f:
             readme = f.read()
 
-        _name_re = re.compile(r'name\\s+=\\s+(?P<name>.*)')
         _description_re = re.compile(r'description\\s+=\\s+(?P<description>.*)')
 
-        with open('lektor_dsdf.py', 'rb') as f:
-            name = str(ast.literal_eval(_name_re.search(
-                f.read().decode('utf-8')).group(1)))
-
-        with open('lektor_dsdf.py', 'rb') as f:
+        with open('lektor_plugin_name.py', 'rb') as f:
             description = str(ast.literal_eval(_description_re.search(
                 f.read().decode('utf-8')).group(1)))
 
@@ -73,7 +68,7 @@ def test_new_plugin(project_cli_runner):
             license='MIT',
             long_description=readme,
             long_description_content_type='text/markdown',
-            name=name,
+            name='lektor-plugin-name',
             packages=find_packages(),
             py_modules=['lektor_plugin_name'],
             # url='[link to your repository]',
@@ -178,14 +173,9 @@ def test_new_plugin_name_only(project_cli_runner):
         with io.open('README.md', 'rt', encoding="utf8") as f:
             readme = f.read()
 
-        _name_re = re.compile(r'name\\s+=\\s+(?P<name>.*)')
         _description_re = re.compile(r'description\\s+=\\s+(?P<description>.*)')
 
-        with open('lektor_dsdf.py', 'rb') as f:
-            name = str(ast.literal_eval(_name_re.search(
-                f.read().decode('utf-8')).group(1)))
-
-        with open('lektor_dsdf.py', 'rb') as f:
+        with open('lektor_plugin_name.py', 'rb') as f:
             description = str(ast.literal_eval(_description_re.search(
                 f.read().decode('utf-8')).group(1)))
 
@@ -197,7 +187,7 @@ def test_new_plugin_name_only(project_cli_runner):
             license='MIT',
             long_description=readme,
             long_description_content_type='text/markdown',
-            name=name,
+            name='lektor-plugin-name',
             packages=find_packages(),
             py_modules=['lektor_plugin_name'],
             # url='[link to your repository]',
