@@ -217,7 +217,7 @@ div.blog-snippet {
   }
 }
 
-div.doc-styling, div.blog-post {
+div.doc-styling, div.blog-post, div.plugin {
   line-height: 1.75;
 
   a.ref {
@@ -225,6 +225,7 @@ div.doc-styling, div.blog-post {
   }
 
   a.ext {
+    white-space: nowrap;
     &:before {
       @extend .glyphicon;
       @extend .glyphicon-link;
@@ -675,12 +676,13 @@ div.plugin-margin {
   h4 {
     margin: 25px 0;
   }
+
+  div.separator {
+    border-top: 1px solid #ddd;
+    margin: 25px 0;
+  }
 }
 
-div.separator {
-  border-top: 1px solid #ddd;
-  margin: 25px 0;
-}
 
 div.comment-box {
   border-top: 1px solid #ddd;
