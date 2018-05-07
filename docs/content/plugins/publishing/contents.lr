@@ -99,3 +99,5 @@ We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). T
 * `url` to link to your repository
 
 The `long_description` can be set to be your `README.md` file, and is especially important. Without it, your plugin's page will look a little sparse.
+
+When you submit your pull request, be sure to add some tags. Tags are used on this site to help navigation and discovery of plugins. These are not the same as keywords in your `setup.py`, which are used on PyPI. Specifically, at least include tags for the plugin events that your plugin hooks, such as `setup-env`. These in particular will help new plugin developers learn how to interact with these hooks by example.
