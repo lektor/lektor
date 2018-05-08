@@ -3,6 +3,10 @@
 matrix:
   fast_finish: true
 
+branches:
+  only:
+    - master
+
 # Cache imagemagick
 cache:
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
