@@ -50,7 +50,7 @@ def test_exif(pad):
 def test_image_attributes(pad):
     for img in (
         'test.jpg',
-        'test-SOF-last.jpg', # same image but with SOF marker last
+        'test-sof-last.jpg', # same image but with SOF marker last
         'test-progressive.jpg', # same image, but with progressive encoding
     ):
         image = pad.root.attachments.images.get(img)
