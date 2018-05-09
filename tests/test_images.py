@@ -48,12 +48,17 @@ def test_exif(pad):
 
 
 def test_image_attributes(pad):
-    image = pad.root.attachments.images.get('test.jpg')
-    assert image is not None
+    for img in (
+        'test.jpg',
+        'test-SOF-last.jpg', # same image but with SOF marker last
+        'test-progressive.jpg', # same image, but with progressive encoding
+    ):
+        image = pad.root.attachments.images.get(img)
+        assert image is not None
 
-    assert image.width == 512
-    assert image.height == 384
-    assert image.format == 'jpeg'
+        assert image.width == 512
+        assert image.height == 384
+        assert image.format == 'jpeg'
 
 
 def test_thumbnail_height(builder):
