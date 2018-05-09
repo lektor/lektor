@@ -274,30 +274,6 @@ _JPEG_SOF_MARKERS = (
     0xcd, 0xce, 0xcf,
 )
 
-_JPEG_DNL_MARKER = 0xdc
-
-_JPEG_STANDALONE_MARKERS = (
-    0xd8, # SOI
-    0xd9, # EOI
-    0x01, # TEM
-) + tuple(
-    range(0xd0, 0xd7 + 1) # RST
-)
-
-_JPEG_OTHER_MARKERS = (
-    0xc4, # DHT
-    0xc8, # JPG
-    0xcc, # DAC
-    # other markers
-    0xda, 0xdb,
-    0xdd, 0xde, 0xdf,
-    0xfe,
-) + tuple(
-    range(0xe0, 0xfd + 1) # others - reserved
-) + tuple(
-    range(0x02, 0xbf + 1) # reserved
-)
-
 
 def get_image_info(fp):
     """Reads some image info from a file descriptor."""
@@ -324,70 +300,45 @@ def get_image_info(fp):
         # http://www.w3.org/Graphics/JPEG/itu-t81.pdf
         # Annex B (page 31/35)
 
-        # we are looking for a SOF marker ("start of frame"), and if
-        # it doesn't provide the height, keep looking until we find
-        # a DNL marker ("define number of lines").
+        # we are looking for a SOF marker ("start of frame").
+        # skip over the "start of image" marker (imghdr took care of that).
+        fp.seek(2)
 
-        # note: this algorithm could be improved to bail out early
-        # if the image is corrupted.
-
-        fp.seek(0)
         while True:
             byte = fp.read(1)
-            if not byte:
-                break
 
             # "All markers are assigned two-byte codes: an X’FF’ byte
             # followed by a byte which is not equal to 0 or X’FF’."
-            if ord(byte) == 0xff:
-                # "Any marker may optionally be preceded by any number
-                # of fill bytes, which are bytes assigned code X’FF’."
-                while ord(byte) == 0xff:
-                    byte = fp.read(1)
+            if not byte or ord(byte) != 0xff:
+                raise Exception("Malformed JPEG image.")
 
-                marker = ord(byte)
+            # "Any marker may optionally be preceded by any number
+            # of fill bytes, which are bytes assigned code X’FF’."
+            while ord(byte) == 0xff:
+                byte = fp.read(1)
 
-                if marker in _JPEG_STANDALONE_MARKERS:
-                    continue
-
+            if ord(byte) not in _JPEG_SOF_MARKERS:
                 # header length parameter takes 2 bytes for all markers
                 length = struct.unpack('>H', fp.read(2))[0]
+                fp.seek(length - 2, 1)
+                continue
 
-                if marker in _JPEG_OTHER_MARKERS:
-                    fp.seek(length - 2, 1)
-                    continue
+            # else...
+            # see Figure B.3 – Frame header syntax (page 35/39) and
+            # Table B.2 – Frame header parameter sizes and values
+            # (page 36/40)
+            fp.seek(3, 1) # skip header length and precision parameters
+            height, width = struct.unpack('>HH', fp.read(4))
 
-                if marker in _JPEG_SOF_MARKERS:
-                    # see Figure B.3 – Frame header syntax (page 35/39) and
-                    # Table B.2 – Frame header parameter sizes and values
-                    # (page 36/40)
-                    fp.seek(1, 1) # skip precision parameter
-                    height, width = struct.unpack('>HH', fp.read(4))
+            if height == 0:
+                # "Value 0 indicates that the number of lines shall be
+                # defined by the DNL marker [...]"
+                #
+                # DNL is not supported by most applications,
+                # so we won't support it either.
+                raise Exception("JPEG with DNL not supported.")
 
-                    if height:
-                        break
-                    else:
-                        # "Value 0 indicates that the number of lines shall be
-                        # defined by the DNL marker and parameters at the end
-                        # of the first scan (see B.2.5)."
-                        fp.seek(length - (2 + 1 + 4), 1)
-                        continue
-
-                if marker == _JPEG_DNL_MARKER:
-                    height = struct.unpack('>H', fp.read(2))[0]
-                    break
-
-                # if we're here we must have entered a scan segment,
-                # waiting for the DNL. we can't seek ahead, but...
-                # B.1.1.5 Entropy-coded data segments:
-                # "In order to ensure that a marker does not occur within
-                # an entropy-coded segment, any X’FF’ byte [...] is followed
-                # by a “stuffed” zero byte"
-                if marker == 0:
-                    continue
-
-                # anything else should be an error
-                #raise Exception("malformed file")
+            break
 
     return fmt, width, height
 
