@@ -37,6 +37,7 @@ ___
 * [nofollow :ext](https://github.com/yargies/lektor-nofollow): Easily create nofollow links in markdown
 * [rst :ext](https://github.com/fschulze/lektor-rst): A [reStructuredText](http://docutils.sourceforge.net) plugin
 * [tags :ext](https://github.com/ajdavis/lektor-tags): For each tag on site, build a list of pages with that tag.
+* [read-full-post :ext](https://github.com/Andrew-Shay/lektor-read-full-post): Allows blog listing posts to be shortened with a link to the full post. 
 
 ## Deploy
 
