@@ -37,7 +37,7 @@ default = default
 
 This should be self explanatory.  One thing that is different about blocks
 compared to regular models is that they support the `button_label` attribute
-which an be used to customize the label of the button that adds blocks to
+which can be used to customize the label of the button that adds blocks to
 a flow.
 
 ## Templates
