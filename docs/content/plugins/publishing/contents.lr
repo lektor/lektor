@@ -39,18 +39,20 @@ setup(
     author='Your Name',
     author_email='your.email@your.domain.invalid',
     description=description,
-    keywords='Lektor plugin',
+    keywords='Lektor plugin static-site blog',
     license='MIT',
     long_description=readme,
     long_description_content_type='text/markdown',
-    name=name,
+    name='lektor-hello-world',
     packages=find_packages(),
     py_modules=['lektor_hello_world'],
     url='http://github.com/youruser/lektor-yourplugin',
     version='1.0',
     classifiers=[
         'Framework :: Lektor',
+        'Environment :: Web Environment',
         'Environment :: Plugins',
+        'License :: OSI Approved :: MIT License',
     ],
     entry_points={
         'lektor.plugins': [
@@ -85,14 +87,16 @@ credentials for `pypi`.  Next time it will have remembered them.
 We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository :ext](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely (as in [the above snippet :ref](/docs/plugins/publishing/#enhance-your-setup.py)), including
 
 * `author` and `author_email`
-* `classifiers`, such as
-    * `Framework :: Lektor`
-    * `Environment :: Plugins`
-* `keywords`
-* `long_description` and `long_description_content_type`
-* `project_urls` (optional)
-* `url` to link to your repository
+* `classifiers`, (optional) such as
+    * `Framework :: Lektor`,
+    * `Environment :: Web Environment`,
+    * `Environment :: Plugins`,
+    * `License :: OSI Approved :: [X] License` (substitute your license),
+* `keywords` (optional),
+* `long_description` and `long_description_content_type`,
+* `project_urls` (optional),
+* `url` to link to your repository on GitHub
 
-The `long_description` can be set to be your `README.md` file, and is especially important. Without it, your plugin's page will look a little sparse.
+The `long_description` is required to have a page on getlektor.com and PyPI that looks filled out. We process it the same way PyPI does, so if it looks good there it should look good on this site. This means that if you chose to have a Markdown README instead of reStructuredText, you will also need the appropriate `long_description_content_type`. We pull most of this data from PyPI, so if the plugin's setup.py's changes are not published, neither site will update. We update on build which happens at least nightly. We also pull some information from GitHub when the `url` field is set to the plugin's GitHub project page.
 
 When you submit your pull request, be sure to add some tags. Tags are used on this site to help navigation and discovery of plugins. These are not the same as keywords in your `setup.py`, which are used on PyPI. Specifically, at least include tags for the plugin events that your plugin hooks, such as `setup-env`. These in particular will help new plugin developers learn how to interact with these hooks by example.
