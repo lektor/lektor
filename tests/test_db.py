@@ -137,9 +137,9 @@ def test_attachment_api(pad):
     from lektor.db import Image
 
     root = pad.root
-    assert root.attachments.count() == 2
+    assert root.attachments.count() == 4
     assert sorted(x['_id'] for x in root.attachments) == [
-        'hello.txt', 'test.jpg']
+        'hello.txt', 'test-progressive.jpg', 'test-sof-last.jpg', 'test.jpg']
 
     txt = root.attachments.get('hello.txt')
     assert txt is not None
