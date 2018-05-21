@@ -46,8 +46,9 @@ def get_path_info():
 
 @bp.route('/recordinfo')
 def get_record_info():
-    db = g.admin_context.pad.db
-    tree_item = g.admin_context.tree.get(request.args['path'])
+    pad = g.admin_context.pad
+    request_path = request.args['path']
+    tree_item = g.admin_context.tree.get(request_path)
     children = []
     attachments = []
     alts = []
@@ -58,10 +59,10 @@ def get_record_info():
         else:
             children.append(child)
 
-    primary_alt = db.config.primary_alternative
+    primary_alt = pad.db.config.primary_alternative
     if primary_alt is not None:
         for alt in itervalues(tree_item.alts):
-            alt_cfg = db.config.get_alternative(alt.id)
+            alt_cfg = pad.db.config.get_alternative(alt.id)
             alts.append({
                 'alt': alt.id,
                 'is_primary': alt.id == PRIMARY_ALT,
@@ -69,6 +70,8 @@ def get_record_info():
                 'name_i18n': alt_cfg['name'],
                 'exists': alt.exists,
             })
+
+    child_order_by = pad.query(request_path).get_order_by() or []
 
     return jsonify(
         id=tree_item.id,
@@ -87,7 +90,10 @@ def get_record_info():
             'label': x.id,
             'label_i18n': x.label_i18n,
             'visible': x.is_visible,
-        } for x in children],
+        } for x in sorted(
+            children,
+            key=lambda c: pad.get(c.path).get_sort_key(child_order_by))
+        ],
         alts=alts,
         can_have_children=tree_item.can_have_children,
         can_have_attachments=tree_item.can_have_attachments,
