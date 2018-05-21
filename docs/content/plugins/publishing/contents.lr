@@ -2,7 +2,7 @@ title: Publishing
 ---
 summary: Explains how publishing of plugins works.
 ---
-sort_key: 20
+sort_key: 30
 ---
 body:
 
@@ -84,6 +84,8 @@ credentials for `pypi`.  Next time it will have remembered them.
 
 ## Listing on this site
 
+### Guide
+
 We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository :ext](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely (as in [the above snippet :ref](/docs/plugins/publishing/#enhance-your-setup.py)), including
 
 * `author` and `author_email`
@@ -97,6 +99,19 @@ We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). T
 * `project_urls` (optional),
 * `url` to link to your repository on GitHub
 
+! Using Markdown for a `long_description` is new functionality of PyPI as of [March 16, 2018 :ext](https://dustingram.com/articles/2018/03/16/markdown-descriptions-on-pypi) that requires `setuptools>=38.6.0`, `twine>=1.11.0`, and `wheel>=0.31.0` if you're using wheels.
+
 The `long_description` is required to have a page on getlektor.com and PyPI that looks filled out. We process it the same way PyPI does, so if it looks good there it should look good on this site. This means that if you chose to have a Markdown README instead of reStructuredText, you will also need the appropriate `long_description_content_type`. We pull most of this data from PyPI, so if the plugin's setup.py's changes are not published, neither site will update. We update on build which happens at least nightly. We also pull some information from GitHub when the `url` field is set to the plugin's GitHub project page.
 
 When you submit your pull request, be sure to add some tags. Tags are used on this site to help navigation and discovery of plugins. These are not the same as keywords in your `setup.py`, which are used on PyPI. Specifically, at least include tags for the plugin events that your plugin hooks, such as `setup-env`. These in particular will help new plugin developers learn how to interact with these hooks by example.
+
+### Requirements
+
+Please follow the above guide to get your plugin page on this site and looking it's best. To be clear though, for a new plugin to be listed on this site, the following must be done:
+
+1. The plugin must be available on PyPI.
+1. The plugin's page name on this site is the name of the package on PyPI.
+1. The plugin must be in a category, or else it will not appear anywhere on [the plugins page :ref](/plugins/). New categories are allowed if it makes sense for your plugin.
+1. The plugin must have a long_description and README.
+1. The plugin must have tags. At minimum these should include all plugin events the code uses.
+1. `name` and `description` must be defined in the plugin's subclass in its [source code :ref](/docs/plugins/dev/#creating-the-plugin). This is needed by for `lektor plugins list -v` to display appropriate information.
