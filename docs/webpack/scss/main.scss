@@ -13,6 +13,7 @@ $font-size-h5: $font-size-base;
 $font-size-h6: ceil(($font-size-base * 0.85));
 
 $container-large-desktop: 900px;
+$container-desktop: $container-large-desktop; // md is the same.
 
 $border-radius-base: 0;
 $border-radius-large: 0;
@@ -781,6 +782,11 @@ div.showcase {
 
       .frame {
         background: white;
+
+        @media (min-width: $screen-sm-max) {
+          max-height: 260px; // Taller thumbnails get cropped.
+          overflow: hidden;
+        }
       }
 
       &:hover {
