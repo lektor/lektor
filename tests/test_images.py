@@ -1,7 +1,9 @@
 import os
 from datetime import datetime
+from hashlib import md5
 
 from lektor._compat import iteritems
+from lektor.imagetools import get_image_info, compute_dimensions
 
 
 def almost_equal(a, b, e=0.00001):
@@ -49,32 +51,122 @@ def test_exif(pad):
 
 def test_image_attributes(pad):
     for img in (
-        'test.jpg',
+        'test.jpg', # base image, exif-rotated
         'test-sof-last.jpg', # same image but with SOF marker last
-        'test-progressive.jpg', # same image, but with progressive encoding
+        'test-progressive.jpg', # with progressive encoding, rotated in place
     ):
         image = pad.root.attachments.images.get(img)
         assert image is not None
 
-        assert image.width == 512
-        assert image.height == 384
+        assert image.width == 384
+        assert image.height == 512
         assert image.format == 'jpeg'
 
 
-def test_thumbnail_height(builder):
+_SIMILAR_THUMBNAILS = {
+    # original dimensions = 384 x 512
+    'test@192.jpg': (192, 256),
+    'test@x256.jpg': (192, 256),
+    'test@256x256.jpg': (192, 256),
+}
+_DIFFERING_THUMBNAILS = {
+    'test@300x100_crop.jpg': (300, 100),
+    'test@300x100_stretch.jpg': (300, 100),
+}
+_THUMBNAILS = _SIMILAR_THUMBNAILS.copy()
+_THUMBNAILS.update(_DIFFERING_THUMBNAILS)
+
+
+def test_thumbnail_dimensions_reported(builder):
     builder.build_all()
     with open(os.path.join(builder.destination_path, 'index.html')) as f:
         html = f.read()
 
-    # Thumbnail is half the original width, so its computed height is half.
-    assert '<img src="./test@192.jpg" width="192" height="256">' in html
+    for t, (w, h) in _THUMBNAILS.items():
+        assert '<img src="./%s" width="%s" height="%s">' % (t, w, h) in html
+
+
+def test_thumbnail_dimensions_real(builder):
+    builder.build_all()
+    for t, dimensions in _THUMBNAILS.items():
+        image_file = os.path.join(builder.destination_path, t)
+        with open(image_file, 'rb') as f:
+            _format, width, height = get_image_info(f)
+            assert (width, height) == dimensions
+
+
+def test_thumbnails_similar(builder):
+    builder.build_all()
+    hashes = []
+    for t in _SIMILAR_THUMBNAILS:
+        image_file = os.path.join(builder.destination_path, t)
+        with open(image_file, 'rb') as f:
+            hashes.append(
+                md5(f.read()).hexdigest()
+            )
+    for i in range(1, len(hashes)):
+        assert hashes[i] == hashes[0]
+
+
+def test_thumbnails_differing(builder):
+    builder.build_all()
+    hashes = []
+    for t in _DIFFERING_THUMBNAILS:
+        image_file = os.path.join(builder.destination_path, t)
+        with open(image_file, 'rb') as f:
+            hashes.append(
+                md5(f.read()).hexdigest()
+            )
+    for i in range(1, len(hashes)):
+        assert hashes[i] != hashes[0]
+
 
 def test_thumbnail_quality(builder):
     builder.build_all()
     image_file = os.path.join(builder.destination_path, 'test@192x256_q20.jpg')
-    image_size = os.path.getsize(image_file)
-
     # See if the image file with said quality suffix exists
     assert os.path.isfile(image_file)
+
+    image_size = os.path.getsize(image_file)
     # And the filesize is less than 9200 bytes
     assert image_size < 9200
+
+
+def test_large_thumbnail_returns_original(builder):
+    builder.build_all()
+    with open(os.path.join(builder.destination_path, 'index.html')) as f:
+        html = f.read()
+
+    assert '<img alt="original" src="./test.jpg" width="384" height="512">' in html
+
+
+def test_dimensions():
+    # landscape
+    w, h = 100, 50
+    assert compute_dimensions(50, 50, w, h) == (50, 25)
+    assert compute_dimensions(100, 20, w, h) == (40, 20)
+    assert compute_dimensions(200, 200, w, h) == (200, 100)
+    assert compute_dimensions(500, 200, w, h) == (400, 200)
+    # test missing dimension
+    assert compute_dimensions(50, None, w, h) == (50, 25)
+    assert compute_dimensions(None, 20, w, h) == (40, 20)
+    assert compute_dimensions(200, None, w, h) == (200, 100)
+    assert compute_dimensions(None, 200, w, h) == (400, 200)
+    # test that rounding is half-up
+    assert compute_dimensions(49, None, w, h) == (49, 25)
+    assert compute_dimensions(51, None, w, h) == (51, 26)
+
+    # portrait
+    w, h = 50, 100
+    assert compute_dimensions(50, 50, w, h) == (25, 50)
+    assert compute_dimensions(20, 100, w, h) == (20, 40)
+    assert compute_dimensions(200, 200, w, h) == (100, 200)
+    assert compute_dimensions(200, 500, w, h) == (200, 400)
+    #
+    assert compute_dimensions(None, 50, w, h) == (25, 50)
+    assert compute_dimensions(20, None, w, h) == (20, 40)
+    assert compute_dimensions(None, 200, w, h) == (100, 200)
+    assert compute_dimensions(200, None, w, h) == (200, 400)
+    #
+    assert compute_dimensions(None, 49, w, h) == (25, 49)
+    assert compute_dimensions(None, 51, w, h) == (26, 51)
