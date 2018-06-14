@@ -7,10 +7,10 @@ import shutil
 import subprocess
 import tempfile
 import threading
-from contextlib import contextmanager
 
-from werkzeug import urls
+from contextlib import contextmanager
 from ftplib import Error as FTPError
+from werkzeug import urls
 
 from lektor._compat import (iteritems, iterkeys, range_type, string_types,
     text_type, queue, BytesIO, StringIO, PY2)
@@ -357,8 +357,7 @@ class FtpConnection(object):
         if getvalue:
             if PY2:
                 return out.getvalue()
-            else:
-                return out.getvalue().decode('utf-8')
+            return out.getvalue().decode('utf-8')
         return out
 
     def upload_file(self, filename, src, mkdir=False):
