@@ -10,9 +10,10 @@ import threading
 from contextlib import contextmanager
 
 from werkzeug import urls
+from ftplib import Error as FTPError
 
 from lektor._compat import (iteritems, iterkeys, range_type, string_types,
-    text_type, queue, StringIO)
+    text_type, queue, BytesIO, StringIO, PY2)
 from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
 
@@ -273,10 +274,16 @@ class FtpConnection(object):
 
         try:
             credentials = {}
-            if self.username:
-                credentials["user"] = self.username.encode('utf-8')
-            if self.password:
-                credentials["passwd"] = self.password.encode('utf-8')
+            if PY2:
+                if self.username:
+                    credentials["user"] = self.username.encode('utf-8')
+                if self.password:
+                    credentials["passwd"] = self.password.encode('utf-8')
+            else:
+                if self.username:
+                    credentials["user"] = self.username
+                if self.password:
+                    credentials["passwd"] = self.password
             log.append(self.con.login(**credentials))
 
         except Exception as e:
@@ -307,20 +314,25 @@ class FtpConnection(object):
             self.mkdir(dirname)
         try:
             self.con.mkd(path)
-        except Exception as e:
+        except FTPError as e:
             msg = str(e)
             if msg[:4] != '550 ':
-                self.log_buffer.append(e)
+                self.log_buffer.append(str(e))
                 return
         self._known_folders.add(path)
 
     def append(self, filename, data):
         if not isinstance(filename, text_type):
             filename = filename.decode('utf-8')
-        input = StringIO(data)
+
+        if PY2:
+            input = StringIO(data)
+        else:
+            input = BytesIO(data.encode('utf-8'))
+
         try:
             self.con.storbinary('APPE ' + filename, input)
-        except Exception as e:
+        except FTPError as e:
             self.log_buffer.append(str(e))
             return False
         return True
@@ -330,22 +342,31 @@ class FtpConnection(object):
             filename = filename.decode('utf-8')
         getvalue = False
         if out is None:
-            out = StringIO()
+            if PY2:
+                out = StringIO()
+            else:
+                out = BytesIO()
             getvalue = True
         try:
             self.con.retrbinary('RETR ' + filename, out.write)
-        except Exception as e:
+        except FTPError as e:
             msg = str(e)
             if msg[:4] != '550 ':
                 self.log_buffer.append(e)
             return None
         if getvalue:
-            return out.getvalue()
+            if PY2:
+                return out.getvalue()
+            else:
+                return out.getvalue().decode('utf-8')
         return out
 
     def upload_file(self, filename, src, mkdir=False):
         if isinstance(src, string_types):
-            src = StringIO(src)
+            if PY2:
+                src = StringIO(src)
+            else:
+                src = BytesIO(src.encode('utf-8'))
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
@@ -355,7 +376,7 @@ class FtpConnection(object):
         try:
             self.con.storbinary('STOR ' + filename, src,
                                 blocksize=32768)
-        except Exception as e:
+        except FTPError as e:
             self.log_buffer.append(str(e))
             return False
         return True
@@ -363,7 +384,7 @@ class FtpConnection(object):
     def rename_file(self, src, dst):
         try:
             self.con.rename(src, dst)
-        except Exception as e:
+        except FTPError as e:
             self.log_buffer.append(str(e))
             try:
                 self.con.delete(dst)
@@ -420,7 +441,10 @@ class FtpPublisher(Publisher):
         for line in contents.splitlines():
             items = line.split('|')
             if len(items) == 2:
-                artifact_name = items[0].decode('utf-8')
+                if not isinstance(items[0], text_type):
+                    artifact_name = items[0].decode('utf-8')
+                else:
+                    artifact_name = items[0]
                 if artifact_name in rv:
                     duplicates.add(artifact_name)
                 rv[artifact_name] = items[1]
