@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+import decimal
 import os
 import imghdr
 import struct
 import posixpath
 import warnings
 from datetime import datetime
-from xml.etree import ElementTree as etree
-import decimal
-import exifread
 from enum import IntEnum
+from xml.etree import ElementTree as etree
+import exifread
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
@@ -25,13 +25,13 @@ class THUMBNAIL_MODE(IntEnum):
 
     @property
     def label(self):
-        return self.name.lower().replace('_', '-')
+        return self.name.lower().replace('_', '-') # pylint: disable=no-member
 
     @classmethod
     def from_label(cls, label):
         name = label.upper().replace('-', '-')
         try:
-            return cls.__members__[name]
+            return cls.__members__[name] # pylint: disable=no-member
         except KeyError:
             raise ValueError("Invalid thumbnail mode '%s'." % label)
 
