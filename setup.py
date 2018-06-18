@@ -28,6 +28,7 @@ setup(
         'Flask',
         'EXIFRead',
         'inifile',
+        'enum34;python_version<"3.4"',
         'Babel',
         'setuptools',
         'pip',

@@ -8,12 +8,7 @@ from datetime import datetime
 from xml.etree import ElementTree as etree
 import decimal
 import exifread
-try:
-    from enum import IntEnum
-except ImportError:
-    _EnumBase = object
-else:
-    _EnumBase = IntEnum
+from enum import IntEnum
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
@@ -25,13 +20,21 @@ from lektor._compat import iteritems, text_type, PY2
 datetime.strptime('', '')
 
 
-class THUMBNAIL_MODE(_EnumBase):
+class THUMBNAIL_MODE(IntEnum):
     FIT, CROP, STRETCH = range(1, 4)
-# build a reverse mapping
-THUMBNAIL_MODE.__RMAPPING = {
-    getattr(THUMBNAIL_MODE, k): k
-    for k in dir(THUMBNAIL_MODE) if not k.startswith('_')
-}
+
+    @property
+    def label(self):
+        return self.name.lower().replace('_', '-')
+
+    @classmethod
+    def from_label(cls, label):
+        name = label.upper().replace('-', '-')
+        try:
+            return cls.__members__[name]
+        except KeyError:
+            raise ValueError("Invalid thumbnail mode '%s'." % label)
+
 # set the default. do it outside the class to not confuse things
 THUMBNAIL_MODE.DEFAULT = THUMBNAIL_MODE.FIT
 
@@ -262,7 +265,7 @@ def get_suffix(width, height, mode, quality=None):
     if height is not None:
         suffix += 'x%s' % height
     if mode != THUMBNAIL_MODE.DEFAULT:
-        suffix += '_%s' % THUMBNAIL_MODE.__RMAPPING[mode].lower()
+        suffix += '_%s' % mode.label
     if quality is not None:
         suffix += '_q%s' % quality
     return suffix
@@ -510,7 +513,7 @@ def make_thumbnail(ctx, source_image, source_url_path,
     if mode != THUMBNAIL_MODE.FIT and (width is None or height is None):
         warnings.warn(
             '"%s" mode requires both `width` and `height` to be defined. '
-            'Falling back to "fit" mode.`' % THUMBNAIL_MODE.__RMAPPING[mode].lower()
+            'Falling back to "fit" mode.`' % mode.label
         )
         mode = THUMBNAIL_MODE.FIT
 

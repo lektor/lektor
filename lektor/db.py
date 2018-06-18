@@ -783,14 +783,14 @@ class Image(Attachment):
         return Undefined('The format of the image could not be determined.')
 
     def thumbnail(self,
-                  width=None, height=None, mode='default',
+                  width=None, height=None, mode=None,
                   upscale=None, quality=None):
         """Utility to create thumbnails."""
 
-        try:
-            mode = getattr(THUMBNAIL_MODE, mode.upper())
-        except AttributeError:
-            raise ValueError("Invalid thumbnail mode '%s'." % mode)
+        if mode is None:
+            mode = THUMBNAIL_MODE.DEFAULT
+        else:
+            mode = THUMBNAIL_MODE.from_label(mode)
 
         if width is not None:
             width = int(width)
