@@ -369,6 +369,7 @@ def increment_filename(filename):
     return rv
 
 
+@memoize
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
