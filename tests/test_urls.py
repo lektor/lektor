@@ -27,26 +27,51 @@ def test_basic_url_to_with_alts(pad):
     assert slave_de.url_to(slave_en) == '../../../projects/slave/'
 
 
-@pytest.mark.parametrize("alt, absolute, external, base_url, expected", [
-    ("de", None, None, None, '../../de/projects/sklave/'),
-    ("de", True, None, None, '/de/projects/sklave/'),
-    ("de", True, True, None, '/de/projects/sklave/'), #
-    ("de", True, True, '/content/', '/de/projects/sklave/'),#
-    ("de", None, True, None, '/projects/slave1/de/projects/sklave/'),
-    ("de", None, True, '/content/', '/projects/slave1/de/projects/sklave/'),#
-    ("de", None, None, '/content/', '../de/projects/sklave/'),
-    (None, True, None, None, '/projects/slave/'),
-    (None, True, True, None, '/projects/slave/'),#
-    (None, True, True, '/content/', '/projects/slave/'),
-    (None, True, None, '/content/', '/projects/slave/'),
-    (None, None, True, None, '/projects/slave1/projects/slave/'),
-    (None, None, True, '/content/', '/projects/slave1/projects/slave/'),
-    (None, None, None, '/content/', '../projects/slave/'),
+@pytest.mark.parametrize('path, alt, absolute, external, base_url, expected', [
+    ('/projects/slave', '', None, None, None, '../../projects/slave/'),
+    ('/projects/slave', 'de', None, None, None, '../../de/projects/sklave/'),
+    ('/projects/slave', 'de', True, None, None, '/de/projects/sklave/'),
+    ('/projects/slave', 'de', True, True, None, '/de/projects/sklave/'),
+    ('/projects/slave', 'de', True, True, '/content/', '/de/projects/sklave/'),
+    ('/projects/slave', 'de', None, True, None, '/projects/slave1/de/projects/sklave/'),
+    ('/projects/slave', 'de', None, True, '/content/', '/projects/slave1/de/projects/sklave/'),
+    ('/projects/slave', 'de', None, None, '/content/', '../de/projects/sklave/'),
+    ('', 'de', None, None, None, '../../de/projects/wolf/'),
+    ('!', 'de', None, None, None, '../../projects/wolf/'),
+    ('!/projects/slave', 'de', None, None, None, '../../projects/slave'),
+    ('!/projects/slave', None, None, None, None, '../../projects/slave'),
+    ('!', None, None, None, None, '../../projects/wolf/'),
+    ('', None, None, None, None, '../../projects/wolf/'),
+    ('/projects/slave', None, True, None, None, '/projects/slave/'),
+    ('/projects/slave', None, True, True, None, '/projects/slave/'),
+    ('/projects/slave', None, True, True, '/content/', '/projects/slave/'),
+    ('/projects/slave', None, True, None, '/content/', '/projects/slave/'),
+    ('/projects/slave', None, None, True, None, '/projects/slave1/projects/slave/'),
+    ('/projects/slave', None, None, True, '/content/', '/projects/slave1/projects/slave/'),
+    ('/projects/slave', None, None, None, '/content/', '../projects/slave/'),
+    ('/projects/slave', None, None, None, None, '../../projects/slave/'),
+
 ])
-def test_url_to_all_params(pad, alt, absolute, external, base_url, expected):
-    if external:
-        pad.db.config.base_url = "/projects/slave1/"
+def test_url_to_all_params(pad, path, alt, absolute, external, base_url, expected):
+
+    if external and not absolute:
+        pad.db.config.base_url = '/projects/slave1/'
 
     wolf_en = pad.get('/projects/wolf')
 
-    assert wolf_en.url_to("/projects/slave/", alt, absolute, external, base_url) == expected
+    assert wolf_en.url_to(path, alt, absolute, external, base_url) == expected
+
+
+@pytest.mark.parametrize('path, alt, absolute, external, base_url', [
+    ('/projects/slave', 'de', None, True, None),
+    ('/projects/slave', 'de', None, True, '/content/'),
+    ('/projects/slave', None, None, True, None),
+    ('/projects/slave', None, None, True, '/content/'),
+
+])
+def test_url_to_all_params_error_cases(pad, path, alt, absolute, external, base_url):
+
+    wolf_en = pad.get('/projects/wolf')
+
+    with pytest.raises(RuntimeError):
+        wolf_en.url_to(path, alt, absolute, external, base_url)
