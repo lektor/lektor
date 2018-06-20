@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import codecs
+import functools
 import hashlib
+import inspect
 import json
+import logging
 import multiprocessing
 import os
 import posixpath
@@ -12,6 +15,7 @@ import tempfile
 import traceback
 import unicodedata
 import uuid
+from collections import OrderedDict
 from datetime import datetime
 from contextlib import contextmanager
 from threading import Thread
@@ -28,6 +32,8 @@ from lektor._compat import (queue, integer_types, iteritems, reraise,
                             string_types, text_type, range_type)
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
 
+
+logger = logging.getLogger('lektor.runtime')
 
 is_windows = (os.name == 'nt')
 
@@ -46,6 +52,103 @@ try:
         fs_enc = 'utf-8'
 except LookupError:
     pass
+
+
+try:
+    _HashedSeq = functools._HashedSeq
+except AttributeError:
+    # (mostly) copy-paste it from PY3 functools
+    class _HashedSeq(list):
+        """ This class guarantees that hash() will be called no more than once
+        per element.
+        """
+        __slots__ = ('hashvalue',)
+
+        def __init__(self, tup):
+            list.__init__(self, tup)
+            self.hashvalue = hash(tup)
+
+        def __hash__(self):
+            return self.hashvalue
+
+try:
+    # avoid inspect.getargspec() warning on PY3
+    _getspec = inspect.getfullargspec
+except AttributeError:
+    _getspec = inspect.getargspec
+
+def memoize(func):
+    """Simple memoizing decorator."""
+
+    cache = {}
+
+    # all this could be simplified by using inspect.signature()
+    # (when giving up PY2 support)
+    spec = _getspec(func) # pylint: disable=deprecated-method
+    _none = object()
+
+    if spec.defaults:
+        nonkwargs = spec.args[:-len(spec.defaults)]
+        yeskwargs = spec.args[-len(spec.defaults):]
+    else:
+        nonkwargs = spec.args
+        yeskwargs = ()
+
+    defaults = OrderedDict(
+        (k, _none) for k in nonkwargs
+    )
+    if yeskwargs:
+        defaults.update(
+            zip(yeskwargs, spec.defaults)
+        )
+
+    def get_key(*args, **kwargs):
+        # build a tuple from both args and kwargs.
+        # (relying on the spec.args order and skipping default values.)
+
+        values = defaults.copy()
+        hityes, hitnon = [], []
+
+        for k, v in kwargs.items():
+            if k in yeskwargs:
+                hityes.append(k)
+            elif k in nonkwargs:
+                hitnon.append(k)
+            else:
+                raise ValueError(
+                    '@memoize with arbitrary **kwargs not supported.'
+                )
+            values[k] = v
+
+        remaining = (
+            tuple(k for k in nonkwargs if k not in hitnon) +
+            tuple(k for k in yeskwargs if k not in hityes)
+        )
+        if len(args) > len(remaining):
+            raise ValueError(
+                '@memoize with arbitrary *args not supported.'
+            )
+        for i, v in enumerate(args):
+            k = remaining[i]
+            values[k] = v
+
+        return _HashedSeq(tuple(
+            v for k, v in values.items()
+            if v != defaults[k]
+        ))
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        key = get_key(*args, **kwargs)
+
+        try:
+            return cache[key]
+        except KeyError:
+            logger.debug("@memoize: cache miss")
+            out = cache[key] = func(*args, **kwargs)
+            return out
+
+    return wrapper
 
 
 def split_virtual_path(path):
@@ -266,6 +369,7 @@ def increment_filename(filename):
     return rv
 
 
+@memoize
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
