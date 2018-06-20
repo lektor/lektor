@@ -42,7 +42,7 @@ search in the (community themes)[/themes] and automatically install it.
 
 ```ini
 [project]
-themes = lextor-theme-nix
+themes = lektor-theme-nix
 ```
 
 ## Installing Multiple Themes
@@ -63,7 +63,7 @@ project
 
 ```ini
 [project]
-themes = lextor-theme-nix, lektor-theme-other-theme
+themes = lektor-theme-nix, lektor-theme-other-theme
 ```
 
 This will make `lektor-theme-nix`, because it's listed first, have a higher precedence.
