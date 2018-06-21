@@ -29,6 +29,7 @@ setup(
         'EXIFRead',
         'inifile',
         'Babel',
+        'functools32;python_version<"3.2.3"',
         'setuptools',
         'pip',
         'requests[security]',

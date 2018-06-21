@@ -15,6 +15,10 @@ import uuid
 from datetime import datetime
 from contextlib import contextmanager
 from threading import Thread
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
 import click
 from jinja2 import is_undefined
@@ -266,6 +270,7 @@ def increment_filename(filename):
     return rv
 
 
+@lru_cache(maxsize=None)
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
