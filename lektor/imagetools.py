@@ -9,7 +9,6 @@ import exifread
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
-from lektor.uilink import BUNDLE_BIN_PATH
 from lektor._compat import iteritems, text_type, PY2
 
 
@@ -358,14 +357,6 @@ def find_imagemagick(im=None):
     # On windows, imagemagick was renamed to magick, because
     # convert is system utility for fs manipulation.
     imagemagick_exe = 'convert' if os.name != 'nt' else 'magick'
-
-    # If we have a shipped imagemagick, then we used this one.
-    if BUNDLE_BIN_PATH is not None:
-        executable = os.path.join(BUNDLE_BIN_PATH, imagemagick_exe)
-        if os.name == 'nt':
-            executable += '.exe'
-        if os.path.isfile(executable):
-            return executable
 
     rv = locate_executable(imagemagick_exe)
     if rv is not None:
