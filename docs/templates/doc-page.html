@@ -52,6 +52,12 @@
       </ul>
 
       {{ this.body }}
+      {% if this.parent._slug == 'events' %}
+        <br>
+        <p>
+          <a href="{{ ('/plugins/tag/' ~ this._slug ~ '/')|url }}" class="ref">Plugins That Use This Event</a>
+        </p>
+      {% endif %}
 
       {% if this.version_history %}
       <div class="version-info version-info-collapsed">
