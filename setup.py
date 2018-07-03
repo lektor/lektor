@@ -1,4 +1,9 @@
+import io
+
 from setuptools import setup, find_packages
+
+with io.open('README.md', 'rt', encoding='utf8') as f:
+    readme = f.read()
 
 tests_require = [
     'pytest',
@@ -13,6 +18,8 @@ setup(
     version='3.1.1',
     url='http://github.com/lektor/lektor/',
     description='A static content management system.',
+    long_description=readme,
+    long_description_content_type='text/markdown',
     license='BSD',
     author='Armin Ronacher',
     author_email='armin.ronacher@active-4.com',
