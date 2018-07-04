@@ -1,3 +1,11 @@
-_model: types
+body: This page is an example of every built-in field type Lektor has.
 ---
 title: Types
+---
+boolean1: yes
+---
+date: 2018-07-04
+---
+datetime: 2018-07-04 05:02:22 EST
+---
+checkboxes: 1, 3

@@ -1,0 +1,42 @@
+{% extends "page.html" %}
+{% block body %}
+  {{ super() }} {# super duper! #}
+
+  {# bool1 #}
+  <p><b>booleans:</b></p>
+  <p>
+    {% if this.boolean1 %}
+      Boolean1 caused True text!
+    {% else %}
+      Boolean1 caused False text!
+    {% endif %}
+    Boolean1 = {{ this.boolean1 }}
+  </p>
+
+  {# bool2 #}
+  <p>
+    {% if this.boolean2 %}
+      Boolean2 caused True text!
+    {% else %}
+      Boolean2 caused False text!
+    {% endif %}
+    Boolean2 = {{ this.boolean2 }}
+  </p>
+
+  {# checkboxes #}
+  <p>
+    Of the <b>checkboxes</b> 1-4, boxes
+    {% for box in this.checkboxes %}
+      {{ box }} and
+    {% endfor %}
+    are checked.
+  </p>
+
+  {# dates #}
+  <p>Here is a <b>date</b>: {{ this.date }}</p>
+  <p>
+    Here is a <b>datetime</b>: {{ this.datetime }}
+    formatted one way, {{ this.datetime.strftime('%Y-%m-%d %H:%M') }}
+    and another {{ this.datetime.strftime('%m/%d/%Y %H:%M') }}.
+  </p>
+{% endblock body %}
