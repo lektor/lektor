@@ -281,7 +281,8 @@ def get_image_info(fp):
     if len(head) < 24:
         return 'unknown', None, None
 
-    if head.strip().startswith(b'<?xml '):
+    magic_bytes = b'<?xml', b'<svg'
+    if any(map(head.strip().startswith, magic_bytes)):
         return get_svg_info(fp)
 
     fmt = imghdr.what(None, head)
