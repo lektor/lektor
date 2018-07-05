@@ -34,6 +34,8 @@ rules apply as for the [rsync deployment method :ref](../rsync/).  The HTTPS
 transport on the other hand accepts `--username` and `--password` which
 override the values in the URL.
 
+! If you have 2-factor authentication set up and you're using HTTPS, instead of your normal password, you will need to use a [personal access token :ext](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/).
+
 ## Behavior
 
 The way this deployment support works is that it commits a new commit into a
