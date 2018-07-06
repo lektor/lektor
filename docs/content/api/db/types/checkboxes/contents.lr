@@ -43,7 +43,7 @@ source = record.attachments.images
 
 ```html+jinja
 {% for image in this.attachments.images %}
-  {% if image.id in this.slideshow %}
+  {% if image._id in this.slideshow %}
     <img src="{{ image.thumbnail(500) }}" class="slide">
   {% endif %}
 {% endfor %}
