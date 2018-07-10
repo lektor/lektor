@@ -2,19 +2,21 @@
 {% block body %}
   {{ super() }} {# super duper! #}
 
+  <p>The title of this page is a <b>string</b> field. ^^</p>
+
   {# bool1 #}
-  <p><b>booleans:</b></p>
   <p>
+    <b>booleans:</b>
+    <br>
     {% if this.boolean1 %}
       Boolean1 caused True text!
     {% else %}
       Boolean1 caused False text!
     {% endif %}
     Boolean1 = {{ this.boolean1 }}
-  </p>
 
-  {# bool2 #}
-  <p>
+    {# bool2 #}
+    <br>
     {% if this.boolean2 %}
       Boolean2 caused True text!
     {% else %}
@@ -27,16 +29,61 @@
   <p>
     Of the <b>checkboxes</b> 1-4, boxes
     {% for box in this.checkboxes %}
-      {{ box }} and
+      {{ "and " if loop.last }} {{ box }}{{ ", " if not loop.last }}
     {% endfor %}
     are checked.
   </p>
 
   {# dates #}
-  <p>Here is a <b>date</b>: {{ this.date }}</p>
   <p>
-    Here is a <b>datetime</b>: {{ this.datetime }}
+    A <b>date</b>: {{ this.date }}
+    <br>
+    A <b>datetime</b>: {{ this.datetime }}
     formatted one way, {{ this.datetime.strftime('%Y-%m-%d %H:%M') }}
     and another {{ this.datetime.strftime('%m/%d/%Y %H:%M') }}.
+  </p>
+
+  {# numbers #}
+  <p>
+    A <b>float</b>: {{ this.float }} and {{ this.floataddon }}
+    <br>
+    A <b>int</b>: {{ this.int }} and {{ this.intaddon }}
+  </p>
+
+  {# flow blocks #}
+  <p>
+    These <b>flow blocks</b> are called manually from the main template for this page:
+    <br>
+    {% for blk in this.flow.blocks %}
+      {{ blk.text }}
+    {% endfor %}
+    and all 'html' blocks with the additional templates in templates/blocks/:
+    <br>
+    {{ this.flow }}
+  </p>
+
+  <p>
+    Raw <b>HTML</b>:
+    <br>
+    {{ this.html }}
+  </p>
+
+  <p>
+    <b>markdown</b>:
+    {{ this.markdown }}
+  </p>
+
+  <p>
+    <b>strings</b>:
+    {{ this.strings }}
+    <br>
+    {% for string in this.strings %}
+      {{ "and " if loop.last }} {{ string }}{{ ", " if not loop.last }}
+    {% endfor %}
+  </p>
+
+  <p>
+    Unformatted <b>text</b>:
+    {{ this.text }}
   </p>
 {% endblock body %}
