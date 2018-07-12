@@ -311,7 +311,7 @@ def publish_build():
     def generator():
         try:
             event_iter = publish(info.env, server_info.target,
-                                 info.output_path) or ()
+                                 info.output_path, server_info=server_info) or ()
             for event in event_iter:
                 yield {'msg': event}
         except PublishError as e:
