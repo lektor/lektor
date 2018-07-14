@@ -102,6 +102,18 @@ def test_image_info_svg_declaration(make_svg):
     assert info_svg_no_xml_decl == expected
 
 
+def test_image_info_svg_length(make_svg):
+    w, h = 100, 100
+    svg_with_unit_px = make_svg(size_unit='px', w=w, h=h)
+    svg_no_unit = make_svg(size_unit=None, w=w, h=h)
+    info_with_unit_px = get_image_info(svg_with_unit_px)
+    info_no_unit = get_image_info(svg_no_unit)
+
+    expected = 'svg', 100, 100
+    assert info_with_unit_px == expected
+    assert info_no_unit == expected
+
+
 def test_thumbnail_height(builder):
     builder.build_all()
     with open(os.path.join(builder.destination_path, 'index.html')) as f:

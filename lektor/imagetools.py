@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import imghdr
+import re
 import struct
 import posixpath
 from datetime import datetime
@@ -28,6 +29,25 @@ def _combine_make(make, model):
     if make and model.startswith(make):
         return make
     return u' '.join([make, model]).strip()
+
+
+_parse_svg_units_re = re.compile(
+    r'(?P<value>[+-]?(?:\d+)(?:\.\d+)?)\s*(?P<unit>\D+)?',
+    flags=re.IGNORECASE
+)
+
+
+def _parse_svg_units_px(length):
+    match = _parse_svg_units_re.match(length)
+    if not match:
+        return None
+    match = match.groupdict()
+    if match['unit'] and match['unit'] != 'px':
+        return None
+    try:
+        return float(match['value'])
+    except ValueError:
+        return None
 
 
 class EXIFInfo(object):
@@ -250,14 +270,11 @@ def get_suffix(width, height, crop=False, quality=None):
 def get_svg_info(fp):
     _, svg = next(etree.iterparse(fp, ['start']), (None, None))
     fp.seek(0)
+    width, height = None, None
     if svg is not None and svg.tag == '{http://www.w3.org/2000/svg}svg':
-        try:
-            width = int(svg.attrib['width'])
-            height = int(svg.attrib['height'])
-            return 'svg', width, height
-        except (ValueError, KeyError):
-            pass
-    return 'unknown', None, None
+        width = _parse_svg_units_px(svg.attrib.get('width', ''))
+        height = _parse_svg_units_px(svg.attrib.get('height', ''))
+    return 'svg', width, height
 
 
 # see http://www.w3.org/Graphics/JPEG/itu-t81.pdf
