@@ -238,3 +238,9 @@ def test_virtual_path_behavior(pad):
     assert blog_page2.url_to('..', absolute=True) == '/'
     assert blog_page2.url_to('@1', absolute=True) == '/blog/'
     assert blog_page2.url_to('@3', absolute=True) == '/blog/page/3/'
+
+
+def test_attachment_items(pad):
+    downloads = pad.get('/downloads')
+    for page_num in downloads.pagination.iter_pages():
+        assert downloads.pagination.for_page(page_num).page_num == page_num
