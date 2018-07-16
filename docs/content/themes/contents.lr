@@ -15,4 +15,11 @@ Lektor provides a themes system to easily implement, reuse, and distribute theme
 This allows you to use assets, templates, models, and / or flowblocks built into the theme.
 Themes are created by the Lektor community.
 
-Lektor themes work like an extension of the project, allowing you to easily adopt features of the theme such as styles, models, or templates.
+Lektor themes work like an extension of the project, allowing you to easily adopt features of the theme such as styles, models, or templates. In all, themes can provide:
+
+* templates
+* models
+* flowblocks
+* assets
+
+Themes can provide all of these as defaults which can be overridden or extended by your project. For instance, if a theme provides a root `page.html` template, you can create other templates that `{% extends "page.html" %}`, or you could override the theme's `page.html` by providing your own in your project's normal `templates/` directory.

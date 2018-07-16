@@ -6,7 +6,7 @@ summary: Explains how to install Lektor themes.
 ---
 body:
 
-For installing a theme you just need to copy it to the `themes/` folder
+For installing a theme you just need to copy it to the `themes/` folder. Create the `themes/` folder if it does not already exist.
 
 ```
 project
