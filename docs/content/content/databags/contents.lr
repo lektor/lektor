@@ -29,6 +29,7 @@ And the template could access it like this:
 {% for path, label in bag('main-nav').iteritems() %}
   <li{% if this.is_child_of(path) %} class="active"{% endif
     %}><a href="{{ path|url }}">{{ label }}</a>
+  </li>
 {% endfor %}
 </ul>
 ```
