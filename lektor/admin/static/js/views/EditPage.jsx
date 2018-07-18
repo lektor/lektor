@@ -54,7 +54,7 @@ class EditPage extends RecordEditComponent {
       console.log('_onKeyPress', event)
     if (
         (event.which === 83 && utils.isMetaKey(event)) // meta+s
-        || event.which === 83 // s
+        // || event.which === 83 // s
     ) {
       event.preventDefault()
       this.saveChanges()
