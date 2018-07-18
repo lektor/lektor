@@ -51,8 +51,11 @@ class EditPage extends RecordEditComponent {
   }
 
   _onKeyPress (event) {
-    // meta+s is open find files
-    if (event.which === 83 && utils.isMetaKey(event)) {
+      console.log('_onKeyPress', event)
+    if (
+        (event.which === 83 && utils.isMetaKey(event)) // meta+s
+        || event.which === 83 // s
+    ) {
       event.preventDefault()
       this.saveChanges()
     }

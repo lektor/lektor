@@ -12,6 +12,7 @@ class PreviewPage extends RecordComponent {
       pageUrl: null,
       pageUrlFor: null
     }
+    this._onStartEditing = this._onStartEditing.bind(this)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -22,6 +23,25 @@ class PreviewPage extends RecordComponent {
   componentDidMount () {
     super.componentDidMount()
     this.syncState()
+    window.addEventListener('keydown', this._onStartEditing)
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('keydown', this._onStartEditing)
+  }
+
+  _onStartEditing (event) {
+      console.log('_onStartEditing', event)
+    if (
+        (event.which === 91 && utils.isMetaKey(event)) // meta+e
+        || event.which === 69 // e
+    ) {
+      event.preventDefault()
+      const path = this.getRecordPath()
+      this.transitionToAdminPage('.edit', {
+        path: this.getUrlRecordPathWithAlt(path)
+      })
+    }
   }
 
   shouldComponentUpdate () {
