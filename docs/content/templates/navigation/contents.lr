@@ -75,6 +75,7 @@ the recursive Jinja loop system comes really in.
       {% if this.is_child_of(child) %}
       <ul>{{ loop(child.children) }}</ul>
       {% endif %}
+    </li>
   {% endfor %}
 </ul>
 ```
