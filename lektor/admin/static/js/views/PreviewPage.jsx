@@ -31,10 +31,9 @@ class PreviewPage extends RecordComponent {
   }
 
   _onStartEditing (event) {
-      console.log('_onStartEditing', event)
     if (
-        (event.which === 91 && utils.isMetaKey(event)) // meta+e
-        // || event.which === 69 // e
+      (event.which === 91 && utils.isMetaKey(event)) // meta+e
+      // || event.which === 69 // e
     ) {
       event.preventDefault()
       const path = this.getRecordPath()
