@@ -24,7 +24,7 @@ file into your repository.  You can copy paste this over:
 
 ```yaml
 language: python
-python: 3.5
+python: 3.6
 install: "pip install Lektor"
 script: "lektor build"
 deploy:
