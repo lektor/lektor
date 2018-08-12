@@ -1,0 +1,26 @@
+{% from "macros/pagination.html" import render_pagination %}
+{% extends "layout.html" %}
+{% block content %}
+      <div class="row">
+        <div class="col-xs-12 text-center">
+          <h1>{{ this.title }}</h1>
+        </div>
+      </div>
+      <ul id="post-list">
+      {% for post in this.pagination.items %}
+        <li>
+          <div class="post-list-item">
+            <div class="post-header">
+              <h4 class="post-link"><a href="{{ post|url }}">{{ post.title }}</a></h4>
+              <h4 class="post-date">{{ post.pub_date.strftime('%b %d, %Y') }}</h4>
+            </div>
+            <div class="post-summary"><p>{{ post.summary }}</p></div>
+            <div class="post-list-footer text-center">
+              <a href="{{ post|url }}">Read More</a>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+      </ul>
+            {{ render_pagination(this.pagination) }}
+{% endblock content %}

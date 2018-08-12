@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h1>Talks</h1>
+  <p>
+    {{ this.intro }}
+  </p>
+
+  <div class="showcase row">
+    {% for showcase_item in this.children %}
+      <div class="showcase-item col-sm-6 col-md-4">
+        <a href="{{ showcase_item.url }}">
+          <h2>{{ showcase_item.name }}</h2>
+          {% if showcase_item.cover_image %}
+            {% set image = showcase_item.attachments.get(showcase_item.cover_image) %}
+            <div class="frame"><img src="{{ 
+            image.thumbnail(480)|url }}" width="100%" alt=""></div>
+          {% endif %}
+          <p>{{ showcase_item.description }}</p>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

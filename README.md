@@ -32,7 +32,7 @@ For installation instructions head to the official documentation:
 This gets you started:
 
 ```
-$ git clone https://github.com/lektor/lektor --recursive
+$ git clone https://github.com/lektor/lektor
 $ cd lektor
 $ virtualenv venv
 $ . venv/bin/activate
@@ -43,9 +43,6 @@ $ export LEKTOR_DEV=1
 $ cp -r example example-project
 $ lektor --project example-project server
 ```
-
-The `--recursive` flag isn't strictly needed except to grab the theme used in the example project.
-
 
 If you want to run the test suite:
 
