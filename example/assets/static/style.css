@@ -22,7 +22,9 @@ header h1 {
     color: #169bbd;
     margin: 0;
     font-weight: normal;
-    font-size: 42px;
+    font-size: 58px;
+    top: -11px;
+    position: relative;
 }
 
 header nav ul {
@@ -35,6 +37,9 @@ header nav ul li {
     display: inline;
     margin: 0 8px 0 0;
     padding: 0;
+}
+header .logo {
+    display: inline-block;
 }
 
 div.page {

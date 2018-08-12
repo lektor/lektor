@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> {{ config.PROJECT.name }} </title>
+
+    {% include "partials/head.html" %}
+
+  </head>
+  <body>
+    {% include "partials/header.html" %}
+    <div class="container wrapper">
+        {% if this.title %}
+          <h1>{{ this.title }}</h1>
+        {% else %}
+          <h1>Uhm... WHAT?</h1>
+        {% endif %}
+      <div class="post-content">
+        {% if this.body %}
+          {{ this.body }}
+        {% else %}
+          <p>Looks like you're lost. This page doesn't exist.</p>
+        {% endif %}
+      </div>
+      <div class="push"></div>
+    </div>
+    {% include "partials/footer.html" %}
+  </body>
+</html>
+

@@ -1,12 +1,18 @@
 <!doctype html>
 <meta charset="utf-8">
-<link rel="stylesheet" href="{{ '/static/style.css'|url }}">
+<link rel="stylesheet" href="{{ '/static/style.css'|asseturl }}">
+<link rel="stylesheet" href="{{ get_pygments_stylesheet()|url }}">
+<link rel="icon" href="{{ '/static/favicon.png'|asseturl }}">
 <title>{% block title %}Welcome{% endblock %} — Example</title>
 <body>
   <header>
-    <h1>Example</h1>
+    <a href="{{ site.root|url }}" style="text-decoration: none;">
+      <img class="logo" src="{{ site.root.attachments.images.get('logo.png').thumbnail(250)|url }}">
+      <h1 class="logo">Example</h1>
+    </a>
     <nav>
       <ul class="nav navbar-nav">
+        Basic Nav:
         <li{% if this._path == '/' %} class="active"{% endif
           %}><a href="{{ '/'|url }}">Welcome</a></li>
         {% for href, title in [
@@ -20,10 +26,52 @@
       </ul>
     </nav>
   </header>
+  
   <div class="page">
+    {% if this._path == '/' %}
+      <ul>
+        Available alts:
+        {% for alt in get_alts() %}
+          <li style="display: inline;">
+            <a href="{{ '.'|url(alt=alt) }}">{{ alt }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+      {{ this.alt_note }}
+    {% endif %}
+
     {% block body %}{% endblock %}
   </div>
   <footer>
-    &copy; Copyright 2015 by Armin Ronacher.
+    Recursive tree navigation of this example site:
+    <button onclick="myFunction()">Toggle hide/show</button>
+    <ul id="footer-nav" class="tree-nav" style="display: none;">
+      {% set root = site.get('/') %}
+      <li>
+        <a href="{{ root|url }}">{{ root.title }}</a>
+      </li>
+      {% for child in root.children recursive %}
+        <li>
+          <a href="{{ child|url }}">{{ child.path }}</a>
+        </li>
+        {% if child.children %}
+          <ul>{{ loop(child.children) }}</ul>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    <div>
+      &copy; Copyright 2015 by Armin Ronacher.
+    </div>
   </footer>
+  <script>
+    function myFunction() {
+      var x = document.getElementById("footer-nav");
+      if (x.style.display === "none") {
+          x.style.display = "block";
+      } else {
+          x.style.display = "none";
+      }
+    }
+  </script>
 </body>
