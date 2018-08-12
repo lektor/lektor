@@ -20,4 +20,5 @@ disable =
     redefined-builtin,
     too-many-arguments, too-few-public-methods, too-many-public-methods,
     cyclic-import, duplicate-code, consider-merging-isinstance,
-    len-as-condition
+    len-as-condition,
+    useless-object-inheritance
