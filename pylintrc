@@ -1,4 +1,4 @@
-[MASTER]
+[I[MASTER]
 ignore = .git
 
 [FORMAT]
@@ -22,4 +22,5 @@ disable =
     cyclic-import, duplicate-code, consider-merging-isinstance,
     len-as-condition,
     useless-object-inheritance,
-    no-else-return
+    no-else-return,
+    bad-option-value
