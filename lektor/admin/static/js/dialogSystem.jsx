@@ -1,7 +1,7 @@
 'use strict'
 
 import hub from './hub'
-import {DialogChangedEvent} from './events'
+import { DialogChangedEvent } from './events'
 
 class DialogSystem {
   constructor () {

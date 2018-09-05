@@ -2,7 +2,7 @@
 
 import React from 'react'
 import jQuery from 'jquery'
-import {BasicWidgetMixin, ValidationFailure} from './mixins'
+import { BasicWidgetMixin, ValidationFailure } from './mixins'
 import utils from '../utils'
 import userLabel from '../userLabel'
 import i18n from '../i18n'
@@ -36,7 +36,7 @@ const InputWidgetMixin = {
   },
 
   render () {
-    let {type, onChange, className, ...otherProps} = this.props
+    let { type, onChange, className, ...otherProps } = this.props
     let help = null
     const failure = this.getValidationFailure()
     className = (className || '')
@@ -281,7 +281,7 @@ const MultiLineTextInputWidget = React.createClass({
   },
 
   render () {
-    let {className, type, onChange, style, ...otherProps} = this.props // eslint-disable-line no-unused-vars
+    let { className, type, onChange, style, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     className = (className || '')
 
     style = style || {}
@@ -322,7 +322,7 @@ const BooleanInputWidget = React.createClass({
   },
 
   render () {
-    let {className, type, placeholder, onChange, value, ...otherProps} = this.props // eslint-disable-line no-unused-vars
+    let { className, type, placeholder, onChange, value, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
     return (

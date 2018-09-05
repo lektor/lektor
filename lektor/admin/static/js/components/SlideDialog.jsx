@@ -37,7 +37,7 @@ class SlideDialog extends Component {
   }
 
   render () {
-    let {children, title, hasCloseButton, className, ...props} = this.props
+    let { children, title, hasCloseButton, className, ...props } = this.props
     className = (className || '') + ' sliding-panel container'
     return (
       <div className={className} {...props}>

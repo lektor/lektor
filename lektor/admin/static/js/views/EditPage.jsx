@@ -92,7 +92,7 @@ class EditPage extends RecordEditComponent {
 
   onValueChange (field, value) {
     let updates = {}
-    updates[field.name] = {$set: value || ''}
+    updates[field.name] = { $set: value || '' }
     const rd = update(this.state.recordData, updates)
     this.setState({
       recordData: rd,
@@ -131,10 +131,10 @@ class EditPage extends RecordEditComponent {
     const path = this.getRecordPath()
     const alt = this.getRecordAlt()
     const newData = this.getValues()
-    utils.apiRequest('/rawrecord', {json: {
-      data: newData, path: path, alt: alt},
-      // eslint-disable-next-line indent
-      method: 'PUT'}, makeRichPromise)
+    utils.apiRequest('/rawrecord', { json: {
+      data: newData, path: path, alt: alt },
+    // eslint-disable-next-line indent
+      method: 'PUT' }, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false

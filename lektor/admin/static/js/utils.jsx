@@ -3,7 +3,7 @@ import jQuery from 'jquery'
 const slug = (string, opts) => {
   opts = opts || {}
   string = string.toString()
-  if (typeof opts === 'string') { opts = {replacement: opts} }
+  if (typeof opts === 'string') { opts = { replacement: opts } }
   opts.mode = opts.mode || slug.defaults.mode
   const defaults = slug.defaults.modes[opts.mode];
   ['replacement', 'multicharmap', 'charmap', 'remove'].forEach((key) => {

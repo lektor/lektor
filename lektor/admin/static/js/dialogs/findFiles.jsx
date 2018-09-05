@@ -78,7 +78,7 @@ class FindFiles extends RecordComponent {
       const target = this.isRecordPreviewActive() ? '.preview' : '.edit'
       const urlPath = this.getUrlRecordPathWithAlt(item.path)
       dialogSystem.dismissDialog()
-      this.transitionToAdminPage(target, {path: urlPath})
+      this.transitionToAdminPage(target, { path: urlPath })
     }
   }
 

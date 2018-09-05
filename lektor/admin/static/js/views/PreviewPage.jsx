@@ -37,7 +37,7 @@ class PreviewPage extends RecordComponent {
     }
 
     const recordUrl = this.getUrlRecordPathWithAlt()
-    utils.loadData('/previewinfo', {path: path, alt: alt}, null, makeRichPromise)
+    utils.loadData('/previewinfo', { path: path, alt: alt }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           pageUrl: resp.url,
@@ -83,11 +83,11 @@ class PreviewPage extends RecordComponent {
     if (fsPath === null) {
       return
     }
-    utils.loadData('/matchurl', {url_path: fsPath}, null, makeRichPromise)
+    utils.loadData('/matchurl', { url_path: fsPath }, null, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt)
-          this.transitionToAdminPage('.preview', {path: urlPath})
+          this.transitionToAdminPage('.preview', { path: urlPath })
         }
       })
   }

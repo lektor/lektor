@@ -40,7 +40,7 @@ class AddChildPage extends RecordComponent {
   }
 
   syncDialog () {
-    utils.loadData('/newrecord', {path: this.getRecordPath()}, null, makeRichPromise)
+    utils.loadData('/newrecord', { path: this.getRecordPath() }, null, makeRichPromise)
       .then((resp) => {
         let selectedModel = resp.implied_model
         if (!selectedModel) {
@@ -101,7 +101,7 @@ class AddChildPage extends RecordComponent {
     }
 
     const data = {}
-    const params = {id: id, path: this.getRecordPath(), data: data}
+    const params = { id: id, path: this.getRecordPath(), data: data }
     if (!this.state.newChildInfo.implied_model) {
       data['_model'] = this.state.selectedModel
     }
@@ -110,7 +110,7 @@ class AddChildPage extends RecordComponent {
       data[primaryField.name] = this.state.primary
     }
 
-    utils.apiRequest('/newrecord', {json: params, method: 'POST'}, makeRichPromise)
+    utils.apiRequest('/newrecord', { json: params, method: 'POST' }, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           errMsg(i18n.trans('ERROR_PAGE_ID_DUPLICATE').replace('%s', id))
@@ -118,7 +118,7 @@ class AddChildPage extends RecordComponent {
           errMsg(i18n.trans('ERROR_INVALID_ID').replace('%s', id))
         } else {
           const urlPath = this.getUrlRecordPathWithAlt(resp.path)
-          this.transitionToAdminPage('.edit', {path: urlPath})
+          this.transitionToAdminPage('.edit', { path: urlPath })
         }
       })
   }
@@ -179,7 +179,7 @@ class AddChildPage extends RecordComponent {
     addField('id', {
       name: '_id',
       label: i18n.trans('ID'),
-      type: {name: 'slug', widget: 'slug'}
+      type: { name: 'slug', widget: 'slug' }
     }, this.getImpliedId())
 
     return fields

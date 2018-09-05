@@ -3,7 +3,7 @@
 import React from 'react'
 import utils from '../utils'
 import i18n from '../i18n'
-import {BasicWidgetMixin} from './mixins'
+import { BasicWidgetMixin } from './mixins'
 
 const CheckboxesInputWidget = React.createClass({
   mixins: [BasicWidgetMixin],
@@ -52,7 +52,7 @@ const CheckboxesInputWidget = React.createClass({
   },
 
   render () {
-    let {className, value, placeholder, type, ...otherProps} = this.props // eslint-disable-line no-unused-vars
+    let { className, value, placeholder, type, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
     const choices = this.props.type.choices.map((item) => {
@@ -84,7 +84,7 @@ const SelectInputWidget = React.createClass({
   },
 
   render () {
-    let {className, type, value, placeholder, onChange, ...otherProps} = this.props // eslint-disable-line no-unused-vars
+    let { className, type, value, placeholder, onChange, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     value = value || placeholder
 
     let choices = this.props.type.choices.map((item) => {
