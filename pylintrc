@@ -21,4 +21,5 @@ disable =
     too-many-arguments, too-few-public-methods, too-many-public-methods,
     cyclic-import, duplicate-code, consider-merging-isinstance,
     len-as-condition,
-    useless-object-inheritance
+    useless-object-inheritance,
+    no-else-return

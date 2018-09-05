@@ -556,6 +556,7 @@ class Page(Record):
 
     @property
     def url_path(self):
+        # pylint: disable=no-value-for-parameter
         rv = Record.url_path.__get__(self).rstrip('/')
         last_part = rv.rsplit('/')[-1]
         if '.' not in last_part:
