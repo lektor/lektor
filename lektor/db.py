@@ -1526,7 +1526,7 @@ class Pad(object):
 
         if pieces[0].isdigit():
             if len(pieces) == 1:
-                return self.get(record['_path'], page_num=int(pieces[0]))
+                return self.get(record['_path'], alt=record.alt, page_num=int(pieces[0]))
             return None
 
         resolver = self.env.virtual_sources.get(pieces[0])
