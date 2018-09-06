@@ -49,8 +49,10 @@ install:
 
 before_script:
   - python --version
-  - node --version
   - pip list
+  - node --version
+  - npm --version
+
 
 script: make coverage
 
