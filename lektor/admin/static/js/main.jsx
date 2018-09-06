@@ -3,10 +3,10 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {Router, Route, IndexRoute} from 'react-router'
+import { Router, Route, IndexRoute } from 'react-router'
 import Component from './components/Component'
 import i18n from './i18n'
-import {useBeforeUnload} from 'history'
+import { useBeforeUnload } from 'history'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
 
 /* eslint-disable no-unused-vars */

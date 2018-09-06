@@ -100,6 +100,7 @@ class Pagination(object):
         """
         last = 0
         for num in range_type(1, self.pages + 1):
+            # pylint: disable=chained-comparison
             if num <= left_edge or \
                (num > self.page - left_current - 1 and
                 num < self.page + right_current) or \

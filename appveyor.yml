@@ -69,7 +69,6 @@ test_script:
   - cd lektor\admin
   - node --version
   - npm --version
-  - npm list
   - npm run lint
   - npm test
 

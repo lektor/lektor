@@ -5,7 +5,7 @@
 import React from 'react'
 import i18n from '../i18n'
 import metaformat from '../metaformat'
-import {BasicWidgetMixin} from './mixins'
+import { BasicWidgetMixin } from './mixins'
 import userLabel from '../userLabel'
 import widgets from '../widgets'
 
@@ -303,7 +303,7 @@ const FlowWidget = React.createClass({
   },
 
   render () {
-    let {className} = this.props
+    let { className } = this.props
     className = (className || '') + ' flow'
 
     return (
