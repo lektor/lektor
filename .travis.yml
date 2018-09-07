@@ -23,7 +23,10 @@ matrix:
       env:  TRAVIS_NODE_VERSION=10
     - python: 3.6
       env:  TRAVIS_NODE_VERSION=10
-
+    - python: 3.7
+      env:  TRAVIS_NODE_VERSION=10
+      dist: xenial
+      sudo: true
 
 cache:
   directories:
