@@ -60,23 +60,24 @@ you want to add your theme to the lektor community themes.
 Example:
 
 ```ini
-name = "Demo theme"
-license = "MIT"
-licenselink = "https://github.com/lektor/lektor-demo-theme/blob/master/LICENSE.md"
-description = "Simple, minimal theme for Lektor "
-homepage = "https://github.com/lektor/lektor-demo-theme"
-tags = "simple,minimal,demo"
-features = "blog"
+[theme]
+name = Demo theme
+license = MIT
+licenselink = https://github.com/lektor/lektor-demo-theme/blob/master/LICENSE.md
+description = Simple, minimal theme for Lektor
+homepage = https://github.com/lektor/lektor-demo-theme
+tags = simple, minimal, demo
+features = blog
 lektor_minimum_required_version = 3.1
 
 [author]
-name = "lektor"
-homepage = "http://getlektor.com/"
+name = lektor
+homepage = http://getlektor.com/
 
 [original]
-author = ""
-homepage = ""
-repo = ""
+author =
+homepage =
+repo =
 
 [packages]
 lektor-disqus-comments = 0.2
@@ -94,7 +95,7 @@ compatibility when installing a theme.
 !!!! Not implemented yet
 
 You could add a theme to Lektor community theme, open a pull request against
-(lektor themes)[https://github.com/lektor/lektor-themes] adding it as a git
+[lektor themes](https://github.com/lektor/lektor-themes) adding it as a git
 submodule.
 
 You should also include an `images/` folder with a screenshot and a thumbnail:
