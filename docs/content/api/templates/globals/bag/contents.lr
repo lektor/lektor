@@ -12,7 +12,7 @@ body:
 
 This handy function can look up data from [Databags :ref](../../../databags/).
 The path to the values is a dotted path but alternatively multiple parameters
-can be provided that will me concatenated into a dotted path.
+can be provided that will be concatenated into a dotted path.
 
 ## Simple Example
 
