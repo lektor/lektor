@@ -89,21 +89,19 @@ If you want to provide a different build folder, provide it explicitly with
 `--output-path` to both `build` and `deploy`.  This can also be set with
 the `LEKTOR_OUTPUT_PATH` environment variable.
 
-**Note on credentials**: For FTP and other systems it is possible to embed
+!!!! **Note on credentials**: For FTP and other systems it is possible to embed
 the credentials directly in the URL.  If you do this, please ensure that
 you keep your project file secure as loss of the project file can mean that
 people get access to your server.  Alternatively you can also provide username
 and password through the command line or environment variables.
 
-The following targets are supported for the `target` field:
+The following targets are supported for the `target` field natively:
 
 * [rsync](rsync/)
 * [FTP](ftp/)
 * [GitHub Pages](ghpages/)
 
-In addition, third-party plugins are available for these targets:
-
-* [S3 :ext](https://github.com/spenczar/lektor-s3)
+**In addition**, there are [third-party plugins :ref](../../plugins/categories/deploy/) available for additional deploy targets.
 
 ## Manual Deployments
 
