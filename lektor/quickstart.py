@@ -266,3 +266,50 @@ def plugin_quickstart(defaults=None, project=None):
         'author_name': author_name,
         'author_email': author_email,
     }, path)
+
+
+def theme_quickstart(defaults=None, project=None):
+    if defaults is None:
+        defaults = {}
+
+    g = Generator('theme')
+
+    theme_name = defaults.get('theme_name')
+    if theme_name is None:
+        theme_name = g.prompt('Theme Name', default=None,
+            info='This is the human readable name for this theme')
+
+    theme_id = theme_name.lower()  # pylint: disable=no-member
+    if theme_id.startswith('lektor'):
+        theme_id = theme_id[6:]
+    if theme_id.endswith('theme'):
+        theme_id = theme_id[:-5]
+    theme_id = slugify(theme_id)
+
+    path = defaults.get('path')
+    if path is None:
+        if project is not None:
+            default_path = os.path.join(project.tree, 'themes',
+                                        "lektor-theme-{}".format(theme_id))
+        else:
+            if len(os.listdir('.')) == 0:
+                default_path = os.getcwd()
+            else:
+                default_path = os.path.join(os.getcwd(), theme_id)
+        path = g.prompt('Theme Path', default_path,
+            'The place where you want to initialize the theme')
+
+    author_name = g.prompt('Author Name', get_default_author(),
+        'Your name as it will be embedded in the theme metadata.')
+
+    author_email = g.prompt('Author E-Mail', get_default_author_email(),
+        'Your e-mail address for the theme info.')
+
+    g.confirm('Create Theme?')
+
+    g.run({
+        'theme_name': theme_name,
+        'theme_id': theme_id,
+        'author_name': author_name,
+        'author_email': author_email,
+    }, path)

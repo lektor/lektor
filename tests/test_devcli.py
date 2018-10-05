@@ -5,6 +5,7 @@ from lektor._compat import PY2
 from lektor.cli import cli
 from lektor.quickstart import get_default_author, get_default_author_email
 
+
 def test_new_plugin(project_cli_runner):
     result = project_cli_runner.invoke(
         cli, ["dev", "new-plugin"],
