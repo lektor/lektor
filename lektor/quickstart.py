@@ -60,6 +60,9 @@ class Generator(object):
         self.e('=' * len(title), fg='cyan')
         self.e('')
 
+    def warn(self, text):
+        self.e(self.w(text), fg='magenta')
+
     def text(self, text):
         self.e(self.w(text))
 
@@ -319,8 +322,14 @@ def theme_quickstart(defaults=None, project=None):
     example_themes = os.path.join(path, "example-site/themes")
     os.makedirs(example_themes)
     os.chdir(example_themes)
-    os.symlink("../../../lektor-theme-{}".format(theme_id),
-               "lektor-theme-{}".format(theme_id))
+    try:
+        os.symlink("../../../lektor-theme-{}".format(theme_id),
+                   "lektor-theme-{}".format(theme_id))
+    except AttributeError:
+        g.warn(
+            'Could not automatically make a symlink to have your example-site'
+            'easily pick up your theme.'
+        )
     os.chdir(theme_dir)
 
     # Sample image

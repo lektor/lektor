@@ -291,8 +291,12 @@ def test_new_theme(project_cli_runner):
         ['homepage.png'])
     assert set(os.listdir(os.path.join(path, 'example-site'))) == set(
         ['lektor-theme-theme-name.lektorproject', 'README.md', 'themes'])
-    assert os.readlink(os.path.join(path,
-        'example-site/themes/lektor-theme-theme-name')) == '../../../lektor-theme-theme-name'
+    try:
+        assert os.readlink(os.path.join(
+            path, 'example-site/themes/lektor-theme-theme-name')) == \
+            '../../../lektor-theme-theme-name'
+    except AttributeError:
+        pass
 
     # theme.ini
     theme_ini_expected = textwrap.dedent("""
@@ -394,8 +398,12 @@ def test_new_theme_name_only(project_cli_runner):
         ['homepage.png'])
     assert set(os.listdir(os.path.join(path, 'example-site'))) == set(
         ['lektor-theme-theme-name.lektorproject', 'README.md', 'themes'])
-    assert os.readlink(os.path.join(path,
-        'example-site/themes/lektor-theme-theme-name')) == '../../../lektor-theme-theme-name'
+    try:
+        assert os.readlink(os.path.join(
+            path, 'example-site/themes/lektor-theme-theme-name')) == \
+            '../../../lektor-theme-theme-name'
+    except AttributeError:
+        pass
 
     # theme.ini
     theme_ini_expected = textwrap.dedent("""
