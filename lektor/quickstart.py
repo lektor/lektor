@@ -313,3 +313,8 @@ def theme_quickstart(defaults=None, project=None):
         'author_name': author_name,
         'author_email': author_email,
     }, path)
+
+    example_themes = os.path.join(path, "example-site/themes")
+    os.makedirs(example_themes)
+    os.chdir(example_themes)
+    os.symlink("../../../lektor-theme-{}".format(theme_id), "lektor-theme-{}".format(theme_id))
