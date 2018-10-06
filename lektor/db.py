@@ -22,7 +22,7 @@ from lektor.sourceobj import SourceObject, VirtualSourceObject
 from lektor.context import get_ctx, Context
 from lektor.datamodel import load_datamodels, load_flowblocks
 from lektor.imagetools import (
-    THUMBNAIL_MODE, make_thumbnail,
+    ThumbnailMode, make_thumbnail,
     read_exif, get_image_info,
 )
 from lektor.assets import Directory
@@ -789,9 +789,9 @@ class Image(Attachment):
         """Utility to create thumbnails."""
 
         if mode is None:
-            mode = THUMBNAIL_MODE.DEFAULT
+            mode = ThumbnailMode.DEFAULT
         else:
-            mode = THUMBNAIL_MODE.from_label(mode)
+            mode = ThumbnailMode.from_label(mode)
 
         if width is not None:
             width = int(width)

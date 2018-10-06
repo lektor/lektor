@@ -20,7 +20,7 @@ from lektor._compat import iteritems, text_type, PY2
 datetime.strptime('', '')
 
 
-class THUMBNAIL_MODE(IntEnum):
+class ThumbnailMode(IntEnum):
     FIT, CROP, STRETCH = range(1, 4)
 
     @property
@@ -42,7 +42,7 @@ class THUMBNAIL_MODE(IntEnum):
             raise ValueError("Invalid thumbnail mode '%s'." % label)
 
 # set the default. do it outside the class to not confuse things
-THUMBNAIL_MODE.DEFAULT = THUMBNAIL_MODE.FIT
+ThumbnailMode.DEFAULT = ThumbnailMode.FIT
 
 
 def _convert_gps(coords, hem):
@@ -289,7 +289,7 @@ def get_suffix(width, height, mode, quality=None):
     suffix = '' if width is None else str(width)
     if height is not None:
         suffix += 'x%s' % height
-    if mode != THUMBNAIL_MODE.DEFAULT:
+    if mode != ThumbnailMode.DEFAULT:
         suffix += '_%s' % mode.label
     if quality is not None:
         suffix += '_q%s' % quality
@@ -468,7 +468,7 @@ def compute_dimensions(width, height, source_width, source_height):
     return computed_width, computed_height
 
 def process_image(ctx, source_image, dst_filename,
-                  width=None, height=None, mode=THUMBNAIL_MODE.DEFAULT,
+                  width=None, height=None, mode=ThumbnailMode.DEFAULT,
                   quality=None):
     """Build image from source image, optionally compressing and resizing.
 
@@ -490,11 +490,11 @@ def process_image(ctx, source_image, dst_filename,
     if height is not None:
         resize_key += 'x' + str(height)
 
-    if mode == THUMBNAIL_MODE.STRETCH:
+    if mode == ThumbnailMode.STRETCH:
         resize_key += '!'
 
     cmdline = [im, source_image, '-auto-orient']
-    if mode == THUMBNAIL_MODE.CROP:
+    if mode == ThumbnailMode.CROP:
         cmdline += ['-resize', resize_key + '^',
                     '-gravity', 'Center',
                     '-extent', resize_key]
@@ -508,7 +508,7 @@ def process_image(ctx, source_image, dst_filename,
 
 
 def make_thumbnail(ctx, source_image, source_url_path,
-                   width=None, height=None, mode=THUMBNAIL_MODE.DEFAULT,
+                   width=None, height=None, mode=ThumbnailMode.DEFAULT,
                    upscale=None, quality=None):
     """Helper method that can create thumbnails from within the build process
     of an artifact.
@@ -518,19 +518,19 @@ def make_thumbnail(ctx, source_image, source_url_path,
 
     if upscale is None:
         upscale = {
-            THUMBNAIL_MODE.FIT: False,
-            THUMBNAIL_MODE.CROP: True,
-            THUMBNAIL_MODE.STRETCH: True,
+            ThumbnailMode.FIT: False,
+            ThumbnailMode.CROP: True,
+            ThumbnailMode.STRETCH: True,
         }[mode]
 
     # fallback to "fit" in case of erroneous arguments (but preserve
     # the `upscale` defaults as defined above).
-    if mode != THUMBNAIL_MODE.FIT and (width is None or height is None):
+    if mode != ThumbnailMode.FIT and (width is None or height is None):
         warnings.warn(
             '"%s" mode requires both `width` and `height` to be defined. '
             'Falling back to "fit" mode.`' % mode.label
         )
-        mode = THUMBNAIL_MODE.FIT
+        mode = ThumbnailMode.FIT
 
     with open(source_image, 'rb') as f:
         format, source_width, source_height = get_image_info(f)
@@ -562,7 +562,7 @@ def make_thumbnail(ctx, source_image, source_url_path,
     dst_url_path = get_dependent_url(source_url_path, suffix,
                                      ext=get_thumbnail_ext(source_image))
 
-    if mode == THUMBNAIL_MODE.FIT:
+    if mode == ThumbnailMode.FIT:
         computed_width, computed_height = compute_dimensions(
             width, height, source_width, source_height)
     else:
