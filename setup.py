@@ -40,6 +40,7 @@ setup(
         'mistune>=0.7.0,<2',
         'pathlib2;python_version<"3.4"',
         'pip',
+        'python-slugify',
         'requests[security]',
         'setuptools',
         'watchdog',

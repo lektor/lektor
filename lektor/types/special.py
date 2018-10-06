@@ -1,4 +1,6 @@
-from lektor.utils import slugify, Url
+from slugify import slugify
+
+from lektor.utils import Url
 from lektor.types.primitives import SingleInputType
 
 
