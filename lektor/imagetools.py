@@ -25,11 +25,17 @@ class THUMBNAIL_MODE(IntEnum):
 
     @property
     def label(self):
+        """The mode's label as used in templates."""
+        # our constants are uppercase with underscores,
+        # while template uses lowercase and dashes.
         return self.name.lower().replace('_', '-') # pylint: disable=no-member
 
     @classmethod
     def from_label(cls, label):
-        name = label.upper().replace('-', '-')
+        """
+        Looks up the thumbnail mode by its textual representation.
+        """
+        name = label.upper().replace('-', '_')
         try:
             return cls.__members__[name] # pylint: disable=no-member
         except KeyError:
