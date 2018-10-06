@@ -411,7 +411,7 @@ def test_new_theme_name_only(project_cli_runner):
 
         [author]
         email = {}
-        name = {}{}
+        name = {}
         homepage =
 
         # If porting an existing theme
@@ -423,9 +423,9 @@ def test_new_theme_name_only(project_cli_runner):
     author = get_default_author()
     author_email = get_default_author_email()
     if PY2:
-        theme_ini_expected = theme_ini_expected.format(author_email, "u", author)
+        theme_ini_expected = theme_ini_expected.format(author_email, author)
     else:
-        theme_ini_expected = theme_ini_expected.format(author_email, "", author)
+        theme_ini_expected = theme_ini_expected.format(author_email, author)
     with open(os.path.join(path, 'theme.ini')) as f:
         theme_ini_contents = f.read().strip()
     assert theme_ini_contents == theme_ini_expected
