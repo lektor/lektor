@@ -314,7 +314,22 @@ def theme_quickstart(defaults=None, project=None):
         'author_email': author_email,
     }, path)
 
+    # symlink
+    theme_dir = os.getcwd()
     example_themes = os.path.join(path, "example-site/themes")
     os.makedirs(example_themes)
     os.chdir(example_themes)
-    os.symlink("../../../lektor-theme-{}".format(theme_id), "lektor-theme-{}".format(theme_id))
+    os.symlink("../../../lektor-theme-{}".format(theme_id),
+               "lektor-theme-{}".format(theme_id))
+    os.chdir(theme_dir)
+
+    # Sample image
+    os.makedirs(os.path.join(path, "images"))
+    source_image_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "quickstart-templates/theme/images/homepage.png")
+    destination_image_path = os.path.join(path, "images/homepage.png")
+    with open(source_image_path, 'rb') as f:
+        image = f.read()
+    with open(destination_image_path, 'wb') as f:
+        f.write(image)
