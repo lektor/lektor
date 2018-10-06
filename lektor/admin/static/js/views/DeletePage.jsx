@@ -5,7 +5,7 @@ import RecordComponent from '../components/RecordEditComponent'
 import utils from '../utils'
 import i18n from '../i18n'
 import hub from '../hub'
-import {AttachmentsChangedEvent} from '../events'
+import { AttachmentsChangedEvent } from '../events'
 import makeRichPromise from '../richPromise'
 
 class DeletePage extends RecordComponent {
@@ -29,7 +29,7 @@ class DeletePage extends RecordComponent {
   }
 
   syncDialog () {
-    utils.loadData('/recordinfo', {path: this.getRecordPath()}, null, makeRichPromise)
+    utils.loadData('/recordinfo', { path: this.getRecordPath() }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordInfo: resp,
@@ -48,13 +48,13 @@ class DeletePage extends RecordComponent {
       targetPath = this.getUrlRecordPathWithAlt(parent)
     }
 
-    utils.apiRequest('/deleterecord', {data: {
+    utils.apiRequest('/deleterecord', { data: {
       path: path,
       alt: this.getRecordAlt(),
       delete_master: this.state.deleteMasterRecord ? '1' : '0'
     },
-      // eslint-disable-next-line indent
-      method: 'POST'}, makeRichPromise)
+    // eslint-disable-next-line indent
+      method: 'POST' }, makeRichPromise)
       .then((resp) => {
         if (this.state.recordInfo.is_attachment) {
           hub.emit(new AttachmentsChangedEvent({
@@ -62,13 +62,13 @@ class DeletePage extends RecordComponent {
             attachmentsRemoved: [this.state.recordInfo.id]
           }))
         }
-        this.transitionToAdminPage('.edit', {path: targetPath})
+        this.transitionToAdminPage('.edit', { path: targetPath })
       })
   }
 
   cancelDelete (event) {
     const urlPath = this.getUrlRecordPathWithAlt()
-    this.transitionToAdminPage('.edit', {path: urlPath})
+    this.transitionToAdminPage('.edit', { path: urlPath })
   }
 
   onDeleteAllAltsChange (event) {
@@ -182,19 +182,19 @@ class DeletePage extends RecordComponent {
       <div>
         <h2>{i18n.trans('DELETE_RECORD').replace('%s', label)}</h2>
         {elements}
-        <div style={{display: this.state.deleteMasterRecord && alts.length > 0 ? 'block' : 'none'}}>
+        <div style={{ display: this.state.deleteMasterRecord && alts.length > 0 ? 'block' : 'none' }}>
           <h4>{i18n.trans('ALTS_TO_BE_DELETED')}</h4>
           <ul>
             {alts}
           </ul>
         </div>
-        <div style={{display: this.state.deleteMasterRecord && children.length > 0 ? 'block' : 'none'}}>
+        <div style={{ display: this.state.deleteMasterRecord && children.length > 0 ? 'block' : 'none' }}>
           <h4>{i18n.trans('CHILD_PAGES_TO_BE_DELETED')}</h4>
           <ul>
             {children}
           </ul>
         </div>
-        <div style={{display: this.state.deleteMasterRecord && attachments.length > 0 ? 'block' : 'none'}}>
+        <div style={{ display: this.state.deleteMasterRecord && attachments.length > 0 ? 'block' : 'none' }}>
           <h4>{i18n.trans('ATTACHMENTS_TO_BE_DELETED')}</h4>
           <ul>
             {attachments}

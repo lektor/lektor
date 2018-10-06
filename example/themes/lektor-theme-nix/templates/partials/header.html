@@ -1,0 +1,32 @@
+<header>
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse font-header">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" id="green-terminal" href={{ '/'|url }}>{{config.THEME_SETTINGS.headerusername}}@{{config.THEME_SETTINGS.headerhostname}} ~ $</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href={{ '/'|url }}>/home/{{config.THEME_SETTINGS.headerusername}}</a>
+        </li>
+        {% for page in site.query('/') %}
+        {% if page.path != '/404' %}
+        <li >
+          <a href="{{page.url_path | url }}">~{{ page.path }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+</header>

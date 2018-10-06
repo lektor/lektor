@@ -6,7 +6,7 @@ import React from 'react'
 import utils from '../utils'
 import i18n from '../i18n'
 import hub from '../hub'
-import {AttachmentsChangedEvent} from '../events'
+import { AttachmentsChangedEvent } from '../events'
 import RecordComponent from './RecordComponent'
 import Link from '../components/Link'
 import makeRichPromise from '../richPromise'
@@ -115,7 +115,7 @@ class Sidebar extends RecordComponent {
     this.setState({
       lastRecordRequest: path
     }, () => {
-      utils.loadData('/recordinfo', {path: path}, null, makeRichPromise)
+      utils.loadData('/recordinfo', { path: path }, null, makeRichPromise)
         .then((resp) => {
           // we're already fetching something else.
           if (path !== this.state.lastRecordRequest) {
@@ -145,12 +145,12 @@ class Sidebar extends RecordComponent {
 
   fsOpen (event) {
     event.preventDefault()
-    utils.apiRequest('/browsefs', {data: {
+    utils.apiRequest('/browsefs', { data: {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     },
-      // eslint-disable-next-line indent
-      method: 'POST'}, makeRichPromise)
+    // eslint-disable-next-line indent
+      method: 'POST' }, makeRichPromise)
       .then((resp) => {
         if (!resp.okay) {
           alert(i18n.trans('ERROR_CANNOT_BROWSE_FS'))

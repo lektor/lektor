@@ -559,6 +559,7 @@ class Page(Record):
 
     @property
     def url_path(self):
+        # pylint: disable=no-value-for-parameter
         rv = Record.url_path.__get__(self).rstrip('/')
         last_part = rv.rsplit('/')[-1]
         if '.' not in last_part:
@@ -1540,7 +1541,7 @@ class Pad(object):
 
         if pieces[0].isdigit():
             if len(pieces) == 1:
-                return self.get(record['_path'], page_num=int(pieces[0]))
+                return self.get(record['_path'], alt=record.alt, page_num=int(pieces[0]))
             return None
 
         resolver = self.env.virtual_sources.get(pieces[0])

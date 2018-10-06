@@ -46,7 +46,7 @@ class BreadCrumbs extends RecordComponent {
       return
     }
 
-    utils.loadData('/pathinfo', {path: path}, null, makeRichPromise)
+    utils.loadData('/pathinfo', { path: path }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordPathInfo: {
@@ -127,7 +127,7 @@ class BreadCrumbs extends RecordComponent {
         }
         lastItem = item
 
-        const adminPath = this.getPathToAdminPage(target, {path: urlPath})
+        const adminPath = this.getPathToAdminPage(target, { path: urlPath })
 
         return (
           <li key={item.path} className={className}>
@@ -137,7 +137,7 @@ class BreadCrumbs extends RecordComponent {
       })
     } else {
       crumbs = (
-        <li><Link to={this.getPathToAdminPage('.edit', {path: 'root'})}>
+        <li><Link to={this.getPathToAdminPage('.edit', { path: 'root' })}>
           {i18n.trans('BACK_TO_OVERVIEW')}</Link></li>
       )
     }
@@ -151,7 +151,7 @@ class BreadCrumbs extends RecordComponent {
             <li className='new-record-crumb'>
               <Link to={this.getPathToAdminPage('.add-child', {
                 path: this.getUrlRecordPathWithAlt(
-                  lastItem.path)})}>+</Link>
+                  lastItem.path) })}>+</Link>
             </li>
           ) : null}
           {' ' /* this space is needed for chrome ... */}

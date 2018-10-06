@@ -3,7 +3,9 @@
 [![Unix Build Status](https://api.travis-ci.org/lektor/lektor.svg?branch=master)](https://travis-ci.org/lektor/lektor)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/lektor/lektor?branch=master&svg=true)](https://ci.appveyor.com/project/lektor/lektor)
 [![Code Coverage](https://codecov.io/gh/lektor/lektor/branch/master/graph/badge.svg)](https://codecov.io/gh/lektor/lektor)
-[![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://badge.fury.io/py/Lektor)
+[![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://pypi.org/project/Lektor/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Lektor.svg)](https://pypi.org/project/Lektor/)
+<img alt="node:?" src="https://img.shields.io/badge/node-%3E=6-blue.svg"/>
 [![Join the chat at https://gitter.im/lektor/lektor](https://badges.gitter.im/lektor/lektor.svg)](https://gitter.im/lektor/lektor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Lektor is a static website generator.  It builds out an entire project
@@ -16,7 +18,9 @@ To see how it works look at the ``example`` folder which contains a
 very basic project to get started.
 
 For a more complete website look at [lektor/lektor-website](https://github.com/lektor/lektor-website)
-which contains the sourcecode for the official lektor website.
+which contains the sourcecode for the official lektor website. We also have the example project at the
+top level of this repository `example/` that is a lean example of the wide variety of the features
+of Lektor.
 
 ## How do I use this?
 
@@ -38,11 +42,11 @@ $ pip install --editable .
 $ make build-js
 $ make install-git-hooks
 $ export LEKTOR_DEV=1
-$ lektor quickstart --path example-project
+$ cp -r example example-project
 $ lektor --project example-project server
 ```
 
-If you want to run the test suite instead:
+If you want to run the test suite:
 
 ```
 $ virtualenv venv

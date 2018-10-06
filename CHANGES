@@ -5,10 +5,18 @@ These are all the changes in Lektor since the first public release.
 
 3.1.2
 
-Release date TBD
+Release date 7th of September 2018
 
+- Fix pagination and virtual pathing for alts
+- Fixing deply from local server in Python 3
+- Now passing server_info to publisher from local server, providing better
+  support for plugin provided publishers.
+- Added a more full-featured example project.
+- Adding Jinja2 `do` extension.
+- Better new-plugin command.
+- More tests.
 - Added the ability to sort child pages in admin according to models.
-- Better image handling.
+- Better image handling and info detection for JPGs and SVGs
 - Lektor can now be ran with `python -m lektor`
 - New plugins now come with a more full featured setup.py
 

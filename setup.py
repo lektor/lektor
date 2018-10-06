@@ -1,4 +1,9 @@
+import io
+
 from setuptools import setup, find_packages
+
+with io.open('README.md', 'rt', encoding='utf8') as f:
+    readme = f.read()
 
 tests_require = [
     'pytest',
@@ -10,9 +15,11 @@ tests_require = [
 
 setup(
     name='Lektor',
-    version='3.1.1',
+    version='3.1.2',
     url='http://github.com/lektor/lektor/',
     description='A static content management system.',
+    long_description=readme,
+    long_description_content_type='text/markdown',
     license='BSD',
     author='Armin Ronacher',
     author_email='armin.ronacher@active-4.com',
@@ -30,6 +37,7 @@ setup(
         'inifile',
         'enum34;python_version<"3.4"',
         'Babel',
+        'functools32;python_version<"3.2.3"',
         'setuptools',
         'pip',
         'requests[security]',
@@ -48,6 +56,9 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],

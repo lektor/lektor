@@ -62,3 +62,16 @@ def test_children_sorting_via_api(scratch_project, scratch_env, children_records
     ordered_records = sorted(records_ordered_by_title, key=itemgetter('pub_date'), reverse=True)
 
     assert list(map(itemgetter('id'), ordered_records)) == children_records_ids_provided_by_api
+
+
+def test_eventstream_yield_bytes():
+    count = 0
+    from lektor.admin.utils import eventstream
+    @eventstream
+    def testfunc():
+        yield 'string'
+        yield 5
+    for data in testfunc().response: # pylint: disable=no-member
+        count += 1
+        assert isinstance(data, bytes)
+    assert count >= 2

@@ -79,6 +79,7 @@ class Asset(SourceObject):
     def resolve_url_path(self, url_path):
         if not url_path:
             return self
+        # pylint: disable=assignment-from-none
         child = self.get_child(url_path[0], from_url=True)
         if child is not None:
             return child.resolve_url_path(url_path[1:])
