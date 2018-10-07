@@ -1,9 +1,13 @@
 import textwrap
 import os
 
+import pytest
+from inifile import IniFile
+
 from lektor._compat import PY2
 from lektor.cli import cli
 from lektor.quickstart import get_default_author, get_default_author_email
+
 
 # new-plugin
 def test_new_plugin(project_cli_runner):
@@ -279,70 +283,28 @@ def test_new_theme(project_cli_runner):
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
-    path = os.path.join('themes', 'lektor-theme-theme-name')
+    path = os.path.join('themes', 'lektor-theme-name')
     assert set(os.listdir(path)) == set(
         ['example-site', 'images', 'README.md', 'theme.ini'])
     assert set(os.listdir(os.path.join(path, 'images'))) == set(
         ['homepage.png'])
     assert set(os.listdir(os.path.join(path, 'example-site'))) == set(
-        ['lektor-theme-theme-name.lektorproject', 'README.md', 'themes'])
+        ['lektor-theme-name.lektorproject', 'README.md', 'themes'])
     try:
         assert os.readlink(os.path.join(
-            path, 'example-site/themes/lektor-theme-theme-name')) == \
-            '../../../lektor-theme-theme-name'
+            path, 'example-site/themes/lektor-theme-name')) == \
+            '../../../lektor-theme-name'
     except AttributeError:
         pass
 
-    # theme.ini
-    theme_ini_expected = textwrap.dedent("""
-        [theme]
-        description =
-        features =
-        homepage =
-        lektor_required_version = 3.1
-        license = MIT
-        licenselink =
-        name = Lektor Theme Name
-        tags =
+    theme_inifile = IniFile(os.path.join(path, 'theme.ini'))
+    assert theme_inifile['theme.name'] == 'Lektor Theme Name'
+    assert theme_inifile['author.email'] == 'author@email.com'
+    assert theme_inifile['author.name'] == 'Author Name'
 
-        [author]
-        email = author@email.com
-        name = Author Name
-        homepage =
-
-        # If porting an existing theme
-        [original]
-        author =
-        homepage =
-        repo =
-    """).strip()
-    with open(os.path.join(path, 'theme.ini')) as f:
-        theme_ini_contents = f.read().strip()
-    assert theme_ini_contents == theme_ini_expected
-
-    # README.md
-    readme_expected = textwrap.dedent("""
-        # Lektor Theme Name
-
-        This is where a description of your theme goes.
-        Provide usage instructions here.
-
-        Remember to fill this out after creating your theme and to add a
-        License file. Now go add some theme components!
-
-        You can make
-
-        - assets
-        - flowblocks
-        - models
-        - templates
-
-        Just put those folders here and they'll be picked up when your
-        theme is used.
-    """).strip()
     with open(os.path.join(path, 'README.md')) as f:
         readme_contents = f.read().strip()
-    assert readme_contents == readme_expected
+    assert "Lektor Theme Name" in readme_contents
 
 
 def test_new_theme_abort_theme_exists(project_cli_runner):
@@ -395,62 +357,14 @@ def test_new_theme_name_only(project_cli_runner):
     except AttributeError:
         pass
 
-    # theme.ini
-    theme_ini_expected = textwrap.dedent("""
-        [theme]
-        description =
-        features =
-        homepage =
-        lektor_required_version = 3.1
-        license = MIT
-        licenselink =
-        name = Lektor Name Theme
-        tags =
+    theme_inifile = IniFile(os.path.join(path, 'theme.ini'))
+    assert theme_inifile['theme.name'] == 'Lektor Name Theme'
+    assert theme_inifile['author.email'] == get_default_author_email()
+    assert theme_inifile['author.name'] == get_default_author()
 
-        [author]
-        email = {}
-        name = {}
-        homepage =
-
-        # If porting an existing theme
-        [original]
-        author =
-        homepage =
-        repo =
-    """).strip()
-    author = get_default_author()
-    author_email = get_default_author_email()
-    if PY2:
-        theme_ini_expected = theme_ini_expected.format(author_email, author)
-    else:
-        theme_ini_expected = theme_ini_expected.format(author_email, author)
-    with open(os.path.join(path, 'theme.ini')) as f:
-        theme_ini_contents = f.read().strip()
-    assert theme_ini_contents == theme_ini_expected
-
-    # README.md
-    readme_expected = textwrap.dedent("""
-        # Lektor Name Theme
-
-        This is where a description of your theme goes.
-        Provide usage instructions here.
-
-        Remember to fill this out after creating your theme and to add a
-        License file. Now go add some theme components!
-
-        You can make
-
-        - assets
-        - flowblocks
-        - models
-        - templates
-
-        Just put those folders here and they'll be picked up when your
-        theme is used.
-    """).strip()
     with open(os.path.join(path, 'README.md')) as f:
         readme_contents = f.read().strip()
-    assert readme_contents == readme_expected
+    assert "Lektor Name Theme" in readme_contents
 
 
 def test_new_theme_name_param(project_cli_runner):
@@ -464,7 +378,7 @@ def test_new_theme_name_param(project_cli_runner):
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
     path = 'themes'
-    assert os.listdir(path) == ['lektor-theme-theme-name']
+    assert os.listdir(path) == ['lektor-theme-name']
 
 
 def test_new_theme_path(project_cli_runner):
@@ -510,3 +424,31 @@ def test_new_theme_path_and_name_params(project_cli_runner):
     path = 'path'
     assert set(os.listdir(path)) == set(
         ['example-site', 'images', 'theme.ini', 'README.md'])
+
+
+@pytest.mark.parametrize(
+    ('theme_name', 'expected_id'),
+    (
+        ('Lektor New Theme', 'lektor-theme-new'),
+        ('Lektor Theme', 'lektor-theme-theme'),
+        ('New Theme', 'lektor-theme-new'),
+        ('New', 'lektor-theme-new'),
+        ('Theme', 'lektor-theme-theme'),
+        ('Lektor', 'lektor-theme-lektor'),
+        ('Lektor Theme New', 'lektor-theme-new'),
+    ),
+)
+def test_new_theme_varying_names(project_cli_runner, theme_name, expected_id):
+    result = project_cli_runner.invoke(
+        cli, ['dev', 'new-theme'],
+        input='{}\n'
+        '\n'
+        '\n'
+        '\n'
+        'y\n'.format(theme_name),
+    )
+    assert 'Create Theme?' in result.output
+    assert result.exit_code == 0
+    assert expected_id in os.listdir('themes')
+    path = os.path.join('themes', expected_id, 'example-site')
+    assert expected_id + '.lektorproject' in os.listdir(path)

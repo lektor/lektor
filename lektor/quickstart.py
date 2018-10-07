@@ -283,11 +283,11 @@ def theme_quickstart(defaults=None, project=None):
             info='This is the human readable name for this theme')
 
     theme_id = theme_name.lower()  # pylint: disable=no-member
-    if theme_id.startswith('lektor-theme'):
-        theme_id = theme_id[12:]
-    if theme_id.startswith('lektor'):
-        theme_id = theme_id[6:]
-    if theme_id.endswith('theme'):
+    if theme_id != 'lektor' and theme_id.startswith('lektor'):
+        theme_id = theme_id[6:].strip()
+    if theme_id != 'theme' and theme_id.startswith('theme'):
+        theme_id = theme_id[5:]
+    if theme_id != "theme" and theme_id.endswith('theme'):
         theme_id = theme_id[:-5]
     theme_id = slugify(theme_id)
 
