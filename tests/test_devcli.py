@@ -123,12 +123,7 @@ def test_new_plugin_abort_plugin_exists(project_cli_runner):
     os.mkdir(os.path.join(path, 'plugin-name'))
     input = 'Plugin Name\n\nAuthor Name\nauthor@email.com\ny\n'
     result = project_cli_runner.invoke(
-        cli, ["dev", "new-plugin"],
-        input='Plugin Name\n'
-        '\n'
-        'Author Name\n'
-        'author@email.com\n'
-        'y\n',
+        cli, ["dev", "new-plugin"], input=input
     )
     assert "Aborted!" in result.output
     assert result.exit_code == 1
@@ -276,7 +271,7 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
 def test_new_theme(project_cli_runner):
     result = project_cli_runner.invoke(
         cli, ["dev", "new-theme"],
-        input='Theme Name\n'
+        input='Lektor Theme Name\n'
         '\n'
         'Author Name\n'
         'author@email.com\n'
@@ -307,7 +302,7 @@ def test_new_theme(project_cli_runner):
         lektor_required_version = 3.1
         license = MIT
         licenselink =
-        name = Theme Name
+        name = Lektor Theme Name
         tags =
 
         [author]
@@ -327,7 +322,7 @@ def test_new_theme(project_cli_runner):
 
     # README.md
     readme_expected = textwrap.dedent("""
-        # Theme Name
+        # Lektor Theme Name
 
         This is where a description of your theme goes.
         Provide usage instructions here.
@@ -353,15 +348,10 @@ def test_new_theme(project_cli_runner):
 def test_new_theme_abort_theme_exists(project_cli_runner):
     path = 'themes'
     os.mkdir(path)
-    os.mkdir(os.path.join(path, 'lektor-theme-theme-name'))
-    input = 'Theme Name\n\nAuthor Name\nauthor@email.com\ny\n'
+    os.mkdir(os.path.join(path, 'lektor-theme-name'))
+    input = 'Lektor Name\n\nAuthor Name\nauthor@email.com\ny\n'
     result = project_cli_runner.invoke(
-        cli, ["dev", "new-theme"],
-        input='Theme Name\n'
-        '\n'
-        'Author Name\n'
-        'author@email.com\n'
-        'y\n',
+        cli, ["dev", "new-theme"], input=input
     )
     assert "Aborted!" in result.output
     assert result.exit_code == 1
@@ -383,7 +373,7 @@ def test_new_theme_abort_cancel(project_cli_runner):
 def test_new_theme_name_only(project_cli_runner):
     result = project_cli_runner.invoke(
         cli, ["dev", "new-theme"],
-        input='Theme Name\n'
+        input='Lektor Name Theme\n'
         '\n'
         '\n'
         '\n'
@@ -391,17 +381,17 @@ def test_new_theme_name_only(project_cli_runner):
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
-    path = os.path.join('themes', 'lektor-theme-theme-name')
+    path = os.path.join('themes', 'lektor-theme-name')
     assert set(os.listdir(path)) == set(
         ['example-site', 'images', 'README.md', 'theme.ini'])
     assert set(os.listdir(os.path.join(path, 'images'))) == set(
         ['homepage.png'])
     assert set(os.listdir(os.path.join(path, 'example-site'))) == set(
-        ['lektor-theme-theme-name.lektorproject', 'README.md', 'themes'])
+        ['lektor-theme-name.lektorproject', 'README.md', 'themes'])
     try:
         assert os.readlink(os.path.join(
-            path, 'example-site/themes/lektor-theme-theme-name')) == \
-            '../../../lektor-theme-theme-name'
+            path, 'example-site/themes/lektor-theme-name')) == \
+            '../../../lektor-theme-name'
     except AttributeError:
         pass
 
@@ -414,7 +404,7 @@ def test_new_theme_name_only(project_cli_runner):
         lektor_required_version = 3.1
         license = MIT
         licenselink =
-        name = Theme Name
+        name = Lektor Name Theme
         tags =
 
         [author]
@@ -440,7 +430,7 @@ def test_new_theme_name_only(project_cli_runner):
 
     # README.md
     readme_expected = textwrap.dedent("""
-        # Theme Name
+        # Lektor Name Theme
 
         This is where a description of your theme goes.
         Provide usage instructions here.
