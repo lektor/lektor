@@ -38,9 +38,12 @@
   <p>
     A <b>date</b>: {{ this.date }}
     <br>
-    A <b>datetime</b>: {{ this.datetime }}
-    formatted one way, {{ this.datetime.strftime('%Y-%m-%d %H:%M') }}
-    and another {{ this.datetime.strftime('%m/%d/%Y %H:%M') }}.
+    A <b>datetime</b> formatted three ways:
+    <ul>
+      <li>{{ this.datetime }}</li>
+      <li>{{ this.datetime.strftime('%Y-%m-%d %H:%M') }}</li>
+      <li>{{ this.datetime.strftime('%m/%d/%Y %H:%M') }}</li>
+    </ul>
   </p>
 
   {# numbers #}
