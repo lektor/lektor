@@ -60,6 +60,9 @@ class Generator(object):
         self.e('=' * len(title), fg='cyan')
         self.e('')
 
+    def warn(self, text):
+        self.e(self.w(text), fg='magenta')
+
     def text(self, text):
         self.e(self.w(text))
 
@@ -266,3 +269,78 @@ def plugin_quickstart(defaults=None, project=None):
         'author_name': author_name,
         'author_email': author_email,
     }, path)
+
+
+def theme_quickstart(defaults=None, project=None):
+    if defaults is None:
+        defaults = {}
+
+    g = Generator('theme')
+
+    theme_name = defaults.get('theme_name')
+    if theme_name is None:
+        theme_name = g.prompt('Theme Name', default=None,
+            info='This is the human readable name for this theme')
+
+    theme_id = theme_name.lower()  # pylint: disable=no-member
+    if theme_id != 'lektor' and theme_id.startswith('lektor'):
+        theme_id = theme_id[6:].strip()
+    if theme_id != 'theme' and theme_id.startswith('theme'):
+        theme_id = theme_id[5:]
+    if theme_id != "theme" and theme_id.endswith('theme'):
+        theme_id = theme_id[:-5]
+    theme_id = slugify(theme_id)
+
+    path = defaults.get('path')
+    if path is None:
+        if project is not None:
+            default_path = os.path.join(project.tree, 'themes',
+                                        "lektor-theme-{}".format(theme_id))
+        else:
+            if len(os.listdir('.')) == 0:
+                default_path = os.getcwd()
+            else:
+                default_path = os.path.join(os.getcwd(), theme_id)
+        path = g.prompt('Theme Path', default_path,
+            'The place where you want to initialize the theme')
+
+    author_name = g.prompt('Author Name', get_default_author(),
+        'Your name as it will be embedded in the theme metadata.')
+
+    author_email = g.prompt('Author E-Mail', get_default_author_email(),
+        'Your e-mail address for the theme info.')
+
+    g.confirm('Create Theme?')
+
+    g.run({
+        'theme_name': theme_name,
+        'theme_id': theme_id,
+        'author_name': author_name,
+        'author_email': author_email,
+    }, path)
+
+    # symlink
+    theme_dir = os.getcwd()
+    example_themes = os.path.join(path, "example-site/themes")
+    os.makedirs(example_themes)
+    os.chdir(example_themes)
+    try:
+        os.symlink("../../../lektor-theme-{}".format(theme_id),
+                   "lektor-theme-{}".format(theme_id))
+    except AttributeError:
+        g.warn(
+            'Could not automatically make a symlink to have your example-site'
+            'easily pick up your theme.'
+        )
+    os.chdir(theme_dir)
+
+    # Sample image
+    os.makedirs(os.path.join(path, "images"))
+    source_image_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "quickstart-templates/theme/images/homepage.png")
+    destination_image_path = os.path.join(path, "images/homepage.png")
+    with open(source_image_path, 'rb') as f:
+        image = f.read()
+    with open(destination_image_path, 'wb') as f:
+        f.write(image)

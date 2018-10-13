@@ -1,0 +1,9 @@
+[project]
+name = ${theme_name}
+url_style = absolute
+
+[theme_settings]
+# Put theme settings here
+
+[packages]
+# Put example-site plugins here.

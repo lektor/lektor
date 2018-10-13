@@ -1,0 +1,20 @@
+[theme]
+description =
+features =
+homepage =
+lektor_required_version = 3.1
+license = MIT
+licenselink =
+name = ${theme_name}
+tags =
+
+[author]
+email = ${author_email}
+name = ${author_name}
+homepage =
+
+# If porting an existing theme
+[original]
+author =
+homepage =
+repo =
