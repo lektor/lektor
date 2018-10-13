@@ -44,7 +44,7 @@ Once you have those installed and have made sure that they are on your `PATH`, y
 get Lektor installed with our installation script:
 
 ```
-$ curl -sf https://www.getlektor.com/install.sh | sh
+# curl -sf https://www.getlektor.com/install.sh | sh
 ```
 If you are not logged in as superuser, instead you should try this:
 ```
