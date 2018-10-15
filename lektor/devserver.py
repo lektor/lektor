@@ -5,7 +5,7 @@ import threading
 
 from werkzeug.serving import run_simple, WSGIRequestHandler
 
-from lektor.db import Database
+from lektor.db import Database, DatabaseCache
 from lektor.builder import Builder, process_extra_flags
 from lektor.watcher import Watcher
 from lektor.reporter import CliReporter
@@ -55,7 +55,8 @@ class BackgroundBuilder(threading.Thread):
     def run(self):
         with CliReporter(self.env, verbosity=self.verbosity):
             self.build(update_source_info_first=True)
-            for ts, _, _ in self.watcher:
+            for ts, eventtype, absolute_filename_w_path  in self.watcher:
+                DatabaseCache.purge_cache()
                 if self.last_build is None or ts > self.last_build:
                     self.build()
 
