@@ -1122,7 +1122,7 @@ class DatabaseCache(object):
     @staticmethod
     def init_cache_from_config(env):
         lconfig = env.load_config()
-        DatabaseCache._cache_enable = bool(lconfig.values['LEKTOR_CACHE'].get('datamodels_cache_enable'))
+        DatabaseCache._cache_enable = True if str(lconfig.values['LEKTOR_CACHE'].get('datamodels_cache_enable')).lower() in ['true', 'yes', 'on', '1'] else False
         DatabaseCache._cache_timeout_seconds = float(lconfig.values['LEKTOR_CACHE'].get('datamodels_cache_timeout_seconds'))
 
     @staticmethod
