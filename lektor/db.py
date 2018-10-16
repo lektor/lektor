@@ -1137,7 +1137,7 @@ class DatabaseCache(object):
             now = datetime.datetime.now()
             timedif = now - DatabaseCache._cache_last_update_datetime
             seconds = timedif.total_seconds()
-            if(seconds >= DatabaseCache._cache_timeout_seconds):
+            if seconds >= DatabaseCache._cache_timeout_seconds:
                 DatabaseCache._reload_cache(env)
         else:
             DatabaseCache._reload_cache(env)
