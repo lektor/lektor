@@ -184,6 +184,8 @@ def test_thumbnail_quality(builder):
     assert image_size < 9200
 
 
+# TODO: delete this when the thumbnails backwards-compatibility period ends
+@pytest.mark.skip(reason="future behaviour")
 def test_large_thumbnail_returns_original(builder):
     builder.build_all()
     with open(os.path.join(builder.destination_path, 'index.html')) as f:

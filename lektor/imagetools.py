@@ -5,6 +5,7 @@ import imghdr
 import re
 import struct
 import posixpath
+import warnings
 from datetime import datetime
 from enum import IntEnum
 from xml.etree import ElementTree as etree
@@ -515,6 +516,15 @@ def make_thumbnail(ctx, source_image, source_url_path,
     if width is None and height is None:
         raise ValueError("Must specify at least one of width or height.")
 
+    # this part needs to be removed once backward-compatibility period passes
+    if upscale is None and mode == ThumbnailMode.FIT:
+        warnings.warn(
+            'Your images are currently scaled up when the thumbnail requested '
+            'is larger than the source. This default will change in the future. '
+            'If you want to preserve the current behaviour, use `upscale=True`.'
+        )
+        upscale = True
+
     if upscale is None:
         upscale = {
             ThumbnailMode.FIT: False,
@@ -522,13 +532,15 @@ def make_thumbnail(ctx, source_image, source_url_path,
             ThumbnailMode.STRETCH: True,
         }[mode]
 
-    # fallback to "fit" in case of erroneous arguments (but preserve
-    # the `upscale` defaults as defined above).
+    # temporarily fallback to "fit" in case of erroneous arguments
+    # to preserve backward-compatibility.
+    # this needs to change to an exception in the future.
     if mode != ThumbnailMode.FIT and (width is None or height is None):
-        raise ValueError(
-            '"%s" mode requires both `width` and `height` to be defined.'
-            % mode.label
+        warnings.warn(
+            '"%s" mode requires both `width` and `height` to be defined. '
+            'Falling back to "fit" mode.`' % mode.label
         )
+        mode = ThumbnailMode.FIT
 
     with open(source_image, 'rb') as f:
         format, source_width, source_height = get_image_info(f)
