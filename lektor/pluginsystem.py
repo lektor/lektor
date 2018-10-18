@@ -117,12 +117,12 @@ def load_plugins():
     return rv
 
 
-def initialize_plugins(env):
+def initialize_plugins(env, extra_flags=None):
     """Initializes the plugins for the environment."""
     plugins = load_plugins()
     for plugin_id, plugin_cls in iteritems(plugins):
         env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls)
-    env.plugin_controller.emit('setup-env')
+    env.plugin_controller.emit('setup-env', extra_flags=extra_flags)
 
 
 class PluginController(object):
@@ -130,8 +130,9 @@ class PluginController(object):
     the environment.
     """
 
-    def __init__(self, env):
+    def __init__(self, env, extra_flags=None):
         self._env = weakref(env)
+        self.extra_flags = extra_flags
 
     @property
     def env(self):
@@ -153,7 +154,9 @@ class PluginController(object):
         return itervalues(self.env.plugins)
 
     def emit(self, event, **kwargs):
+        from lektor.builder import process_extra_flags
         rv = {}
+        kwargs['extra_flags'] = process_extra_flags(self.extra_flags)
         funcname = 'on_' + event.replace('-', '_')
         for plugin in self.iter_plugins():
             handler = getattr(plugin, funcname, None)
