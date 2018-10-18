@@ -4,7 +4,7 @@ summary: Creates a thumbnail for an image.
 ---
 type: method
 ---
-signature: width, height=None, crop=False, quality=None
+signature: width=None, height=None, mode=None, upscale=None, quality=None
 ---
 body:
 
@@ -12,10 +12,25 @@ This method is available on attachments that are images and can be used to
 automatically generate a thumbnail.  The return value is a thumbnail proxy
 that can be either used directly or with the `|url` filter.
 
-If cropping is not enabled the thumbnail is scaled down to fit into the
-given reactangle of width and height.  If height is not specified it will
-match the width and the height is set accordingly.  If cropping is enabled
-it's cropped around the edges to fit into the center.
+The outcome differs depending on the operation mode, which can be one of "fit"
+(the default), "crop" or "stretch".
+
+In "fit" mode, the thumbnail is scaled to fit into the rectangle of given
+width and height. If either dimension is `None`, it will be computed to match
+the other one accordingly.
+
+In "crop" mode, width and height are both required. The image is scaled
+to cover the given rectangle, center-aligned, and then cropped so that
+anything outside those bounds gets trimmed.
+
+In "stretch" mode, the image is resized precisely to the required dimensions,
+so the original proportions are not preserved. Most of the time this is not
+what you want.
+
+By setting the `upscale` parameter to `False` you can prevent the images
+from being scaled up if the resulting thumbnail would be larger than the original
+image. In this case the original is returned instead.
+(Note that in a future version this will be the default in "fit" mode.)
 
 The quality parameter determines the compression of images where possible. If not passed the jpeg images get a default quality of 85 and png images get a default quality of 75.
 
@@ -26,9 +41,6 @@ It provides the following attributes:
 * `url_path` the URL path of the thumbnail.  This is absolute and needs to
   be made relative with the `|url` filter.
 
-!!! Starting with Lektor 2.0 you can also pass `crop=True` to crop the image
-to the exact dimensions provided instead of scaling it uncropped.
-
 ## Example
 
 ```html+jinja
@@ -38,5 +50,11 @@ to the exact dimensions provided instead of scaling it uncropped.
 ```
 
 ```html+jinja
-<img src="{{ image.thumbnail(1920, 1080, crop=True, quality=40)|url }}">
+{% for image in this.attachments.images %}
+  <img src="{{ image.thumbnail(height=64)|url }}">
+{% endfor %}
+```
+
+```html+jinja
+<img src="{{ image.thumbnail(1920, 1080, mode="crop", quality=40)|url }}">
 ```

@@ -81,8 +81,8 @@ still need to transmit the entire image.  When you want smaller images it
 often makes sense to generate thumbnails automatically.  In Lektor each
 image provides the [thumbnail :ref](../../api/db/record/thumbnail/) method.
 
-It accepts the width and height of the target image.  If the height is not
-provided it will be scaled proportionally.  The return value can be converted
+It accepts the width and height of the target image. If either of these is not
+provided, it will be computed automatically. The return value can be converted
 into a URL with the `|url` filter:
 
 ```html+jinja
