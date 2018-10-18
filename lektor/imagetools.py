@@ -443,7 +443,7 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
     else:
         cmdline += ['-resize', resize_key]
 
-    # compression doesen't work well when input is e.g. in CMYK colorspace
+    # compression does not work well when input is e.g. in CMYK colorspace
     cmdline += ['-colorspace', 'sRGB']
         
     cmdline += ['-quality', str(quality), dst_filename]
