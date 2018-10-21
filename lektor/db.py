@@ -3,6 +3,7 @@ import errno
 import hashlib
 import operator
 import posixpath
+import warnings
 
 from itertools import islice, chain
 
@@ -21,7 +22,10 @@ from lektor.utils import sort_normalize_string, cleanup_path, \
 from lektor.sourceobj import SourceObject, VirtualSourceObject
 from lektor.context import get_ctx, Context
 from lektor.datamodel import load_datamodels, load_flowblocks
-from lektor.imagetools import make_thumbnail, read_exif, get_image_info
+from lektor.imagetools import (
+    ThumbnailMode, make_thumbnail,
+    read_exif, get_image_info,
+)
 from lektor.assets import Directory
 from lektor.editor import make_editor_session
 from lektor.environment import PRIMARY_ALT
@@ -780,14 +784,35 @@ class Image(Attachment):
             return rv
         return Undefined('The format of the image could not be determined.')
 
-    def thumbnail(self, width, height=None, crop=False, quality=None):
+    def thumbnail(self,
+                  width=None, height=None, crop=None, mode=None,
+                  upscale=None, quality=None):
         """Utility to create thumbnails."""
-        width = int(width)
+
+        # `crop` exists to preserve backward-compatibility, and will be removed.
+        if crop is not None and mode is not None:
+            raise ValueError('Arguments `crop` and `mode` are mutually exclusive.')
+
+        if crop is not None:
+            warnings.warn(
+                'The `crop` argument is deprecated. Use `mode="crop"` instead.'
+            )
+            mode = "crop"
+
+        if mode is None:
+            mode = ThumbnailMode.DEFAULT
+        else:
+            mode = ThumbnailMode.from_label(mode)
+
+        if width is not None:
+            width = int(width)
         if height is not None:
             height = int(height)
+
         return make_thumbnail(_require_ctx(self),
             self.attachment_filename, self.url_path,
-            width=width, height=height, crop=crop, quality=quality)
+            width=width, height=height, mode=mode,
+            upscale=upscale, quality=quality)
 
 
 attachment_classes = {

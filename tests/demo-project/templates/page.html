@@ -3,10 +3,28 @@
   <h1>{{ this.title }}</h1>
   {{ this.body }}
   {% for img in this.attachments.images %}
-    {# 192 is half test.jpg's original width #}
-    {% set t = img.thumbnail(192) %}
-    <img src="{{ t|url }}" width="{{ t.width }}" height="{{ t.height }}">
-    {% set tq = img.thumbnail(192, 256, False, quality=20) %}
+    {# use half of test.jpg's dimensions (384 x 512) #}
+    {% set tw = img.thumbnail(192) %}
+    <img src="{{ tw|url }}" width="{{ tw.width }}" height="{{ tw.height }}">
+
+    {% set th = img.thumbnail(height=256) %}
+    <img src="{{ th|url }}" width="{{ th.width }}" height="{{ th.height }}">
+
+    {# this should have exactly the same result as above #}
+    {% set twh = img.thumbnail(width=256, height=256) %}
+    <img src="{{ twh|url }}" width="{{ twh.width }}" height="{{ twh.height }}">
+
+    {% set tq = img.thumbnail(192, 256, quality=20) %}
     <img src="{{ tq|url }}" width="{{ tq.width }}" height="{{ tq.height }}">
+
+    {% set tc = img.thumbnail(300, 100, mode="crop") %}
+    <img src="{{ tc|url }}" width="{{ tc.width }}" height="{{ tc.height }}">
+
+    {% set ts = img.thumbnail(300, 100, mode="stretch") %}
+    <img src="{{ ts|url }}" width="{{ ts.width }}" height="{{ ts.height }}">
+
+    {# larger than original#}
+    {% set t0 = img.thumbnail(400, 600) %}
+    <img alt="original" src="{{ t0|url }}" width="{{ t0.width }}" height="{{ t0.height }}">
   {% endfor %}
 {% endblock %}
