@@ -8,6 +8,8 @@ signature: width=None, height=None, mode=None, upscale=None, quality=None
 ---
 body:
 
+!! From Lektor 2.0 to 3.1.2 cropping was set with `crop=True`. This is now deprecated and instead crop is an available mode, which can be set as `mode=crop`.
+
 This method is available on attachments that are images and can be used to
 automatically generate a thumbnail.  The return value is a thumbnail proxy
 that can be either used directly or with the `|url` filter.
