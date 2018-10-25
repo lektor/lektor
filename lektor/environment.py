@@ -73,6 +73,12 @@ DEFAULT_CONFIG = {
     'ALTERNATIVES': OrderedDict(),
     'PRIMARY_ALTERNATIVE': None,
     'SERVERS': {},
+    'LEKTOR_CACHE': {
+        'datamodels_cache_enable': False,
+        'datamodels_cache_timeout_seconds': 30,
+    },
+
+
 }
 
 
@@ -95,7 +101,8 @@ def update_config_from_ini(config, inifile):
     set_simple(target='LESSC_EXECUTABLE',
                source_path='env.lessc_executable')
 
-    for section_name in ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES', 'THEME_SETTINGS'):
+    for section_name in \
+            ('ATTACHMENT_TYPES', 'PROJECT', 'PACKAGES', 'THEME_SETTINGS', 'LEKTOR_CACHE'):
         section_config = inifile.section_as_dict(section_name.lower())
         config[section_name].update(section_config)
 

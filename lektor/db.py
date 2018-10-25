@@ -1,3 +1,4 @@
+import datetime
 import os
 import errno
 import hashlib
@@ -1136,6 +1137,57 @@ def _iter_datamodel_choices(datamodel_name, path, is_attachment=False):
         yield 'page'
     yield 'none'
 
+class DatabaseCache(object):
+
+    _cache_timeout_seconds = None # search for datamodels_cache_timeout_seconds for initial value
+    _cache_enable = None # search for datamodels_cache_enable
+    _cache_datamodels = None
+    _cache_last_update_datetime = None
+
+    @staticmethod
+    def init_cache_from_config(env):
+        lconfig = env.load_config()
+        cache_enabled = str(lconfig.values['LEKTOR_CACHE'].get('datamodels_cache_enable')).lower()
+        DatabaseCache._cache_enable = \
+            True if cache_enabled in ['true', 'yes', 'on', '1'] else False
+        DatabaseCache._cache_timeout_seconds = \
+            float(lconfig.values['LEKTOR_CACHE'].get('datamodels_cache_timeout_seconds'))
+
+    @staticmethod
+    def get_data_models(env):
+        if not DatabaseCache.is_cache_enabled(env):
+            return load_datamodels(env)
+
+        if DatabaseCache._cache_datamodels and DatabaseCache._cache_last_update_datetime:
+            now = datetime.datetime.now()
+            timedif = now - DatabaseCache._cache_last_update_datetime
+            seconds = timedif.total_seconds()
+            if seconds >= DatabaseCache._cache_timeout_seconds:
+                DatabaseCache._reload_cache(env)
+        else:
+            DatabaseCache._reload_cache(env)
+
+        return DatabaseCache._cache_datamodels
+
+    @staticmethod
+    def purge_cache():
+        DatabaseCache._cache_last_update_datetime = None
+        DatabaseCache._cache_datamodels = None
+
+    @staticmethod
+    def is_cache_enabled(env):
+        if DatabaseCache._cache_enable is None:
+            DatabaseCache.init_cache_from_config(env)
+
+        return DatabaseCache._cache_enable
+
+
+    @staticmethod
+    def _reload_cache(env):
+        DatabaseCache._cache_last_update_datetime = datetime.datetime.now()
+        DatabaseCache._cache_datamodels = load_datamodels(env)
+
+
 
 class Database(object):
 
@@ -1144,7 +1196,7 @@ class Database(object):
         if config is None:
             config = env.load_config()
         self.config = config
-        self.datamodels = load_datamodels(env)
+        self.datamodels = DatabaseCache.get_data_models(env)
         self.flowblocks = load_flowblocks(env)
 
     def to_fs_path(self, path):
