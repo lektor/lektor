@@ -175,6 +175,7 @@ class Command(object):
                         if not line:
                             if stream in streams:
                                 streams.remove(stream)
+                                stream.close()
                             break
                         yield line.rstrip().decode('utf-8', 'replace')
 
