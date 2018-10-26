@@ -24,7 +24,7 @@ def rewrite_html_for_editing(fp, edit_url):
         position: fixed;
         z-index: 9999999;
         right: 10px;
-        top: 10px;
+        top: 100px;
         position: fixed;
         margin: 0;
         font-family: 'Verdana', sans-serif;
