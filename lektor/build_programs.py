@@ -73,7 +73,6 @@ class BuildProgram(object):
         the build state so that the UI can quickly find files without
         having to scan the file system.
         """
-        pass
 
     def build(self):
         """Invokes the build program."""

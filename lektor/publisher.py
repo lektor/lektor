@@ -100,7 +100,6 @@ def _temporary_folder(env):
 
 class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
-    pass
 
 
 class Command(object):

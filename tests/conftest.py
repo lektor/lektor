@@ -141,7 +141,7 @@ def reporter(request, env):
 @pytest.fixture(scope='function')
 def os_user(monkeypatch):
     if os.name == 'nt':
-        import getpass
+        import getpass  # pylint: disable=unused-import
         monkeypatch.setattr('getpass.getuser', lambda: 'Lektor Test')
         return "lektortest"
 
