@@ -5,6 +5,7 @@
   "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.26.0",
+    "babel-eslint": "^10.0.1",
     "babel-loader": "^7.1.2",
     "babel-plugin-istanbul": "^4.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
@@ -68,6 +69,7 @@
     ]
   },
   "standard": {
+    "parser": "babel-eslint",
     "ignore": [
       "static/gen/"
     ],
