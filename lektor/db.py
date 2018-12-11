@@ -3,6 +3,7 @@ import errno
 import hashlib
 import operator
 import posixpath
+import random
 import warnings
 
 from itertools import islice, chain
@@ -970,6 +971,10 @@ class Query(object):
     def all(self):
         """Loads all matching records as list."""
         return list(self)
+
+    def sample(self, k):
+        """Randomly sample matching records"""
+        return random.sample(iter(self), k)
 
     def order_by(self, *fields):
         """Sets the ordering of the query."""
