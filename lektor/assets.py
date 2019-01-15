@@ -24,7 +24,7 @@ def get_asset(pad, filename, parent=None):
 
 
 class Asset(SourceObject):
-    # source specific overrides.  the source_filename to none removes
+    # Source specific overrides.  The source_filename to none removes
     # the inherited descriptor.
     source_classification = 'asset'
     source_filename = None
