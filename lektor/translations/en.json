@@ -76,7 +76,7 @@
   "CURRENTLY_PUBLISHING": "Publishing …",
   "STATE": "Status",
   "PUBLISH_DONE": "Published",
-  "PUBLISH_STATE_BUILDING": "Changes are being build ...",
+  "PUBLISH_STATE_BUILDING": "Changes are being built ...",
   "PUBLISH_STATE_PUBLISH": "Changes are being published ...",
   "PUBLISH_STATE_DONE": "Publishing done.",
   "FIND_FILES": "Find Files",

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h1>Projects</h1>
+  <p>This is a list of all projects:
+  <ul>
+    {% for project in this.pagination.items %}
+      <li><a href="{{ project|url }}">{{ project.name }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

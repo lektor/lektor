@@ -1,0 +1,6 @@
+alt_note:
+
+This is where a German translation of the homepage's body would go, or even completely different content. Alternatives' settings are set in the project file. This is a field that is not populated for the 'en' alt, but is for 'fr' and 'de'. The `body` field is only populated for the 'en' alt, and since that's the default, it's used again for the other alts, as you can see below.  Every field can be rewritten for each alt.
+
+---
+title: Welcome to the German Example Site!

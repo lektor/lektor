@@ -1,12 +1,61 @@
 language: python
-python:
-  - "2.7"
-  - "3.5"
+
+branches:
+  only:
+  - master
+
+matrix:
+  include:
+    # Node 6
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=6
+    # Node 7 is End-of-Life
+    # Node 8
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=8
+    # Node 9
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=9
+    # Node 10 - Py 2.7, 3.5-3.6
+    - python: 2.7
+      env:  TRAVIS_NODE_VERSION=10
+    - python: 3.5
+      env:  TRAVIS_NODE_VERSION=10
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=10
+    - python: 3.7
+      env:  TRAVIS_NODE_VERSION=10
+      dist: xenial
+      sudo: true
+
+cache:
+  directories:
+    - lektor/admin/node_modules
+
+before_install:
+  - rm -rf ~/.nvm
+  - git clone https://github.com/creationix/nvm.git ~/.nvm
+  - (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`)
+  - source ~/.nvm/nvm.sh
+  - nvm install $TRAVIS_NODE_VERSION
 
 install:
-  - pip install --editable .
+  - travis_retry pip install --upgrade pytest
+  - travis_retry pip install --upgrade codecov
+  - travis_retry pip install --editable .[test]
+  - travis_retry make build-js
 
-script: make test
+before_script:
+  - python --version
+  - pip list
+  - node --version
+  - npm --version
+
+
+script: make coverage
+
+after_success:
+  - codecov
 
 notifications:
   webhooks:

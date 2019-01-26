@@ -1,0 +1,31 @@
+{% macro render_pagination(pagination) %}
+{% if pagination.pages > 1 %}
+<div class="pagination-wrapper text-center">
+  <ul class="pagination">
+      {% with first = pagination.for_page(0) %}
+      <li>
+          <a href="{{ first|url }}" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
+      </li>
+      {% endwith %}
+      <li
+      {% if not pagination.has_prev %}class="disabled"{% endif %}>
+          <a href="{% if pagination.has_prev %}{{ pagination.prev|url }}{% endif %}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+      </li>
+      {% for page in this.pagination.pages %}
+      <li
+      {% if page==pagination.page %}class="active"{% endif %}><a href="{{ pagination.for_page(page)|url }}">{{ page }}</a></li>
+      {% endfor %}
+      <li
+      {% if pagination.has_next %}class="disabled"{% endif %}>
+          <a href="{% if pagination.has_next %}{{ pagination.next|url }}{% endif %}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+      </li>
+      {% with last = pagination.for_page(pagination.pages) %}
+      <li>
+          <a href="{{ last|url }}" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
+      </li>
+      {% endwith %}
+    </ul>
+</div>
+{% endif %}
+{% endmacro %}
+

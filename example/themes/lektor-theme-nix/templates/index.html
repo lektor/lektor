@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+      {% if config.THEME_SETTINGS.profilepicture %}
+      <div class="row">
+          <div class="col-sm-3 col-centered">
+              <img alt="profile-picture" class="img-responsive img-circle user-picture" src="{{ config.THEME_SETTINGS.profilepicture | asseturl }}">
+          </div>
+      </div>
+      {% endif %}
+      <div class="row">
+        <div class="col-xs-12 user-profile text-center">
+          <h1 id="user-name">{{ config.THEME_SETTINGS.name | upper }}</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 user-social text-center">
+          {% include "partials/social.html" %}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 col-md-offset-4 user-description text-center">
+          <p>{{ config.THEME_SETTINGS.about }}</p>
+        </div>
+      </div>
+{% endblock content %}

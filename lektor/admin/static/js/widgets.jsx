@@ -1,18 +1,17 @@
-'use strict';
+'use strict'
 
-var React = require('react');
+import PropTypes from 'prop-types'
+import React from 'react'
+import primitiveWidgets from './widgets/primitiveWidgets'
+import multiWidgets from './widgets/multiWidgets'
+import flowWidget from './widgets/flowWidget'
+import fakeWidgets from './widgets/fakeWidgets'
+import { BasicWidgetMixin } from './widgets/mixins'
+import Component from './components/Component'
+import ToggleGroup from './components/ToggleGroup'
+import i18n from './i18n'
 
-var primitiveWidgets = require('./widgets/primitiveWidgets');
-var multiWidgets = require('./widgets/multiWidgets');
-var flowWidget = require('./widgets/flowWidget');
-var fakeWidgets = require('./widgets/fakeWidgets');
-var {BasicWidgetMixin} = require('./widgets/mixins');
-var Component = require('./components/Component');
-var ToggleGroup = require('./components/ToggleGroup');
-var i18n = require('./i18n');
-
-
-var widgetComponents = {
+const widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
   'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
   'datepicker': primitiveWidgets.DateInputWidget,
@@ -27,13 +26,12 @@ var widgetComponents = {
   'f-line': fakeWidgets.LineWidget,
   'f-spacing': fakeWidgets.SpacingWidget,
   'f-info': fakeWidgets.InfoWidget,
-  'f-heading': fakeWidgets.HeadingWidget,
+  'f-heading': fakeWidgets.HeadingWidget
 }
 
-
-var FallbackWidget = React.createClass({
+const FallbackWidget = React.createClass({
   mixins: [BasicWidgetMixin],
-  render: function() {
+  render () {
     return (
       <div>
         <em>
@@ -43,32 +41,30 @@ var FallbackWidget = React.createClass({
       </div>
     )
   }
-});
-
+})
 
 class FieldBox extends Component {
+  render () {
+    const { field, value, onChange, placeholder, disabled } = this.props
+    const className = 'col-md-' + getFieldColumns(field) + ' field-box'
+    let innerClassName = 'field'
+    let inner
 
-  render() {
-    var {field, value, onChange, placeholder} = this.props;
-    var className = 'col-md-' + getFieldColumns(field) + ' field-box';
-    var innerClassName = 'field';
-    var inner;
-
-    if (field.name.substr(0, 1) == '_') {
-      innerClassName += ' system-field';
+    if (field.name.substr(0, 1) === '_') {
+      innerClassName += ' system-field'
     }
 
-    var Widget = getWidgetComponentWithFallback(field.type);
+    const Widget = getWidgetComponentWithFallback(field.type)
     if (Widget.isFakeWidget) {
-      inner = <Widget key={field.name} type={field.type} field={field} />;
+      inner = <Widget key={field.name} type={field.type} field={field} />
     } else {
-      var description = null;
+      let description = null
       if (field.description_i18n) {
         description = (
-          <div className="help-text">
+          <div className='help-text'>
             {i18n.trans(field.description_i18n)}
           </div>
-        );
+        )
       }
       inner = (
         <dl className={innerClassName}>
@@ -78,119 +74,118 @@ class FieldBox extends Component {
             onChange={onChange}
             type={field.type}
             placeholder={placeholder}
+            disabled={disabled}
           /></dd>
         </dl>
-      );
+      )
     }
 
     return (
       <div className={className} key={field.name}>
         {inner}
       </div>
-    );
+    )
   }
 }
 
 FieldBox.propTypes = {
-  value: React.PropTypes.any,
-  onChange: React.PropTypes.func,
-  field: React.PropTypes.any,
-  placeholder: React.PropTypes.any,
+  value: PropTypes.any,
+  onChange: PropTypes.func,
+  field: PropTypes.any,
+  placeholder: PropTypes.any
 }
 
-
-function getWidgetComponent(type) {
-  return widgetComponents[type.widget] || null;
+const getWidgetComponent = (type) => {
+  return widgetComponents[type.widget] || null
 }
 
-function getWidgetComponentWithFallback(type) {
-  return widgetComponents[type.widget] || FallbackWidget;
+const getWidgetComponentWithFallback = (type) => {
+  return widgetComponents[type.widget] || FallbackWidget
 }
 
-function getFieldColumns(field) {
-  var widthSpec = (field.type.width || '1/1').split('/');
+const getFieldColumns = (field) => {
+  const widthSpec = (field.type.width || '1/1').split('/')
   return Math.min(12, Math.max(2, parseInt(
-    12 * +widthSpec[0] / +widthSpec[1])));
+    12 * +widthSpec[0] / +widthSpec[1])))
 }
 
-function getFieldRows(fields, isIllegalField) {
-  var normalFields = [];
-  var systemFields = [];
+const getFieldRows = (fields, isIllegalField) => {
+  const normalFields = []
+  const systemFields = []
 
   if (!isIllegalField) {
-    isIllegalField = (x) => { return false; };
+    isIllegalField = (x) => { return false }
   }
 
   fields.forEach((field) => {
     if (!isIllegalField(field)) {
-      if (field.name.substr(0, 1) == '_') {
-        systemFields.push(field);
+      if (field.name.substr(0, 1) === '_') {
+        systemFields.push(field)
       } else {
-        normalFields.push(field);
+        normalFields.push(field)
       }
     }
-  });
+  })
 
-  var processFields = (rv, rowType, fields) => {
-    var currentColumns = 0;
-    var row = [];
+  const processFields = (rv, rowType, fields) => {
+    let currentColumns = 0
+    let row = []
 
     fields.forEach((field) => {
-      var columns = getFieldColumns(field);
+      const columns = getFieldColumns(field)
       if (columns + currentColumns > 12) {
-        rv.push([rowType, row]);
-        currentColumns = 0;
-        row = [];
+        rv.push([rowType, row])
+        currentColumns = 0
+        row = []
       }
-      row.push(field);
-      currentColumns += columns;
-    });
+      row.push(field)
+      currentColumns += columns
+    })
 
     if (row.length > 0) {
-      rv.push([rowType, row]);
+      rv.push([rowType, row])
     }
   }
 
-  var rv = [];
-  processFields(rv, 'normal', normalFields);
-  processFields(rv, 'system', systemFields);
-  return rv;
+  const rv = []
+  processFields(rv, 'normal', normalFields)
+  processFields(rv, 'system', systemFields)
+  return rv
 }
 
-function renderFieldRows(fields, isIllegalField, renderFunc) {
-  var rv = {
+const renderFieldRows = (fields, isIllegalField, renderFunc) => {
+  const rv = {
     normal: [],
-    system: [],
-  };
+    system: []
+  }
 
-  var rows = getFieldRows(fields, isIllegalField);
+  const rows = getFieldRows(fields, isIllegalField)
 
   rows.forEach((item, idx) => {
-    var [rowType, row] = item;
+    const [rowType, row] = item
     rv[rowType].push(
-      <div className="row field-row" key={rowType + '-' + idx}>
+      <div className='row field-row' key={rowType + '-' + idx}>
         {row.map(renderFunc)}
       </div>
-    );
-  });
+    )
+  })
 
   return [
     rv.normal,
-    rv.system.length > 1 ?
-      <ToggleGroup
+    rv.system.length > 1
+      ? <ToggleGroup
         key='sys'
         groupTitle={i18n.trans('SYSTEM_FIELDS')}
         defaultVisibility={false}>{rv.system}</ToggleGroup> : null
-  ];
+  ]
 }
 
-
-module.exports = {
+export default {
   getWidgetComponent: getWidgetComponent,
   getWidgetComponentWithFallback: getWidgetComponentWithFallback,
   getFieldRows: getFieldRows,
   renderFieldRows: renderFieldRows,
   getFieldColumns: getFieldColumns,
   FallbackWidget: FallbackWidget,
-  FieldBox: FieldBox,
-};
+  FieldBox: FieldBox
+}

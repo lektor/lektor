@@ -12,10 +12,10 @@ def get_asset(pad, filename, parent=None):
         return None
 
     try:
-        st = os.stat(os.path.join(parent.source_filename, filename))
+        stat_obj = os.stat(os.path.join(parent.source_filename, filename))
     except OSError:
         return None
-    if stat.S_ISDIR(st.st_mode):
+    if stat.S_ISDIR(stat_obj.st_mode):
         return Directory(pad, filename, parent=parent)
 
     ext = os.path.splitext(filename)[1]
@@ -79,9 +79,11 @@ class Asset(SourceObject):
     def resolve_url_path(self, url_path):
         if not url_path:
             return self
+        # pylint: disable=assignment-from-none
         child = self.get_child(url_path[0], from_url=True)
         if child is not None:
             return child.resolve_url_path(url_path[1:])
+        return None
 
     def __repr__(self):
         return '<%s %r>' % (
@@ -106,18 +108,19 @@ class Directory(Asset):
                 yield asset
 
     def get_child(self, name, from_url=False):
-        rv = get_asset(self.pad, name, parent=self)
-        if rv is not None or not from_url:
-            return rv
+        asset = get_asset(self.pad, name, parent=self)
+        if asset is not None or not from_url:
+            return asset
 
-        # This this point it means we did not find a child yet, but we
-        # came from an URL.  We can try to chop of product suffixes to
+        # At this point it means we did not find a child yet, but we
+        # came from an URL.  We can try to chop off product suffixes to
         # find the original source asset.  For instance a file called
         # foo.less.css will be reduced to foo.less.
         prod_suffix = '.' + '.'.join(name.rsplit('.', 2)[1:])
         ext = self.pad.db.env.special_file_suffixes.get(prod_suffix)
         if ext is not None:
             return get_asset(self.pad, name[:-len(prod_suffix)] + ext, parent=self)
+        return None
 
     def resolve_url_path(self, url_path):
         # Resolve "/path/" to "/path/index.html", as production servers do.

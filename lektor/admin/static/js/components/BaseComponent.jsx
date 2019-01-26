@@ -3,24 +3,22 @@
 // which breaks super.  This is why we do this here.  Note that this is
 // also used by the standalone admin UI app.
 
-'use strict';
+'use strict'
 
-import React from 'react';
-
+import React from 'react'
 
 class BaseComponent extends React.Component {
-
-  componentDidMount() {
+  componentDidMount () {
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
   }
 
-  componentDidUpdate() {
+  componentDidUpdate () {
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
   }
 }
 
-module.exports = BaseComponent;
+export default BaseComponent

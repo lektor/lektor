@@ -2,7 +2,6 @@ from jinja2 import Undefined
 
 from lektor.environment import PRIMARY_ALT
 
-
 class BadValue(Undefined):
     __slots__ = ()
 
@@ -12,7 +11,7 @@ def get_undefined_info(undefined):
         try:
             undefined._fail_with_undefined_error()
         except Exception as e:
-            return e.message
+            return str(e)
     return 'defined value'
 
 
@@ -91,7 +90,7 @@ class Type(object):
     def __repr__(self):
         return '%s()' % self.__class__.__name__
 
-
+# pylint: disable=wrong-import-position
 from lektor.types.primitives import \
      StringType, StringsType, TextType, HtmlType, IntegerType, \
      FloatType, BooleanType, DateType, DateTimeType

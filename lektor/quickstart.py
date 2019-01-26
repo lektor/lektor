@@ -11,7 +11,7 @@ from functools import partial
 import click
 from jinja2 import Environment, PackageLoader
 
-from .utils import fs_enc, slugify
+from lektor.utils import fs_enc, slugify
 from lektor._compat import text_type
 
 
@@ -34,7 +34,8 @@ class Generator(object):
             comment_end_string='**/',
         )
         self.options = {}
-        self.term_width = min(click.get_terminal_size()[0], 78)
+        # term width in [1, 78]
+        self.term_width = min(max(click.get_terminal_size()[0], 1), 78)
         self.e = click.secho
         self.w = partial(click.wrap_text, width=self.term_width)
 
@@ -47,13 +48,12 @@ class Generator(object):
         self.e('')
         self.e('Step %d:' % self.question, fg='yellow')
         if info is not None:
-            self.e(click.wrap_text(info, self.term_width - 2, '| ', '| '))
+            self.e(click.wrap_text(info, self.term_width, '| ', '| '))
         text = '> ' + click.style(text, fg='green')
 
         if default is True or default is False:
             return click.confirm(text, default=default)
         return click.prompt(text, default=default, show_default=True)
-
 
     def title(self, title):
         self.e(title, fg='cyan')
@@ -128,10 +128,15 @@ def get_default_author():
     import getpass
 
     if os.name == 'nt':
-        return getpass.getuser().decode('mbcs')
+        user = getpass.getuser()
+        if isinstance(user, text_type):
+            return user
+        return user.decode('mbcs')
 
-    import pwd
-    ent = pwd.getpwuid(os.getuid())
+    # we disable pylint, because there is no such
+    # modules on windows & it's false positive
+    import pwd  # pylint: disable=import-error
+    ent = pwd.getpwuid(os.getuid())  # pylint: disable=no-member
     if ent and ent.pw_gecos:
         name = ent.pw_gecos
         if isinstance(name, text_type):
@@ -222,10 +227,10 @@ def plugin_quickstart(defaults=None, project=None):
 
     plugin_name = defaults.get('plugin_name')
     if plugin_name is None:
-        plugin_name = g.prompt('Plugin Name', None,
-            'This is the human readable name for this plugin')
+        plugin_name = g.prompt('Plugin Name', default=None,
+            info='This is the human readable name for this plugin')
 
-    plugin_id = plugin_name.lower()
+    plugin_id = plugin_name.lower()  # pylint: disable=no-member
     if plugin_id.startswith('lektor'):
         plugin_id = plugin_id[6:]
     if plugin_id.endswith('plugin'):

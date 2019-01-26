@@ -153,7 +153,7 @@ class EditorSession(object):
 
     def __contains__(self, key):
         try:
-            self[key]
+            self[key]  # pylint: disable=pointless-statement
             return True
         except KeyError:
             return False
@@ -277,6 +277,7 @@ class EditorSession(object):
         """The file system path of the actual attachment."""
         if self.is_attachment:
             return self.pad.db.to_fs_path(self.path)
+        return None
 
     def revert_key(self, key):
         """Reverts a key to the implied value."""

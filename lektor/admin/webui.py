@@ -1,3 +1,5 @@
+import os
+import sys
 from flask import Flask, request, abort
 from flask.helpers import safe_join
 from werkzeug.utils import append_slash_redirect
@@ -11,12 +13,12 @@ from lektor.reporter import CliReporter
 
 class LektorInfo(object):
 
-    def __init__(self, env, output_path, ui_lang='en', build_flags=None,
+    def __init__(self, env, output_path, ui_lang='en', extra_flags=None,
                  verbosity=0):
         self.env = env
         self.ui_lang = ui_lang
         self.output_path = output_path
-        self.build_flags = build_flags
+        self.extra_flags = extra_flags
         self.verbosity = verbosity
 
     def get_pad(self):
@@ -25,7 +27,7 @@ class LektorInfo(object):
     def get_builder(self, pad=None):
         if pad is None:
             pad = self.get_pad()
-        return Builder(pad, self.output_path, build_flags=self.build_flags)
+        return Builder(pad, self.output_path, extra_flags=self.extra_flags)
 
     def get_failure_controller(self, pad=None):
         if pad is None:
@@ -65,7 +67,11 @@ class LektorInfo(object):
                 filename = artifact.dst_filename
 
         if filename is None:
-            filename = safe_join(self.output_path, path.strip('/'))
+            path_list = path.strip('/').split('/')
+            if sys.platform == 'win32':
+                filename = os.path.join(self.output_path, *path_list)
+            else:
+                filename = safe_join(self.output_path, *path_list)
 
         return artifact_name, filename
 
@@ -73,10 +79,10 @@ class LektorInfo(object):
 class WebUI(Flask):
 
     def __init__(self, env, debug=False, output_path=None, ui_lang='en',
-                 verbosity=0, build_flags=None):
+                 verbosity=0, extra_flags=None):
         Flask.__init__(self, 'lektor.admin', static_url_path='/admin/static')
         self.lektor_info = LektorInfo(env, output_path, ui_lang,
-                                      build_flags=build_flags,
+                                      extra_flags=extra_flags,
                                       verbosity=verbosity)
         self.debug = debug
         self.config['PROPAGATE_EXCEPTIONS'] = True

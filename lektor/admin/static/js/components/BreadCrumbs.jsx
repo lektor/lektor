@@ -1,169 +1,167 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-
-var RecordComponent = require('./RecordComponent');
-var Link = require('./Link');
-var utils = require('../utils');
-var i18n = require('../i18n');
-var dialogSystem = require('../dialogSystem');
-var FindFiles = require('../dialogs/findFiles');
-var Publish = require('../dialogs/publish');
-var Refresh = require('../dialogs/Refresh');
-
+import React from 'react'
+import RecordComponent from './RecordComponent'
+import Link from './Link'
+import utils from '../utils'
+import i18n from '../i18n'
+import dialogSystem from '../dialogSystem'
+import FindFiles from '../dialogs/findFiles'
+import Publish from '../dialogs/publish'
+import Refresh from '../dialogs/Refresh'
+import makeRichPromise from '../richPromise'
 
 class BreadCrumbs extends RecordComponent {
-
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
     this.state = {
-      recordPathInfo: null,
-    };
-    this._onKeyPress = this._onKeyPress.bind(this);
+      recordPathInfo: null
+    }
+    this._onKeyPress = this._onKeyPress.bind(this)
   }
 
-  componentDidMount() {
-    super.componentDidMount();
-    this.updateCrumbs();
-    window.addEventListener('keydown', this._onKeyPress);
+  componentDidMount () {
+    super.componentDidMount()
+    this.updateCrumbs()
+    window.addEventListener('keydown', this._onKeyPress)
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    super.componentDidUpdate(prevProps, prevState);
+  componentDidUpdate (prevProps, prevState) {
+    super.componentDidUpdate(prevProps, prevState)
     if (prevProps.params.path !== this.props.params.path) {
-      this.updateCrumbs();
+      this.updateCrumbs()
     }
   }
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this._onKeyPress);
+  componentWillUnmount () {
+    window.removeEventListener('keydown', this._onKeyPress)
   }
 
-  updateCrumbs() {
-    var path = this.getRecordPath();
+  updateCrumbs () {
+    const path = this.getRecordPath()
     if (path === null) {
       this.setState({
         recordPathInfo: null
-      });
-      return;
+      })
+      return
     }
 
-    utils.loadData('/pathinfo', {path: path})
+    utils.loadData('/pathinfo', { path: path }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordPathInfo: {
             path: path,
             segments: resp.segments
           }
-        });
-      });
+        })
+      })
   }
 
-  _onKeyPress(event) {
+  _onKeyPress (event) {
     // meta+g is open find files
-    if (event.which == 71 && utils.isMetaKey(event)) {
-      event.preventDefault();
-      dialogSystem.showDialog(FindFiles);
+    if (event.which === 71 && utils.isMetaKey(event)) {
+      event.preventDefault()
+      dialogSystem.showDialog(FindFiles)
     }
   }
 
-  _onCloseClick(e) {
+  _onCloseClick (e) {
     utils.loadData('/previewinfo', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
-    })
-    .then((resp) => {
-      if (resp.url === null) {
-        window.location.href = utils.getCanonicalUrl('/');
-      } else {
-        window.location.href = utils.getCanonicalUrl(resp.url);
-      }
-    });
+    }, null, makeRichPromise)
+      .then((resp) => {
+        if (resp.url === null) {
+          window.location.href = utils.getCanonicalUrl('/')
+        } else {
+          window.location.href = utils.getCanonicalUrl(resp.url)
+        }
+      })
   }
 
-  _onFindFiles(e) {
-    dialogSystem.showDialog(FindFiles);
+  _onFindFiles (e) {
+    dialogSystem.showDialog(FindFiles)
   }
 
-  _onRefresh(e) {
-    dialogSystem.showDialog(Refresh);
+  _onRefresh (e) {
+    dialogSystem.showDialog(Refresh)
   }
 
-  _onPublish(e) {
-    dialogSystem.showDialog(Publish);
+  _onPublish (e) {
+    dialogSystem.showDialog(Publish)
   }
 
-  renderGlobalActions() {
+  renderGlobalActions () {
     return (
-      <div className="btn-group">
-        <button className="btn btn-default" onClick={
+      <div className='btn-group'>
+        <button className='btn btn-default' onClick={
           this._onFindFiles.bind(this)} title={i18n.trans('FIND_FILES')}>
-          <i className="fa fa-search fa-fw"></i></button>
-        <button className="btn btn-default" onClick={
+          <i className='fa fa-search fa-fw' /></button>
+        <button className='btn btn-default' onClick={
           this._onPublish.bind(this)} title={i18n.trans('PUBLISH')}>
-          <i className="fa fa-cloud-upload fa-fw"></i></button>
-        <button className="btn btn-default" onClick={
+          <i className='fa fa-cloud-upload fa-fw' /></button>
+        <button className='btn btn-default' onClick={
           this._onRefresh.bind(this)} title={i18n.trans('REFRESH_BUILD')}>
-          <i className="fa fa-refresh fa-fw"></i></button>
-        <button className="btn btn-default" onClick={
+          <i className='fa fa-refresh fa-fw' /></button>
+        <button className='btn btn-default' onClick={
           this._onCloseClick.bind(this)} title={i18n.trans('RETURN_TO_WEBSITE')}>
-          <i className="fa fa-eye fa-fw"></i></button>
+          <i className='fa fa-eye fa-fw' /></button>
       </div>
-    );
+    )
   }
 
-  render() {
-    var crumbs = [];
-    var target = this.isRecordPreviewActive() ? '.preview' : '.edit';
-    var lastItem = null;
+  render () {
+    let crumbs = []
+    const target = this.isRecordPreviewActive() ? '.preview' : '.edit'
+    let lastItem = null
 
     if (this.state.recordPathInfo != null) {
       crumbs = this.state.recordPathInfo.segments.map((item) => {
-        var urlPath = this.getUrlRecordPathWithAlt(item.path);
-        var label = item.label_i18n ? i18n.trans(item.label_i18n) : item.label;
-        var className = 'record-crumb';
+        const urlPath = this.getUrlRecordPathWithAlt(item.path)
+        let label = item.label_i18n ? i18n.trans(item.label_i18n) : item.label
+        let className = 'record-crumb'
 
         if (!item.exists) {
-          label = item.id;
-          className += ' missing-record-crumb';
+          label = item.id
+          className += ' missing-record-crumb'
         }
-        lastItem = item;
+        lastItem = item
 
-        var adminPath = this.getPathToAdminPage(target, {path: urlPath});
+        const adminPath = this.getPathToAdminPage(target, { path: urlPath })
 
         return (
           <li key={item.path} className={className}>
             <Link to={adminPath}>{label}</Link>
           </li>
-        );
-      });
+        )
+      })
     } else {
       crumbs = (
-        <li><Link to={this.getPathToAdminPage('.edit', {path: 'root'})}>
+        <li><Link to={this.getPathToAdminPage('.edit', { path: 'root' })}>
           {i18n.trans('BACK_TO_OVERVIEW')}</Link></li>
       )
     }
 
     return (
-      <div className="breadcrumbs">
-        <ul className="breadcrumb container">
+      <div className='breadcrumbs'>
+        <ul className='breadcrumb container'>
           {this.props.children}
           {crumbs}
           {lastItem && lastItem.can_have_children ? (
-            <li className="new-record-crumb">
+            <li className='new-record-crumb'>
               <Link to={this.getPathToAdminPage('.add-child', {
                 path: this.getUrlRecordPathWithAlt(
-                lastItem.path)})}>+</Link>
+                  lastItem.path) })}>+</Link>
             </li>
           ) : null}
           {' ' /* this space is needed for chrome ... */}
-          <li className="meta">
+          <li className='meta'>
             {this.renderGlobalActions()}
           </li>
         </ul>
       </div>
-    );
+    )
   }
 }
 
-module.exports = BreadCrumbs;
+export default BreadCrumbs

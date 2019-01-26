@@ -1,0 +1,13 @@
+_model: page
+---
+title: 404: Not Found
+---
+_template: 404.html
+---
+body:
+
+This is an [error page](https://www.getlektor.com/docs/guides/error-pages/). It is also a page that uses a [theme](https://www.getlektor.com/docs/themes/), the [lektor-theme-nix theme](https://github.com/rlaverde/lektor-theme-nix). The other pages on this site do not use this theme because they have templates / models that override the ones that exist in the theme.
+
+Because this page uses a theme, it has an entirely different layout and style.
+
+The above links work, and will get you back to the normal flow of this site.

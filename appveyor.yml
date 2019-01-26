@@ -1,0 +1,72 @@
+# https://ci.appveyor.com/project/lektor/lektor
+
+matrix:
+  fast_finish: true
+
+branches:
+  only:
+    - master
+
+# Cache imagemagick
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+
+
+environment:
+  matrix:
+    # Node 6
+    - PYTHON: "C:\\Python37"
+      NODE_JS_VERSION: "6"
+    # Node 7 is End-of-Life
+    # Node 8
+    - PYTHON: "C:\\Python37"
+      NODE_JS_VERSION: "8"
+    # Node 9
+    - PYTHON: "C:\\Python37"
+      NODE_JS_VERSION: "9"
+    # Node 10 - Py 2.7, 3.5-3.7
+    - PYTHON: "C:\\Python27"
+      NODE_JS_VERSION: "10"
+    - PYTHON: "C:\\Python35"
+      NODE_JS_VERSION: "10"
+    - PYTHON: "C:\\Python36"
+      NODE_JS_VERSION: "10"
+    - PYTHON: "C:\\Python37"
+      NODE_JS_VERSION: "10"
+
+install:
+  # some tests require imagemagick
+  - choco install --timeout 600 imagemagick.tool || true
+  # Install lektor, dependencies and test package requirements
+  - "%PYTHON%\\python.exe -m pip install --upgrade pytest"
+  - "%PYTHON%\\python.exe -m pip install --upgrade codecov"
+  - "%PYTHON%\\python.exe -m pip install --editable .[test]"
+  # Get the latest stable version of Node.js
+  - ps: Install-Product node $env:NODE_JS_VERSION
+  # Install node modules
+  - cd lektor\admin
+  - npm install .
+  - npm run webpack
+  - cd ..
+  - cd ..
+
+
+# Not a .NET project
+build: false
+
+
+test_script:
+  # Run Python tests
+  - "%PYTHON%\\python.exe --version"
+  - "%PYTHON%\\python.exe -m pip list"
+  - "%PYTHON%\\Scripts\\pytest.exe . --tb=long -svv --cov=lektor"
+  # Run JS tests
+  - cd lektor\admin
+  - node --version
+  - npm --version
+  - npm run lint
+  - npm test
+
+# on_failure:
+#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

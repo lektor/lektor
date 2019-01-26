@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h1>Blog</h1>
+  {% for item in this.pagination.items %}
+    <div class="blog-post">
+      <h2><a href="{{ item|url }}">{{ item.title }}</a></h2>
+      <div class="text">{{ item.body }}</div>
+    </div>
+  {% endfor %}
+{% endblock %}

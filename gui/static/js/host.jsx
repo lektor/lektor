@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
-import app from 'app';
-import Tray from 'tray';
-import BrowserWindow from 'browser-window';
-import i18n from './i18n';
+import app from 'app'
+import Tray from 'tray'
+import BrowserWindow from 'browser-window'
+import i18n from './i18n'
 
-const BASE_PATH = __dirname.match(/^(.*?)[\/\\][^\/\\]+$/)[1];
+const BASE_PATH = __dirname.match(/^(.*?)[\/\\][^\/\\]+$/)[1]
 
 
-function initWindow() {
+const initWindow = () => {
   let loadedOnce = false;
   let win = new BrowserWindow({
     width: 400,
@@ -38,7 +38,7 @@ function initWindow() {
   return win;
 }
 
-function initAppIcon(win) {
+const initAppIcon=(win) =>{
   let appIcon = new Tray(BASE_PATH + '/images/TrayTemplate.png');
 
   appIcon.on('clicked', (e, bounds) => {
@@ -52,7 +52,7 @@ function initAppIcon(win) {
   appIcon.setToolTip('Lektor');
 }
 
-function main() {
+const main = () => {
   let filesToOpen = [];
   let win = null;
   let appIcon = null;

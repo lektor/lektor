@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+      {% with post = this %}
+          <h1><a href="{{ post|url }}">{{ post.title }}</a></h1>
+          <span class="post-date">{{ post.pub_date.strftime('%b %d, %Y') }}</span>
+          <div class="post-content">
+              {{ post.body }}
+          </div>
+          {% if config.THEME_SETTINGS.comments == 'yes' %}
+          <div class="post-comments">
+              {{ render_disqus_comments() }}
+          </div>
+          {% endif %}
+      {% endwith %}
+{% endblock content %}

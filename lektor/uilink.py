@@ -40,7 +40,7 @@ if RUN_FROM_UI and os.name == 'darwin':
 def main():
     """The main function for when invoked from an UI bundle."""
     from .cli import main
-    main(prog_name='lektor')
+    main(prog_name='lektor')  # pylint: disable=unexpected-keyword-arg, no-value-for-parameter
 
 
 if __name__ == '__main__':

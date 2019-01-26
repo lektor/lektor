@@ -2,9 +2,10 @@ import os
 import time
 
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, DirModifiedEvent
+from watchdog.events import FileSystemEventHandler, DirModifiedEvent, FileMovedEvent
 
 from lektor._compat import queue
+from lektor.utils import get_cache_dir
 
 # Alias this as this can be called during interpreter shutdown
 _Empty = queue.Empty
@@ -22,7 +23,8 @@ class EventHandler(FileSystemEventHandler):
 
     def on_any_event(self, event):
         if not isinstance(event, DirModifiedEvent):
-            item = (time.time(), event.event_type, event.src_path)
+            path = event.dest_path if isinstance(event, FileMovedEvent) else event.src_path
+            item = (time.time(), event.event_type, path)
             if self.queue is not None:
                 self.queue.put(item)
             else:
@@ -56,15 +58,19 @@ class BasicWatcher(object):
 class Watcher(BasicWatcher):
 
     def __init__(self, env, output_path=None):
-        BasicWatcher.__init__(self, paths=[env.root_path])
+        BasicWatcher.__init__(self, paths=[env.root_path] + env.theme_paths)
         self.env = env
         self.output_path = output_path
+        self.cache_dir = os.path.abspath(get_cache_dir())
 
     def is_interesting(self, time, event_type, path):
+        path = os.path.abspath(path)
+
         if self.env.is_uninteresting_source_name(os.path.basename(path)):
             return False
-        if self.output_path is not None and \
-           os.path.abspath(path).startswith(self.output_path):
+        if path.startswith(self.cache_dir):
+            return False
+        if self.output_path is not None and path.startswith(os.path.abspath(self.output_path)):
             return False
         return True
 

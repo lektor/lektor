@@ -1,4 +1,4 @@
-{% macro render_blog_post(post, from_index=false) %}
+{% macro render_blog_post(post, from_index=false, blog_post=true) %}
   <div class="blog-post">
   {% if from_index %}
     <h2><a href="{{ post|url }}">{{ post.title }}</a></h2>
@@ -16,5 +16,41 @@
     on {{ post.pub_date }}
   </p>
   {{ post.body }}
+  </div>
+  {# display nav links to other blog posts, but hide on parent blog page #}
+  {% if blog_post %}
+    {{ render_blog_sibling_nav(post) }}
+  {% endif %}
+{% endmacro %}
+
+{% macro render_blog_sibling_nav(post, from_index=false) %}
+  {% from "macros/pagination.html" import render_pagination %}
+  <div class="blog-nav">
+    <br>
+    {% set siblings = post.get_siblings() %}
+
+    {# prev/next are swapped since blog children ordered_by is negative
+    {# nav logic for previous page #}
+    {% if siblings.next_page %}
+      {% set prev = siblings.next_page %}
+    {% endif %}
+
+    {# nav logic for next page #}
+    {% if siblings.prev_page %}
+      {% set next = siblings.prev_page %}
+    {% endif %}
+
+    {# previous / nex nav links #}
+    {% if prev %}
+      <a href="{{ prev|url }}" title="{{ prev.title }}" >&laquo; Previous</a>
+    {% endif %}
+
+    {% if prev %} | {% endif %}
+    {{ post.title }}
+    {% if next %} | {% endif %}
+
+    {% if next %}
+      <a href="{{ next|url }}" title="{{ next.title }}" >Next &raquo;</a>
+    {% endif %}
   </div>
 {% endmacro %}

@@ -1,0 +1,61 @@
+body: This page is an example of every built-in field type Lektor has.
+---
+title: Types
+---
+boolean1: yes
+---
+date: 2018-07-04
+---
+datetime: 2018-07-04 05:02:22 EST
+---
+checkboxes: choice1, choice3
+---
+float: 2.71828
+---
+floataddon: 3.14
+---
+int: 1729
+---
+intaddon: 137
+---
+flow:
+
+#### text ####
+text: Text from text only flow block.
+#### text_and_html ####
+text: Text from text_and_html flow block.
+----
+html: <i>html from text_and_html flow block.</i>
+---
+html:
+
+<ul>
+  <li><i>ħ</i></li>
+  <li><i>G</i></li>
+  <li><i>c</i></li>
+  <li><i>k<sub>e</sub></i></li>
+  <li><i>k<sub>B</sub></i></li>
+</ul>
+---
+markdown:
+
+- kg
+- m
+- s
+- A
+- K
+- mol
+- cd
+---
+sort_key: 2
+---
+strings:
+
+string1
+string2
+string3
+---
+text:
+
+Here is some
+sample text.

@@ -1,28 +1,26 @@
-'use strict';
+'use strict'
 
-var React = require('react');
-var ReactRouter = require('react-router');
-var Component = require('./Component');
+import PropTypes from 'prop-types'
+import React from 'react'
+import { Link } from 'react-router'
+import Component from './Component'
 
-
-class Link extends Component {
-
-  render() {
-    var path = this.props.to;
+class LektorLink extends Component {
+  render () {
+    let path = this.props.to
     if (path.substr(0, 1) !== '/') {
-      path = $LEKTOR_CONFIG.admin_root + '/' + path;
+      path = $LEKTOR_CONFIG.admin_root + '/' + path
     }
     return (
-      <ReactRouter.Link to={path} activeClassName="active">
+      <Link to={path} activeClassName='active'>
         {this.props.children}
-      </ReactRouter.Link>
-    );
+      </Link>
+    )
   }
 }
 
-Link.propTypes = {
-  to: React.PropTypes.string
+LektorLink.propTypes = {
+  to: PropTypes.string
 }
 
-
-module.exports = Link;
+module.exports = LektorLink

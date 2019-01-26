@@ -12,8 +12,13 @@ import tempfile
 import traceback
 import unicodedata
 import uuid
+from datetime import datetime
 from contextlib import contextmanager
 from threading import Thread
+try:
+    from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
 import click
 from jinja2 import is_undefined
@@ -23,7 +28,6 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from datetime import datetime
 from lektor._compat import (queue, integer_types, iteritems, reraise,
                             string_types, text_type, range_type)
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
@@ -266,6 +270,7 @@ def increment_filename(filename):
     return rv
 
 
+@lru_cache(maxsize=None)
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
@@ -299,13 +304,14 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
             for ext in extensions:
                 if os.access(path + ext, os.X_OK):
                     return path + ext
+        return None
     except OSError:
         pass
 
 
 class JSONEncoder(json.JSONEncoder):
 
-    def default(self, o):
+    def default(self, o):  # pylint: disable=method-hidden
         if is_undefined(o):
             return None
         if isinstance(o, datetime):
@@ -458,7 +464,7 @@ def atomic_open(filename, mode='r'):
         tmp_filename = None
     try:
         yield f
-    except:
+    except:  # pylint: disable=bare-except
         f.close()
         exc_type, exc_value, tb = sys.exc_info()
         if tmp_filename is not None:
@@ -484,7 +490,7 @@ def portable_popen(cmd, *args, **kwargs):
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
 
-    if isinstance(exe, text_type):
+    if isinstance(exe, text_type) and sys.platform != 'win32':
         exe = exe.encode(sys.getfilesystemencoding())
     cmd[0] = exe
     return subprocess.Popen(cmd, *args, **kwargs)
@@ -625,9 +631,11 @@ def get_app_dir():
 
 def get_cache_dir():
     if is_windows:
-        folder = os.environ.get('APPDATA')
+        folder = os.environ.get('LOCALAPPDATA')
         if folder is None:
-            folder = os.path.expanduser('~')
+            folder = os.environ.get('APPDATA')
+            if folder is None:
+                folder = os.path.expanduser('~')
         return os.path.join(folder, 'Lektor', 'Cache')
     if sys.platform == 'darwin':
         return os.path.join(os.path.expanduser('~/Library/Caches/Lektor'))

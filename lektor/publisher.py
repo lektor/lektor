@@ -7,17 +7,15 @@ import shutil
 import subprocess
 import tempfile
 import threading
-from contextlib import contextmanager
 
+from contextlib import contextmanager
+from ftplib import Error as FTPError
 from werkzeug import urls
 
 from lektor._compat import (iteritems, iterkeys, range_type, string_types,
-    text_type, queue, StringIO)
+    text_type, queue, BytesIO, StringIO, PY2)
 from lektor.exception import LektorException
 from lektor.utils import locate_executable, portable_popen
-
-
-devnull = open(os.devnull, 'rb+')
 
 
 def _patch_git_env(env_overrides, ssh_command=None):
@@ -68,7 +66,7 @@ def _write_ssh_key_file(temp_fn, credentials):
                 f.write('-----END %s PRIVATE KEY-----\n' % kt.upper())
             os.chmod(temp_fn, 0o600)
             return temp_fn
-
+    return None
 
 def _get_ssh_cmd(port=None, keyfile=None):
     ssh_args = []
@@ -114,8 +112,9 @@ class Command(object):
             environ.update(env)
         kwargs = {'cwd': cwd, 'env': environ}
         if silent:
-            kwargs['stdout'] = devnull
-            kwargs['stderr'] = devnull
+            self.devnull = open(os.devnull, 'rb+')
+            kwargs['stdout'] = self.devnull
+            kwargs['stderr'] = self.devnull
             capture = False
         if capture:
             kwargs['stdout'] = subprocess.PIPE
@@ -124,11 +123,14 @@ class Command(object):
         self._cmd = portable_popen(argline, **kwargs)
 
     def wait(self):
-        return self._cmd.wait()
+        returncode = self._cmd.wait()
+        if hasattr(self, "devnull"):
+            self.devnull.close()
+        return returncode
 
     @property
-    def status(self):
-        return self._cmd.status
+    def returncode(self):
+        return self._cmd.returncode
 
     def __enter__(self):
         return self
@@ -181,10 +183,9 @@ class Command(object):
             for line in self:
                 yield line
 
-    def proc(self):
-        if self.capture:
-            return self.safe_iter()
-        return self
+    @property
+    def output(self):
+        return self.safe_iter()
 
 
 class Publisher(object):
@@ -217,10 +218,10 @@ class RsyncPublisher(Publisher):
 
         username = credentials.get('username') or target_url.username
         if username:
-            target.append(username.encode('utf-8') + '@')
+            target.append(username + '@')
 
         target.append(target_url.ascii_host)
-        target.append(':' + target_url.path.encode('utf-8').rstrip('/') + '/')
+        target.append(':' + target_url.path.rstrip('/') + '/')
 
         argline.append(self.output_path.rstrip('/\\') + '/')
         argline.append(''.join(target))
@@ -273,10 +274,16 @@ class FtpConnection(object):
 
         try:
             credentials = {}
-            if self.username:
-                credentials["user"] = self.username.encode('utf-8')
-            if self.password:
-                credentials["passwd"] = self.password.encode('utf-8')
+            if PY2:
+                if self.username:
+                    credentials["user"] = self.username.encode('utf-8')
+                if self.password:
+                    credentials["passwd"] = self.password.encode('utf-8')
+            else:
+                if self.username:
+                    credentials["user"] = self.username
+                if self.password:
+                    credentials["passwd"] = self.password
             log.append(self.con.login(**credentials))
 
         except Exception as e:
@@ -307,20 +314,25 @@ class FtpConnection(object):
             self.mkdir(dirname)
         try:
             self.con.mkd(path)
-        except Exception as e:
+        except FTPError as e:
             msg = str(e)
             if msg[:4] != '550 ':
-                self.log_buffer.append(e)
+                self.log_buffer.append(str(e))
                 return
         self._known_folders.add(path)
 
     def append(self, filename, data):
         if not isinstance(filename, text_type):
             filename = filename.decode('utf-8')
-        input = StringIO(data)
+
+        if PY2:
+            input = StringIO(data)
+        else:
+            input = BytesIO(data.encode('utf-8'))
+
         try:
             self.con.storbinary('APPE ' + filename, input)
-        except Exception as e:
+        except FTPError as e:
             self.log_buffer.append(str(e))
             return False
         return True
@@ -330,22 +342,30 @@ class FtpConnection(object):
             filename = filename.decode('utf-8')
         getvalue = False
         if out is None:
-            out = StringIO()
+            if PY2:
+                out = StringIO()
+            else:
+                out = BytesIO()
             getvalue = True
         try:
             self.con.retrbinary('RETR ' + filename, out.write)
-        except Exception as e:
+        except FTPError as e:
             msg = str(e)
             if msg[:4] != '550 ':
                 self.log_buffer.append(e)
             return None
         if getvalue:
-            return out.getvalue()
+            if PY2:
+                return out.getvalue()
+            return out.getvalue().decode('utf-8')
         return out
 
     def upload_file(self, filename, src, mkdir=False):
         if isinstance(src, string_types):
-            src = StringIO(src)
+            if PY2:
+                src = StringIO(src)
+            else:
+                src = BytesIO(src.encode('utf-8'))
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
@@ -355,7 +375,7 @@ class FtpConnection(object):
         try:
             self.con.storbinary('STOR ' + filename, src,
                                 blocksize=32768)
-        except Exception as e:
+        except FTPError as e:
             self.log_buffer.append(str(e))
             return False
         return True
@@ -363,7 +383,7 @@ class FtpConnection(object):
     def rename_file(self, src, dst):
         try:
             self.con.rename(src, dst)
-        except Exception as e:
+        except FTPError as e:
             self.log_buffer.append(str(e))
             try:
                 self.con.delete(dst)
@@ -402,7 +422,7 @@ class FtpTlsConnection(FtpConnection):
         connected = super(FtpTlsConnection, self).connect()
         if connected:
             # Upgrade data connection to TLS.
-            self.con.prot_p()
+            self.con.prot_p()  # pylint: disable=no-member
         return connected
 
 
@@ -420,7 +440,10 @@ class FtpPublisher(Publisher):
         for line in contents.splitlines():
             items = line.split('|')
             if len(items) == 2:
-                artifact_name = items[0].decode('utf-8')
+                if not isinstance(items[0], text_type):
+                    artifact_name = items[0].decode('utf-8')
+                else:
+                    artifact_name = items[0]
                 if artifact_name in rv:
                     duplicates.add(artifact_name)
                 rv[artifact_name] = items[1]
@@ -540,7 +563,7 @@ class GithubPagesPublisher(Publisher):
         rv = username
         if username and password:
             rv += ':' + password
-        return rv.encode('utf-8') if rv else None
+        return rv if rv else None
 
     def update_git_config(self, repo, url, branch, credentials=None):
         ssh_command = None
@@ -597,38 +620,46 @@ class GithubPagesPublisher(Publisher):
                     os.makedirs(os.path.dirname(dst))
                 except (OSError, IOError):
                     pass
-                link(full_path, dst)
+                try:
+                    link(full_path, dst)
+                except OSError: # Different Filesystems
+                    shutil.copy(full_path, dst)
 
     def write_cname(self, path, target_url):
         params = target_url.decode_query()
         cname = params.get('cname')
         if cname is not None:
             with open(os.path.join(path, 'CNAME'), 'w') as f:
-                f.write('%s\n' % cname.encode('utf-8'))
+                f.write('%s\n' % cname)
+
+    def detect_target_branch(self, target_url):
+        # When pushing to the username.github.io repo we need to push to
+        # master, otherwise to gh-pages
+        if (target_url.host.lower() + '.github.io' ==
+                target_url.path.strip('/').lower()):
+            branch = 'master'
+        else:
+            branch = 'gh-pages'
+        return branch
 
     def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):
             self.fail('git executable not found; cannot deploy.')
 
-        # When pushing to the username.github.io repo we need to push to
-        # master, otherwise to gh-pages
-        if target_url.host + '.github.io' == target_url.path.strip('/'):
-            branch = 'master'
-        else:
-            branch = 'gh-pages'
+        branch = self.detect_target_branch(target_url)
 
         with _temporary_folder(self.env) as path:
             ssh_command = None
             def git(args, **kwargs):
                 kwargs['env'] = _patch_git_env(kwargs.pop('env', None),
                                                ssh_command)
-                return Command(['git'] + args, cwd=path, **kwargs).proc()
+                return Command(['git'] + args, cwd=path, **kwargs)
 
-            for line in git(['init']):
+            for line in git(['init']).output:
                 yield line
             ssh_command = self.update_git_config(path, target_url, branch,
                                                  credentials)
-            for line in git(['remote', 'update']):
+            for line in git(['remote', 'update']).output:
                 yield line
 
             if git(['checkout', '-q', branch], silent=True).wait() != 0:
@@ -636,11 +667,11 @@ class GithubPagesPublisher(Publisher):
 
             self.link_artifacts(path)
             self.write_cname(path, target_url)
-            for line in git(['add', '-f', '--all', '.']):
+            for line in git(['add', '-f', '--all', '.']).output:
                 yield line
-            for line in git(['commit', '-qm', 'Synchronized build']):
+            for line in git(['commit', '-qm', 'Synchronized build']).output:
                 yield line
-            for line in git(['push', 'origin', branch]):
+            for line in git(['push', 'origin', branch]).output:
                 yield line
 
 

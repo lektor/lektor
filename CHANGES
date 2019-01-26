@@ -3,13 +3,85 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+3.1.2
+
+Release date 7th of September 2018
+
+- Fix pagination and virtual pathing for alts
+- Fixing deply from local server in Python 3
+- Now passing server_info to publisher from local server, providing better
+  support for plugin provided publishers.
+- Added a more full-featured example project.
+- Adding Jinja2 `do` extension.
+- Better new-plugin command.
+- More tests.
+- Added the ability to sort child pages in admin according to models.
+- Better image handling and info detection for JPGs and SVGs
+- Lektor can now be ran with `python -m lektor`
+- New plugins now come with a more full featured setup.py
+
+3.1.1
+-----
+
+Release date 18th of April 2018
+
+- Better Image dimension detection.
+- Fix backwards compatibility with thumbnail generation.
+- Adding safety check when runnning new build in non-empty dir since that could delete data.
+- Adding command aliases.
+
+3.1.0
+-----
+
+Release date 29th of January 2018.
+
+- Adding ability to use Lektor Themes.
+- Adding Markdown event hook between instantiating the Renderer and creating the Markdown Processor
+- Improving tests for GitHub deployment.
+- Added the ability to use IPython in the lektor dev shell if it's available.
+- Added ability to publish from different filesystems.
+- Adding new option to turn disable editing fields on alternatives.
+- Added automated testing for Windows.
+- Expanded automated testing environments to Python 2.7, 3.5, 3.6, & Node 6, 7, 8.
+- Windows bugfixes.
+- Improved exif image data.
+- Improved date handling in admin.
+- Make GitHub Pages branch detection case insensitive.
+- Set sqlite isolation to autocommit.
+- Fixed errors in the example project.
+- Enabling pylint and standard.js.
+- Improved image rotation.
+- Now measuring tests and pull requests with code coverage.
+- Thumbnails can now have a defined quality.
+- Moved Windows cache to local appdata.
+- README tweaks.
+- Beter translations.
+- Better file tracking in watcher.
+- Upgraded many node dependencies.
+- Upgraded from ES5 to ES6.
+- Added mp4 attachment type.
+- Bugfixes for Python 3.
+
+3.0.1
+-----
+
+Released on 13th of June 2017.
+
+- Bugfixes and improved Python 2 / 3 compatibility
+
 3.0
 ---
 
+Released on 15th of July 2016.
+
 - Switch to newer mistune (markdown parser).
+- Rename `--build-flags` to `--extra-flags`, allow the deploy command to also
+  accept extra flags.
 
 2.4
 ---
+
+Released on 7th of July 2016.
 
 - Resolved an issue with unicode errors being caused by the
   quickstart.

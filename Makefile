@@ -3,7 +3,7 @@ all: build-js
 build-js:
 	@echo "---> building static files"
 	@cd lektor/admin; npm install .
-	@cd lektor/admin/static; ../node_modules/.bin/webpack
+	@cd lektor/admin; npm run webpack
 
 pex:
 	virtualenv pex-build-cache
@@ -17,9 +17,27 @@ pex:
 		--not-zip-safe Lektor
 	rm -rf pex-build-cache
 
-test:
-	@echo "---> running tests"
-	@cd tests; py.test . --tb=short -v
+test-python:
+	@echo "---> running python tests"
+	py.test . --tb=long -svv --cov=lektor
+
+coverage-python: test-python
+	coverage xml
+
+test-js: build-js
+	@echo "---> running javascript tests"
+	@cd lektor/admin; npm run lint
+	@cd lektor/admin; npm test
+
+coverage-js: test-js
+	@cd lektor/admin; npm run report-coverage
+
+test: test-python test-js
+
+coverage: coverage-python coverage-js
 
 osx-dmg:
 	$(MAKE) -C gui osx-dmg
+
+install-git-hooks:
+	ln -sT $(PWD)/bin/pre-commit .git/hooks/pre-commit

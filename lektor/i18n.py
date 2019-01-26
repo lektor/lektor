@@ -1,19 +1,22 @@
 import os
-import json
+
+from flask import json
 
 from lektor._compat import iteritems
 from lektor.uilink import UI_LANG
 
 
 translations_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            'translations')
+                                 'translations')
 KNOWN_LANGUAGES = list(x[:-5] for x in os.listdir(translations_path)
                        if x.endswith('.json'))
 
 
 translations = {}
 for _lang in KNOWN_LANGUAGES:
-    with open(os.path.join(translations_path, _lang + '.json')) as f:
+    # We use flask.json here which can deal with bytes unlike the stdlib
+    # json module which barfs on bytes on 3.x
+    with open(os.path.join(translations_path, _lang + '.json'), 'rb') as f:
         translations[_lang] = json.load(f)
 
 

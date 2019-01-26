@@ -1,24 +1,22 @@
-'use strict';
+'use strict'
 
-var RecordComponent = require('./RecordComponent');
-var i18n = require('../i18n');
-
+import RecordComponent from './RecordComponent'
+import i18n from '../i18n'
 
 class RecordEditComponent extends RecordComponent {
-
-  hasPendingChanges() {
-    return false;
+  hasPendingChanges () {
+    return false
   }
 
-  routerWillLeave(nextLocation) {
-    var rv = super.routerWillLeave(nextLocation);
+  routerWillLeave (nextLocation) {
+    const rv = super.routerWillLeave(nextLocation)
     if (rv !== undefined) {
-      return rv;
+      return rv
     }
     if (this.hasPendingChanges()) {
-      return i18n.trans('UNLOAD_ACTIVE_TAB');
+      return i18n.trans('UNLOAD_ACTIVE_TAB')
     }
   }
 }
 
-module.exports = RecordEditComponent;
+export default RecordEditComponent

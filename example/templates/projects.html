@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros/projects.html" import
+  render_project_list, render_category_nav %}
+{% block title %}Projects{% endblock %}
+{% block body %}
+  <h1>Projects</h1>
+  {{ render_category_nav(active=none) }}
+  {{ render_project_list(this.children) }}
+{% endblock %}

@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import os
 import imghdr
+import re
 import struct
-import exifread
 import posixpath
 from datetime import datetime
 from xml.etree import ElementTree as etree
+import exifread
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
-from lektor.uilink import BUNDLE_BIN_PATH
-from lektor._compat import iteritems, text_type
+from lektor._compat import iteritems, text_type, PY2
 
 
 # yay shitty library
@@ -29,6 +29,25 @@ def _combine_make(make, model):
     if make and model.startswith(make):
         return make
     return u' '.join([make, model]).strip()
+
+
+_parse_svg_units_re = re.compile(
+    r'(?P<value>[+-]?(?:\d+)(?:\.\d+)?)\s*(?P<unit>\D+)?',
+    flags=re.IGNORECASE
+)
+
+
+def _parse_svg_units_px(length):
+    match = _parse_svg_units_re.match(length)
+    if not match:
+        return None
+    match = match.groupdict()
+    if match['unit'] and match['unit'] != 'px':
+        return None
+    try:
+        return float(match['value'])
+    except ValueError:
+        return None
 
 
 class EXIFInfo(object):
@@ -131,18 +150,21 @@ class EXIFInfo(object):
         val = self._get_float('EXIF ShutterSpeedValue')
         if val is not None:
             return '1/%d' % round(1 / (2 ** -val))  # pylint: disable=invalid-unary-operand-type
+        return None
 
     @property
     def focal_length(self):
         val = self._get_float('EXIF FocalLength')
         if val is not None:
             return u'%smm' % val
+        return None
 
     @property
     def focal_length_35mm(self):
         val = self._get_float('EXIF FocalLengthIn35mmFilm')
         if val is not None:
             return u'%dmm' % val
+        return None
 
     @property
     def flash_info(self):
@@ -159,14 +181,24 @@ class EXIFInfo(object):
         val = self._get_int('EXIF ISOSpeedRatings')
         if val is not None:
             return val
+        return None
 
     @property
     def created_at(self):
-        try:
-            return datetime.strptime(self._mapping['Image DateTime'].printable,
-                                     '%Y:%m:%d %H:%M:%S')
-        except (KeyError, ValueError):
-            return None
+        date_tags = (
+            'GPS GPSDate',
+            'Image DateTimeOriginal',
+            'EXIF DateTimeOriginal',
+            'EXIF DateTimeDigitized',
+            'Image DateTime',
+        )
+        for tag in date_tags:
+            try:
+                return datetime.strptime(self._mapping[tag].printable,
+                                         '%Y:%m:%d %H:%M:%S')
+            except (KeyError, ValueError):
+                continue
+        return None
 
     @property
     def longitude(self):
@@ -195,6 +227,7 @@ class EXIFInfo(object):
             if ref == 1:
                 val *= -1
             return val
+        return None
 
     @property
     def location(self):
@@ -202,28 +235,60 @@ class EXIFInfo(object):
         long = self.longitude
         if lat is not None and long is not None:
             return (lat, long)
+        return None
 
+    @property
+    def documentname(self):
+        return self._get_string('Image DocumentName')
 
-def get_suffix(width, height, crop=False):
+    @property
+    def description(self):
+        return self._get_string('Image ImageDescription')
+
+    @property
+    def is_rotated(self):
+        """Return if the image is rotated according to the Orientation header.
+
+        The Orientation header in EXIF stores an integer value between
+        1 and 8, where the values 5-8 represent "portrait" orientations
+        (rotated 90deg left, right, and mirrored versions of those), i.e.,
+        the image is rotated.
+        """
+        return self._get_int('Image Orientation') in {5, 6, 7, 8}
+
+def get_suffix(width, height, crop=False, quality=None):
     suffix = str(width)
     if height is not None:
         suffix += 'x%s' % height
     if crop:
         suffix += '_crop'
+    if quality is not None:
+        suffix += '_q%s' % quality
     return suffix
 
 
 def get_svg_info(fp):
     _, svg = next(etree.iterparse(fp, ['start']), (None, None))
     fp.seek(0)
+    width, height = None, None
     if svg is not None and svg.tag == '{http://www.w3.org/2000/svg}svg':
-        try:
-            width = int(svg.attrib['width'])
-            height = int(svg.attrib['height'])
-            return 'svg', width, height
-        except (ValueError, KeyError):
-            pass
-    return 'unknown', None, None
+        width = _parse_svg_units_px(svg.attrib.get('width', ''))
+        height = _parse_svg_units_px(svg.attrib.get('height', ''))
+    return 'svg', width, height
+
+
+# see http://www.w3.org/Graphics/JPEG/itu-t81.pdf
+# Table B.1 – Marker code assignments (page 32/36)
+_JPEG_SOF_MARKERS = (
+    # non-differential, Hufmann-coding
+    0xc0, 0xc1, 0xc2, 0xc3,
+    # differential, Hufmann-coding
+    0xc5, 0xc6, 0xc7,
+    # non-differential, arithmetic-coding
+    0xc9, 0xca, 0xcb,
+    # differential, arithmetic-coding
+    0xcd, 0xce, 0xcf,
+)
 
 
 def get_image_info(fp):
@@ -233,7 +298,8 @@ def get_image_info(fp):
     if len(head) < 24:
         return 'unknown', None, None
 
-    if head.strip().startswith(b'<?xml '):
+    magic_bytes = b'<?xml', b'<svg'
+    if any(map(head.strip().startswith, magic_bytes)):
         return get_svg_info(fp)
 
     fmt = imghdr.what(None, head)
@@ -247,22 +313,49 @@ def get_image_info(fp):
     elif fmt == 'gif':
         width, height = struct.unpack('<HH', head[6:10])
     elif fmt == 'jpeg':
-        try:
-            fp.seek(0)
-            size = 2
-            ftype = 0
-            while not 0xc0 <= ftype <= 0xcf:
-                fp.seek(size, 1)
+        # specification available under
+        # http://www.w3.org/Graphics/JPEG/itu-t81.pdf
+        # Annex B (page 31/35)
+
+        # we are looking for a SOF marker ("start of frame").
+        # skip over the "start of image" marker (imghdr took care of that).
+        fp.seek(2)
+
+        while True:
+            byte = fp.read(1)
+
+            # "All markers are assigned two-byte codes: an X’FF’ byte
+            # followed by a byte which is not equal to 0 or X’FF’."
+            if not byte or ord(byte) != 0xff:
+                raise Exception("Malformed JPEG image.")
+
+            # "Any marker may optionally be preceded by any number
+            # of fill bytes, which are bytes assigned code X’FF’."
+            while ord(byte) == 0xff:
                 byte = fp.read(1)
-                while ord(byte) == 0xff:
-                    byte = fp.read(1)
-                ftype = ord(byte)
-                size = struct.unpack('>H', fp.read(2))[0] - 2
-            # We are at a SOFn block
-            fp.seek(1, 1)  # Skip `precision' byte.
+
+            if ord(byte) not in _JPEG_SOF_MARKERS:
+                # header length parameter takes 2 bytes for all markers
+                length = struct.unpack('>H', fp.read(2))[0]
+                fp.seek(length - 2, 1)
+                continue
+
+            # else...
+            # see Figure B.3 – Frame header syntax (page 35/39) and
+            # Table B.2 – Frame header parameter sizes and values
+            # (page 36/40)
+            fp.seek(3, 1) # skip header length and precision parameters
             height, width = struct.unpack('>HH', fp.read(4))
-        except Exception:
-            return 'jpeg', None, None
+
+            if height == 0:
+                # "Value 0 indicates that the number of lines shall be
+                # defined by the DNL marker [...]"
+                #
+                # DNL is not supported by most applications,
+                # so we won't support it either.
+                raise Exception("JPEG with DNL not supported.")
+
+            break
 
     return fmt, width, height
 
@@ -279,38 +372,13 @@ def find_imagemagick(im=None):
     if im is not None and os.path.isfile(im):
         return im
 
-    # If we have a shipped imagemagick, then we used this one.
-    if BUNDLE_BIN_PATH is not None:
-        executable = os.path.join(BUNDLE_BIN_PATH, 'convert')
-        if os.name == 'nt':
-            executable += '.exe'
-        if os.path.isfile(executable):
-            return executable
+    # On windows, imagemagick was renamed to magick, because
+    # convert is system utility for fs manipulation.
+    imagemagick_exe = 'convert' if os.name != 'nt' else 'magick'
 
-    # If we're not on windows, we locate the executable like we would
-    # do normally.
-    if os.name != 'nt':
-        rv = locate_executable('convert')
-        if rv is not None:
-            return rv
-
-    # On windows, we only scan the program files for an image magick
-    # installation, because this is where this usually goes.  We do
-    # this because the convert executable is otherwise the system
-    # one which can convert file systems and stuff like this.
-    else:
-        for key in 'ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)':
-            value = os.environ.get(key)
-            if not value:
-                continue
-            try:
-                for filename in os.listdir(value):
-                    if filename.lower().startswith('imagemagick-'):
-                        exe = os.path.join(value, filename, 'convert.exe')
-                        if os.path.isfile(exe):
-                            return exe
-            except OSError:
-                continue
+    rv = locate_executable(imagemagick_exe)
+    if rv is not None:
+        return rv
 
     # Give up.
     raise RuntimeError('Could not locate imagemagick.')
@@ -334,11 +402,24 @@ def get_quality(source_filename):
 
 
 def computed_height(source_image, width, actual_width, actual_height):
+    # If the file is a JPEG file and the EXIF header shows that the image
+    # is rotated, imagemagick will auto-orient the file. That is, a 400x200
+    # file where the target width is 100px will *not* be converted to a
+    # 100x50 image, but to 100x200.
+
+    with open(source_image, 'rb') as f:
+        format = get_image_info(f)[0]
+
+    if format == 'jpeg':
+        with open(source_image, 'rb') as image_file:
+            exif = read_exif(image_file)
+        if exif.is_rotated:
+            actual_width, actual_height = actual_height, actual_width
     return int(float(actual_height) * (float(width) / float(actual_width)))
 
 
 def process_image(ctx, source_image, dst_filename, width, height=None,
-                  crop=False):
+                  crop=False, quality=None):
     """Build image from source image, optionally compressing and resizing.
 
     "source_image" is the absolute path of the source in the content directory,
@@ -347,13 +428,14 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
     im = find_imagemagick(
         ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
 
-    quality = get_quality(source_image)
+    if quality is None:
+        quality = get_quality(source_image)
 
     resize_key = str(width)
     if height is not None:
         resize_key += 'x' + str(height)
 
-    cmdline = [im, source_image]
+    cmdline = [im, source_image, '-auto-orient']
     if crop:
         cmdline += ['-resize', resize_key + '^',
                     '-gravity', 'Center',
@@ -361,14 +443,14 @@ def process_image(ctx, source_image, dst_filename, width, height=None,
     else:
         cmdline += ['-resize', resize_key]
 
-    cmdline += ['-auto-orient', '-quality', str(quality), dst_filename]
+    cmdline += ['-quality', str(quality), dst_filename]
 
     reporter.report_debug_info('imagemagick cmd line', cmdline)
     portable_popen(cmdline).wait()
 
 
 def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
-                   crop=False):
+                   crop=False, quality=None):
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
@@ -377,7 +459,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
         if format == 'unknown':
             raise RuntimeError('Cannot process unknown images')
 
-    suffix = get_suffix(width, height, crop=crop)
+    suffix = get_suffix(width, height, crop=crop, quality=quality)
     dst_url_path = get_dependent_url(source_url_path, suffix,
                                      ext=get_thumbnail_ext(source_image))
     report_height = height
@@ -398,7 +480,7 @@ def make_thumbnail(ctx, source_image, source_url_path, width, height=None,
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
         process_image(ctx, source_image, artifact.dst_filename,
-                      width, height, crop=crop)
+                      width, height, crop=crop, quality=quality)
 
     return Thumbnail(dst_url_path, width, report_height)
 
@@ -416,3 +498,6 @@ class Thumbnail(object):
 
     def __unicode__(self):
         return posixpath.basename(self.url_path)
+
+    if not PY2:
+        __str__ = __unicode__

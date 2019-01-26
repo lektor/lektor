@@ -1,41 +1,38 @@
-var React = require('react');
+import PropTypes from 'prop-types'
+import i18n from '../i18n'
 
-var i18n = require('../i18n');
-
-
-function ValidationFailure(options) {
-  this.message = options.message || i18n.trans('INVALID_INPUT');
-  this.type = options.type || 'error';
+function ValidationFailure (options) {
+  this.message = options.message || i18n.trans('INVALID_INPUT')
+  this.type = options.type || 'error'
 }
 
-var BasicWidgetMixin = {
+const BasicWidgetMixin = {
   propTypes: {
-    value: React.PropTypes.any,
-    type: React.PropTypes.object,
-    placeholder: React.PropTypes.any,
-    onChange: React.PropTypes.func
+    value: PropTypes.any,
+    type: PropTypes.object,
+    placeholder: PropTypes.any,
+    onChange: PropTypes.func
   },
 
-  getInputClass() {
-    var rv = 'form-control';
+  getInputClass () {
+    let rv = 'form-control'
     if (this.props.type.size === 'small') {
-      rv = 'input-sm ' + rv;
+      rv = 'input-sm ' + rv
     } else if (this.props.type.size === 'large') {
-      rv = 'input-lg ' + rv;
+      rv = 'input-lg ' + rv
     }
-    return rv;
+    return rv
   },
 
-  getValidationFailure: function() {
+  getValidationFailure () {
     if (this.getValidationFailureImpl) {
-      return this.getValidationFailureImpl();
+      return this.getValidationFailureImpl()
     }
-    return null;
+    return null
   }
 }
 
-
-module.exports = {
-  ValidationFailure: ValidationFailure,
-  BasicWidgetMixin: BasicWidgetMixin
-};
+export {
+  ValidationFailure,
+  BasicWidgetMixin
+}

@@ -29,6 +29,7 @@ from lektor.databags import Databags
 from lektor.filecontents import FileContents
 from lektor.utils import make_relative_url, split_virtual_path
 
+# pylint: disable=no-member
 
 def get_alts(source=None, fallback=False):
     """Given a source this returns the list of all alts that the source
@@ -473,7 +474,7 @@ class Record(SourceObject):
         )
 
 
-class Siblings(VirtualSourceObject):
+class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
     def __init__(self, record, prev_page, next_page):
         """Virtual source representing previous and next sibling of 'record'."""
         VirtualSourceObject.__init__(self, record)
@@ -555,6 +556,7 @@ class Page(Record):
 
     @property
     def url_path(self):
+        # pylint: disable=no-value-for-parameter
         rv = Record.url_path.__get__(self).rstrip('/')
         last_part = rv.rsplit('/')[-1]
         if '.' not in last_part:
@@ -611,6 +613,7 @@ class Page(Record):
             rv = node.resolve_url_path(url_path[idx + 1:])
             if rv is not None:
                 return rv
+        return None
 
     @cached_property
     def parent(self):
@@ -621,6 +624,7 @@ class Page(Record):
             return self.pad.get(parent_path,
                                 persist=self.pad.cache.is_persistent(self),
                                 alt=self.alt)
+        return None
 
     @property
     def children(self):
@@ -733,22 +737,24 @@ class Attachment(Record):
 
 class Image(Attachment):
     """Specific class for image attachments."""
+    def __init__(self, pad, data, page_num=None):
+        Attachment.__init__(self, pad, data, page_num)
+        self._image_info = None
+        self._exif_cache = None
 
     def _get_image_info(self):
-        rv = getattr(self, '_image_info', None)
-        if rv is None:
+        if self._image_info is None:
             with open(self.attachment_filename, 'rb') as f:
-                self._image_info = rv = get_image_info(f)
-        return rv
+                self._image_info = get_image_info(f)
+        return self._image_info
 
     @property
     def exif(self):
         """Provides access to the exif data."""
-        rv = getattr(self, '_exif_cache', None)
-        if rv is None:
+        if self._exif_cache is None:
             with open(self.attachment_filename, 'rb') as f:
-                rv = self._exif_cache = read_exif(f)
-        return rv
+                self._exif_cache = read_exif(f)
+        return self._exif_cache
 
     @property
     def width(self):
@@ -774,14 +780,14 @@ class Image(Attachment):
             return rv
         return Undefined('The format of the image could not be determined.')
 
-    def thumbnail(self, width, height=None, crop=False):
+    def thumbnail(self, width, height=None, crop=False, quality=None):
         """Utility to create thumbnails."""
         width = int(width)
         if height is not None:
             height = int(height)
         return make_thumbnail(_require_ctx(self),
             self.attachment_filename, self.url_path,
-            width=width, height=height, crop=crop)
+            width=width, height=height, crop=crop, quality=quality)
 
 
 attachment_classes = {
@@ -902,6 +908,8 @@ class Query(object):
             # attachments and/nor children.  I have no idea which
             # value of order_by to use.  We could punt and return
             # child_config.order_by, but for now, just return None.
+            return None
+        return None
 
     def include_hidden(self, value):
         """Controls if hidden records should be included which will not
@@ -1164,7 +1172,7 @@ class Database(object):
                 rv['_source_alt'] = source_alt
 
         if rv_type is None:
-            return
+            return None
 
         rv['_path'] = path
         rv['_id'] = posixpath.basename(path)
@@ -1468,7 +1476,12 @@ class Pad(object):
                 return rv
 
         if include_assets:
-            return self.asset_root.resolve_url_path(pieces)
+            for asset_root in [self.asset_root] + self.theme_asset_roots:
+                rv = asset_root.resolve_url_path(pieces)
+                if rv is not None:
+                    break
+            return rv
+        return None
 
     def get_root(self, alt=PRIMARY_ALT):
         """The root page of the database."""
@@ -1482,6 +1495,15 @@ class Pad(object):
         return Directory(self, name='',
                          path=os.path.join(self.db.env.root_path, 'assets'))
 
+    @property
+    def theme_asset_roots(self):
+        """The root of the asset tree of each theme."""
+        asset_roots = []
+        for theme_path in self.db.env.theme_paths:
+            asset_roots.append(Directory(self, name='',
+                                          path=os.path.join(theme_path, 'assets')))
+        return asset_roots
+
     def get_all_roots(self):
         """Returns all the roots for building."""
         rv = []
@@ -1494,6 +1516,7 @@ class Pad(object):
             rv = [self.root]
 
         rv.append(self.asset_root)
+        rv.extend(self.theme_asset_roots)
         return rv
 
     def get_virtual(self, record, virtual_path):
@@ -1504,7 +1527,7 @@ class Pad(object):
 
         if pieces[0].isdigit():
             if len(pieces) == 1:
-                return self.get(record['_path'], page_num=int(pieces[0]))
+                return self.get(record['_path'], alt=record.alt, page_num=int(pieces[0]))
             return None
 
         resolver = self.env.virtual_sources.get(pieces[0])
@@ -1553,7 +1576,7 @@ class Pad(object):
         raw_data = self.db.load_raw_data(path, alt=alt)
         if raw_data is None:
             self.cache.remember_as_missing(path, alt, virtual_path)
-            return
+            return None
 
         rv = self.instance_from_data(raw_data, page_num=page_num)
 
@@ -1587,12 +1610,15 @@ class Pad(object):
     def get_asset(self, path):
         """Loads an asset by path."""
         clean_path = cleanup_path(path).strip('/')
-        node = self.asset_root
-        for piece in clean_path.split('/'):
-            node = node.get_child(piece)
-            if node is None:
-                break
-        return node
+        nodes = [self.asset_root] + self.theme_asset_roots
+        for node in nodes:
+            for piece in clean_path.split('/'):
+                node = node.get_child(piece)
+                if node is None:
+                    break
+            if node is not None:
+                return node
+        return None
 
     def instance_from_data(self, raw_data, datamodel=None, page_num=None):
         """This creates an instance from the given raw data."""
@@ -1651,6 +1677,7 @@ class TreeItem(object):
         """Returns a child within this item."""
         if self.exists:
             return self.tree.get(posixpath.join(self.path, path))
+        return None
 
     def iter_children(self, include_attachments=True, include_pages=True):
         """Iterates over all children."""

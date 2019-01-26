@@ -1,7 +1,3 @@
 title: About this Website
 ---
-body:
-
-This is a website that was made with the Lektor quickstart.
-
-And it does not contain a lot of information.
+body: This is a website that was initally made with the Lektor quickstart, and then modified by a human by edits to contain many quick examples of Lektor's various functionalities.

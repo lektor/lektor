@@ -1,3 +1,5 @@
 %% if with_blog
 _model: blog
+---
+title: Blog
 %% endif

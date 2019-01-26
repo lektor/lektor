@@ -1,9 +1,8 @@
 import os
 import sys
-import pkg_resources
-
 from weakref import ref as weakref
 from inifile import IniFile
+import pkg_resources
 
 from lektor._compat import iteritems, itervalues
 from lektor.context import get_ctx
@@ -52,6 +51,7 @@ class Plugin(object):
         path = os.path.abspath(os.path.dirname(mod.__file__))
         if not path.startswith(self.env.project.get_package_cache_path()):
             return path
+        return None
 
     @property
     def import_name(self):

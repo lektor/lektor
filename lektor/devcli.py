@@ -2,8 +2,14 @@ import os
 import sys
 import click
 
+try:
+    from IPython import embed
+    from traitlets.config.loader import Config
+except ImportError:
+    pass # fallback to normal Python InteractiveConsole
+
 from .packages import get_package_info, register_package, publish_package
-from .cli import pass_context
+from .cli import pass_context, AliasedGroup
 
 
 def ensure_plugin():
@@ -18,7 +24,7 @@ def ensure_plugin():
     return info
 
 
-@click.group(short_help='Development commands.')
+@click.group(cls=AliasedGroup, short_help='Development commands.')
 def cli():
     """Development commands for Lektor.
 
@@ -57,7 +63,7 @@ def shell_cmd(ctx):
     startup = os.environ.get('PYTHONSTARTUP')
     if startup and os.path.isfile(startup):
         with open(startup, 'r') as f:
-            eval(compile(f.read(), startup, 'exec'), ns)
+            eval(compile(f.read(), startup, 'exec'), ns)  # pylint: disable=eval-used
     pad = ctx.get_env().new_pad()
     ns.update(
         project=ctx.get_project(),
@@ -69,7 +75,12 @@ def shell_cmd(ctx):
                                      ctx.get_default_output_path()),
         F=F
     )
-    code.interact(banner=banner, local=ns)
+    try:
+        c = Config()
+        c.TerminalInteractiveShell.banner2 = banner
+        embed(config=c, user_ns=ns)
+    except NameError: # No IPython
+        code.interact(banner=banner, local=ns)
 
 
 @cli.command('publish-plugin', short_help='Publish a plugin to PyPI.')

@@ -18,6 +18,8 @@ def load_databag(filename):
         elif filename.endswith('.ini'):
             return decode_flat_data(IniFile(filename).items(),
                                     dict_cls=OrderedDict)
+        else:
+            return None
     except (OSError, IOError) as e:
         if e.errno != errno.ENOENT:
             raise
@@ -68,3 +70,4 @@ class Databags(object):
                 if local_key is None:
                     return bag
                 return resolve_dotted_value(bag, local_key)
+        return None
