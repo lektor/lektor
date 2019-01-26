@@ -15,7 +15,7 @@ tests_require = [
 
 setup(
     name='Lektor',
-    version='3.1.2',
+    version='3.1.3',
     url='http://github.com/lektor/lektor/',
     description='A static content management system.',
     long_description=readme,
