@@ -41,8 +41,8 @@ before_install:
   - mkdir -p local/bin
   - pushd local/bin
   - wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-  - tar -xf ffmpeg-release-64bit-static.tar.xz --strip-components 1 --wildcards "*/ffmpeg" "*/ffprobe"
-  - rm ffmpeg-release-64bit-static.tar.xz
+  - tar -xf ffmpeg-release-amd64-static.tar.xz --strip-components 1 --wildcards "*/ffmpeg" "*/ffprobe"
+  - rm ffmpeg-release-amd64-static.tar.xz
   - popd
   - export LEKTOR_RESOURCES=$(pwd)
 
