@@ -126,9 +126,11 @@ class Context(object):
 
     def load_plugins(self, reinstall=False):
         from .packages import load_packages
-        from .pluginsystem import initialize_plugins
         load_packages(self.get_env(), reinstall=reinstall)
-        initialize_plugins(self.get_env())
+
+        if not reinstall:
+            from .pluginsystem import initialize_plugins
+            initialize_plugins(self.get_env())
 
 
 pass_context = click.make_pass_decorator(Context, ensure=True)
