@@ -9,11 +9,13 @@ import fakeWidgets from './widgets/fakeWidgets'
 import { BasicWidgetMixin } from './widgets/mixins'
 import Component from './components/Component'
 import ToggleGroup from './components/ToggleGroup'
+import ToastEditor from './widgets/ToastEditor'
 import i18n from './i18n'
 
 const widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
   'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
+  'markdown-gui': ToastEditor,
   'datepicker': primitiveWidgets.DateInputWidget,
   'integer': primitiveWidgets.IntegerInputWidget,
   'float': primitiveWidgets.FloatInputWidget,

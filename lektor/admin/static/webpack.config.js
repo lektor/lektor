@@ -49,10 +49,16 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract({
-          use: 'css-loader?sourceMap',
-          fallback: 'style-loader?sourceMap'
-        })
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true,
+              sourceMap: true
+            }
+          }
+        ]
       },
       {
         test: /\.json$/,
@@ -61,6 +67,10 @@ module.exports = {
       {
         test: /\.(ttf|eot|svg|woff2?)(\?v=\d+\.\d+\.\d+)?$/,
         loader: 'file-loader'
+      },
+      {
+        test: /\.(jpe?g|png|gif)(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'url-loader'
       }
     ]
   },
