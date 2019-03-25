@@ -38,6 +38,7 @@ class ToastEditor extends Component {
     this.count = 0
 
     this.onChange = this.onChange.bind(this)
+    this.onLoad = this.onLoad.bind(this)
     this.onRef = this.onRef.bind(this)
     this.blur = this.blur.bind(this)
     this.focus = this.focus.bind(this)
@@ -47,14 +48,55 @@ class ToastEditor extends Component {
     }
   }
 
+  // from http://youmightnotneedjquery.com/#outer_height_with_margin
+  outerHeight (el) {
+    var height = el.offsetHeight
+    var style = window.getComputedStyle(el)
+
+    height += parseInt(style.marginTop) + parseInt(style.marginBottom)
+    return height
+  }
+
   onLoad (editor) {
     // change label of 'WYSIWYG' to 'Rich Text'
     editor.getUI().getModeSwitch().$el[0].getElementsByClassName('wysiwyg')[0].innerText = 'Rich Text'
+    this.recalculateHeight(editor)
   }
 
   onImageUpload (file, cb, source) {
     // do image upload of file here, call cb once done
     cb(file.name) // leave second param null to use user-specified text
+  }
+
+  recalculateHeight (editor) {
+    let currentEditor = editor.getCurrentModeEditor()
+    let editorHeight
+    try {
+      // markdown
+      let editorEl = currentEditor.editorContainerEl.getElementsByClassName('CodeMirror-sizer')[0]
+      editorHeight = this.outerHeight(editorEl)
+    } catch (e) {
+      // wysiwyg
+
+      // get height of all children in editor
+      let editorEl = currentEditor.$editorContainerEl[0].firstChild
+      let editorChildren = Array.from(editorEl.children)
+      let editorChildrenHeights = editorChildren.map(el => this.outerHeight(el))
+      editorHeight = editorChildrenHeights.reduce((a, b) => a + b)
+
+      // add on padding/border/margin of editor element
+      let marginTop = parseInt(window.getComputedStyle(editorEl).marginTop)
+      let marginBottom = parseInt(window.getComputedStyle(editorEl).marginBottom)
+      let paddingTop = parseInt(window.getComputedStyle(editorEl).paddingTop)
+      let paddingBottom = parseInt(window.getComputedStyle(editorEl).paddingBottom)
+      let borderTop = parseInt(window.getComputedStyle(editorEl).borderTopWidth)
+      let borderBottom = parseInt(window.getComputedStyle(editorEl).borderBottomWidth)
+      editorHeight += (marginTop + marginBottom + paddingTop + paddingBottom + borderTop + borderBottom)
+    }
+
+    let totalHeight = editorHeight + 31 + 31
+    let totalHeightStr = totalHeight + 'px'
+    editor.height(totalHeightStr)
   }
 
   onChange () {
@@ -64,6 +106,12 @@ class ToastEditor extends Component {
       return
     }
 
+    // recalculate height - delay is required to get most up to date height
+    setTimeout(function () {
+      this.recalculateHeight(this.editor)
+    }.bind(this), 10)
+
+    // send markdown up
     if (this.props.onChange) {
       this.props.onChange(markdown)
     }
@@ -110,6 +158,7 @@ class ToastEditor extends Component {
       events: {
         load: this.onLoad,
         change: this.onChange,
+        stateChange: this.onChange,
         focus: this.focus,
         blur: this.blur
       }
