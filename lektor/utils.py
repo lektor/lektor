@@ -537,7 +537,7 @@ def make_relative_url(base, target):
     else:
         depth = ('/' + base.strip('/')).count('/')
         prefix = ''
-        # If the last part of the base path contains a dot, the page will 
+        # If the last part of the base path contains a dot, the page will
         # render into, for example "404.html" instead of "404/index.html".
         # Any relative links from it therefore need one less level of depth.
         if '.' in base.strip('/').split('/')[-1]:
