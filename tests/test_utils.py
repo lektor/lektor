@@ -63,3 +63,20 @@ def test_parse_path():
     assert parse_path('/foo/bar') == ['foo', 'bar']
     assert parse_path('/foo/bar/') == ['foo', 'bar']
     assert parse_path('/foo/bar/../stuff') == ['foo', 'bar', 'stuff']
+
+import pytest
+@pytest.mark.parametrize("base, target, expected", [
+    # A few different edge cases goes here, one testcase per line
+    ("/", "./a/", "./a/"),
+    ("/", "./a", "./a"),
+    ("/fr/blog/2015/11/a/","/fr/blog/2015/11/a/a.jpg","../../../../../fr/blog/2015/11/a/a.jpg"),
+    ("/fr/blog/2015/11/a/","/fr/blog/","../../../../../fr/blog/"),
+    ("/fr/blog/2015/12/a/","/fr/b.php","../../../../fr/b.php"),
+    ("/fr/blog/2016/1/a/","/images/b.svg","../../../../../images/b.svg"),
+    # ...
+    # Add as many test cases as you see fit. You definitely want one test case for the
+    # new behavior.
+])
+def test_make_relative_url(base, target, expected):
+    from lektor.utils import make_relative_url
+    assert make_relative_url(base, target) == expected
