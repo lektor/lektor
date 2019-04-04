@@ -903,7 +903,7 @@ class VideoFrame(object):
 
         if seek < timedelta(0):
             raise ValueError("Seek distance must not be negative")
-        elif video.duration and seek > video.duration:
+        if video.duration and seek > video.duration:
             raise ValueError(
                 "Seek distance must not be outside the video duration")
 
