@@ -37,7 +37,7 @@ You need to make sure you have the following software installed on your computer
   `sudo apt-get install python-dev libssl-dev libffi-dev`
 * ImageMagick (`brew install imagemagick` can get you this on OS X and  `sudo apt-get install imagemagick`
   on Ubuntu the `imagemagick` package needs to be installed. 
-  On Windows do `chocoinstall imagemagick`, which requires [chocolatey :ext](https://chocolatey.org/),
+  On Windows do `choco install imagemagick`, which requires [chocolatey :ext](https://chocolatey.org/),
   or [download from here :ext](http://www.imagemagick.org)).
 
 Once you have those installed and have made sure that they are on your `PATH`, you can
