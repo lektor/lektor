@@ -41,6 +41,7 @@ class ToastEditor extends Component {
     this.editor = null
     this.element = null
     this.count = 0
+    this.content = null
 
     this.onChange = this.onChange.bind(this)
     this.onLoad = this.onLoad.bind(this)
@@ -121,7 +122,9 @@ class ToastEditor extends Component {
     }.bind(this), 10)
 
     // send markdown up
-    if (this.props.onChange) {
+    let contentChanged = markdown !== this.content
+    if (this.props.onChange && this.content !== null && contentChanged) {
+      this.content = markdown
       this.props.onChange(markdown)
     }
   }
@@ -153,6 +156,7 @@ class ToastEditor extends Component {
       return
     }
     this.element = element
+    this.content = this.props.value
     this.editor = new Editor({
       el: element,
       initialValue: this.props.value,
