@@ -100,6 +100,10 @@ class ToastEditor extends Component {
   }
 
   onChange () {
+    if (!this.editor) {
+      return
+    }
+
     const markdown = this.editor.getMarkdown()
     if (this.count === 0 && markdown === '') {
       this.count++
@@ -159,6 +163,7 @@ class ToastEditor extends Component {
         load: this.onLoad,
         change: this.onChange,
         stateChange: this.onChange,
+        contentChangedFromWysiwyg: () => {setTimeout(this.onChange, 100)},
         focus: this.focus,
         blur: this.blur
       }
