@@ -9,6 +9,9 @@ import 'codemirror/lib/codemirror.css'
 import 'tui-editor/dist/tui-editor.min.css'
 import 'tui-editor/dist/tui-editor-contents.min.css'
 
+import LektorLinkExtension from './tuiEditorLektorLinkExt.jsx'
+import LektorImageExtension from './tuiEditorLektorImageExt.jsx'
+
 const toolbarItems = [
   'heading',
   'bold',
@@ -165,19 +168,24 @@ class ToastEditor extends Component {
         load: this.onLoad,
         change: this.onChange,
         stateChange: this.onChange,
-        contentChangedFromWysiwyg: () => {setTimeout(this.onChange, 100)},
+        contentChangedFromWysiwyg: () => { setTimeout(this.onChange, 100) },
         focus: this.focus,
         blur: this.blur
-      }
+      },
+      exts: ['lektorImage', 'lektorLink']
     })
   }
 
   render () {
     return (
-      <div
-        ref={this.onRef}
-        style={this.state.style}
-      />
+      <div>
+        <div
+          ref={this.onRef}
+          style={this.state.style}
+        />
+        <LektorImageExtension editor={this.editor} {...this.getRoutingProps()} />
+        <LektorLinkExtension editor={this.editor} {...this.getRoutingProps()} />
+      </div>
     )
   }
 }

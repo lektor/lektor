@@ -555,3 +555,69 @@ pre.traceback {
   color: white;
   padding: 10px 15px;
 }
+
+.popup {
+  > .nav {
+    margin-top: 0px;
+
+    > li {
+      float: left;
+
+      > a {
+        font-family: 'Roboto Slab', 'Georgia', 'Times New Roman', serif;
+        font-size: 14px;
+        display: inline-block;
+        padding: 5px 10px;
+        background: @block-item-background;
+        color: @block-item-color;
+        cursor: pointer;
+        &:not(.active):hover {
+          background: @block-item-hover-background;
+          color: @block-item-hover-color;
+        }
+        &.active {
+          font-weight: 500;
+          background: @block-item-active-background;
+          color: @block-item-active-color;
+          outline: none;
+        }
+      }
+    }
+
+    > li:not(:first-child) {
+      margin-left: 5px;margin-left: 5px;
+    }
+
+    > li:not(:last-child) {
+      margin-right: 5px;
+    }
+  }
+
+  > .content {
+    border: 2px solid @block-item-active-background;
+    padding: 10px;
+
+    > .field:not(:last-child) {
+      margin-bottom: 10px;
+    }
+
+    .form-control {
+      max-width: 260px;
+    }
+
+    .input-group {
+      width: 100%;
+    }
+  }
+
+  > .actions {
+    background: initial;
+    padding: 0;
+    margin: 0;
+
+    > .btn {
+      margin-top: 5px;
+      margin-right: 5px;
+    }
+  }
+}
