@@ -1,7 +1,9 @@
 'use strict'
 
-import React, { Component } from 'react'
+import React from 'react'
 import Editor from 'tui-editor'
+
+import Component from '../components/Component'
 
 import 'codemirror/lib/codemirror.css'
 import 'tui-editor/dist/tui-editor.min.css'

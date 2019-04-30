@@ -189,6 +189,7 @@ class EditPage extends RecordEditComponent {
         field={field}
         onChange={this.onValueChange.bind(this, field)}
         disabled={!(field.alts_enabled == null || (field.alts_enabled ^ this.state.recordInfo.alt === '_primary'))}
+        {...this.getRoutingProps()}
       />
     )
   }

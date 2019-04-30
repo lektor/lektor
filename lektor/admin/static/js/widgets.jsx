@@ -77,6 +77,7 @@ class FieldBox extends Component {
             type={field.type}
             placeholder={placeholder}
             disabled={disabled}
+            {...this.getRoutingProps()}
           /></dd>
         </dl>
       )
