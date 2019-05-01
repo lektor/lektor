@@ -629,3 +629,24 @@ pre.traceback {
 .CodeMirror pre {
   font-family: "Roboto Slab", Georgia, "Times New Roman", serif !important;
 }
+
+.tui-editor-defaultUI .tui-editor-defaultUI-toolbar .mode-tab {
+  width: initial;
+  color: #77304c;
+  margin-bottom: 0px;
+  font-family: 'Roboto Slab', 'Georgia', 'Times New Roman', serif;
+  border: 0px;
+  padding: 0px 8px 0px 8px;
+  height: calc(100% - 5px);
+  background-color: #eeeeee;
+  background-image: none;
+
+  &:not(.active):hover {
+    background-color: #cccccc
+  }
+
+  &.active {
+    background-color: #6c5f65;
+    color: white;
+  }
+}

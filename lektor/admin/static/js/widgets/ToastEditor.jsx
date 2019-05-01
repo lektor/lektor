@@ -64,9 +64,20 @@ class ToastEditor extends Component {
   }
 
   onLoad (editor) {
-    // change label of 'WYSIWYG' to 'Rich Text'
-    editor.getUI().getModeSwitch().$el[0].getElementsByClassName('wysiwyg')[0].innerText = 'Rich Text'
+    // add in the mode switcher
+    let toolbar = editor.getUI().getToolbar()
+    toolbar.insertItem(0, {type: 'button', options: {name: 'richtext-tab', text: 'Rich Text', event: 'mode-tab-richtext', tooltip: 'Use Rich Text Editor', className: 'mode-tab active'}})
+    toolbar.insertItem(1, {type: 'button', options: {name: 'markdown-tab', text: 'Markdown',  event: 'mode-tab-markdown', tooltip: 'Use Markdown Editor', className: 'mode-tab'}})
+    toolbar.insertItem(2, {type: 'divider', options: {name: 'switch-divider', className: 'mode-tab-divider'}})
+    let richtextbtn = toolbar.getItem(0).$el
+    let markdownbtn = toolbar.getItem(1).$el
+    editor.eventManager.addEventType('mode-tab-richtext')
+    editor.eventManager.addEventType('mode-tab-markdown')
+    editor.eventManager.listen('mode-tab-richtext', () => { markdownbtn.removeClass('active'); richtextbtn.addClass('active'); editor.changeMode('wysiwyg', true) })
+    editor.eventManager.listen('mode-tab-markdown', () => { richtextbtn.removeClass('active'); markdownbtn.addClass('active'); editor.changeMode('markdown', true) })
+
     this.recalculateHeight(editor)
+
   }
 
   onImageUpload (file, cb, source) {
@@ -164,6 +175,7 @@ class ToastEditor extends Component {
       useCommandShortcut: true,
       usageStatistics: false,
       previewStyle: null,
+      hideModeSwitch: true,
       toolbarItems: toolbarItems,
       hooks: {
         addImageBlobHook: this.onImageUpload
