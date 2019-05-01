@@ -96,7 +96,7 @@ from lektor.types.primitives import \
      FloatType, BooleanType, DateType, DateTimeType
 from lektor.types.multi import CheckboxesType, SelectType
 from lektor.types.special import SortKeyType, SlugType, UrlType
-from lektor.types.formats import MarkdownType
+from lektor.types.formats import MarkdownType, MarkdownGUIType
 from lektor.types.flow import FlowType
 from lektor.types.fake import LineType, SpacingType, InfoType, HeadingType
 
@@ -124,6 +124,7 @@ builtin_types = {
 
     # Formats
     'markdown': MarkdownType,
+    'markdown-gui': MarkdownGUIType,
 
     # Flow
     'flow': FlowType,

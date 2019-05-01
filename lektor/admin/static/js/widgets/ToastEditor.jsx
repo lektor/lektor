@@ -66,7 +66,7 @@ class ToastEditor extends Component {
   onLoad (editor) {
     // add in the mode switcher
     let toolbar = editor.getUI().getToolbar()
-    toolbar.insertItem(0, {type: 'button', options: {name: 'richtext-tab', text: 'Rich Text', event: 'mode-tab-richtext', tooltip: 'Use Rich Text Editor', className: 'mode-tab active'}})
+    toolbar.insertItem(0, {type: 'button', options: {name: 'richtext-tab', text: 'Rich Text', event: 'mode-tab-richtext', tooltip: 'Use Rich Text Editor', className: 'mode-tab'}})
     toolbar.insertItem(1, {type: 'button', options: {name: 'markdown-tab', text: 'Markdown',  event: 'mode-tab-markdown', tooltip: 'Use Markdown Editor', className: 'mode-tab'}})
     toolbar.insertItem(2, {type: 'divider', options: {name: 'switch-divider', className: 'mode-tab-divider'}})
     let richtextbtn = toolbar.getItem(0).$el
@@ -75,6 +75,8 @@ class ToastEditor extends Component {
     editor.eventManager.addEventType('mode-tab-markdown')
     editor.eventManager.listen('mode-tab-richtext', () => { markdownbtn.removeClass('active'); richtextbtn.addClass('active'); editor.changeMode('wysiwyg', true) })
     editor.eventManager.listen('mode-tab-markdown', () => { richtextbtn.removeClass('active'); markdownbtn.addClass('active'); editor.changeMode('markdown', true) })
+    let activebtn = (this.props.type.default_view === 'richtext') ? richtextbtn : markdownbtn
+    activebtn.addClass('active')
 
     this.recalculateHeight(editor)
 
@@ -171,7 +173,7 @@ class ToastEditor extends Component {
     let editor = new Editor({
       el: element,
       initialValue: this.props.value,
-      initialEditType: 'wysiwyg',
+      initialEditType: (this.props.type.default_view === 'richtext') ? 'wysiwyg' : 'markdown',
       useCommandShortcut: true,
       usageStatistics: false,
       previewStyle: null,
