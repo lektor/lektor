@@ -14,7 +14,7 @@ class MarkdownDescriptor(object):
 
 
 class MarkdownType(Type):
-    widget = 'markdown-gui'
+    widget = 'multiline-text'
 
     def value_from_raw(self, raw):
         return MarkdownDescriptor(raw.value or u'')
