@@ -38,7 +38,6 @@ const toolbarItems = [
 class ToastEditor extends Component {
   constructor () {
     super()
-    this.editor = null
     this.element = null
     this.count = 0
     this.content = null
@@ -50,7 +49,8 @@ class ToastEditor extends Component {
     this.focus = this.focus.bind(this)
 
     this.state = {
-      style: {}
+      style: {},
+      editor: null
     }
   }
 
@@ -106,11 +106,11 @@ class ToastEditor extends Component {
   }
 
   onChange () {
-    if (!this.editor) {
+    if (!this.state.editor) {
       return
     }
 
-    const markdown = this.editor.getMarkdown()
+    const markdown = this.state.editor.getMarkdown()
     if (this.count === 0 && markdown === '') {
       this.count++
       return
@@ -118,7 +118,7 @@ class ToastEditor extends Component {
 
     // recalculate height - delay is required to get most up to date height
     setTimeout(function () {
-      this.recalculateHeight(this.editor)
+      this.recalculateHeight(this.state.editor)
     }.bind(this), 10)
 
     // send markdown up
@@ -157,7 +157,7 @@ class ToastEditor extends Component {
     }
     this.element = element
     this.content = this.props.value
-    this.editor = new Editor({
+    let editor = new Editor({
       el: element,
       initialValue: this.props.value,
       initialEditType: 'wysiwyg',
@@ -178,6 +178,9 @@ class ToastEditor extends Component {
       },
       exts: ['lektorImage', 'lektorLink']
     })
+    this.setState({
+      editor: editor
+    })
   }
 
   render () {
@@ -187,8 +190,8 @@ class ToastEditor extends Component {
           ref={this.onRef}
           style={this.state.style}
         />
-        <LektorImageExtension editor={this.editor} {...this.getRoutingProps()} />
-        <LektorLinkExtension editor={this.editor} {...this.getRoutingProps()} />
+        <LektorImageExtension editor={this.state.editor} {...this.getRoutingProps()} />
+        <LektorLinkExtension editor={this.state.editor} {...this.getRoutingProps()} />
       </div>
     )
   }
