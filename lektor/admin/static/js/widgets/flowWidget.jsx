@@ -134,6 +134,17 @@ let lastBlockId = 0
 const FlowWidget = React.createClass({
   mixins: [BasicWidgetMixin],
 
+  getRoutingProps: function () {
+    return {
+      history: this.props.history,
+      location: this.props.location,
+      params: this.props.params,
+      route: this.props.route,
+      routeParams: this.props.routeParams,
+      routes: this.props.routes
+    }
+  },
+
   statics: {
     deserializeValue: (value, type) => {
       return parseFlowFormat(value).map((item) => {
@@ -220,6 +231,7 @@ const FlowWidget = React.createClass({
         placeholder={placeholder}
         field={field}
         onChange={onChange}
+        {...this.getRoutingProps()}
       />
     )
   },

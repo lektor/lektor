@@ -52,7 +52,7 @@ const CheckboxesInputWidget = React.createClass({
   },
 
   render () {
-    let { className, value, placeholder, type, ...otherProps } = this.props // eslint-disable-line no-unused-vars
+    let { history, location, params, route, routeParams, routes, className, value, placeholder, type, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     className = (className || '') + ' checkbox'
 
     const choices = this.props.type.choices.map((item) => {
@@ -84,7 +84,7 @@ const SelectInputWidget = React.createClass({
   },
 
   render () {
-    let { className, type, value, placeholder, onChange, ...otherProps } = this.props // eslint-disable-line no-unused-vars
+    let { history, location, params, route, routeParams, routes, className, type, value, placeholder, onChange, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     value = value || placeholder
 
     let choices = this.props.type.choices.map((item) => {

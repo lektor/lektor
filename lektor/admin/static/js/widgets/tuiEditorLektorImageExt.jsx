@@ -214,7 +214,7 @@ class LektorImageExtension extends RecordComponent {
 
     // render popup
     return (
-      <div className='tui-popup-wrapper tui-popup-body' style={{display: this.state.show ? 'block' : 'none', width: 'auto', position: 'absolute', top: this.state.top, left: this.state.left}}>
+      <div className='tui-popup-wrapper tui-popup-body' style={{display: this.state.show ? 'block' : 'none', width: 'auto', position: 'absolute', top: this.state.top, left: this.state.left, minWidth: '295px'}}>
         <div id='tabs' className='popup'>
           <ul className='nav'>
             <li><a onClick={this.modeChange} data-mode='attachment' className={this.state.mode === 'attachment' ? 'active' : ''}>Attachment</a></li>
