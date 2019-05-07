@@ -102,7 +102,7 @@ class LektorImageExtension extends RecordComponent {
       }
     })
     const lektorImageButtonIndex = toolbar.indexOfItem(EXT_NAME)
-    const {$el: $button} = toolbar.getItem(lektorImageButtonIndex)
+    const { $el: $button } = toolbar.getItem(lektorImageButtonIndex)
     this.button = $button
 
     // make the popup hide on editor focus, closeAllPopup, and close
@@ -122,29 +122,29 @@ class LektorImageExtension extends RecordComponent {
       utils.loadData('/recordinfo', {
         path: this.getRecordPath()
       }, null, makeRichPromise)
-      .then((data) => {
-        // filter out non-image files
-        let imageAttachments = data.attachments.filter((file) => {
-          return file.type === 'image'
-        })
+        .then((data) => {
+          // filter out non-image files
+          let imageAttachments = data.attachments.filter((file) => {
+            return file.type === 'image'
+          })
 
-        // add the attachments into state
-        this.setState({
-          files: imageAttachments
+          // add the attachments into state
+          this.setState({
+            files: imageAttachments
+          })
         })
-      })
-      .finally(() => {
-        // set popup location to be under the button
-        const { offsetTop, offsetLeft } = this.button.get(0)
-        this.setState({
-          top: offsetTop + this.button.outerHeight() + 18 + 4,
-          left: offsetLeft + 15
-        })
+        .finally(() => {
+          // set popup location to be under the button
+          const { offsetTop, offsetLeft } = this.button.get(0)
+          this.setState({
+            top: offsetTop + this.button.outerHeight() + 18 + 4,
+            left: offsetLeft + 15
+          })
 
-        // show the popup
-        this.editor.eventManager.emit('closeAllPopup')
-        this.show()
-      })
+          // show the popup
+          this.editor.eventManager.emit('closeAllPopup')
+          this.show()
+        })
     })
   }
 
@@ -214,7 +214,7 @@ class LektorImageExtension extends RecordComponent {
 
     // render popup
     return (
-      <div className='tui-popup-wrapper tui-popup-body' style={{display: this.state.show ? 'block' : 'none', width: 'auto', position: 'absolute', top: this.state.top, left: this.state.left, minWidth: '295px'}}>
+      <div className='tui-popup-wrapper tui-popup-body' style={{ display: this.state.show ? 'block' : 'none', width: 'auto', position: 'absolute', top: this.state.top, left: this.state.left, minWidth: '295px' }}>
         <div id='tabs' className='popup'>
           <ul className='nav'>
             <li><a onClick={this.modeChange} data-mode='attachment' className={this.state.mode === 'attachment' ? 'active' : ''}>Attachment</a></li>
@@ -222,7 +222,7 @@ class LektorImageExtension extends RecordComponent {
             <li><a onClick={this.modeChange} data-mode='external' className={this.state.mode === 'external' ? 'active' : ''}>External</a></li>
           </ul>
 
-          <div id='popup-tab-attachment' className='content attachment' style={{display: this.state.mode === 'attachment' ? 'block' : 'none'}}>
+          <div id='popup-tab-attachment' className='content attachment' style={{ display: this.state.mode === 'attachment' ? 'block' : 'none' }}>
             <dl className='field'>
               <dt>File</dt>
               <dd>
@@ -248,7 +248,7 @@ class LektorImageExtension extends RecordComponent {
             </dl>
           </div>
 
-          <div id='popup-tab-upload' className='content' style={{display: this.state.mode === 'upload' ? 'block' : 'none'}}>
+          <div id='popup-tab-upload' className='content' style={{ display: this.state.mode === 'upload' ? 'block' : 'none' }}>
             <dl className='field'>
               <dt>Image File</dt>
               <dd>
@@ -271,7 +271,7 @@ class LektorImageExtension extends RecordComponent {
             </dl>
           </div>
 
-          <div id='popup-tab-external' className='content' style={{display: this.state.mode === 'external' ? 'block' : 'none'}}>
+          <div id='popup-tab-external' className='content' style={{ display: this.state.mode === 'external' ? 'block' : 'none' }}>
             <dl className='field'>
               <dt>Image URL</dt>
               <dd>

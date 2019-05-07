@@ -126,7 +126,7 @@ class LektorLinkExtension extends FindFiles {
       }
     })
     const lektorImageButtonIndex = toolbar.indexOfItem(EXT_NAME)
-    const {$el: $button} = toolbar.getItem(lektorImageButtonIndex)
+    const { $el: $button } = toolbar.getItem(lektorImageButtonIndex)
     this.button = $button
 
     // make the popup hide on editor focus, closeAllPopup, and close
@@ -213,22 +213,22 @@ class LektorLinkExtension extends FindFiles {
 
     // render popup
     return (
-      <div className='tui-popup-wrapper tui-popup-body' style={{display: this.state.show ? 'block' : 'none', width: 'auto', position: 'absolute', top: this.state.top, left: this.state.left}}>
+      <div className='tui-popup-wrapper tui-popup-body' style={{ display: this.state.show ? 'block' : 'none', width: 'auto', position: 'absolute', top: this.state.top, left: this.state.left }}>
         <div id='tabs' className='popup'>
           <ul className='nav'>
             <li><a onClick={this.modeChange} data-mode='page' className={this.state.mode === 'page' ? 'active' : ''}>Page</a></li>
             <li><a onClick={this.modeChange} data-mode='external' className={this.state.mode === 'external' ? 'active' : ''}>URL</a></li>
           </ul>
 
-          <div id='popup-tab-attachment' className='content attachment' style={{display: this.state.mode === 'page' ? 'block' : 'none'}}>
+          <div id='popup-tab-attachment' className='content attachment' style={{ display: this.state.mode === 'page' ? 'block' : 'none' }}>
             <dl className='field'>
               <dt>Page Search</dt>
               <dd>
                 <div className='form-group'>
                   <div className='input-group'>
-                    <div style={{position: 'initial'}} className='dialog-slot'>
-                      <div style={{width: '260px', position: 'initial', padding: 'initial'}} className='sliding-panel container'>
-                        <div style={{boxShadow: 'initial', padding: 'initial'}}>
+                    <div style={{ position: 'initial' }} className='dialog-slot'>
+                      <div style={{ width: '260px', position: 'initial', padding: 'initial' }} className='sliding-panel container'>
+                        <div style={{ boxShadow: 'initial', padding: 'initial' }}>
                           <div className='form-group'>
                             <input type='text'
                               ref='q'
@@ -259,7 +259,7 @@ class LektorLinkExtension extends FindFiles {
             </dl>
           </div>
 
-          <div id='popup-tab-upload' className='content' style={{display: this.state.mode === 'external' ? 'block' : 'none'}}>
+          <div id='popup-tab-upload' className='content' style={{ display: this.state.mode === 'external' ? 'block' : 'none' }}>
             <dl className='field'>
               <dt>URL</dt>
               <dd>

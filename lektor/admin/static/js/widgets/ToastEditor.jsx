@@ -66,9 +66,9 @@ class ToastEditor extends Component {
   onLoad (editor) {
     // add in the mode switcher
     let toolbar = editor.getUI().getToolbar()
-    toolbar.insertItem(0, {type: 'button', options: {name: 'richtext-tab', text: 'Rich Text', event: 'mode-tab-richtext', tooltip: 'Use Rich Text Editor', className: 'mode-tab'}})
-    toolbar.insertItem(1, {type: 'button', options: {name: 'markdown-tab', text: 'Markdown', event: 'mode-tab-markdown', tooltip: 'Use Markdown Editor', className: 'mode-tab'}})
-    toolbar.insertItem(2, {type: 'divider', options: {name: 'switch-divider', className: 'mode-tab-divider'}})
+    toolbar.insertItem(0, { type: 'button', options: { name: 'richtext-tab', text: 'Rich Text', event: 'mode-tab-richtext', tooltip: 'Use Rich Text Editor', className: 'mode-tab' } })
+    toolbar.insertItem(1, { type: 'button', options: { name: 'markdown-tab', text: 'Markdown', event: 'mode-tab-markdown', tooltip: 'Use Markdown Editor', className: 'mode-tab' } })
+    toolbar.insertItem(2, { type: 'divider', options: { name: 'switch-divider', className: 'mode-tab-divider' } })
     let richtextbtn = toolbar.getItem(0).$el
     let markdownbtn = toolbar.getItem(1).$el
     editor.eventManager.addEventType('mode-tab-richtext')
