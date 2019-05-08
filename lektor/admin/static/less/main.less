@@ -596,6 +596,7 @@ pre.traceback {
   > .content {
     border: 2px solid @block-item-active-background;
     padding: 10px;
+    min-width: 284px;
 
     > .field:not(:last-child) {
       margin-bottom: 10px;
@@ -607,6 +608,11 @@ pre.traceback {
 
     .input-group {
       width: 100%;
+
+      input[type="file"] {
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 
