@@ -54,15 +54,6 @@ class ToastEditor extends Component {
     }
   }
 
-  // from http://youmightnotneedjquery.com/#outer_height_with_margin
-  outerHeight (el) {
-    var height = el.offsetHeight
-    var style = window.getComputedStyle(el)
-
-    height += parseInt(style.marginTop) + parseInt(style.marginBottom)
-    return height
-  }
-
   onLoad (editor) {
     // add in the mode switcher
     let toolbar = editor.getUI().getToolbar()
@@ -92,14 +83,14 @@ class ToastEditor extends Component {
     try {
       // markdown
       let editorEl = currentEditor.editorContainerEl.getElementsByClassName('CodeMirror-sizer')[0]
-      editorHeight = this.outerHeight(editorEl)
+      editorHeight = $(editorEl).outerHeight(true)
     } catch (e) {
       // wysiwyg
 
       // get height of all children in editor
       let editorEl = currentEditor.$editorContainerEl[0].firstChild
       let editorChildren = Array.from(editorEl.children)
-      let editorChildrenHeights = editorChildren.map(el => this.outerHeight(el))
+      let editorChildrenHeights = editorChildren.map(el => $(el).outerHeight(true))
       editorHeight = editorChildrenHeights.reduce((a, b) => a + b)
 
       // add on padding/border/margin of editor element
@@ -143,24 +134,10 @@ class ToastEditor extends Component {
 
   // focus and blur are used to implement the border-blur found on other widgets
   focus () {
-    this.setState({
-      style: {
-        borderColor: '#807177',
-        outline: 0,
-        boxShadow: 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(128, 113, 119, 0.6)',
-        transition: 'border-color ease-in-out .15s, box-shadow ease-in-out .15s'
-      }
-    })
-    this.element.firstChild.style.transition = 'border-color ease-in-out .15s, box-shadow ease-in-out .15s'
-    this.element.firstChild.style.borderColor = '#807177'
+    this.element.classList.add('active')
   }
   blur () {
-    this.setState({
-      style: {
-        transition: 'border-color ease-in-out .15s, box-shadow ease-in-out .15s'
-      }
-    })
-    this.element.firstChild.style.borderColor = '#e5e5e5'
+    this.element.classList.remove('active')
   }
 
   onRef (element) {
@@ -202,6 +179,7 @@ class ToastEditor extends Component {
         <div
           ref={this.onRef}
           style={this.state.style}
+          className="toast-editor-widget"
         />
         <LektorImageExtension editor={this.state.editor} {...this.getRoutingProps()} />
         <LektorLinkExtension editor={this.state.editor} {...this.getRoutingProps()} />

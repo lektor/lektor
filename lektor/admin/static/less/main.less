@@ -656,3 +656,20 @@ pre.traceback {
     color: white;
   }
 }
+
+.toast-editor-widget {
+  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+
+  :first-child {
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+  }
+
+  &.active {
+    outline: 0;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(128, 113, 119, 0.6);
+
+    :first-child {
+      border-color: @input-border-focus;
+    }
+  }
+}
