@@ -180,8 +180,8 @@ class LektorLinkExtension extends FindFiles {
   // called when the add button on the popup is clicked
   addLink () {
     // get the link text and url, depending on what mode we're in
-    var linkText = this.state.form.pageLinkText
-    var url = this.state.form.pagePath + '/'
+    let linkText = this.state.form.pageLinkText
+    let url = this.state.form.pagePath + '/'
     if (this.state.mode === 'external') {
       linkText = this.state.form.externalLinkText
       url = this.state.form.externalPath
