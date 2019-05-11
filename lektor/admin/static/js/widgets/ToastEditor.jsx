@@ -40,7 +40,6 @@ class ToastEditor extends Component {
     super(props)
 
     this.element = null
-    this.count = 0
     this.content = this.props.value
 
     this.onChange = this.onChange.bind(this)
@@ -115,10 +114,6 @@ class ToastEditor extends Component {
     }
 
     const markdown = this.state.editor.getMarkdown()
-    if (this.count === 0 && markdown === '') {
-      this.count++
-      return
-    }
 
     // recalculate height - delay is required to get most up to date height
     setTimeout(function () {
