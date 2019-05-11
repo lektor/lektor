@@ -36,11 +36,12 @@ const toolbarItems = [
 ]
 
 class ToastEditor extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
+
     this.element = null
     this.count = 0
-    this.content = null
+    this.content = this.props.value
 
     this.onChange = this.onChange.bind(this)
     this.onLoad = this.onLoad.bind(this)
@@ -140,14 +141,9 @@ class ToastEditor extends Component {
     this.element.classList.remove('active')
   }
 
-  onRef (element) {
-    if (element === null) {
-      return
-    }
-    this.element = element
-    this.content = this.props.value
-    let editor = new Editor({
-      el: element,
+  componentDidMount () {
+    const editor = new Editor({
+      el: this.element,
       initialValue: this.props.value,
       initialEditType: (this.props.type.default_view === 'richtext') ? 'wysiwyg' : 'markdown',
       useCommandShortcut: true,
@@ -171,6 +167,13 @@ class ToastEditor extends Component {
     this.setState({
       editor: editor
     })
+  }
+
+  onRef (element) {
+    if (element === null) {
+      return
+    }
+    this.element = element
   }
 
   render () {
