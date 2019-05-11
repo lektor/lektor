@@ -117,12 +117,12 @@ def load_plugins():
     return rv
 
 
-def initialize_plugins(env, extra_flags=None):
+def initialize_plugins(env):
     """Initializes the plugins for the environment."""
     plugins = load_plugins()
     for plugin_id, plugin_cls in iteritems(plugins):
         env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls)
-    env.plugin_controller.emit('setup-env', extra_flags=extra_flags)
+    env.plugin_controller.emit('setup-env')
 
 
 class PluginController(object):
