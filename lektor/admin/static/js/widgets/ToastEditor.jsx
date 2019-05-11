@@ -56,17 +56,17 @@ class ToastEditor extends Component {
 
   onLoad (editor) {
     // add in the mode switcher
-    let toolbar = editor.getUI().getToolbar()
+    const toolbar = editor.getUI().getToolbar()
     toolbar.insertItem(0, { type: 'button', options: { name: 'richtext-tab', text: 'Rich Text', event: 'mode-tab-richtext', tooltip: 'Use Rich Text Editor', className: 'mode-tab' } })
     toolbar.insertItem(1, { type: 'button', options: { name: 'markdown-tab', text: 'Markdown', event: 'mode-tab-markdown', tooltip: 'Use Markdown Editor', className: 'mode-tab' } })
     toolbar.insertItem(2, { type: 'divider', options: { name: 'switch-divider', className: 'mode-tab-divider' } })
-    let richtextbtn = toolbar.getItem(0).$el
-    let markdownbtn = toolbar.getItem(1).$el
+    const richtextbtn = toolbar.getItem(0).$el
+    const markdownbtn = toolbar.getItem(1).$el
     editor.eventManager.addEventType('mode-tab-richtext')
     editor.eventManager.addEventType('mode-tab-markdown')
     editor.eventManager.listen('mode-tab-richtext', () => { markdownbtn.removeClass('active'); richtextbtn.addClass('active'); editor.changeMode('wysiwyg', true) })
     editor.eventManager.listen('mode-tab-markdown', () => { richtextbtn.removeClass('active'); markdownbtn.addClass('active'); editor.changeMode('markdown', true) })
-    let activebtn = (this.props.type.default_view === 'richtext') ? richtextbtn : markdownbtn
+    const activebtn = (this.props.type.default_view === 'richtext') ? richtextbtn : markdownbtn
     activebtn.addClass('active')
 
     this.recalculateHeight(editor)
@@ -78,33 +78,33 @@ class ToastEditor extends Component {
   }
 
   recalculateHeight (editor) {
-    let currentEditor = editor.getCurrentModeEditor()
+    const currentEditor = editor.getCurrentModeEditor()
     let editorHeight
     try {
       // markdown
-      let editorEl = currentEditor.editorContainerEl.getElementsByClassName('CodeMirror-sizer')[0]
+      const editorEl = currentEditor.editorContainerEl.getElementsByClassName('CodeMirror-sizer')[0]
       editorHeight = $(editorEl).outerHeight(true)
     } catch (e) {
       // wysiwyg
 
       // get height of all children in editor
-      let editorEl = currentEditor.$editorContainerEl[0].firstChild
+      const editorEl = currentEditor.$editorContainerEl[0].firstChild
       let editorChildren = Array.from(editorEl.children)
-      let editorChildrenHeights = editorChildren.map(el => $(el).outerHeight(true))
+      const editorChildrenHeights = editorChildren.map(el => $(el).outerHeight(true))
       editorHeight = editorChildrenHeights.reduce((a, b) => a + b)
 
       // add on padding/border/margin of editor element
-      let marginTop = parseInt(window.getComputedStyle(editorEl).marginTop)
-      let marginBottom = parseInt(window.getComputedStyle(editorEl).marginBottom)
-      let paddingTop = parseInt(window.getComputedStyle(editorEl).paddingTop)
-      let paddingBottom = parseInt(window.getComputedStyle(editorEl).paddingBottom)
-      let borderTop = parseInt(window.getComputedStyle(editorEl).borderTopWidth)
-      let borderBottom = parseInt(window.getComputedStyle(editorEl).borderBottomWidth)
+      const marginTop = parseInt(window.getComputedStyle(editorEl).marginTop)
+      const marginBottom = parseInt(window.getComputedStyle(editorEl).marginBottom)
+      const paddingTop = parseInt(window.getComputedStyle(editorEl).paddingTop)
+      const paddingBottom = parseInt(window.getComputedStyle(editorEl).paddingBottom)
+      const borderTop = parseInt(window.getComputedStyle(editorEl).borderTopWidth)
+      const borderBottom = parseInt(window.getComputedStyle(editorEl).borderBottomWidth)
       editorHeight += (marginTop + marginBottom + paddingTop + paddingBottom + borderTop + borderBottom)
     }
 
-    let totalHeight = editorHeight + 31 + 31
-    let totalHeightStr = totalHeight + 'px'
+    const totalHeight = editorHeight + 31 + 31
+    const totalHeightStr = totalHeight + 'px'
     editor.height(totalHeightStr)
   }
 
@@ -121,7 +121,7 @@ class ToastEditor extends Component {
     }.bind(this), 10)
 
     // send markdown up
-    let contentChanged = markdown !== this.content
+    const contentChanged = markdown !== this.content
     if (this.props.onChange && this.content !== null && contentChanged) {
       this.content = markdown
       this.props.onChange(markdown)

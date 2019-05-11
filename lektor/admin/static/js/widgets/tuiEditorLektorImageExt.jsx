@@ -124,7 +124,7 @@ class LektorImageExtension extends RecordComponent {
       }, null, makeRichPromise)
         .then((data) => {
           // filter out non-image files
-          let imageAttachments = data.attachments.filter((file) => {
+          const imageAttachments = data.attachments.filter((file) => {
             return file.type === 'image'
           })
 
