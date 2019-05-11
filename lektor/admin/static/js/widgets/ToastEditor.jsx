@@ -83,14 +83,14 @@ class ToastEditor extends Component {
     try {
       // markdown
       const editorEl = currentEditor.editorContainerEl.getElementsByClassName('CodeMirror-sizer')[0]
-      editorHeight = $(editorEl).outerHeight(true)
+      editorHeight = window.$(editorEl).outerHeight(true)
     } catch (e) {
       // wysiwyg
 
       // get height of all children in editor
       const editorEl = currentEditor.$editorContainerEl[0].firstChild
       let editorChildren = Array.from(editorEl.children)
-      const editorChildrenHeights = editorChildren.map(el => $(el).outerHeight(true))
+      const editorChildrenHeights = editorChildren.map(el => window.$(el).outerHeight(true))
       editorHeight = editorChildrenHeights.reduce((a, b) => a + b)
 
       // add on padding/border/margin of editor element
@@ -177,7 +177,7 @@ class ToastEditor extends Component {
         <div
           ref={this.onRef}
           style={this.state.style}
-          className="toast-editor-widget"
+          className='toast-editor-widget'
         />
         <LektorImageExtension editor={this.state.editor} {...this.getRoutingProps()} />
         <LektorLinkExtension editor={this.state.editor} {...this.getRoutingProps()} />

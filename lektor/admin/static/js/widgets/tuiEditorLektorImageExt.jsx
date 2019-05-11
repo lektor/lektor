@@ -43,7 +43,7 @@ class LektorImageExtension extends RecordComponent {
     }
 
     this.modeChange = this.modeChange.bind(this)
-    this.formChange = this.formChange.bind(this)
+    this.onChange = this.onChange.bind(this)
     this.canAddImage = this.canAddImage.bind(this)
     this.addImage = this.addImage.bind(this)
     this.init = this.init.bind(this)
@@ -59,7 +59,7 @@ class LektorImageExtension extends RecordComponent {
   }
 
   // called whenever one of the controlled form elements is updated
-  formChange (e) {
+  onChange (e) {
     const key = e.target.getAttribute('data-key')
     const val = e.target.type === 'file' ? e.target.files[0] : e.target.value
 
@@ -228,7 +228,7 @@ class LektorImageExtension extends RecordComponent {
               <dd>
                 <div className='form-group'>
                   <div>
-                    <select id='attachment-path' className='form-control' data-key='attachmentPath' onChange={this.formChange} value={this.state.form.attachmentPath}>
+                    <select id='attachment-path' className='form-control' data-key='attachmentPath' onChange={this.onChange} value={this.state.form.attachmentPath}>
                       <option value='----'>----</option>
                       {this.state.files.map(file => <option key={file.id} value={file.path}>{file.id}</option>)}
                     </select>
@@ -241,7 +241,7 @@ class LektorImageExtension extends RecordComponent {
               <dd>
                 <div className='form-group'>
                   <div className='input-group'>
-                    <input id='attachment-alt-text' type='text' className='form-control' data-key='attachmentAltText' onChange={this.formChange} value={this.state.form.attachmentAltText} />
+                    <input id='attachment-alt-text' type='text' className='form-control' data-key='attachmentAltText' onChange={this.onChange} value={this.state.form.attachmentAltText} />
                   </div>
                 </div>
               </dd>
@@ -254,7 +254,7 @@ class LektorImageExtension extends RecordComponent {
               <dd>
                 <div className='form-group'>
                   <div className='input-group'>
-                    <input id='upload-file' type='file' className='form-control' accept='image/*' data-key='uploadFile' onChange={this.formChange} />
+                    <input id='upload-file' type='file' className='form-control' accept='image/*' data-key='uploadFile' onChange={this.onChange} />
                   </div>
                 </div>
               </dd>
@@ -264,7 +264,7 @@ class LektorImageExtension extends RecordComponent {
               <dd>
                 <div className='form-group'>
                   <div className='input-group'>
-                    <input id='upload-alt-text' type='text' className='form-control' data-key='uploadAltText' onChange={this.formChange} value={this.state.form.uploadAltText} />
+                    <input id='upload-alt-text' type='text' className='form-control' data-key='uploadAltText' onChange={this.onChange} value={this.state.form.uploadAltText} />
                   </div>
                 </div>
               </dd>
@@ -277,7 +277,7 @@ class LektorImageExtension extends RecordComponent {
               <dd>
                 <div className='form-group'>
                   <div className='input-group'>
-                    <input id='external-path' type='text' className='form-control' data-key='externalPath' onChange={this.formChange} value={this.state.form.externalPath} />
+                    <input id='external-path' type='text' className='form-control' data-key='externalPath' onChange={this.onChange} value={this.state.form.externalPath} />
                   </div>
                 </div>
               </dd>
@@ -287,7 +287,7 @@ class LektorImageExtension extends RecordComponent {
               <dd>
                 <div className='form-group'>
                   <div className='input-group'>
-                    <input id='external-alt-text' type='text' className='form-control' data-key='externalAltText' onChange={this.formChange} value={this.state.form.externalAltText} />
+                    <input id='external-alt-text' type='text' className='form-control' data-key='externalAltText' onChange={this.onChange} value={this.state.form.externalAltText} />
                   </div>
                 </div>
               </dd>
