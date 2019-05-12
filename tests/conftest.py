@@ -15,7 +15,7 @@ def project():
 
 
 @pytest.fixture(scope='function')
-def scratch_project(tmpdir):
+def scratch_project_data(tmpdir):
     base = tmpdir.mkdir("scratch-proj")
     lektorfile_text = textwrap.dedent(u"""
         [project]
@@ -32,7 +32,7 @@ def scratch_project(tmpdir):
         ---
         title: Index
         ---
-        body: Hello World!
+        body: *Hello World!*
     """)
     base.join("content", "contents.lr").write_text(content_text, "utf8", ensure=True)
     template_text = textwrap.dedent(u"""
@@ -51,7 +51,13 @@ def scratch_project(tmpdir):
     """)
     base.join("models", "page.ini").write_text(model_text, "utf8", ensure=True)
 
+    return base
+
+
+@pytest.fixture(scope='function')
+def scratch_project(scratch_project_data):
     from lektor.project import Project
+    base = scratch_project_data
     return Project.from_path(str(base))
 
 
