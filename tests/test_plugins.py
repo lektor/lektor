@@ -1,5 +1,6 @@
 import textwrap
 import os
+import shutil
 
 import pytest
 
@@ -31,10 +32,10 @@ all_events = build_events + [
 
 
 @pytest.fixture(scope="function")
-def scratch_project_with_plugin(scratch_project_data, request):
+def scratch_project_with_plugin(scratch_project_data, request, isolated_cli_runner):
     """Create a scratch project and add a plugin that has the named event listener.
 
-    Return project and current event.
+    Return (project, current event, and attached cli_runner).
     """
     base = scratch_project_data
 
@@ -87,19 +88,26 @@ def scratch_project_with_plugin(scratch_project_data, request):
     )
     base.join("templates", "page.html").write_text(template_text, "utf8", ensure=True)
 
+    # Move into isolated path.
+    for entry in os.listdir(base):
+        entry_path = os.path.join(base, entry)
+        if os.path.isdir(entry_path):
+            shutil.copytree(entry_path, entry)
+        else:
+            shutil.copy2(entry_path, entry)
+
     from lektor.project import Project
 
-    yield (Project.from_path(str(base)), request.param)
+    yield (Project.from_path(str(base)), request.param, isolated_cli_runner)
 
 
 @pytest.mark.parametrize("scratch_project_with_plugin", build_events, indirect=True)
-def test_plugin_build_events_via_cli(scratch_project_with_plugin, isolated_cli_runner):
+def test_plugin_build_events_via_cli(scratch_project_with_plugin):
     """Test whether a plugin with a given event can successfully use an extra flag.
     """
-    proj, event = scratch_project_with_plugin
-    os.chdir(proj.tree)
+    proj, event, cli_runner = scratch_project_with_plugin
 
-    result = isolated_cli_runner.invoke(cli, ["build", "-f", "EXTRA"])
+    result = cli_runner.invoke(cli, ["build", "-f", "EXTRA"])
     assert result.exit_code == 0
 
     # Test that the event was triggered and the current extra flag was passed.
@@ -123,8 +131,6 @@ def test_plugin_build_events_via_cli(scratch_project_with_plugin, isolated_cli_r
 
     assert len(hits) != 0
 
-    result = isolated_cli_runner.invoke(cli, ["clean", "--yes"])
-
 
 @pytest.mark.parametrize("scratch_project_with_plugin", all_events, indirect=True)
 def test_env_extra_flag_passthrough(scratch_project_with_plugin):
@@ -132,8 +138,7 @@ def test_env_extra_flag_passthrough(scratch_project_with_plugin):
     """
     from lektor.environment import Environment
 
-    proj, event = scratch_project_with_plugin
-    os.chdir(proj.tree)
+    proj, event, cli_runner = scratch_project_with_plugin
 
     extra = {"extra": "extra"}
     env = Environment(proj, extra_flags=extra)
