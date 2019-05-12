@@ -4,6 +4,7 @@ import shutil
 
 import pytest
 
+from lektor._compat import PY2
 from lektor.cli import cli
 
 
@@ -89,8 +90,8 @@ def scratch_project_with_plugin(scratch_project_data, request, isolated_cli_runn
     base.join("templates", "page.html").write_text(template_text, "utf8", ensure=True)
 
     # Move into isolated path.
-    for entry in os.listdir(base):
-        entry_path = os.path.join(base, entry)
+    for entry in os.listdir(str(base)):
+        entry_path = os.path.join(str(base), entry)
         if os.path.isdir(entry_path):
             shutil.copytree(entry_path, entry)
         else:
@@ -124,10 +125,13 @@ def test_plugin_build_events_via_cli(scratch_project_with_plugin):
     # very hacky teardown function. The extra computation time is negligible.
     # See https://github.com/pypa/setuptools/issues/1759
 
-    hits = [r for r in output_lines if r.startswith("event on_{}".format(event))]
+    hits = [r for r in output_lines if "event on_{}".format(event) in r]
 
     for hit in hits:
-        assert "{'EXTRA': 'EXTRA'}" in hit
+        if PY2:
+            assert "{u'EXTRA': u'EXTRA'}" in hit
+        else:
+            assert "{'EXTRA': 'EXTRA'}" in hit
 
     assert len(hits) != 0
 
