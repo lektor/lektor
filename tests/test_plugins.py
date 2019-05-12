@@ -8,19 +8,16 @@ from lektor._compat import PY2
 from lektor.cli import cli
 
 
-build_events = [
+clean_events = ["before_prune", "after_prune", "setup_env"]
+build_events = clean_events + [
     "before_build",
     "before_build_all",
     "after_build",
     "after_build_all",
-    "before_prune",
-    "after_prune",
     "markdown_meta_init",
     "markdown_meta_postprocess",
     "process_template_context",
-    "setup_env",
 ]
-
 all_events = build_events + [
     # Only during creation of markdown threadlocal object. I.e. only emitted on build
     # on the first render of the *entire* test suite, or else a lot of lib load hacking.
@@ -124,6 +121,30 @@ def test_plugin_build_events_via_cli(scratch_project_with_plugin):
     # of removing entry_points. I choose this comment over what would be a convoluted and
     # very hacky teardown function. The extra computation time is negligible.
     # See https://github.com/pypa/setuptools/issues/1759
+
+    hits = [r for r in output_lines if "event on_{}".format(event) in r]
+
+    for hit in hits:
+        if PY2:
+            assert "{u'EXTRA': u'EXTRA'}" in hit
+        else:
+            assert "{'EXTRA': 'EXTRA'}" in hit
+
+    assert len(hits) != 0
+
+
+@pytest.mark.parametrize("scratch_project_with_plugin", clean_events, indirect=True)
+def test_plugin_clean_events_via_cli(scratch_project_with_plugin):
+    """Test whether a plugin with a given event can successfully use an extra flag.
+    """
+    proj, event, cli_runner = scratch_project_with_plugin
+
+    # See comment in test_plugin_build_events_via_cli
+    result = cli_runner.invoke(cli, ["clean", "--yes", "-f", "EXTRA"])
+    assert result.exit_code == 0
+
+    # Test that the event was triggered and the current extra flag was passed.
+    output_lines = result.output.split("\n")
 
     hits = [r for r in output_lines if "event on_{}".format(event) in r]
 
