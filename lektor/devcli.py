@@ -1,3 +1,4 @@
+import itertools
 import os
 import sys
 import click
@@ -9,7 +10,7 @@ except ImportError:
     pass  # fallback to normal Python InteractiveConsole
 
 from .packages import get_package_info, register_package, publish_package
-from .cli import pass_context, AliasedGroup
+from .cli import pass_context, AliasedGroup, extraflag, buildflag
 
 
 def ensure_plugin():
@@ -36,8 +37,10 @@ def cli():
 
 
 @cli.command('shell', short_help='Starts a python shell.')
+@extraflag
+@buildflag
 @pass_context
-def shell_cmd(ctx):
+def shell_cmd(ctx, extra_flags, build_flags):
     """Starts a Python shell in the context of a Lektor project.
 
     This is particularly useful for debugging plugins and to explore the
@@ -50,7 +53,8 @@ def shell_cmd(ctx):
     - `pad`: a database pad initialized for the project and environment
       that is ready to use.
     """
-    ctx.load_plugins()
+    extra_flags = tuple(itertools.chain(extra_flags or (), build_flags or ()))
+    ctx.load_plugins(extra_flags=extra_flags)
     import code
     from lektor.db import F, Tree
     from lektor.builder import Builder
