@@ -170,3 +170,25 @@ def test_env_extra_flag_passthrough(scratch_project_with_plugin):
     plugin_return = env.plugin_controller.emit(event)
     for plugin in plugin_return:
         assert plugin_return[plugin]["extra_flags"] == extra
+
+
+@pytest.mark.parametrize("scratch_project_with_plugin", ["setup_env"], indirect=True)
+def test_multiple_extra_flags(scratch_project_with_plugin):
+    """Test whether setting extra_flags passes through to each plugin event.
+    """
+    proj, event, cli_runner = scratch_project_with_plugin
+
+    # See comment in test_plugin_build_events_via_cli
+    result = cli_runner.invoke(cli, ["build", "-f", "EXTRA", "-f", "ANOTHER"])
+    assert result.exit_code == 0
+
+    # Test that the event was triggered and the current extra flag was passed.
+    output_lines = result.output.split("\n")
+
+    hits = [r for r in output_lines if "event on_{}".format(event) in r]
+
+    for hit in hits:
+        assert "EXTRA" in hit
+        assert "ANOTHER" in hit
+
+    assert len(hits) != 0
