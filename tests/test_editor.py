@@ -7,7 +7,7 @@ def test_basic_editor(scratch_tree):
 
     assert sess['_model'] == 'page'
     assert sess['title'] == 'Index'
-    assert sess['body'] == 'Hello World!'
+    assert sess['body'] == '*Hello World!*'
 
     sess['body'] = 'A new body'
     sess.commit()
@@ -33,7 +33,7 @@ def test_create_alt(scratch_tree, scratch_pad):
 
     assert sess['_model'] == 'page'
     assert sess['title'] == 'Index'
-    assert sess['body'] == 'Hello World!'
+    assert sess['body'] == '*Hello World!*'
 
     sess['body'] = 'Hallo Welt!'
     sess.commit()
