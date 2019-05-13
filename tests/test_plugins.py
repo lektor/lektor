@@ -67,9 +67,9 @@ def scratch_project_with_plugin(scratch_project_data, request, isolated_cli_runn
             name = 'Event Test'
             description = u'Non-empty string'
 
-            def on_{}(self, **extra):
-                print("event on_{}", extra['extra_flags'])
-                return extra
+            def on_{}(self, extra_flags, **extra):
+                print("event on_{}", extra_flags)
+                return extra_flags
     """
     ).format(request.param_index, request.param, request.param)
     base.join(
@@ -160,8 +160,9 @@ def test_env_extra_flag_passthrough(scratch_project_with_plugin):
     extra = {"extra": "extra"}
     env = Environment(proj, extra_flags=extra)
     plugin_return = env.plugin_controller.emit(event)
+
     for plugin in plugin_return:
-        assert plugin_return[plugin]["extra_flags"] == extra
+        assert plugin_return[plugin] == extra
 
 
 @pytest.mark.parametrize("scratch_project_with_plugin", ["setup_env"], indirect=True)
