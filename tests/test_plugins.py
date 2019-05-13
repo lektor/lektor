@@ -78,14 +78,6 @@ def scratch_project_with_plugin(scratch_project_data, request, isolated_cli_runn
         "lektor_event_test{}.py".format(request.param_index),
     ).write_text(plugin_text, "utf8", ensure=True)
 
-    template_text = textwrap.dedent(
-        u"""
-        <h1>{{ "**Title**"|markdown }}</h1>
-        {{ this.body }}
-    """
-    )
-    base.join("templates", "page.html").write_text(template_text, "utf8", ensure=True)
-
     # Move into isolated path.
     for entry in os.listdir(str(base)):
         entry_path = os.path.join(str(base), entry)
@@ -118,8 +110,8 @@ def test_plugin_build_events_via_cli(scratch_project_with_plugin):
     # these previous plugins are never removed. So while this does test what it says it
     # does, it also hooks previously generated plugins. Avoiding this with a succint
     # teardown is currently not possible AFAICT, since setuptools provides no clear way
-    # of removing entry_points. I choose this comment over what would be a convoluted and
-    # very hacky teardown function. The extra computation time is negligible.
+    # of removing entry_points. I choose this comment over what would be a convoluted
+    # and very hacky teardown function. The extra computation time is negligible.
     # See https://github.com/pypa/setuptools/issues/1759
 
     hits = [r for r in output_lines if "event on_{}".format(event) in r]
