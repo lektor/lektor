@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 from weakref import ref as weakref
 from inifile import IniFile
 import pkg_resources
@@ -161,5 +162,16 @@ class PluginController(object):
         for plugin in self.iter_plugins():
             handler = getattr(plugin, funcname, None)
             if handler is not None:
-                rv[plugin.id] = handler(**kwargs)
+                try:
+                    rv[plugin.id] = handler(**kwargs)
+                except TypeError:
+                    old_style_kwargs = kwargs.copy()
+                    old_style_kwargs.pop("extra_flags")
+                    rv[plugin.id] = handler(**old_style_kwargs)
+                    warnings.warn(
+                        'The plugin "{}" function "{}" does not accept extra_flags. '
+                        "It should be updated to accept `**extra` so that it will "
+                        "not break if new parameters are passed to it by newer "
+                        "versions of Lektor.".format(plugin.id, funcname), DeprecationWarning
+                    )
         return rv

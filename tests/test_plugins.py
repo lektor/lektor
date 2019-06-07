@@ -185,3 +185,87 @@ def test_multiple_extra_flags(scratch_project_with_plugin):
         assert "ANOTHER" in hit
 
     assert len(hits) != 0
+
+
+@pytest.fixture(scope="function")
+def scratch_project_with_plugin_no_params(
+    scratch_project_data, request, isolated_cli_runner
+):
+    """Create a scratch project and add a plugin that has the named event listener.
+
+    Return (project, current event, and attached cli_runner).
+    """
+    base = scratch_project_data
+
+    # Minimum viable setup.py
+    current_test_index = (request.param_index,) * 4
+    setup_text = textwrap.dedent(
+        u"""
+        from setuptools import setup
+
+        setup(
+            name='lektor-event-test-no-params{}',
+            entry_points={{
+                'lektor.plugins': [
+                    'event-test-no-params{} = lektor_event_test_no_params{}:NoParams{}',
+                ]
+            }}
+        )
+    """
+    ).format(*current_test_index)
+    base.join(
+        "packages", "event-test-no-params{}".format(request.param_index), "setup.py"
+    ).write_text(setup_text, "utf8", ensure=True)
+
+    # Minimum plugin code
+    plugin_text = textwrap.dedent(
+        u"""
+        from lektor.pluginsystem import Plugin
+        import os
+
+        class NoParams{}(Plugin):
+            name = 'Event Test'
+            description = u'Non-empty string'
+
+            def on_{}(self):
+                pass
+    """
+    ).format(request.param_index, request.param, request.param)
+    base.join(
+        "packages",
+        "event-test-no-params{}".format(request.param_index),
+        "lektor_event_test_no_params{}.py".format(request.param_index),
+    ).write_text(plugin_text, "utf8", ensure=True)
+
+    # Move into isolated path.
+    for entry in os.listdir(str(base)):
+        entry_path = os.path.join(str(base), entry)
+        if os.path.isdir(entry_path):
+            shutil.copytree(entry_path, entry)
+        else:
+            shutil.copy2(entry_path, entry)
+
+    from lektor.project import Project
+
+    yield (Project.from_path(str(base)), request.param, isolated_cli_runner)
+
+
+# Cleans output. We don't need alerted of a warning we intend.
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+@pytest.mark.parametrize(
+    "scratch_project_with_plugin_no_params", ["setup_env"], indirect=True
+)
+def test_plugin_bad_params(scratch_project_with_plugin_no_params):
+    """Ensure plugins err if event hooks don't accept needed params.
+    """
+    proj, event, cli_runner = scratch_project_with_plugin_no_params
+
+    env = proj.make_env()
+
+    # extra_flags not accepted. This will work but issues a warning.
+    with pytest.warns(DeprecationWarning):
+        env.plugin_controller.emit(event)
+
+    # A new (unaccepted) param is passed.
+    with pytest.raises(TypeError):
+        env.plugin_controller.emit(event, new_param="new param")
