@@ -15,31 +15,23 @@ cache:
 
 environment:
   matrix:
-    # Node 6
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "6"
-    # Node 7 is End-of-Life
-    # Node 8
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "8"
-    # Node 9
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "9"
-    # Node 10 - Py 2.7, 3.5-3.7
+    # Node 8 - Py 2.7
     - PYTHON: "C:\\Python27"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "8"
+    # Node 10 - Py 3.5
     - PYTHON: "C:\\Python35"
       NODE_JS_VERSION: "10"
+    # Node 11 - Py 3.6, 3.7
     - PYTHON: "C:\\Python36"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "11"
     - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "11"
 
 install:
   # some tests require imagemagick
-  - choco install --timeout 600 imagemagick.tool || true
-  - choco install --timeout 600 ffmpeg || true
-  - choco install --timeout 600 codecov || true
+  - appveyor-retry choco install --timeout 600 imagemagick.tool || true
+  - appveyor-retry choco install --timeout 600 ffmpeg || true
+  - appveyor-retry choco install --timeout 600 codecov || true
   # Install lektor, dependencies and test package requirements
   - "%PYTHON%\\python.exe -m pip install --upgrade pytest"
   - "%PYTHON%\\python.exe -m pip install --upgrade codecov"

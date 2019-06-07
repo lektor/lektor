@@ -1,4 +1,5 @@
 language: python
+dist: xenial
 
 branches:
   only:
@@ -6,27 +7,27 @@ branches:
 
 matrix:
   include:
-    # Node 6
-    - python: 3.6
-      env:  TRAVIS_NODE_VERSION=6
-    # Node 7 is End-of-Life
     # Node 8
-    - python: 3.6
+    - python: 3.7
       env:  TRAVIS_NODE_VERSION=8
-    # Node 9
-    - python: 3.6
-      env:  TRAVIS_NODE_VERSION=9
-    # Node 10 - Py 2.7, 3.5-3.6
-    - python: 2.7
-      env:  TRAVIS_NODE_VERSION=10
-    - python: 3.5
-      env:  TRAVIS_NODE_VERSION=10
-    - python: 3.6
-      env:  TRAVIS_NODE_VERSION=10
+    # Node 10
     - python: 3.7
       env:  TRAVIS_NODE_VERSION=10
-      dist: xenial
-      sudo: true
+    # Node 12
+    # Py 2.7, 3.5-3.7
+    - python: 2.7
+      env:  TRAVIS_NODE_VERSION=12
+    - python: 3.5
+      env:  TRAVIS_NODE_VERSION=12
+    - python: 3.6
+      env:  TRAVIS_NODE_VERSION=12
+    - python: 3.7
+      env:  TRAVIS_NODE_VERSION=12
+    - python: 3.8-dev
+      env:  TRAVIS_NODE_VERSION=12
+  allow_failures:
+    - python: 3.8-dev
+      env:  TRAVIS_NODE_VERSION=12
 
 cache:
   directories:
