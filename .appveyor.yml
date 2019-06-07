@@ -15,25 +15,21 @@ cache:
 
 environment:
   matrix:
-    # Node 6
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "6"
-    # Node 7 is End-of-Life
     # Node 8
     - PYTHON: "C:\\Python37"
       NODE_JS_VERSION: "8"
-    # Node 9
+    # Node 10
     - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "9"
-    # Node 10 - Py 2.7, 3.5-3.7
+      NODE_JS_VERSION: "10"
+    # Node 12 - Py 2.7, 3.5-3.7
     - PYTHON: "C:\\Python27"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "12"
     - PYTHON: "C:\\Python35"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "12"
     - PYTHON: "C:\\Python36"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "12"
     - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "10"
+      NODE_JS_VERSION: "12"
 
 install:
   # some tests require imagemagick
