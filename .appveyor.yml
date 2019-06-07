@@ -15,17 +15,13 @@ cache:
 
 environment:
   matrix:
-    # Node 8
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "8"
-    # Node 10
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "10"
-    # Node 12 - Py 2.7, 3.5-3.7
+    # Node 8 - Py 2.7
     - PYTHON: "C:\\Python27"
-      NODE_JS_VERSION: "12"
+      NODE_JS_VERSION: "8"
+    # Node 10 - Py 3.5
     - PYTHON: "C:\\Python35"
-      NODE_JS_VERSION: "12"
+      NODE_JS_VERSION: "10"
+    # Node 12 - Py 3.6, 3.7
     - PYTHON: "C:\\Python36"
       NODE_JS_VERSION: "12"
     - PYTHON: "C:\\Python37"
