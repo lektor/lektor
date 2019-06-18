@@ -83,7 +83,7 @@ class FileContents(object):
                 sha384.update(chunk)
             self._md5 = md5.hexdigest()
             self._sha1 = sha1.hexdigest()
-            self._integrity = 'sha384-' + base64.b64encode(sha384.digest())
+            self._integrity = 'sha384-' + base64.b64encode(sha384.digest()).decode('ascii')
 
     def __repr__(self):
         return '<FileContents %r md5=%r>' % (
