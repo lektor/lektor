@@ -199,14 +199,14 @@ const FlowWidget = React.createClass({
     }
   },
 
-  collapseBlock: function(idx){
+  collapseBlock: function (idx) {
     this.props.value[idx].collapsed = true
     if (this.props.onChange) {
       this.props.onChange(this.props.value)
     }
   },
 
-  expandBlock: function (idx){
+  expandBlock: function (idx) {
     this.props.value[idx].collapsed = false
     if (this.props.onChange) {
       this.props.onChange(this.props.value)
@@ -257,11 +257,11 @@ const FlowWidget = React.createClass({
         <div key={blockInfo.localId} className='flow-block'>
           <div className='btn-group action-bar'>
             <button
-                className='btn btn-default btn-xs'
-                title={this.props.value[idx].collapsed ? i18n.trans('Expand') : i18n.trans('Collapse') }
-                onClick={this.props.value[idx].collapsed ?
-                    this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}>
-                <i className={this.props.value[idx].collapsed ? 'fa fa-expand' : 'fa fa-compress'}/>
+              className='btn btn-default btn-xs'
+              title={this.props.value[idx].collapsed ? i18n.trans('Expand') : i18n.trans('Collapse')}
+              onClick={this.props.value[idx].collapsed
+                       ? this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}>
+              <i className={this.props.value[idx].collapsed ? 'fa fa-expand' : 'fa fa-compress'} />
             </button>
             <button
               className='btn btn-default btn-xs'
