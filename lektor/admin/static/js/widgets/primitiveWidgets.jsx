@@ -1,6 +1,7 @@
 'use strict'
 
 import React from 'react'
+import createReactClass from 'create-react-class';
 import jQuery from 'jquery'
 import { BasicWidgetMixin, ValidationFailure } from './mixins'
 import utils from '../utils'
@@ -72,7 +73,8 @@ const InputWidgetMixin = {
   }
 }
 
-const SingleLineTextInputWidget = React.createClass({
+const SingleLineTextInputWidget = createReactClass({
+  displayName: 'SingleLineTextInputWidget',
   mixins: [InputWidgetMixin],
 
   getInputType () {
@@ -81,10 +83,11 @@ const SingleLineTextInputWidget = React.createClass({
 
   getInputAddon () {
     return <i className='fa fa-paragraph' />
-  }
+  },
 })
 
-const SlugInputWidget = React.createClass({
+const SlugInputWidget = createReactClass({
+  displayName: 'SlugInputWidget',
   mixins: [InputWidgetMixin],
 
   postprocessValue (value) {
@@ -97,10 +100,11 @@ const SlugInputWidget = React.createClass({
 
   getInputAddon () {
     return <i className='fa fa-link' />
-  }
+  },
 })
 
-const IntegerInputWidget = React.createClass({
+const IntegerInputWidget = createReactClass({
+  displayName: 'IntegerInputWidget',
   mixins: [InputWidgetMixin],
 
   postprocessValue (value) {
@@ -122,10 +126,11 @@ const IntegerInputWidget = React.createClass({
 
   getInputAddon () {
     return '0'
-  }
+  },
 })
 
-const FloatInputWidget = React.createClass({
+const FloatInputWidget = createReactClass({
+  displayName: 'FloatInputWidget',
   mixins: [InputWidgetMixin],
 
   postprocessValue (value) {
@@ -147,10 +152,11 @@ const FloatInputWidget = React.createClass({
 
   getInputAddon () {
     return '0.0'
-  }
+  },
 })
 
-const DateInputWidget = React.createClass({
+const DateInputWidget = createReactClass({
+  displayName: 'DateInputWidget',
   mixins: [InputWidgetMixin],
 
   postprocessValue (value) {
@@ -191,10 +197,11 @@ const DateInputWidget = React.createClass({
 
   getInputAddon () {
     return <i className='fa fa-calendar' />
-  }
+  },
 })
 
-const UrlInputWidget = React.createClass({
+const UrlInputWidget = createReactClass({
+  displayName: 'UrlInputWidget',
   mixins: [InputWidgetMixin],
 
   getValidationFailureImpl () {
@@ -212,10 +219,11 @@ const UrlInputWidget = React.createClass({
 
   getInputAddon () {
     return <i className='fa fa-external-link' />
-  }
+  },
 })
 
-const MultiLineTextInputWidget = React.createClass({
+const MultiLineTextInputWidget = createReactClass({
+  displayName: 'MultiLineTextInputWidget',
   mixins: [BasicWidgetMixin],
 
   onChange (event) {
@@ -301,10 +309,11 @@ const MultiLineTextInputWidget = React.createClass({
           {...otherProps} />
       </div>
     )
-  }
+  },
 })
 
-const BooleanInputWidget = React.createClass({
+const BooleanInputWidget = createReactClass({
+  displayName: 'BooleanInputWidget',
   mixins: [BasicWidgetMixin],
 
   onChange (event) {
@@ -337,7 +346,7 @@ const BooleanInputWidget = React.createClass({
         </label>
       </div>
     )
-  }
+  },
 })
 
 export default {
