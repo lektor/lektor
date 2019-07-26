@@ -6,7 +6,7 @@ class Dash extends Component {
   componentDidMount () {
     super.componentDidMount()
     const rootPreview = $LEKTOR_CONFIG.admin_root + '/root/preview'
-    this.props.history.pushState(null, rootPreview)
+    this.context.router.push(rootPreview)
   }
 
   render () {
