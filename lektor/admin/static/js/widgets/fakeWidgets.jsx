@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import createReactClass from 'create-react-class';
+import createReactClass from 'create-react-class'
 import { BasicWidgetMixin } from './mixins'
 import i18n from '../i18n'
 
@@ -23,7 +23,7 @@ const LineWidget = createReactClass({
 
   render () {
     return <hr />
-  },
+  }
 })
 
 const SpacingWidget = createReactClass({
@@ -32,7 +32,7 @@ const SpacingWidget = createReactClass({
 
   render () {
     return <div className='spacing' />
-  },
+  }
 })
 
 const InfoWidget = createReactClass({
@@ -49,7 +49,7 @@ const InfoWidget = createReactClass({
         </p>
       </div>
     )
-  },
+  }
 })
 
 const HeadingWidget = createReactClass({
@@ -60,7 +60,7 @@ const HeadingWidget = createReactClass({
     return (
       <h3>{i18n.trans(this.props.type.heading_i18n)}</h3>
     )
-  },
+  }
 })
 
 export default {

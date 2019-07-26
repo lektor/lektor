@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import createReactClass from 'create-react-class';
+import createReactClass from 'create-react-class'
 import jQuery from 'jquery'
 import { BasicWidgetMixin, ValidationFailure } from './mixins'
 import utils from '../utils'
@@ -83,7 +83,7 @@ const SingleLineTextInputWidget = createReactClass({
 
   getInputAddon () {
     return <i className='fa fa-paragraph' />
-  },
+  }
 })
 
 const SlugInputWidget = createReactClass({
@@ -100,7 +100,7 @@ const SlugInputWidget = createReactClass({
 
   getInputAddon () {
     return <i className='fa fa-link' />
-  },
+  }
 })
 
 const IntegerInputWidget = createReactClass({
@@ -126,7 +126,7 @@ const IntegerInputWidget = createReactClass({
 
   getInputAddon () {
     return '0'
-  },
+  }
 })
 
 const FloatInputWidget = createReactClass({
@@ -152,7 +152,7 @@ const FloatInputWidget = createReactClass({
 
   getInputAddon () {
     return '0.0'
-  },
+  }
 })
 
 const DateInputWidget = createReactClass({
@@ -197,7 +197,7 @@ const DateInputWidget = createReactClass({
 
   getInputAddon () {
     return <i className='fa fa-calendar' />
-  },
+  }
 })
 
 const UrlInputWidget = createReactClass({
@@ -219,7 +219,7 @@ const UrlInputWidget = createReactClass({
 
   getInputAddon () {
     return <i className='fa fa-external-link' />
-  },
+  }
 })
 
 const MultiLineTextInputWidget = createReactClass({
@@ -309,7 +309,7 @@ const MultiLineTextInputWidget = createReactClass({
           {...otherProps} />
       </div>
     )
-  },
+  }
 })
 
 const BooleanInputWidget = createReactClass({
@@ -346,7 +346,7 @@ const BooleanInputWidget = createReactClass({
         </label>
       </div>
     )
-  },
+  }
 })
 
 export default {

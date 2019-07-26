@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import createReactClass from 'create-react-class';
+import createReactClass from 'create-react-class'
 import primitiveWidgets from './widgets/primitiveWidgets'
 import multiWidgets from './widgets/multiWidgets'
 import flowWidget from './widgets/flowWidget'
@@ -43,7 +43,7 @@ const FallbackWidget = createReactClass({
         </em>
       </div>
     )
-  },
+  }
 })
 
 class FieldBox extends Component {

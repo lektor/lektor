@@ -3,7 +3,7 @@
 /* eslint-env browser */
 
 import React from 'react'
-import createReactClass from 'create-react-class';
+import createReactClass from 'create-react-class'
 import i18n from '../i18n'
 import metaformat from '../metaformat'
 import { BasicWidgetMixin } from './mixins'
@@ -335,7 +335,7 @@ const FlowWidget = createReactClass({
         {this.renderAddBlockSection()}
       </div>
     )
-  },
+  }
 })
 
 export default {

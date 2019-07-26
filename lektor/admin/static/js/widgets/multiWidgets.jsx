@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import createReactClass from 'create-react-class';
+import createReactClass from 'create-react-class'
 import utils from '../utils'
 import i18n from '../i18n'
 import { BasicWidgetMixin } from './mixins'
@@ -75,7 +75,7 @@ const CheckboxesInputWidget = createReactClass({
         {choices}
       </div>
     )
-  },
+  }
 })
 
 const SelectInputWidget = createReactClass({
@@ -114,7 +114,7 @@ const SelectInputWidget = createReactClass({
         </div>
       </div>
     )
-  },
+  }
 })
 
 export default {
