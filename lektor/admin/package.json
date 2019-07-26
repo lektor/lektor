@@ -2,9 +2,7 @@
   "name": "lektor",
   "version": "0.0.0",
   "private": true,
-  "dependencies": {
-    "create-react-class": "^15.6.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-eslint": "^10.0.1",
@@ -16,6 +14,7 @@
     "babel-register": "^6.26.0",
     "bootstrap": "~3.3.0",
     "chai": "^3.5.0",
+    "create-react-class": "^15.6.3",
     "css-loader": "^0.9.1",
     "event-source-polyfill": "^0.0.5",
     "extract-text-webpack-plugin": "^3.0.0",
