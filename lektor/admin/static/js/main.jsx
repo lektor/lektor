@@ -3,11 +3,9 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Router, Route, IndexRoute } from 'react-router'
+import { Router, Route, IndexRoute, browserHistory } from 'react-router'
 import Component from './components/Component'
 import i18n from './i18n'
-import { useBeforeUnload } from 'history'
-import createBrowserHistory from 'history/lib/createBrowserHistory'
 
 /* eslint-disable no-unused-vars */
 import Bootstrap from 'bootstrap'
@@ -64,7 +62,7 @@ const dash = document.getElementById('dash')
 
 if (dash) {
   ReactDOM.render((
-    <Router history={useBeforeUnload(createBrowserHistory)()}>
+    <Router history={browserHistory}>
       {routes}
     </Router>
   ), dash)

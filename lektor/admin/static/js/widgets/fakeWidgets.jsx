@@ -2,6 +2,7 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
+import createReactClass from 'create-react-class'
 import { BasicWidgetMixin } from './mixins'
 import i18n from '../i18n'
 
@@ -16,7 +17,8 @@ const FakeWidgetMixin = {
   }
 }
 
-const LineWidget = React.createClass({
+const LineWidget = createReactClass({
+  displayName: 'LineWidget',
   mixins: [FakeWidgetMixin],
 
   render () {
@@ -24,7 +26,8 @@ const LineWidget = React.createClass({
   }
 })
 
-const SpacingWidget = React.createClass({
+const SpacingWidget = createReactClass({
+  displayName: 'SpacingWidget',
   mixins: [FakeWidgetMixin],
 
   render () {
@@ -32,7 +35,8 @@ const SpacingWidget = React.createClass({
   }
 })
 
-const InfoWidget = React.createClass({
+const InfoWidget = createReactClass({
+  displayName: 'InfoWidget',
   mixins: [FakeWidgetMixin],
 
   render () {
@@ -48,7 +52,8 @@ const InfoWidget = React.createClass({
   }
 })
 
-const HeadingWidget = React.createClass({
+const HeadingWidget = createReactClass({
+  displayName: 'HeadingWidget',
   mixins: [FakeWidgetMixin],
 
   render () {

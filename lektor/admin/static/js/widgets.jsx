@@ -2,6 +2,7 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
+import createReactClass from 'create-react-class'
 import primitiveWidgets from './widgets/primitiveWidgets'
 import multiWidgets from './widgets/multiWidgets'
 import flowWidget from './widgets/flowWidget'
@@ -29,8 +30,10 @@ const widgetComponents = {
   'f-heading': fakeWidgets.HeadingWidget
 }
 
-const FallbackWidget = React.createClass({
+const FallbackWidget = createReactClass({
+  displayName: 'FallbackWidget',
   mixins: [BasicWidgetMixin],
+
   render () {
     return (
       <div>

@@ -3,6 +3,7 @@
 /* eslint-env browser */
 
 import React from 'react'
+import createReactClass from 'create-react-class'
 import i18n from '../i18n'
 import metaformat from '../metaformat'
 import { BasicWidgetMixin } from './mixins'
@@ -131,7 +132,8 @@ const serializeFlowBlock = (flockBlockModel, data) => {
 // ever growing counter of block ids.  Good enough for what we do I think.
 let lastBlockId = 0
 
-const FlowWidget = React.createClass({
+const FlowWidget = createReactClass({
+  displayName: 'FlowWidget',
   mixins: [BasicWidgetMixin],
 
   statics: {

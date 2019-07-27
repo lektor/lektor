@@ -1,17 +1,17 @@
 'use strict'
 import dialogSystem from '../dialogSystem'
 import BaseComponent from './BaseComponent'
+import PropTypes from 'prop-types'
 
 class Component extends BaseComponent {
-  constructor (props) {
-    super(props)
+  constructor (props, context) {
+    super(props, context)
     this._unlistenBeforeLeavingRoute = null
   }
 
   /* helper function for forwarding props down the tree */
   getRoutingProps () {
     return {
-      history: this.props.history,
       location: this.props.location,
       params: this.props.params,
       route: this.props.route,
@@ -57,13 +57,13 @@ class Component extends BaseComponent {
 
   /* helper to transition to a specific page */
   transitionToAdminPage (name, params) {
-    this.props.history.pushState(null, this.getPathToAdminPage(name, params))
+    this.context.router.push(this.getPathToAdminPage(name, params))
   }
 
   componentDidMount () {
     super.componentDidMount()
-    if (this.props.history !== undefined) {
-      this._unlistenBeforeLeavingRoute = this.props.history.listenBeforeLeavingRoute(
+    if (this.context.router !== undefined && this.props.route !== undefined) {
+      this._unlistenBeforeLeavingRoute = this.context.router.setRouteLeaveHook(
         this.props.route, this.routerWillLeave.bind(this))
     }
   }
@@ -83,4 +83,9 @@ class Component extends BaseComponent {
     }
   }
 }
+
+Component.contextTypes = {
+  router: PropTypes.object.isRequired
+}
+
 export default Component
