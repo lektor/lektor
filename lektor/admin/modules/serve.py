@@ -18,7 +18,7 @@ bp = Blueprint('serve', __name__)
 def rewrite_html_for_editing(fp, edit_url):
     contents = fp.read()
 
-    button = u'''
+    button_style = u'''
     <style type="text/css">
       #lektor-edit-link {
         position: fixed;
@@ -48,6 +48,8 @@ def rewrite_html_for_editing(fp, edit_url):
         border: 1px solid #aaa!important;
       }
     </style>
+    '''
+    button_script = u'''
     <script type="text/javascript">
       (function() {
         if (window != window.top) {
@@ -65,7 +67,18 @@ def rewrite_html_for_editing(fp, edit_url):
         'edit_url': edit_url,
     }
 
-    return BytesIO(contents + button.encode('utf-8'))
+    head_endpos = contents.find(b'</head>')
+    body_endpos = contents.find(b'</body>')
+    if head_endpos >= 0 and body_endpos >= 0:
+        return BytesIO(contents[:head_endpos] +
+                       button_style.encode('utf-8') +
+                       contents[head_endpos:body_endpos] +
+                       button_script.encode('utf-8') +
+                       contents[body_endpos:])
+    else:
+        return BytesIO(contents +
+                       button_style.encode('utf-8') +
+                       button_script.encode('utf-8'))
 
 
 def send_file(filename):
