@@ -392,8 +392,7 @@ def get_image_info(fp):
         # to make decisions based on the "visual", not the "real" dimensions.
         # thumbnail code also depends on this behaviour.)
         fp.seek(0)
-        exif = read_exif(fp)
-        if exif.is_rotated:
+        if get_is_rotated_fast(fp):
             width, height = height, width
     else:
         fmt = None
