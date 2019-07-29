@@ -1,5 +1,7 @@
 [I[MASTER]
 ignore = .git
+extension-pkg-whitelist = math,zlib
+generated-members = struct.unpack,sqlite3.sqlite_version,sqlite3.connect
 
 [FORMAT]
 max-line-length=100
