@@ -407,6 +407,12 @@ def read_exif(fp):
     return EXIFInfo(exif)
 
 
+def get_is_rotated_fast(fp):
+    """Fast version of read_exif(fp).is_rotated, using an exif header subset."""
+    exif = exifread.process_file(fp, stop_tag='Orientation', details=False)
+    return EXIFInfo(exif).is_rotated
+
+
 def find_imagemagick(im=None):
     """Finds imagemagick and returns the path to it."""
     # If it's provided explicitly and it's valid, we go with that one.
