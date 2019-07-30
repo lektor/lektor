@@ -365,6 +365,26 @@ div.application {
       margin-top: 5px;
       float: right;
     }
+
+    .chooser-select {
+      padding: 10px 0;
+      display: flex;
+      flex-direction: column;
+
+      .validation-block {
+        flex: 0 1 auto;
+        margin: 0;
+        padding: 0;
+      }
+
+      .action-bar {
+        flex: 0 1 auto;
+      }
+
+      select {
+        flex: 1 1 auto;
+      }
+    }
   }
 
   .help-text {
@@ -558,4 +578,10 @@ pre.traceback {
   background: @header-taint;
   color: white;
   padding: 10px 15px;
+}
+
+.row.equal {
+  display: flex;
+  display: -webkit-flex;
+  flex-wrap: wrap;
 }

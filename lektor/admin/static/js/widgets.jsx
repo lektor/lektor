@@ -6,6 +6,7 @@ import createReactClass from 'create-react-class'
 import primitiveWidgets from './widgets/primitiveWidgets'
 import multiWidgets from './widgets/multiWidgets'
 import flowWidget from './widgets/flowWidget'
+import chooserWidget from './widgets/chooserWidget'
 import fakeWidgets from './widgets/fakeWidgets'
 import { BasicWidgetMixin } from './widgets/mixins'
 import Component from './components/Component'
@@ -22,6 +23,7 @@ const widgetComponents = {
   'url': primitiveWidgets.UrlInputWidget,
   'slug': primitiveWidgets.SlugInputWidget,
   'flow': flowWidget.FlowWidget,
+  'chooser': chooserWidget.ChooserWidget,
   'checkboxes': multiWidgets.CheckboxesInputWidget,
   'select': multiWidgets.SelectInputWidget,
   'f-line': fakeWidgets.LineWidget,

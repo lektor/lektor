@@ -233,3 +233,18 @@ class FlowType(Type):
         rv['flowblock_order'] = block_order
 
         return rv
+
+
+class ChooserType(FlowType):
+    widget = 'chooser'
+
+    def __init__(self, env, options):
+        FlowType.__init__(self, env, options)
+        flow_block = options.get('flow_block', None)
+        self.flow_blocks = [flow_block] if flow_block else None
+        self.key_field = options.get('key_field', False)
+
+    def to_json(self, pad, record=None, alt=PRIMARY_ALT):
+        rv = FlowType.to_json(self, pad, record, alt)
+        rv['key_field'] = self.key_field
+        return rv
