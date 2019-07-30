@@ -3,15 +3,18 @@ import datetime
 from markupsafe import escape, Markup
 from babel.dates import get_timezone
 
+from lektor.environment import PRIMARY_ALT
 from lektor._compat import itervalues, text_type
 from lektor.datamodel import Field
 from lektor.types.formats import MarkdownDescriptor
+from lektor.types.flow import FlowDescriptor
 from lektor.context import Context
 from lektor.types import Undefined, BadValue
 
 
 class DummySource(object):
     url_path = '/'
+    alt = PRIMARY_ALT
 
 
 def make_field(env, type, **options):
@@ -357,3 +360,101 @@ def test_datetime_timezone_name(env, pad):
         assert rv.minute == 2
         assert rv.second == 3
         assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+
+
+def test_flow(env, pad):
+    field = make_field(env, 'flow')
+
+    source = DummySource()
+    val = '''
+#### text ####
+content: Text from text only flow block.
+#### text ####
+content: *More* text from the same flow block type.
+#### reference ####
+number: 1
+---
+reference: This is the text of this reference.
+'''
+
+    with Context(pad=pad):
+        rv = field.deserialize_value(val, pad=pad)
+        assert isinstance(rv, FlowDescriptor)
+
+        rv = rv.__get__(source)
+        assert rv
+        assert rv.blocks
+        assert len(rv.blocks) == 3
+
+        # test block 1
+        block = rv.blocks[0]
+        assert block['_flowblock'] == 'text'
+        assert block['content'].source == 'Text from text only flow block.'
+        assert escape(block['content']) == Markup(
+            '<p>Text from text only flow block.</p>\n')
+        assert escape(block) == Markup((
+            '<div class="block text-block">\n'
+            '  <p>Text from text only flow block.</p>\n\n'
+            '</div>'
+        ))
+
+        # test block 2
+        block = rv.blocks[1]
+        assert block['_flowblock'] == 'text'
+        assert block['content'].source == '*More* text from the same flow block type.'
+        assert escape(block['content']) == Markup(
+            '<p><em>More</em> text from the same flow block type.</p>\n')
+        assert escape(block) == Markup((
+            '<div class="block text-block">\n'
+            '  <p><em>More</em> text from the same flow block type.</p>\n\n'
+            '</div>'
+        ))
+
+        # test block 3
+        block = rv.blocks[2]
+        expected = 'This is the text of this reference.'
+        assert block['_flowblock'] == 'reference'
+        assert block['number'] == 1
+        assert block['reference'] == expected
+        assert escape(block) == Markup('<li id="reference-1">%s</li>' % expected)
+
+
+def test_chooser(env, pad):
+    field = make_field(env, 'chooser')
+
+    source = DummySource()
+    val = '''
+#### reference ####
+number: 1
+---
+reference: This is the text of this reference.
+#### reference ####
+number: 2
+---
+reference: And here is the text of the second reference.
+'''
+
+    with Context(pad=pad):
+        rv = field.deserialize_value(val, pad=pad)
+        assert isinstance(rv, FlowDescriptor)
+
+        rv = rv.__get__(source)
+        assert rv
+        assert rv.blocks
+        assert len(rv.blocks) == 2
+
+        # test block 1
+        block = rv.blocks[0]
+        expected = 'This is the text of this reference.'
+        assert block['_flowblock'] == 'reference'
+        assert block['number'] == 1
+        assert block['reference'] == expected
+        assert escape(block) == Markup('<li id="reference-1">%s</li>' % expected)
+
+        # test block 2
+        block = rv.blocks[1]
+        expected = 'And here is the text of the second reference.'
+        assert block['_flowblock'] == 'reference'
+        assert block['number'] == 2
+        assert block['reference'] == expected
+        assert escape(block) == Markup('<li id="reference-2">%s</li>' % expected)
