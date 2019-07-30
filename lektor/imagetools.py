@@ -392,8 +392,7 @@ def get_image_info(fp):
         # to make decisions based on the "visual", not the "real" dimensions.
         # thumbnail code also depends on this behaviour.)
         fp.seek(0)
-        exif = read_exif(fp)
-        if exif.is_rotated:
+        if is_rotated(fp):
             width, height = height, width
     else:
         fmt = None
@@ -405,6 +404,12 @@ def read_exif(fp):
     """Reads exif data from a file pointer of an image and returns it."""
     exif = exifread.process_file(fp)
     return EXIFInfo(exif)
+
+
+def is_rotated(fp):
+    """Fast version of read_exif(fp).is_rotated, using an exif header subset."""
+    exif = exifread.process_file(fp, stop_tag='Orientation', details=False)
+    return EXIFInfo(exif).is_rotated
 
 
 def find_imagemagick(im=None):
