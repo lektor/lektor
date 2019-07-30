@@ -392,7 +392,7 @@ def get_image_info(fp):
         # to make decisions based on the "visual", not the "real" dimensions.
         # thumbnail code also depends on this behaviour.)
         fp.seek(0)
-        if get_is_rotated_fast(fp):
+        if is_rotated(fp):
             width, height = height, width
     else:
         fmt = None
@@ -406,7 +406,7 @@ def read_exif(fp):
     return EXIFInfo(exif)
 
 
-def get_is_rotated_fast(fp):
+def is_rotated(fp):
     """Fast version of read_exif(fp).is_rotated, using an exif header subset."""
     exif = exifread.process_file(fp, stop_tag='Orientation', details=False)
     return EXIFInfo(exif).is_rotated

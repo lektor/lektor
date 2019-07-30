@@ -6,7 +6,7 @@ from hashlib import md5
 import pytest
 
 from lektor._compat import iteritems
-from lektor.imagetools import get_image_info, compute_dimensions, get_is_rotated_fast
+from lektor.imagetools import get_image_info, compute_dimensions, is_rotated
 
 
 def almost_equal(a, b, e=0.00001):
@@ -91,7 +91,7 @@ def test_image_attributes(pad):
         assert image.format == 'jpeg'
 
 
-def test_get_is_rotated_fast(pad):
+def test_is_rotated(pad):
     for img, rotated in (
             ('test.jpg', True),
             ('test-sof-last.jpg', True),
@@ -99,7 +99,7 @@ def test_get_is_rotated_fast(pad):
     ):
         image = pad.root.attachments.images.get(img)
         with open(image.attachment_filename, 'rb') as f:
-            assert get_is_rotated_fast(f) == rotated
+            assert is_rotated(f) == rotated
 
 def test_image_info_svg_declaration(make_svg):
     w, h = 100, 100
