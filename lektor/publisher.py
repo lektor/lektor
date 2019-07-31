@@ -94,7 +94,7 @@ def _temporary_folder(env):
     finally:
         try:
             shutil.rmtree(folder)
-            os.rmdir(folder)
+            os.rmdir(base)
         except (IOError, OSError):
             pass
 
