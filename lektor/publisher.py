@@ -94,6 +94,7 @@ def _temporary_folder(env):
     finally:
         try:
             shutil.rmtree(folder)
+            os.rmdir(folder)
         except (IOError, OSError):
             pass
 
@@ -174,6 +175,7 @@ class Command(object):
                         if not line:
                             if stream in streams:
                                 streams.remove(stream)
+                                stream.close()
                             break
                         yield line.rstrip().decode('utf-8', 'replace')
 
