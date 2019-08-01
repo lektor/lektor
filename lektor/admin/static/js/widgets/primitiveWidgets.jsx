@@ -112,7 +112,7 @@ const IntegerInputWidget = createReactClass({
   },
 
   getValidationFailureImpl () {
-    if (this.props.value && !this.props.value.match(/^\d+$/)) {
+    if (this.props.value && !this.props.value.match(/^-?\d+$/)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_NUMBER')
       })
