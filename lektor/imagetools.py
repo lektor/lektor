@@ -333,11 +333,7 @@ def get_image_info(fp):
         return get_svg_info(fp)
 
     _type = filetype.image(head)
-    fmt = _type.extension if _type else None
-
-    # preserve backward-compatibility with what imghdr would return
-    if fmt == "jpg":
-        fmt = "jpeg"
+    fmt = _type.mime.split("/")[1] if _type else None
 
     width = None
     height = None
