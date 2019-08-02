@@ -41,6 +41,7 @@ setup(
         'setuptools',
         'pip',
         'requests[security]',
+        'filetype',
     ],
     tests_require=tests_require,
     extras_require={
