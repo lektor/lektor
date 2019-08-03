@@ -128,13 +128,6 @@ const serializeFlowBlock = (flockBlockModel, data) => {
 }
 
 class ChooserWidget extends React.Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      displayId: this.props.value.length === 0 ? false : 1
-    }
-  }
 
   // XXX: the modification of props is questionable
 
@@ -142,13 +135,13 @@ class ChooserWidget extends React.Component {
     event.preventDefault()
 
     const newIndex = idx + offset
-    if (newIndex < 0 || newIndex >= this.props.value.length) {
+    if (newIndex < 0 || newIndex >= this.props.value.blocks.length) {
       return
     }
 
-    const tmp = this.props.value[newIndex]
-    this.props.value[newIndex] = this.props.value[idx]
-    this.props.value[idx] = tmp
+    const tmp = this.props.value.blocks[newIndex]
+    this.props.value.blocks[newIndex] = this.props.value.blocks[idx]
+    this.props.value.blocks[idx] = tmp
 
     if (this.props.onChange) {
       this.props.onChange(this.props.value)
@@ -159,20 +152,19 @@ class ChooserWidget extends React.Component {
     event.preventDefault()
 
     if (confirm(i18n.trans('REMOVE_FLOWBLOCK_PROMPT'))) {
-      this.props.value.splice(idx, 1)
+      this.props.value.blocks.splice(idx, 1)
       if (this.props.onChange) {
         this.props.onChange(this.props.value)
       }
 
-      if (this.props.value.length === 0) {
-        this.setState({
-          displayId: false
-        })
+      if (this.props.value.blocks.length === 0) {
+        this.props.value.displayId = false
       } else {
-        const newVal = this.props.value[idx] ? this.props.value[idx] : this.props.value[idx - 1]
-        this.setState({
-          displayId: newVal.localId
-        })
+        const newVal = this.props.value.blocks[idx] ? this.props.value.blocks[idx] : this.props.value.blocks[idx - 1]
+        this.props.value.displayId = newVal.localId
+      }
+      if (this.props.onChange) {
+        this.props.onChange(this.props.value)
       }
     }
   }
@@ -187,17 +179,18 @@ class ChooserWidget extends React.Component {
     const flowBlockModel = this.props.type.flowblocks[key]
 
     // find the first available id for this new block - use findMax + 1
-    const blockIds = this.props.value.map(block => block.localId)
+    const blockIds = this.props.value.blocks.map(block => block.localId)
     const newBlockId = blockIds.length === 0 ? 1 : Math.max(...blockIds) + 1
 
     // this is a rather ugly way to do this, but hey, it works.
-    this.props.value.push(deserializeFlowBlock(flowBlockModel, [], newBlockId))
+    this.props.value.blocks.push(deserializeFlowBlock(flowBlockModel, [], newBlockId))
     if (this.props.onChange) {
       this.props.onChange(this.props.value)
     }
-    this.setState({
-      displayId: newBlockId
-    })
+    this.props.value.displayId = newBlockId
+    if (this.props.onChange) {
+      this.props.onChange(this.props.value)
+    }
   }
 
   renderBlocks () {
@@ -206,8 +199,8 @@ class ChooserWidget extends React.Component {
     if (idx === false) return null
 
     // just use the first flowblock fields, as there's only one flowblock type
-    const blockInfo = this.props.value[idx]
-    const rows = widgets.getFieldRows(this.props.value[0].flowBlockModel.fields, null)
+    const blockInfo = this.props.value.blocks[idx]
+    const rows = widgets.getFieldRows(this.props.value.blocks[0].flowBlockModel.fields, null)
 
     const renderedRows = rows.map((item, idx) => {
       const [rowType, row] = item
@@ -242,19 +235,19 @@ class ChooserWidget extends React.Component {
   }
 
   getCurrentBlockIndex () {
-    if (this.state.displayId === false) return false
-    return this.props.value.findIndex(el => el.localId === this.state.displayId)
+    if (this.props.value.displayId === false) return false
+    return this.props.value.blocks.findIndex(el => el.localId === this.props.value.displayId)
   }
 
   keyFieldValue () {
     const idx = this.getCurrentBlockIndex()
     if (idx === false) return false
-    return this.props.value[idx].data[this.props.type.key_field]
+    return this.props.value.blocks[idx].data[this.props.type.key_field]
   }
 
   keyFieldIsDuplicate () {
-    const keyFields = this.props.value.reduce((res, val) => {
-      if (val.localId === this.state.displayId) return res
+    const keyFields = this.props.value.blocks.reduce((res, val) => {
+      if (val.localId === this.props.value.displayId) return res
       return res.concat(val.data[this.props.type.key_field])
     }, [])
 
@@ -277,7 +270,7 @@ class ChooserWidget extends React.Component {
         <button
           className='btn btn-default btn-xs'
           title={i18n.trans('DOWN')}
-          disabled={idx === false || idx >= this.props.value.length - 1}
+          disabled={idx === false || idx >= this.props.value.blocks.length - 1}
           onClick={this.moveBlock.bind(this, idx, 1)}>
           <i className='fa fa-fw fa-chevron-down' />
         </button>
@@ -303,7 +296,7 @@ class ChooserWidget extends React.Component {
     let { className } = this.props
     className = (className || '') + ' flow'
 
-    const selectOptions = this.props.value.map((val, idx) => {
+    const selectOptions = this.props.value.blocks.map((val, idx) => {
       return <option key={val.localId} value={val.localId}>{val.data[this.props.type.key_field]}</option>
     })
 
@@ -319,26 +312,27 @@ class ChooserWidget extends React.Component {
     }
 
     const selectChange = event => {
-      this.setState({
-        displayId: parseInt(event.target.value)
-      })
+      this.props.value.displayId = parseInt(event.target.value)
+      if (this.props.onChange) {
+        this.props.onChange(this.props.value)
+      }
     }
 
     return (
       <div className={className}>
         <div className='flow-block row equal'>
-          <div className='col-md-3 form-group chooser-select'>
+          <div className='col-md-2 form-group chooser-select'>
             {help}
             <select
               size='2'
               className='form-control'
               onChange={selectChange}
-              value={this.state.displayId}>
+              value={this.props.value.displayId}>
               {selectOptions}
             </select>
             {this.renderChooserButtons()}
           </div>
-          <div className='col-md-9'>
+          <div className='col-md-10'>
             {this.renderBlocks()}
           </div>
         </div>
@@ -349,7 +343,7 @@ class ChooserWidget extends React.Component {
 
 ChooserWidget.deserializeValue = (value, type) => {
   let blockId = 0
-  return parseFlowFormat(value).map((item) => {
+  const blocks = parseFlowFormat(value).map((item) => {
     const [id, lines] = item
     const flowBlock = type.flowblocks[id]
     if (flowBlock !== undefined) {
@@ -357,10 +351,15 @@ ChooserWidget.deserializeValue = (value, type) => {
     }
     return null
   })
+  return {
+    blocks: blocks,
+    displayId: blocks.length === 0 ? false : 1
+  }
 }
 
 ChooserWidget.serializeValue = (value) => {
-  return serializeFlowFormat(value.map((item) => {
+  const blocks = value.blocks
+  return serializeFlowFormat(blocks.map((item) => {
     return [
       item.flowBlockModel.id,
       serializeFlowBlock(item.flowBlockModel, item.data)
