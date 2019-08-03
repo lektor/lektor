@@ -197,3 +197,15 @@ name = French
 url_prefix = /fr/
 locale = fr
 ```
+
+### `[attachment_types]`
+Lektor does some basic attachment type detection based on file extension. This is what powers the `this.attachemnts.images` and `this.attachments.videos` attributes for instance. If the built-in map does not cover your file extension you can extend it or add new attachement types on a project by project basis.
+
+Example:
+
+```ini
+[attachment_types]
+; <.file-ext> = <type>
+.gpx = gpx
+.ogv = video
+```
