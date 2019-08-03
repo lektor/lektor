@@ -173,9 +173,7 @@ class ChooserWidget extends React.Component {
     if (event) event.preventDefault()
 
     // just use the first flowblock type, as they're all the same
-    const idx = Object.keys(this.props.type.flowblocks)[0]
-    const key = this.props.type.flowblocks[idx].id
-
+    const key = this.props.type.flowblock_order[0]
     const flowBlockModel = this.props.type.flowblocks[key]
 
     // find the first available id for this new block - use findMax + 1
