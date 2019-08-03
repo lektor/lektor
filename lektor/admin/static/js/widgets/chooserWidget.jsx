@@ -201,10 +201,15 @@ class ChooserWidget extends React.Component {
       }
     }
 
+    const widgets = getWidgets()
+    const selectWidth = widgets.getFieldColumns({
+      type: { width: this.props.type.select_width }})
+    const fieldsWidth = 12 - selectWidth
+
     return (
       <div className={className}>
         <div className='flow-block row equal'>
-          <div className='col-md-2 form-group chooser-select'>
+          <div className={`col-md-${selectWidth} form-group chooser-select`}>
             {help}
             <select
               size='2'
@@ -215,7 +220,7 @@ class ChooserWidget extends React.Component {
             </select>
             {this.renderChooserButtons()}
           </div>
-          <div className='col-md-10'>
+          <div className={`col-md-${fieldsWidth}`}>
             {this.renderBlocks()}
           </div>
         </div>
