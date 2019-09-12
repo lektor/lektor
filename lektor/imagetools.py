@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import decimal
 import os
-import imghdr
 import re
 import struct
 import posixpath
@@ -9,7 +8,9 @@ import warnings
 from datetime import datetime
 from enum import IntEnum
 from xml.etree import ElementTree as etree
+
 import exifread
+import filetype
 
 from lektor.utils import get_dependent_url, portable_popen, locate_executable
 from lektor.reporter import reporter
@@ -331,7 +332,8 @@ def get_image_info(fp):
     if any(map(head.strip().startswith, magic_bytes)):
         return get_svg_info(fp)
 
-    fmt = imghdr.what(None, head)
+    _type = filetype.image(bytearray(head))
+    fmt = _type.mime.split("/")[1] if _type else None
 
     width = None
     height = None
@@ -347,7 +349,8 @@ def get_image_info(fp):
         # Annex B (page 31/35)
 
         # we are looking for a SOF marker ("start of frame").
-        # skip over the "start of image" marker (imghdr took care of that).
+        # skip over the "start of image" marker
+        # (filetype detection took care of that).
         fp.seek(2)
 
         while True:
