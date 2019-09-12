@@ -1,3 +1,5 @@
+import pytest
+
 def test_join_path():
     from lektor.utils import join_path
 
@@ -63,3 +65,16 @@ def test_parse_path():
     assert parse_path('/foo/bar') == ['foo', 'bar']
     assert parse_path('/foo/bar/') == ['foo', 'bar']
     assert parse_path('/foo/bar/../stuff') == ['foo', 'bar', 'stuff']
+
+    
+@pytest.mark.parametrize("base, target, expected", [
+    ("/", "./a/", "./a/"),
+    ("/", "./a", "./a"),
+    ("/fr/blog/2015/11/a/", "/fr/blog/2015/11/a/a.jpg", "../../../../../fr/blog/2015/11/a/a.jpg"),
+    ("/fr/blog/2015/11/a/", "/fr/blog/", "../../../../../fr/blog/"),
+    ("/fr/blog/2015/11/a.php", "/fr/blog/", "../../../../fr/blog/"),
+    ("/fr/blog/2015/11/a/", "/images/b.svg", "../../../../../images/b.svg"),
+])
+def test_make_relative_url(base, target, expected):
+    from lektor.utils import make_relative_url
+    assert make_relative_url(base, target) == expected
