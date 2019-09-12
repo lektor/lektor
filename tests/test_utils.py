@@ -68,10 +68,10 @@ import pytest
 @pytest.mark.parametrize("base, target, expected", [
     ("/", "./a/", "./a/"),
     ("/", "./a", "./a"),
-    ("/fr/blog/2015/11/a/","/fr/blog/2015/11/a/a.jpg","../../../../../fr/blog/2015/11/a/a.jpg"),
-    ("/fr/blog/2015/11/a/","/fr/blog/","../../../../../fr/blog/"),
-    ("/fr/blog/2015/11/a.php","/fr/blog/","../../../../fr/blog/"),
-    ("/fr/blog/2015/11/a/","/images/b.svg","../../../../../images/b.svg"),
+    ("/fr/blog/2015/11/a/", "/fr/blog/2015/11/a/a.jpg", "../../../../../fr/blog/2015/11/a/a.jpg"),
+    ("/fr/blog/2015/11/a/", "/fr/blog/", "../../../../../fr/blog/"),
+    ("/fr/blog/2015/11/a.php", "/fr/blog/", "../../../../fr/blog/"),
+    ("/fr/blog/2015/11/a/", "/images/b.svg", "../../../../../images/b.svg"),
 ])
 def test_make_relative_url(base, target, expected):
     from lektor.utils import make_relative_url
