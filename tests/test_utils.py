@@ -1,3 +1,5 @@
+import pytest
+
 def test_join_path():
     from lektor.utils import join_path
 
@@ -64,7 +66,7 @@ def test_parse_path():
     assert parse_path('/foo/bar/') == ['foo', 'bar']
     assert parse_path('/foo/bar/../stuff') == ['foo', 'bar', 'stuff']
 
-import pytest
+    
 @pytest.mark.parametrize("base, target, expected", [
     ("/", "./a/", "./a/"),
     ("/", "./a", "./a"),
