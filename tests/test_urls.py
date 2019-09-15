@@ -75,3 +75,9 @@ def test_url_to_all_params_error_cases(pad, path, alt, absolute, external, base_
 
     with pytest.raises(RuntimeError):
         wolf_en.url_to(path, alt, absolute, external, base_url)
+
+def test_url_parse_virtual_path(pad):
+    wolf_de = pad.get('/projects/wolf@2', alt='de')
+    slave_de = pad.get('/projects/slave@2', alt='de')
+    assert wolf_de.url_path == '/de/projects/wolf/page/2/'
+    assert slave_de.url_path == '/de/projects/sklave/page/2/'
