@@ -129,20 +129,18 @@ const serializeFlowBlock = (flockBlockModel, data) => {
   return metaformat.serialize(rv)
 }
 
-// ever growing counter of block ids.  Good enough for what we do I think.
-let lastBlockId = 0
-
 const FlowWidget = createReactClass({
   displayName: 'FlowWidget',
   mixins: [BasicWidgetMixin],
 
   statics: {
     deserializeValue: (value, type) => {
+      let blockId = 0
       return parseFlowFormat(value).map((item) => {
         const [id, lines] = item
         const flowBlock = type.flowblocks[id]
         if (flowBlock !== undefined) {
-          return deserializeFlowBlock(flowBlock, lines, ++lastBlockId)
+          return deserializeFlowBlock(flowBlock, lines, ++blockId)
         }
         return null
       })
@@ -193,9 +191,12 @@ const FlowWidget = createReactClass({
 
     const flowBlockModel = this.props.type.flowblocks[key]
 
+    // find the first available id for this new block - use findMax + 1
+    const blockIds = this.props.value.map(block => block.localId)
+    const newBlockId = Math.max(...blockIds) + 1
+
     // this is a rather ugly way to do this, but hey, it works.
-    this.props.value.push(deserializeFlowBlock(flowBlockModel, [],
-      ++lastBlockId))
+    this.props.value.push(deserializeFlowBlock(flowBlockModel, [], newBlockId))
     if (this.props.onChange) {
       this.props.onChange(this.props.value)
     }

@@ -13,7 +13,6 @@ class EditPage extends RecordEditComponent {
     super(props)
 
     this.state = {
-      recordInitialData: null,
       recordData: null,
       recordDataModel: null,
       recordInfo: null,
@@ -80,9 +79,19 @@ class EditPage extends RecordEditComponent {
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
       .then((resp) => {
+        // transform resp.data into actual data
+        let recordData = {}
+        resp.datamodel.fields.forEach(field => {
+          const widget = widgets.getWidgetComponentWithFallback(field.type)
+          let value = resp.data[field.name] || ''
+          if (widget.deserializeValue) {
+            value = widget.deserializeValue(value, field.type)
+          }
+          recordData[field.name] = value
+        })
+
         this.setState({
-          recordInitialData: resp.data,
-          recordData: {},
+          recordData: recordData,
           recordDataModel: resp.datamodel,
           recordInfo: resp.record_info,
           hasPendingChanges: false
@@ -109,16 +118,9 @@ class EditPage extends RecordEditComponent {
 
       let value = this.state.recordData[field.name]
 
-      if (value !== undefined) {
-        const Widget = widgets.getWidgetComponentWithFallback(field.type)
-        if (Widget.serializeValue) {
-          value = Widget.serializeValue(value, field.type)
-        }
-      } else {
-        value = this.state.recordInitialData[field.name]
-        if (value === undefined) {
-          value = null
-        }
+      const Widget = widgets.getWidgetComponentWithFallback(field.type)
+      if (Widget.serializeValue) {
+        value = Widget.serializeValue(value, field.type)
       }
 
       rv[field.name] = value
@@ -153,14 +155,7 @@ class EditPage extends RecordEditComponent {
   }
 
   getValueForField (widget, field) {
-    let value = this.state.recordData[field.name]
-    if (value === undefined) {
-      value = this.state.recordInitialData[field.name] || ''
-      if (widget.deserializeValue) {
-        value = widget.deserializeValue(value, field.type)
-      }
-    }
-    return value
+    return this.state.recordData[field.name]
   }
 
   getPlaceholderForField (widget, field) {
