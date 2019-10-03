@@ -509,6 +509,7 @@ def process_image(ctx, source_image, dst_filename,
     else:
         cmdline += ['-resize', resize_key]
 
+    cmdline += ['-strip', "-colorspace", "sRGB"]
     cmdline += ['-quality', str(quality), dst_filename]
 
     reporter.report_debug_info('imagemagick cmd line', cmdline)
