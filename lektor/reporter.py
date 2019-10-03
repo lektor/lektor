@@ -4,7 +4,8 @@ from contextlib import contextmanager
 
 import click
 from click import style
-from werkzeug.local import LocalProxy, LocalStack
+from werkzeug.local import LocalProxy
+from werkzeug.local import LocalStack
 
 from lektor._compat import text_type
 
@@ -14,15 +15,15 @@ _build_buffer_stack = LocalStack()
 
 
 def describe_build_func(func):
-    self = getattr(func, '__self__', None)
-    if self is not None and any(x.__name__ == 'BuildProgram'
-                                for x in self.__class__.__mro__):
-        return self.__class__.__module__ + '.' + self.__class__.__name__
-    return func.__module__ + '.' + func.__name__
+    self = getattr(func, "__self__", None)
+    if self is not None and any(
+        x.__name__ == "BuildProgram" for x in self.__class__.__mro__
+    ):
+        return self.__class__.__module__ + "." + self.__class__.__name__
+    return func.__module__ + "." + func.__name__
 
 
 class Reporter(object):
-
     def __init__(self, env, verbosity=0):
         self.env = env
         self.verbosity = verbosity
@@ -129,7 +130,7 @@ class Reporter(object):
 
     def report_dependencies(self, dependencies):
         for dep in dependencies:
-            self.report_debug_info('dependency', dep[1])
+            self.report_debug_info("dependency", dep[1])
 
     def report_dirty_flag(self, value):
         pass
@@ -178,7 +179,6 @@ class NullReporter(Reporter):
 
 
 class BufferReporter(Reporter):
-
     def __init__(self, env, verbosity=0):
         Reporter.__init__(self, env, verbosity)
         self.buffer = []
@@ -189,22 +189,21 @@ class BufferReporter(Reporter):
     def get_recorded_dependencies(self):
         rv = set()
         for event, data in self.buffer:
-            if event == 'debug-info' and \
-               data['key'] == 'dependency':
-                rv.add(data['value'])
+            if event == "debug-info" and data["key"] == "dependency":
+                rv.add(data["value"])
         return sorted(rv)
 
     def get_major_events(self):
         rv = []
         for event, data in self.buffer:
-            if event not in ('debug-info', 'dirty-flag', 'write-source-info'):
+            if event not in ("debug-info", "dirty-flag", "write-source-info"):
                 rv.append((event, data))
         return rv
 
     def get_failures(self):
         rv = []
         for event, data in self.buffer:
-            if event == 'failure':
+            if event == "failure":
                 rv.append(data)
         return rv
 
@@ -212,59 +211,59 @@ class BufferReporter(Reporter):
         self.buffer.append((_event, extra))
 
     def start_build(self, activity):
-        self._emit('start-build', activity=activity)
+        self._emit("start-build", activity=activity)
 
     def finish_build(self, activity, start_time):
-        self._emit('finish-build', activity=activity)
+        self._emit("finish-build", activity=activity)
 
     def start_artifact_build(self, is_current):
-        self._emit('start-artifact-build', artifact=self.current_artifact,
-                   is_current=is_current)
+        self._emit(
+            "start-artifact-build",
+            artifact=self.current_artifact,
+            is_current=is_current,
+        )
 
     def finish_artifact_build(self, start_time):
-        self._emit('finish-artifact-build', artifact=self.current_artifact)
+        self._emit("finish-artifact-build", artifact=self.current_artifact)
 
     def report_build_all_failure(self, failures):
-        self._emit('build-all-failure', failures=failures)
+        self._emit("build-all-failure", failures=failures)
 
     def report_failure(self, artifact, exc_info):
-        self._emit('failure', artifact=artifact, exc_info=exc_info)
+        self._emit("failure", artifact=artifact, exc_info=exc_info)
 
     def report_dirty_flag(self, value):
-        self._emit('dirty-flag', artifact=self.current_artifact,
-                   value=value)
+        self._emit("dirty-flag", artifact=self.current_artifact, value=value)
 
     def report_write_source_info(self, info):
-        self._emit('write-source-info', info=info,
-                   artifact=self.current_artifact)
+        self._emit("write-source-info", info=info, artifact=self.current_artifact)
 
     def report_prune_source_info(self, source):
-        self._emit('prune-source-info', source=source)
+        self._emit("prune-source-info", source=source)
 
     def report_build_func(self, build_func):
-        self._emit('build-func', func=describe_build_func(build_func))
+        self._emit("build-func", func=describe_build_func(build_func))
 
     def report_sub_artifact(self, artifact):
-        self._emit('sub-artifact', artifact=artifact)
+        self._emit("sub-artifact", artifact=artifact)
 
     def report_debug_info(self, key, value):
-        self._emit('debug-info', key=key, value=value)
+        self._emit("debug-info", key=key, value=value)
 
     def report_generic(self, message):
-        self._emit('generic', message=message)
+        self._emit("generic", message=message)
 
     def enter_source(self):
-        self._emit('enter-source', source=self.current_source)
+        self._emit("enter-source", source=self.current_source)
 
     def leave_source(self, start_time):
-        self._emit('leave-source', source=self.current_source)
+        self._emit("leave-source", source=self.current_source)
 
     def report_pruned_artifact(self, artifact_name):
-        self._emit('pruned-artifact', artifact_name=artifact_name)
+        self._emit("pruned-artifact", artifact_name=artifact_name)
 
 
 class CliReporter(Reporter):
-
     def __init__(self, env, verbosity=0):
         Reporter.__init__(self, env, verbosity)
         self.indentation = 0
@@ -276,32 +275,37 @@ class CliReporter(Reporter):
         self.indentation -= 1
 
     def _write_line(self, text):
-        click.echo(' ' * (self.indentation * 2) + text)
+        click.echo(" " * (self.indentation * 2) + text)
 
     def _write_kv_info(self, key, value):
-        self._write_line('%s: %s' % (key, style(text_type(value), fg='yellow')))
+        self._write_line("%s: %s" % (key, style(text_type(value), fg="yellow")))
 
     def start_build(self, activity):
-        self._write_line(style('Started %s' % activity, fg='cyan'))
+        self._write_line(style("Started %s" % activity, fg="cyan"))
         if not self.show_build_info:
             return
-        self._write_line(style('  Tree: %s' % self.env.root_path, fg='cyan'))
-        self._write_line(style('  Output path: %s' %
-                               self.builder.destination_path, fg='cyan'))
+        self._write_line(style("  Tree: %s" % self.env.root_path, fg="cyan"))
+        self._write_line(
+            style("  Output path: %s" % self.builder.destination_path, fg="cyan")
+        )
 
     def finish_build(self, activity, start_time):
-        self._write_line(style('Finished %s in %.2f sec' % (
-            activity, time.time() - start_time), fg='cyan'))
+        self._write_line(
+            style(
+                "Finished %s in %.2f sec" % (activity, time.time() - start_time),
+                fg="cyan",
+            )
+        )
 
     def start_artifact_build(self, is_current):
         artifact = self.current_artifact
         if is_current:
             if not self.show_current_artifacts:
                 return
-            sign = click.style('X', fg='cyan')
+            sign = click.style("X", fg="cyan")
         else:
-            sign = click.style('U', fg='green')
-        self._write_line('%s %s' % (sign, artifact.artifact_name))
+            sign = click.style("U", fg="green")
+        self._write_line("%s %s" % (sign, artifact.artifact_name))
 
         self.indent()
 
@@ -309,64 +313,67 @@ class CliReporter(Reporter):
         self.outdent()
 
     def report_build_all_failure(self, failures):
-        self._write_line(click.style(
-            'Error: Build failed with %s failure%s.' % (
-                failures, failures != 1 and 's' or ''), fg='red'))
+        self._write_line(
+            click.style(
+                "Error: Build failed with %s failure%s."
+                % (failures, failures != 1 and "s" or ""),
+                fg="red",
+            )
+        )
 
     def report_failure(self, artifact, exc_info):
-        sign = click.style('E', fg='red')
-        err = ' '.join(''.join(traceback.format_exception_only(
-            *exc_info[:2])).splitlines()).strip()
-        self._write_line('%s %s (%s)' % (
-            sign, artifact.artifact_name, err))
+        sign = click.style("E", fg="red")
+        err = " ".join(
+            "".join(traceback.format_exception_only(*exc_info[:2])).splitlines()
+        ).strip()
+        self._write_line("%s %s (%s)" % (sign, artifact.artifact_name, err))
 
         if not self.show_tracebacks:
             return
 
         tb = traceback.format_exception(*exc_info)
-        for line in ''.join(tb).splitlines():
-            if line.startswith('Traceback '):
-                line = click.style(line, fg='red')
-            elif line.startswith('  File '):
-                line = click.style(line, fg='yellow')
-            elif not line.startswith('    '):
-                line = click.style(line, fg='red')
-            self._write_line('  ' + line)
+        for line in "".join(tb).splitlines():
+            if line.startswith("Traceback "):
+                line = click.style(line, fg="red")
+            elif line.startswith("  File "):
+                line = click.style(line, fg="yellow")
+            elif not line.startswith("    "):
+                line = click.style(line, fg="red")
+            self._write_line("  " + line)
 
     def report_dirty_flag(self, value):
         if self.show_artifact_internals and (value or self.show_debug_info):
-            self._write_kv_info('forcing sources dirty', value)
+            self._write_kv_info("forcing sources dirty", value)
 
     def report_write_source_info(self, info):
         if self.show_artifact_internals and self.show_debug_info:
-            self._write_kv_info('writing source info', '%s [%s]' % (
-                info.title_i18n['en'], info.type))
+            self._write_kv_info(
+                "writing source info", "%s [%s]" % (info.title_i18n["en"], info.type)
+            )
 
     def report_prune_source_info(self, source):
         if self.show_artifact_internals and self.show_debug_info:
-            self._write_kv_info('pruning source info', source)
+            self._write_kv_info("pruning source info", source)
 
     def report_build_func(self, build_func):
         if self.show_artifact_internals:
-            self._write_kv_info('build program',
-                                describe_build_func(build_func))
+            self._write_kv_info("build program", describe_build_func(build_func))
 
     def report_sub_artifact(self, artifact):
         if self.show_artifact_internals:
-            self._write_kv_info('sub artifact', artifact.artifact_name)
+            self._write_kv_info("sub artifact", artifact.artifact_name)
 
     def report_debug_info(self, key, value):
         if self.show_debug_info:
             self._write_kv_info(key, value)
 
     def report_generic(self, message):
-        self._write_line(style(text_type(message), fg='cyan'))
+        self._write_line(style(text_type(message), fg="cyan"))
 
     def enter_source(self):
         if not self.show_source_internals:
             return
-        self._write_line('Source %s' % style(repr(
-            self.current_source), fg='magenta'))
+        self._write_line("Source %s" % style(repr(self.current_source), fg="magenta"))
         self.indent()
 
     def leave_source(self, start_time):
@@ -374,7 +381,7 @@ class CliReporter(Reporter):
             self.outdent()
 
     def report_pruned_artifact(self, artifact_name):
-        self._write_line('%s %s' % (style('D', fg='red'), artifact_name))
+        self._write_line("%s %s" % (style("D", fg="red"), artifact_name))
 
 
 null_reporter = NullReporter(None)

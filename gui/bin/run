@@ -3,21 +3,23 @@ import os
 from subprocess import Popen
 
 base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-bin = os.path.join(base, 'node_modules', '.bin')
-app_path = os.path.join(base, 'static')
-shell = os.name == 'nt'
+bin = os.path.join(base, "node_modules", ".bin")
+app_path = os.path.join(base, "static")
+shell = os.name == "nt"
 
 
 def main():
-    Popen([os.path.join(bin, 'webpack')], cwd=app_path, shell=True).wait()
+    Popen([os.path.join(bin, "webpack")], cwd=app_path, shell=True).wait()
 
     webpack = electron = None
     try:
-        webpack = Popen([os.path.join(bin, 'webpack'), '--watch'],
-                        cwd=app_path, shell=shell)
+        webpack = Popen(
+            [os.path.join(bin, "webpack"), "--watch"], cwd=app_path, shell=shell
+        )
         try:
-            electron = Popen([os.path.join(bin, 'electron'), '.'],
-                             cwd=base, shell=shell)
+            electron = Popen(
+                [os.path.join(bin, "electron"), "."], cwd=base, shell=shell
+            )
             electron.wait()
         except KeyboardInterrupt:
             try:
@@ -34,5 +36,5 @@ def main():
                     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

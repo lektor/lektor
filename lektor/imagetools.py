@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import decimal
 import os
+import posixpath
 import re
 import struct
-import posixpath
 import warnings
 from datetime import datetime
 from enum import IntEnum
@@ -12,13 +12,17 @@ from xml.etree import ElementTree as etree
 import exifread
 import filetype
 
-from lektor.utils import get_dependent_url, portable_popen, locate_executable
+from lektor._compat import iteritems
+from lektor._compat import PY2
+from lektor._compat import text_type
 from lektor.reporter import reporter
-from lektor._compat import iteritems, text_type, PY2
+from lektor.utils import get_dependent_url
+from lektor.utils import locate_executable
+from lektor.utils import portable_popen
 
 
 # yay shitty library
-datetime.strptime('', '')
+datetime.strptime("", "")
 
 
 class ThumbnailMode(IntEnum):
@@ -29,18 +33,19 @@ class ThumbnailMode(IntEnum):
         """The mode's label as used in templates."""
         # our constants are uppercase with underscores,
         # while template uses lowercase and dashes.
-        return self.name.lower().replace('_', '-') # pylint: disable=no-member
+        return self.name.lower().replace("_", "-")  # pylint: disable=no-member
 
     @classmethod
     def from_label(cls, label):
         """
         Looks up the thumbnail mode by its textual representation.
         """
-        name = label.upper().replace('-', '_')
+        name = label.upper().replace("-", "_")
         try:
-            return cls.__members__[name] # pylint: disable=no-member
+            return cls.__members__[name]  # pylint: disable=no-member
         except KeyError:
             raise ValueError("Invalid thumbnail mode '%s'." % label)
+
 
 # set the default. do it outside the class to not confuse things
 ThumbnailMode.DEFAULT = ThumbnailMode.FIT
@@ -48,21 +53,20 @@ ThumbnailMode.DEFAULT = ThumbnailMode.FIT
 
 def _convert_gps(coords, hem):
     deg, min, sec = [float(x.num) / float(x.den) for x in coords]
-    sign = -1 if hem in 'SW' else 1
+    sign = -1 if hem in "SW" else 1
     return sign * (deg + min / 60.0 + sec / 3600.0)
 
 
 def _combine_make(make, model):
-    make = make or ''
-    model = model or ''
+    make = make or ""
+    model = model or ""
     if make and model.startswith(make):
         return make
-    return u' '.join([make, model]).strip()
+    return u" ".join([make, model]).strip()
 
 
 _parse_svg_units_re = re.compile(
-    r'(?P<value>[+-]?(?:\d+)(?:\.\d+)?)\s*(?P<unit>\D+)?',
-    flags=re.IGNORECASE
+    r"(?P<value>[+-]?(?:\d+)(?:\.\d+)?)\s*(?P<unit>\D+)?", flags=re.IGNORECASE
 )
 
 
@@ -71,27 +75,27 @@ def _parse_svg_units_px(length):
     if not match:
         return None
     match = match.groupdict()
-    if match['unit'] and match['unit'] != 'px':
+    if match["unit"] and match["unit"] != "px":
         return None
     try:
-        return float(match['value'])
+        return float(match["value"])
     except ValueError:
         return None
 
 
 class EXIFInfo(object):
-
     def __init__(self, d):
         self._mapping = d
 
     def __bool__(self):
         return bool(self._mapping)
+
     __nonzero__ = __bool__
 
     def to_dict(self):
         rv = {}
         for key, value in iteritems(self.__class__.__dict__):
-            if key[:1] != '_' and isinstance(value, property):
+            if key[:1] != "_" and isinstance(value, property):
                 rv[key] = getattr(self, key)
         return rv
 
@@ -102,7 +106,7 @@ class EXIFInfo(object):
             return None
         if isinstance(value, text_type):
             return value
-        return value.decode('utf-8', 'replace')
+        return value.decode("utf-8", "replace")
 
     def _get_int(self, key):
         try:
@@ -122,25 +126,25 @@ class EXIFInfo(object):
     def _get_frac_string(self, key):
         try:
             val = self._mapping[key].values[0]
-            return '%s/%s' % (val.num, val.den)
+            return "%s/%s" % (val.num, val.den)
         except LookupError:
             return None
 
     @property
     def artist(self):
-        return self._get_string('Image Artist')
+        return self._get_string("Image Artist")
 
     @property
     def copyright(self):
-        return self._get_string('Image Copyright')
+        return self._get_string("Image Copyright")
 
     @property
     def camera_make(self):
-        return self._get_string('Image Make')
+        return self._get_string("Image Make")
 
     @property
     def camera_model(self):
-        return self._get_string('Image Model')
+        return self._get_string("Image Model")
 
     @property
     def camera(self):
@@ -148,11 +152,11 @@ class EXIFInfo(object):
 
     @property
     def lens_make(self):
-        return self._get_string('EXIF LensMake')
+        return self._get_string("EXIF LensMake")
 
     @property
     def lens_model(self):
-        return self._get_string('EXIF LensModel')
+        return self._get_string("EXIF LensModel")
 
     @property
     def lens(self):
@@ -160,54 +164,56 @@ class EXIFInfo(object):
 
     @property
     def aperture(self):
-        return self._get_float('EXIF ApertureValue')
+        return self._get_float("EXIF ApertureValue")
 
     @property
     def f_num(self):
-        return self._get_float('EXIF FNumber')
+        return self._get_float("EXIF FNumber")
 
     @property
     def f(self):
-        return u'ƒ/%s' % self.f_num
+        return u"ƒ/%s" % self.f_num
 
     @property
     def exposure_time(self):
-        return self._get_frac_string('EXIF ExposureTime')
+        return self._get_frac_string("EXIF ExposureTime")
 
     @property
     def shutter_speed(self):
-        val = self._get_float('EXIF ShutterSpeedValue')
+        val = self._get_float("EXIF ShutterSpeedValue")
         if val is not None:
-            return '1/%d' % round(1 / (2 ** -val))  # pylint: disable=invalid-unary-operand-type
+            return "1/%d" % round(
+                1 / (2 ** -val)
+            )  # pylint: disable=invalid-unary-operand-type
         return None
 
     @property
     def focal_length(self):
-        val = self._get_float('EXIF FocalLength')
+        val = self._get_float("EXIF FocalLength")
         if val is not None:
-            return u'%smm' % val
+            return u"%smm" % val
         return None
 
     @property
     def focal_length_35mm(self):
-        val = self._get_float('EXIF FocalLengthIn35mmFilm')
+        val = self._get_float("EXIF FocalLengthIn35mmFilm")
         if val is not None:
-            return u'%dmm' % val
+            return u"%dmm" % val
         return None
 
     @property
     def flash_info(self):
         try:
-            value = self._mapping['EXIF Flash'].printable
+            value = self._mapping["EXIF Flash"].printable
         except KeyError:
             return None
         if isinstance(value, text_type):
             return value
-        return value.decode('utf-8')
+        return value.decode("utf-8")
 
     @property
     def iso(self):
-        val = self._get_int('EXIF ISOSpeedRatings')
+        val = self._get_int("EXIF ISOSpeedRatings")
         if val is not None:
             return val
         return None
@@ -215,16 +221,17 @@ class EXIFInfo(object):
     @property
     def created_at(self):
         date_tags = (
-            'GPS GPSDate',
-            'Image DateTimeOriginal',
-            'EXIF DateTimeOriginal',
-            'EXIF DateTimeDigitized',
-            'Image DateTime',
+            "GPS GPSDate",
+            "Image DateTimeOriginal",
+            "EXIF DateTimeOriginal",
+            "EXIF DateTimeDigitized",
+            "Image DateTime",
         )
         for tag in date_tags:
             try:
-                return datetime.strptime(self._mapping[tag].printable,
-                                         '%Y:%m:%d %H:%M:%S')
+                return datetime.strptime(
+                    self._mapping[tag].printable, "%Y:%m:%d %H:%M:%S"
+                )
             except (KeyError, ValueError):
                 continue
         return None
@@ -232,25 +239,29 @@ class EXIFInfo(object):
     @property
     def longitude(self):
         try:
-            return _convert_gps(self._mapping['GPS GPSLongitude'].values,
-                                self._mapping['GPS GPSLongitudeRef'].printable)
+            return _convert_gps(
+                self._mapping["GPS GPSLongitude"].values,
+                self._mapping["GPS GPSLongitudeRef"].printable,
+            )
         except KeyError:
             return None
 
     @property
     def latitude(self):
         try:
-            return _convert_gps(self._mapping['GPS GPSLatitude'].values,
-                                self._mapping['GPS GPSLatitudeRef'].printable)
+            return _convert_gps(
+                self._mapping["GPS GPSLatitude"].values,
+                self._mapping["GPS GPSLatitudeRef"].printable,
+            )
         except KeyError:
             return None
 
     @property
     def altitude(self):
-        val = self._get_float('GPS GPSAltitude')
+        val = self._get_float("GPS GPSAltitude")
         if val is not None:
             try:
-                ref = self._mapping['GPS GPSAltitudeRef'].values[0]
+                ref = self._mapping["GPS GPSAltitudeRef"].values[0]
             except LookupError:
                 ref = 0
             if ref == 1:
@@ -268,11 +279,11 @@ class EXIFInfo(object):
 
     @property
     def documentname(self):
-        return self._get_string('Image DocumentName')
+        return self._get_string("Image DocumentName")
 
     @property
     def description(self):
-        return self._get_string('Image ImageDescription')
+        return self._get_string("Image ImageDescription")
 
     @property
     def is_rotated(self):
@@ -283,41 +294,50 @@ class EXIFInfo(object):
         (rotated 90deg left, right, and mirrored versions of those), i.e.,
         the image is rotated.
         """
-        return self._get_int('Image Orientation') in {5, 6, 7, 8}
+        return self._get_int("Image Orientation") in {5, 6, 7, 8}
 
 
 def get_suffix(width, height, mode, quality=None):
-    suffix = '' if width is None else str(width)
+    suffix = "" if width is None else str(width)
     if height is not None:
-        suffix += 'x%s' % height
+        suffix += "x%s" % height
     if mode != ThumbnailMode.DEFAULT:
-        suffix += '_%s' % mode.label
+        suffix += "_%s" % mode.label
     if quality is not None:
-        suffix += '_q%s' % quality
+        suffix += "_q%s" % quality
     return suffix
 
 
 def get_svg_info(fp):
-    _, svg = next(etree.iterparse(fp, ['start']), (None, None))
+    _, svg = next(etree.iterparse(fp, ["start"]), (None, None))
     fp.seek(0)
     width, height = None, None
-    if svg is not None and svg.tag == '{http://www.w3.org/2000/svg}svg':
-        width = _parse_svg_units_px(svg.attrib.get('width', ''))
-        height = _parse_svg_units_px(svg.attrib.get('height', ''))
-    return 'svg', width, height
+    if svg is not None and svg.tag == "{http://www.w3.org/2000/svg}svg":
+        width = _parse_svg_units_px(svg.attrib.get("width", ""))
+        height = _parse_svg_units_px(svg.attrib.get("height", ""))
+    return "svg", width, height
 
 
 # see http://www.w3.org/Graphics/JPEG/itu-t81.pdf
 # Table B.1 – Marker code assignments (page 32/36)
 _JPEG_SOF_MARKERS = (
     # non-differential, Hufmann-coding
-    0xc0, 0xc1, 0xc2, 0xc3,
+    0xC0,
+    0xC1,
+    0xC2,
+    0xC3,
     # differential, Hufmann-coding
-    0xc5, 0xc6, 0xc7,
+    0xC5,
+    0xC6,
+    0xC7,
     # non-differential, arithmetic-coding
-    0xc9, 0xca, 0xcb,
+    0xC9,
+    0xCA,
+    0xCB,
     # differential, arithmetic-coding
-    0xcd, 0xce, 0xcf,
+    0xCD,
+    0xCE,
+    0xCF,
 )
 
 
@@ -326,9 +346,9 @@ def get_image_info(fp):
     head = fp.read(32)
     fp.seek(0)
     if len(head) < 24:
-        return 'unknown', None, None
+        return "unknown", None, None
 
-    magic_bytes = b'<?xml', b'<svg'
+    magic_bytes = b"<?xml", b"<svg"
     if any(map(head.strip().startswith, magic_bytes)):
         return get_svg_info(fp)
 
@@ -337,13 +357,13 @@ def get_image_info(fp):
 
     width = None
     height = None
-    if fmt == 'png':
-        check = struct.unpack('>i', head[4:8])[0]
-        if check == 0x0d0a1a0a:
-            width, height = struct.unpack('>ii', head[16:24])
-    elif fmt == 'gif':
-        width, height = struct.unpack('<HH', head[6:10])
-    elif fmt == 'jpeg':
+    if fmt == "png":
+        check = struct.unpack(">i", head[4:8])[0]
+        if check == 0x0D0A1A0A:
+            width, height = struct.unpack(">ii", head[16:24])
+    elif fmt == "gif":
+        width, height = struct.unpack("<HH", head[6:10])
+    elif fmt == "jpeg":
         # specification available under
         # http://www.w3.org/Graphics/JPEG/itu-t81.pdf
         # Annex B (page 31/35)
@@ -358,17 +378,17 @@ def get_image_info(fp):
 
             # "All markers are assigned two-byte codes: an X’FF’ byte
             # followed by a byte which is not equal to 0 or X’FF’."
-            if not byte or ord(byte) != 0xff:
+            if not byte or ord(byte) != 0xFF:
                 raise Exception("Malformed JPEG image.")
 
             # "Any marker may optionally be preceded by any number
             # of fill bytes, which are bytes assigned code X’FF’."
-            while ord(byte) == 0xff:
+            while ord(byte) == 0xFF:
                 byte = fp.read(1)
 
             if ord(byte) not in _JPEG_SOF_MARKERS:
                 # header length parameter takes 2 bytes for all markers
-                length = struct.unpack('>H', fp.read(2))[0]
+                length = struct.unpack(">H", fp.read(2))[0]
                 fp.seek(length - 2, 1)
                 continue
 
@@ -376,8 +396,8 @@ def get_image_info(fp):
             # see Figure B.3 – Frame header syntax (page 35/39) and
             # Table B.2 – Frame header parameter sizes and values
             # (page 36/40)
-            fp.seek(3, 1) # skip header length and precision parameters
-            height, width = struct.unpack('>HH', fp.read(4))
+            fp.seek(3, 1)  # skip header length and precision parameters
+            height, width = struct.unpack(">HH", fp.read(4))
 
             if height == 0:
                 # "Value 0 indicates that the number of lines shall be
@@ -411,7 +431,7 @@ def read_exif(fp):
 
 def is_rotated(fp):
     """Fast version of read_exif(fp).is_rotated, using an exif header subset."""
-    exif = exifread.process_file(fp, stop_tag='Orientation', details=False)
+    exif = exifread.process_file(fp, stop_tag="Orientation", details=False)
     return EXIFInfo(exif).is_rotated
 
 
@@ -423,29 +443,29 @@ def find_imagemagick(im=None):
 
     # On windows, imagemagick was renamed to magick, because
     # convert is system utility for fs manipulation.
-    imagemagick_exe = 'convert' if os.name != 'nt' else 'magick'
+    imagemagick_exe = "convert" if os.name != "nt" else "magick"
 
     rv = locate_executable(imagemagick_exe)
     if rv is not None:
         return rv
 
     # Give up.
-    raise RuntimeError('Could not locate imagemagick.')
+    raise RuntimeError("Could not locate imagemagick.")
 
 
 def get_thumbnail_ext(source_filename):
-    ext = source_filename.rsplit('.', 1)[-1].lower()
+    ext = source_filename.rsplit(".", 1)[-1].lower()
     # if the extension is already of a format that a browser understands
     # we will roll with it.
-    if ext.lower() in ('png', 'jpg', 'jpeg', 'gif'):
+    if ext.lower() in ("png", "jpg", "jpeg", "gif"):
         return None
     # Otherwise we roll with JPEG as default.
-    return '.jpeg'
+    return ".jpeg"
 
 
 def get_quality(source_filename):
-    ext = source_filename.rsplit('.', 1)[-1].lower()
-    if ext.lower() == 'png':
+    ext = source_filename.rsplit(".", 1)[-1].lower()
+    if ext.lower() == "png":
         return 75
     return 85
 
@@ -463,21 +483,25 @@ def compute_dimensions(width, height, source_width, source_height):
 
     def _round(x):
         # make sure things get top-rounded, to be consistent with imagemagick
-        return int(
-            decimal.Decimal(x).to_integral(decimal.ROUND_HALF_UP)
-        )
+        return int(decimal.Decimal(x).to_integral(decimal.ROUND_HALF_UP))
 
-    if width is None or (height is not None and
-                         width / height > source_ratio):
+    if width is None or (height is not None and width / height > source_ratio):
         computed_width = _round(height * source_ratio)
     else:
         computed_height = _round(width / source_ratio)
 
     return computed_width, computed_height
 
-def process_image(ctx, source_image, dst_filename,
-                  width=None, height=None, mode=ThumbnailMode.DEFAULT,
-                  quality=None):
+
+def process_image(
+    ctx,
+    source_image,
+    dst_filename,
+    width=None,
+    height=None,
+    mode=ThumbnailMode.DEFAULT,
+    quality=None,
+):
     """Build image from source image, optionally compressing and resizing.
 
     "source_image" is the absolute path of the source in the content directory,
@@ -486,38 +510,49 @@ def process_image(ctx, source_image, dst_filename,
     if width is None and height is None:
         raise ValueError("Must specify at least one of width or height.")
 
-    im = find_imagemagick(
-        ctx.build_state.config['IMAGEMAGICK_EXECUTABLE'])
+    im = find_imagemagick(ctx.build_state.config["IMAGEMAGICK_EXECUTABLE"])
 
     if quality is None:
         quality = get_quality(source_image)
 
-    resize_key = ''
+    resize_key = ""
     if width is not None:
         resize_key += str(width)
     if height is not None:
-        resize_key += 'x' + str(height)
+        resize_key += "x" + str(height)
 
     if mode == ThumbnailMode.STRETCH:
-        resize_key += '!'
+        resize_key += "!"
 
-    cmdline = [im, source_image, '-auto-orient']
+    cmdline = [im, source_image, "-auto-orient"]
     if mode == ThumbnailMode.CROP:
-        cmdline += ['-resize', resize_key + '^',
-                    '-gravity', 'Center',
-                    '-extent', resize_key]
+        cmdline += [
+            "-resize",
+            resize_key + "^",
+            "-gravity",
+            "Center",
+            "-extent",
+            resize_key,
+        ]
     else:
-        cmdline += ['-resize', resize_key]
+        cmdline += ["-resize", resize_key]
 
-    cmdline += ['-quality', str(quality), dst_filename]
+    cmdline += ["-quality", str(quality), dst_filename]
 
-    reporter.report_debug_info('imagemagick cmd line', cmdline)
+    reporter.report_debug_info("imagemagick cmd line", cmdline)
     portable_popen(cmdline).wait()
 
 
-def make_image_thumbnail(ctx, source_image, source_url_path,
-                         width=None, height=None, mode=ThumbnailMode.DEFAULT,
-                         upscale=None, quality=None):
+def make_image_thumbnail(
+    ctx,
+    source_image,
+    source_url_path,
+    width=None,
+    height=None,
+    mode=ThumbnailMode.DEFAULT,
+    upscale=None,
+    quality=None,
+):
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
@@ -527,9 +562,9 @@ def make_image_thumbnail(ctx, source_image, source_url_path,
     # this part needs to be removed once backward-compatibility period passes
     if upscale is None and mode == ThumbnailMode.FIT:
         warnings.warn(
-            'Your images are currently scaled up when the thumbnail requested '
-            'is larger than the source. This default will change in the future. '
-            'If you want to preserve the current behaviour, use `upscale=True`.'
+            "Your images are currently scaled up when the thumbnail requested "
+            "is larger than the source. This default will change in the future. "
+            "If you want to preserve the current behaviour, use `upscale=True`."
         )
         upscale = True
 
@@ -550,19 +585,20 @@ def make_image_thumbnail(ctx, source_image, source_url_path,
         )
         mode = ThumbnailMode.FIT
 
-    with open(source_image, 'rb') as f:
+    with open(source_image, "rb") as f:
         format, source_width, source_height = get_image_info(f)
 
     if format is None:
-        raise RuntimeError('Cannot process unknown images')
+        raise RuntimeError("Cannot process unknown images")
 
     # If we are dealing with an actual svg image, we do not actually
     # resize anything, we just return it. This is not ideal but it's
     # better than outright failing.
-    if format == 'svg':
+    if format == "svg":
         return Thumbnail(source_url_path, width, height)
 
     if not upscale:
+
         def _original():
             return Thumbnail(source_url_path, source_width, source_height)
 
@@ -577,20 +613,29 @@ def make_image_thumbnail(ctx, source_image, source_url_path,
                 return _original()
 
     suffix = get_suffix(width, height, mode, quality=quality)
-    dst_url_path = get_dependent_url(source_url_path, suffix,
-                                     ext=get_thumbnail_ext(source_image))
+    dst_url_path = get_dependent_url(
+        source_url_path, suffix, ext=get_thumbnail_ext(source_image)
+    )
 
     if mode == ThumbnailMode.FIT:
         computed_width, computed_height = compute_dimensions(
-            width, height, source_width, source_height)
+            width, height, source_width, source_height
+        )
     else:
         computed_width, computed_height = width, height
 
     @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
-        process_image(ctx, source_image, artifact.dst_filename,
-                      width, height, mode, quality=quality)
+        process_image(
+            ctx,
+            source_image,
+            artifact.dst_filename,
+            width,
+            height,
+            mode,
+            quality=quality,
+        )
 
     return Thumbnail(dst_url_path, computed_width, computed_height)
 

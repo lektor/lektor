@@ -3,22 +3,27 @@ import os
 import posixpath
 from zlib import adler32
 
-from flask import (Blueprint, Response, abort, current_app, render_template,
-    request)
+from flask import abort
+from flask import Blueprint
+from flask import current_app
+from flask import render_template
+from flask import request
+from flask import Response
 from werkzeug.datastructures import Headers
-from werkzeug.wsgi import wrap_file
 from werkzeug.exceptions import NotFound
+from werkzeug.wsgi import wrap_file
 
-from lektor._compat import BytesIO, string_types
+from lektor._compat import BytesIO
+from lektor._compat import string_types
 
 
-bp = Blueprint('serve', __name__)
+bp = Blueprint("serve", __name__)
 
 
 def rewrite_html_for_editing(fp, edit_url):
     contents = fp.read()
 
-    button_style = u'''
+    button_style = u"""
     <style type="text/css">
       #lektor-edit-link {
         position: fixed;
@@ -48,8 +53,8 @@ def rewrite_html_for_editing(fp, edit_url):
         border: 1px solid #aaa!important;
       }
     </style>
-    '''
-    button_script = u'''
+    """
+    button_script = u"""
     <script type="text/javascript">
       (function() {
         if (window != window.top) {
@@ -63,53 +68,55 @@ def rewrite_html_for_editing(fp, edit_url):
         document.body.appendChild(link);
       })();
     </script>
-    ''' % {
-        'edit_url': edit_url,
+    """ % {
+        "edit_url": edit_url
     }
 
-    head_endpos = contents.find(b'</head>')
-    body_endpos = contents.find(b'</body>')
+    head_endpos = contents.find(b"</head>")
+    body_endpos = contents.find(b"</body>")
     if head_endpos >= 0 and body_endpos >= 0:
-        return BytesIO(contents[:head_endpos] +
-                       button_style.encode('utf-8') +
-                       contents[head_endpos:body_endpos] +
-                       button_script.encode('utf-8') +
-                       contents[body_endpos:])
+        return BytesIO(
+            contents[:head_endpos]
+            + button_style.encode("utf-8")
+            + contents[head_endpos:body_endpos]
+            + button_script.encode("utf-8")
+            + contents[body_endpos:]
+        )
     else:
-        return BytesIO(contents +
-                       button_style.encode('utf-8') +
-                       button_script.encode('utf-8'))
+        return BytesIO(
+            contents + button_style.encode("utf-8") + button_script.encode("utf-8")
+        )
 
 
 def send_file(filename):
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is None:
-        mimetype = 'application/octet-stream'
+        mimetype = "application/octet-stream"
 
     headers = Headers()
 
     try:
-        file = open(filename, 'rb')
+        file = open(filename, "rb")
         mtime = os.path.getmtime(filename)
-        headers['Content-Length'] = os.path.getsize(filename)
+        headers["Content-Length"] = os.path.getsize(filename)
     except (IOError, OSError):
         abort(404)
 
     rewritten = False
-    if mimetype == 'text/html':
+    if mimetype == "text/html":
         rewritten = True
-        new_file = rewrite_html_for_editing(file,
-            edit_url=posixpath.join('/', request.script_root, 'admin/edit'))
+        new_file = rewrite_html_for_editing(
+            file, edit_url=posixpath.join("/", request.script_root, "admin/edit")
+        )
         file.close()
         file = new_file
-        del headers['Content-Length']
+        del headers["Content-Length"]
 
-    headers['Cache-Control'] = 'no-cache, no-store'
+    headers["Cache-Control"] = "no-cache, no-store"
 
     data = wrap_file(request.environ, file)
 
-    rv = Response(data, mimetype=mimetype, headers=headers,
-                  direct_passthrough=True)
+    rv = Response(data, mimetype=mimetype, headers=headers, direct_passthrough=True)
 
     if not rewritten:
         # if we know the file modification date, we can store it as
@@ -118,14 +125,19 @@ def send_file(filename):
             rv.last_modified = int(mtime)
         rv.cache_control.public = True
         try:
-            rv.set_etag('lektor-%s-%s-%s' % (
-                os.path.getmtime(filename),
-                os.path.getsize(filename),
-                adler32(
-                    filename.encode('utf-8') if isinstance(filename, string_types)
-                    else filename
-                ) & 0xffffffff,
-            ))
+            rv.set_etag(
+                "lektor-%s-%s-%s"
+                % (
+                    os.path.getmtime(filename),
+                    os.path.getsize(filename),
+                    adler32(
+                        filename.encode("utf-8")
+                        if isinstance(filename, string_types)
+                        else filename
+                    )
+                    & 0xFFFFFFFF,
+                )
+            )
         except OSError:
             pass
 
@@ -133,19 +145,19 @@ def send_file(filename):
 
 
 def handle_build_failure(failure):
-    return render_template('build-failure.html', **failure.data)
+    return render_template("build-failure.html", **failure.data)
 
 
 def serve_up_artifact(path):
     li = current_app.lektor_info
     pad = li.get_pad()
 
-    artifact_name, filename = li.resolve_artifact('/' + path, pad)
+    artifact_name, filename = li.resolve_artifact("/" + path, pad)
     if filename is None:
         abort(404)
 
     if artifact_name is None:
-        artifact_name = path.strip('/')
+        artifact_name = path.strip("/")
 
     # If there was a build failure for the given artifact, we want
     # to render this instead of sending the (most likely missing or
@@ -158,8 +170,8 @@ def serve_up_artifact(path):
     return send_file(filename)
 
 
-@bp.route('/', defaults={'path': ''})
-@bp.route('/<path:path>')
+@bp.route("/", defaults={"path": ""})
+@bp.route("/<path:path>")
 def serve_artifact(path):
     return serve_up_artifact(path)
 
@@ -167,6 +179,6 @@ def serve_artifact(path):
 @bp.errorhandler(404)
 def serve_error_page(error):
     try:
-        return serve_up_artifact('404.html')
+        return serve_up_artifact("404.html")
     except NotFound as e:
         return e

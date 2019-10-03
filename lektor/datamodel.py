@@ -5,17 +5,28 @@ import os
 from inifile import IniFile
 
 from lektor import types
-from lektor._compat import iteritems, itervalues
-from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
-from lektor.i18n import get_i18n_block, generate_i18n_kvs
+from lektor._compat import iteritems
+from lektor._compat import itervalues
+from lektor.environment import Expression
+from lektor.environment import FormatExpression
+from lektor.environment import PRIMARY_ALT
+from lektor.i18n import generate_i18n_kvs
+from lektor.i18n import get_i18n_block
 from lektor.pagination import Pagination
-from lektor.utils import bool_from_string, slugify
+from lektor.utils import bool_from_string
+from lektor.utils import slugify
 
 
 class ChildConfig(object):
-
-    def __init__(self, enabled=None, slug_format=None, model=None,
-                 order_by=None, replaced_with=None, hidden=None):
+    def __init__(
+        self,
+        enabled=None,
+        slug_format=None,
+        model=None,
+        order_by=None,
+        replaced_with=None,
+        hidden=None,
+    ):
         if enabled is None:
             enabled = True
         self.enabled = enabled
@@ -27,19 +38,17 @@ class ChildConfig(object):
 
     def to_json(self):
         return {
-            'enabled': self.enabled,
-            'slug_format': self.slug_format,
-            'model': self.model,
-            'order_by': self.order_by,
-            'replaced_with': self.replaced_with,
-            'hidden': self.hidden,
+            "enabled": self.enabled,
+            "slug_format": self.slug_format,
+            "model": self.model,
+            "order_by": self.order_by,
+            "replaced_with": self.replaced_with,
+            "hidden": self.hidden,
         }
 
 
 class PaginationConfig(object):
-
-    def __init__(self, env, enabled=None, per_page=None, url_suffix=None,
-                 items=None):
+    def __init__(self, env, enabled=None, per_page=None, url_suffix=None, items=None):
         self.env = env
         if enabled is None:
             enabled = False
@@ -48,7 +57,7 @@ class PaginationConfig(object):
             per_page = 20
         self.per_page = per_page
         if url_suffix is None:
-            url_suffix = 'page'
+            url_suffix = "page"
         self.url_suffix = url_suffix
         self.items = items
         self._items_tmpl = None
@@ -93,8 +102,8 @@ class PaginationConfig(object):
         """Matches the pagination from the URL path."""
         if not self.enabled:
             return None
-        suffixes = self.url_suffix.strip('/').split('/')
-        if url_path[:len(suffixes)] != suffixes:
+        suffixes = self.url_suffix.strip("/").split("/")
+        if url_path[: len(suffixes)] != suffixes:
             return None
         try:
             page_num = int(url_path[len(suffixes)])
@@ -115,36 +124,29 @@ class PaginationConfig(object):
 
     def get_pagination_controller(self, record):
         if not self.enabled:
-            raise RuntimeError('Pagination is disabled')
+            raise RuntimeError("Pagination is disabled")
         return Pagination(record, self)
 
     def get_pagination_query(self, record):
         items_expr = self.items
         if items_expr is None:
             return record.children
-        if self._items_tmpl is None or \
-           self._items_tmpl[0] != items_expr:
-            self._items_tmpl = (
-                items_expr,
-                Expression(self.env, items_expr)
-            )
+        if self._items_tmpl is None or self._items_tmpl[0] != items_expr:
+            self._items_tmpl = (items_expr, Expression(self.env, items_expr))
 
-        return self._items_tmpl[1].evaluate(
-            record.pad, this=record)
+        return self._items_tmpl[1].evaluate(record.pad, this=record)
 
     def to_json(self):
         return {
-            'enabled': self.enabled,
-            'per_page': self.per_page,
-            'url_suffix': self.url_suffix,
-            'items': self.items,
+            "enabled": self.enabled,
+            "per_page": self.per_page,
+            "url_suffix": self.url_suffix,
+            "items": self.items,
         }
 
 
 class AttachmentConfig(object):
-
-    def __init__(self, enabled=None, model=None, order_by=None,
-                 hidden=None):
+    def __init__(self, enabled=None, model=None, order_by=None, hidden=None):
         if enabled is None:
             enabled = True
         if hidden is None:
@@ -156,46 +158,47 @@ class AttachmentConfig(object):
 
     def to_json(self):
         return {
-            'enabled': self.enabled,
-            'model': self.model,
-            'order_by': self.order_by,
-            'hidden': self.hidden,
+            "enabled": self.enabled,
+            "model": self.model,
+            "order_by": self.order_by,
+            "hidden": self.hidden,
         }
 
 
 class Field(object):
-
     def __init__(self, env, name, type=None, options=None):
         if type is None:
-            type = env.types['string']
+            type = env.types["string"]
         if options is None:
             options = {}
         self.options = options
         self.name = name
-        label_i18n = get_i18n_block(options, 'label')
+        label_i18n = get_i18n_block(options, "label")
         if not label_i18n:
-            label_i18n = {'en': name.replace('_', ' ').strip().capitalize()}
+            label_i18n = {"en": name.replace("_", " ").strip().capitalize()}
         self.label_i18n = label_i18n
-        self.description_i18n = get_i18n_block(options, 'description') or None
-        self.default = options.get('default')
+        self.description_i18n = get_i18n_block(options, "description") or None
+        self.default = options.get("default")
         self.type = type(env, options)
 
     @property
     def label(self):
-        return self.label_i18n.get('en')
+        return self.label_i18n.get("en")
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         return {
-            'name': self.name,
-            'label': self.label,
-            'label_i18n': self.label_i18n,
-            'hide_label': bool_from_string(self.options.get('hide_label'),
-                                           default=False),
-            'description_i18n': self.description_i18n,
-            'type': self.type.to_json(pad, record, alt),
-            'default': self.default,
-            'alts_enabled': bool_from_string(self.options.get('alts_enabled'),
-                                             default=None),
+            "name": self.name,
+            "label": self.label,
+            "label_i18n": self.label_i18n,
+            "hide_label": bool_from_string(
+                self.options.get("hide_label"), default=False
+            ),
+            "description_i18n": self.description_i18n,
+            "type": self.type.to_json(pad, record, alt),
+            "default": self.default,
+            "alts_enabled": bool_from_string(
+                self.options.get("alts_enabled"), default=None
+            ),
         }
 
     def deserialize_value(self, value, pad=None):
@@ -206,27 +209,33 @@ class Field(object):
         return self.type.value_to_raw(value)
 
     def __repr__(self):
-        return '<%s %r type=%r>' % (
-            self.__class__.__name__,
-            self.name,
-            self.type,
-        )
+        return "<%s %r type=%r>" % (self.__class__.__name__, self.name, self.type)
 
 
 def _iter_all_fields(obj):
-    for name in sorted(x for x in obj.field_map if x[:1] == '_'):
+    for name in sorted(x for x in obj.field_map if x[:1] == "_"):
         yield obj.field_map[name]
     for field in obj.fields:
         yield field
 
 
 class DataModel(object):
-
-    def __init__(self, env, id, name_i18n, label_i18n=None,
-                 filename=None, hidden=None, protected=None,
-                 child_config=None, attachment_config=None,
-                 pagination_config=None, fields=None,
-                 primary_field=None, parent=None):
+    def __init__(
+        self,
+        env,
+        id,
+        name_i18n,
+        label_i18n=None,
+        filename=None,
+        hidden=None,
+        protected=None,
+        child_config=None,
+        attachment_config=None,
+        pagination_config=None,
+        fields=None,
+        primary_field=None,
+        parent=None,
+    ):
         self.env = env
         self.filename = filename
         self.id = id
@@ -268,34 +277,33 @@ class DataModel(object):
 
     @property
     def name(self):
-        name = (self.name_i18n or {}).get('en')
-        return name or self.id.title().replace('_', ' ')
+        name = (self.name_i18n or {}).get("en")
+        return name or self.id.title().replace("_", " ")
 
     @property
     def label(self):
-        return (self.label_i18n or {}).get('en')
+        return (self.label_i18n or {}).get("en")
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         """Describes the datamodel as JSON data."""
         return {
-            'filename': self.filename,
-            'alt': alt,
-            'id': self.id,
-            'name': self.name,
-            'name_i18n': self.name_i18n,
-            'primary_field': self.primary_field,
-            'label': self.label,
-            'label_i18n': self.label_i18n,
-            'hidden': self.hidden,
-            'protected': self.protected,
-            'child_config': self.child_config.to_json(),
-            'attachment_config': self.attachment_config.to_json(),
-            'pagination_config': self.pagination_config.to_json(),
-            'fields': [x.to_json(pad, record, alt) for x in
-                       _iter_all_fields(self)],
+            "filename": self.filename,
+            "alt": alt,
+            "id": self.id,
+            "name": self.name,
+            "name_i18n": self.name_i18n,
+            "primary_field": self.primary_field,
+            "label": self.label,
+            "label_i18n": self.label_i18n,
+            "hidden": self.hidden,
+            "protected": self.protected,
+            "child_config": self.child_config.to_json(),
+            "attachment_config": self.attachment_config.to_json(),
+            "pagination_config": self.pagination_config.to_json(),
+            "fields": [x.to_json(pad, record, alt) for x in _iter_all_fields(self)],
         }
 
-    def format_record_label(self, record, lang='en'):
+    def format_record_label(self, record, lang="en"):
         """Returns the label for a given record."""
         label = self.label_i18n.get(lang)
         if label is None:
@@ -303,10 +311,7 @@ class DataModel(object):
 
         tmpl = self._label_tmpls.get(lang)
         if tmpl is None:
-            tmpl = (
-                label,
-                FormatExpression(self.env, label)
-            )
+            tmpl = (label, FormatExpression(self.env, label))
             self._label_tmpls[lang] = tmpl
 
         try:
@@ -319,29 +324,28 @@ class DataModel(object):
         """Formats out the child slug."""
         slug_format = self.child_config.slug_format
         if slug_format is None:
-            return data['_id']
+            return data["_id"]
 
-        if self._child_slug_tmpl is None or \
-           self._child_slug_tmpl[0] != slug_format:
+        if self._child_slug_tmpl is None or self._child_slug_tmpl[0] != slug_format:
             self._child_slug_tmpl = (
                 slug_format,
-                FormatExpression(self.env, slug_format)
+                FormatExpression(self.env, slug_format),
             )
 
         try:
-            return '_'.join(self._child_slug_tmpl[1].evaluate(
-                pad, this=data).strip().split()).strip('/')
+            return "_".join(
+                self._child_slug_tmpl[1].evaluate(pad, this=data).strip().split()
+            ).strip("/")
         except Exception:
             # XXX: log
-            return 'temp-' + slugify(data['_id'])
+            return "temp-" + slugify(data["_id"])
 
     def get_default_template_name(self):
-        return self.id + '.html'
+        return self.id + ".html"
 
     @property
     def has_own_children(self):
-        return self.child_config.replaced_with is None and \
-               self.child_config.enabled
+        return self.child_config.replaced_with is None and self.child_config.enabled
 
     @property
     def has_own_attachments(self):
@@ -355,11 +359,13 @@ class DataModel(object):
         if replaced_with is None:
             return None
 
-        if self._child_replacements is None or \
-           self._child_replacements[0] != replaced_with:
+        if (
+            self._child_replacements is None
+            or self._child_replacements[0] != replaced_with
+        ):
             self._child_replacements = (
                 replaced_with,
-                Expression(self.env, replaced_with)
+                Expression(self.env, replaced_with),
             )
 
         return self._child_replacements[1].evaluate(record.pad, this=record)
@@ -369,20 +375,24 @@ class DataModel(object):
         for field in itervalues(self.field_map):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
-        rv['_model'] = self.id
+        rv["_model"] = self.id
         return rv
 
     def __repr__(self):
-        return '<%s %r>' % (
-            self.__class__.__name__,
-            self.id,
-        )
+        return "<%s %r>" % (self.__class__.__name__, self.id)
 
 
 class FlowBlockModel(object):
-
-    def __init__(self, env, id, name_i18n, filename=None, fields=None,
-                 order=None, button_label=None):
+    def __init__(
+        self,
+        env,
+        id,
+        name_i18n,
+        filename=None,
+        fields=None,
+        order=None,
+        button_label=None,
+    ):
         self.env = env
         self.id = id
         self.name_i18n = name_i18n
@@ -396,23 +406,27 @@ class FlowBlockModel(object):
         self.button_label = button_label
 
         self.field_map = dict((x.name, x) for x in fields)
-        self.field_map['_flowblock'] = Field(
-            env, name='_flowblock', type=env.types['string'])
+        self.field_map["_flowblock"] = Field(
+            env, name="_flowblock", type=env.types["string"]
+        )
 
     @property
     def name(self):
-        return self.name_i18n.get('en') or self.id.title().replace('_', ' ')
+        return self.name_i18n.get("en") or self.id.title().replace("_", " ")
 
     def to_json(self, pad, record=None, alt=PRIMARY_ALT):
         return {
-            'id': self.id,
-            'name': self.name,
-            'name_i18n': self.name_i18n,
-            'filename': self.filename,
-            'fields': [x.to_json(pad, record, alt) for x in _iter_all_fields(self)
-                       if x.name != '_flowblock'],
-            'order': self.order,
-            'button_label': self.button_label,
+            "id": self.id,
+            "name": self.name,
+            "name_i18n": self.name_i18n,
+            "filename": self.filename,
+            "fields": [
+                x.to_json(pad, record, alt)
+                for x in _iter_all_fields(self)
+                if x.name != "_flowblock"
+            ],
+            "order": self.order,
+            "button_label": self.button_label,
         }
 
     def process_raw_data(self, raw_data, pad=None):
@@ -420,58 +434,56 @@ class FlowBlockModel(object):
         for field in itervalues(self.field_map):
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
-        rv['_flowblock'] = self.id
+        rv["_flowblock"] = self.id
         return rv
 
     def __repr__(self):
-        return '<%s %r>' % (
-            self.__class__.__name__,
-            self.id,
-        )
+        return "<%s %r>" % (self.__class__.__name__, self.id)
 
 
 def fielddata_from_ini(inifile):
-    return [(
-        sect.split('.', 1)[1],
-        inifile.section_as_dict(sect),
-    ) for sect in inifile.sections() if sect.startswith('fields.')]
+    return [
+        (sect.split(".", 1)[1], inifile.section_as_dict(sect))
+        for sect in inifile.sections()
+        if sect.startswith("fields.")
+    ]
 
 
 def datamodel_data_from_ini(id, inifile):
     def _parse_order(value):
-        value = (value or '').strip()
+        value = (value or "").strip()
         if not value:
             return None
-        return [x for x in [x.strip() for x in value.strip().split(',')] if x]
+        return [x for x in [x.strip() for x in value.strip().split(",")] if x]
 
     return dict(
         filename=inifile.filename,
         id=id,
-        parent=inifile.get('model.inherits'),
-        name_i18n=get_i18n_block(inifile, 'model.name'),
-        label_i18n=get_i18n_block(inifile, 'model.label'),
-        primary_field=inifile.get('model.primary_field'),
-        hidden=inifile.get_bool('model.hidden', default=None),
-        protected=inifile.get_bool('model.protected', default=None),
+        parent=inifile.get("model.inherits"),
+        name_i18n=get_i18n_block(inifile, "model.name"),
+        label_i18n=get_i18n_block(inifile, "model.label"),
+        primary_field=inifile.get("model.primary_field"),
+        hidden=inifile.get_bool("model.hidden", default=None),
+        protected=inifile.get_bool("model.protected", default=None),
         child_config=dict(
-            enabled=inifile.get_bool('children.enabled', default=None),
-            slug_format=inifile.get('children.slug_format'),
-            model=inifile.get('children.model'),
-            order_by=_parse_order(inifile.get('children.order_by')),
-            replaced_with=inifile.get('children.replaced_with'),
-            hidden=inifile.get_bool('children.hidden', default=None),
+            enabled=inifile.get_bool("children.enabled", default=None),
+            slug_format=inifile.get("children.slug_format"),
+            model=inifile.get("children.model"),
+            order_by=_parse_order(inifile.get("children.order_by")),
+            replaced_with=inifile.get("children.replaced_with"),
+            hidden=inifile.get_bool("children.hidden", default=None),
         ),
         attachment_config=dict(
-            enabled=inifile.get_bool('attachments.enabled', default=None),
-            model=inifile.get('attachments.model'),
-            order_by=_parse_order(inifile.get('attachments.order_by')),
-            hidden=inifile.get_bool('attachments.hidden', default=None),
+            enabled=inifile.get_bool("attachments.enabled", default=None),
+            model=inifile.get("attachments.model"),
+            order_by=_parse_order(inifile.get("attachments.order_by")),
+            hidden=inifile.get_bool("attachments.hidden", default=None),
         ),
         pagination_config=dict(
-            enabled=inifile.get_bool('pagination.enabled', default=None),
-            per_page=inifile.get_int('pagination.per_page'),
-            url_suffix=inifile.get('pagination.url_suffix'),
-            items=inifile.get('pagination.items'),
+            enabled=inifile.get_bool("pagination.enabled", default=None),
+            per_page=inifile.get_int("pagination.per_page"),
+            url_suffix=inifile.get("pagination.url_suffix"),
+            items=inifile.get("pagination.items"),
         ),
         fields=fielddata_from_ini(inifile),
     )
@@ -481,10 +493,10 @@ def flowblock_data_from_ini(id, inifile):
     return dict(
         filename=inifile.filename,
         id=id,
-        name_i18n=get_i18n_block(inifile, 'block.name'),
+        name_i18n=get_i18n_block(inifile, "block.name"),
         fields=fielddata_from_ini(inifile),
-        order=inifile.get_int('block.order'),
-        button_label=inifile.get('block.button_label'),
+        order=inifile.get_int("block.order"),
+        button_label=inifile.get("block.button_label"),
     )
 
 
@@ -493,7 +505,7 @@ def fields_from_data(env, data, parent_fields=None):
     known_fields = set()
 
     for name, options in data:
-        ty = env.types[options.get('type', 'string')]
+        ty = env.types[options.get("type", "string")]
         fields.append(Field(env=env, name=name, type=ty, options=options))
         known_fields.add(name)
 
@@ -509,7 +521,7 @@ def fields_from_data(env, data, parent_fields=None):
 
 def datamodel_from_data(env, model_data, parent=None):
     def get_value(key):
-        path = key.split('.')
+        path = key.split(".")
         node = model_data
         for item in path:
             node = node.get(item)
@@ -522,42 +534,42 @@ def datamodel_from_data(env, model_data, parent=None):
             return node
         return None
 
-    fields = fields_from_data(env, model_data['fields'],
-                              parent and parent.fields or None)
+    fields = fields_from_data(
+        env, model_data["fields"], parent and parent.fields or None
+    )
 
     return DataModel(
         env,
-
         # data that never inherits
-        filename=model_data['filename'],
-        id=model_data['id'],
+        filename=model_data["filename"],
+        id=model_data["id"],
         parent=parent,
-        name_i18n=model_data['name_i18n'],
-        primary_field=model_data['primary_field'],
-
+        name_i18n=model_data["name_i18n"],
+        primary_field=model_data["primary_field"],
         # direct data that can inherit
-        label_i18n=get_value('label_i18n'),
-        hidden=get_value('hidden'),
-        protected=get_value('protected'),
+        label_i18n=get_value("label_i18n"),
+        hidden=get_value("hidden"),
+        protected=get_value("protected"),
         child_config=ChildConfig(
-            enabled=get_value('child_config.enabled'),
-            slug_format=get_value('child_config.slug_format'),
-            model=get_value('child_config.model'),
-            order_by=get_value('child_config.order_by'),
-            replaced_with=get_value('child_config.replaced_with'),
-            hidden=get_value('child_config.hidden'),
+            enabled=get_value("child_config.enabled"),
+            slug_format=get_value("child_config.slug_format"),
+            model=get_value("child_config.model"),
+            order_by=get_value("child_config.order_by"),
+            replaced_with=get_value("child_config.replaced_with"),
+            hidden=get_value("child_config.hidden"),
         ),
         attachment_config=AttachmentConfig(
-            enabled=get_value('attachment_config.enabled'),
-            model=get_value('attachment_config.model'),
-            order_by=get_value('attachment_config.order_by'),
-            hidden=get_value('attachment_config.hidden'),
+            enabled=get_value("attachment_config.enabled"),
+            model=get_value("attachment_config.model"),
+            order_by=get_value("attachment_config.order_by"),
+            hidden=get_value("attachment_config.hidden"),
         ),
-        pagination_config=PaginationConfig(env,
-            enabled=get_value('pagination_config.enabled'),
-            per_page=get_value('pagination_config.per_page'),
-            url_suffix=get_value('pagination_config.url_suffix'),
-            items=get_value('pagination_config.items'),
+        pagination_config=PaginationConfig(
+            env,
+            enabled=get_value("pagination_config.enabled"),
+            per_page=get_value("pagination_config.per_page"),
+            url_suffix=get_value("pagination_config.url_suffix"),
+            items=get_value("pagination_config.items"),
         ),
         fields=fields,
     )
@@ -566,24 +578,24 @@ def datamodel_from_data(env, model_data, parent=None):
 def flowblock_from_data(env, block_data):
     return FlowBlockModel(
         env,
-        filename=block_data['filename'],
-        id=block_data['id'],
-        name_i18n=block_data['name_i18n'],
-        fields=fields_from_data(env, block_data['fields']),
-        order=block_data['order'],
-        button_label=block_data['button_label'],
+        filename=block_data["filename"],
+        id=block_data["id"],
+        name_i18n=block_data["name_i18n"],
+        fields=fields_from_data(env, block_data["fields"]),
+        order=block_data["order"],
+        button_label=block_data["button_label"],
     )
 
 
 def iter_inis(path):
     try:
         for filename in os.listdir(path):
-            if not filename.endswith('.ini') or filename[:1] in '_.':
+            if not filename.endswith(".ini") or filename[:1] in "_.":
                 continue
             fn = os.path.join(path, filename)
             if os.path.isfile(fn):
                 base = filename[:-4]
-                base = base.encode('utf-8').decode('ascii', 'replace')
+                base = base.encode("utf-8").decode("ascii", "replace")
                 inifile = IniFile(fn)
                 yield base, inifile
     except OSError as e:
@@ -596,7 +608,7 @@ def load_datamodels(env):
     # Models will override previous loaded models with the same name
     # So models paths are loaded in reverse order
     paths = list(reversed(env.theme_paths)) + [env.root_path]
-    paths = [os.path.join(p, 'models') for p in paths]
+    paths = [os.path.join(p, "models") for p in paths]
     data = {}
 
     for path in paths:
@@ -616,10 +628,10 @@ def load_datamodels(env):
     def create_model(model_id):
         model_data = data.get(model_id)
         if model_data is None:
-            raise RuntimeError('Model %r not found' % model_id)
+            raise RuntimeError("Model %r not found" % model_id)
 
-        if model_data['parent'] is not None:
-            parent = get_model(model_data['parent'])
+        if model_data["parent"] is not None:
+            parent = get_model(model_data["parent"])
         else:
             parent = None
 
@@ -629,7 +641,7 @@ def load_datamodels(env):
     for model_id in data:
         get_model(model_id)
 
-    rv['none'] = DataModel(env, 'none', {'en': 'None'}, hidden=True)
+    rv["none"] = DataModel(env, "none", {"en": "None"}, hidden=True)
 
     return rv
 
@@ -639,13 +651,14 @@ def load_flowblocks(env):
     # Flowblocks will override previous loaded flowblocks with the same name
     # So paths are loaded in reverse order
     paths = list(reversed(env.theme_paths)) + [env.root_path]
-    paths = [os.path.join(p, 'flowblocks') for p in paths]
+    paths = [os.path.join(p, "flowblocks") for p in paths]
     rv = {}
 
     for path in paths:
         for flowblock_id, inifile in iter_inis(path):
-            rv[flowblock_id] = flowblock_from_data(env,
-                flowblock_data_from_ini(flowblock_id, inifile))
+            rv[flowblock_id] = flowblock_from_data(
+                env, flowblock_data_from_ini(flowblock_id, inifile)
+            )
 
     return rv
 
@@ -655,48 +668,63 @@ system_fields = {}
 
 def add_system_field(name, **opts):
     opts = dict(generate_i18n_kvs(**opts))
-    ty = types.builtin_types[opts.pop('type')]
+    ty = types.builtin_types[opts.pop("type")]
     system_fields[name] = (ty, opts)
 
 
 # The full path of the record
-add_system_field('_path', type='string')
+add_system_field("_path", type="string")
 
 # The local ID (within a folder) of the record
-add_system_field('_id', type='string')
+add_system_field("_id", type="string")
 
 # The global ID (within a folder) of the record
-add_system_field('_gid', type='string')
+add_system_field("_gid", type="string")
 
 # The alt key that identifies this record
-add_system_field('_alt', type='string')
+add_system_field("_alt", type="string")
 
 # The alt key for the file that was actually referenced.
-add_system_field('_source_alt', type='string')
+add_system_field("_source_alt", type="string")
 
 # the model that defines the data of the record
-add_system_field('_model', type='string')
+add_system_field("_model", type="string")
 
 # the template that should be used for rendering if not hidden
-add_system_field('_template', type='string',
-                 label_i18n='TEMPLATE', width='1/2',
-                 addon_label='[[code]]')
+add_system_field(
+    "_template",
+    type="string",
+    label_i18n="TEMPLATE",
+    width="1/2",
+    addon_label="[[code]]",
+)
 
 # the slug that should be used for this record.  This is added below the
 # slug of the parent.
-add_system_field('_slug', type='slug', label_i18n='URL_SLUG',
-                 width='1/2')
+add_system_field("_slug", type="slug", label_i18n="URL_SLUG", width="1/2")
 
 # This can be used to hide an individual record.
-add_system_field('_hidden', type='boolean', label_i18n='HIDE_PAGE',
-                 checkbox_label_i18n='HIDE_PAGE_EXPLANATION')
+add_system_field(
+    "_hidden",
+    type="boolean",
+    label_i18n="HIDE_PAGE",
+    checkbox_label_i18n="HIDE_PAGE_EXPLANATION",
+)
 
 # This marks a page as undiscoverable.
-add_system_field('_discoverable', type='boolean', default='yes',
-                 label_i18n='PAGE_IS_DISCOVERABLE',
-                 checkbox_label_i18n='PAGE_IS_DISCOVERABLE_EXPLANATION')
+add_system_field(
+    "_discoverable",
+    type="boolean",
+    default="yes",
+    label_i18n="PAGE_IS_DISCOVERABLE",
+    checkbox_label_i18n="PAGE_IS_DISCOVERABLE_EXPLANATION",
+)
 
 # Useful fields for attachments.
-add_system_field('_attachment_for', type='string')
-add_system_field('_attachment_type', type='string',
-                 label_i18n='ATTACHMENT_TYPE', addon_label='[[paperclip]]')
+add_system_field("_attachment_for", type="string")
+add_system_field(
+    "_attachment_type",
+    type="string",
+    label_i18n="ATTACHMENT_TYPE",
+    addon_label="[[paperclip]]",
+)

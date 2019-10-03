@@ -49,11 +49,13 @@ before_install:
 
 install:
   - travis_retry pip install --upgrade pytest
+  - travis_retry pip install --upgrade pre-commit
   - travis_retry pip install --upgrade codecov
   - travis_retry pip install --editable .[test]
   - travis_retry make build-js
 
 before_script:
+  - pre-commit run -a
   - python --version
   - pip list
   - node --version

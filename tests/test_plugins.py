@@ -1,6 +1,6 @@
-import textwrap
 import os
 import shutil
+import textwrap
 
 import pytest
 

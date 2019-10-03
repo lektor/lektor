@@ -1,6 +1,6 @@
 def _line_is_dashes(line):
     line = line.strip()
-    return line == u'-' * len(line) and len(line) >= 3
+    return line == u"-" * len(line) and len(line) >= 3
 
 
 def _process_buf(buf):
@@ -9,7 +9,7 @@ def _process_buf(buf):
             line = line[1:]
         buf[idx] = line
 
-    if buf and buf[-1][-1:] == '\n':
+    if buf and buf[-1][-1:] == "\n":
         buf[-1] = buf[-1][:-1]
 
     return buf[:]
@@ -40,12 +40,12 @@ def tokenize(iterable, interesting_keys=None, encoding=None):
         return the_key, value
 
     if encoding is not None:
-        iterable = (x.decode(encoding, 'replace') for x in iterable)
+        iterable = (x.decode(encoding, "replace") for x in iterable)
 
     for line in iterable:
-        line = line.rstrip(u'\r\n') + u'\n'
+        line = line.rstrip(u"\r\n") + u"\n"
 
-        if line.rstrip() == u'---':
+        if line.rstrip() == u"---":
             want_newline = False
             if key:
                 yield _flush_item()
@@ -57,7 +57,7 @@ def tokenize(iterable, interesting_keys=None, encoding=None):
             if is_interesting:
                 buf.append(line)
         else:
-            bits = line.split(u':', 1)
+            bits = line.split(u":", 1)
             if len(bits) == 2:
                 key = [bits[0].strip()]
                 if interesting_keys is None:
@@ -65,7 +65,7 @@ def tokenize(iterable, interesting_keys=None, encoding=None):
                 else:
                     is_interesting = key[0] in interesting_keys
                 if is_interesting:
-                    first_bit = bits[1].strip(u'\t ')
+                    first_bit = bits[1].strip(u"\t ")
                     if first_bit.strip():
                         buf = [first_bit]
                     else:
@@ -82,23 +82,24 @@ def serialize(iterable, encoding=None):
 
     This is primarily used by the editor to write back data to a source file.
     """
+
     def _produce(item, escape=False):
         if escape:
             if _line_is_dashes(item):
-                item = u'-' + item
+                item = u"-" + item
         if encoding is not None:
             item = item.encode(encoding)
         return item
 
     for idx, (key, value) in enumerate(iterable):
-        value = value.replace('\r\n', '\n').replace('\r', '\n')
+        value = value.replace("\r\n", "\n").replace("\r", "\n")
         if idx > 0:
-            yield _produce('---\n')
-        if '\n' in value or value.strip('\t ') != value:
-            yield _produce(key + ':\n')
-            yield _produce('\n')
+            yield _produce("---\n")
+        if "\n" in value or value.strip("\t ") != value:
+            yield _produce(key + ":\n")
+            yield _produce("\n")
             for line in value.splitlines(True):
                 yield _produce(line, escape=True)
-            yield _produce('\n')
+            yield _produce("\n")
         else:
-            yield _produce('%s: %s\n' % (key, value))
+            yield _produce("%s: %s\n" % (key, value))

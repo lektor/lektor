@@ -1,70 +1,62 @@
 import io
 
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
 
-with io.open('README.md', 'rt', encoding='utf8') as f:
+with io.open("README.md", "rt", encoding="utf8") as f:
     readme = f.read()
 
-tests_require = [
-    'pytest',
-    'pytest-cov',
-    'pytest-mock',
-    'pytest-click',
-    'pytest-pylint',
-]
+tests_require = ["pytest", "pytest-cov", "pytest-mock", "pytest-click", "pytest-pylint"]
 
 setup(
-    name='Lektor',
-    version='3.1.3',
-    url='http://github.com/lektor/lektor/',
-    description='A static content management system.',
+    name="Lektor",
+    version="3.1.3",
+    url="http://github.com/lektor/lektor/",
+    description="A static content management system.",
     long_description=readme,
-    long_description_content_type='text/markdown',
-    license='BSD',
-    author='Armin Ronacher',
-    author_email='armin.ronacher@active-4.com',
+    long_description_content_type="text/markdown",
+    license="BSD",
+    author="Armin Ronacher",
+    author_email="armin.ronacher@active-4.com",
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    platforms='any',
+    platforms="any",
     install_requires=[
-        'Jinja2>=2.4',
-        'click>=6.0',
-        'watchdog',
-        'mistune>=0.7.0,<2',
-        'Flask',
-        'EXIFRead',
-        'inifile',
+        "Jinja2>=2.4",
+        "click>=6.0",
+        "watchdog",
+        "mistune>=0.7.0,<2",
+        "Flask",
+        "EXIFRead",
+        "inifile",
         'enum34;python_version<"3.4"',
-        'Babel',
+        "Babel",
         'functools32;python_version<"3.2.3"',
-        'setuptools',
-        'pip',
-        'requests[security]',
-        'filetype',
+        "setuptools",
+        "pip",
+        "requests[security]",
+        "filetype",
     ],
     tests_require=tests_require,
-    extras_require={
-        'test': tests_require,
-        'ipython': ['ipython'],
-    },
+    extras_require={"test": tests_require, "ipython": ["ipython"]},
     classifiers=[
-        'Framework :: Lektor',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        "Framework :: Lektor",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    entry_points='''
+    entry_points="""
         [console_scripts]
         lektor=lektor.cli:main
-    '''
+    """,
 )

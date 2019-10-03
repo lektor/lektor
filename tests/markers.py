@@ -1,4 +1,5 @@
 import pytest
+
 from lektor.imagetools import find_imagemagick
 
 
@@ -9,6 +10,5 @@ except RuntimeError:
 
 
 imagemagick = pytest.mark.skipif(
-    not im_path,
-    reason="imagemagick required but not found",
+    not im_path, reason="imagemagick required but not found"
 )

@@ -1,43 +1,55 @@
 # pylint: disable=too-many-lines
-import os
 import errno
 import functools
 import hashlib
 import operator
+import os
 import posixpath
 import warnings
-
 from datetime import timedelta
-from itertools import islice, chain
+from itertools import chain
+from itertools import islice
 
-from jinja2 import Undefined, is_undefined
-from jinja2.utils import LRUCache
+from jinja2 import is_undefined
+from jinja2 import Undefined
 from jinja2.exceptions import UndefinedError
-
+from jinja2.utils import LRUCache
 from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
-from lektor._compat import string_types, text_type, integer_types, \
-     iteritems, range_type
 from lektor import metaformat
-from lektor.utils import sort_normalize_string, cleanup_path, \
-     untrusted_to_os_path, fs_enc, locate_executable
-from lektor.sourceobj import SourceObject, VirtualSourceObject
-from lektor.context import get_ctx, Context
-from lektor.datamodel import load_datamodels, load_flowblocks
-from lektor.imagetools import (
-    ThumbnailMode, make_image_thumbnail,
-    read_exif, get_image_info,
-)
+from lektor._compat import integer_types
+from lektor._compat import iteritems
+from lektor._compat import range_type
+from lektor._compat import string_types
+from lektor._compat import text_type
 from lektor.assets import Directory
+from lektor.context import Context
+from lektor.context import get_ctx
+from lektor.databags import Databags
+from lektor.datamodel import load_datamodels
+from lektor.datamodel import load_flowblocks
 from lektor.editor import make_editor_session
 from lektor.environment import PRIMARY_ALT
-from lektor.databags import Databags
 from lektor.filecontents import FileContents
-from lektor.utils import make_relative_url, split_virtual_path
-from lektor.videotools import get_video_info, make_video_thumbnail
+from lektor.imagetools import get_image_info
+from lektor.imagetools import make_image_thumbnail
+from lektor.imagetools import read_exif
+from lektor.imagetools import ThumbnailMode
+from lektor.sourceobj import SourceObject
+from lektor.sourceobj import VirtualSourceObject
+from lektor.utils import cleanup_path
+from lektor.utils import fs_enc
+from lektor.utils import locate_executable
+from lektor.utils import make_relative_url
+from lektor.utils import sort_normalize_string
+from lektor.utils import split_virtual_path
+from lektor.utils import untrusted_to_os_path
+from lektor.videotools import get_video_info
+from lektor.videotools import make_video_thumbnail
 
 # pylint: disable=no-member
+
 
 def get_alts(source=None, fallback=False):
     """Given a source this returns the list of all alts that the source
@@ -48,7 +60,7 @@ def get_alts(source=None, fallback=False):
     if source is None:
         ctx = get_ctx()
         if ctx is None:
-            raise RuntimeError('This function requires the context to be supplied.')
+            raise RuntimeError("This function requires the context to be supplied.")
         pad = ctx.pad
     else:
         pad = source.pad
@@ -60,11 +72,10 @@ def get_alts(source=None, fallback=False):
 
     # If a source is provided and it's not virtual, we look up all alts
     # of the path on the pad to figure out which records exist.
-    if source is not None and '@' not in source.path:
+    if source is not None and "@" not in source.path:
         rv = []
         for alt in alts:
-            if pad.alt_exists(source.path, alt=alt,
-                              fallback=fallback):
+            if pad.alt_exists(source.path, alt=alt, fallback=fallback):
                 rv.append(alt)
 
     return rv
@@ -73,35 +84,36 @@ def get_alts(source=None, fallback=False):
 def _process_slug(slug, last_segment=False):
     if last_segment:
         return slug
-    segments = slug.split('/')
-    if '.' not in segments[-1]:
+    segments = slug.split("/")
+    if "." not in segments[-1]:
         return slug
     if len(segments) == 1:
-        return '_' + segments[0]
-    return segments[0] + '/_' + segments[1]
+        return "_" + segments[0]
+    return segments[0] + "/_" + segments[1]
 
 
 def _require_ctx(record):
     ctx = get_ctx()
     if ctx is None:
-        raise RuntimeError('This operation requires a context but none was '
-                           'on the stack.')
+        raise RuntimeError(
+            "This operation requires a context but none was " "on the stack."
+        )
     if ctx.pad is not record.pad:
-        raise RuntimeError('The context on the stack does not match the '
-                           'pad of the record.')
+        raise RuntimeError(
+            "The context on the stack does not match the " "pad of the record."
+        )
     return ctx
 
 
 def _is_content_file(filename, alt=PRIMARY_ALT):
-    if filename == 'contents.lr':
+    if filename == "contents.lr":
         return True
-    if alt != PRIMARY_ALT and filename == 'contents+%s.lr' % alt:
+    if alt != PRIMARY_ALT and filename == "contents+%s.lr" % alt:
         return True
     return False
 
 
 class _CmpHelper(object):
-
     def __init__(self, value, reverse):
         self.value = value
         self.reverse = reverse
@@ -173,7 +185,6 @@ def save_eval(filter, record):
 
 
 class Expression(object):
-
     def __eval__(self, record):
         return record
 
@@ -205,20 +216,32 @@ class Expression(object):
         return _ContainmentExpr(self, _auto_wrap_expr(item))
 
     def startswith(self, other):
-        return _BinExpr(self, _auto_wrap_expr(other),
-            lambda a, b: text_type(a).lower().startswith(text_type(b).lower()))
+        return _BinExpr(
+            self,
+            _auto_wrap_expr(other),
+            lambda a, b: text_type(a).lower().startswith(text_type(b).lower()),
+        )
 
     def endswith(self, other):
-        return _BinExpr(self, _auto_wrap_expr(other),
-            lambda a, b: text_type(a).lower().endswith(text_type(b).lower()))
+        return _BinExpr(
+            self,
+            _auto_wrap_expr(other),
+            lambda a, b: text_type(a).lower().endswith(text_type(b).lower()),
+        )
 
     def startswith_cs(self, other):
-        return _BinExpr(self, _auto_wrap_expr(other),
-                        lambda a, b: text_type(a).startswith(text_type(b)))
+        return _BinExpr(
+            self,
+            _auto_wrap_expr(other),
+            lambda a, b: text_type(a).startswith(text_type(b)),
+        )
 
     def endswith_cs(self, other):
-        return _BinExpr(self, _auto_wrap_expr(other),
-                        lambda a, b: text_type(a).endswith(text_type(b)))
+        return _BinExpr(
+            self,
+            _auto_wrap_expr(other),
+            lambda a, b: text_type(a).endswith(text_type(b)),
+        )
 
     def false(self):
         return _IsBoolExpr(self, False)
@@ -228,12 +251,11 @@ class Expression(object):
 
 
 # Query helpers for the template engine
-setattr(Expression, 'and', lambda x, o: x & o)
-setattr(Expression, 'or', lambda x, o: x | o)
+setattr(Expression, "and", lambda x, o: x & o)
+setattr(Expression, "or", lambda x, o: x | o)
 
 
 class _CallbackExpr(Expression):
-
     def __init__(self, func):
         self.func = func
 
@@ -242,19 +264,18 @@ class _CallbackExpr(Expression):
 
 
 class _IsBoolExpr(Expression):
-
     def __init__(self, expr, true):
         self.__expr = expr
         self.__true = true
 
     def __eval__(self, record):
         val = self.__expr.__eval__(record)
-        return (not is_undefined(val) and
-                val not in (None, 0, False, '')) == self.__true
+        return (
+            not is_undefined(val) and val not in (None, 0, False, "")
+        ) == self.__true
 
 
 class _Literal(Expression):
-
     def __init__(self, value):
         self.__value = value
 
@@ -263,21 +284,16 @@ class _Literal(Expression):
 
 
 class _BinExpr(Expression):
-
     def __init__(self, left, right, op):
         self.__left = left
         self.__right = right
         self.__op = op
 
     def __eval__(self, record):
-        return self.__op(
-            self.__left.__eval__(record),
-            self.__right.__eval__(record)
-        )
+        return self.__op(self.__left.__eval__(record), self.__right.__eval__(record))
 
 
 class _ContainmentExpr(Expression):
-
     def __init__(self, seq, item):
         self.__seq = seq
         self.__item = item
@@ -286,12 +302,11 @@ class _ContainmentExpr(Expression):
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
-            item = item['_id']
+            item = item["_id"]
         return item in seq
 
 
 class _RecordQueryField(Expression):
-
     def __init__(self, field):
         self.__field = field
 
@@ -303,9 +318,8 @@ class _RecordQueryField(Expression):
 
 
 class _RecordQueryProxy(object):
-
     def __getattr__(self, name):
-        if name[:2] != '__':
+        if name[:2] != "__":
             return _RecordQueryField(name)
         raise AttributeError(name)
 
@@ -320,7 +334,7 @@ F = _RecordQueryProxy()
 
 
 class Record(SourceObject):
-    source_classification = 'record'
+    source_classification = "record"
     supports_pagination = False
 
     def __init__(self, pad, data, page_num=None):
@@ -328,8 +342,9 @@ class Record(SourceObject):
         self._data = data
         self._bound_data = {}
         if page_num is not None and not self.supports_pagination:
-            raise RuntimeError('%s does not support pagination' %
-                               self.__class__.__name__)
+            raise RuntimeError(
+                "%s does not support pagination" % self.__class__.__name__
+            )
         self.page_num = page_num
 
     @property
@@ -340,7 +355,7 @@ class Record(SourceObject):
     def datamodel(self):
         """Returns the data model for this record."""
         try:
-            return self.pad.db.datamodels[self._data['_model']]
+            return self.pad.db.datamodels[self._data["_model"]]
         except LookupError:
             # If we cannot find the model we fall back to the default one.
             return self.pad.db.default_model
@@ -348,15 +363,15 @@ class Record(SourceObject):
     @property
     def alt(self):
         """Returns the alt of this source object."""
-        return self['_alt']
+        return self["_alt"]
 
     @property
     def is_hidden(self):
         """Indicates if a record is hidden.  A record is considered hidden
         if the record itself is hidden or the parent is.
         """
-        if not is_undefined(self._data['_hidden']):
-            return self._data['_hidden']
+        if not is_undefined(self._data["_hidden"]):
+            return self._data["_hidden"]
         return self._is_considered_hidden()
 
     def _is_considered_hidden(self):
@@ -372,7 +387,7 @@ class Record(SourceObject):
     @property
     def is_discoverable(self):
         """Indicates if the page is discoverable without knowing the URL."""
-        return self._data['_discoverable'] and not self.is_hidden
+        return self._data["_discoverable"] and not self.is_hidden
 
     @cached_property
     def pagination(self):
@@ -386,9 +401,9 @@ class Record(SourceObject):
         return FileContents(self.source_filename)
 
     def get_fallback_record_label(self, lang):
-        if not self['_id']:
-            return '(Index)'
-        return self['_id'].replace('-', ' ').replace('_', ' ').title()
+        if not self["_id"]:
+            return "(Index)"
+        return self["_id"].replace("-", " ").replace("_", " ").title()
 
     def get_record_label_i18n(self):
         rv = {}
@@ -399,37 +414,36 @@ class Record(SourceObject):
             rv[lang] = label
         # Fill in english if missing
         if not rv:
-            rv['en'] = self.get_fallback_record_label('en')
+            rv["en"] = self.get_fallback_record_label("en")
         return rv
 
     @property
     def record_label(self):
-        return (self.get_record_label_i18n() or {}).get('en')
+        return (self.get_record_label_i18n() or {}).get("en")
 
     @property
     def url_path(self):
         """The target path where the record should end up."""
-        prefix, suffix = self.pad.db.config.get_alternative_url_span(
-            self.alt)
+        prefix, suffix = self.pad.db.config.get_alternative_url_span(self.alt)
         bits = []
         node = self
         while node is not None:
-            bits.append(_process_slug(node['_slug'], node is self))
+            bits.append(_process_slug(node["_slug"], node is self))
             node = node.parent
         bits.reverse()
 
-        clean_path = '/'.join(bits).strip('/')
+        clean_path = "/".join(bits).strip("/")
         if prefix:
             clean_path = prefix + clean_path
         if suffix:
             # XXX: 404.html with suffix -de becomes 404.html-de but should
             # actually become 404-de.html
             clean_path += suffix
-        return '/' + clean_path.strip('/')
+        return "/" + clean_path.strip("/")
 
     @property
     def path(self):
-        return self['_path']
+        return self["_path"]
 
     def get_sort_key(self, fields):
         """Returns a sort key for the given field specifications specific
@@ -437,11 +451,11 @@ class Record(SourceObject):
         """
         rv = [None] * len(fields)
         for idx, field in enumerate(fields):
-            if field[:1] == '-':
+            if field[:1] == "-":
                 field = field[1:]
                 reverse = True
             else:
-                field = field.lstrip('+')
+                field = field.lstrip("+")
                 reverse = False
             rv[idx] = _CmpHelper(self._data.get(field), reverse)
         return rv
@@ -454,7 +468,7 @@ class Record(SourceObject):
         if rv is not Ellipsis:
             return rv
         rv = self._data[name]
-        if hasattr(rv, '__get__'):
+        if hasattr(rv, "__get__"):
             rv = rv.__get__(self)
         self._bound_data[name] = rv
         return rv
@@ -464,7 +478,7 @@ class Record(SourceObject):
             return True
         if self.__class__ != other.__class__:
             return False
-        return self['_path'] == other['_path']
+        return self["_path"] == other["_path"]
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -473,12 +487,12 @@ class Record(SourceObject):
         return hash(self.path)
 
     def __repr__(self):
-        return '<%s model=%r path=%r%s%s>' % (
+        return "<%s model=%r path=%r%s%s>" % (
             self.__class__.__name__,
-            self['_model'],
-            self['_path'],
-            self.alt != PRIMARY_ALT and ' alt=%r' % self.alt or '',
-            self.page_num is not None and ' page_num=%r' % self.page_num or '',
+            self["_model"],
+            self["_path"],
+            self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
+            self.page_num is not None and " page_num=%r" % self.page_num or "",
         )
 
 
@@ -486,7 +500,7 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
     def __init__(self, record, prev_page, next_page):
         """Virtual source representing previous and next sibling of 'record'."""
         VirtualSourceObject.__init__(self, record)
-        self._path = record.path + '@siblings'
+        self._path = record.path + "@siblings"
         self._prev_page = prev_page
         self._next_page = next_page
 
@@ -518,8 +532,7 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
         return max(mtimes) if mtimes else None
 
     def get_checksum(self, path_cache):
-        sums = '|'.join(i.filename_and_checksum
-                        for i in self._file_infos(path_cache))
+        sums = "|".join(i.filename_and_checksum for i in self._file_infos(path_cache))
 
         return sums or None
 
@@ -530,53 +543,54 @@ def siblings_resolver(node, url_path):
 
 class Page(Record):
     """This represents a loaded record."""
+
     is_attachment = False
     supports_pagination = True
 
     @cached_property
     def path(self):
-        rv = self['_path']
+        rv = self["_path"]
         if self.page_num is not None:
-            rv = '%s@%s' % (rv, self.page_num)
+            rv = "%s@%s" % (rv, self.page_num)
         return rv
 
     @cached_property
     def record(self):
         if self.page_num is None:
             return self
-        return self.pad.get(self['_path'],
-                            persist=self.pad.cache.is_persistent(self),
-                            alt=self.alt)
+        return self.pad.get(
+            self["_path"], persist=self.pad.cache.is_persistent(self), alt=self.alt
+        )
 
     @property
     def source_filename(self):
         if self.alt != PRIMARY_ALT:
-            return os.path.join(self.pad.db.to_fs_path(self['_path']),
-                                'contents+%s.lr' % self.alt)
-        return os.path.join(self.pad.db.to_fs_path(self['_path']),
-                            'contents.lr')
+            return os.path.join(
+                self.pad.db.to_fs_path(self["_path"]), "contents+%s.lr" % self.alt
+            )
+        return os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
 
     def iter_source_filenames(self):
         yield self.source_filename
         if self.alt != PRIMARY_ALT:
-            yield os.path.join(self.pad.db.to_fs_path(self['_path']),
-                               'contents.lr')
+            yield os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
 
     @property
     def url_path(self):
         # pylint: disable=no-value-for-parameter
-        rv = Record.url_path.__get__(self).rstrip('/')
-        last_part = rv.rsplit('/')[-1]
-        if '.' not in last_part:
-            rv += '/'
+        rv = Record.url_path.__get__(self).rstrip("/")
+        last_part = rv.rsplit("/")[-1]
+        if "." not in last_part:
+            rv += "/"
         if self.page_num in (1, None):
             return rv
-        if '.' in last_part:
-            raise RuntimeError('When file extensions is provided pagination '
-                               'cannot be used.')
-        return '%s%s/%d/' % (
+        if "." in last_part:
+            raise RuntimeError(
+                "When file extensions is provided pagination " "cannot be used."
+            )
+        return "%s%s/%d/" % (
             rv,
-            self.datamodel.pagination_config.url_suffix.strip('/'),
+            self.datamodel.pagination_config.url_suffix.strip("/"),
             self.page_num,
         )
 
@@ -603,13 +617,12 @@ class Page(Record):
         q = self.children.include_undiscoverable(True)
 
         for idx in range_type(len(url_path)):
-            piece = '/'.join(url_path[:idx + 1])
+            piece = "/".join(url_path[: idx + 1])
             child = q.filter(F._slug == piece).first()
             if child is None:
                 attachment = self.attachments.filter(F._slug == piece).first()
                 if attachment is None:
-                    obj = self.pad.db.env.resolve_custom_url_path(
-                        self, url_path)
+                    obj = self.pad.db.env.resolve_custom_url_path(self, url_path)
                     if obj is None:
                         continue
                     node = obj
@@ -618,7 +631,7 @@ class Page(Record):
             else:
                 node = child
 
-            rv = node.resolve_url_path(url_path[idx + 1:])
+            rv = node.resolve_url_path(url_path[idx + 1 :])
             if rv is not None:
                 return rv
         return None
@@ -626,12 +639,12 @@ class Page(Record):
     @cached_property
     def parent(self):
         """The parent of the record."""
-        this_path = self._data['_path']
+        this_path = self._data["_path"]
         parent_path = posixpath.dirname(this_path)
         if parent_path != this_path:
-            return self.pad.get(parent_path,
-                                persist=self.pad.cache.is_persistent(self),
-                                alt=self.alt)
+            return self.pad.get(
+                parent_path, persist=self.pad.cache.is_persistent(self), alt=self.alt
+            )
         return None
 
     @property
@@ -642,13 +655,12 @@ class Page(Record):
         repl_query = self.datamodel.get_child_replacements(self)
         if repl_query is not None:
             return repl_query.include_undiscoverable(False)
-        return Query(path=self['_path'], pad=self.pad, alt=self.alt)
+        return Query(path=self["_path"], pad=self.pad, alt=self.alt)
 
     @property
     def attachments(self):
         """Returns a query for the attachments of this record."""
-        return AttachmentsQuery(path=self['_path'], pad=self.pad,
-                                alt=self.alt)
+        return AttachmentsQuery(path=self["_path"], pad=self.pad, alt=self.alt)
 
     def has_prev(self):
         return self.get_siblings().prev_page is not None
@@ -698,15 +710,16 @@ class Page(Record):
 
 class Attachment(Record):
     """This represents a loaded attachment."""
+
     is_attachment = True
 
     @property
     def source_filename(self):
         if self.alt != PRIMARY_ALT:
-            suffix = '+%s.lr' % self.alt
+            suffix = "+%s.lr" % self.alt
         else:
-            suffix = '.lr'
-        return self.pad.db.to_fs_path(self['_path']) + suffix
+            suffix = ".lr"
+        return self.pad.db.to_fs_path(self["_path"]) + suffix
 
     def _is_considered_hidden(self):
         # Attachments are only considered hidden if they have been
@@ -723,20 +736,21 @@ class Attachment(Record):
 
     @property
     def attachment_filename(self):
-        return self.pad.db.to_fs_path(self['_path'])
+        return self.pad.db.to_fs_path(self["_path"])
 
     @property
     def parent(self):
         """The associated record for this attachment."""
-        return self.pad.get(self._data['_attachment_for'],
-                            persist=self.pad.cache.is_persistent(self))
+        return self.pad.get(
+            self._data["_attachment_for"], persist=self.pad.cache.is_persistent(self)
+        )
 
     @cached_property
     def contents(self):
         return FileContents(self.attachment_filename)
 
     def get_fallback_record_label(self, lang):
-        return self['_id']
+        return self["_id"]
 
     def iter_source_filenames(self):
         yield self.source_filename
@@ -745,6 +759,7 @@ class Attachment(Record):
 
 class Image(Attachment):
     """Specific class for image attachments."""
+
     def __init__(self, pad, data, page_num=None):
         Attachment.__init__(self, pad, data, page_num)
         self._image_info = None
@@ -752,7 +767,7 @@ class Image(Attachment):
 
     def _get_image_info(self):
         if self._image_info is None:
-            with open(self.attachment_filename, 'rb') as f:
+            with open(self.attachment_filename, "rb") as f:
                 self._image_info = get_image_info(f)
         return self._image_info
 
@@ -760,7 +775,7 @@ class Image(Attachment):
     def exif(self):
         """Provides access to the exif data."""
         if self._exif_cache is None:
-            with open(self.attachment_filename, 'rb') as f:
+            with open(self.attachment_filename, "rb") as f:
                 self._exif_cache = read_exif(f)
         return self._exif_cache
 
@@ -770,7 +785,7 @@ class Image(Attachment):
         rv = self._get_image_info()[1]
         if rv is not None:
             return rv
-        return Undefined('Width of image could not be determined.')
+        return Undefined("Width of image could not be determined.")
 
     @property
     def height(self):
@@ -778,7 +793,7 @@ class Image(Attachment):
         rv = self._get_image_info()[2]
         if rv is not None:
             return rv
-        return Undefined('Height of image could not be determined.')
+        return Undefined("Height of image could not be determined.")
 
     @property
     def format(self):
@@ -786,16 +801,16 @@ class Image(Attachment):
         rv = self._get_image_info()[0]
         if rv is not None:
             return rv
-        return Undefined('The format of the image could not be determined.')
+        return Undefined("The format of the image could not be determined.")
 
-    def thumbnail(self,
-                  width=None, height=None, crop=None, mode=None,
-                  upscale=None, quality=None):
+    def thumbnail(
+        self, width=None, height=None, crop=None, mode=None, upscale=None, quality=None
+    ):
         """Utility to create thumbnails."""
 
         # `crop` exists to preserve backward-compatibility, and will be removed.
         if crop is not None and mode is not None:
-            raise ValueError('Arguments `crop` and `mode` are mutually exclusive.')
+            raise ValueError("Arguments `crop` and `mode` are mutually exclusive.")
 
         if crop is not None:
             warnings.warn(
@@ -813,29 +828,37 @@ class Image(Attachment):
         if height is not None:
             height = int(height)
 
-        return make_image_thumbnail(_require_ctx(self),
-            self.attachment_filename, self.url_path,
-            width=width, height=height, mode=mode,
-            upscale=upscale, quality=quality)
+        return make_image_thumbnail(
+            _require_ctx(self),
+            self.attachment_filename,
+            self.url_path,
+            width=width,
+            height=height,
+            mode=mode,
+            upscale=upscale,
+            quality=quality,
+        )
 
 
 def require_ffmpeg(f):
     """Decorator to help with error messages for ffmpeg template functions."""
     # If both ffmpeg and ffprobe executables are available we don't need to
     # override the function
-    if locate_executable('ffmpeg') and locate_executable('ffprobe'):
+    if locate_executable("ffmpeg") and locate_executable("ffprobe"):
         return f
 
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
-        return Undefined('Unable to locate ffmpeg or ffprobe executable. Is '
-                         'it installed?')
+        return Undefined(
+            "Unable to locate ffmpeg or ffprobe executable. Is " "it installed?"
+        )
 
     return wrapper
 
 
 class Video(Attachment):
     """Specific class for video attachments."""
+
     def __init__(self, pad, data, page_num=None):
         Attachment.__init__(self, pad, data, page_num)
         self._video_info = None
@@ -855,8 +878,8 @@ class Video(Attachment):
         """Returns the width of the video if possible to determine."""
         rv = self._get_video_info()
         if rv:
-            return rv['width']
-        return Undefined('The width of the video could not be determined.')
+            return rv["width"]
+        return Undefined("The width of the video could not be determined.")
 
     @property
     @require_ffmpeg
@@ -864,8 +887,8 @@ class Video(Attachment):
         """Returns the height of the video if possible to determine."""
         rv = self._get_video_info()
         if rv:
-            return rv['height']
-        return Undefined('The height of the video could not be determined.')
+            return rv["height"]
+        return Undefined("The height of the video could not be determined.")
 
     @property
     @require_ffmpeg
@@ -873,15 +896,15 @@ class Video(Attachment):
         """Returns the duration of the video if possible to determine."""
         rv = self._get_video_info()
         if rv:
-            return rv['duration']
-        return Undefined('The duration of the video could not be determined.')
+            return rv["duration"]
+        return Undefined("The duration of the video could not be determined.")
 
     @require_ffmpeg
     def frame(self, seek=None):
         """Returns a VideoFrame object that is thumbnailable like an Image."""
         rv = self._get_video_info()
         if not rv:
-            return Undefined('Unable to get video properties.')
+            return Undefined("Unable to get video properties.")
 
         if seek is None:
             seek = rv["duration"] / 2
@@ -904,19 +927,20 @@ class VideoFrame(object):
         if seek < timedelta(0):
             raise ValueError("Seek distance must not be negative")
         if video.duration and seek > video.duration:
-            raise ValueError(
-                "Seek distance must not be outside the video duration")
+            raise ValueError("Seek distance must not be outside the video duration")
 
         self.seek = seek
 
     def __str__(self):
-        raise NotImplementedError('It is currently not possible to use video '
-                                  'frames directly, use .thumbnail().')
+        raise NotImplementedError(
+            "It is currently not possible to use video "
+            "frames directly, use .thumbnail()."
+        )
+
     __unicode__ = __str__
 
     @require_ffmpeg
-    def thumbnail(self, width=None, height=None, mode=None, upscale=None,
-                  quality=None):
+    def thumbnail(self, width=None, height=None, mode=None, upscale=None, quality=None):
         """Utility to create thumbnails."""
         if mode is None:
             mode = ThumbnailMode.DEFAULT
@@ -925,15 +949,19 @@ class VideoFrame(object):
 
         video = self.video
         return make_video_thumbnail(
-            _require_ctx(video), video.attachment_filename, video.url_path,
-            seek=self.seek, width=width, height=height, mode=mode,
-            upscale=upscale, quality=quality)
+            _require_ctx(video),
+            video.attachment_filename,
+            video.url_path,
+            seek=self.seek,
+            width=width,
+            height=height,
+            mode=mode,
+            upscale=upscale,
+            quality=quality,
+        )
 
 
-attachment_classes = {
-    'image': Image,
-    'video': Video,
-}
+attachment_classes = {"image": Image, "video": Video}
 
 
 class Query(object):
@@ -961,7 +989,7 @@ class Query(object):
         h.update(str(self.alt))
         h.update(str(self._include_pages))
         h.update(str(self._include_attachments))
-        h.update('(%s)' % u'|'.join(self._order_by or ()).encode('utf-8'))
+        h.update("(%s)" % u"|".join(self._order_by or ()).encode("utf-8"))
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
@@ -985,8 +1013,9 @@ class Query(object):
         """Low level record access."""
         if page_num is Ellipsis:
             page_num = self._page_num
-        return self.pad.get('%s/%s' % (self.path, id), persist=persist,
-                            alt=self.alt, page_num=page_num)
+        return self.pad.get(
+            "%s/%s" % (self.path, id), persist=persist, alt=self.alt, page_num=page_num
+        )
 
     def _matches(self, record):
         include_hidden = self._include_hidden
@@ -1016,10 +1045,11 @@ class Query(object):
         if ctx is not None:
             ctx.record_dependency(self.pad.db.to_fs_path(self.path))
 
-        for name, _, is_attachment in self.pad.db.iter_items(
-                self.path, alt=self.alt):
-            if not ((is_attachment == self._include_attachments) or
-                    (not is_attachment == self._include_pages)):
+        for name, _, is_attachment in self.pad.db.iter_items(self.path, alt=self.alt):
+            if not (
+                (is_attachment == self._include_attachments)
+                or (not is_attachment == self._include_pages)
+            ):
                 continue
 
             record = self._get(name, persist=False)
@@ -1139,6 +1169,7 @@ class Query(object):
 
     def __bool__(self):
         return self.first() is not None
+
     __nonzero__ = __bool__
 
     def __iter__(self):
@@ -1147,26 +1178,25 @@ class Query(object):
 
         order_by = self.get_order_by()
         if order_by:
-            iterable = sorted(
-                iterable, key=lambda x: x.get_sort_key(order_by))
+            iterable = sorted(iterable, key=lambda x: x.get_sort_key(order_by))
 
         if self._offset is not None or self._limit is not None:
-            iterable = islice(iterable, self._offset or 0,
-                              (self._offset or 0) + self._limit)
+            iterable = islice(
+                iterable, self._offset or 0, (self._offset or 0) + self._limit
+            )
 
         for item in iterable:
             yield item
 
     def __repr__(self):
-        return '<%s %r%s>' % (
+        return "<%s %r%s>" % (
             self.__class__.__name__,
             self.path,
-            self.alt and ' alt=%r' % self.alt or '',
+            self.alt and " alt=%r" % self.alt or "",
         )
 
 
 class EmptyQuery(Query):
-
     def _get(self, id, persist=True, page_num=Ellipsis):
         pass
 
@@ -1186,27 +1216,27 @@ class AttachmentsQuery(Query):
     @property
     def images(self):
         """Filters to images."""
-        return self.filter(F._attachment_type == 'image')
+        return self.filter(F._attachment_type == "image")
 
     @property
     def videos(self):
         """Filters to videos."""
-        return self.filter(F._attachment_type == 'video')
+        return self.filter(F._attachment_type == "video")
 
     @property
     def audio(self):
         """Filters to audio."""
-        return self.filter(F._attachment_type == 'audio')
+        return self.filter(F._attachment_type == "audio")
 
     @property
     def documents(self):
         """Filters to documents."""
-        return self.filter(F._attachment_type == 'document')
+        return self.filter(F._attachment_type == "document")
 
     @property
     def text(self):
         """Filters to plain text data."""
-        return self.filter(F._attachment_type == 'text')
+        return self.filter(F._attachment_type == "text")
 
 
 def _iter_filename_choices(fn_base, alts, config, fallback=True):
@@ -1218,17 +1248,17 @@ def _iter_filename_choices(fn_base, alts, config, fallback=True):
     # implicitly say the record exists.
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield os.path.join(fn_base, 'contents+%s.lr' % alt), alt, False
+            yield os.path.join(fn_base, "contents+%s.lr" % alt), alt, False
 
     if fallback or PRIMARY_ALT in alts:
-        yield os.path.join(fn_base, 'contents.lr'), PRIMARY_ALT, False
+        yield os.path.join(fn_base, "contents.lr"), PRIMARY_ALT, False
 
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield fn_base + '+%s.lr' % alt, alt, True
+            yield fn_base + "+%s.lr" % alt, alt, True
 
     if fallback or PRIMARY_ALT in alts:
-        yield fn_base + '.lr', PRIMARY_ALT, True
+        yield fn_base + ".lr", PRIMARY_ALT, True
 
 
 def _iter_content_files(dir_path, alts):
@@ -1239,22 +1269,21 @@ def _iter_content_files(dir_path, alts):
     for alt in alts:
         if alt == PRIMARY_ALT:
             continue
-        if os.path.isfile(os.path.join(dir_path, 'contents+%s.lr' % alt)):
+        if os.path.isfile(os.path.join(dir_path, "contents+%s.lr" % alt)):
             yield alt
-    if os.path.isfile(os.path.join(dir_path, 'contents.lr')):
+    if os.path.isfile(os.path.join(dir_path, "contents.lr")):
         yield PRIMARY_ALT
 
 
 def _iter_datamodel_choices(datamodel_name, path, is_attachment=False):
     yield datamodel_name
     if not is_attachment:
-        yield posixpath.basename(path).split('.')[0].replace('-', '_').lower()
-        yield 'page'
-    yield 'none'
+        yield posixpath.basename(path).split(".")[0].replace("-", "_").lower()
+        yield "page"
+    yield "none"
 
 
 class Database(object):
-
     def __init__(self, env, config=None):
         self.env = env
         if config is None:
@@ -1265,11 +1294,9 @@ class Database(object):
 
     def to_fs_path(self, path):
         """Convenience function to convert a path into an file system path."""
-        return os.path.join(self.env.root_path, 'content',
-                            untrusted_to_os_path(path))
+        return os.path.join(self.env.root_path, "content", untrusted_to_os_path(path))
 
-    def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None,
-                      fallback=True):
+    def load_raw_data(self, path, alt=PRIMARY_ALT, cls=None, fallback=True):
         """Internal helper that loads the raw record data.  This performs
         very little data processing on the data.
         """
@@ -1282,8 +1309,9 @@ class Database(object):
         rv = cls()
         rv_type = None
 
-        choiceiter = _iter_filename_choices(fn_base, [alt], self.config,
-                                            fallback=fallback)
+        choiceiter = _iter_filename_choices(
+            fn_base, [alt], self.config, fallback=fallback
+        )
         for fs_path, source_alt, is_attachment in choiceiter:
             # If we already determined what our return value is but the
             # type mismatches what we try now, we have to abort.  Eg:
@@ -1292,12 +1320,12 @@ class Database(object):
                 break
 
             try:
-                with open(fs_path, 'rb') as f:
+                with open(fs_path, "rb") as f:
                     if rv_type is None:
                         rv_type = is_attachment
-                    for key, lines in metaformat.tokenize(f, encoding='utf-8'):
+                    for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
-                            rv[key] = u''.join(lines)
+                            rv[key] = u"".join(lines)
             except IOError as e:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
@@ -1309,18 +1337,18 @@ class Database(object):
                 elif is_attachment:
                     rv_type = True
 
-            if '_source_alt' not in rv:
-                rv['_source_alt'] = source_alt
+            if "_source_alt" not in rv:
+                rv["_source_alt"] = source_alt
 
         if rv_type is None:
             return None
 
-        rv['_path'] = path
-        rv['_id'] = posixpath.basename(path)
-        rv['_gid'] = hashlib.md5(path.encode('utf-8')).hexdigest()
-        rv['_alt'] = alt
+        rv["_path"] = path
+        rv["_id"] = posixpath.basename(path)
+        rv["_gid"] = hashlib.md5(path.encode("utf-8")).hexdigest()
+        rv["_alt"] = alt
         if rv_type:
-            rv['_attachment_for'] = posixpath.dirname(path)
+            rv["_attachment_for"] = posixpath.dirname(path)
 
         return rv
 
@@ -1358,8 +1386,9 @@ class Database(object):
                         except UnicodeError:
                             continue
 
-                    if filename.endswith('.lr') or \
-                       self.env.is_uninteresting_source_name(filename):
+                    if filename.endswith(
+                        ".lr"
+                    ) or self.env.is_uninteresting_source_name(filename):
                         continue
 
                     # We found an attachment.  Attachments always live
@@ -1371,7 +1400,8 @@ class Database(object):
                     # contents.lr file (or a contents+alt.lr file).
                     else:
                         for content_alt in _iter_content_files(
-                                os.path.join(dir_path, filename), alts):
+                            os.path.join(dir_path, filename), alts
+                        ):
                             yield filename, content_alt, False
                             # If we want a single alt, we break here so
                             # that we only produce a single result.
@@ -1393,22 +1423,24 @@ class Database(object):
         data.  This might require the discovery of a parent object through
         the pad.
         """
-        path = raw_data['_path']
-        is_attachment = bool(raw_data.get('_attachment_for'))
-        datamodel = (raw_data.get('_model') or '').strip() or None
-        return self.get_implied_datamodel(path, is_attachment, pad,
-                                          datamodel=datamodel)
+        path = raw_data["_path"]
+        is_attachment = bool(raw_data.get("_attachment_for"))
+        datamodel = (raw_data.get("_model") or "").strip() or None
+        return self.get_implied_datamodel(path, is_attachment, pad, datamodel=datamodel)
 
     def iter_dependent_models(self, datamodel):
         seen = set()
+
         def deep_find(datamodel):
             seen.add(datamodel)
 
             if datamodel.parent is not None and datamodel.parent not in seen:
                 deep_find(datamodel.parent)
 
-            for related_dm_name in (datamodel.child_config.model,
-                                    datamodel.attachment_config.model):
+            for related_dm_name in (
+                datamodel.child_config.model,
+                datamodel.attachment_config.model,
+            ):
                 dm = self.datamodels.get(related_dm_name)
                 if dm is not None and dm not in seen:
                     deep_find(dm)
@@ -1417,8 +1449,9 @@ class Database(object):
         seen.discard(datamodel)
         return iter(seen)
 
-    def get_implied_datamodel(self, path, is_attachment=False, pad=None,
-                              datamodel=None):
+    def get_implied_datamodel(
+        self, path, is_attachment=False, pad=None, datamodel=None
+    ):
         """Looks up a datamodel based on the information about the parent
         of a model.
         """
@@ -1447,13 +1480,13 @@ class Database(object):
             if datamodel is not None:
                 return datamodel
 
-        raise AssertionError("Did not find an appropriate datamodel.  "
-                             "That should never happen.")
+        raise AssertionError(
+            "Did not find an appropriate datamodel.  " "That should never happen."
+        )
 
     def get_attachment_type(self, path):
         """Gets the attachment type for a path."""
-        return self.config['ATTACHMENT_TYPES'].get(
-            posixpath.splitext(path)[1].lower())
+        return self.config["ATTACHMENT_TYPES"].get(posixpath.splitext(path)[1].lower())
 
     def track_record_dependency(self, record):
         ctx = get_ctx()
@@ -1462,7 +1495,7 @@ class Database(object):
                 ctx.record_dependency(filename)
             for virtual_source in record.iter_virtual_sources():
                 ctx.record_virtual_dependency(virtual_source)
-            if getattr(record, 'datamodel', None) and record.datamodel.filename:
+            if getattr(record, "datamodel", None) and record.datamodel.filename:
                 ctx.record_dependency(record.datamodel.filename)
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:
@@ -1470,39 +1503,38 @@ class Database(object):
         return record
 
     def get_default_slug(self, data, pad):
-        parent_path = posixpath.dirname(data['_path'])
+        parent_path = posixpath.dirname(data["_path"])
         parent = None
-        if parent_path != data['_path']:
+        if parent_path != data["_path"]:
             parent = pad.get(parent_path)
         if parent:
             slug = parent.datamodel.get_default_child_slug(pad, data)
         else:
-            slug = ''
+            slug = ""
         return slug
 
     def process_data(self, data, datamodel, pad):
         # Automatically fill in slugs
-        if not data['_slug']:
-            data['_slug'] = self.get_default_slug(data, pad)
+        if not data["_slug"]:
+            data["_slug"] = self.get_default_slug(data, pad)
         else:
-            data['_slug'] = data['_slug'].strip('/')
+            data["_slug"] = data["_slug"].strip("/")
 
         # For attachments figure out the default attachment type if it's
         # not yet provided.
-        if is_undefined(data['_attachment_type']) and \
-           data['_attachment_for']:
-            data['_attachment_type'] = self.get_attachment_type(data['_path'])
+        if is_undefined(data["_attachment_type"]) and data["_attachment_for"]:
+            data["_attachment_type"] = self.get_attachment_type(data["_path"])
 
         # Automatically fill in templates
-        if is_undefined(data['_template']):
-            data['_template'] = datamodel.get_default_template_name()
+        if is_undefined(data["_template"]):
+            data["_template"] = datamodel.get_default_template_name()
 
     def get_record_class(self, datamodel, raw_data):
         """Returns the appropriate record class for a datamodel and raw data."""
-        is_attachment = bool(raw_data.get('_attachment_for'))
+        is_attachment = bool(raw_data.get("_attachment_for"))
         if not is_attachment:
             return Page
-        attachment_type = raw_data['_attachment_type']
+        attachment_type = raw_data["_attachment_type"]
         return attachment_classes.get(attachment_type, Attachment)
 
     def new_pad(self):
@@ -1520,15 +1552,15 @@ def _split_alt_from_url(config, clean_path):
     # First try to find alternatives that are identified by a prefix.
     for prefix, alt in config.get_alternative_url_prefixes():
         if clean_path.startswith(prefix):
-            return alt, clean_path[len(prefix):].strip('/')
+            return alt, clean_path[len(prefix) :].strip("/")
         # Special case which is the URL root.
-        elif prefix.strip('/') == clean_path:
-            return alt, ''
+        elif prefix.strip("/") == clean_path:
+            return alt, ""
 
     # Now find alternatives that are identified by a suffix.
     for suffix, alt in config.get_alternative_url_suffixes():
         if clean_path.endswith(suffix):
-            return alt, clean_path[:-len(suffix)].strip('/')
+            return alt, clean_path[: -len(suffix)].strip("/")
 
     # If we have a primary alternative without a prefix and suffix, we can
     # return that one.
@@ -1539,10 +1571,9 @@ def _split_alt_from_url(config, clean_path):
 
 
 class Pad(object):
-
     def __init__(self, db):
         self.db = db
-        self.cache = RecordCache(db.config['EPHEMERAL_RECORD_CACHE_SIZE'])
+        self.cache = RecordCache(db.config["EPHEMERAL_RECORD_CACHE_SIZE"])
         self.databags = Databags(db.env)
 
     @property
@@ -1557,11 +1588,13 @@ class Pad(object):
 
     def make_absolute_url(self, url):
         """Given a URL this makes it absolute if this is possible."""
-        base_url = self.db.config['PROJECT'].get('url')
+        base_url = self.db.config["PROJECT"].get("url")
         if base_url is None:
-            raise RuntimeError('To use absolute URLs you need to configure '
-                               'the URL in the project config.')
-        return url_join(base_url.rstrip('/') + '/', url.lstrip('/'))
+            raise RuntimeError(
+                "To use absolute URLs you need to configure "
+                "the URL in the project config."
+            )
+        return url_join(base_url.rstrip("/") + "/", url.lstrip("/"))
 
     def make_url(self, url, base_url=None, absolute=None, external=None):
         """Helper method that creates a finalized URL based on the parameters
@@ -1569,29 +1602,33 @@ class Pad(object):
         """
         url_style = self.db.config.url_style
         if absolute is None:
-            absolute = url_style == 'absolute'
+            absolute = url_style == "absolute"
         if external is None:
-            external = url_style == 'external'
+            external = url_style == "external"
         if external:
             external_base_url = self.db.config.base_url
             if external_base_url is None:
-                raise RuntimeError('To use absolute URLs you need to '
-                                   'configure the URL in the project config.')
-            return url_join(external_base_url, url.lstrip('/'))
+                raise RuntimeError(
+                    "To use absolute URLs you need to "
+                    "configure the URL in the project config."
+                )
+            return url_join(external_base_url, url.lstrip("/"))
         if absolute:
-            return url_join(self.db.config.base_path, url.lstrip('/'))
+            return url_join(self.db.config.base_path, url.lstrip("/"))
         if base_url is None:
-            raise RuntimeError('Cannot calculate a relative URL if no base '
-                               'URL has been provided.')
+            raise RuntimeError(
+                "Cannot calculate a relative URL if no base " "URL has been provided."
+            )
         return make_relative_url(base_url, url)
 
-    def resolve_url_path(self, url_path, include_invisible=False,
-                         include_assets=True, alt_fallback=True):
+    def resolve_url_path(
+        self, url_path, include_invisible=False, include_assets=True, alt_fallback=True
+    ):
         """Given a URL path this will find the correct record which also
         might be an attachment.  If a record cannot be found or is unexposed
         the return value will be `None`.
         """
-        pieces = clean_path = cleanup_path(url_path).strip('/')
+        pieces = clean_path = cleanup_path(url_path).strip("/")
 
         # Split off the alt and if no alt was found, point it to the
         # primary alternative.  If the clean path comes back as `None`
@@ -1606,10 +1643,10 @@ class Pad(object):
                     alt = PRIMARY_ALT
             node = self.get_root(alt=alt)
             if node is None:
-                raise RuntimeError('Tree root could not be found.')
+                raise RuntimeError("Tree root could not be found.")
 
-            pieces = clean_path.split('/')
-            if pieces == ['']:
+            pieces = clean_path.split("/")
+            if pieces == [""]:
                 pieces = []
 
             rv = node.resolve_url_path(pieces)
@@ -1626,23 +1663,25 @@ class Pad(object):
 
     def get_root(self, alt=PRIMARY_ALT):
         """The root page of the database."""
-        return self.get('/', alt=alt, persist=True)
+        return self.get("/", alt=alt, persist=True)
 
     root = property(get_root)
 
     @property
     def asset_root(self):
         """The root of the asset tree."""
-        return Directory(self, name='',
-                         path=os.path.join(self.db.env.root_path, 'assets'))
+        return Directory(
+            self, name="", path=os.path.join(self.db.env.root_path, "assets")
+        )
 
     @property
     def theme_asset_roots(self):
         """The root of the asset tree of each theme."""
         asset_roots = []
         for theme_path in self.db.env.theme_paths:
-            asset_roots.append(Directory(self, name='',
-                                          path=os.path.join(theme_path, 'assets')))
+            asset_roots.append(
+                Directory(self, name="", path=os.path.join(theme_path, "assets"))
+            )
         return asset_roots
 
     def get_all_roots(self):
@@ -1662,13 +1701,15 @@ class Pad(object):
 
     def get_virtual(self, record, virtual_path):
         """Resolves a virtual path below a record."""
-        pieces = virtual_path.strip('/').split('/')
-        if not pieces or pieces == ['']:
+        pieces = virtual_path.strip("/").split("/")
+        if not pieces or pieces == [""]:
             return record
 
         if pieces[0].isdigit():
             if len(pieces) == 1:
-                return self.get(record['_path'], alt=record.alt, page_num=int(pieces[0]))
+                return self.get(
+                    record["_path"], alt=record.alt, page_num=int(pieces[0])
+                )
             return None
 
         resolver = self.env.virtual_sources.get(pieces[0])
@@ -1677,24 +1718,26 @@ class Pad(object):
 
         return resolver(record, pieces[1:])
 
-    def get(self, path, alt=PRIMARY_ALT, page_num=None, persist=True,
-            allow_virtual=True):
+    def get(
+        self, path, alt=PRIMARY_ALT, page_num=None, persist=True, allow_virtual=True
+    ):
         """Loads a record by path."""
-        virt_markers = path.count('@')
+        virt_markers = path.count("@")
 
         # If the virtual marker is included, we also want to look up the
         # virtual path below an item.  Special case: if virtual paths are
         # not allowed but one was passed, we just return `None`.
         if virt_markers == 1:
             if page_num is not None:
-                raise RuntimeError('Cannot use both virtual paths and '
-                                   'explicit page number lookups.  You '
-                                   'need to one or the other.')
+                raise RuntimeError(
+                    "Cannot use both virtual paths and "
+                    "explicit page number lookups.  You "
+                    "need to one or the other."
+                )
             if not allow_virtual:
                 return None
-            path, virtual_path = path.split('@', 1)
-            rv = self.get(path, alt=alt, page_num=page_num,
-                          persist=persist)
+            path, virtual_path = path.split("@", 1)
+            rv = self.get(path, alt=alt, page_num=page_num, persist=persist)
             if rv is None:
                 return None
             return self.get_virtual(rv, virtual_path)
@@ -1731,18 +1774,19 @@ class Pad(object):
     def alt_exists(self, path, alt=PRIMARY_ALT, fallback=False):
         """Checks if an alt exists."""
         path = cleanup_path(path)
-        if '@' in path:
+        if "@" in path:
             return False
 
         # If we find the path in the cache, check if it was loaded from
         # the right source alt.
         rv = self.get(path, alt)
         if rv is not None:
-            if rv['_source_alt'] == alt:
+            if rv["_source_alt"] == alt:
                 return True
-            elif (fallback or
-                  (rv['_source_alt'] == PRIMARY_ALT and
-                   alt == self.config.primary_alternative)):
+            elif fallback or (
+                rv["_source_alt"] == PRIMARY_ALT
+                and alt == self.config.primary_alternative
+            ):
                 return True
             return False
 
@@ -1750,10 +1794,10 @@ class Pad(object):
 
     def get_asset(self, path):
         """Loads an asset by path."""
-        clean_path = cleanup_path(path).strip('/')
+        clean_path = cleanup_path(path).strip("/")
         nodes = [self.asset_root] + self.theme_asset_roots
         for node in nodes:
-            for piece in clean_path.split('/'):
+            for piece in clean_path.split("/"):
                 node = node.get_child(piece)
                 if node is None:
                     break
@@ -1779,18 +1823,28 @@ class Pad(object):
         # do some unexpected things.
         if alt is None:
             alt = PRIMARY_ALT
-        return Query(path='/' + (path or '').strip('/'), pad=self, alt=alt) \
-            .include_hidden(True)
+        return Query(
+            path="/" + (path or "").strip("/"), pad=self, alt=alt
+        ).include_hidden(True)
 
 
 class TreeItem(object):
     """Represents a single tree item and all the alts within it."""
 
-    def __init__(self, tree, path, alts, exists=True,
-                 is_attachment=False, attachment_type=None,
-                 can_have_children=False, can_have_attachments=False,
-                 can_be_deleted=False, is_visible=True,
-                 label_i18n=None):
+    def __init__(
+        self,
+        tree,
+        path,
+        alts,
+        exists=True,
+        is_attachment=False,
+        attachment_type=None,
+        can_have_children=False,
+        can_have_attachments=False,
+        can_be_deleted=False,
+        is_visible=True,
+        label_i18n=None,
+    ):
         self.tree = tree
         self.path = path
         self.alts = alts
@@ -1810,7 +1864,7 @@ class TreeItem(object):
 
     def get_parent(self):
         """Returns the parent item."""
-        if self.path == '/':
+        if self.path == "/":
             return None
         return self.tree.get(posixpath.dirname(self.path))
 
@@ -1824,34 +1878,33 @@ class TreeItem(object):
         """Iterates over all children."""
         if not self.exists:
             return iter(())
-        return self.tree.iter_children(self.path, include_attachments,
-                                       include_pages)
+        return self.tree.iter_children(self.path, include_attachments, include_pages)
 
-    def get_children(self, offset=0, limit=None, include_attachments=True,
-                     include_pages=True):
+    def get_children(
+        self, offset=0, limit=None, include_attachments=True, include_pages=True
+    ):
         """Returns a list of all children."""
         if not self.exists:
             return []
-        return self.tree.get_children(self.path, offset, limit,
-                                      include_attachments, include_pages)
+        return self.tree.get_children(
+            self.path, offset, limit, include_attachments, include_pages
+        )
 
     def __repr__(self):
-        return '<TreeItem %r%s>' % (
+        return "<TreeItem %r%s>" % (
             self.path,
-            self.is_attachment and ' attachment' or '',
+            self.is_attachment and " attachment" or "",
         )
 
 
 class Alt(object):
-
     def __init__(self, id, record):
         self.id = id
         self.record = record
-        self.exists = record is not None and \
-            os.path.isfile(record.source_filename)
+        self.exists = record is not None and os.path.isfile(record.source_filename)
 
     def __repr__(self):
-        return '<Alt %r%s>' % (self.id, self.exists and '*' or '')
+        return "<Alt %r%s>" % (self.id, self.exists and "*" or "")
 
 
 class Tree(object):
@@ -1871,15 +1924,14 @@ class Tree(object):
 
     def get(self, path=None, persist=True):
         """Returns a path item at the given node."""
-        path = '/' + (path or '').strip('/')
+        path = "/" + (path or "").strip("/")
         alts = {}
         exists = False
         first_record = None
         label_i18n = None
 
         for alt in chain([PRIMARY_ALT], self.pad.db.config.list_alternatives()):
-            record = self.pad.get(path, alt=alt, persist=persist,
-                                  allow_virtual=False)
+            record = self.pad.get(path, alt=alt, persist=persist, allow_virtual=False)
             if first_record is None:
                 first_record = record
             if record is not None:
@@ -1903,7 +1955,7 @@ class Tree(object):
         attachment_type = None
         can_have_children = False
         can_have_attachments = False
-        can_be_deleted = exists and path != '/'
+        can_be_deleted = exists and path != "/"
 
         if first_record is not None:
             is_attachment = first_record.is_attachment
@@ -1915,52 +1967,69 @@ class Tree(object):
                 if dm.protected:
                     can_be_deleted = False
             else:
-                attachment_type = first_record['_attachment_type'] or None
+                attachment_type = first_record["_attachment_type"] or None
             label_i18n = first_record.get_record_label_i18n()
 
-        return TreeItem(self, path, alts, exists, is_attachment=is_attachment,
-                        attachment_type=attachment_type,
-                        can_have_children=can_have_children,
-                        can_have_attachments=can_have_attachments,
-                        can_be_deleted=can_be_deleted,
-                        is_visible=is_visible, label_i18n=label_i18n)
+        return TreeItem(
+            self,
+            path,
+            alts,
+            exists,
+            is_attachment=is_attachment,
+            attachment_type=attachment_type,
+            can_have_children=can_have_children,
+            can_have_attachments=can_have_attachments,
+            can_be_deleted=can_be_deleted,
+            is_visible=is_visible,
+            label_i18n=label_i18n,
+        )
 
-    def _get_child_ids(self, path=None, include_attachments=True,
-                       include_pages=True):
+    def _get_child_ids(self, path=None, include_attachments=True, include_pages=True):
         """Returns a sorted list of just the IDs of children below a path."""
-        path = '/' + (path or '').strip('/')
+        path = "/" + (path or "").strip("/")
         names = set()
-        for name, _, is_attachment in self.pad.db.iter_items(
-                path, alt=None):
-            if (is_attachment and include_attachments) or \
-               (not is_attachment and include_pages):
+        for name, _, is_attachment in self.pad.db.iter_items(path, alt=None):
+            if (is_attachment and include_attachments) or (
+                not is_attachment and include_pages
+            ):
                 names.add(name)
         return sorted(names, key=lambda x: x.lower())
 
-    def iter_children(self, path=None, include_attachments=True,
-                      include_pages=True):
+    def iter_children(self, path=None, include_attachments=True, include_pages=True):
         """Iterates over all children below a path."""
-        path = '/' + (path or '').strip('/')
-        for name in self._get_child_ids(path, include_attachments,
-                                        include_pages):
+        path = "/" + (path or "").strip("/")
+        for name in self._get_child_ids(path, include_attachments, include_pages):
             yield self.get(posixpath.join(path, name), persist=False)
 
-    def get_children(self, path=None, offset=0, limit=None,
-                     include_attachments=True, include_pages=True):
+    def get_children(
+        self,
+        path=None,
+        offset=0,
+        limit=None,
+        include_attachments=True,
+        include_pages=True,
+    ):
         """Returns a slice of children."""
-        path = '/' + (path or '').strip('/')
+        path = "/" + (path or "").strip("/")
         end = None
         if limit is not None:
             end = offset + limit
-        return [self.get(posixpath.join(path, name), persist=False)
-                for name in self._get_child_ids(
-                    path, include_attachments, include_pages)[offset:end]]
+        return [
+            self.get(posixpath.join(path, name), persist=False)
+            for name in self._get_child_ids(path, include_attachments, include_pages)[
+                offset:end
+            ]
+        ]
 
     def edit(self, path, is_attachment=None, alt=PRIMARY_ALT, datamodel=None):
         """Edits a record by path."""
-        return make_editor_session(self.pad, cleanup_path(path), alt=alt,
-                                   is_attachment=is_attachment,
-                                   datamodel=datamodel)
+        return make_editor_session(
+            self.pad,
+            cleanup_path(path),
+            alt=alt,
+            is_attachment=is_attachment,
+            datamodel=datamodel,
+        )
 
 
 class RecordCache(object):
@@ -1972,13 +2041,12 @@ class RecordCache(object):
         self.persistent = {}
         self.ephemeral = LRUCache(ephemeral_cache_size)
 
-    def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT,
-                       virtual_path=None):
+    def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT, virtual_path=None):
         if isinstance(record_or_path, string_types):
-            path = record_or_path.strip('/')
+            path = record_or_path.strip("/")
         else:
             path, virtual_path = split_virtual_path(record_or_path.path)
-            path = path.strip('/')
+            path = path.strip("/")
             virtual_path = virtual_path or None
             alt = record_or_path.alt
         return (path, alt, virtual_path)
