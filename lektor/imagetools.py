@@ -477,7 +477,7 @@ def compute_dimensions(width, height, source_width, source_height):
 
 def process_image(ctx, source_image, dst_filename,
                   width=None, height=None, mode=ThumbnailMode.DEFAULT,
-                  quality=None):
+                  quality=None, extra_params=None):
     """Build image from source image, optionally compressing and resizing.
 
     "source_image" is the absolute path of the source in the content directory,
@@ -508,6 +508,9 @@ def process_image(ctx, source_image, dst_filename,
                     '-extent', resize_key]
     else:
         cmdline += ['-resize', resize_key]
+
+    if extra_params:
+        cmdline.extend(extra_params)
 
     cmdline += ['-quality', str(quality), dst_filename]
 
