@@ -89,6 +89,13 @@ This section controls some basics about the project:
 > Note that if this setting is used some functionality in the desktop app
 > might no longer work (for instance opening `.lr` files with a double click).
 
+`output_path`
+> Configure the build path for your project. By default, Lektor will detect a
+> proper location depeding on your operation system, only use this setting if
+> you want to set a custom path.
+> The path is relative to the project file, absolute paths are allowed but not
+> portable between distinct filesystems.
+
 `excluded_assets`
 > A list of file names or Unix shell-style wildcards, separated by commas.
 > The wildcard syntax follows [fnmatch](https://docs.python.org/2/library/fnmatch.html).
