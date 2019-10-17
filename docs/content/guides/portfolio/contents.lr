@@ -61,17 +61,17 @@ size = large
 [fields.date]
 label = Date
 type = date
-size = 1/4
+width = 1/4
 
 [fields.type]
 label = Project type
 type = string
-size = 1/4
+width = 1/4
 
 [fields.website]
 label = Website
 type = url
-size = 1/2
+width = 1/2
 
 [fields.description]
 label = Description
