@@ -142,7 +142,7 @@ class EditPage extends RecordEditComponent {
           hasPendingChanges: false
         }, () => {
           this.transitionToAdminPage('.edit', {
-            path: this.getUrlRecordPathWithAlt(path)          
+            path: this.getUrlRecordPathWithAlt(path)
           })
           window.location.reload()
           alert('Your changes have been saved.')
@@ -167,7 +167,7 @@ class EditPage extends RecordEditComponent {
           })
         })
       })
-  }  
+  }
 
   deleteRecord (event) {
     this.transitionToAdminPage('.delete', {
@@ -247,7 +247,7 @@ class EditPage extends RecordEditComponent {
           <button type='submit' className='btn btn-primary'
             onClick={this.saveChanges.bind(this)}>{i18n.trans('SAVE_CHANGES')}</button>
           <button type='submit' className='btn btn-primary'
-            onClick={this.saveChangesAndPreview.bind(this)}>{i18n.trans('SAVE_CHANGES_AND_PREVIEW')}</button>              
+            onClick={this.saveChangesAndPreview.bind(this)}>{i18n.trans('SAVE_CHANGES_AND_PREVIEW')}</button>
           {deleteButton}
         </div>
       </div>
