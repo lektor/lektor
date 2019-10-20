@@ -34,7 +34,7 @@
   "ERROR_SERVER_UNAVAILABLE_MESSAGE": "Der Server reagiert nicht. Entweder er wurde gestoppt oder ein kritischer Fehler ist aufgetreten und er muss neu gestartet werden.",
   "MODEL": "Modell",
   "ADD_CHILD_PAGE_TO": "Unterseite zu “%s” hinzufügen",
-  "ADD_CHILD_PAGE_NOTE": "Du kannst hier eine neue Unterseite hinzufügen.  Beachte, dass die ID und as Modell später nicht mehr verändert werden kann.",
+  "ADD_CHILD_PAGE_NOTE": "Du kannst hier eine neue Unterseite hinzufügen.  Beachte, dass die ID und das Modell später nicht mehr verändert werden kann.",
   "CREATE_CHILD_PAGE": "Unterseite hinzufügen",
   "DELETE_ATTACHMENT_PROMPT": "Willst du den Anhang wirklich löschen?",
   "DELETE_ATTACHMENT_ALT_PROMPT": "Willst du die Metadaten dieser Anhang-Alternative wirklich löschen?",
