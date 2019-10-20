@@ -145,7 +145,9 @@ class EditPage extends RecordEditComponent {
             path: this.getUrlRecordPathWithAlt(path)
           })
           window.location.reload()
-          alert('Your changes have been saved.')
+          if (!resp.okay) {
+            window.alert(i18n.trans('EDIT_SAVED_SUCCESFULLY'))
+          }
         })
       })
   }
