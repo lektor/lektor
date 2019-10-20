@@ -56,6 +56,7 @@
   "EDIT_ATTACHMENT_METADATA_OF": "Edit Metadata of Attachment “%s”",
   "EDIT_PAGE_NAME": "Edit “%s”",
   "SAVE_CHANGES": "Save Changes",
+  "SAVE_CHANGES_AND_PREVIEW": "Save And Preview",  
   "BROWSE_FS": "Browse in Filesystem",
   "BROWSE_FS_MAC": "Reveal in Finder",
   "BROWSE_FS_WINDOWS": "Open in Explorer",
