@@ -28,12 +28,14 @@ class SlideDialog extends Component {
     if (event.which === 27 && this.props.closeOnEscape) {
       event.preventDefault()
       dialogSystem.dismissDialog()
+      window.location.reload()
     }
   }
 
   _onCloseClick (event) {
     event.preventDefault()
     dialogSystem.dismissDialog()
+    window.location.reload()
   }
 
   render () {

@@ -120,6 +120,7 @@
   "FAILED_TO_INSTALL_SHELL_COMMANDS": "Failed to install shell commands.",
   "INSTALL_SHELL_COMMAND_SUCCESS": "Shell command was successfully installed.",
   "OPERATION_SUCCESS": "Success",
+  "SUCCESS": "Success",
   "YES": "Yes",
   "NO": "No",
   "OK": "OK",
