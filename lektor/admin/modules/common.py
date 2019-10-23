@@ -5,6 +5,8 @@ from werkzeug.utils import cached_property
 
 from lektor.db import Tree
 
+"""Lektor Git Hub Pull Request for Hacktober Fest"""
+
 
 bp = Blueprint('common', __name__)
 
