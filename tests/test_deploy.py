@@ -108,7 +108,7 @@ def test_rsync_command(tmpdir, mocker, env):
     command = publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor',
+        'rsync', '-rclzv', '--delete', '--exclude=.lektor',
         str(output_path) + '/',
         'example.com:/'
     ],)
@@ -127,7 +127,7 @@ def test_rsync_command_credentials(tmpdir, mocker, env):
     command = publisher.get_command(target_url, str(ssh_path), credentials)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor',
+        'rsync', '-rclzv', '--delete', '--exclude=.lektor',
         str(output_path) + '/',
         'fakeuser@example.com:/'
     ],)
@@ -142,7 +142,7 @@ def test_rsync_command_username_in_url(tmpdir, mocker, env):
     command = publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor',
+        'rsync', '-rclzv', '--delete', '--exclude=.lektor',
         str(output_path) + '/',
         'fakeuser@example.com:/'
     ],)
