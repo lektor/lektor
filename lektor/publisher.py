@@ -204,9 +204,14 @@ class RsyncPublisher(Publisher):
 
     def get_command(self, target_url, tempdir, credentials):
         credentials = credentials or {}
-        argline = ['rsync', '-rclzv', '--delete', '--exclude=.lektor']
+        argline = ['rsync', '-rclzv', '--exclude=.lektor']
         target = []
         env = {}
+
+        options = target_url.decode_query()
+        delete = options.get('delete') in ('on', 'yes', 'true', '1')
+        if delete:
+            argline.append('--delete-delay')
 
         keyfile = _write_ssh_key_file(os.path.join(
             tempdir, 'ssh-auth-key'), credentials)
