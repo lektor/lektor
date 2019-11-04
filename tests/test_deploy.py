@@ -147,6 +147,22 @@ def test_rsync_command_username_in_url(tmpdir, mocker, env):
         'fakeuser@example.com:/'
     ],)
 
+
+def test_rsync_command_delete(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = RsyncPublisher(env, str(output_path))
+    target_url = url_parse("http://example.com?delete")
+    ssh_path = tmpdir.mkdir("ssh")
+    mock_popen = mocker.patch("lektor.publisher.portable_popen")
+    command = publisher.get_command(target_url, str(ssh_path), credentials=None)
+    assert mock_popen.called
+    assert mock_popen.call_args[0] == ([
+        'rsync', '-rclzv', '--exclude=.lektor', '--delete-delay',
+        str(output_path) + '/',
+        'example.com:/'
+    ],)
+
+
 def test_rsync_command_delete_yes(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
@@ -161,6 +177,7 @@ def test_rsync_command_delete_yes(tmpdir, mocker, env):
         'example.com:/'
     ],)
 
+
 def test_rsync_command_delete_no(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
@@ -174,6 +191,7 @@ def test_rsync_command_delete_no(tmpdir, mocker, env):
         str(output_path) + '/',
         'example.com:/'
     ],)
+
 
 def test_rsync_command_credentials_delete_yes(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
@@ -193,6 +211,7 @@ def test_rsync_command_credentials_delete_yes(tmpdir, mocker, env):
         'fakeuser@example.com:/'
     ],)
 
+
 def test_rsync_command_credentials_delete_no(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
@@ -211,6 +230,7 @@ def test_rsync_command_credentials_delete_no(tmpdir, mocker, env):
         'fakeuser@example.com:/'
     ],)
 
+
 def test_rsync_command_username_in_url_delete_yes(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
@@ -224,6 +244,7 @@ def test_rsync_command_username_in_url_delete_yes(tmpdir, mocker, env):
         str(output_path) + '/',
         'fakeuser@example.com:/'
     ],)
+
 
 def test_rsync_command_username_in_url_delete_no(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")

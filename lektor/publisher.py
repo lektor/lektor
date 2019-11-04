@@ -209,7 +209,7 @@ class RsyncPublisher(Publisher):
         env = {}
 
         options = target_url.decode_query()
-        delete = options.get('delete') in ('on', 'yes', 'true', '1')
+        delete = options.get('delete', False) in ('', 'on', 'yes', 'true', '1', None)
         if delete:
             argline.append('--delete-delay')
 
