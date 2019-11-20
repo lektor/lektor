@@ -211,7 +211,7 @@ class RsyncPublisher(Publisher):
         options = target_url.decode_query()
         exclude = options.getlist('exclude')
         for file in exclude:
-            argline.append("--exclude='{}'".format(file.strip("'").strip('"').replace("'", "\\'").replace('"', '\\"')))
+            argline.extend(('--exclude', file))
 
         delete = options.get('delete', False) in ('', 'on', 'yes', 'true', '1', None)
         if delete:

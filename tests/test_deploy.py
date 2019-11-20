@@ -157,7 +157,7 @@ def test_rsync_command_exclude(tmpdir, mocker, env):
     command = publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor', "--exclude='file'",
+        'rsync', '-rclzv', '--exclude=.lektor', '--exclude', 'file',
         str(output_path) + '/',
         'example.com:/'
     ],)
@@ -172,7 +172,7 @@ def test_rsync_command_exclude_many(tmpdir, mocker, env):
     command = publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor', "--exclude='file_one'", "--exclude='file_two'",
+        'rsync', '-rclzv', '--exclude=.lektor', '--exclude', 'file_one', '--exclude', 'file_two',
         str(output_path) + '/',
         'example.com:/'
     ],)
@@ -187,7 +187,7 @@ def test_rsync_command_exclude_escape_file_name(tmpdir, mocker, env):
     command = publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor', """--exclude='user\\'s \\"special\\" file name'""",
+        'rsync', '-rclzv', '--exclude=.lektor', '--exclude', '\'user\'s "special" file name\'',
         str(output_path) + '/',
         'example.com:/'
     ],)
@@ -202,7 +202,7 @@ def test_rsync_command_exclude_escape_file_name_reverse_string(tmpdir, mocker, e
     command = publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
     assert mock_popen.call_args[0] == ([
-        'rsync', '-rclzv', '--exclude=.lektor', "--exclude='file name'",
+        'rsync', '-rclzv', '--exclude=.lektor', '--exclude', '"file name"',
         str(output_path) + '/',
         'example.com:/'
     ],)
