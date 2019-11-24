@@ -531,26 +531,39 @@ def bool_from_string(val, default=None):
 
 def make_relative_url(base, target):
     """Returns a relative URL from base to target."""
-    if base == '/':
-        depth = 0
-        prefix = './'
-    else:
-        depth = ('/' + base.strip('/')).count('/')
-        prefix = ''
+    path_dest = posixpath.normpath(posixpath.join(base, target))
+    if target[-1:] == '/' and path_dest[-1:] != '/':
+        path_dest += '/'
+
+    depth = 0
+    if base != '/':
+        path_components = base.strip('/').split('/')
+        depth = len(path_components)
         # If the last part of the base path contains a dot, the page will
         # render into, for example "404.html" instead of "404/index.html".
         # Any relative links from it therefore need one less level of depth.
-        if '.' in base.strip('/').split('/')[-1]:
+        if '.' in path_components[-1]:
             depth -= 1
-            if depth == 0:
-                prefix = './'
 
-    ends_in_slash = target[-1:] == '/'
-    target = posixpath.normpath(posixpath.join(base, target))
-    if ends_in_slash and target[-1:] != '/':
-        target += '/'
+    if depth > 0:
+        path_src_comp = posixpath.normpath(base).lstrip('/').split('/')
+        path_dest_comp = path_dest.lstrip('/').split('/')
+        identical = 0
+        for x, y in zip(path_src_comp, path_dest_comp):
+            if x == y:
+                identical += 1
+            else:
+                break  # quit loop after first mismatch
+        if identical > 0:
+            path_dest = '/' + '/'.join(path_dest_comp[identical:])
+            depth -= identical
 
-    return (prefix + '../' * depth).rstrip('/') + target
+    if depth == 0:
+        if path_dest == '/':
+            return './'
+        return path_dest.lstrip('/')  # use './' syntax regardless?
+    else:
+        return ('../' * depth).rstrip('/') + path_dest
 
 
 def get_structure_hash(params):
