@@ -19,6 +19,10 @@ try:
     from functools import lru_cache
 except ImportError:
     from functools32 import lru_cache
+try:
+    from pathlib import PurePosixPath
+except ImportError:
+    from pathlib2 import PurePosixPath
 
 import click
 from jinja2 import is_undefined
@@ -551,6 +555,92 @@ def make_relative_url(base, target):
         target += '/'
 
     return (prefix + '../' * depth).rstrip('/') + target
+
+
+def get_relative_path(source, target):
+    """
+    Returns the relative path needed to navigate from `source` to `target`.
+
+    >>> get_relpath('/fr/blog/2015/11/a/', '/images/b.svg')
+    '../../../../../images/b.svg'
+    >>> get_relpath('/fr/blog/2015/11/a.php', '/fr/blog/')
+    '../../'
+    >>> get_relpath('/fr/blog/2015/11/a/', '/fr/blog/')
+    '../../../'
+    >>> get_relpath('/', './a')
+    'a'
+    >>> get_relpath('/', './a/')
+    'a/'
+    >>> get_relpath('fr/blog/2015/11/a/', 'images/b.svg')
+    '../../../../../images/b.svg'
+    >>> get_relpath('fr/blog/2015/11/a.php', 'fr/blog/')
+    '../../'
+    >>> get_relpath('fr/blog/2015/11/a/', 'fr/blog/')
+    '../../../'
+    >>> get_relpath('', './a')
+    'a'
+    >>> get_relpath('', './a/')
+    'a/'
+
+    """
+
+    # Note: this logic makes some unwarranted assumptions about
+    # what is a directory and what isn't. Ideally, this function
+    # would be aware of the actual filesystem.
+
+    s_is_dir = source.endswith("/")
+    t_is_dir = target.endswith("/")
+
+    source = PurePosixPath(os.path.normpath(source))
+    target = PurePosixPath(os.path.normpath(target))
+
+    if not s_is_dir:
+        source = source.parent
+
+    def _mktarget(path):
+        # we want to always return a string
+        path = str(path)
+        # and add the final dir slash if there was one
+        if t_is_dir:
+            path += "/"
+        return path
+
+    if source.is_absolute():
+        if target.is_absolute():
+            # convert them to relative paths to simplify the logic
+            source = source.relative_to("/")
+            target = target.relative_to("/")
+        else:
+            # nothing to do
+            return _mktarget(target)
+
+    elif target.is_absolute():
+        raise ValueError("Cannot navigate from a relative path"
+                         " to an absolute one")
+
+    # is the source an ancestor of the target?
+    try:
+        relpath = target.relative_to(source)
+
+    except ValueError:
+        # nope, it isn't. how about the other way around?
+        try:
+            inverse = source.relative_to(target)
+
+        except ValueError:
+            # there's no relationship between these two
+            srclen = len(source.parts)
+            relpath = (
+                "/".join([".."] * srclen) # go all the way down
+                 / target                 # and then all the way up
+            )
+
+        else:
+            # yey, it's a descendant. we'll just need to go down.
+            distance = len(inverse.parts)
+            relpath = "/".join([".."] * distance)
+
+    return _mktarget(relpath)
 
 
 def get_structure_hash(params):

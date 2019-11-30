@@ -79,3 +79,32 @@ def test_parse_path():
 def test_make_relative_url(base, target, expected):
     from lektor.utils import make_relative_url
     assert make_relative_url(base, target) == expected
+
+
+@pytest.mark.parametrize("source, target, expected", [
+    ("/", "./a/", "a/"),
+    ("/", "./a", "a"),
+    ("/fr/blog/2015/11/a/", "/fr/blog/2015/11/a/a.jpg", "a.jpg"),
+    ("/fr/blog/2015/11/a/", "/fr/blog/", "../../../"),
+    ("/fr/blog/2015/11/a.php", "/fr/blog/", "../../"),
+    ("/fr/blog/2015/11/a/", "/images/b.svg", "../../../../../images/b.svg"),
+    ("/fr/blog/", "2015/11/", "2015/11/"),
+    ("/fr/blog/x", "2015/11/", "2015/11/"),
+    ("", "./a/", "a/"),
+    ("", "./a", "a"),
+    ("fr/blog/2015/11/a/", "fr/blog/2015/11/a/a.jpg", "a.jpg"),
+    ("fr/blog/2015/11/a/", "fr/blog/", "../../../"),
+    ("fr/blog/2015/11/a.php", "fr/blog/", "../../"),
+    ("fr/blog/2015/11/a/", "images/b.svg", "../../../../../images/b.svg"),
+    ("fr/blog/", "2015/11/", "../../2015/11/"),
+    ("fr/blog/x", "2015/11/", "../../2015/11/"),
+])
+def test_get_relative_path(source, target, expected):
+    from lektor.utils import get_relative_path
+    assert get_relative_path(source, target) == expected
+
+
+def test_get_relative_path_relative_source_absolute_target():
+    from lektor.utils import get_relative_path
+    with pytest.raises(ValueError):
+        get_relative_path("rel/a/tive/", "/abs/o/lute")

@@ -38,6 +38,7 @@ setup(
         'inifile',
         'Jinja2>=2.11',
         'mistune>=0.7.0,<2',
+        'pathlib2;python_version<"3.4"',
         'pip',
         'requests[security]',
         'setuptools',
