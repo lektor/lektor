@@ -621,24 +621,27 @@ def get_relative_path(source, target):
     # is the source an ancestor of the target?
     try:
         relpath = target.relative_to(source)
-
     except ValueError:
-        # nope, it isn't. how about the other way around?
+        pass
+    else:
+        return _mktarget(relpath)
+
+    # even if it isn't, one of the source's ancestors might be
+    for distance, ancestor in enumerate(source.parents):
         try:
-            inverse = source.relative_to(target)
-
+            relpath = target.relative_to(ancestor)
         except ValueError:
-            # there's no relationship between these two
-            srclen = len(source.parts)
-            relpath = (
-                "/".join([".."] * srclen) # go all the way down
-                 / target                 # and then all the way up
-            )
-
+            continue
         else:
-            # yey, it's a descendant. we'll just need to go down.
-            distance = len(inverse.parts)
-            relpath = "/".join([".."] * distance)
+            # enumerate() is 0-based, but we started iterating one level up
+            distance += 1
+            break
+
+    # prepend the ancestor part
+    relpath = (
+        "/".join([".."] * distance)
+        / relpath
+    )
 
     return _mktarget(relpath)
 
