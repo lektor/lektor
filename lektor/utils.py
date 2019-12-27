@@ -560,34 +560,11 @@ def make_relative_url(base, target):
 def get_relative_path(source, target):
     """
     Returns the relative path needed to navigate from `source` to `target`.
-
-    >>> get_relpath('/fr/blog/2015/11/a/', '/images/b.svg')
-    '../../../../../images/b.svg'
-    >>> get_relpath('/fr/blog/2015/11/a.php', '/fr/blog/')
-    '../../'
-    >>> get_relpath('/fr/blog/2015/11/a/', '/fr/blog/')
-    '../../../'
-    >>> get_relpath('/', './a')
-    'a'
-    >>> get_relpath('/', './a/')
-    'a/'
-    >>> get_relpath('fr/blog/2015/11/a/', 'images/b.svg')
-    '../../../../../images/b.svg'
-    >>> get_relpath('fr/blog/2015/11/a.php', 'fr/blog/')
-    '../../'
-    >>> get_relpath('fr/blog/2015/11/a/', 'fr/blog/')
-    '../../../'
-    >>> get_relpath('', './a')
-    'a'
-    >>> get_relpath('', './a/')
-    'a/'
-
     """
 
-    # Note: this logic makes some unwarranted assumptions about
+    # WARNING: this logic makes some unwarranted assumptions about
     # what is a directory and what isn't. Ideally, this function
     # would be aware of the actual filesystem.
-
     s_is_dir = source.endswith("/")
     t_is_dir = target.endswith("/")
 
