@@ -16,7 +16,7 @@ just go over the most important ones but for a full list you can have a look
 ## `_hidden`
 
 This field is a boolean value and controls if a page is hidden or not.  If a
-page is hidden all of it's children will automatically also be hidden.  A page
+page is hidden all of its children will automatically also be hidden.  A page
 that is hidden will not be processed by Lektor's build system.  This means such
 pages can be discovered through the query API but they are not rendered
 themselves.  This is useful for situations where you want to have information
@@ -42,11 +42,11 @@ unavailable.
 
 This key sets the [Data Model :ref](../../models/) that is used for the record.
 If not set this defaults to one of different choices depending on configuration
-or name.  Parent models can pre-define models for children which is the used if
-this key is not set.  If not set this will be picked up by an algorithm.
+or name.  Parent models can pre-define the model for children, which is then used if
+this key is not set. If not set this will be picked up by an algorithm.
 See [Default Model Selection :ref](../../models/selection/) for more information.
 
-*To read more read [the field documentation :ref](../../api/db/system-fields/model/).*
+*To learn more read [the field documentation :ref](../../api/db/system-fields/model/).*
 
 ## `_slug`
 
@@ -58,4 +58,4 @@ feature see [URLs and Slugs :ref](../urls/).
 This field can be used to override the default template selection which is
 just the model name with the `.html` extension.
 
-*To read more read [the field documentation :ref](../../api/db/system-fields/template/).*
+*To learn more read [the field documentation :ref](../../api/db/system-fields/template/).*
