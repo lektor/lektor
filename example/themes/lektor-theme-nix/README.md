@@ -34,7 +34,7 @@ Add params in the `.lektorproject file`
   comments = "yes"
 ```
 
-Add your proofile picture in the assets folder and set the path in `profilepicture` (e.g. `img/myprofilepicture.png`)
+Add your profile picture in the assets folder and set the path in `profilepicture` (e.g. `img/myprofilepicture.png`)
 
 ## License
 
