@@ -38,10 +38,15 @@ skips hidden pages so those will not be generated out.
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   {%- for page in [site.root] if page != this recursive %}
   <url><loc>{{ page|url(external=true) }}</loc></url>
-  {{- loop(page.children) }}
+  {{- loop(page.children|sort(attribute='path')) }}
   {%- endfor %}
 </urlset>
 ```
+
+Sorting the page using `|sort(attribute='path')` is not mandatory, but can be
+useful if you prefer to have stable builds, for instance if you use `git` to
+version the generated page and would like a clean history or a meaningful diff
+from the last build.
 
 Note that because sitemaps need to have external URLs (with scheme and
 everything) you will need to configure the `url` of the site before the
@@ -63,7 +68,7 @@ create a `sitemap/contents.lr` file instead and use a template like
   {% for page in [site.root] if page.record_label recursive %}
   <li><a href="{{ page|url }}">{{ page.record_label }}</a>
     {% if page.children %}
-      <ul>{{ loop(page.children) }}</ul>
+      <ul>{{ loop(page.children|sort(attribute='path')) }}</ul>
     {% endif %}
   </li>
   {% endfor %}
