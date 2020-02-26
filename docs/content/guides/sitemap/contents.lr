@@ -43,6 +43,11 @@ skips hidden pages so those will not be generated out.
 </urlset>
 ```
 
+Sorting the page using `|sort(attribute='path')` is not mandatory, but can be
+useful if you prefer to have stable builds, for instance if you use `git` to
+version the generated page and would like a clean history or a meaningful diff
+from the last build.
+
 Note that because sitemaps need to have external URLs (with scheme and
 everything) you will need to configure the `url` of the site before the
 template starts working.  For more information see [Project File
