@@ -43,6 +43,7 @@
     "lint": "standard",
     "test": "nyc mocha static/js/**/*.test.js",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
+    "dev": "webpack --watch --config ./static/webpack.config.js --context ./static",
     "webpack": "webpack --config ./static/webpack.config.js --context ./static"
   },
   "babel": {
