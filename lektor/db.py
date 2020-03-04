@@ -1306,7 +1306,7 @@ class Database(object):
                 # Special case: we are loading an attachment but the meta
                 # data file does not exist.  In that case we still want to
                 # record that we're loading an attachment.
-                elif is_attachment:
+                if is_attachment:
                     rv_type = True
 
             if '_source_alt' not in rv:

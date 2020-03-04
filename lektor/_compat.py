@@ -18,7 +18,7 @@ _identity = lambda x: x
 
 
 if PY2:
-    unichr = unichr
+    unichr = unichr  # pylint: disable=self-assigning-variable
     text_type = unicode
     range_type = xrange
     string_types = (str, unicode)

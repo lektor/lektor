@@ -23,4 +23,5 @@ disable =
     len-as-condition,
     useless-object-inheritance,
     no-else-return,
+    import-outside-toplevel,
     bad-option-value
