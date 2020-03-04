@@ -23,4 +23,4 @@ LektorLink.propTypes = {
   to: PropTypes.string
 }
 
-module.exports = LektorLink
+export default LektorLink
