@@ -29,7 +29,7 @@ module.exports = {
     extensions: ['.jsx', '.js', '.json']
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.jsx$/,
         exclude: /node_modules/,
