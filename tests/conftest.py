@@ -1,10 +1,7 @@
 import os
 import shutil
-import subprocess
 import textwrap
 import pytest
-
-from lektor.utils import is_windows
 
 
 @pytest.fixture(scope='function')
@@ -166,25 +163,6 @@ def os_user(monkeypatch):
     monkeypatch.setattr("pwd.getpwuid", lambda id: struct)
     monkeypatch.setenv("USER", "lektortest")
     return "lektortest"
-
-
-@pytest.fixture(scope='function')
-def git_user_email(request):
-    old_email = subprocess.Popen(['git', 'config', 'user.email'],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE).communicate()[0].strip()
-    # on windows subprocess need str in input
-    # but returns bytes on exit
-    if is_windows:
-        old_email = old_email.decode('utf-8')
-
-    def cleanup():
-        subprocess.check_call(['git', 'config', 'user.email', old_email])
-    request.addfinalizer(cleanup)
-
-    email = "lektortest@example.com"
-    subprocess.check_call(['git', 'config', 'user.email', email])
-    return email
 
 
 @pytest.fixture(scope='function')
