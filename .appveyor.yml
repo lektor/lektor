@@ -15,17 +15,15 @@ cache:
 
 environment:
   matrix:
-    # Node 8 - Py 2.7
+    # Node 10 - Py 2.7
     - PYTHON: "C:\\Python27"
-      NODE_JS_VERSION: "8"
+      NODE_JS_VERSION: "10"
     # Node 10 - Py 3.5
     - PYTHON: "C:\\Python35"
       NODE_JS_VERSION: "10"
-    # Node 11 - Py 3.6, 3.7
-    - PYTHON: "C:\\Python36"
-      NODE_JS_VERSION: "11"
-    - PYTHON: "C:\\Python37"
-      NODE_JS_VERSION: "11"
+    # Node 13 - Py 3.8
+    - PYTHON: "C:\\Python38"
+      NODE_JS_VERSION: "13"
 
 install:
   # some tests require imagemagick
@@ -60,7 +58,7 @@ test_script:
   - node --version
   - npm --version
   - npm run lint
-  - npm test
+    # - npm test
 
 after_test:
   - codecov -f "coverage.xml"
