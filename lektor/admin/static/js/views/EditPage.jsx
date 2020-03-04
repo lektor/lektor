@@ -13,7 +13,6 @@ class EditPage extends RecordEditComponent {
     super(props)
 
     this.state = {
-      recordInitialData: null,
       recordData: null,
       recordDataModel: null,
       recordInfo: null,
@@ -80,9 +79,20 @@ class EditPage extends RecordEditComponent {
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
       .then((resp) => {
+        // transform resp.data into actual data
+        const recordData = {}
+        resp.datamodel.fields.forEach(field => {
+          const widget = widgets.getWidgetComponentWithFallback(field.type)
+          let value = resp.data[field.name]
+          if (value !== undefined) {
+            if (widget.deserializeValue) {
+              value = widget.deserializeValue(value, field.type)
+            }
+            recordData[field.name] = value
+          }
+        })
         this.setState({
-          recordInitialData: resp.data,
-          recordData: {},
+          recordData,
           recordDataModel: resp.datamodel,
           recordInfo: resp.record_info,
           hasPendingChanges: false
@@ -115,10 +125,7 @@ class EditPage extends RecordEditComponent {
           value = Widget.serializeValue(value, field.type)
         }
       } else {
-        value = this.state.recordInitialData[field.name]
-        if (value === undefined) {
-          value = null
-        }
+        value = null
       }
 
       rv[field.name] = value
@@ -155,7 +162,7 @@ class EditPage extends RecordEditComponent {
   getValueForField (widget, field) {
     let value = this.state.recordData[field.name]
     if (value === undefined) {
-      value = this.state.recordInitialData[field.name] || ''
+      value = ''
       if (widget.deserializeValue) {
         value = widget.deserializeValue(value, field.type)
       }
