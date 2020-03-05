@@ -8,7 +8,7 @@
   "devDependencies": {
     "electron-prebuilt": "0.34.3",
     "electron-rebuild": "^1.0.2",
-    "bootstrap": "~3.3.0",
+    "bootstrap": "~3.4.1",
     "css-loader": "^0.9.1",
     "file-loader": "^0.8.1",
     "url-loader": "^0.5.6",
