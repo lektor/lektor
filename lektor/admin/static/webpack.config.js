@@ -1,14 +1,14 @@
-var webpack = require('webpack')
-var path = require('path')
-var ExtractTextPlugin = require('extract-text-webpack-plugin')
+const webpack = require('webpack')
+const path = require('path')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
+  mode: 'development',
   entry: {
     'app': './js/main.jsx',
     'styles': './less/main.less',
     'vendor': [
       'jquery',
-      'native-promise-only',
       'querystring',
       'bootstrap',
       'react',
@@ -22,6 +22,12 @@ module.exports = {
     filename: '[name].js'
   },
   devtool: 'source-map',
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      name: 'vendor'
+    }
+  },
   resolve: {
     modules: [
       '../node_modules'
@@ -29,34 +35,30 @@ module.exports = {
     extensions: ['.jsx', '.js', '.json']
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.jsx$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
         options: {
-          presets: ['react', 'es2015'],
-          plugins: ['transform-object-rest-spread'],
+          presets: ['@babel/preset-react', '@babel/preset-env'],
           cacheDirectory: true
         }
       },
       {
         test: /\.less$/,
-        loader: ExtractTextPlugin.extract({
-          use: 'css-loader!less-loader?sourceMap',
-          fallback: 'style-loader?sourceMap'
-        })
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader?sourceMap',
+          'less-loader?sourceMap'
+        ]
       },
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract({
-          use: 'css-loader?sourceMap',
-          fallback: 'style-loader?sourceMap'
-        })
-      },
-      {
-        test: /\.json$/,
-        loader: 'json-loader'
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader?sourceMap'
+        ]
       },
       {
         test: /\.(ttf|eot|svg|woff2?)(\?v=\d+\.\d+\.\d+)?$/,
@@ -65,16 +67,13 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor',
-      filename: 'vendor.js'
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+      chunkFilename: '[id].css'
     }),
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery'
-    }),
-    new ExtractTextPlugin('styles.css', {
-      allChunks: true
     })
   ],
   externals: {}

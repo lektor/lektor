@@ -263,7 +263,7 @@ const FlowWidget = createReactClass({
               className='btn btn-default btn-xs'
               title={this.props.value[idx].collapsed ? i18n.trans('Expand') : i18n.trans('Collapse')}
               onClick={this.props.value[idx].collapsed
-                       ? this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}>
+                ? this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}>
               <i className={this.props.value[idx].collapsed ? 'fa fa-expand' : 'fa fa-compress'} />
             </button>
             <button

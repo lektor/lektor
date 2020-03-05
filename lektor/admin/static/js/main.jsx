@@ -13,7 +13,6 @@ import BootstrapExtras from './bootstrap-extras'
 import FACss from 'font-awesome/css/font-awesome.css'
 
 // polyfill for internet explorer
-import PromiseOnly from 'native-promise-only'
 import EventSource from 'event-source-polyfill'
 /* eslint-enable no-unused-vars */
 
