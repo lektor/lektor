@@ -24,7 +24,7 @@
     "babel-register": "^6.1.0",
     "extract-text-webpack-plugin": "^0.3.8",
     "webpack-target-electron-renderer": "^0.1.1",
-    "jquery": "^2.1.3",
+    "jquery": "^3.4.1",
     "jsx-loader": "^0.12.2",
     "less": "^1.7.5",
     "less-loader": "^0.7.8",
