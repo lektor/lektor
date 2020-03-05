@@ -14,11 +14,6 @@ class PreviewPage extends RecordComponent {
     }
   }
 
-  componentWillReceiveProps (nextProps) {
-    super.componentWillReceiveProps(nextProps)
-    this.setState({}, this.syncState.bind(this))
-  }
-
   componentDidMount () {
     super.componentDidMount()
     this.syncState()
@@ -53,7 +48,10 @@ class PreviewPage extends RecordComponent {
     return null
   }
 
-  componentDidUpdate () {
+  componentDidUpdate (nextProps) {
+    if (nextProps.params.path !== this.props.params.path) {
+      this.setState({}, this.syncState.bind(this))
+    }
     const frame = this.refs.iframe
     const intendedPath = this.getIntendedPath()
     if (intendedPath !== null) {

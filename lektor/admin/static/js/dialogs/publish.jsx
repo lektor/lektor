@@ -31,8 +31,10 @@ class Publish extends Component {
     super.componentWillUnmount()
   }
 
-  componentWillReceiveProps (nextProps) {
-    this.syncDialog()
+  componentDidUpdate (nextProps) {
+    if (nextProps.params.path !== this.props.params.path) {
+      this.syncDialog()
+    }
   }
 
   preventNavigation () {

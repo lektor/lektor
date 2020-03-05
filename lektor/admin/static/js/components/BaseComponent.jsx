@@ -16,9 +16,6 @@ class BaseComponent extends React.Component {
 
   componentDidUpdate () {
   }
-
-  componentWillReceiveProps (nextProps) {
-  }
 }
 
 export default BaseComponent

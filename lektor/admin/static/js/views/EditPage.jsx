@@ -27,14 +27,6 @@ class EditPage extends RecordEditComponent {
     window.addEventListener('keydown', this._onKeyPress)
   }
 
-  componentWillReceiveProps (nextProps) {
-    /*
-    if (nextProps.params.path !== this.props.params.path) {
-      this.syncEditor();
-    }
-    */
-  }
-
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.params.path !== this.props.params.path) {
       this.syncEditor()
