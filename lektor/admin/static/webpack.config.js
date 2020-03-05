@@ -1,5 +1,5 @@
-var webpack = require('webpack')
-var path = require('path')
+const webpack = require('webpack')
+const path = require('path')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
@@ -9,7 +9,6 @@ module.exports = {
     'styles': './less/main.less',
     'vendor': [
       'jquery',
-      'native-promise-only',
       'querystring',
       'bootstrap',
       'react',
@@ -27,16 +26,6 @@ module.exports = {
     splitChunks: {
       chunks: 'all',
       name: 'vendor'
-      /*
-      cacheGroups: {
-        styles: {
-          name: 'styles',
-          test: /\.(le|c)ss$/,
-          chunks: 'all',
-          enforce: true
-        }
-      }
-      */
     }
   },
   resolve: {
@@ -53,7 +42,6 @@ module.exports = {
         loader: 'babel-loader',
         options: {
           presets: ['@babel/preset-react', '@babel/preset-env'],
-          // plugins: ['transform-object-rest-spread'],
           cacheDirectory: true
         }
       },
