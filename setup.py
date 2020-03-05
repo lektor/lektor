@@ -6,11 +6,11 @@ with io.open('README.md', 'rt', encoding='utf8') as f:
     readme = f.read()
 
 tests_require = [
+    'pylint',
     'pytest',
     'pytest-cov',
     'pytest-mock',
     'pytest-click',
-    'pytest-pylint',
 ]
 
 setup(
@@ -28,25 +28,25 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'Jinja2>=2.4',
-        'click>=6.0',
-        'watchdog',
-        'mistune>=0.7.0,<2',
-        'Flask',
-        'EXIFRead',
-        'inifile',
-        'enum34;python_version<"3.4"',
         'Babel',
+        'click>=6.0',
+        'enum34;python_version<"3.4"',
+        'EXIFRead',
+        'filetype',
+        'Flask',
         'functools32;python_version<"3.2.3"',
-        'setuptools',
+        'inifile',
+        'Jinja2>=2.4',
+        'mistune>=0.7.0,<2',
         'pip',
         'requests[security]',
-        'filetype',
+        'setuptools',
+        'watchdog',
     ],
     tests_require=tests_require,
     extras_require={
-        'test': tests_require,
         'ipython': ['ipython'],
+        'test': tests_require,
     },
     classifiers=[
         'Framework :: Lektor',
@@ -55,11 +55,13 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
