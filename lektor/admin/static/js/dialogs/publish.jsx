@@ -32,8 +32,13 @@ class Publish extends Component {
   }
 
   componentDidUpdate (nextProps) {
+    super.componentDidUpdate()
     if (nextProps.params.path !== this.props.params.path) {
       this.syncDialog()
+    }
+    const node = this.refs.log
+    if (node) {
+      node.scrollTop = node.scrollHeight
     }
   }
 
@@ -106,14 +111,6 @@ class Publish extends Component {
     this.setState({
       activeTarget: event.target.value
     })
-  }
-
-  componentDidUpdate () {
-    super.componentDidUpdate()
-    const node = this.refs.log
-    if (node) {
-      node.scrollTop = node.scrollHeight
-    }
   }
 
   render () {

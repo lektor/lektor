@@ -4,7 +4,6 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
-import Component from './components/Component'
 import i18n from './i18n'
 
 /* eslint-disable no-unused-vars */
@@ -27,15 +26,13 @@ import AddAttachmentPage from './views/AddAttachmentPage'
 
 i18n.currentLanguage = $LEKTOR_CONFIG.lang
 
-class BadRoute extends Component {
-  render () {
-    return (
-      <div>
-        <h2>Nothing to see here</h2>
-        <p>There is really nothing to see here.</p>
-      </div>
-    )
-  }
+function BadRoute () {
+  return (
+    <div>
+      <h2>Nothing to see here</h2>
+      <p>There is really nothing to see here.</p>
+    </div>
+  )
 }
 
 BadRoute.contextTypes = {
