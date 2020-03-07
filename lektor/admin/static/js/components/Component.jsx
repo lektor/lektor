@@ -12,10 +12,8 @@ class Component extends BaseComponent {
   /* helper function for forwarding props down the tree */
   getRoutingProps () {
     return {
-      location: this.props.location,
       params: this.props.params,
       route: this.props.route,
-      routeParams: this.props.routeParams,
       routes: this.props.routes
     }
   }
