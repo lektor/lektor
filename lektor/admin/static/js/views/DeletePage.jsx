@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import RecordComponent from '../components/RecordEditComponent'
+import RecordComponent from '../components/RecordComponent'
 import utils from '../utils'
 import i18n from '../i18n'
 import hub from '../hub'
@@ -24,7 +24,7 @@ class DeletePage extends RecordComponent {
   }
 
   componentDidUpdate (nextProps) {
-    if (nextProps.params.path !== this.props.params.path) {
+    if (nextProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog()
     }
   }

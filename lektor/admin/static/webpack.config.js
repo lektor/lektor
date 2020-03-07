@@ -14,7 +14,7 @@ module.exports = {
       'react',
       'react-dom',
       'react-addons-update',
-      'react-router'
+      'react-router-dom'
     ]
   },
   output: {

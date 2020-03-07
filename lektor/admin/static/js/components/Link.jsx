@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Link } from 'react-router'
+import { NavLink } from 'react-router-dom'
 
 function LektorLink (props) {
   let path = props.to
@@ -10,9 +10,9 @@ function LektorLink (props) {
     path = $LEKTOR_CONFIG.admin_root + '/' + path
   }
   return (
-    <Link to={path} activeClassName='active'>
+    <NavLink to={path} activeClassName='active'>
       {props.children}
-    </Link>
+    </NavLink>
   )
 }
 

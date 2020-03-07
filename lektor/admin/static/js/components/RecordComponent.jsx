@@ -6,23 +6,14 @@ import utils from '../utils'
 /* a react component baseclass that has some basic knowledge about
    the record it works with. */
 class RecordComponent extends Component {
-  /* checks if the record preview is active. */
-  isRecordPreviewActive () {
-    const routes = this.props.routes
-    return (
-      routes.length > 0 &&
-      routes[routes.length - 1].component.name === 'PreviewPage'
-    )
-  }
-
   /* this returns the current record path segments as array */
   getRecordPathSegments () {
-    const path = this.props.params.path
+    const path = this.props.match.params.path
     return path ? utils.urlPathToSegments(path) : []
   }
 
   _getRecordPathAndAlt () {
-    const path = this.props.params.path
+    const path = this.props.match.params.path
     if (!path) {
       return [null, null]
     }

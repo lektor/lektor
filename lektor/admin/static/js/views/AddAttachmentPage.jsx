@@ -26,7 +26,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   componentDidUpdate (nextProps) {
-    if (nextProps.params.path !== this.props.params.path) {
+    if (nextProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog()
     }
   }

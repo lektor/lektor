@@ -49,7 +49,7 @@ class PreviewPage extends RecordComponent {
   }
 
   componentDidUpdate (nextProps) {
-    if (nextProps.params.path !== this.props.params.path) {
+    if (nextProps.match.params.path !== this.props.match.params.path) {
       this.setState({}, this.syncState.bind(this))
     }
     const frame = this.refs.iframe

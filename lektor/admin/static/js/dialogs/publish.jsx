@@ -33,7 +33,7 @@ class Publish extends Component {
 
   componentDidUpdate (nextProps) {
     super.componentDidUpdate()
-    if (nextProps.params.path !== this.props.params.path) {
+    if (nextProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog()
     }
     const node = this.refs.log

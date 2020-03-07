@@ -28,7 +28,7 @@ class BreadCrumbs extends RecordComponent {
 
   componentDidUpdate (prevProps, prevState) {
     super.componentDidUpdate(prevProps, prevState)
-    if (prevProps.params.path !== this.props.params.path) {
+    if (prevProps.match.params.path !== this.props.match.params.path) {
       this.updateCrumbs()
     }
   }
@@ -112,7 +112,7 @@ class BreadCrumbs extends RecordComponent {
 
   render () {
     let crumbs = []
-    const target = this.isRecordPreviewActive() ? '.preview' : '.edit'
+    const target = this.props.match.params.page === 'preview' ? '.preview' : '.edit'
     let lastItem = null
 
     if (this.state.recordPathInfo != null) {
