@@ -5,15 +5,12 @@ import BaseComponent from './BaseComponent'
 class Component extends BaseComponent {
   /* helper that can generate a path to a rule */
   getPathToAdminPage (name, params) {
-    // console.log('Get path to admin page ', name, 'with params', params)
     const parameters = {...this.props.match.params, ...params}
-    // The paths are of the form '/admin/:path/:page'
-    // TODO: page might be a constant for the router
     if (name !== null) {
       if (name.substr(0, 1) === '.') {
         parameters.page = name.substr(1)
       } else {
-        throw new Error('TODO')
+        parameters.page = name
       }
     }
 
