@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import { Prompt} from 'react-router-dom'
+import { Prompt } from 'react-router-dom'
 import update from 'react-addons-update'
 
 import RecordComponent from '../components/RecordComponent'
