@@ -3,6 +3,7 @@
 /* eslint-env browser */
 
 import React from 'react'
+
 import Component from '../components/Component'
 import SlideDialog from '../components/SlideDialog'
 import utils from '../utils'
@@ -25,10 +26,6 @@ class Publish extends Component {
   componentDidMount () {
     super.componentDidMount()
     this.syncDialog()
-  }
-
-  componentWillUnmount () {
-    super.componentWillUnmount()
   }
 
   componentDidUpdate (nextProps) {

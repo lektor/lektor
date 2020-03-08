@@ -1,14 +1,8 @@
 'use strict'
 
-import dialogSystem from '../dialogSystem'
 import BaseComponent from './BaseComponent'
 
 class Component extends BaseComponent {
-  constructor (props, context) {
-    super(props, context)
-    this._unlistenBeforeLeavingRoute = null
-  }
-
   /* helper that can generate a path to a rule */
   getPathToAdminPage (name, params) {
     // console.log('Get path to admin page ', name, 'with params', params)
@@ -33,29 +27,6 @@ class Component extends BaseComponent {
   transitionToAdminPage (name, params) {
     const path = this.getPathToAdminPage(name, params)
     this.props.history.push(path)
-  }
-
-  componentDidMount () {
-    super.componentDidMount()
-    if (this.context.router !== undefined && this.props.route !== undefined) {
-      this._unlistenBeforeLeavingRoute = this.context.router.setRouteLeaveHook(
-        this.props.route, this.routerWillLeave.bind(this))
-    }
-  }
-
-  componentWillUnmount () {
-    super.componentWillUnmount()
-    if (this._unlistenBeforeLeavingRoute) {
-      this._unlistenBeforeLeavingRoute()
-    }
-  }
-
-  routerWillLeave (nextLocation) {
-    if (dialogSystem.preventNavigation()) {
-      return false
-    } else {
-      dialogSystem.dismissDialog()
-    }
   }
 }
 

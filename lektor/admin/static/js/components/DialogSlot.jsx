@@ -17,12 +17,10 @@ class DialogSlot extends Component {
   }
 
   componentDidMount () {
-    super.componentDidMount()
     hub.subscribe(DialogChangedEvent, this.onDialogChanged)
   }
 
   componentWillUnmount () {
-    super.componentWillUnmount()
     hub.unsubscribe(DialogChangedEvent, this.onDialogChanged)
   }
 
