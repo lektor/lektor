@@ -1,12 +1,11 @@
 'use strict'
 
 import React from 'react'
-import Component from '../components/Component'
 import dialogSystem from '../dialogSystem'
 import { DialogChangedEvent } from '../events'
 import hub from '../hub'
 
-class DialogSlot extends Component {
+class DialogSlot extends React.Component {
   constructor (props) {
     super(props)
     this.state = {

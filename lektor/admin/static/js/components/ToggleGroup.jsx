@@ -1,10 +1,9 @@
 'use strict'
 
-import PropTypes from 'prop-types'
 import React from 'react'
-import Component from './Component'
+import PropTypes from 'prop-types'
 
-class ToggleGroup extends Component {
+class ToggleGroup extends React.Component {
   constructor (props) {
     super(props)
     this.state = {

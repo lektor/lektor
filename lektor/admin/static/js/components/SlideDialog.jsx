@@ -2,18 +2,16 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import Component from '../components/Component'
 import dialogSystem from '../dialogSystem'
 import i18n from '../i18n'
 
-class SlideDialog extends Component {
+class SlideDialog extends React.Component {
   constructor (props) {
     super(props)
     this._onKeyPress = this._onKeyPress.bind(this)
   }
 
   componentDidMount () {
-    super.componentDidMount()
     if (this.props.closeOnEscape) {
       window.addEventListener('keydown', this._onKeyPress)
     }
@@ -21,7 +19,6 @@ class SlideDialog extends Component {
 
   componentWillUnmount () {
     window.removeEventListener('keydown', this._onKeyPress)
-    super.componentWillUnmount()
   }
 
   _onKeyPress (event) {
