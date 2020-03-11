@@ -23,7 +23,8 @@ pex:
 
 test-python:
 	@echo "---> running python tests"
-	py.test . --tb=long -vv --cov=lektor
+	pylint lektor
+	pytest . --tb=long -vv --cov=lektor
 
 coverage-python: test-python
 	coverage xml
