@@ -208,6 +208,15 @@ class RsyncPublisher(Publisher):
         target = []
         env = {}
 
+        options = target_url.decode_query()
+        exclude = options.getlist('exclude')
+        for file in exclude:
+            argline.extend(('--exclude', file))
+
+        delete = options.get('delete', False) in ('', 'on', 'yes', 'true', '1', None)
+        if delete:
+            argline.append('--delete-delay')
+
         keyfile = _write_ssh_key_file(os.path.join(
             tempdir, 'ssh-auth-key'), credentials)
 
