@@ -13,39 +13,42 @@ except ImportError:
     from urllib import urlretrieve
 
 
-_IS_WIN = sys.platform == 'win32'
+_IS_WIN = sys.platform == "win32"
 
 if not _IS_WIN:
-    sys.stdin = open('/dev/tty', 'r')
+    sys.stdin = open("/dev/tty", "r")
 
 if sys.version_info.major == 2:
     input = raw_input
 
-_silent = os.environ.get('LEKTOR_SILENT')
+_silent = os.environ.get("LEKTOR_SILENT")
 _PROMPT = (
     _silent is None
-    or _silent.lower() in ('', '0', 'off', 'false')
+    or _silent.lower() in ("", "0", "off", "false")
 )
+
 
 def get_confirmation():
     if _PROMPT is False:
         return
 
     while True:
-        user_input = input('Continue? [Yn] ').lower().strip()
+        user_input = input("Continue? [Yn] ").lower().strip()
 
-        if user_input in ('', 'y'):
+        if user_input in ("", "y"):
             print()
             return
 
-        if user_input == 'n':
+        if user_input == "n":
             print()
-            print('Aborted!')
+            print("Aborted!")
             sys.exit()
 
+
 def fail(message):
-    print('Error: %s' % message, file=sys.stderr)
+    print("Error: %s" % message, file=sys.stderr)
     sys.exit(1)
+
 
 def multiprint(*lines, **kwargs):
     for line in lines:
@@ -53,15 +56,17 @@ def multiprint(*lines, **kwargs):
 
 
 class Installer(object):
-    APP_NAME = 'lektor'
-    VIRTUALENV_URL = 'https://bootstrap.pypa.io/virtualenv.pyz'
+    APP_NAME = "lektor"
+    VIRTUALENV_URL = "https://bootstrap.pypa.io/virtualenv.pyz"
 
     def __init__(self):
-        multiprint('',
-                   'Welcome to Lektor',
-                   '',
-                   'This script will install Lektor on your computer.',
-                   '')
+        multiprint(
+            "",
+            "Welcome to Lektor",
+            "",
+            "This script will install Lektor on your computer.",
+            "",
+        )
 
         self.compute_location()
 
@@ -77,8 +82,10 @@ class Installer(object):
         self.create_virtualenv()
         self.install_lektor()
 
-        multiprint('',
-                   'All done!')
+        multiprint(
+            "",
+            "All done!",
+        )
 
     def compute_location(self):
         # this method must set self.lib_dir
@@ -100,7 +107,7 @@ class Installer(object):
         self.mkvirtualenv(self.lib_dir)
 
     def install_lektor(self):
-        call([self.get_pip(), 'install', '--upgrade', 'Lektor'])
+        call([self.get_pip(), "install", "--upgrade", "Lektor"])
 
     def get_pip(self):
         raise NotImplementedError()
@@ -142,7 +149,7 @@ class Installer(object):
 
             venv_exec = which("virtualenv")
             if venv_exec:
-                retval = call([venv_exec, '-p', sys.executable, target_dir])
+                retval = call([venv_exec, "-p", sys.executable, target_dir])
                 if retval:
                     sys.exit(1)
                 created = True
@@ -159,7 +166,7 @@ class Installer(object):
         fname = os.path.basename(cls.VIRTUALENV_URL)
         root, ext = os.path.splitext(fname)
 
-        zipapp = tempfile.mktemp(prefix=root+"-", suffix=ext)
+        zipapp = tempfile.mktemp(prefix=root + "-", suffix=ext)
 
         with Progress() as hook:
             sys.stdout.write("Downloading virtualenv: ")
@@ -169,37 +176,43 @@ class Installer(object):
 
     @staticmethod
     def deletion_error(func, path, excinfo):
-        multiprint('Problem deleting {}'.format(path),
-                   'Please try and delete {} manually'.format(path),
-                   'Aborted!',
-                   file=sys.stderr)
+        multiprint(
+            "Problem deleting {}".format(path),
+            "Please try and delete {} manually".format(path),
+            "Aborted!",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
-_HOME = os.environ.get('HOME')
+_HOME = os.environ.get("HOME")
+
 
 class PosixInstaller(Installer):
     # prefer system bin dirs
-    KNOWN_BIN_PATHS = ['/usr/local/bin', '/opt/local/bin']
-    if _HOME: # true on *nix, but we need it to prevent blowing up on windows
-        KNOWN_BIN_PATHS.extend([
-            os.path.join(_HOME, '.bin'),
-            os.path.join(_HOME, '.local', 'bin'),
-        ])
+    KNOWN_BIN_PATHS = ["/usr/local/bin", "/opt/local/bin"]
+    if _HOME:  # true on *nix, but we need it to prevent blowing up on windows
+        KNOWN_BIN_PATHS.extend(
+            [os.path.join(_HOME, ".bin"), os.path.join(_HOME, ".local", "bin"),]
+        )
 
     def prompt_installation(self):
-        multiprint('Installing at:',
-                   '  bin: %s' % self.bin_dir,
-                   '  app: %s' % self.lib_dir,
-                   '')
+        multiprint(
+            "Installing at:",
+            "  bin: %s" % self.bin_dir,
+            "  app: %s" % self.lib_dir,
+            "",
+        )
 
     def prompt_wipe(self):
-        multiprint('Lektor seems to be installed already.',
-                   'Continuing will delete:',
-                   '  %s' % self.lib_dir,
-                   'and remove this symlink:',
-                   '  %s' % self.symlink_path,
-                   '')
+        multiprint(
+            "Lektor seems to be installed already.",
+            "Continuing will delete:",
+            "  %s" % self.lib_dir,
+            "and remove this symlink:",
+            "  %s" % self.symlink_path,
+            "",
+        )
 
     def compute_location(self):
         """
@@ -210,13 +223,16 @@ class PosixInstaller(Installer):
         # look for writable directories in the user's $PATH
         # (that are not sbin)
         paths = [
-            item for item in os.environ['PATH'].split(':')
-            if not item.endswith('/sbin') and os.access(item, os.W_OK)
+            item
+            for item in os.environ["PATH"].split(":")
+            if not item.endswith("/sbin") and os.access(item, os.W_OK)
         ]
 
         if not paths:
-            fail('None of the items in $PATH are writable. Run with '
-                 'sudo or add a $PATH item that you have access to.')
+            fail(
+                "None of the items in $PATH are writable. Run with "
+                "sudo or add a $PATH item that you have access to."
+            )
 
         # ... and prioritize them according to KNOWN_BIN_PATHS.
         # this makes sure we perform a system install when possible.
@@ -224,25 +240,24 @@ class PosixInstaller(Installer):
             try:
                 return self.KNOWN_BIN_PATHS.index(path)
             except ValueError:
-                return float('inf')
+                return float("inf")
 
         paths.sort(key=_sorter)
 
         lib_dir = None
 
-        home = os.environ['HOME']
         for path in paths:
-            if path.startswith(home):
-                lib_dir = os.path.join(home, '.local', 'lib', self.APP_NAME)
+            if path.startswith(_HOME):
+                lib_dir = os.path.join(_HOME, ".local", "lib", self.APP_NAME)
                 break
 
-            if path.endswith('/bin'):
+            if path.endswith("/bin"):
                 parent = os.path.dirname(path)
-                lib_dir = os.path.join(parent, 'lib', self.APP_NAME)
+                lib_dir = os.path.join(parent, "lib", self.APP_NAME)
                 break
 
         if lib_dir is None:
-            fail('Could not determine installation location for Lektor.')
+            fail("Could not determine installation location for Lektor.")
 
         self.bin_dir = path
         self.lib_dir = lib_dir
@@ -262,32 +277,36 @@ class PosixInstaller(Installer):
             shutil.rmtree(self.lib_dir, onerror=self.deletion_error)
 
     def get_pip(self):
-        return os.path.join(self.lib_dir, 'bin', 'pip')
+        return os.path.join(self.lib_dir, "bin", "pip")
 
     def install_lektor(self):
         super(PosixInstaller, self).install_lektor()
 
-        bin = os.path.join(self.lib_dir, 'bin', 'lektor')
+        bin = os.path.join(self.lib_dir, "bin", "lektor")
         os.symlink(bin, self.symlink_path)
 
 
 class WindowsInstaller(Installer):
-    APP_NAME = 'lektor-cli' # backwards-compatibility with previous installer
-    LIB_DIR = 'lib'
+    APP_NAME = "lektor-cli"  # backwards-compatibility with previous installer
+    LIB_DIR = "lib"
 
     def prompt_installation(self):
-        multiprint('Installing at:',
-                   '  %s' % self.install_dir,
-                   '')
+        multiprint(
+            "Installing at:",
+            "  %s" % self.install_dir,
+            "",
+        )
 
     def prompt_wipe(self):
-        multiprint('Lektor seems to be installed already.',
-                   'Continuing will delete:',
-                   '  %s' % self.install_dir,
-                   '')
+        multiprint(
+            "Lektor seems to be installed already.",
+            "Continuing will delete:",
+            "  %s" % self.install_dir,
+            "",
+        )
 
     def compute_location(self):
-        install_dir = os.path.join(os.environ['LocalAppData'], self.APP_NAME)
+        install_dir = os.path.join(os.environ["LocalAppData"], self.APP_NAME)
         lib_dir = os.path.join(install_dir, self.LIB_DIR)
 
         self.install_dir = install_dir
@@ -300,16 +319,16 @@ class WindowsInstaller(Installer):
         shutil.rmtree(self.install_dir, onerror=self.deletion_error)
 
     def get_pip(self):
-        return os.path.join(self.lib_dir, 'Scripts', 'pip.exe')
+        return os.path.join(self.lib_dir, "Scripts", "pip.exe")
 
     def install_lektor(self):
         super(WindowsInstaller, self).install_lektor()
 
-        exe = os.path.join(self.lib_dir, 'Scripts', 'lektor.exe')
-        link = os.path.join(self.install_dir, 'lektor.cmd')
+        exe = os.path.join(self.lib_dir, "Scripts", "lektor.exe")
+        link = os.path.join(self.install_dir, "lektor.cmd")
 
-        with open(link, 'w') as link_file:
-            link_file.write('@echo off\n')
+        with open(link, "w") as link_file:
+            link_file.write("@echo off\n")
             link_file.write('"{}" %*'.format(exe))
 
         self.add_to_path(self.install_dir)
@@ -321,7 +340,7 @@ class WindowsInstaller(Installer):
                 OpenKey, CloseKey, QueryValueEx, SetValueEx,
                 HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_EXPAND_SZ,
             )
-        except ImportError: # py2
+        except ImportError:  # py2
             from _winreg import (
                 OpenKey, CloseKey, QueryValueEx, SetValueEx,
                 HKEY_CURRENT_USER, KEY_ALL_ACCESS, REG_EXPAND_SZ,
@@ -332,23 +351,23 @@ class WindowsInstaller(Installer):
         HWND_BROADCAST = 0xFFFF
         WM_SETTINGCHANGE = 0x1A
 
-        reg_key = OpenKey(HKEY_CURRENT_USER, 'Environment', 0, KEY_ALL_ACCESS)
+        reg_key = OpenKey(HKEY_CURRENT_USER, "Environment", 0, KEY_ALL_ACCESS)
 
         try:
-            path_value, _ = QueryValueEx(reg_key, 'Path')
+            path_value, _ = QueryValueEx(reg_key, "Path")
         except WindowsError:
-            path_value = ''
+            path_value = ""
 
-        paths = path_value.split(';')
+        paths = path_value.split(";")
         if location not in paths:
             paths.append(location)
-            path_value = ';'.join(paths)
-            SetValueEx(reg_key, 'Path', 0, REG_EXPAND_SZ, path_value)
+            path_value = ";".join(paths)
+            SetValueEx(reg_key, "Path", 0, REG_EXPAND_SZ, path_value)
 
         SendMessage = ctypes.windll.user32.SendMessageW
         SendMessage.argtypes = HWND, UINT, WPARAM, LPVOID
         SendMessage.restype = LPARAM
-        SendMessage(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u'Environment')
+        SendMessage(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u"Environment")
 
 
 class Progress(object):
@@ -388,5 +407,5 @@ install = WindowsInstaller if _IS_WIN \
     else PosixInstaller
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     install()
