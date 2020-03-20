@@ -1,46 +1,55 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import math
 import os
 import shutil
 import sys
 import tempfile
 from subprocess import call
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 
 
-_is_win = sys.platform == 'win32'
+_IS_WIN = sys.platform == 'win32'
 
-if not _is_win:
+if not _IS_WIN:
     sys.stdin = open('/dev/tty', 'r')
 
-if sys.version_info[0] == 2:
+if sys.version_info.major == 2:
     input = raw_input
 
-prompt = os.environ.get('LEKTOR_SILENT') is None
+_silent = os.environ.get('LEKTOR_SILENT')
+_PROMPT = (
+    _silent is None
+    or _silent.lower() in ('', '0', 'off', 'false')
+)
 
 def get_confirmation():
-    if prompt is False:
+    if _PROMPT is False:
         return
 
     while True:
         user_input = input('Continue? [Yn] ').lower().strip()
 
         if user_input in ('', 'y'):
-            print('')
+            print()
             return
 
         if user_input == 'n':
-            print('')
+            print()
             print('Aborted!')
             sys.exit()
 
 def fail(message):
-    print('Error: %s' % message)
+    print('Error: %s' % message, file=sys.stderr)
     sys.exit(1)
 
-def multiprint(*lines):
+def multiprint(*lines, **kwargs):
     for line in lines:
-        print(line)
+        print(line, **kwargs)
 
 
 class Installer(object):
@@ -121,7 +130,7 @@ class Installer(object):
                 pass
             else:
                 venv = EnvBuilder(with_pip=True,
-                                  symlinks=False if _is_win else True)
+                                  symlinks=False if _IS_WIN else True)
                 venv.create(target_dir)
                 created = True
 
@@ -147,11 +156,6 @@ class Installer(object):
 
     @classmethod
     def fetch_virtualenv(cls):
-        try:
-            from urllib.request import urlretrieve
-        except ImportError:
-            from urllib import urlretrieve
-
         fname = os.path.basename(cls.VIRTUALENV_URL)
         root, ext = os.path.splitext(fname)
 
@@ -165,20 +169,22 @@ class Installer(object):
 
     @staticmethod
     def deletion_error(func, path, excinfo):
-        print('Problem deleting {}'.format(path))
-        print('Please try and delete {} manually'.format(path))
-        print('Aborted!')
+        multiprint('Problem deleting {}'.format(path),
+                   'Please try and delete {} manually'.format(path),
+                   'Aborted!',
+                   file=sys.stderr)
         sys.exit(1)
 
 
-_home = os.environ.get('HOME')
+_HOME = os.environ.get('HOME')
 
 class PosixInstaller(Installer):
+    # prefer system bin dirs
     KNOWN_BIN_PATHS = ['/usr/local/bin', '/opt/local/bin']
-    if _home: # this is always true, but it needs not blow up on windows
+    if _HOME: # true on *nix, but we need it to prevent blowing up on windows
         KNOWN_BIN_PATHS.extend([
-            os.path.join(_home, '.bin'),
-            os.path.join(_home, '.local', 'bin'),
+            os.path.join(_HOME, '.bin'),
+            os.path.join(_HOME, '.local', 'bin'),
         ])
 
     def prompt_installation(self):
@@ -201,6 +207,8 @@ class PosixInstaller(Installer):
         and derives the lib dir from it.
         """
 
+        # look for writable directories in the user's $PATH
+        # (that are not sbin)
         paths = [
             item for item in os.environ['PATH'].split(':')
             if not item.endswith('/sbin') and os.access(item, os.W_OK)
@@ -210,6 +218,8 @@ class PosixInstaller(Installer):
             fail('None of the items in $PATH are writable. Run with '
                  'sudo or add a $PATH item that you have access to.')
 
+        # ... and prioritize them according to KNOWN_BIN_PATHS.
+        # this makes sure we perform a system install when possible.
         def _sorter(path):
             try:
                 return self.KNOWN_BIN_PATHS.index(path)
@@ -255,7 +265,6 @@ class PosixInstaller(Installer):
         return os.path.join(self.lib_dir, 'bin', 'pip')
 
     def install_lektor(self):
-        import pdb
         super(PosixInstaller, self).install_lektor()
 
         bin = os.path.join(self.lib_dir, 'bin', 'lektor')
@@ -301,7 +310,7 @@ class WindowsInstaller(Installer):
 
         with open(link, 'w') as link_file:
             link_file.write('@echo off\n')
-            link_file.write('"%s" %%*' % exe)
+            link_file.write('"{}" %*'.format(exe))
 
         self.add_to_path(self.install_dir)
 
@@ -360,7 +369,7 @@ class Progress(object):
         if self.started:
             out.write("\b" * 4)
 
-        out.write("%3d" % progress + "%")
+        out.write("{:3d}%".format(progress))
         out.flush()
 
         self.started = True
@@ -375,7 +384,7 @@ class Progress(object):
         self.finish()
 
 
-install = WindowsInstaller if _is_win \
+install = WindowsInstaller if _IS_WIN \
     else PosixInstaller
 
 
