@@ -1,0 +1,77 @@
+title: Video Operations
+---
+body:
+
+Just like [images](../imageops/), videos are separate files that are embedded into HTML files. Since they are media files, it's often desirable to read metadata or manipulate them in some way.
+
+!! Video metadata access is powered by [FFmpeg](https://ffmpeg.org/). In order to use it FFmpeg must be installed on your system and detected by Lektor. If Lektor is unable to find FFmpeg you will see the error message `Unable to locate ffmpeg or ffprobe executable. Is it installed?` in your console output if you try to use functionality that requires it.
+
+## Accessing videos
+
+```html+jinja
+{% for video in this.attachments.videos %}
+  <div class="video"><video src="{{ video|url }}"></div>
+{% endfor %}
+```
+
+Just like images you can also access them using `site.get('/myfolder').attachments.videos` or `site.get('/myfolder').attachments.get('examplevideo.mp4')`. Note that not all formats are detected as videos (see [attachments](../../content/attachments/)). If your format is not in the list you may still be able to get it detected as a video by adding it to your [Lektor project file](../../project/file/#[attachment_types]).
+
+
+## Accessing metadata
+
+Video objects are sub-classes of Attachments but with a few extra properties.
+
+| Attribute | Description
+| - | -
+| `width` | Video height in pixels
+| `height` | Video height in pixels
+| `duration` | Video length as a [`datetime.timedelta`](https://docs.python.org/3/library/datetime.html) instance
+
+Example:
+
+```html+jinja
+{% set video = this.attachments.videos.first() %}
+<video src="{{ video|url }}">
+<dl>
+  <dt>Width:</dt>
+  <dd>{{ video.width }} px</dd>
+  <dt>Height:</dt>
+  <dd>{{ video.height }} px</dd>
+  <dt>Duration:</dt>
+  <dd>{{ video.duration.total_seconds() }} s</dd>
+</dl>
+```
+
+## Generating thumbnails
+
+The main difference between video and image attachments is how thumbnails are handled. Since a video basically is a long sequence of images you must first choose where in the video the thumbnail should be generated. This is done using the `.frame() method. There are multiple ways of calling it:
+
+| Method | Description
+| - | -
+| `frame()` | Use a frame from the middle of the video *(default)*
+| `frame(seek: float)` | Fraction between 0.0 and 1.0 of the video duration from where to extract the frame. The value `0.5` means that the middle of the video will be used. It can be seen as a shorthand for `video.frame(video.duration * seek)`.
+| `frame(seek: datetime.timedelta)` | Use a frame at the given seek distance from the beginning of the video. This is useful when you want to seek a fix time into a video.
+
+Calling this method will return a `VideoFrame` instance, which is not usable by itself. It does however just like an image have a thumbnail method.
+
+Example:
+
+```html+jinja
+{% set video = this.attachments.videos.first() %}
+<img src="{{ video.frame().thumbnail(300, 200, mode="crop")|url }}">
+<img src="{{ video.frame(0.1).thumbnail(300, 200, mode="crop")|url }}">
+```
+
+Note that unlike images it is not possible to get an URL to a video frame directly:
+
+
+```html+jinja
+{% set video = this.attachments.videos.first() %}
+<img src="{{ video.frame()|url }}"> <!-- This is not valid -->
+```
+---
+sort_key: 40
+---
+summary: Shows how templates can work with videos
+---
+version_added: 3.2
