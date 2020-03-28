@@ -3,6 +3,14 @@
 import Component from './Component'
 import {getParentFsPath, urlToFsPath, fsToUrlPath, urlPathToSegments} from '../utils'
 
+export function getRecordPathAndAlt (path) {
+  if (!path) {
+    return [null, null]
+  }
+  const items = path.split(/\+/, 2)
+  return [urlToFsPath(items[0]), items[1]]
+}
+
 /* a react component baseclass that has some basic knowledge about
    the record it works with. */
 class RecordComponent extends Component {
@@ -12,25 +20,16 @@ class RecordComponent extends Component {
     return path ? urlPathToSegments(path) : []
   }
 
-  _getRecordPathAndAlt () {
-    const path = this.props.match.params.path
-    if (!path) {
-      return [null, null]
-    }
-    const items = path.split(/\+/, 2)
-    return [urlToFsPath(items[0]), items[1]]
-  }
-
   /* this returns the path of the current record.  If the current page does
    * not have a path component then null is returned. */
   getRecordPath () {
-    const [path] = this._getRecordPathAndAlt()
+    const [path] = getRecordPathAndAlt(this.props.match.params.path)
     return path
   }
 
   /* returns the current alt */
   getRecordAlt () {
-    const [, alt] = this._getRecordPathAndAlt()
+    const [, alt] = getRecordPathAndAlt(this.props.match.params.path)
     return !alt ? '_primary' : alt
   }
 
