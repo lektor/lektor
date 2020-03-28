@@ -1,65 +1,61 @@
 import jQuery from 'jquery'
 
+export function isValidUrl (url) {
+  return !!url.match(/^(https?|ftp):\/\/\S+$/)
+}
+
+function stripLeadingSlash (string) {
+  return string.match(/^\/*(.*?)$/)[1]
+}
+
+function stripTrailingSlash (string) {
+  return string.match(/^(.*?)\/*$/)[1]
+}
+
+function addToSet (originalSet, value) {
+  for (let i = 0; i < originalSet.length; i++) {
+    if (originalSet[i] === value) {
+      return originalSet
+    }
+  }
+  const rv = originalSet.slice()
+  rv.push(value)
+  return rv
+}
+
+function removeFromSet (originalSet, value) {
+  let rv = null
+  let off = 0
+  for (let i = 0; i < originalSet.length; i++) {
+    if (originalSet[i] === value) {
+      if (rv === null) {
+        rv = originalSet.slice()
+      }
+      rv.splice(i - (off++), 1)
+    }
+  }
+  return (rv === null) ? originalSet : rv
+}
+
 const utils = {
   getCanonicalUrl (localPath) {
     return $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1] +
-      '/' + utils.stripLeadingSlash(localPath)
-  },
-
-  isValidUrl (url) {
-    return !!url.match(/^(https?|ftp):\/\/\S+$/)
-  },
-
-  stripLeadingSlash (string) {
-    return string.match(/^\/*(.*?)$/)[1]
-  },
-
-  stripTrailingSlash (string) {
-    return string.match(/^(.*?)\/*$/)[1]
-  },
-
-  joinFsPath (a, b) {
-    return utils.stripTrailingSlash(a) + '/' + utils.stripLeadingSlash(b)
+      '/' + stripLeadingSlash(localPath)
   },
 
   flipSetValue (originalSet, value, isActive) {
     if (isActive) {
-      return utils.addToSet(originalSet || [], value)
+      return addToSet(originalSet || [], value)
     } else {
-      return utils.removeFromSet(originalSet || [], value)
+      return removeFromSet(originalSet || [], value)
     }
-  },
-
-  addToSet (originalSet, value) {
-    for (let i = 0; i < originalSet.length; i++) {
-      if (originalSet[i] === value) {
-        return originalSet
-      }
-    }
-    const rv = originalSet.slice()
-    rv.push(value)
-    return rv
-  },
-
-  removeFromSet (originalSet, value) {
-    let rv = null
-    let off = 0
-    for (let i = 0; i < originalSet.length; i++) {
-      if (originalSet[i] === value) {
-        if (rv === null) {
-          rv = originalSet.slice()
-        }
-        rv.splice(i - (off++), 1)
-      }
-    }
-    return (rv === null) ? originalSet : rv
   },
 
   urlPathsConsideredEqual (a, b) {
     if ((a == null) || (b == null)) {
       return false
     }
-    return utils.stripTrailingSlash(a) === utils.stripTrailingSlash(b)
+    return stripTrailingSlash(a) === stripTrailingSlash(b)
   },
 
   fsPathFromAdminObservedPath (adminPath) {
@@ -147,11 +143,6 @@ const utils = {
       return rv.slice(1)
     }
     return null
-  },
-
-  scrolledToBottom () {
-    return document.body.offsetHeight + document.body.scrollTop >=
-      document.body.scrollHeight
   },
 
   getPlatform () {

@@ -4,7 +4,7 @@ import React from 'react'
 import createReactClass from 'create-react-class'
 import jQuery from 'jquery'
 import { BasicWidgetMixin, ValidationFailure } from './mixins'
-import utils from '../utils'
+import {isValidUrl} from '../utils'
 import userLabel from '../userLabel'
 import i18n from '../i18n'
 
@@ -205,7 +205,7 @@ const UrlInputWidget = createReactClass({
   mixins: [InputWidgetMixin],
 
   getValidationFailureImpl () {
-    if (this.props.value && !utils.isValidUrl(this.props.value)) {
+    if (this.props.value && !isValidUrl(this.props.value)) {
       return new ValidationFailure({
         message: i18n.trans('ERROR_INVALID_URL')
       })
