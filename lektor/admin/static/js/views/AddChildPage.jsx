@@ -7,6 +7,7 @@ import RecordComponent from '../components/RecordComponent'
 import i18n from '../i18n'
 import userLabel from '../userLabel'
 import utils from '../utils'
+import {slug as slugify} from '../slugify'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
 
@@ -82,7 +83,7 @@ class AddChildPage extends RecordComponent {
   }
 
   getImpliedId () {
-    return utils.slugify(this.state.primary || '').toLowerCase()
+    return slugify(this.state.primary || '').toLowerCase()
   }
 
   getPrimaryField () {
