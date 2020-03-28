@@ -1,14 +1,16 @@
 'use strict'
 
 import React from 'react'
+import { Prompt } from 'react-router-dom'
 import update from 'react-addons-update'
-import RecordEditComponent from '../components/RecordEditComponent'
+
+import RecordComponent from '../components/RecordComponent'
 import utils from '../utils'
 import i18n from '../i18n'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
 
-class EditPage extends RecordEditComponent {
+class EditPage extends RecordComponent {
   constructor (props) {
     super(props)
 
@@ -27,26 +29,14 @@ class EditPage extends RecordEditComponent {
     window.addEventListener('keydown', this._onKeyPress)
   }
 
-  componentWillReceiveProps (nextProps) {
-    /*
-    if (nextProps.params.path !== this.props.params.path) {
-      this.syncEditor();
-    }
-    */
-  }
-
   componentDidUpdate (prevProps, prevState) {
-    if (prevProps.params.path !== this.props.params.path) {
+    if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncEditor()
     }
   }
 
   componentWillUnmount () {
     window.removeEventListener('keydown', this._onKeyPress)
-  }
-
-  hasPendingChanges () {
-    return this.state.hasPendingChanges
   }
 
   _onKeyPress (event) {
@@ -232,6 +222,7 @@ class EditPage extends RecordEditComponent {
 
     return (
       <div className='edit-area'>
+        {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} /> }
         <h2>{title.replace('%s', label)}</h2>
         {this.renderFormFields()}
         <div className='actions'>

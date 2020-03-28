@@ -16,11 +16,6 @@ class Refresh extends Component {
     }
   }
 
-  componentDidMount () {
-    super.componentDidMount()
-    this.syncDialog()
-  }
-
   preventNavigation () {
     return !this.isSafeToNavigate()
   }

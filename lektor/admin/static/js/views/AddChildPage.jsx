@@ -34,9 +34,10 @@ class AddChildPage extends RecordComponent {
     this.syncDialog()
   }
 
-  componentWillReceiveProps (nextProps) {
-    super.componentWillReceiveProps(nextProps)
-    this.syncDialog()
+  componentDidUpdate (nextProps) {
+    if (nextProps.match.params.path !== this.props.match.params.path) {
+      this.syncDialog()
+    }
   }
 
   syncDialog () {

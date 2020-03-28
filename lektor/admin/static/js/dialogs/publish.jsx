@@ -3,6 +3,7 @@
 /* eslint-env browser */
 
 import React from 'react'
+
 import Component from '../components/Component'
 import SlideDialog from '../components/SlideDialog'
 import utils from '../utils'
@@ -27,12 +28,15 @@ class Publish extends Component {
     this.syncDialog()
   }
 
-  componentWillUnmount () {
-    super.componentWillUnmount()
-  }
-
-  componentWillReceiveProps (nextProps) {
-    this.syncDialog()
+  componentDidUpdate (nextProps) {
+    super.componentDidUpdate()
+    if (nextProps.match.params.path !== this.props.match.params.path) {
+      this.syncDialog()
+    }
+    const node = this.refs.log
+    if (node) {
+      node.scrollTop = node.scrollHeight
+    }
   }
 
   preventNavigation () {
@@ -104,14 +108,6 @@ class Publish extends Component {
     this.setState({
       activeTarget: event.target.value
     })
-  }
-
-  componentDidUpdate () {
-    super.componentDidUpdate()
-    const node = this.refs.log
-    if (node) {
-      node.scrollTop = node.scrollHeight
-    }
   }
 
   render () {

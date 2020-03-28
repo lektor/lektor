@@ -1,12 +1,11 @@
 'use strict'
 
 import React from 'react'
-import Component from '../components/Component'
 import dialogSystem from '../dialogSystem'
 import { DialogChangedEvent } from '../events'
 import hub from '../hub'
 
-class DialogSlot extends Component {
+class DialogSlot extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
@@ -17,12 +16,10 @@ class DialogSlot extends Component {
   }
 
   componentDidMount () {
-    super.componentDidMount()
     hub.subscribe(DialogChangedEvent, this.onDialogChanged)
   }
 
   componentWillUnmount () {
-    super.componentWillUnmount()
     hub.unsubscribe(DialogChangedEvent, this.onDialogChanged)
   }
 
@@ -43,7 +40,7 @@ class DialogSlot extends Component {
     if (this.state.currentDialog) {
       dialog = <this.state.currentDialog
         ref={(ref) => this.initDialogInstance(ref)}
-        {...this.getRoutingProps()}
+        {...this.props}
         {...this.state.currentDialogOptions}
       />
     } else {
