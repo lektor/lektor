@@ -3,7 +3,7 @@
 import React from 'react'
 import RecordComponent from './RecordComponent'
 import Link from './Link'
-import {loadData, isMetaKey, getCanonicalUrl} from '../utils'
+import { loadData, isMetaKey, getCanonicalUrl } from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import FindFiles from '../dialogs/findFiles'
@@ -94,18 +94,34 @@ class BreadCrumbs extends RecordComponent {
   renderGlobalActions () {
     return (
       <div className='btn-group'>
-        <button className='btn btn-default' onClick={
-          this._onFindFiles.bind(this)} title={i18n.trans('FIND_FILES')}>
-          <i className='fa fa-search fa-fw' /></button>
-        <button className='btn btn-default' onClick={
-          this._onPublish.bind(this)} title={i18n.trans('PUBLISH')}>
-          <i className='fa fa-cloud-upload fa-fw' /></button>
-        <button className='btn btn-default' onClick={
-          this._onRefresh.bind(this)} title={i18n.trans('REFRESH_BUILD')}>
-          <i className='fa fa-refresh fa-fw' /></button>
-        <button className='btn btn-default' onClick={
-          this._onCloseClick.bind(this)} title={i18n.trans('RETURN_TO_WEBSITE')}>
-          <i className='fa fa-eye fa-fw' /></button>
+        <button
+          className='btn btn-default' onClick={
+            this._onFindFiles.bind(this)
+          } title={i18n.trans('FIND_FILES')}
+        >
+          <i className='fa fa-search fa-fw' />
+        </button>
+        <button
+          className='btn btn-default' onClick={
+            this._onPublish.bind(this)
+          } title={i18n.trans('PUBLISH')}
+        >
+          <i className='fa fa-cloud-upload fa-fw' />
+        </button>
+        <button
+          className='btn btn-default' onClick={
+            this._onRefresh.bind(this)
+          } title={i18n.trans('REFRESH_BUILD')}
+        >
+          <i className='fa fa-refresh fa-fw' />
+        </button>
+        <button
+          className='btn btn-default' onClick={
+            this._onCloseClick.bind(this)
+          } title={i18n.trans('RETURN_TO_WEBSITE')}
+        >
+          <i className='fa fa-eye fa-fw' />
+        </button>
       </div>
     )
   }
@@ -137,8 +153,11 @@ class BreadCrumbs extends RecordComponent {
       })
     } else {
       crumbs = (
-        <li><Link to={this.getPathToAdminPage('.edit', { path: 'root' })}>
-          {i18n.trans('BACK_TO_OVERVIEW')}</Link></li>
+        <li>
+          <Link to={this.getPathToAdminPage('.edit', { path: 'root' })}>
+            {i18n.trans('BACK_TO_OVERVIEW')}
+          </Link>
+        </li>
       )
     }
 
@@ -151,7 +170,10 @@ class BreadCrumbs extends RecordComponent {
             <li className='new-record-crumb'>
               <Link to={this.getPathToAdminPage('.add-child', {
                 path: this.getUrlRecordPathWithAlt(
-                  lastItem.path) })}>+</Link>
+                  lastItem.path)
+              })}
+              >+
+              </Link>
             </li>
           ) : null}
           {' ' /* this space is needed for chrome ... */}

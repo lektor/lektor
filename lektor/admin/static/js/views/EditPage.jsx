@@ -5,7 +5,7 @@ import { Prompt } from 'react-router-dom'
 import update from 'react-addons-update'
 
 import RecordComponent from '../components/RecordComponent'
-import {apiRequest, loadData, isMetaKey} from '../utils'
+import { apiRequest, loadData, isMetaKey } from '../utils'
 import i18n from '../i18n'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
@@ -91,7 +91,7 @@ class EditPage extends RecordComponent {
   }
 
   onValueChange (field, value) {
-    let updates = {}
+    const updates = {}
     updates[field.name] = { $set: value || '' }
     const rd = update(this.state.recordData, updates)
     this.setState({
@@ -101,7 +101,7 @@ class EditPage extends RecordComponent {
   }
 
   getValues () {
-    let rv = {}
+    const rv = {}
     this.state.recordDataModel.fields.forEach((field) => {
       if (this.isIllegalField(field)) {
         return
@@ -128,10 +128,11 @@ class EditPage extends RecordComponent {
     const path = this.getRecordPath()
     const alt = this.getRecordAlt()
     const newData = this.getValues()
-    apiRequest('/rawrecord', { json: {
-      data: newData, path: path, alt: alt },
-    // eslint-disable-next-line indent
-      method: 'PUT' }, makeRichPromise)
+    apiRequest('/rawrecord', {
+      json: { data: newData, path: path, alt: alt },
+      // eslint-disable-next-line indent
+      method: 'PUT'
+    }, makeRichPromise)
       .then((resp) => {
         this.setState({
           hasPendingChanges: false
@@ -161,11 +162,11 @@ class EditPage extends RecordComponent {
   }
 
   getPlaceholderForField (widget, field) {
-    if (field['default'] !== null) {
+    if (field.default !== null) {
       if (widget.deserializeValue) {
-        return widget.deserializeValue(field['default'], field.type)
+        return widget.deserializeValue(field.default, field.type)
       }
-      return field['default']
+      return field.default
     } else if (field.name === '_slug') {
       return this.state.recordInfo.slug_format
     } else if (field.name === '_template') {
@@ -207,8 +208,11 @@ class EditPage extends RecordComponent {
     let deleteButton = null
     if (this.state.recordInfo.can_be_deleted) {
       deleteButton = (
-        <button type='submit' className='btn btn-default'
-          onClick={this.deleteRecord.bind(this)}>{i18n.trans('DELETE')}</button>
+        <button
+          type='submit' className='btn btn-default'
+          onClick={this.deleteRecord.bind(this)}
+        >{i18n.trans('DELETE')}
+        </button>
       )
     }
 
@@ -222,12 +226,15 @@ class EditPage extends RecordComponent {
 
     return (
       <div className='edit-area'>
-        {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} /> }
+        {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} />}
         <h2>{title.replace('%s', label)}</h2>
         {this.renderFormFields()}
         <div className='actions'>
-          <button type='submit' className='btn btn-primary'
-            onClick={this.saveChanges.bind(this)}>{i18n.trans('SAVE_CHANGES')}</button>
+          <button
+            type='submit' className='btn btn-primary'
+            onClick={this.saveChanges.bind(this)}
+          >{i18n.trans('SAVE_CHANGES')}
+          </button>
           {deleteButton}
         </div>
       </div>

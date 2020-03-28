@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import {loadData, fsPathFromAdminObservedPath, getCanonicalUrl, urlPathsConsideredEqual} from '../utils'
+import { loadData, fsPathFromAdminObservedPath, getCanonicalUrl, urlPathsConsideredEqual } from '../utils'
 import RecordComponent from '../components/RecordComponent'
 import makeRichPromise from '../richPromise'
 

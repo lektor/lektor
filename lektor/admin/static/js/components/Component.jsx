@@ -5,7 +5,7 @@ import BaseComponent from './BaseComponent'
 class Component extends BaseComponent {
   /* helper that can generate a path to a rule */
   getPathToAdminPage (name, params) {
-    const parameters = {...this.props.match.params, ...params}
+    const parameters = { ...this.props.match.params, ...params }
     if (name !== null) {
       if (name.substr(0, 1) === '.') {
         parameters.page = name.substr(1)

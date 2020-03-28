@@ -1,7 +1,7 @@
 'use strict'
 
 import Component from './Component'
-import {getParentFsPath, urlToFsPath, fsToUrlPath, urlPathToSegments} from '../utils'
+import { getParentFsPath, urlToFsPath, fsToUrlPath, urlPathToSegments } from '../utils'
 
 export function getRecordPathAndAlt (path) {
   if (!path) {

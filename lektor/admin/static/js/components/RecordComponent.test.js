@@ -1,6 +1,6 @@
 /* eslint-env mocha */
-import {deepStrictEqual} from 'assert'
-import {getRecordPathAndAlt} from './RecordComponent'
+import { deepStrictEqual } from 'assert'
+import { getRecordPathAndAlt } from './RecordComponent'
 
 describe('Get Record paths', () => {
   it('Get Record path and alt', () => {
