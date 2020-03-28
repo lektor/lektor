@@ -3,7 +3,7 @@
 import React from 'react'
 import RecordComponent from './RecordComponent'
 import Link from './Link'
-import utils from '../utils'
+import {loadData, isMetaKey, getCanonicalUrl} from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import FindFiles from '../dialogs/findFiles'
@@ -46,7 +46,7 @@ class BreadCrumbs extends RecordComponent {
       return
     }
 
-    utils.loadData('/pathinfo', { path: path }, null, makeRichPromise)
+    loadData('/pathinfo', { path: path }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordPathInfo: {
@@ -59,22 +59,22 @@ class BreadCrumbs extends RecordComponent {
 
   _onKeyPress (event) {
     // meta+g is open find files
-    if (event.which === 71 && utils.isMetaKey(event)) {
+    if (event.which === 71 && isMetaKey(event)) {
       event.preventDefault()
       dialogSystem.showDialog(FindFiles)
     }
   }
 
   _onCloseClick (e) {
-    utils.loadData('/previewinfo', {
+    loadData('/previewinfo', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
       .then((resp) => {
         if (resp.url === null) {
-          window.location.href = utils.getCanonicalUrl('/')
+          window.location.href = getCanonicalUrl('/')
         } else {
-          window.location.href = utils.getCanonicalUrl(resp.url)
+          window.location.href = getCanonicalUrl(resp.url)
         }
       })
   }

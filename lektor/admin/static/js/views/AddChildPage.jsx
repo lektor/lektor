@@ -6,7 +6,7 @@ import React from 'react'
 import RecordComponent from '../components/RecordComponent'
 import i18n from '../i18n'
 import userLabel from '../userLabel'
-import utils from '../utils'
+import {apiRequest, loadData} from '../utils'
 import {slug as slugify} from '../slugify'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
@@ -42,7 +42,7 @@ class AddChildPage extends RecordComponent {
   }
 
   syncDialog () {
-    utils.loadData('/newrecord', { path: this.getRecordPath() }, null, makeRichPromise)
+    loadData('/newrecord', { path: this.getRecordPath() }, null, makeRichPromise)
       .then((resp) => {
         let selectedModel = resp.implied_model
         if (!selectedModel) {
@@ -112,7 +112,7 @@ class AddChildPage extends RecordComponent {
       data[primaryField.name] = this.state.primary
     }
 
-    utils.apiRequest('/newrecord', { json: params, method: 'POST' }, makeRichPromise)
+    apiRequest('/newrecord', { json: params, method: 'POST' }, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           errMsg(i18n.trans('ERROR_PAGE_ID_DUPLICATE').replace('%s', id))

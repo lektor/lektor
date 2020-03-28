@@ -2,7 +2,7 @@
 
 import React from 'react'
 import createReactClass from 'create-react-class'
-import utils from '../utils'
+import { flipSetValue } from '../utils'
 import i18n from '../i18n'
 import { BasicWidgetMixin } from './mixins'
 
@@ -30,7 +30,7 @@ const CheckboxesInputWidget = createReactClass({
   },
 
   onChange: function (field, event) {
-    const newValue = utils.flipSetValue(this.props.value,
+    const newValue = flipSetValue(this.props.value,
       field, event.target.checked)
     if (this.props.onChange) {
       this.props.onChange(newValue)

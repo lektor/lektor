@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import utils from '../utils'
+import {loadData, fsPathFromAdminObservedPath, getCanonicalUrl, urlPathsConsideredEqual} from '../utils'
 import RecordComponent from '../components/RecordComponent'
 import makeRichPromise from '../richPromise'
 
@@ -32,7 +32,7 @@ class PreviewPage extends RecordComponent {
     }
 
     const recordUrl = this.getUrlRecordPathWithAlt()
-    utils.loadData('/previewinfo', { path: path, alt: alt }, null, makeRichPromise)
+    loadData('/previewinfo', { path: path, alt: alt }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           pageUrl: resp.url,
@@ -57,8 +57,8 @@ class PreviewPage extends RecordComponent {
     if (intendedPath !== null) {
       const framePath = this.getFramePath()
 
-      if (!utils.urlPathsConsideredEqual(intendedPath, framePath)) {
-        frame.src = utils.getCanonicalUrl(intendedPath)
+      if (!urlPathsConsideredEqual(intendedPath, framePath)) {
+        frame.src = getCanonicalUrl(intendedPath)
       }
 
       frame.onload = (event) => {
@@ -72,7 +72,7 @@ class PreviewPage extends RecordComponent {
     if (frameLocation.href === 'about:blank') {
       return frameLocation.href
     }
-    return utils.fsPathFromAdminObservedPath(
+    return fsPathFromAdminObservedPath(
       frameLocation.pathname)
   }
 
@@ -81,7 +81,7 @@ class PreviewPage extends RecordComponent {
     if (fsPath === null) {
       return
     }
-    utils.loadData('/matchurl', { url_path: fsPath }, null, makeRichPromise)
+    loadData('/matchurl', { url_path: fsPath }, null, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt)

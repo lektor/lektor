@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import utils from '../utils'
+import { loadData } from '../utils'
 import i18n from '../i18n'
 import makeRichPromise from '../richPromise'
 
@@ -29,7 +29,7 @@ class ServerStatus extends React.Component {
   }
 
   onInterval () {
-    utils.loadData('/ping', {}, null, makeRichPromise)
+    loadData('/ping', {}, null, makeRichPromise)
       .then((resp) => {
         if (this.state.projectId === null) {
           this.setState({

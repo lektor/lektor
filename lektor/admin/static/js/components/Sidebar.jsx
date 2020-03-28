@@ -3,7 +3,7 @@
 /* eslint-env browser */
 
 import React from 'react'
-import utils from '../utils'
+import {apiRequest, loadData, getPlatform} from '../utils'
 import i18n from '../i18n'
 import hub from '../hub'
 import { AttachmentsChangedEvent } from '../events'
@@ -12,7 +12,7 @@ import Link from '../components/Link'
 import makeRichPromise from '../richPromise'
 
 const getBrowseButtonTitle = () => {
-  const platform = utils.getPlatform()
+  const platform = getPlatform()
   if (platform === 'mac') {
     return i18n.trans('BROWSE_FS_MAC')
   } else if (platform === 'windows') {
@@ -115,7 +115,7 @@ class Sidebar extends RecordComponent {
     this.setState({
       lastRecordRequest: path
     }, () => {
-      utils.loadData('/recordinfo', { path: path }, null, makeRichPromise)
+      loadData('/recordinfo', { path: path }, null, makeRichPromise)
         .then((resp) => {
           // we're already fetching something else.
           if (path !== this.state.lastRecordRequest) {
@@ -145,7 +145,7 @@ class Sidebar extends RecordComponent {
 
   fsOpen (event) {
     event.preventDefault()
-    utils.apiRequest('/browsefs', { data: {
+    apiRequest('/browsefs', { data: {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     },

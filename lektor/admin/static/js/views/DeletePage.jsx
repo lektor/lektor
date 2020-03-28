@@ -2,7 +2,7 @@
 
 import React from 'react'
 import RecordComponent from '../components/RecordComponent'
-import utils from '../utils'
+import {apiRequest, loadData, getParentFsPath} from '../utils'
 import i18n from '../i18n'
 import hub from '../hub'
 import { AttachmentsChangedEvent } from '../events'
@@ -30,7 +30,7 @@ class DeletePage extends RecordComponent {
   }
 
   syncDialog () {
-    utils.loadData('/recordinfo', { path: this.getRecordPath() }, null, makeRichPromise)
+    loadData('/recordinfo', { path: this.getRecordPath() }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordInfo: resp,
@@ -41,7 +41,7 @@ class DeletePage extends RecordComponent {
 
   deleteRecord (event) {
     const path = this.getRecordPath()
-    const parent = utils.getParentFsPath(path)
+    const parent = getParentFsPath(path)
     let targetPath
     if (parent === null) {
       targetPath = 'root'
@@ -49,7 +49,7 @@ class DeletePage extends RecordComponent {
       targetPath = this.getUrlRecordPathWithAlt(parent)
     }
 
-    utils.apiRequest('/deleterecord', { data: {
+    apiRequest('/deleterecord', { data: {
       path: path,
       alt: this.getRecordAlt(),
       delete_master: this.state.deleteMasterRecord ? '1' : '0'

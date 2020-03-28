@@ -5,7 +5,7 @@ import { Prompt } from 'react-router-dom'
 import update from 'react-addons-update'
 
 import RecordComponent from '../components/RecordComponent'
-import utils from '../utils'
+import {apiRequest, loadData, isMetaKey} from '../utils'
 import i18n from '../i18n'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
@@ -41,7 +41,7 @@ class EditPage extends RecordComponent {
 
   _onKeyPress (event) {
     // meta+s is open find files
-    if (event.which === 83 && utils.isMetaKey(event)) {
+    if (event.which === 83 && isMetaKey(event)) {
       event.preventDefault()
       this.saveChanges()
     }
@@ -64,7 +64,7 @@ class EditPage extends RecordComponent {
   }
 
   syncEditor () {
-    utils.loadData('/rawrecord', {
+    loadData('/rawrecord', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
@@ -128,7 +128,7 @@ class EditPage extends RecordComponent {
     const path = this.getRecordPath()
     const alt = this.getRecordAlt()
     const newData = this.getValues()
-    utils.apiRequest('/rawrecord', { json: {
+    apiRequest('/rawrecord', { json: {
       data: newData, path: path, alt: alt },
     // eslint-disable-next-line indent
       method: 'PUT' }, makeRichPromise)

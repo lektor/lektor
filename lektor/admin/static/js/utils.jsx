@@ -36,134 +36,128 @@ function removeFromSet (originalSet, value) {
   }
   return (rv === null) ? originalSet : rv
 }
-
-const utils = {
-  getCanonicalUrl (localPath) {
-    return $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1] +
+export function getCanonicalUrl (localPath) {
+  return $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1] +
       '/' + stripLeadingSlash(localPath)
-  },
+}
 
-  flipSetValue (originalSet, value, isActive) {
-    if (isActive) {
-      return addToSet(originalSet || [], value)
-    } else {
-      return removeFromSet(originalSet || [], value)
-    }
-  },
+export function flipSetValue (originalSet, value, isActive) {
+  if (isActive) {
+    return addToSet(originalSet || [], value)
+  } else {
+    return removeFromSet(originalSet || [], value)
+  }
+}
+export function urlPathsConsideredEqual (a, b) {
+  if ((a == null) || (b == null)) {
+    return false
+  }
+  return stripTrailingSlash(a) === stripTrailingSlash(b)
+}
 
-  urlPathsConsideredEqual (a, b) {
-    if ((a == null) || (b == null)) {
-      return false
-    }
-    return stripTrailingSlash(a) === stripTrailingSlash(b)
-  },
+export function getApiUrl (url) {
+  return $LEKTOR_CONFIG.admin_root + '/api' + url
+}
 
-  fsPathFromAdminObservedPath (adminPath) {
-    const base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1]
-    if (adminPath.substr(0, base.length) !== base) {
-      return null
-    }
-    return '/' + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1]
-  },
+export function getPlatform () {
+  if (navigator.appVersion.indexOf('Win') !== -1) {
+    return 'windows'
+  } else if (navigator.appVersion.indexOf('Mac') !== -1) {
+    return 'mac'
+  } else if (navigator.appVersion.indexOf('X11') !== -1 ||
+        navigator.appVersion.indexOf('Linux') !== -1) {
+    return 'linux'
+  }
+  return 'other'
+}
 
-  getParentFsPath (fsPath) {
-    return fsPath.match(/^(.*?)\/([^/]*)$/)[1]
-  },
+export function isMetaKey (event) {
+  if (getPlatform() === 'mac') {
+    return event.metaKey
+  } else {
+    return event.ctrlKey
+  }
+}
 
-  getApiUrl (url) {
-    return $LEKTOR_CONFIG.admin_root + '/api' + url
-  },
+export function getParentFsPath (fsPath) {
+  return fsPath.match(/^(.*?)\/([^/]*)$/)[1]
+}
 
-  loadData (url, params, options, createPromise) {
-    options = options || {}
-    return createPromise((resolve, reject) => {
-      jQuery.ajax({
-        url: utils.getApiUrl(url),
-        data: params,
-        method: options.method || 'GET'
-      }).done((data) => {
+export function fsToUrlPath (fsPath) {
+  let segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/')
+  if (segments.length === 1 && segments[0] === '') {
+    segments = []
+  }
+  segments.unshift('root')
+  return segments.join(':')
+}
+
+export function urlToFsPath (urlPath) {
+  const segments = urlPath.match(/^:*(.*?):*$/)[1].split(':')
+  if (segments.length < 1 || segments[0] !== 'root') {
+    return null
+  }
+  segments[0] = ''
+  return segments.join('/')
+}
+
+export function urlPathToSegments (urlPath) {
+  if (!urlPath) {
+    return null
+  }
+  const rv = urlPath.match(/^:*(.*?):*$/)[1].split('/')
+  if (rv.length >= 1 && rv[0] === 'root') {
+    return rv.slice(1)
+  }
+  return null
+}
+
+export function fsPathFromAdminObservedPath (adminPath) {
+  const base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1]
+  if (adminPath.substr(0, base.length) !== base) {
+    return null
+  }
+  return '/' + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1]
+}
+
+export function loadData (url, params, options, createPromise) {
+  options = options || {}
+  return createPromise((resolve, reject) => {
+    jQuery.ajax({
+      url: getApiUrl(url),
+      data: params,
+      method: options.method || 'GET'
+    }).done((data) => {
+      resolve(data)
+    }).fail(() => {
+      reject({
+        code: 'REQUEST_FAILED'
+      })
+    })
+  })
+}
+
+export function apiRequest (url, options, createPromise) {
+  options = options || {}
+  options.url = getApiUrl(url)
+  if (options.json !== undefined) {
+    options.data = JSON.stringify(options.json)
+    options.contentType = 'application/json'
+    delete options.json
+  }
+  if (!options.method) {
+    options.method = 'GET'
+  }
+
+  return createPromise((resolve, reject) => {
+    jQuery.ajax(options)
+      .done((data) => {
         resolve(data)
-      }).fail(() => {
+      })
+      .fail(() => {
         reject({
           code: 'REQUEST_FAILED'
         })
       })
-    })
-  },
-
-  apiRequest (url, options, createPromise) {
-    options = options || {}
-    options.url = utils.getApiUrl(url)
-    if (options.json !== undefined) {
-      options.data = JSON.stringify(options.json)
-      options.contentType = 'application/json'
-      delete options.json
-    }
-    if (!options.method) {
-      options.method = 'GET'
-    }
-
-    return createPromise((resolve, reject) => {
-      jQuery.ajax(options)
-        .done((data) => {
-          resolve(data)
-        })
-        .fail(() => {
-          reject({
-            code: 'REQUEST_FAILED'
-          })
-        })
-    })
-  },
-
-  fsToUrlPath (fsPath) {
-    let segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split('/')
-    if (segments.length === 1 && segments[0] === '') {
-      segments = []
-    }
-    segments.unshift('root')
-    return segments.join(':')
-  },
-
-  urlToFsPath (urlPath) {
-    const segments = urlPath.match(/^:*(.*?):*$/)[1].split(':')
-    if (segments.length < 1 || segments[0] !== 'root') {
-      return null
-    }
-    segments[0] = ''
-    return segments.join('/')
-  },
-
-  urlPathToSegments (urlPath) {
-    if (!urlPath) {
-      return null
-    }
-    const rv = urlPath.match(/^:*(.*?):*$/)[1].split('/')
-    if (rv.length >= 1 && rv[0] === 'root') {
-      return rv.slice(1)
-    }
-    return null
-  },
-
-  getPlatform () {
-    if (navigator.appVersion.indexOf('Win') !== -1) {
-      return 'windows'
-    } else if (navigator.appVersion.indexOf('Mac') !== -1) {
-      return 'mac'
-    } else if (navigator.appVersion.indexOf('X11') !== -1 ||
-        navigator.appVersion.indexOf('Linux') !== -1) {
-      return 'linux'
-    }
-    return 'other'
-  },
-
-  isMetaKey (event) {
-    if (utils.getPlatform() === 'mac') {
-      return event.metaKey
-    } else {
-      return event.ctrlKey
-    }
-  }
+  })
 }
-
-export default utils

@@ -3,7 +3,7 @@
 import React from 'react'
 import Component from '../components/Component'
 import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
+import {apiRequest} from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import makeRichPromise from '../richPromise'
@@ -29,7 +29,7 @@ class Refresh extends Component {
     this.setState({
       currentState: 'CLEANING'
     })
-    utils.apiRequest('/clean', {
+    apiRequest('/clean', {
       method: 'POST'
     }, makeRichPromise).then((resp) => {
       this.setState({

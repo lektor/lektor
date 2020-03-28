@@ -4,7 +4,7 @@ import React from 'react'
 
 import RecordComponent from '../components/RecordComponent'
 import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
+import {apiRequest} from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import makeRichPromise from '../richPromise'
@@ -38,7 +38,7 @@ class FindFiles extends RecordComponent {
         query: q
       })
 
-      utils.apiRequest('/find', {
+      apiRequest('/find', {
         data: {
           q: q,
           alt: this.getRecordAlt(),

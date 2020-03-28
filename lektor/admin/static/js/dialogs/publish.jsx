@@ -6,7 +6,7 @@ import React from 'react'
 
 import Component from '../components/Component'
 import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
+import {apiRequest, loadData, getApiUrl} from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import makeRichPromise from '../richPromise'
@@ -44,7 +44,7 @@ class Publish extends Component {
   }
 
   syncDialog () {
-    utils.loadData('/servers', {}, null, makeRichPromise)
+    loadData('/servers', {}, null, makeRichPromise)
       .then(({ servers }) => {
         this.setState({
           servers: servers,
@@ -75,7 +75,7 @@ class Publish extends Component {
       log: [],
       currentState: 'BUILDING'
     })
-    utils.apiRequest('/build', {
+    apiRequest('/build', {
       method: 'POST'
     }, makeRichPromise).then((resp) => {
       this._beginPublish()
@@ -87,7 +87,7 @@ class Publish extends Component {
       currentState: 'PUBLISH'
     })
 
-    const es = new EventSource(utils.getApiUrl('/publish') +
+    const es = new EventSource(getApiUrl('/publish') +
       '?server=' + encodeURIComponent(this.state.activeTarget))
     es.addEventListener('message', (event) => {
       const data = JSON.parse(event.data)
