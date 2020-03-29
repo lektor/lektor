@@ -2,9 +2,9 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import primitiveWidgets from './widgets/primitiveWidgets'
+import primitiveWidgets, { BooleanInputWidget, MultiLineTextInputWidget } from './widgets/primitiveWidgets'
 import { CheckboxesInputWidget, SelectInputWidget } from './widgets/multiWidgets'
-import flowWidget from './widgets/flowWidget'
+import { FlowWidget } from './widgets/flowWidget'
 import { LineWidget, SpacingWidget, InfoWidget, HeadingWidget } from './widgets/fakeWidgets'
 import { widgetPropTypes } from './widgets/mixins'
 import Component from './components/Component'
@@ -13,14 +13,14 @@ import i18n from './i18n'
 
 const widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
-  'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
+  'multiline-text': MultiLineTextInputWidget,
   datepicker: primitiveWidgets.DateInputWidget,
   integer: primitiveWidgets.IntegerInputWidget,
   float: primitiveWidgets.FloatInputWidget,
-  checkbox: primitiveWidgets.BooleanInputWidget,
+  checkbox: BooleanInputWidget,
   url: primitiveWidgets.UrlInputWidget,
   slug: primitiveWidgets.SlugInputWidget,
-  flow: flowWidget.FlowWidget,
+  flow: FlowWidget,
   checkboxes: CheckboxesInputWidget,
   select: SelectInputWidget,
   'f-line': LineWidget,

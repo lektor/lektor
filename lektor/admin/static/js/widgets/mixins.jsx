@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import i18n from '../i18n'
 
-function ValidationFailure (options) {
+export function ValidationFailure (options) {
   this.message = options.message || i18n.trans('INVALID_INPUT')
   this.type = options.type || 'error'
 }
@@ -21,24 +21,4 @@ export function getInputClass (type) {
     rv = 'input-lg ' + rv
   }
   return rv
-}
-
-const BasicWidgetMixin = {
-  propTypes: widgetPropTypes,
-
-  getInputClass () {
-    return getInputClass(this.props.type)
-  },
-
-  getValidationFailure () {
-    if (this.getValidationFailureImpl) {
-      return this.getValidationFailureImpl()
-    }
-    return null
-  }
-}
-
-export {
-  ValidationFailure,
-  BasicWidgetMixin
 }

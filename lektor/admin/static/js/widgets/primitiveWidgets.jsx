@@ -3,7 +3,7 @@
 import React from 'react'
 import createReactClass from 'create-react-class'
 import jQuery from 'jquery'
-import { BasicWidgetMixin, ValidationFailure } from './mixins'
+import { ValidationFailure, getInputClass, widgetPropTypes } from './mixins'
 import { isValidUrl } from '../utils'
 import userLabel from '../userLabel'
 import i18n from '../i18n'
@@ -26,7 +26,7 @@ const isValidDate = (year, month, day) => {
 }
 
 const InputWidgetMixin = {
-  mixins: [BasicWidgetMixin],
+  propTypes: widgetPropTypes,
 
   onChange (event) {
     let value = event.target.value
@@ -39,7 +39,10 @@ const InputWidgetMixin = {
   render () {
     let { type, onChange, className, ...otherProps } = this.props
     let help = null
-    const failure = this.getValidationFailure()
+    let failure = null
+    if (this.getValidationFailureImpl) {
+      failure = this.getValidationFailureImpl()
+    }
     className = (className || '')
     className += ' input-group'
 
@@ -62,7 +65,7 @@ const InputWidgetMixin = {
         <div className={className}>
           <input
             type={this.getInputType()}
-            className={this.getInputClass()}
+            className={getInputClass(type)}
             onChange={onChange ? this.onChange : undefined}
             {...otherProps}
           />
@@ -223,33 +226,30 @@ const UrlInputWidget = createReactClass({
   }
 })
 
-const MultiLineTextInputWidget = createReactClass({
-  displayName: 'MultiLineTextInputWidget',
-  mixins: [BasicWidgetMixin],
-
+export class MultiLineTextInputWidget extends React.Component {
   onChange (event) {
     this.recalculateSize()
     if (this.props.onChange) {
       this.props.onChange(event.target.value)
     }
-  },
+  }
 
   componentDidMount () {
     this.recalculateSize()
     window.addEventListener('resize', this.recalculateSize)
-  },
+  }
 
   componentWillUnmount () {
     window.removeEventListener('resize', this.recalculateSize)
-  },
+  }
 
   componentDidUpdate (prevProps) {
     this.recalculateSize()
-  },
+  }
 
   isInAutoResizeMode () {
     return this.props.rows === undefined
-  },
+  }
 
   recalculateSize () {
     if (!this.isInAutoResizeMode()) {
@@ -287,10 +287,10 @@ const MultiLineTextInputWidget = createReactClass({
       window.scrollTo(
         document.body.scrollLeft, oldScrollTop + (newHeight - oldHeight))
     }
-  },
+  }
 
   render () {
-    let { className, type, onChange, style, ...otherProps } = this.props // eslint-disable-line no-unused-vars
+    let { className, type, onChange, style, ...otherProps } = this.props
     className = (className || '')
 
     style = style || {}
@@ -304,23 +304,21 @@ const MultiLineTextInputWidget = createReactClass({
       <div className={className}>
         <textarea
           ref='ta'
-          className={this.getInputClass()}
-          onChange={onChange ? this.onChange : undefined}
+          className={getInputClass(type)}
+          onChange={onChange ? this.onChange.bind(this) : undefined}
           style={style}
           {...otherProps}
         />
       </div>
     )
   }
-})
+}
+MultiLineTextInputWidget.propTypes = widgetPropTypes
 
-const BooleanInputWidget = createReactClass({
-  displayName: 'BooleanInputWidget',
-  mixins: [BasicWidgetMixin],
-
+export class BooleanInputWidget extends React.Component {
   onChange (event) {
     this.props.onChange(event.target.checked ? 'yes' : 'no')
-  },
+  }
 
   componentDidMount () {
     const checkbox = this.refs.checkbox
@@ -330,10 +328,10 @@ const BooleanInputWidget = createReactClass({
     } else {
       checkbox.indeterminate = false
     }
-  },
+  }
 
   render () {
-    let { className, type, placeholder, onChange, value, ...otherProps } = this.props // eslint-disable-line no-unused-vars
+    let { className, type, placeholder, onChange, value, ...otherProps } = this.props
     className = (className || '') + ' checkbox'
 
     return (
@@ -344,14 +342,15 @@ const BooleanInputWidget = createReactClass({
             {...otherProps}
             ref='checkbox'
             checked={isTrue(value)}
-            onChange={onChange ? this.onChange : undefined}
+            onChange={onChange ? this.onChange.bind(this) : undefined}
           />
           {type.checkbox_label_i18n ? i18n.trans(type.checkbox_label_i18n) : null}
         </label>
       </div>
     )
   }
-})
+}
+BooleanInputWidget.propTypes = widgetPropTypes
 
 export default {
   SingleLineTextInputWidget: SingleLineTextInputWidget,
@@ -359,7 +358,5 @@ export default {
   IntegerInputWidget: IntegerInputWidget,
   FloatInputWidget: FloatInputWidget,
   DateInputWidget: DateInputWidget,
-  UrlInputWidget: UrlInputWidget,
-  MultiLineTextInputWidget: MultiLineTextInputWidget,
-  BooleanInputWidget: BooleanInputWidget
+  UrlInputWidget: UrlInputWidget
 }
