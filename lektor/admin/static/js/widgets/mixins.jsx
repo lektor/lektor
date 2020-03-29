@@ -6,13 +6,15 @@ function ValidationFailure (options) {
   this.type = options.type || 'error'
 }
 
+export const widgetPropTypes = {
+  value: PropTypes.any,
+  type: PropTypes.object,
+  placeholder: PropTypes.any,
+  onChange: PropTypes.func
+}
+
 const BasicWidgetMixin = {
-  propTypes: {
-    value: PropTypes.any,
-    type: PropTypes.object,
-    placeholder: PropTypes.any,
-    onChange: PropTypes.func
-  },
+  propTypes: widgetPropTypes,
 
   getInputClass () {
     let rv = 'form-control'

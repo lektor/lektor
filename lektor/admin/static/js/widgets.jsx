@@ -6,7 +6,7 @@ import createReactClass from 'create-react-class'
 import primitiveWidgets from './widgets/primitiveWidgets'
 import multiWidgets from './widgets/multiWidgets'
 import flowWidget from './widgets/flowWidget'
-import fakeWidgets from './widgets/fakeWidgets'
+import { LineWidget, SpacingWidget, InfoWidget, HeadingWidget } from './widgets/fakeWidgets'
 import { BasicWidgetMixin } from './widgets/mixins'
 import Component from './components/Component'
 import ToggleGroup from './components/ToggleGroup'
@@ -24,10 +24,10 @@ const widgetComponents = {
   flow: flowWidget.FlowWidget,
   checkboxes: multiWidgets.CheckboxesInputWidget,
   select: multiWidgets.SelectInputWidget,
-  'f-line': fakeWidgets.LineWidget,
-  'f-spacing': fakeWidgets.SpacingWidget,
-  'f-info': fakeWidgets.InfoWidget,
-  'f-heading': fakeWidgets.HeadingWidget
+  'f-line': LineWidget,
+  'f-spacing': SpacingWidget,
+  'f-info': InfoWidget,
+  'f-heading': HeadingWidget
 }
 
 const FallbackWidget = createReactClass({
