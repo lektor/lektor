@@ -2,12 +2,11 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import createReactClass from 'create-react-class'
 import primitiveWidgets from './widgets/primitiveWidgets'
 import multiWidgets from './widgets/multiWidgets'
 import flowWidget from './widgets/flowWidget'
 import { LineWidget, SpacingWidget, InfoWidget, HeadingWidget } from './widgets/fakeWidgets'
-import { BasicWidgetMixin } from './widgets/mixins'
+import { widgetPropTypes } from './widgets/mixins'
 import Component from './components/Component'
 import ToggleGroup from './components/ToggleGroup'
 import i18n from './i18n'
@@ -30,21 +29,17 @@ const widgetComponents = {
   'f-heading': HeadingWidget
 }
 
-const FallbackWidget = createReactClass({
-  displayName: 'FallbackWidget',
-  mixins: [BasicWidgetMixin],
-
-  render () {
-    return (
-      <div>
-        <em>
-          Widget "{this.props.type.widget}" not implemented
-          (used by type "{this.props.type.name}")
-        </em>
-      </div>
-    )
-  }
-})
+function FallbackWidget (props) {
+  return (
+    <div>
+      <em>
+        Widget "{props.type.widget}" not implemented
+        (used by type "{props.type.name}")
+      </em>
+    </div>
+  )
+}
+FallbackWidget.propTypes = widgetPropTypes
 
 class FieldBox extends Component {
   render () {
@@ -196,6 +191,5 @@ export default {
   getFieldRows: getFieldRows,
   renderFieldRows: renderFieldRows,
   getFieldColumns: getFieldColumns,
-  FallbackWidget: FallbackWidget,
   FieldBox: FieldBox
 }
