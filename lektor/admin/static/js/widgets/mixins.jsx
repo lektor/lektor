@@ -13,17 +13,21 @@ export const widgetPropTypes = {
   onChange: PropTypes.func
 }
 
+export function getInputClass (type) {
+  let rv = 'form-control'
+  if (type.size === 'small') {
+    rv = 'input-sm ' + rv
+  } else if (type.size === 'large') {
+    rv = 'input-lg ' + rv
+  }
+  return rv
+}
+
 const BasicWidgetMixin = {
   propTypes: widgetPropTypes,
 
   getInputClass () {
-    let rv = 'form-control'
-    if (this.props.type.size === 'small') {
-      rv = 'input-sm ' + rv
-    } else if (this.props.type.size === 'large') {
-      rv = 'input-lg ' + rv
-    }
-    return rv
+    return getInputClass(this.props.type)
   },
 
   getValidationFailure () {

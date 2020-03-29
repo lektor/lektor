@@ -3,7 +3,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import primitiveWidgets from './widgets/primitiveWidgets'
-import multiWidgets from './widgets/multiWidgets'
+import { CheckboxesInputWidget, SelectInputWidget } from './widgets/multiWidgets'
 import flowWidget from './widgets/flowWidget'
 import { LineWidget, SpacingWidget, InfoWidget, HeadingWidget } from './widgets/fakeWidgets'
 import { widgetPropTypes } from './widgets/mixins'
@@ -21,8 +21,8 @@ const widgetComponents = {
   url: primitiveWidgets.UrlInputWidget,
   slug: primitiveWidgets.SlugInputWidget,
   flow: flowWidget.FlowWidget,
-  checkboxes: multiWidgets.CheckboxesInputWidget,
-  select: multiWidgets.SelectInputWidget,
+  checkboxes: CheckboxesInputWidget,
+  select: SelectInputWidget,
   'f-line': LineWidget,
   'f-spacing': SpacingWidget,
   'f-info': InfoWidget,
