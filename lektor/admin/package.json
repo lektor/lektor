@@ -13,7 +13,6 @@
     "babel-plugin-istanbul": "^6.0.0",
     "bootstrap": "~3.3.0",
     "chai": "^4.2.0",
-    "create-react-class": "^15.6.3",
     "css-loader": "^3.4.2",
     "event-source-polyfill": "^1.0.12",
     "file-loader": "^6.0.0",

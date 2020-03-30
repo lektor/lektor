@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types'
 import React from 'react'
-import primitiveWidgets, { BooleanInputWidget, MultiLineTextInputWidget } from './widgets/primitiveWidgets'
+import { DateInputWidget, IntegerInputWidget, FloatInputWidget, UrlInputWidget, SlugInputWidget, BooleanInputWidget, MultiLineTextInputWidget, SingleLineTextInputWidget } from './widgets/primitiveWidgets'
 import { CheckboxesInputWidget, SelectInputWidget } from './widgets/multiWidgets'
 import { FlowWidget } from './widgets/flowWidget'
 import { LineWidget, SpacingWidget, InfoWidget, HeadingWidget } from './widgets/fakeWidgets'
@@ -12,14 +12,14 @@ import ToggleGroup from './components/ToggleGroup'
 import i18n from './i18n'
 
 const widgetComponents = {
-  'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
+  'singleline-text': SingleLineTextInputWidget,
   'multiline-text': MultiLineTextInputWidget,
-  datepicker: primitiveWidgets.DateInputWidget,
-  integer: primitiveWidgets.IntegerInputWidget,
-  float: primitiveWidgets.FloatInputWidget,
+  datepicker: DateInputWidget,
+  integer: IntegerInputWidget,
+  float: FloatInputWidget,
   checkbox: BooleanInputWidget,
-  url: primitiveWidgets.UrlInputWidget,
-  slug: primitiveWidgets.SlugInputWidget,
+  url: UrlInputWidget,
+  slug: SlugInputWidget,
   flow: FlowWidget,
   checkboxes: CheckboxesInputWidget,
   select: SelectInputWidget,

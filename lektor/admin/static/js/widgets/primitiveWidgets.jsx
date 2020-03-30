@@ -1,7 +1,6 @@
 'use strict'
 
 import React from 'react'
-import createReactClass from 'create-react-class'
 import jQuery from 'jquery'
 import { ValidationFailure, getInputClass, widgetPropTypes } from './mixins'
 import { isValidUrl } from '../utils'
@@ -25,206 +24,154 @@ const isValidDate = (year, month, day) => {
   return false
 }
 
-const InputWidgetMixin = {
-  propTypes: widgetPropTypes,
-
-  onChange (event) {
-    let value = event.target.value
-    if (this.postprocessValue) {
-      value = this.postprocessValue(value)
-    }
-    this.props.onChange(value)
-  },
-
-  render () {
-    let { type, onChange, className, ...otherProps } = this.props
-    let help = null
-    let failure = null
-    if (this.getValidationFailureImpl) {
-      failure = this.getValidationFailureImpl()
-    }
-    className = (className || '')
-    className += ' input-group'
-
-    if (failure !== null) {
-      className += ' has-feedback has-' + failure.type
-      const valClassName = 'validation-block validation-block-' + failure.type
-      help = <div className={valClassName}>{failure.message}</div>
-    }
-
-    let addon = null
-    const configuredAddon = type.addon_label_i18n
-    if (configuredAddon) {
-      addon = userLabel.format(configuredAddon)
-    } else if (this.getInputAddon) {
-      addon = this.getInputAddon()
-    }
-
-    return (
-      <div className='form-group'>
-        <div className={className}>
-          <input
-            type={this.getInputType()}
-            className={getInputClass(type)}
-            onChange={onChange ? this.onChange : undefined}
-            {...otherProps}
-          />
-          {addon ? <span className='input-group-addon'>{addon}</span> : null}
-        </div>
-        {help}
-      </div>
-    )
+function InputWidgetBase (props) {
+  let { type, value, onChange, className, postprocessValue, inputAddon, inputType, validate, ...otherProps } = props
+  let help = null
+  let failure = null
+  if (validate) {
+    failure = validate(props.value)
   }
+  className = (className || '')
+  className += ' input-group'
+  function onChangeHandler (event) {
+    let value = event.target.value
+    if (postprocessValue) {
+      value = postprocessValue(value)
+    }
+    onChange(value)
+  }
+
+  if (failure !== null) {
+    className += ' has-feedback has-' + failure.type
+    const valClassName = 'validation-block validation-block-' + failure.type
+    help = <div className={valClassName}>{failure.message}</div>
+  }
+
+  let addon = null
+  const configuredAddon = type.addon_label_i18n
+  if (configuredAddon) {
+    addon = userLabel.format(configuredAddon)
+  } else if (inputAddon) {
+    addon = inputAddon
+  }
+
+  return (
+    <div className='form-group'>
+      <div className={className}>
+        <input
+          type={inputType}
+          className={getInputClass(type)}
+          onChange={onChangeHandler}
+          value={value || ''}
+          {...otherProps}
+        />
+        {addon ? <span className='input-group-addon'>{addon}</span> : null}
+      </div>
+      {help}
+    </div>
+  )
 }
 
-const SingleLineTextInputWidget = createReactClass({
-  displayName: 'SingleLineTextInputWidget',
-  mixins: [InputWidgetMixin],
+export function SingleLineTextInputWidget (props) {
+  return <InputWidgetBase inputType='text' inputAddon={<i className='fa fa-paragraph' />} {...props} />
+}
+SingleLineTextInputWidget.propTypes = widgetPropTypes
 
-  getInputType () {
-    return 'text'
-  },
+function postprocessSlug (value) {
+  return value.replace(/\s+/g, '-')
+}
 
-  getInputAddon () {
-    return <i className='fa fa-paragraph' />
-  }
-})
+export function SlugInputWidget (props) {
+  return <InputWidgetBase inputType='text' inputAddon={<i className='fa fa-link' />} postprocessValue={postprocessSlug} {...props} />
+}
+SlugInputWidget.propTypes = widgetPropTypes
 
-const SlugInputWidget = createReactClass({
-  displayName: 'SlugInputWidget',
-  mixins: [InputWidgetMixin],
+function postprocessInteger (value) {
+  return value.match(/^\s*(.*?)\s*$/)[1]
+}
 
-  postprocessValue (value) {
-    return value.replace(/\s+/g, '-')
-  },
-
-  getInputType () {
-    return 'text'
-  },
-
-  getInputAddon () {
-    return <i className='fa fa-link' />
-  }
-})
-
-const IntegerInputWidget = createReactClass({
-  displayName: 'IntegerInputWidget',
-  mixins: [InputWidgetMixin],
-
-  postprocessValue (value) {
-    return value.match(/^\s*(.*?)\s*$/)[1]
-  },
-
-  getValidationFailureImpl () {
-    if (this.props.value && !this.props.value.match(/^-?\d+$/)) {
-      return new ValidationFailure({
-        message: i18n.trans('ERROR_INVALID_NUMBER')
-      })
-    }
-    return null
-  },
-
-  getInputType () {
-    return 'text'
-  },
-
-  getInputAddon () {
-    return '0'
-  }
-})
-
-const FloatInputWidget = createReactClass({
-  displayName: 'FloatInputWidget',
-  mixins: [InputWidgetMixin],
-
-  postprocessValue (value) {
-    return value.match(/^\s*(.*?)\s*$/)[1]
-  },
-
-  getValidationFailureImpl () {
-    if (this.props.value && isNaN(parseFloat(this.props.value))) {
-      return new ValidationFailure({
-        message: i18n.trans('ERROR_INVALID_NUMBER')
-      })
-    }
-    return null
-  },
-
-  getInputType () {
-    return 'text'
-  },
-
-  getInputAddon () {
-    return '0.0'
-  }
-})
-
-const DateInputWidget = createReactClass({
-  displayName: 'DateInputWidget',
-  mixins: [InputWidgetMixin],
-
-  postprocessValue (value) {
-    value = value.match(/^\s*(.*?)\s*$/)[1]
-    const match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/)
-    let day, month, year
-    if (match) {
-      day = parseInt(match[1], 10)
-      month = parseInt(match[2], 10)
-      year = parseInt(match[3], 10)
-      return (
-        year + '-' +
-        (month < 10 ? '0' : '') + month + '-' +
-        (day < 10 ? '0' : '') + day
-      )
-    }
-    return value
-  },
-
-  getValidationFailureImpl () {
-    if (!this.props.value) {
-      return null
-    }
-
-    const match = this.props.value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/)
-    if (match && isValidDate(match[1], match[2], match[3])) {
-      return null
-    }
-
+function validateInteger (value) {
+  if (value && !value.match(/^-?\d+$/)) {
     return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_DATE')
+      message: i18n.trans('ERROR_INVALID_NUMBER')
     })
-  },
-
-  getInputType () {
-    return 'date'
-  },
-
-  getInputAddon () {
-    return <i className='fa fa-calendar' />
   }
-})
+  return null
+}
 
-const UrlInputWidget = createReactClass({
-  displayName: 'UrlInputWidget',
-  mixins: [InputWidgetMixin],
+export function IntegerInputWidget (props) {
+  return <InputWidgetBase inputType='text' inputAddon='0' postprocessValue={postprocessInteger} validate={validateInteger} {...props} />
+}
+IntegerInputWidget.propTypes = widgetPropTypes
 
-  getValidationFailureImpl () {
-    if (this.props.value && !isValidUrl(this.props.value)) {
-      return new ValidationFailure({
-        message: i18n.trans('ERROR_INVALID_URL')
-      })
-    }
+function postprocessFloat (value) {
+  return value.match(/^\s*(.*?)\s*$/)[1]
+}
+
+function validateFloat (value) {
+  if (value && isNaN(parseFloat(value))) {
+    return new ValidationFailure({
+      message: i18n.trans('ERROR_INVALID_NUMBER')
+    })
+  }
+  return null
+}
+
+export function FloatInputWidget (props) {
+  return <InputWidgetBase inputType='text' inputAddon='0.0' postprocessValue={postprocessFloat} validate={validateFloat} {...props} />
+}
+FloatInputWidget.propTypes = widgetPropTypes
+
+function postprocessDate (value) {
+  value = value.match(/^\s*(.*?)\s*$/)[1]
+  const match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/)
+  let day, month, year
+  if (match) {
+    day = parseInt(match[1], 10)
+    month = parseInt(match[2], 10)
+    year = parseInt(match[3], 10)
+    return (
+      year + '-' +
+      (month < 10 ? '0' : '') + month + '-' +
+      (day < 10 ? '0' : '') + day
+    )
+  }
+  return value
+}
+
+function validateDate (value) {
+  if (!value) {
     return null
-  },
-
-  getInputType () {
-    return 'text'
-  },
-
-  getInputAddon () {
-    return <i className='fa fa-external-link' />
   }
-})
+
+  const match = value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/)
+  if (match && isValidDate(match[1], match[2], match[3])) {
+    return null
+  }
+
+  return new ValidationFailure({
+    message: i18n.trans('ERROR_INVALID_DATE')
+  })
+}
+
+export function DateInputWidget (props) {
+  return <InputWidgetBase inputType='date' inputAddon={<i className='fa fa-calendar' />} postprocessValue={postprocessDate} validate={validateDate} {...props} />
+}
+DateInputWidget.propTypes = widgetPropTypes
+
+function validateUrl (value) {
+  if (value && !isValidUrl(value)) {
+    return new ValidationFailure({
+      message: i18n.trans('ERROR_INVALID_URL')
+    })
+  }
+  return null
+}
+
+export function UrlInputWidget (props) {
+  return <InputWidgetBase inputType='text' inputAddon={<i className='fa fa-external-link' />} validate={validateUrl} {...props} />
+}
+UrlInputWidget.propTypes = widgetPropTypes
 
 export class MultiLineTextInputWidget extends React.Component {
   onChange (event) {
@@ -236,11 +183,11 @@ export class MultiLineTextInputWidget extends React.Component {
 
   componentDidMount () {
     this.recalculateSize()
-    window.addEventListener('resize', this.recalculateSize)
+    window.addEventListener('resize', this.recalculateSize.bind(this))
   }
 
   componentWillUnmount () {
-    window.removeEventListener('resize', this.recalculateSize)
+    window.removeEventListener('resize', this.recalculateSize.bind(this))
   }
 
   componentDidUpdate (prevProps) {
@@ -351,12 +298,3 @@ export class BooleanInputWidget extends React.Component {
   }
 }
 BooleanInputWidget.propTypes = widgetPropTypes
-
-export default {
-  SingleLineTextInputWidget: SingleLineTextInputWidget,
-  SlugInputWidget: SlugInputWidget,
-  IntegerInputWidget: IntegerInputWidget,
-  FloatInputWidget: FloatInputWidget,
-  DateInputWidget: DateInputWidget,
-  UrlInputWidget: UrlInputWidget
-}
