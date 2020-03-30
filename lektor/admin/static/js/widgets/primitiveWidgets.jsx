@@ -1,7 +1,6 @@
 'use strict'
 
 import React from 'react'
-import jQuery from 'jquery'
 import { ValidationFailure, getInputClass, widgetPropTypes } from './mixins'
 import { isValidUrl } from '../utils'
 import userLabel from '../userLabel'
@@ -174,6 +173,11 @@ export function UrlInputWidget (props) {
 UrlInputWidget.propTypes = widgetPropTypes
 
 export class MultiLineTextInputWidget extends React.Component {
+  constructor (props) {
+    super(props)
+    this.recalculateSize = this.recalculateSize.bind(this)
+  }
+
   onChange (event) {
     this.recalculateSize()
     if (this.props.onChange) {
@@ -183,11 +187,11 @@ export class MultiLineTextInputWidget extends React.Component {
 
   componentDidMount () {
     this.recalculateSize()
-    window.addEventListener('resize', this.recalculateSize.bind(this))
+    window.addEventListener('resize', this.recalculateSize)
   }
 
   componentWillUnmount () {
-    window.removeEventListener('resize', this.recalculateSize.bind(this))
+    window.removeEventListener('resize', this.recalculateSize)
   }
 
   componentDidUpdate (prevProps) {
@@ -221,10 +225,10 @@ export class MultiLineTextInputWidget extends React.Component {
       diff = 0
     }
 
-    const updateScrollPosition = jQuery(node).is(':focus')
+    const updateScrollPosition = node === document.activeElement
     // Cross-browser compatibility for scroll position
     const oldScrollTop = document.documentElement.scrollTop || document.body.scrollTop
-    const oldHeight = jQuery(node).outerHeight()
+    const oldHeight = node.offsetHeight
 
     node.style.height = 'auto'
     const newHeight = (node.scrollHeight - diff)
@@ -252,7 +256,7 @@ export class MultiLineTextInputWidget extends React.Component {
         <textarea
           ref='ta'
           className={getInputClass(type)}
-          onChange={onChange ? this.onChange.bind(this) : undefined}
+          onChange={this.onChange.bind(this)}
           style={style}
           {...otherProps}
         />
