@@ -2,7 +2,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import i18n from './i18n'
 
 import 'bootstrap'
@@ -41,6 +41,9 @@ function Main (props) {
         <Route name='preview' path={`${path}/:path/preview`} component={PreviewPage} />
         <Route name='add-child' path={`${path}/:path/add-child`} component={AddChildPage} />
         <Route name='upload' path={`${path}/:path/upload`} component={AddAttachmentPage} />
+        <Route exact path={path}>
+          <Redirect to={`${path}/root/edit`} />
+        </Route>
         <Route component={BadRoute} />
       </Switch>
     </App>
