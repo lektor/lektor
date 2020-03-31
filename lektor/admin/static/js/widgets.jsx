@@ -7,7 +7,6 @@ import { CheckboxesInputWidget, SelectInputWidget } from './widgets/multiWidgets
 import { FlowWidget } from './widgets/flowWidget'
 import { LineWidget, SpacingWidget, InfoWidget, HeadingWidget } from './widgets/fakeWidgets'
 import { widgetPropTypes } from './widgets/mixins'
-import Component from './components/Component'
 import ToggleGroup from './components/ToggleGroup'
 import i18n from './i18n'
 
@@ -41,9 +40,10 @@ function FallbackWidget (props) {
 }
 FallbackWidget.propTypes = widgetPropTypes
 
-class FieldBox extends Component {
+class FieldBox extends React.PureComponent {
   render () {
-    const { field, value, onChange, placeholder, disabled } = this.props
+    const { field, value, placeholder, disabled } = this.props
+    const onChange = this.props.onChange ? this.props.onChange : (value) => this.props.setFieldValue(field, value)
     const className = 'col-md-' + getFieldColumns(field) + ' field-box'
     let innerClassName = 'field'
     let inner

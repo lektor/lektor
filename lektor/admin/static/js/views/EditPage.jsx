@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { Prompt } from 'react-router-dom'
-import update from 'react-addons-update'
 
 import RecordComponent from '../components/RecordComponent'
 import { apiRequest, loadData, isMetaKey } from '../utils'
@@ -21,6 +20,7 @@ class EditPage extends RecordComponent {
       hasPendingChanges: false
     }
     this._onKeyPress = this._onKeyPress.bind(this)
+    this.setFieldValue = this.setFieldValue.bind(this)
   }
 
   componentDidMount () {
@@ -90,10 +90,8 @@ class EditPage extends RecordComponent {
       })
   }
 
-  onValueChange (field, value) {
-    const updates = {}
-    updates[field.name] = { $set: value || '' }
-    const rd = update(this.state.recordData, updates)
+  setFieldValue (field, value) {
+    const rd = { ...this.state.recordData, [field.name]: value || '' }
     this.setState({
       recordData: rd,
       hasPendingChanges: true
@@ -185,7 +183,7 @@ class EditPage extends RecordComponent {
         value={this.getValueForField(widget, field)}
         placeholder={this.getPlaceholderForField(widget, field)}
         field={field}
-        onChange={this.onValueChange.bind(this, field)}
+        setFieldValue={this.setFieldValue}
         disabled={!(field.alts_enabled == null || (field.alts_enabled ^ this.state.recordInfo.alt === '_primary'))}
       />
     )

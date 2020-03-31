@@ -150,8 +150,6 @@ export class FlowWidget extends React.Component {
     }))
   }
 
-  // XXX: the modification of props is questionable
-
   moveBlock (idx, offset, event) {
     event.preventDefault()
 
@@ -160,12 +158,12 @@ export class FlowWidget extends React.Component {
       return
     }
 
-    const tmp = this.props.value[newIndex]
-    this.props.value[newIndex] = this.props.value[idx]
-    this.props.value[idx] = tmp
+    const newValue = [...this.props.value]
+    newValue[newIndex] = this.props.value[idx]
+    newValue[idx] = this.props.value[newIndex]
 
     if (this.props.onChange) {
-      this.props.onChange(this.props.value)
+      this.props.onChange(newValue)
     }
   }
 
@@ -173,9 +171,8 @@ export class FlowWidget extends React.Component {
     event.preventDefault()
 
     if (confirm(i18n.trans('REMOVE_FLOWBLOCK_PROMPT'))) {
-      this.props.value.splice(idx, 1)
       if (this.props.onChange) {
-        this.props.onChange(this.props.value)
+        this.props.onChange(this.props.value.filter((item, i) => i !== idx))
       }
     }
   }
@@ -190,23 +187,28 @@ export class FlowWidget extends React.Component {
     const newBlockId = Math.max(...blockIds) + 1
 
     // this is a rather ugly way to do this, but hey, it works.
-    this.props.value.push(deserializeFlowBlock(flowBlockModel, [], newBlockId))
+    const newValue = [
+      ...this.props.value,
+      deserializeFlowBlock(flowBlockModel, [], newBlockId)
+    ]
     if (this.props.onChange) {
-      this.props.onChange(this.props.value)
+      this.props.onChange(newValue)
     }
   }
 
   collapseBlock (idx) {
-    this.props.value[idx].collapsed = true
+    const newValue = [...this.props.value]
+    newValue[idx] = { ...this.props.value[idx], collapsed: true }
     if (this.props.onChange) {
-      this.props.onChange(this.props.value)
+      this.props.onChange(newValue)
     }
   }
 
   expandBlock (idx) {
-    this.props.value[idx].collapsed = false
+    const newValue = [...this.props.value]
+    newValue[idx] = { ...this.props.value[idx], collapsed: false }
     if (this.props.onChange) {
-      this.props.onChange(this.props.value)
+      this.props.onChange(newValue)
     }
   }
 
@@ -221,7 +223,7 @@ export class FlowWidget extends React.Component {
 
     const onChange = !this.props.onChange ? null : (value) => {
       blockInfo.data[field.name] = value
-      this.props.onChange(this.props.value)
+      this.props.onChange([...this.props.value])
     }
 
     return (
