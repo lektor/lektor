@@ -7,6 +7,8 @@ import update from 'react-addons-update'
 import RecordComponent from '../components/RecordComponent'
 import utils from '../utils'
 import i18n from '../i18n'
+import dialogSystem from '../dialogSystem'
+import SuccessDialog from '../dialogs/successDialog'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
 
@@ -130,7 +132,27 @@ class EditPage extends RecordComponent {
     const newData = this.getValues()
     utils.apiRequest('/rawrecord', { json: {
       data: newData, path: path, alt: alt },
-    // eslint-disable-next-line indent
+      method: 'PUT' }, makeRichPromise)
+      .then((resp) => {
+        this.setState({
+          hasPendingChanges: false
+        }, () => {
+          this.transitionToAdminPage('.edit', {
+            path: this.getUrlRecordPathWithAlt(path)
+          })
+          dialogSystem.showDialog(SuccessDialog, {
+            message: 'Your changes have been saved!'
+          })
+        })
+      })
+  }
+
+  saveChangesAndPreview () {
+    const path = this.getRecordPath()
+    const alt = this.getRecordAlt()
+    const newData = this.getValues()
+    utils.apiRequest('/rawrecord', { json: {
+      data: newData, path: path, alt: alt },
       method: 'PUT' }, makeRichPromise)
       .then((resp) => {
         this.setState({
@@ -228,6 +250,8 @@ class EditPage extends RecordComponent {
         <div className='actions'>
           <button type='submit' className='btn btn-primary'
             onClick={this.saveChanges.bind(this)}>{i18n.trans('SAVE_CHANGES')}</button>
+          <button type='submit' className='btn btn-secondary'
+            onClick={this.saveChangesAndPreview.bind(this)}>{i18n.trans('SAVE_CHANGES_AND_PREVIEW')}</button>
           {deleteButton}
         </div>
       </div>
