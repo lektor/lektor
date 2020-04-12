@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         shell: bash
         run: bash .github/scripts/check_skip.sh
@@ -62,6 +64,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         shell: bash
         run: bash .github/scripts/check_skip.sh
@@ -107,6 +111,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check js skip
@@ -143,6 +149,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check js skip
@@ -186,6 +194,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check js skip
@@ -223,6 +233,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check python skip
@@ -260,6 +272,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check python skip
@@ -300,6 +314,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check python skip
@@ -341,6 +357,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check python skip
@@ -387,6 +405,8 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Check build skip
         run: .github/scripts/skip.sh
       - name: Check python skip
