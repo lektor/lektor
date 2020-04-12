@@ -1,5 +1,3 @@
-#!/bin/bash -ex
-
 # Check if files ending in .py changed on the current PR
 result=$(git diff --name-only $BASE_BRANCH | grep -c ".*\.py")
 if [[ $result != '0' ]]; then 

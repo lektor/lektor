@@ -1,5 +1,3 @@
-#!/bin/bash -ex
-
 # Get text for last commit
 # We use -2 beacause the first commit is the merge commit
 last_commit_text="$(git log -2 --pretty=format:%s)"
