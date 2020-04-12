@@ -83,7 +83,6 @@ jobs:
         run: |
           source .github/scripts/check_skip.sh
           echo $BUILD_SKIP
-          echo ::set-env name=BUILD_SKIP::$BUILD_SKIP
       - name: Check js skip
         shell: bash
         run: |
