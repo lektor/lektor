@@ -6,7 +6,7 @@ result=$(git diff --name-only $test1 $test2 | grep -c ".*\.js.*")
 
 if [[ $result != '0' ]]; then 
   echo "Files including the filter: $result"
-  echo "::set-output name=JS_SKIP::true"
+  echo ::set-output name=JS_SKIP::true
 else
-  echo "::set-output name=JS_SKIP::false"
+  echo ::set-output name=JS_SKIP::false
 fi
