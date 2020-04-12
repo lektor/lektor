@@ -8,6 +8,6 @@ if [[ $result != '0' ]]; then
   echo "Skip Py!"
   echo ::set-output name=PY_SKIP::true
 else
-echo "All good!"
+  echo "All good!"
   echo ::set-output name=PY_SKIP::false
 fi
