@@ -19,11 +19,9 @@ jobs:
     - uses: rokroskar/workflow-run-cleanup-action@master
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        HEAD_REF: ${{ github.head_ref }}
-        BASE_REF: ${{ github.base_ref }}
     - run: |
-        echo $HEAD_REF
-        echo $BASE_REF
+        echo $GITHUB_HEAD_REF
+        echo $GITHUB_BASE_REF
 
   ############################################################################
   # Lint jobs
