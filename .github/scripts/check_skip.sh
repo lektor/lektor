@@ -9,8 +9,8 @@ echo "Count: $result"
 if [[ $result != '0' ]]; then 
   echo 'Skipping build!'
   echo 'Commits including the filter: $result'
-  echo "::set-output name=SKIP::true"
+  echo "::set-output name=BUILD_SKIP::true"
 else
   echo 'All good!'
-  echo "::set-output name=SKIP::false"
+  echo "::set-output name=BUILD_SKIP::false"
 fi

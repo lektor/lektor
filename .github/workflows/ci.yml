@@ -84,6 +84,8 @@ jobs:
       - name: Check js skip
         shell: bash
         run: bash .github/scripts/check_js_skip.sh
+      - run: echo $BUILD_SKIP
+      - run: echo $JS_SKIP
       - name: Cache node
         uses: actions/cache@v1
         with:

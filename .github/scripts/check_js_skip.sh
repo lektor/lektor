@@ -1,11 +1,8 @@
 # Check if files ending in .js changed on the current PR
 
-test1=$(git rev-parse origin/$GITHUB_BASE_REF)
-test2=$(git rev-parse origin/$GITHUB_HEAD_REF)
-result=$(git diff --name-only $test1 $test2)
-echo $test1
-echo $test2
-echo $result
+BASE_REF=test1=$(git rev-parse origin/$GITHUB_BASE_REF)
+HEAD_REF=$(git rev-parse origin/$GITHUB_HEAD_REF)
+result=$(git diff --name-only $test1 $test2 | grep -c ".*\.js.*")
 
 if [[ $result != '0' ]]; then 
   echo "Files including the filter: $result"
