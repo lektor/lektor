@@ -11,69 +11,111 @@ on:
 
 jobs:
   ############################################################################
+  # Close previous builds on the same branch
+  ############################################################################
+  cleanup-previous-runs:
+    name: Cleanup previous builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  ############################################################################
   # Lint jobs
   ############################################################################
-  lint-py:
-    name: Lint Python
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false 
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache pip
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-py-3.8-pip-${{ hashFiles('**/setup.py') }}
-      - name: Setup Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install python dependencies
-        run: python -m pip install --editable .[test]
-      - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
-      - name: Run python lint
-        run: pylint lektor
-
   lint-js:
     name: Lint JS
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_js_skip.sh
       - name: Cache node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-13-${{ hashFiles('**/lektor/admin/package-lock.json') }}
       - name: Setup node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/setup-node@v1
         with:
           node-version: '13'
       - name: Install node dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           cd lektor/admin/
           npm install .
           npm run webpack
       - name: Show node environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           node --version
           npm --version
       - name: Run JS lint
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           cd lektor/admin/
           npm run lint
+
+  lint-py:
+    name: Lint Python
+    needs: cleanup-previous-runs
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_py_skip.sh
+      - name: Cache pip
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py-3.8-pip-${{ hashFiles('**/setup.py') }}
+      - name: Setup Python
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install python dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        run: python -m pip install --editable .[test]
+      - name: Show python environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        run: |
+          python --version
+          python -m pip list
+      - name: Run python lint
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        run: pylint lektor
 
   ############################################################################
   # Smoke tests
   ############################################################################
   linux-smoke-node:
     name: Linux node${{ matrix.NODEJS_VERSION }} smoke test
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     env:
       CI: True
@@ -83,29 +125,43 @@ jobs:
       matrix:
         NODEJS_VERSION: ['13']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_js_skip.sh
       - name: Cache node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
       - name: Setup node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           cd lektor/admin/
           npm install .
           npm run webpack
       - name: Show node environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           node --version
           npm --version
 
   linux-smoke-py:
     name: Linux py${{ matrix.PYTHON_VERSION }} smoke test
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     env:
       CI: True
@@ -115,28 +171,43 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.8']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_py_skip.sh
       - name: Cache pip
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python -m pip install --editable .[test]
           python -m pip install codecov
       - name: Show python environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python --version
           python -m pip list
       - name: Run python tests
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
 
   ############################################################################
@@ -154,23 +225,36 @@ jobs:
       matrix:
         NODEJS_VERSION: ['10', '12']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_js_skip.sh
       - name: Cache node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
       - name: Setup node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           cd lektor/admin/
           npm install .
           npm run webpack
       - name: Show node environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           node --version
           npm --version
@@ -187,23 +271,36 @@ jobs:
       matrix:
         NODEJS_VERSION: ['13']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_js_skip.sh
       - name: Cache node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
       - name: Setup node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           cd lektor/admin/
           npm install .
           npm run webpack
       - name: Show node environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           node --version
           npm --version
@@ -220,23 +317,36 @@ jobs:
       matrix:
         NODEJS_VERSION: ['13']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_js_skip.sh
       - name: Cache node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/cache@v1
         with:
           path: ~\AppData\Roaming\npm-cache
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\lektor\admin\package-lock.json') }}
       - name: Setup node
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           cd lektor/admin/
           npm install .
           npm run webpack
       - name: Show node environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_JS == 'true'
         run: |
           node --version
           npm --version
@@ -256,30 +366,44 @@ jobs:
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.6', '3.7']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_py_skip.sh
       - name: Cache pip
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python -m pip install --editable .[test]
           python -m pip install codecov
       - name: Show python environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python --version
           python -m pip list
       - name: Run python tests
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
-
 
   mac-py:
     name: Mac py${{ matrix.PYTHON_VERSION }} tests
@@ -293,35 +417,50 @@ jobs:
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.8']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_py_skip.sh
       - name: Cache pip
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/cache@v1
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'      
         run: |
           brew update
           brew install imagemagick
           brew install ffmpeg
       - name: Install python dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python -m pip install --editable .[test]
           python -m pip install codecov
       - name: Show python environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python --version
           python -m pip list
       - name: Run python tests
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
-
 
   win-py:
     name: Win py${{ matrix.PYTHON_VERSION }} tests
@@ -335,30 +474,46 @@ jobs:
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.8']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        shell: bash -l {0}
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_py_skip.sh
       - name: Cache pip
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/cache@v1
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**\setup.py') }}
       - name: Setup python
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           choco install --timeout 600 imagemagick.tool
           choco install --timeout 600 ffmpeg
       - name: Install python dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python -m pip install --editable .[test]
           python -m pip install codecov
       - name: Show python environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python --version
           python -m pip list
       - name: Run python tests
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
