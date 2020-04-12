@@ -19,7 +19,7 @@ jobs:
     - uses: rokroskar/workflow-run-cleanup-action@master
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        HEAD_REF: ${{ github.head_ref) }}
+        HEAD_REF: ${{ github.head_ref }}
         BASE_REF: ${{ github.base_ref }}
     - run: |
         echo $HEAD_REF
