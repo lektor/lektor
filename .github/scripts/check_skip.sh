@@ -1,6 +1,5 @@
 # Get text for last commit
-# We use -2 because the first commit is the merge commit
-last_commit_text="$(git log -2 --pretty=format:%s)"
+last_commit_text="$(git log -1 --pretty=format:%s)"
 echo "Last commit text: $last_commit_text"
 
 # Use a regex and grep to count found patterns

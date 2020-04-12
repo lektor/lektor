@@ -42,7 +42,8 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git fetch --prune --unshallow
       - name: Check build skip
         shell: bash
         run: bash .github/scripts/check_skip.sh
@@ -75,7 +76,8 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git fetch --prune --unshallow
       - name: Check build skip
         shell: bash
         run: bash .github/scripts/check_skip.sh
