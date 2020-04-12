@@ -19,9 +19,6 @@ jobs:
     - uses: rokroskar/workflow-run-cleanup-action@master
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    - run: |
-        echo $GITHUB_HEAD_REF
-        echo $GITHUB_BASE_REF
 
   ############################################################################
   # Lint jobs
@@ -35,8 +32,10 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Check build skip
-        run: .github/scripts/skip.sh
+        shell: bash
+        run: bash .github/scripts/check_skip.sh
       - name: Check python skip
+        shell: bash
         run: .github/scripts/check_python_skip.sh
       - name: Cache pip
         uses: actions/cache@v1
@@ -64,9 +63,11 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Check build skip
-        run: .github/scripts/skip.sh
+        shell: bash
+        run: bash .github/scripts/check_skip.sh
       - name: Check js skip
-        run: .github/scripts/check_js_skip.sh
+        shell: bash
+        run: bash .github/scripts/check_js_skip.sh
       - name: Cache node
         uses: actions/cache@v1
         with:
