@@ -6,8 +6,8 @@ result=$(git diff --name-only $test1 $test2 | grep -c ".*\.py")
 echo "Files including the filter: $result"
 if [[ $result != '0' ]]; then 
   echo "Skip Py!"
-  echo ::set-output name=PY_SKIP::true
+  echo ::set-output name=RUN_BUILD_PY::false
 else
   echo "All good!"
-  echo ::set-output name=PY_SKIP::false
+  echo ::set-output name=RUN_BUILD_PY::true
 fi

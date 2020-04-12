@@ -14,20 +14,12 @@ jobs:
   # Close previous builds on the same branch
   ############################################################################
   cleanup-previous-runs:
+    name: Cleanup previous builds
     runs-on: ubuntu-latest
     steps:
     - uses: rokroskar/workflow-run-cleanup-action@master
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    - name: Checkout branch
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-    - run: |
-        git fetch --prune --unshallow
-    - run: |
-        git status
-        git branch
 
 
   ############################################################################
@@ -35,63 +27,60 @@ jobs:
   ############################################################################
   lint-py:
     name: Lint Python
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false 
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - run: git fetch --prune --unshallow
-      - name: Check build skip
-        shell: bash
-        run: bash .github/scripts/check_skip.sh
-      - name: Check python skip
-        shell: bash
-        run: .github/scripts/check_python_skip.sh
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        run: |
+          source .github/scripts/check_skip.sh
+          source .github/scripts/check_py_skip.sh
       - name: Cache pip
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.8-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup Python
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         uses: actions/setup-python@v1
         with:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install python dependencies
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: python -m pip install --editable .[test]
       - name: Show python environment
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: |
           python --version
           python -m pip list
       - name: Run python lint
+        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         run: pylint lektor
 
   lint-js:
     name: Lint JS
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - run: git fetch --prune --unshallow
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        shell: bash
-        run: |
-          source .github/scripts/check_skip.sh
-          echo $BUILD_SKIP
+        run: source .github/scripts/check_skip.sh
       - name: Check js skip
-        shell: bash
-        run: |
-          bash .github/scripts/check_js_skip.sh
-          echo ::set-env name=JS_SKIP_TEST::yellow
-      - run: |
-          echo $BUILD_SKIP
-          echo $JS_SKIP_TEST
-      - run: echo $JS_SKIP
+        run: source .github/scripts/check_js_skip.sh
       - name: Cache node
         uses: actions/cache@v1
         with:
@@ -120,6 +109,7 @@ jobs:
   ############################################################################
   linux-smoke-node:
     name: Linux node${{ matrix.NODEJS_VERSION }} smoke test
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     env:
       CI: True
@@ -129,14 +119,16 @@ jobs:
       matrix:
         NODEJS_VERSION: ['13']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
+        run: source .github/scripts/check_skip.sh
       - name: Check js skip
-        run: .github/scripts/check_js_skip.sh
+        run: source .github/scripts/check_js_skip.sh
       - name: Cache node
         uses: actions/cache@v1
         with:
@@ -158,6 +150,7 @@ jobs:
 
   linux-smoke-py:
     name: Linux py${{ matrix.PYTHON_VERSION }} smoke test
+    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     env:
       CI: True
@@ -167,14 +160,16 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.8']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
-      - name: Check js skip
-        run: .github/scripts/check_python_skip.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check py skip
+        run: source .github/scripts/check_py_skip.sh
       - name: Cache pip
         uses: actions/cache@v1
         with:
@@ -212,14 +207,16 @@ jobs:
       matrix:
         NODEJS_VERSION: ['10', '12']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
+        run: source .github/scripts/check_skip.sh
       - name: Check js skip
-        run: .github/scripts/check_js_skip.sh
+        run: source .github/scripts/check_js_skip.sh
       - name: Cache node
         uses: actions/cache@v1
         with:
@@ -251,14 +248,16 @@ jobs:
       matrix:
         NODEJS_VERSION: ['13']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
-      - name: Check python skip
-        run: .github/scripts/check_js_skip.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check js skip
+        run: source .github/scripts/check_js_skip.sh
       - name: Cache node
         uses: actions/cache@v1
         with:
@@ -290,14 +289,16 @@ jobs:
       matrix:
         NODEJS_VERSION: ['13']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
-      - name: Check python skip
-        run: .github/scripts/check_js_skip.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check js skip
+        run: source .github/scripts/check_js_skip.sh
       - name: Cache node
         uses: actions/cache@v1
         with:
@@ -333,13 +334,16 @@ jobs:
         PYTHON_VERSION: ['2.7', '3.5', '3.6', '3.7']
     steps:
       - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
-      - name: Check python skip
-        run: .github/scripts/check_python_skip.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check py skip
+        run: source .github/scripts/check_py_skip.sh
       - name: Cache pip
         uses: actions/cache@v1
         with:
@@ -375,14 +379,16 @@ jobs:
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.8']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
-      - name: Check python skip
-        run: .github/scripts/check_python_skip.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check py skip
+        run: source .github/scripts/check_py_skip.sh
       - name: Cache pip
         uses: actions/cache@v1
         with:
@@ -423,14 +429,16 @@ jobs:
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.8']
     steps:
-      - name: Checkout branch
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fetch branches and tags
+        run: git fetch --prune --unshallow
       - name: Check build skip
-        run: .github/scripts/skip.sh
-      - name: Check python skip
-        run: .github/scripts/check_python_skip.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check py skip
+        run: source .github/scripts/check_py_skip.sh
       - name: Cache pip
         uses: actions/cache@v1
         with:
