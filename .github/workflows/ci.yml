@@ -19,6 +19,11 @@ jobs:
     - uses: rokroskar/workflow-run-cleanup-action@master
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    - run: |
+        git status
+        git branch
+        git remote -v
+
 
   ############################################################################
   # Lint jobs
