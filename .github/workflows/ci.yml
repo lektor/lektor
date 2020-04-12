@@ -14,11 +14,11 @@ jobs:
   # Close previous builds on the same branch
   ############################################################################
   cleanup-previous-runs:
-  runs-on: ubuntu-latest
-  steps:
-  - uses: rokroskar/workflow-run-cleanup-action@master
-    env:
-      GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   ############################################################################
   # Lint jobs
