@@ -81,7 +81,7 @@ jobs:
       - name: Check build skip
         shell: bash
         run: |
-          bash .github/scripts/check_skip.sh
+          source .github/scripts/check_skip.sh
           echo $BUILD_SKIP
           echo "::set-output name=BUILD_SKIP::$BUILD_SKIP"
       - name: Check js skip
