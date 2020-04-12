@@ -220,3 +220,5 @@ class Context(object):
             yield
         finally:
             self._forced_base_url = old
+
+
