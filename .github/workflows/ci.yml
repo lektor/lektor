@@ -17,9 +17,9 @@ jobs:
     name: Cleanup previous builds
     runs-on: ubuntu-latest
     steps:
-      - uses: rokroskar/workflow-run-cleanup-action@master
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
 
   ############################################################################
@@ -38,33 +38,28 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Fetch branches and tags
         run: git fetch --prune --unshallow
-      - name: Check build skips
-        run: |
-          source .github/scripts/check_skip.sh
-          source .github/scripts/check_py_skip.sh
+      - name: Check build skip
+        run: source .github/scripts/check_skip.sh
+      - name: Check py skip
+        run: source .github/scripts/check_py_skip.sh
       - name: Cache pip
         uses: actions/cache@v1
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.8-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup Python
         uses: actions/setup-python@v1
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
         with:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install python dependencies
         run: python -m pip install --editable .[test]
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
       - name: Show python environment
         run: |
           python --version
           python -m pip list
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
       - name: Run python lint
         run: pylint lektor
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
 
   lint-js:
     name: Lint JS
