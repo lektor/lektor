@@ -1152,13 +1152,19 @@ class Builder(object):
         """Fast way to update all source infos without having to build
         everything.
         """
-        with reporter.build('source info update', self):
-            with self.new_build_state() as build_state:
-                to_build = self.get_initial_build_queue()
-                while to_build:
-                    source = to_build.popleft()
-                    with reporter.process_source(source):
-                        prog = self.get_build_program(source, build_state)
-                        self.update_source_info(prog, build_state)
-                    self.extend_build_queue(to_build, prog)
-            build_state.prune_source_infos()
+        # We keep a dummy connection here that does not do anything which
+        # helps us with the WAL handling.  See #144
+        con = self.connect_to_database()
+        try:
+            with reporter.build('source info update', self):
+                with self.new_build_state() as build_state:
+                    to_build = self.get_initial_build_queue()
+                    while to_build:
+                        source = to_build.popleft()
+                        with reporter.process_source(source):
+                            prog = self.get_build_program(source, build_state)
+                            self.update_source_info(prog, build_state)
+                        self.extend_build_queue(to_build, prog)
+                build_state.prune_source_infos()
+        finally:
+            con.close()
