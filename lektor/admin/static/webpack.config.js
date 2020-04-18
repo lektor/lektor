@@ -13,7 +13,6 @@ module.exports = {
       'bootstrap',
       'react',
       'react-dom',
-      'react-addons-update',
       'react-router-dom'
     ]
   },

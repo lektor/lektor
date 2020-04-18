@@ -1,71 +1,39 @@
 'use strict'
 
-import PropTypes from 'prop-types'
+import { widgetPropTypes } from './mixins'
 import React from 'react'
-import createReactClass from 'create-react-class'
-import { BasicWidgetMixin } from './mixins'
 import i18n from '../i18n'
 
-const FakeWidgetMixin = {
-  mixins: [BasicWidgetMixin],
-  propTypes: {
-    field: PropTypes.any
-  },
-
-  statics: {
-    isFakeWidget: true
-  }
+export function LineWidget () {
+  return <hr />
 }
+LineWidget.isFakeWidget = true
+LineWidget.propTypes = widgetPropTypes
 
-const LineWidget = createReactClass({
-  displayName: 'LineWidget',
-  mixins: [FakeWidgetMixin],
-
-  render () {
-    return <hr />
-  }
-})
-
-const SpacingWidget = createReactClass({
-  displayName: 'SpacingWidget',
-  mixins: [FakeWidgetMixin],
-
-  render () {
-    return <div className='spacing' />
-  }
-})
-
-const InfoWidget = createReactClass({
-  displayName: 'InfoWidget',
-  mixins: [FakeWidgetMixin],
-
-  render () {
-    const label = i18n.trans(this.props.field.label_i18n)
-    return (
-      <div className='info'>
-        <p>
-          {label ? <strong>{label + ': '}</strong> : null}
-          {i18n.trans(this.props.field.description_i18n)}
-        </p>
-      </div>
-    )
-  }
-})
-
-const HeadingWidget = createReactClass({
-  displayName: 'HeadingWidget',
-  mixins: [FakeWidgetMixin],
-
-  render () {
-    return (
-      <h3>{i18n.trans(this.props.type.heading_i18n)}</h3>
-    )
-  }
-})
-
-export default {
-  LineWidget: LineWidget,
-  SpacingWidget: SpacingWidget,
-  InfoWidget: InfoWidget,
-  HeadingWidget: HeadingWidget
+export function SpacingWidget () {
+  return <div className='spacing' />
 }
+SpacingWidget.isFakeWidget = true
+SpacingWidget.propTypes = widgetPropTypes
+
+export function InfoWidget (props) {
+  const label = i18n.trans(props.field.label_i18n)
+  return (
+    <div className='info'>
+      <p>
+        {label ? <strong>{label + ': '}</strong> : null}
+        {i18n.trans(props.field.description_i18n)}
+      </p>
+    </div>
+  )
+}
+InfoWidget.isFakeWidget = true
+InfoWidget.propTypes = widgetPropTypes
+
+export function HeadingWidget (props) {
+  return (
+    <h3>{i18n.trans(props.type.heading_i18n)}</h3>
+  )
+}
+HeadingWidget.isFakeWidget = true
+HeadingWidget.propTypes = widgetPropTypes

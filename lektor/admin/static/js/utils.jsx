@@ -101,17 +101,6 @@ export function urlToFsPath (urlPath) {
   return segments.join('/')
 }
 
-export function urlPathToSegments (urlPath) {
-  if (!urlPath) {
-    return null
-  }
-  const rv = urlPath.match(/^:*(.*?):*$/)[1].split('/')
-  if (rv.length >= 1 && rv[0] === 'root') {
-    return rv.slice(1)
-  }
-  return null
-}
-
 export function fsPathFromAdminObservedPath (adminPath) {
   const base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1]
   if (adminPath.substr(0, base.length) !== base) {

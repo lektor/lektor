@@ -1,126 +1,98 @@
 'use strict'
 
 import React from 'react'
-import createReactClass from 'create-react-class'
 import { flipSetValue } from '../utils'
 import i18n from '../i18n'
-import { BasicWidgetMixin } from './mixins'
+import { getInputClass, widgetPropTypes } from './mixins'
 
-const CheckboxesInputWidget = createReactClass({
-  displayName: 'CheckboxesInputWidget',
-  mixins: [BasicWidgetMixin],
-
-  statics: {
-    deserializeValue: (value) => {
-      if (value === '') {
-        return null
-      }
-      let rv = value.split(',').map((x) => {
-        return x.match(/^\s*(.*?)\s*$/)[1]
-      })
-      if (rv.length === 1 && rv[0] === '') {
-        rv = []
-      }
-      return rv
-    },
-
-    serializeValue: (value) => {
-      return (value || '').join(', ')
-    }
-  },
-
-  onChange: function (field, event) {
-    const newValue = flipSetValue(this.props.value,
-      field, event.target.checked)
-    if (this.props.onChange) {
-      this.props.onChange(newValue)
-    }
-  },
-
-  isActive: function (field) {
-    let value = this.props.value
+function checkboxIsActive (field, props) {
+  let value = props.value
+  if (value == null) {
+    value = props.placeholder
     if (value == null) {
-      value = this.props.placeholder
-      if (value == null) {
-        return false
-      }
+      return false
     }
-    for (const item of value) {
-      if (item === field) {
-        return true
-      }
+  }
+  for (const item of value) {
+    if (item === field) {
+      return true
     }
-    return false
-  },
+  }
+  return false
+}
+
+export class CheckboxesInputWidget extends React.PureComponent {
+  static serializeValue (value) {
+    return (value || '').join(', ')
+  }
+
+  static deserializeValue (value) {
+    if (value === '') {
+      return null
+    }
+    let rv = value.split(',').map((x) => {
+      return x.match(/^\s*(.*?)\s*$/)[1]
+    })
+    if (rv.length === 1 && rv[0] === '') {
+      rv = []
+    }
+    return rv
+  }
 
   render () {
-    let { className, value, placeholder, type, ...otherProps } = this.props // eslint-disable-line no-unused-vars
+    let { className, value, placeholder, type, onChange, ...otherProps } = this.props
     className = (className || '') + ' checkbox'
 
-    const choices = this.props.type.choices.map((item) => {
-      return (
-        <div className={className} key={item[0]}>
-          <label>
-            <input
-              type='checkbox'
-              {...otherProps}
-              checked={this.isActive(item[0])}
-              onChange={this.onChange.bind(this, item[0])}
-            />
-            {i18n.trans(item[1])}
-          </label>
-        </div>
-      )
-    })
+    function onChangeHandler (field, event) {
+      const newValue = flipSetValue(this.props.value, field, event.target.checked)
+      onChange(newValue)
+    }
+
+    const choices = type.choices.map((item) => (
+      <div className={className} key={item[0]}>
+        <label>
+          <input
+            type='checkbox'
+            {...otherProps}
+            checked={checkboxIsActive(item[0], this.props)}
+            onChange={(e) => onChangeHandler(item[0], e)}
+          />
+          {i18n.trans(item[1])}
+        </label>
+      </div>
+    ))
     return (
       <div className='checkboxes'>
         {choices}
       </div>
     )
   }
-})
-
-const SelectInputWidget = createReactClass({
-  displayName: 'SelectInputWidget',
-  mixins: [BasicWidgetMixin],
-
-  onChange (event) {
-    this.props.onChange(event.target.value)
-  },
-
-  render () {
-    let { className, type, value, placeholder, onChange, ...otherProps } = this.props // eslint-disable-line no-unused-vars
-    value = value || placeholder
-
-    const choices = this.props.type.choices.map((item) => {
-      return (
-        <option key={item[0]} value={item[0]}>
-          {i18n.trans(item[1])}
-        </option>
-      )
-    })
-    choices.unshift(
-      <option key='' value=''>----</option>
-    )
-
-    return (
-      <div className='form-group'>
-        <div className={className}>
-          <select
-            className={this.getInputClass()}
-            onChange={onChange ? this.onChange : null}
-            value={value}
-            {...otherProps}
-          >
-            {choices}
-          </select>
-        </div>
-      </div>
-    )
-  }
-})
-
-export default {
-  CheckboxesInputWidget: CheckboxesInputWidget,
-  SelectInputWidget: SelectInputWidget
 }
+CheckboxesInputWidget.propTypes = widgetPropTypes
+
+export function SelectInputWidget (props) {
+  const { className, type, value, placeholder, onChange, ...otherProps } = props
+
+  const choices = type.choices.map((item) => (
+    <option key={item[0]} value={item[0]}>
+      {i18n.trans(item[1])}
+    </option>
+  ))
+
+  return (
+    <div className='form-group'>
+      <div className={className}>
+        <select
+          className={getInputClass(type)}
+          value={value || placeholder || ''}
+          onChange={(e) => onChange(e.target.value)}
+          {...otherProps}
+        >
+          <option key='' value=''>----</option>
+          {choices}
+        </select>
+      </div>
+    </div>
+  )
+}
+SelectInputWidget.propTypes = widgetPropTypes

@@ -1,7 +1,7 @@
 'use strict'
 
 import Component from './Component'
-import { getParentFsPath, urlToFsPath, fsToUrlPath, urlPathToSegments } from '../utils'
+import { getParentFsPath, urlToFsPath, fsToUrlPath } from '../utils'
 
 export function getRecordPathAndAlt (path) {
   if (!path) {
@@ -13,13 +13,7 @@ export function getRecordPathAndAlt (path) {
 
 /* a react component baseclass that has some basic knowledge about
    the record it works with. */
-class RecordComponent extends Component {
-  /* this returns the current record path segments as array */
-  getRecordPathSegments () {
-    const path = this.props.match.params.path
-    return path ? urlPathToSegments(path) : []
-  }
-
+export default class RecordComponent extends Component {
   /* this returns the path of the current record.  If the current page does
    * not have a path component then null is returned. */
   getRecordPath () {
@@ -53,34 +47,4 @@ class RecordComponent extends Component {
   getParentRecordPath () {
     return getParentFsPath(this.getRecordPath())
   }
-
-  /* returns true if this is the root record */
-  isRootRecord () {
-    return this.getRecordPath() === ''
-  }
-
-  /* returns the breadcrumbs for the current record path */
-  getRecordCrumbs () {
-    const segments = this.getRecordPathSegments()
-    if (segments === null) {
-      return []
-    }
-
-    segments.unshift('root')
-
-    const rv = []
-    for (let i = 0; i < segments.length; i++) {
-      const curpath = segments.slice(0, i + 1).join(':')
-      rv.push({
-        id: 'path:' + curpath,
-        urlPath: curpath,
-        segments: segments.slice(1, i + 1),
-        title: segments[i]
-      })
-    }
-
-    return rv
-  }
 }
-
-export default RecordComponent

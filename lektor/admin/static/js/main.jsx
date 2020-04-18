@@ -2,17 +2,15 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import i18n from './i18n'
 
-/* eslint-disable no-unused-vars */
-import Bootstrap from 'bootstrap'
-import BootstrapExtras from './bootstrap-extras'
-import FACss from 'font-awesome/css/font-awesome.css'
+import 'bootstrap'
+import './bootstrap-extras'
+import 'font-awesome/css/font-awesome.css'
 
 // polyfill for internet explorer
-import EventSource from 'event-source-polyfill'
-/* eslint-enable no-unused-vars */
+import 'event-source-polyfill'
 
 // route targets
 import App from './views/App'
@@ -43,6 +41,9 @@ function Main (props) {
         <Route name='preview' path={`${path}/:path/preview`} component={PreviewPage} />
         <Route name='add-child' path={`${path}/:path/add-child`} component={AddChildPage} />
         <Route name='upload' path={`${path}/:path/upload`} component={AddAttachmentPage} />
+        <Route exact path={path}>
+          <Redirect to={`${path}/root/edit`} />
+        </Route>
         <Route component={BadRoute} />
       </Switch>
     </App>
