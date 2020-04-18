@@ -38,11 +38,12 @@ class DialogSlot extends React.Component {
   render () {
     let dialog = null
     if (this.state.currentDialog) {
-      dialog = <this.state.currentDialog
-        ref={(ref) => this.initDialogInstance(ref)}
-        {...this.props}
-        {...this.state.currentDialogOptions}
-      />
+      dialog = (
+        <this.state.currentDialog
+          ref={(ref) => this.initDialogInstance(ref)}
+          {...this.props}
+          {...this.state.currentDialogOptions}
+        />)
     } else {
       dialogSystem.notifyDialogInstance(null)
     }

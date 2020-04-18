@@ -30,8 +30,12 @@ class ToggleGroup extends React.Component {
     return (
       <div className={className} {...otherProps}>
         <div className='header'>
-          <h4 className='toggle' onClick={
-            this.toggle.bind(this)}>{groupTitle}</h4>
+          <h4
+            className='toggle' onClick={
+              this.toggle.bind(this)
+            }
+          >{groupTitle}
+          </h4>
         </div>
         <div className='children'>
           {children}

@@ -3,7 +3,7 @@
 import React from 'react'
 import RecordComponent from './RecordComponent'
 import Link from './Link'
-import utils from '../utils'
+import { loadData, isMetaKey, getCanonicalUrl } from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import FindFiles from '../dialogs/findFiles'
@@ -46,7 +46,7 @@ class BreadCrumbs extends RecordComponent {
       return
     }
 
-    utils.loadData('/pathinfo', { path: path }, null, makeRichPromise)
+    loadData('/pathinfo', { path: path }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           recordPathInfo: {
@@ -59,22 +59,22 @@ class BreadCrumbs extends RecordComponent {
 
   _onKeyPress (event) {
     // meta+g is open find files
-    if (event.which === 71 && utils.isMetaKey(event)) {
+    if (event.which === 71 && isMetaKey(event)) {
       event.preventDefault()
       dialogSystem.showDialog(FindFiles)
     }
   }
 
   _onCloseClick (e) {
-    utils.loadData('/previewinfo', {
+    loadData('/previewinfo', {
       path: this.getRecordPath(),
       alt: this.getRecordAlt()
     }, null, makeRichPromise)
       .then((resp) => {
         if (resp.url === null) {
-          window.location.href = utils.getCanonicalUrl('/')
+          window.location.href = getCanonicalUrl('/')
         } else {
-          window.location.href = utils.getCanonicalUrl(resp.url)
+          window.location.href = getCanonicalUrl(resp.url)
         }
       })
   }
@@ -94,18 +94,34 @@ class BreadCrumbs extends RecordComponent {
   renderGlobalActions () {
     return (
       <div className='btn-group'>
-        <button className='btn btn-default' onClick={
-          this._onFindFiles.bind(this)} title={i18n.trans('FIND_FILES')}>
-          <i className='fa fa-search fa-fw' /></button>
-        <button className='btn btn-default' onClick={
-          this._onPublish.bind(this)} title={i18n.trans('PUBLISH')}>
-          <i className='fa fa-cloud-upload fa-fw' /></button>
-        <button className='btn btn-default' onClick={
-          this._onRefresh.bind(this)} title={i18n.trans('REFRESH_BUILD')}>
-          <i className='fa fa-refresh fa-fw' /></button>
-        <button className='btn btn-default' onClick={
-          this._onCloseClick.bind(this)} title={i18n.trans('RETURN_TO_WEBSITE')}>
-          <i className='fa fa-eye fa-fw' /></button>
+        <button
+          className='btn btn-default' onClick={
+            this._onFindFiles.bind(this)
+          } title={i18n.trans('FIND_FILES')}
+        >
+          <i className='fa fa-search fa-fw' />
+        </button>
+        <button
+          className='btn btn-default' onClick={
+            this._onPublish.bind(this)
+          } title={i18n.trans('PUBLISH')}
+        >
+          <i className='fa fa-cloud-upload fa-fw' />
+        </button>
+        <button
+          className='btn btn-default' onClick={
+            this._onRefresh.bind(this)
+          } title={i18n.trans('REFRESH_BUILD')}
+        >
+          <i className='fa fa-refresh fa-fw' />
+        </button>
+        <button
+          className='btn btn-default' onClick={
+            this._onCloseClick.bind(this)
+          } title={i18n.trans('RETURN_TO_WEBSITE')}
+        >
+          <i className='fa fa-eye fa-fw' />
+        </button>
       </div>
     )
   }
@@ -137,8 +153,11 @@ class BreadCrumbs extends RecordComponent {
       })
     } else {
       crumbs = (
-        <li><Link to={this.getPathToAdminPage('.edit', { path: 'root' })}>
-          {i18n.trans('BACK_TO_OVERVIEW')}</Link></li>
+        <li>
+          <Link to={this.getPathToAdminPage('.edit', { path: 'root' })}>
+            {i18n.trans('BACK_TO_OVERVIEW')}
+          </Link>
+        </li>
       )
     }
 
@@ -151,7 +170,10 @@ class BreadCrumbs extends RecordComponent {
             <li className='new-record-crumb'>
               <Link to={this.getPathToAdminPage('.add-child', {
                 path: this.getUrlRecordPathWithAlt(
-                  lastItem.path) })}>+</Link>
+                  lastItem.path)
+              })}
+              >+
+              </Link>
             </li>
           ) : null}
           {' ' /* this space is needed for chrome ... */}

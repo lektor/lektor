@@ -4,7 +4,7 @@ import React from 'react'
 
 import RecordComponent from '../components/RecordComponent'
 import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
+import { apiRequest } from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import makeRichPromise from '../richPromise'
@@ -38,7 +38,7 @@ class FindFiles extends RecordComponent {
         query: q
       })
 
-      utils.apiRequest('/find', {
+      apiRequest('/find', {
         data: {
           q: q,
           alt: this.getRecordAlt(),
@@ -103,7 +103,8 @@ class FindFiles extends RecordComponent {
           key={idx}
           className={idx === this.state.currentSelection ? 'active' : ''}
           onClick={this.onActiveItem.bind(this, idx)}
-          onMouseEnter={this.selectItem.bind(this, idx)}>
+          onMouseEnter={this.selectItem.bind(this, idx)}
+        >
           {parents}
           <strong>{result.title}</strong>
         </li>
@@ -120,15 +121,18 @@ class FindFiles extends RecordComponent {
       <SlideDialog
         hasCloseButton
         closeOnEscape
-        title={i18n.trans('FIND_FILES')}>
+        title={i18n.trans('FIND_FILES')}
+      >
         <div className='form-group'>
-          <input type='text'
+          <input
+            type='text'
             ref='q'
             className='form-control'
             value={this.state.query}
             onChange={this.onInputChange.bind(this)}
             onKeyDown={this.onInputKey.bind(this)}
-            placeholder={i18n.trans('FIND_FILES_PLACEHOLDER')} />
+            placeholder={i18n.trans('FIND_FILES_PLACEHOLDER')}
+          />
         </div>
         {this.renderResults()}
       </SlideDialog>

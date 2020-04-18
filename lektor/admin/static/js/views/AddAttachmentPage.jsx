@@ -6,7 +6,7 @@ import React from 'react'
 import RecordComponent from '../components/RecordComponent'
 import hub from '../hub'
 import { AttachmentsChangedEvent } from '../events'
-import utils from '../utils'
+import { loadData, getApiUrl } from '../utils'
 import i18n from '../i18n'
 import makeRichPromise from '../richPromise'
 
@@ -32,7 +32,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   syncDialog () {
-    utils.loadData('/newattachment', { path: this.getRecordPath() }, null, makeRichPromise)
+    loadData('/newattachment', { path: this.getRecordPath() }, null, makeRichPromise)
       .then((resp) => {
         this.setState({
           newAttachmentInfo: resp
@@ -86,7 +86,7 @@ class AddAttachmentPage extends RecordComponent {
     }
 
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', utils.getApiUrl('/newattachment'))
+    xhr.open('POST', getApiUrl('/newattachment'))
     xhr.onload = (event) => {
       this.onUploadComplete(JSON.parse(xhr.responseText), event)
     }
@@ -118,11 +118,15 @@ class AddAttachmentPage extends RecordComponent {
         <p>{i18n.trans('ADD_ATTACHMENT_NOTE')}</p>
         {this.renderCurrentFiles()}
         <p>{i18n.trans('PROGRESS')}: {this.state.currentProgress}%</p>
-        <input type='file' ref='file' multiple
-          style={{ display: 'none' }} onChange={this.onFileSelected.bind(this)} />
+        <input
+          type='file' ref='file' multiple
+          style={{ display: 'none' }} onChange={this.onFileSelected.bind(this)}
+        />
         <div className='actions'>
           <button className='btn btn-primary' onClick={this.uploadFile.bind(this)}>{
-            i18n.trans('UPLOAD')}</button>
+            i18n.trans('UPLOAD')
+          }
+          </button>
         </div>
       </div>
     )

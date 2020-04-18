@@ -15,7 +15,7 @@ const i18n = {
 
   setLanguageFromLocale (locale) {
     if (locale) {
-      let lang = locale.split(/[-_]/)[0].toLowerCase()
+      const lang = locale.split(/[-_]/)[0].toLowerCase()
       if (this.translations[lang] !== undefined) {
         this.currentLanguage = lang
       }

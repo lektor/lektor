@@ -15,15 +15,15 @@ import i18n from './i18n'
 const widgetComponents = {
   'singleline-text': primitiveWidgets.SingleLineTextInputWidget,
   'multiline-text': primitiveWidgets.MultiLineTextInputWidget,
-  'datepicker': primitiveWidgets.DateInputWidget,
-  'integer': primitiveWidgets.IntegerInputWidget,
-  'float': primitiveWidgets.FloatInputWidget,
-  'checkbox': primitiveWidgets.BooleanInputWidget,
-  'url': primitiveWidgets.UrlInputWidget,
-  'slug': primitiveWidgets.SlugInputWidget,
-  'flow': flowWidget.FlowWidget,
-  'checkboxes': multiWidgets.CheckboxesInputWidget,
-  'select': multiWidgets.SelectInputWidget,
+  datepicker: primitiveWidgets.DateInputWidget,
+  integer: primitiveWidgets.IntegerInputWidget,
+  float: primitiveWidgets.FloatInputWidget,
+  checkbox: primitiveWidgets.BooleanInputWidget,
+  url: primitiveWidgets.UrlInputWidget,
+  slug: primitiveWidgets.SlugInputWidget,
+  flow: flowWidget.FlowWidget,
+  checkboxes: multiWidgets.CheckboxesInputWidget,
+  select: multiWidgets.SelectInputWidget,
   'f-line': fakeWidgets.LineWidget,
   'f-spacing': fakeWidgets.SpacingWidget,
   'f-info': fakeWidgets.InfoWidget,
@@ -72,13 +72,15 @@ class FieldBox extends Component {
       inner = (
         <dl className={innerClassName}>
           {!field.hide_label ? <dt>{i18n.trans(field.label_i18n)}</dt> : null}
-          <dd>{description}<Widget
-            value={value}
-            onChange={onChange}
-            type={field.type}
-            placeholder={placeholder}
-            disabled={disabled}
-          /></dd>
+          <dd>{description}
+            <Widget
+              value={value}
+              onChange={onChange}
+              type={field.type}
+              placeholder={placeholder}
+              disabled={disabled}
+            />
+          </dd>
         </dl>
       )
     }
@@ -176,10 +178,15 @@ const renderFieldRows = (fields, isIllegalField, renderFunc) => {
   return [
     rv.normal,
     rv.system.length > 1
-      ? <ToggleGroup
-        key='sys'
-        groupTitle={i18n.trans('SYSTEM_FIELDS')}
-        defaultVisibility={false}>{rv.system}</ToggleGroup> : null
+      ? (
+        <ToggleGroup
+          key='sys'
+          groupTitle={i18n.trans('SYSTEM_FIELDS')}
+          defaultVisibility={false}
+        >
+          {rv.system}
+        </ToggleGroup>
+      ) : null
   ]
 }
 

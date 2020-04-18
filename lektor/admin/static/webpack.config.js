@@ -5,9 +5,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 module.exports = {
   mode: 'development',
   entry: {
-    'app': './js/main.jsx',
-    'styles': './less/main.less',
-    'vendor': [
+    app: './js/main.jsx',
+    styles: './less/main.less',
+    vendor: [
       'jquery',
       'querystring',
       'bootstrap',

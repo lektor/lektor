@@ -1,12 +1,11 @@
 'use strict'
 
 import React from 'react'
-import Component from '../components/Component'
-import utils from '../utils'
+import { loadData } from '../utils'
 import i18n from '../i18n'
 import makeRichPromise from '../richPromise'
 
-class ServerStatus extends Component {
+class ServerStatus extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
@@ -19,7 +18,6 @@ class ServerStatus extends Component {
   }
 
   componentDidMount () {
-    super.componentDidMount()
     this.intervalId = window.setInterval(this.onInterval, 2000)
   }
 
@@ -28,11 +26,10 @@ class ServerStatus extends Component {
       window.clearInterval(this.intervalId)
       this.intervalId = null
     }
-    super.componentWillUnmount()
   }
 
   onInterval () {
-    utils.loadData('/ping', {}, null, makeRichPromise)
+    loadData('/ping', {}, null, makeRichPromise)
       .then((resp) => {
         if (this.state.projectId === null) {
           this.setState({

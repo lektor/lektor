@@ -3,7 +3,7 @@
 import React from 'react'
 import Component from '../components/Component'
 import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
+import { apiRequest } from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import makeRichPromise from '../richPromise'
@@ -29,7 +29,7 @@ class Refresh extends Component {
     this.setState({
       currentState: 'CLEANING'
     })
-    utils.apiRequest('/clean', {
+    apiRequest('/clean', {
       method: 'POST'
     }, makeRichPromise).then((resp) => {
       this.setState({
@@ -49,7 +49,8 @@ class Refresh extends Component {
         <div>
           <h3>{this.state.currentState !== 'DONE'
             ? i18n.trans('CURRENTLY_REFRESHING_BUILD')
-            : i18n.trans('REFRESHING_BUILD_DONE')}</h3>
+            : i18n.trans('REFRESHING_BUILD_DONE')}
+          </h3>
         </div>
       )
     }
@@ -58,17 +59,24 @@ class Refresh extends Component {
       <SlideDialog
         hasCloseButton={false}
         closeOnEscape
-        title={i18n.trans('REFRESH_BUILD')}>
+        title={i18n.trans('REFRESH_BUILD')}
+      >
         <p>{i18n.trans('REFRESH_BUILD_NOTE')}</p>
         {progress}
         <div className='actions'>
-          <button type='submit' className='btn btn-primary'
+          <button
+            type='submit' className='btn btn-primary'
             disabled={!this.isSafeToNavigate()}
-            onClick={this.onRefresh.bind(this)}>{i18n.trans('REFRESH_BUILD')}</button>
-          <button type='submit' className='btn btn-default'
+            onClick={this.onRefresh.bind(this)}
+          >{i18n.trans('REFRESH_BUILD')}
+          </button>
+          <button
+            type='submit' className='btn btn-default'
             disabled={!this.isSafeToNavigate()}
-            onClick={this.onCancel.bind(this)}>{i18n.trans(
-              this.state.currentState === 'DONE' ? 'CLOSE' : 'CANCEL')}</button>
+            onClick={this.onCancel.bind(this)}
+          >{i18n.trans(
+              this.state.currentState === 'DONE' ? 'CLOSE' : 'CANCEL')}
+          </button>
         </div>
       </SlideDialog>
     )

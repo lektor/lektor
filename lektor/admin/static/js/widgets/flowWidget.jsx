@@ -20,9 +20,9 @@ const getWidgets = () => {
 }
 
 const parseFlowFormat = (value) => {
-  let blocks = []
+  const blocks = []
   let buf = []
-  let lines = value.split(/\r?\n/)
+  const lines = value.split(/\r?\n/)
   let block = null
 
   for (const line of lines) {
@@ -79,8 +79,8 @@ const serializeFlowFormat = (blocks) => {
 }
 
 const deserializeFlowBlock = (flowBlockModel, lines, localId) => {
-  let data = {}
-  let rawData = {}
+  const data = {}
+  const rawData = {}
 
   metaformat.tokenize(lines).forEach((item) => {
     const [key, lines] = item
@@ -91,8 +91,8 @@ const deserializeFlowBlock = (flowBlockModel, lines, localId) => {
   flowBlockModel.fields.forEach((field) => {
     let value = rawData[field.name] || ''
     const Widget = getWidgetComponent(field.type)
-    if (!value && field['default']) {
-      value = field['default']
+    if (!value && field.default) {
+      value = field.default
     }
     if (Widget && Widget.deserializeValue) {
       value = Widget.deserializeValue(value, field.type)
@@ -108,7 +108,7 @@ const deserializeFlowBlock = (flowBlockModel, lines, localId) => {
 }
 
 const serializeFlowBlock = (flockBlockModel, data) => {
-  let rv = []
+  const rv = []
   flockBlockModel.fields.forEach((field) => {
     const Widget = getWidgetComponent(field.type)
     if (Widget === null) {
@@ -219,7 +219,7 @@ const FlowWidget = createReactClass({
   renderFormField: function (blockInfo, field, idx) {
     const widgets = getWidgets()
     const value = blockInfo.data[field.name]
-    let placeholder = field['default']
+    let placeholder = field.default
     const Widget = widgets.getWidgetComponentWithFallback(field.type)
     if (Widget.deserializeValue && placeholder != null) {
       placeholder = Widget.deserializeValue(placeholder, field.type)
@@ -263,27 +263,31 @@ const FlowWidget = createReactClass({
               className='btn btn-default btn-xs'
               title={this.props.value[idx].collapsed ? i18n.trans('Expand') : i18n.trans('Collapse')}
               onClick={this.props.value[idx].collapsed
-                ? this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}>
+                ? this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}
+            >
               <i className={this.props.value[idx].collapsed ? 'fa fa-expand' : 'fa fa-compress'} />
             </button>
             <button
               className='btn btn-default btn-xs'
               title={i18n.trans('UP')}
               disabled={idx === 0}
-              onClick={this.moveBlock.bind(this, idx, -1)}>
+              onClick={this.moveBlock.bind(this, idx, -1)}
+            >
               <i className='fa fa-fw fa-chevron-up' />
             </button>
             <button
               className='btn btn-default btn-xs'
               title={i18n.trans('DOWN')}
               disabled={idx >= this.props.value.length - 1}
-              onClick={this.moveBlock.bind(this, idx, 1)}>
+              onClick={this.moveBlock.bind(this, idx, 1)}
+            >
               <i className='fa fa-fw fa-chevron-down' />
             </button>
             <button
               className='btn btn-default btn-xs'
               title={i18n.trans('REMOVE')}
-              onClick={this.removeBlock.bind(this, idx)}>
+              onClick={this.removeBlock.bind(this, idx)}
+            >
               <i className='fa fa-fw fa-times' />
             </button>
           </div>
@@ -295,11 +299,11 @@ const FlowWidget = createReactClass({
   },
 
   renderAddBlockSection () {
-    let choices = []
+    const choices = []
 
     this.props.type.flowblock_order.forEach((key) => {
-      let flowBlockModel = this.props.type.flowblocks[key]
-      let label = flowBlockModel.button_label
+      const flowBlockModel = this.props.type.flowblocks[key]
+      const label = flowBlockModel.button_label
         ? userLabel.format(flowBlockModel.button_label)
         : userLabel.format(flowBlockModel.name_i18n)
       choices.push([flowBlockModel.id, label, i18n.trans(flowBlockModel.name_i18n)])
@@ -312,7 +316,9 @@ const FlowWidget = createReactClass({
           className='btn btn-default'
           onClick={this.addNewBlock.bind(this, key)}
           title={title}
-          key={key}>{label}</button>
+          key={key}
+        >{label}
+        </button>
       )
     })
 

@@ -6,7 +6,8 @@ import React from 'react'
 import RecordComponent from '../components/RecordComponent'
 import i18n from '../i18n'
 import userLabel from '../userLabel'
-import utils from '../utils'
+import { apiRequest, loadData } from '../utils'
+import { slug as slugify } from '../slugify'
 import widgets from '../widgets'
 import makeRichPromise from '../richPromise'
 
@@ -41,7 +42,7 @@ class AddChildPage extends RecordComponent {
   }
 
   syncDialog () {
-    utils.loadData('/newrecord', { path: this.getRecordPath() }, null, makeRichPromise)
+    loadData('/newrecord', { path: this.getRecordPath() }, null, makeRichPromise)
       .then((resp) => {
         let selectedModel = resp.implied_model
         if (!selectedModel) {
@@ -82,7 +83,7 @@ class AddChildPage extends RecordComponent {
   }
 
   getImpliedId () {
-    return utils.slugify(this.state.primary || '').toLowerCase()
+    return slugify(this.state.primary || '').toLowerCase()
   }
 
   getPrimaryField () {
@@ -104,14 +105,14 @@ class AddChildPage extends RecordComponent {
     const data = {}
     const params = { id: id, path: this.getRecordPath(), data: data }
     if (!this.state.newChildInfo.implied_model) {
-      data['_model'] = this.state.selectedModel
+      data._model = this.state.selectedModel
     }
     const primaryField = this.getPrimaryField()
     if (primaryField) {
       data[primaryField.name] = this.state.primary
     }
 
-    utils.apiRequest('/newrecord', { json: params, method: 'POST' }, makeRichPromise)
+    apiRequest('/newrecord', { json: params, method: 'POST' }, makeRichPromise)
       .then((resp) => {
         if (resp.exists) {
           errMsg(i18n.trans('ERROR_PAGE_ID_DUPLICATE').replace('%s', id))
@@ -138,11 +139,15 @@ class AddChildPage extends RecordComponent {
           <div className='field-box col-md-12'>
             <dl className='field'>
               <dt>{i18n.trans('MODEL')}</dt>
-              <dd><select value={this.state.selectedModel}
-                className='form-control'
-                onChange={this.onModelSelected.bind(this)}>
-                {choices}
-              </select></dd>
+              <dd>
+                <select
+                  value={this.state.selectedModel}
+                  className='form-control'
+                  onChange={this.onModelSelected.bind(this)}
+                >
+                  {choices}
+                </select>
+              </dd>
             </dl>
           </div>
         </div>
@@ -160,12 +165,14 @@ class AddChildPage extends RecordComponent {
           <div className='field-box col-md-12'>
             <dl className='field'>
               <dt>{userLabel.format(field.label_i18n || field.label)}</dt>
-              <dd><Widget
-                value={value}
-                placeholder={placeholder}
-                onChange={this.onValueChange.bind(this, id)}
-                type={field.type}
-              /></dd>
+              <dd>
+                <Widget
+                  value={value}
+                  placeholder={placeholder}
+                  onChange={this.onValueChange.bind(this, id)}
+                  type={field.type}
+                />
+              </dd>
             </dl>
           </div>
         </div>
@@ -196,12 +203,17 @@ class AddChildPage extends RecordComponent {
     return (
       <div className='edit-area'>
         <h2>{i18n.trans('ADD_CHILD_PAGE_TO').replace(
-          '%s', this.state.newChildInfo.label)}</h2>
+          '%s', this.state.newChildInfo.label)}
+        </h2>
         <p>{i18n.trans('ADD_CHILD_PAGE_NOTE')}</p>
         {this.renderFields()}
         <div className='actions'>
-          <button className='btn btn-primary' onClick={
-            this.createRecord.bind(this)}>{i18n.trans('CREATE_CHILD_PAGE')}</button>
+          <button
+            className='btn btn-primary' onClick={
+              this.createRecord.bind(this)
+            }
+          >{i18n.trans('CREATE_CHILD_PAGE')}
+          </button>
         </div>
       </div>
     )

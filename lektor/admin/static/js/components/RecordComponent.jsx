@@ -1,7 +1,15 @@
 'use strict'
 
 import Component from './Component'
-import utils from '../utils'
+import { getParentFsPath, urlToFsPath, fsToUrlPath, urlPathToSegments } from '../utils'
+
+export function getRecordPathAndAlt (path) {
+  if (!path) {
+    return [null, null]
+  }
+  const items = path.split(/\+/, 2)
+  return [urlToFsPath(items[0]), items[1]]
+}
 
 /* a react component baseclass that has some basic knowledge about
    the record it works with. */
@@ -9,28 +17,19 @@ class RecordComponent extends Component {
   /* this returns the current record path segments as array */
   getRecordPathSegments () {
     const path = this.props.match.params.path
-    return path ? utils.urlPathToSegments(path) : []
-  }
-
-  _getRecordPathAndAlt () {
-    const path = this.props.match.params.path
-    if (!path) {
-      return [null, null]
-    }
-    const items = path.split(/\+/, 2)
-    return [utils.urlToFsPath(items[0]), items[1]]
+    return path ? urlPathToSegments(path) : []
   }
 
   /* this returns the path of the current record.  If the current page does
    * not have a path component then null is returned. */
   getRecordPath () {
-    const [path] = this._getRecordPathAndAlt()
+    const [path] = getRecordPathAndAlt(this.props.match.params.path)
     return path
   }
 
   /* returns the current alt */
   getRecordAlt () {
-    const [, alt] = this._getRecordPathAndAlt()
+    const [, alt] = getRecordPathAndAlt(this.props.match.params.path)
     return !alt ? '_primary' : alt
   }
 
@@ -43,7 +42,7 @@ class RecordComponent extends Component {
     if (newAlt === undefined || newAlt === null) {
       newAlt = this.getRecordAlt()
     }
-    let rv = utils.fsToUrlPath(newPath)
+    let rv = fsToUrlPath(newPath)
     if (newAlt !== '_primary') {
       rv += '+' + newAlt
     }
@@ -52,7 +51,7 @@ class RecordComponent extends Component {
 
   /* returns the parent path if available */
   getParentRecordPath () {
-    return utils.getParentFsPath(this.getRecordPath())
+    return getParentFsPath(this.getRecordPath())
   }
 
   /* returns true if this is the root record */

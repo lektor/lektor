@@ -6,7 +6,7 @@ import React from 'react'
 
 import Component from '../components/Component'
 import SlideDialog from '../components/SlideDialog'
-import utils from '../utils'
+import { apiRequest, loadData, getApiUrl } from '../utils'
 import i18n from '../i18n'
 import dialogSystem from '../dialogSystem'
 import makeRichPromise from '../richPromise'
@@ -44,7 +44,7 @@ class Publish extends Component {
   }
 
   syncDialog () {
-    utils.loadData('/servers', {}, null, makeRichPromise)
+    loadData('/servers', {}, null, makeRichPromise)
       .then(({ servers }) => {
         this.setState({
           servers: servers,
@@ -75,7 +75,7 @@ class Publish extends Component {
       log: [],
       currentState: 'BUILDING'
     })
-    utils.apiRequest('/build', {
+    apiRequest('/build', {
       method: 'POST'
     }, makeRichPromise).then((resp) => {
       this._beginPublish()
@@ -87,7 +87,7 @@ class Publish extends Component {
       currentState: 'PUBLISH'
     })
 
-    const es = new EventSource(utils.getApiUrl('/publish') +
+    const es = new EventSource(getApiUrl('/publish') +
       '?server=' + encodeURIComponent(this.state.activeTarget))
     es.addEventListener('message', (event) => {
       const data = JSON.parse(event.data)
@@ -125,9 +125,11 @@ class Publish extends Component {
         <div>
           <h3>{this.state.currentState !== 'DONE'
             ? i18n.trans('CURRENTLY_PUBLISHING')
-            : i18n.trans('PUBLISH_DONE')}</h3>
+            : i18n.trans('PUBLISH_DONE')}
+          </h3>
           <pre>{i18n.trans('STATE') + ': ' +
-            i18n.trans('PUBLISH_STATE_' + this.state.currentState)}</pre>
+            i18n.trans('PUBLISH_STATE_' + this.state.currentState)}
+          </pre>
           <pre ref='log' className='build-log'>{this.state.log.join('\n')}</pre>
         </div>
       )
@@ -137,7 +139,8 @@ class Publish extends Component {
       <SlideDialog
         hasCloseButton={false}
         closeOnEscape
-        title={i18n.trans('PUBLISH')}>
+        title={i18n.trans('PUBLISH')}
+      >
         <p>{i18n.trans('PUBLISH_NOTE')}</p>
         <dl>
           <dt>{i18n.trans('PUBLISH_SERVER')}</dt>
@@ -146,20 +149,27 @@ class Publish extends Component {
               <select
                 value={this.state.activeTarget}
                 onChange={this.onSelectServer.bind(this)}
-                className='form-control'>
+                className='form-control'
+              >
                 {servers}
               </select>
             </div>
           </dd>
         </dl>
         <div className='actions'>
-          <button type='submit' className='btn btn-primary'
+          <button
+            type='submit' className='btn btn-primary'
             disabled={!this.isSafeToPublish()}
-            onClick={this.onPublish.bind(this)}>{i18n.trans('PUBLISH')}</button>
-          <button type='submit' className='btn btn-default'
+            onClick={this.onPublish.bind(this)}
+          >{i18n.trans('PUBLISH')}
+          </button>
+          <button
+            type='submit' className='btn btn-default'
             disabled={!this.isSafeToPublish()}
-            onClick={this.onCancel.bind(this)}>{i18n.trans(
-              this.state.currentState === 'DONE' ? 'CLOSE' : 'CANCEL')}</button>
+            onClick={this.onCancel.bind(this)}
+          >{i18n.trans(
+              this.state.currentState === 'DONE' ? 'CLOSE' : 'CANCEL')}
+          </button>
         </div>
         {progress}
       </SlideDialog>

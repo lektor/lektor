@@ -12,9 +12,11 @@ function Header (props) {
   return (
     <header>
       <BreadCrumbs {...props}>
-        <button type='button' className='navbar-toggle'
+        <button
+          type='button' className='navbar-toggle'
           data-toggle='offcanvas'
-          data-target='.sidebar-block'>
+          data-target='.sidebar-block'
+        >
           <span className='sr-only'>Toggle navigation</span>
           <span className='icon-list' />
           <span className='icon-list' />

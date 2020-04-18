@@ -2,7 +2,7 @@
 
 import React from 'react'
 import createReactClass from 'create-react-class'
-import utils from '../utils'
+import { flipSetValue } from '../utils'
 import i18n from '../i18n'
 import { BasicWidgetMixin } from './mixins'
 
@@ -30,7 +30,7 @@ const CheckboxesInputWidget = createReactClass({
   },
 
   onChange: function (field, event) {
-    const newValue = utils.flipSetValue(this.props.value,
+    const newValue = flipSetValue(this.props.value,
       field, event.target.checked)
     if (this.props.onChange) {
       this.props.onChange(newValue)
@@ -61,10 +61,12 @@ const CheckboxesInputWidget = createReactClass({
       return (
         <div className={className} key={item[0]}>
           <label>
-            <input type='checkbox'
+            <input
+              type='checkbox'
               {...otherProps}
               checked={this.isActive(item[0])}
-              onChange={this.onChange.bind(this, item[0])} />
+              onChange={this.onChange.bind(this, item[0])}
+            />
             {i18n.trans(item[1])}
           </label>
         </div>
@@ -90,7 +92,7 @@ const SelectInputWidget = createReactClass({
     let { className, type, value, placeholder, onChange, ...otherProps } = this.props // eslint-disable-line no-unused-vars
     value = value || placeholder
 
-    let choices = this.props.type.choices.map((item) => {
+    const choices = this.props.type.choices.map((item) => {
       return (
         <option key={item[0]} value={item[0]}>
           {i18n.trans(item[1])}
@@ -98,7 +100,7 @@ const SelectInputWidget = createReactClass({
       )
     })
     choices.unshift(
-      <option key='' value=''>{'----'}</option>
+      <option key='' value=''>----</option>
     )
 
     return (
@@ -108,7 +110,8 @@ const SelectInputWidget = createReactClass({
             className={this.getInputClass()}
             onChange={onChange ? this.onChange : null}
             value={value}
-            {...otherProps}>
+            {...otherProps}
+          >
             {choices}
           </select>
         </div>
