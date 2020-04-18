@@ -5,23 +5,6 @@ import { flipSetValue } from '../utils'
 import i18n from '../i18n'
 import { getInputClass, widgetPropTypes } from './mixins'
 
-function deserializeCheckboxValue (value) {
-  if (value === '') {
-    return null
-  }
-  let rv = value.split(',').map((x) => {
-    return x.match(/^\s*(.*?)\s*$/)[1]
-  })
-  if (rv.length === 1 && rv[0] === '') {
-    rv = []
-  }
-  return rv
-}
-
-function serializeCheckboxValue (value) {
-  return (value || '').join(', ')
-}
-
 function checkboxIsActive (field, props) {
   let value = props.value
   if (value == null) {
@@ -38,37 +21,54 @@ function checkboxIsActive (field, props) {
   return false
 }
 
-export function CheckboxesInputWidget (props) {
-  let { className, value, placeholder, type, onChange, ...otherProps } = props
-  className = (className || '') + ' checkbox'
-
-  function onChangeHandler (field, event) {
-    const newValue = flipSetValue(props.value, field, event.target.checked)
-    onChange(newValue)
+export class CheckboxesInputWidget extends React.PureComponent {
+  static serializeValue (value) {
+    return (value || '').join(', ')
   }
 
-  const choices = type.choices.map((item) => (
-    <div className={className} key={item[0]}>
-      <label>
-        <input
-          type='checkbox'
-          {...otherProps}
-          checked={checkboxIsActive(item[0], props)}
-          onChange={(e) => onChangeHandler(item[0], e)}
-        />
-        {i18n.trans(item[1])}
-      </label>
-    </div>
-  ))
-  return (
-    <div className='checkboxes'>
-      {choices}
-    </div>
-  )
+  static deserializeValue (value) {
+    if (value === '') {
+      return null
+    }
+    let rv = value.split(',').map((x) => {
+      return x.match(/^\s*(.*?)\s*$/)[1]
+    })
+    if (rv.length === 1 && rv[0] === '') {
+      rv = []
+    }
+    return rv
+  }
+
+  render () {
+    let { className, value, placeholder, type, onChange, ...otherProps } = this.props
+    className = (className || '') + ' checkbox'
+
+    function onChangeHandler (field, event) {
+      const newValue = flipSetValue(this.props.value, field, event.target.checked)
+      onChange(newValue)
+    }
+
+    const choices = type.choices.map((item) => (
+      <div className={className} key={item[0]}>
+        <label>
+          <input
+            type='checkbox'
+            {...otherProps}
+            checked={checkboxIsActive(item[0], this.props)}
+            onChange={(e) => onChangeHandler(item[0], e)}
+          />
+          {i18n.trans(item[1])}
+        </label>
+      </div>
+    ))
+    return (
+      <div className='checkboxes'>
+        {choices}
+      </div>
+    )
+  }
 }
 CheckboxesInputWidget.propTypes = widgetPropTypes
-CheckboxesInputWidget.deserializeValue = deserializeCheckboxValue
-CheckboxesInputWidget.serializeValue = serializeCheckboxValue
 
 export function SelectInputWidget (props) {
   const { className, type, value, placeholder, onChange, ...otherProps } = props
