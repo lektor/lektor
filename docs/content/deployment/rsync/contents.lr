@@ -40,6 +40,8 @@ assumed.
 
 ## Deletion Support
 
+!! New in version 3.2.
+
 To keep two directories truly in sync when deploying with `rsync`,
 it's necessary to explicitly tell `rsync` to remove files or directories
 on target that don't exist on source anymore. This can be done using the
