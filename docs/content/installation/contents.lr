@@ -55,7 +55,7 @@ $ curl -sf https://www.getlektor.com/installer.py | sudo python3
 
 If you would like to install Lektor without being prompted, set LEKTOR_SILENT before running the prior command.
 
-For Windows you can install it directly in `Powershell`:
+For Windows, make sure that Python is in your `PATH` and run in `Powershell`:
 
 ```
 PS C:\> (new-object net.webclient).DownloadString('https://www.getlektor.com/installer.py') | python
