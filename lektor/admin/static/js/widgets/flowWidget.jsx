@@ -7,16 +7,7 @@ import i18n from '../i18n'
 import metaformat from '../metaformat'
 import { widgetPropTypes } from './mixins'
 import userLabel from '../userLabel'
-import widgets from '../widgets'
-
-/* circular references require us to do this */
-const getWidgetComponent = (type) => {
-  return widgets.getWidgetComponent(type)
-}
-
-const getWidgets = () => {
-  return widgets
-}
+import { getWidgetComponent, getWidgetComponentWithFallback, FieldBox, renderFieldRows } from '../widgets'
 
 const parseFlowFormat = (value) => {
   const blocks = []
@@ -162,18 +153,14 @@ export class FlowWidget extends React.Component {
     newValue[newIndex] = this.props.value[idx]
     newValue[idx] = this.props.value[newIndex]
 
-    if (this.props.onChange) {
-      this.props.onChange(newValue)
-    }
+    this.props.onChange(newValue)
   }
 
   removeBlock (idx, event) {
     event.preventDefault()
 
     if (confirm(i18n.trans('REMOVE_FLOWBLOCK_PROMPT'))) {
-      if (this.props.onChange) {
-        this.props.onChange(this.props.value.filter((item, i) => i !== idx))
-      }
+      this.props.onChange(this.props.value.filter((item, i) => i !== idx))
     }
   }
 
@@ -191,43 +178,36 @@ export class FlowWidget extends React.Component {
       ...this.props.value,
       deserializeFlowBlock(flowBlockModel, [], newBlockId)
     ]
-    if (this.props.onChange) {
-      this.props.onChange(newValue)
-    }
+    this.props.onChange(newValue)
   }
 
   collapseBlock (idx) {
     const newValue = [...this.props.value]
     newValue[idx] = { ...this.props.value[idx], collapsed: true }
-    if (this.props.onChange) {
-      this.props.onChange(newValue)
-    }
+    this.props.onChange(newValue)
   }
 
   expandBlock (idx) {
     const newValue = [...this.props.value]
     newValue[idx] = { ...this.props.value[idx], collapsed: false }
-    if (this.props.onChange) {
-      this.props.onChange(newValue)
-    }
+    this.props.onChange(newValue)
   }
 
   renderFormField (blockInfo, field, idx) {
-    const widgets = getWidgets()
     const value = blockInfo.data[field.name]
     let placeholder = field.default
-    const Widget = widgets.getWidgetComponentWithFallback(field.type)
+    const Widget = getWidgetComponentWithFallback(field.type)
     if (Widget.deserializeValue && placeholder != null) {
       placeholder = Widget.deserializeValue(placeholder, field.type)
     }
 
-    const onChange = !this.props.onChange ? null : (value) => {
+    const onChange = (value) => {
       blockInfo.data[field.name] = value
       this.props.onChange([...this.props.value])
     }
 
     return (
-      <widgets.FieldBox
+      <FieldBox
         key={idx}
         value={value}
         placeholder={placeholder}
@@ -238,15 +218,13 @@ export class FlowWidget extends React.Component {
   }
 
   renderBlocks () {
-    const widgets = getWidgets()
-
     return this.props.value.map((blockInfo, idx) => {
       // bad block is no block
       if (blockInfo === null) {
         return null
       }
 
-      const fields = widgets.renderFieldRows(
+      const fields = renderFieldRows(
         blockInfo.flowBlockModel.fields,
         null,
         this.renderFormField.bind(this, blockInfo)
@@ -329,11 +307,8 @@ export class FlowWidget extends React.Component {
   }
 
   render () {
-    let { className } = this.props
-    className = (className || '') + ' flow'
-
     return (
-      <div className={className}>
+      <div className='flow'>
         {this.renderBlocks()}
         {this.renderAddBlockSection()}
       </div>

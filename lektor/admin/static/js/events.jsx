@@ -14,14 +14,14 @@ Event.getEventType = function () {
   return this.name
 }
 
-class RecordEvent extends Event {
+export class RecordEvent extends Event {
   constructor (options) {
     super(options = options || {})
     this.recordPath = options.recordPath
   }
 }
 
-class AttachmentsChangedEvent extends RecordEvent {
+export class AttachmentsChangedEvent extends RecordEvent {
   constructor (options) {
     super(options = options || {})
     this.attachmentsAdded = options.attachmentsAdded || []
@@ -29,17 +29,10 @@ class AttachmentsChangedEvent extends RecordEvent {
   }
 }
 
-class DialogChangedEvent extends Event {
+export class DialogChangedEvent extends Event {
   constructor (options) {
     super(options = options || {})
     this.dialog = options.dialog
     this.dialogOptions = options.dialogOptions
   }
-}
-
-export {
-  Event,
-  RecordEvent,
-  AttachmentsChangedEvent,
-  DialogChangedEvent
 }

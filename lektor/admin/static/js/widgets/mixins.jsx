@@ -10,7 +10,8 @@ export const widgetPropTypes = {
   value: PropTypes.any,
   type: PropTypes.object,
   placeholder: PropTypes.any,
-  onChange: PropTypes.func
+  onChange: PropTypes.any,
+  disabled: PropTypes.bool
 }
 
 export function getInputClass (type) {

@@ -40,7 +40,7 @@ function FallbackWidget (props) {
 }
 FallbackWidget.propTypes = widgetPropTypes
 
-class FieldBox extends React.PureComponent {
+export class FieldBox extends React.PureComponent {
   render () {
     const { field, value, placeholder, disabled } = this.props
     const onChange = this.props.onChange ? this.props.onChange : (value) => this.props.setFieldValue(field, value)
@@ -95,11 +95,11 @@ FieldBox.propTypes = {
   placeholder: PropTypes.any
 }
 
-const getWidgetComponent = (type) => {
+export const getWidgetComponent = (type) => {
   return widgetComponents[type.widget] || null
 }
 
-const getWidgetComponentWithFallback = (type) => {
+export const getWidgetComponentWithFallback = (type) => {
   return widgetComponents[type.widget] || FallbackWidget
 }
 
@@ -153,7 +153,7 @@ const getFieldRows = (fields, isIllegalField) => {
   return rv
 }
 
-const renderFieldRows = (fields, isIllegalField, renderFunc) => {
+export const renderFieldRows = (fields, isIllegalField, renderFunc) => {
   const rv = {
     normal: [],
     system: []
@@ -183,13 +183,4 @@ const renderFieldRows = (fields, isIllegalField, renderFunc) => {
         </ToggleGroup>
       ) : null
   ]
-}
-
-export default {
-  getWidgetComponent: getWidgetComponent,
-  getWidgetComponentWithFallback: getWidgetComponentWithFallback,
-  getFieldRows: getFieldRows,
-  renderFieldRows: renderFieldRows,
-  getFieldColumns: getFieldColumns,
-  FieldBox: FieldBox
 }

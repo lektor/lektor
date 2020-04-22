@@ -6,7 +6,7 @@ import { Prompt } from 'react-router-dom'
 import RecordComponent from '../components/RecordComponent'
 import { apiRequest, loadData, isMetaKey } from '../utils'
 import i18n from '../i18n'
-import widgets from '../widgets'
+import { getWidgetComponentWithFallback, FieldBox, renderFieldRows } from '../widgets'
 import makeRichPromise from '../richPromise'
 
 class EditPage extends RecordComponent {
@@ -72,7 +72,7 @@ class EditPage extends RecordComponent {
         // transform resp.data into actual data
         const recordData = {}
         resp.datamodel.fields.forEach(field => {
-          const widget = widgets.getWidgetComponentWithFallback(field.type)
+          const widget = getWidgetComponentWithFallback(field.type)
           let value = resp.data[field.name]
           if (value !== undefined) {
             if (widget.deserializeValue) {
@@ -108,7 +108,7 @@ class EditPage extends RecordComponent {
       let value = this.state.recordData[field.name]
 
       if (value !== undefined) {
-        const Widget = widgets.getWidgetComponentWithFallback(field.type)
+        const Widget = getWidgetComponentWithFallback(field.type)
         if (Widget.serializeValue) {
           value = Widget.serializeValue(value, field.type)
         }
@@ -176,9 +176,9 @@ class EditPage extends RecordComponent {
   }
 
   renderFormField (field, idx) {
-    const widget = widgets.getWidgetComponentWithFallback(field.type)
+    const widget = getWidgetComponentWithFallback(field.type)
     return (
-      <widgets.FieldBox
+      <FieldBox
         key={idx}
         value={this.getValueForField(widget, field)}
         placeholder={this.getPlaceholderForField(widget, field)}
@@ -190,7 +190,7 @@ class EditPage extends RecordComponent {
   }
 
   renderFormFields () {
-    return widgets.renderFieldRows(
+    return renderFieldRows(
       this.state.recordDataModel.fields,
       this.isIllegalField.bind(this),
       this.renderFormField.bind(this)
