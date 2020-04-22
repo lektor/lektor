@@ -95,21 +95,51 @@ FieldBox.propTypes = {
   placeholder: PropTypes.any
 }
 
-export const getWidgetComponent = (type) => {
+export function getWidgetComponent (type) {
   return widgetComponents[type.widget] || null
 }
 
-export const getWidgetComponentWithFallback = (type) => {
+export function getWidgetComponentWithFallback (type) {
   return widgetComponents[type.widget] || FallbackWidget
 }
 
-const getFieldColumns = (field) => {
+/**
+ * Get the width of a field in columns.
+ */
+function getFieldColumns (field) {
   const widthSpec = (field.type.width || '1/1').split('/')
   return Math.min(12, Math.max(2, parseInt(
     12 * +widthSpec[0] / +widthSpec[1])))
 }
 
-const getFieldRows = (fields, isIllegalField) => {
+/**
+ * Process fields into rows.
+ */
+function processFields (rowType, fields) {
+  const rv = []
+  let currentColumns = 0
+  let row = []
+
+  fields.forEach((field) => {
+    const columns = getFieldColumns(field)
+    if (columns + currentColumns > 12) {
+      rv.push([rowType, row])
+      currentColumns = 0
+      row = []
+    }
+    row.push(field)
+    currentColumns += columns
+  })
+
+  if (row.length > 0) {
+    rv.push([rowType, row])
+  }
+}
+
+/**
+ * Split the fields into normal and system fields and process into rows.
+ */
+function getFieldRows (fields, isIllegalField) {
   const normalFields = []
   const systemFields = []
 
@@ -127,30 +157,10 @@ const getFieldRows = (fields, isIllegalField) => {
     }
   })
 
-  const processFields = (rv, rowType, fields) => {
-    let currentColumns = 0
-    let row = []
-
-    fields.forEach((field) => {
-      const columns = getFieldColumns(field)
-      if (columns + currentColumns > 12) {
-        rv.push([rowType, row])
-        currentColumns = 0
-        row = []
-      }
-      row.push(field)
-      currentColumns += columns
-    })
-
-    if (row.length > 0) {
-      rv.push([rowType, row])
-    }
-  }
-
-  const rv = []
-  processFields(rv, 'normal', normalFields)
-  processFields(rv, 'system', systemFields)
-  return rv
+  return [
+    ...processFields('normal', normalFields),
+    ...processFields('system', systemFields)
+  ]
 }
 
 export const renderFieldRows = (fields, isIllegalField, renderFunc) => {
