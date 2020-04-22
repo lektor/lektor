@@ -115,15 +115,15 @@ function getFieldColumns (field) {
 /**
  * Process fields into rows.
  */
-function processFields (rowType, fields) {
-  const rv = []
+function processFields (fields) {
+  const rows = []
   let currentColumns = 0
   let row = []
 
   fields.forEach((field) => {
     const columns = getFieldColumns(field)
     if (columns + currentColumns > 12) {
-      rv.push([rowType, row])
+      rows.push(row)
       currentColumns = 0
       row = []
     }
@@ -132,8 +132,9 @@ function processFields (rowType, fields) {
   })
 
   if (row.length > 0) {
-    rv.push([rowType, row])
+    rows.push(row)
   }
+  return rows
 }
 
 /**
@@ -157,39 +158,36 @@ function getFieldRows (fields, isIllegalField) {
     }
   })
 
-  return [
-    ...processFields('normal', normalFields),
-    ...processFields('system', systemFields)
-  ]
+  return [processFields(normalFields), processFields(systemFields)]
 }
 
-export const renderFieldRows = (fields, isIllegalField, renderFunc) => {
-  const rv = {
-    normal: [],
-    system: []
-  }
+/**
+ * Render field rows, using a render function and ignoring 'illegal' fields.
+ */
+export function renderFieldRows (fields, isIllegalField, renderFunc) {
+  const [normalRows, systemRows] = getFieldRows(fields, isIllegalField)
 
-  const rows = getFieldRows(fields, isIllegalField)
-
-  rows.forEach((item, idx) => {
-    const [rowType, row] = item
-    rv[rowType].push(
-      <div className='row field-row' key={rowType + '-' + idx}>
-        {row.map(renderFunc)}
-      </div>
-    )
-  })
+  const normalRowElements = normalRows.map((row, idx) => (
+    <div className='row field-row' key={'normal-' + idx}>
+      {row.map(renderFunc)}
+    </div>
+  ))
+  const systemRowElements = systemRows.map((row, idx) => (
+    <div className='row field-row' key={'system-' + idx}>
+      {row.map(renderFunc)}
+    </div>
+  ))
 
   return [
-    rv.normal,
-    rv.system.length > 1
+    normalRowElements,
+    systemRowElements.length > 1
       ? (
         <ToggleGroup
           key='sys'
           groupTitle={i18n.trans('SYSTEM_FIELDS')}
           defaultVisibility={false}
         >
-          {rv.system}
+          {systemRowElements}
         </ToggleGroup>
       ) : null
   ]
