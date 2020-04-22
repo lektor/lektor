@@ -119,7 +119,7 @@ const serializeFlowBlock = (flockBlockModel, data) => {
   return metaformat.serialize(rv)
 }
 
-export class FlowWidget extends React.Component {
+export class FlowWidget extends React.PureComponent {
   static deserializeValue (value, type) {
     let blockId = 0
     return parseFlowFormat(value).map((item) => {
@@ -181,15 +181,10 @@ export class FlowWidget extends React.Component {
     this.props.onChange(newValue)
   }
 
-  collapseBlock (idx) {
+  toggleBlock (idx) {
+    const { collapsed } = this.props.value[idx]
     const newValue = [...this.props.value]
-    newValue[idx] = { ...this.props.value[idx], collapsed: true }
-    this.props.onChange(newValue)
-  }
-
-  expandBlock (idx) {
-    const newValue = [...this.props.value]
-    newValue[idx] = { ...this.props.value[idx], collapsed: false }
+    newValue[idx] = { ...this.props.value[idx], collapsed: !collapsed }
     this.props.onChange(newValue)
   }
 
@@ -235,11 +230,10 @@ export class FlowWidget extends React.Component {
           <div className='btn-group action-bar'>
             <button
               className='btn btn-default btn-xs'
-              title={this.props.value[idx].collapsed ? i18n.trans('Expand') : i18n.trans('Collapse')}
-              onClick={this.props.value[idx].collapsed
-                ? this.expandBlock.bind(this, idx) : this.collapseBlock.bind(this, idx)}
+              title={blockInfo.collapsed ? i18n.trans('Expand') : i18n.trans('Collapse')}
+              onClick={this.toggleBlock.bind(this, idx)}
             >
-              <i className={this.props.value[idx].collapsed ? 'fa fa-expand' : 'fa fa-compress'} />
+              <i className={blockInfo.collapsed ? 'fa fa-expand' : 'fa fa-compress'} />
             </button>
             <button
               className='btn btn-default btn-xs'
@@ -266,51 +260,38 @@ export class FlowWidget extends React.Component {
             </button>
           </div>
           <h4 className='block-name'>{userLabel.format(blockInfo.flowBlockModel.name_i18n)}</h4>
-          {this.props.value[idx].collapsed ? null : fields}
+          {blockInfo.collapsed ? null : fields}
         </div>
       )
     })
   }
 
-  renderAddBlockSection () {
-    const choices = []
-
-    this.props.type.flowblock_order.forEach((key) => {
+  render () {
+    const addBlockButtons = this.props.type.flowblock_order.map((key) => {
       const flowBlockModel = this.props.type.flowblocks[key]
       const label = flowBlockModel.button_label
         ? userLabel.format(flowBlockModel.button_label)
         : userLabel.format(flowBlockModel.name_i18n)
-      choices.push([flowBlockModel.id, label, i18n.trans(flowBlockModel.name_i18n)])
-    })
-
-    const buttons = choices.map((item) => {
-      const [key, label, title] = item
       return (
         <button
           className='btn btn-default'
           onClick={this.addNewBlock.bind(this, key)}
-          title={title}
-          key={key}
+          title={i18n.trans(flowBlockModel.name_i18n)}
+          key={flowBlockModel.id}
         >{label}
         </button>
       )
     })
 
     return (
-      <div className='add-block'>
-        <label>{i18n.trans('ADD_FLOWBLOCK') + ': '}</label>
-        <div className='btn-group'>
-          {buttons}
-        </div>
-      </div>
-    )
-  }
-
-  render () {
-    return (
       <div className='flow'>
         {this.renderBlocks()}
-        {this.renderAddBlockSection()}
+        <div className='add-block'>
+          <label>{i18n.trans('ADD_FLOWBLOCK') + ': '}</label>
+          <div className='btn-group'>
+            {addBlockButtons}
+          </div>
+        </div>
       </div>
     )
   }
