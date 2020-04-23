@@ -40,53 +40,53 @@ function FallbackWidget (props) {
 }
 FallbackWidget.propTypes = widgetPropTypes
 
-export class FieldBox extends React.PureComponent {
-  render () {
-    const { field, value, placeholder, disabled } = this.props
-    const onChange = this.props.onChange ? this.props.onChange : (value) => this.props.setFieldValue(field, value)
-    const className = 'col-md-' + getFieldColumns(field) + ' field-box'
-    let innerClassName = 'field'
-    let inner
+/**
+ * An input widget wrapped in a <div> with description and label.
+ */
+export const FieldBox = React.memo(function FieldBox (props) {
+  const { field, value, placeholder, disabled } = props
+  const onChange = props.onChange ? props.onChange : (value) => props.setFieldValue(field, value)
+  const className = 'col-md-' + getFieldColumns(field) + ' field-box'
+  let innerClassName = 'field'
 
-    if (field.name.substr(0, 1) === '_') {
-      innerClassName += ' system-field'
-    }
+  if (field.name.substr(0, 1) === '_') {
+    innerClassName += ' system-field'
+  }
 
-    const Widget = getWidgetComponentWithFallback(field.type)
-    if (Widget.isFakeWidget) {
-      inner = <Widget key={field.name} type={field.type} field={field} />
-    } else {
-      let description = null
-      if (field.description_i18n) {
-        description = (
-          <div className='help-text'>
-            {i18n.trans(field.description_i18n)}
-          </div>
-        )
-      }
-      inner = (
-        <dl className={innerClassName}>
-          {!field.hide_label ? <dt>{i18n.trans(field.label_i18n)}</dt> : null}
-          <dd>{description}
-            <Widget
-              value={value}
-              onChange={onChange}
-              type={field.type}
-              placeholder={placeholder}
-              disabled={disabled}
-            />
-          </dd>
-        </dl>
-      )
-    }
-
+  const Widget = getWidgetComponentWithFallback(field.type)
+  if (Widget.isFakeWidget) {
     return (
       <div className={className} key={field.name}>
-        {inner}
+        <Widget key={field.name} type={field.type} field={field} />
       </div>
     )
   }
-}
+
+  const description = field.description_i18n
+    ? (
+      <div className='help-text'>
+        {i18n.trans(field.description_i18n)}
+      </div>
+    )
+    : null
+
+  return (
+    <div className={className} key={field.name}>
+      <dl className={innerClassName}>
+        {!field.hide_label ? <dt>{i18n.trans(field.label_i18n)}</dt> : null}
+        <dd>{description}
+          <Widget
+            value={value}
+            onChange={onChange}
+            type={field.type}
+            placeholder={placeholder}
+            disabled={disabled}
+          />
+        </dd>
+      </dl>
+    </div>
+  )
+})
 
 FieldBox.propTypes = {
   value: PropTypes.any,
@@ -164,31 +164,30 @@ function getFieldRows (fields, isIllegalField) {
 /**
  * Render field rows, using a render function and ignoring 'illegal' fields.
  */
-export function renderFieldRows (fields, isIllegalField, renderFunc) {
+export const FieldRows = React.memo(function FieldRows ({ fields, isIllegalField, renderFunc }) {
   const [normalRows, systemRows] = getFieldRows(fields, isIllegalField)
 
-  const normalRowElements = normalRows.map((row, idx) => (
-    <div className='row field-row' key={'normal-' + idx}>
-      {row.map(renderFunc)}
-    </div>
-  ))
-  const systemRowElements = systemRows.map((row, idx) => (
-    <div className='row field-row' key={'system-' + idx}>
-      {row.map(renderFunc)}
-    </div>
-  ))
-
-  return [
-    normalRowElements,
-    systemRowElements.length > 1
-      ? (
-        <ToggleGroup
-          key='sys'
-          groupTitle={i18n.trans('SYSTEM_FIELDS')}
-          defaultVisibility={false}
-        >
-          {systemRowElements}
-        </ToggleGroup>
-      ) : null
-  ]
-}
+  return (
+    <>
+      {normalRows.map((row, idx) => (
+        <div className='row field-row' key={'normal-' + idx}>
+          {row.map(renderFunc)}
+        </div>
+      ))}
+      {systemRows.length > 1
+        ? (
+          <ToggleGroup
+            key='sys'
+            groupTitle={i18n.trans('SYSTEM_FIELDS')}
+            defaultVisibility={false}
+          >
+            {systemRows.map((row, idx) => (
+              <div className='row field-row' key={'system-' + idx}>
+                {row.map(renderFunc)}
+              </div>
+            ))}
+          </ToggleGroup>
+        ) : null}
+    </>
+  )
+})

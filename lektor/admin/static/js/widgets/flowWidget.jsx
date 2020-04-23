@@ -7,7 +7,7 @@ import i18n from '../i18n'
 import metaformat from '../metaformat'
 import { widgetPropTypes } from './mixins'
 import userLabel from '../userLabel'
-import { getWidgetComponent, getWidgetComponentWithFallback, FieldBox, renderFieldRows } from '../widgets'
+import { getWidgetComponent, getWidgetComponentWithFallback, FieldBox, FieldRows } from '../widgets'
 
 const parseFlowFormat = (value) => {
   const blocks = []
@@ -219,11 +219,14 @@ export class FlowWidget extends React.PureComponent {
         return null
       }
 
-      const fields = renderFieldRows(
-        blockInfo.flowBlockModel.fields,
-        null,
-        this.renderFormField.bind(this, blockInfo)
-      )
+      const fields = blockInfo.collapsed
+        ? null
+        : (
+          <FieldRows
+            fields={blockInfo.flowBlockModel.fields}
+            renderFunc={this.renderFormField.bind(this, blockInfo)}
+          />
+        )
 
       return (
         <div key={blockInfo.localId} className='flow-block'>
@@ -260,7 +263,7 @@ export class FlowWidget extends React.PureComponent {
             </button>
           </div>
           <h4 className='block-name'>{userLabel.format(blockInfo.flowBlockModel.name_i18n)}</h4>
-          {blockInfo.collapsed ? null : fields}
+          {fields}
         </div>
       )
     })

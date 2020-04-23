@@ -6,7 +6,7 @@ import { Prompt } from 'react-router-dom'
 import RecordComponent from '../components/RecordComponent'
 import { apiRequest, loadData, isMetaKey } from '../utils'
 import i18n from '../i18n'
-import { getWidgetComponentWithFallback, FieldBox, renderFieldRows } from '../widgets'
+import { getWidgetComponentWithFallback, FieldBox, FieldRows } from '../widgets'
 import makeRichPromise from '../richPromise'
 
 class EditPage extends RecordComponent {
@@ -189,30 +189,19 @@ class EditPage extends RecordComponent {
     )
   }
 
-  renderFormFields () {
-    return renderFieldRows(
-      this.state.recordDataModel.fields,
-      this.isIllegalField.bind(this),
-      this.renderFormField.bind(this)
-    )
-  }
-
   render () {
     // we have not loaded anything yet.
     if (this.state.recordInfo === null) {
       return null
     }
 
-    let deleteButton = null
-    if (this.state.recordInfo.can_be_deleted) {
-      deleteButton = (
-        <button
-          type='submit' className='btn btn-default'
-          onClick={this.deleteRecord.bind(this)}
-        >{i18n.trans('DELETE')}
+    const deleteButton = this.state.recordInfo.can_be_deleted
+      ? (
+        <button type='submit' className='btn btn-default' onClick={this.deleteRecord.bind(this)}>
+          {i18n.trans('DELETE')}
         </button>
       )
-    }
+      : null
 
     const title = this.state.recordInfo.is_attachment
       ? i18n.trans('EDIT_ATTACHMENT_METADATA_OF')
@@ -226,7 +215,11 @@ class EditPage extends RecordComponent {
       <div className='edit-area'>
         {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} />}
         <h2>{title.replace('%s', label)}</h2>
-        {this.renderFormFields()}
+        <FieldRows
+          fields={this.state.recordDataModel.fields}
+          isIllegalField={this.isIllegalField.bind(this)}
+          renderFunc={this.renderFormField.bind(this)}
+        />
         <div className='actions'>
           <button
             type='submit' className='btn btn-primary'
