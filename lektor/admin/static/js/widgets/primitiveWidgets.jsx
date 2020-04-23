@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import { ValidationFailure, getInputClass, widgetPropTypes } from './mixins'
+import { getInputClass, widgetPropTypes } from './mixins'
 import { isValidUrl } from '../utils'
 import userLabel from '../userLabel'
 import i18n from '../i18n'
@@ -38,13 +38,13 @@ function InputWidgetBase (props) {
   const failure = validate ? validate(value) : null
   const setValidity = (el) => {
     if (el) {
-      el.setCustomValidity(failure ? failure.message : '')
+      el.setCustomValidity(failure || '')
     }
   }
   if (failure !== null) {
-    className += ' has-feedback has-' + failure.type
-    const valClassName = 'validation-block validation-block-' + failure.type
-    help = <div className={valClassName}>{failure.message}</div>
+    className += ' has-feedback has-error'
+    const valClassName = 'validation-block validation-block-error'
+    help = <div className={valClassName}>{failure}</div>
   }
 
   let addon = null
@@ -94,9 +94,7 @@ function postprocessInteger (value) {
 
 function validateInteger (value) {
   if (value && !value.match(/^-?\d+$/)) {
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_NUMBER')
-    })
+    return i18n.trans('ERROR_INVALID_NUMBER')
   }
   return null
 }
@@ -112,9 +110,7 @@ function postprocessFloat (value) {
 
 function validateFloat (value) {
   if (value && isNaN(parseFloat(value))) {
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_NUMBER')
-    })
+    return i18n.trans('ERROR_INVALID_NUMBER')
   }
   return null
 }
@@ -151,9 +147,7 @@ function validateDate (value) {
     return null
   }
 
-  return new ValidationFailure({
-    message: i18n.trans('ERROR_INVALID_DATE')
-  })
+  return i18n.trans('ERROR_INVALID_DATE')
 }
 
 export function DateInputWidget (props) {
@@ -163,9 +157,7 @@ DateInputWidget.propTypes = widgetPropTypes
 
 function validateUrl (value) {
   if (value && !isValidUrl(value)) {
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_URL')
-    })
+    return i18n.trans('ERROR_INVALID_URL')
   }
   return null
 }
