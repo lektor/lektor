@@ -26,10 +26,6 @@ const isValidDate = (year, month, day) => {
 function InputWidgetBase (props) {
   const { type, value, onChange, postprocessValue, inputAddon, inputType, validate, disabled, placeholder } = props
   let help = null
-  let failure = null
-  if (validate) {
-    failure = validate(value)
-  }
   let className = 'input-group'
   function onChangeHandler (event) {
     let value = event.target.value
@@ -39,6 +35,12 @@ function InputWidgetBase (props) {
     onChange(value)
   }
 
+  const failure = validate ? validate(value) : null
+  const setValidity = (el) => {
+    if (el) {
+      el.setCustomValidity(failure ? failure.message : '')
+    }
+  }
   if (failure !== null) {
     className += ' has-feedback has-' + failure.type
     const valClassName = 'validation-block validation-block-' + failure.type
@@ -57,6 +59,7 @@ function InputWidgetBase (props) {
     <div className='form-group'>
       <div className={className}>
         <input
+          ref={setValidity}
           type={inputType}
           disabled={disabled}
           placeholder={placeholder}

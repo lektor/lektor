@@ -21,6 +21,7 @@ class EditPage extends RecordComponent {
     }
     this._onKeyPress = this._onKeyPress.bind(this)
     this.setFieldValue = this.setFieldValue.bind(this)
+    this.form = React.createRef()
   }
 
   componentDidMount () {
@@ -43,7 +44,10 @@ class EditPage extends RecordComponent {
     // meta+s is open find files
     if (event.which === 83 && isMetaKey(event)) {
       event.preventDefault()
-      this.saveChanges()
+      const { current } = this.form
+      if (current && current.reportValidity()) {
+        this.saveChanges()
+      }
     }
   }
 
@@ -122,7 +126,11 @@ class EditPage extends RecordComponent {
     return rv
   }
 
-  saveChanges () {
+  saveChanges (event) {
+    if (event) {
+      event.preventDefault()
+    }
+
     const path = this.getRecordPath()
     const alt = this.getRecordAlt()
     const newData = this.getValues()
@@ -215,19 +223,19 @@ class EditPage extends RecordComponent {
       <div className='edit-area'>
         {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} />}
         <h2>{title.replace('%s', label)}</h2>
-        <FieldRows
-          fields={this.state.recordDataModel.fields}
-          isIllegalField={this.isIllegalField.bind(this)}
-          renderFunc={this.renderFormField.bind(this)}
-        />
-        <div className='actions'>
-          <button
-            type='submit' className='btn btn-primary'
-            onClick={this.saveChanges.bind(this)}
-          >{i18n.trans('SAVE_CHANGES')}
-          </button>
-          {deleteButton}
-        </div>
+        <form ref={this.form} onSubmit={this.saveChanges.bind(this)}>
+          <FieldRows
+            fields={this.state.recordDataModel.fields}
+            isIllegalField={this.isIllegalField.bind(this)}
+            renderFunc={this.renderFormField.bind(this)}
+          />
+          <div className='actions'>
+            <button type='submit' className='btn btn-primary'>
+              {i18n.trans('SAVE_CHANGES')}
+            </button>
+            {deleteButton}
+          </div>
+        </form>
       </div>
     )
   }
