@@ -9,7 +9,6 @@ module.exports = {
     styles: './less/main.less',
     vendor: [
       'jquery',
-      'querystring',
       'bootstrap',
       'react',
       'react-dom',
