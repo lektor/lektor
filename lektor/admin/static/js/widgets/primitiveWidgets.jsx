@@ -109,7 +109,7 @@ function postprocessFloat (value) {
 }
 
 function validateFloat (value) {
-  if (value && isNaN(parseFloat(value))) {
+  if (value && !value.match(/^[+,-]?\d+[.]\d+$/)) {
     return i18n.trans('ERROR_INVALID_NUMBER')
   }
   return null
