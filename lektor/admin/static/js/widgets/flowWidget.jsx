@@ -141,9 +141,7 @@ export class FlowWidget extends React.PureComponent {
     }))
   }
 
-  moveBlock (idx, offset, event) {
-    event.preventDefault()
-
+  moveBlock (idx, offset) {
     const newIndex = idx + offset
     if (newIndex < 0 || newIndex >= this.props.value.length) {
       return
@@ -156,17 +154,13 @@ export class FlowWidget extends React.PureComponent {
     this.props.onChange(newValue)
   }
 
-  removeBlock (idx, event) {
-    event.preventDefault()
-
+  removeBlock (idx) {
     if (confirm(i18n.trans('REMOVE_FLOWBLOCK_PROMPT'))) {
       this.props.onChange(this.props.value.filter((item, i) => i !== idx))
     }
   }
 
-  addNewBlock (key, event) {
-    event.preventDefault()
-
+  addNewBlock (key) {
     const flowBlockModel = this.props.type.flowblocks[key]
 
     // find the first available id for this new block - use findMax + 1
@@ -232,6 +226,7 @@ export class FlowWidget extends React.PureComponent {
         <div key={blockInfo.localId} className='flow-block'>
           <div className='btn-group action-bar'>
             <button
+              type='button'
               className='btn btn-default btn-xs'
               title={blockInfo.collapsed ? i18n.trans('Expand') : i18n.trans('Collapse')}
               onClick={this.toggleBlock.bind(this, idx)}
@@ -239,6 +234,7 @@ export class FlowWidget extends React.PureComponent {
               <i className={blockInfo.collapsed ? 'fa fa-expand' : 'fa fa-compress'} />
             </button>
             <button
+              type='button'
               className='btn btn-default btn-xs'
               title={i18n.trans('UP')}
               disabled={idx === 0}
@@ -247,6 +243,7 @@ export class FlowWidget extends React.PureComponent {
               <i className='fa fa-fw fa-chevron-up' />
             </button>
             <button
+              type='button'
               className='btn btn-default btn-xs'
               title={i18n.trans('DOWN')}
               disabled={idx >= this.props.value.length - 1}
@@ -255,6 +252,7 @@ export class FlowWidget extends React.PureComponent {
               <i className='fa fa-fw fa-chevron-down' />
             </button>
             <button
+              type='button'
               className='btn btn-default btn-xs'
               title={i18n.trans('REMOVE')}
               onClick={this.removeBlock.bind(this, idx)}
@@ -277,6 +275,7 @@ export class FlowWidget extends React.PureComponent {
         : userLabel.format(flowBlockModel.name_i18n)
       return (
         <button
+          type='button'
           className='btn btn-default'
           onClick={this.addNewBlock.bind(this, key)}
           title={i18n.trans(flowBlockModel.name_i18n)}

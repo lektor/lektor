@@ -183,11 +183,11 @@ class EditPage extends RecordComponent {
     return null
   }
 
-  renderFormField (field, idx) {
+  renderFormField (field) {
     const widget = getWidgetComponentWithFallback(field.type)
     return (
       <FieldBox
-        key={idx}
+        key={field.name}
         value={this.getValueForField(widget, field)}
         placeholder={this.getPlaceholderForField(widget, field)}
         field={field}
@@ -205,7 +205,7 @@ class EditPage extends RecordComponent {
 
     const deleteButton = this.state.recordInfo.can_be_deleted
       ? (
-        <button type='submit' className='btn btn-default' onClick={this.deleteRecord.bind(this)}>
+        <button type='button' className='btn btn-default' onClick={this.deleteRecord.bind(this)}>
           {i18n.trans('DELETE')}
         </button>
       )
@@ -219,14 +219,14 @@ class EditPage extends RecordComponent {
       ? i18n.trans(this.state.recordInfo.label_i18n)
       : this.state.recordInfo.label
 
+    const fields = this.state.recordDataModel.fields.filter(f => !this.isIllegalField(f))
     return (
       <div className='edit-area'>
         {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} />}
         <h2>{title.replace('%s', label)}</h2>
         <form ref={this.form} onSubmit={this.saveChanges.bind(this)}>
           <FieldRows
-            fields={this.state.recordDataModel.fields}
-            isIllegalField={this.isIllegalField.bind(this)}
+            fields={fields}
             renderFunc={this.renderFormField.bind(this)}
           />
           <div className='actions'>

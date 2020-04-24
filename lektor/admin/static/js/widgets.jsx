@@ -140,21 +140,15 @@ function processFields (fields) {
 /**
  * Split the fields into normal and system fields and process into rows.
  */
-function getFieldRows (fields, isIllegalField) {
+function getFieldRows (fields) {
   const normalFields = []
   const systemFields = []
 
-  if (!isIllegalField) {
-    isIllegalField = (x) => { return false }
-  }
-
   fields.forEach((field) => {
-    if (!isIllegalField(field)) {
-      if (field.name.substr(0, 1) === '_') {
-        systemFields.push(field)
-      } else {
-        normalFields.push(field)
-      }
+    if (field.name.substr(0, 1) === '_') {
+      systemFields.push(field)
+    } else {
+      normalFields.push(field)
     }
   })
 
@@ -162,10 +156,10 @@ function getFieldRows (fields, isIllegalField) {
 }
 
 /**
- * Render field rows, using a render function and ignoring 'illegal' fields.
+ * Render field rows using a render function.
  */
-export const FieldRows = React.memo(function FieldRows ({ fields, isIllegalField, renderFunc }) {
-  const [normalRows, systemRows] = getFieldRows(fields, isIllegalField)
+export function FieldRows ({ fields, renderFunc }) {
+  const [normalRows, systemRows] = getFieldRows(fields)
 
   return (
     <>
@@ -190,4 +184,4 @@ export const FieldRows = React.memo(function FieldRows ({ fields, isIllegalField
         ) : null}
     </>
   )
-})
+}
