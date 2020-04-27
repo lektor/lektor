@@ -3,6 +3,27 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+3.2.0
+
+Release date TBD
+
+- Several modernization and performance improvements to the admin UI
+- Improved speed of source info updates.
+- Set colorspace to sRGB for thumbnails.
+- Now stripping profiles and comments from thumbnails.
+- Added support for deleting and excluding files for the rsync deployment publisher.
+- Improved speed of flow rendering in the admin UI.
+- Bugfix to correctly calculate relative urls from slugs that contain dots.
+- Bugfix to allow negative integers in integer fields in the admin UI.
+- Improved image-heavy build speeds by reducing the amount of data extracted from EXIFs.
+- Added the ability to collapse flow elements in the admin UI.
+- Now `extra_flags` is passed to all plugin events.
+- Extra flags can now be passed to the `clean` and `dev shell` CLI commands.
+- Bugfix where `lektor plugins reinstall` triggered `on_setup_env` instead of just reinstalling plugins.
+- Added the ability to generate video thumbnails with ffmpeg.
+- Added `mode` and `upscale` thumbnail arguments, changing the preferred method to crop to using `mode`. `mode` can be `crop`, `fit`, or `stretch`. `upscale=False` can now prevent upscaling.
+- Added a new CLI command `lektor dev new-theme`.
+
 3.1.3
 
 Release date 26th of January, 2019
