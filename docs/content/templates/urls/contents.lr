@@ -9,7 +9,7 @@ body:
 Linking to other pages in templates is achieved through the `|url` and
 `|asseturl` filters.  These two filters will ensure that the links that are
 generated are automatically relative to the current page so they will work
-correctly anywhere where you host the page.  They also deal with URL paths
+correctly anywhere you host the page.  They also deal with URL paths
 that have been changed through configuration.
 
 ## `url` Filter
