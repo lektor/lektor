@@ -428,9 +428,9 @@ class Environment(object):
 
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,
-            extensions=['jinja2.ext.autoescape',
-                        'jinja2.ext.with_',
-                        'jinja2.ext.do'],
+            extensions=['jinja2.ext.debug',
+                        'jinja2.ext.do',
+                        'jinja2.ext.loopcontrols'],
             loader=jinja2.FileSystemLoader(
                 template_paths)
         )
