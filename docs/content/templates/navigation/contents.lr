@@ -64,7 +64,7 @@ a page.  This is easy to accomplish as well:
 
 In some situations you want to show a tree like navigation.  This is for
 instance something that comes up when building site maps.  In that situation
-the recursive Jinja loop system comes really in.
+the recursive Jinja loop system really comes in handy.
 
 ```html+jinja
 <ul class="tree-nav">
