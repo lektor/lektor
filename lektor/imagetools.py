@@ -332,7 +332,7 @@ def get_image_info(fp):
     if any(map(head.strip().startswith, magic_bytes)):
         return get_svg_info(fp)
 
-    _type = filetype.image(bytearray(head))
+    _type = filetype.image_match(bytearray(head))
     fmt = _type.mime.split("/")[1] if _type else None
 
     width = None

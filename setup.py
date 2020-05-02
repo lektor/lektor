@@ -32,7 +32,7 @@ setup(
         'click>=6.0',
         'enum34;python_version<"3.4"',
         'EXIFRead',
-        'filetype',
+        'filetype>=1.0.7',
         'Flask',
         'functools32;python_version<"3.2.3"',
         'inifile',
