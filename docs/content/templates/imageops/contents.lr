@@ -35,7 +35,7 @@ To access images from a different content folder, you would use:
 To retrieve only a specific image or attachment with a certain name you would use
 
 ```html+jinja
-{% set my_image site.get('/myfolder').attachments.get('imagenameexample.jpg') %}
+{% set my_image = site.get('/myfolder').attachments.get('imagenameexample.jpg') %}
   <div class="image"><img src="{{ my_image|url }}"></div>
 ```
 
