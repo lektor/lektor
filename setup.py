@@ -36,7 +36,7 @@ setup(
         'Flask',
         'functools32;python_version<"3.2.3"',
         'inifile',
-        'Jinja2>=2.4',
+        'Jinja2>=2.11',
         'mistune>=0.7.0,<2',
         'pip',
         'requests[security]',
