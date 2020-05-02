@@ -79,7 +79,7 @@ files they will appear as such in the final output.
 
 !!! This folder is not just useful for static files that are stylesheets or
 scripts, but because it overlays the entire website you can also use it to
-store things such as `favicon.ico`, `.htaccess` or similar things.
+store things such as `favicon.ico`, `.htaccess`, `robots.txt` etc.
 
 ### `flowblocks/`
 
