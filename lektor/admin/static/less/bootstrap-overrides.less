@@ -35,13 +35,21 @@
   font-family: 'Roboto Slab';
   font-style: normal;
   font-weight: 300;
-  src: local('Roboto Slab Light'), local('RobotoSlab-Light'), url('../fonts/RobotoSlab-Light-webfont.ttf') format('truetype');
+  src:
+      local('Roboto Slab Light'),
+      local('RobotoSlab-Light'),
+      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff2') format('woff2'),
+      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff') format('woff');
 }
 @font-face {
   font-family: 'Roboto Slab';
   font-style: normal;
   font-weight: 400;
-  src: local('Roboto Slab Regular'), local('RobotoSlab-Regular'), url('../fonts/RobotoSlab-Regular-webfont.ttf') format('truetype');
+  src:
+      local('Roboto Slab Regular'),
+      local('RobotoSlab-Regular'),
+      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff2') format('woff2'),
+      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff') format('woff');
 }
 @font-family-serif: 'Roboto Slab', 'Georgia', 'Times New Roman', serif;
 @font-family-base: @font-family-serif;
