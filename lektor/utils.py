@@ -604,22 +604,18 @@ def get_relative_path(source, target):
         return _mktarget(relpath)
 
     # even if it isn't, one of the source's ancestors might be
-    for distance, ancestor in enumerate(source.parents):
+    distance = PurePosixPath(".")
+    for ancestor in source.parents:
+        distance /= ".."
         try:
             relpath = target.relative_to(ancestor)
         except ValueError:
             continue
         else:
-            # enumerate() is 0-based, but we started iterating one level up
-            distance += 1
             break
 
-    # prepend the ancestor part
-    relpath = (
-        "/".join([".."] * distance)
-        / relpath
-    )
-
+    # prepend the distance to the common ancestor
+    relpath = distance / relpath
     return _mktarget(relpath)
 
 
