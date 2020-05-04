@@ -77,9 +77,28 @@ class Pagination(object):
 
     def iter_pages(self, left_edge=2, left_current=2,
                    right_current=5, right_edge=2):
-        """Iterates over the page numbers in the pagination.  The four
-        parameters control the thresholds how many numbers should be produced
-        from the sides.  Skipped page numbers are represented as `None`.
+        """Iterate over the page numbers in the pagination, with elision.
+
+        In the general case, this returns the concatenation of three ranges:
+
+            1. A range (always starting at page one) at the beginning
+               of the page number sequence.  The length of the this
+               range is specified by the ``left_edge`` argument (which
+               may be zero).
+
+            2. A range around the current page.  This range will include
+               ``left_edge`` pages before the current page, and
+               ``right_edge`` pages after the current page.  This
+               range always includes the current page.
+
+            3. Finally, a range (always ending at the last page) at
+               the end of the page sequence.  The length of this range
+               is specified by the ``right_edge`` argument.
+
+        If any of these ranges overlap, they will be merged.  A
+        ``None`` will be inserted between non-overlapping ranges to
+        signify that pages have been elided.
+
         This is how you could render such a pagination in the templates:
         .. sourcecode:: html+jinja
             {% macro render_pagination(pagination, endpoint) %}
@@ -97,6 +116,7 @@ class Pagination(object):
               {%- endfor %}
               </div>
             {% endmacro %}
+
         """
         last = 0
         for num in range_type(1, self.pages + 1):
