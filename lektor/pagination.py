@@ -87,9 +87,9 @@ class Pagination(object):
                may be zero).
 
             2. A range around the current page.  This range will
-               include ``left_current`` pages before the current page,
-               and ``right_current`` pages after the current page.
-               This range always includes the current page.
+               include ``left_current`` pages before, and
+               ``right_current`` pages after the current page.  This
+               range always includes the current page.
 
             3. Finally, a range (always ending at the last page) at
                the end of the page sequence.  The length of this range
