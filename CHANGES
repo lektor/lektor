@@ -27,6 +27,7 @@ Release date TBD
 - Made admin use full UTF-8 version of RobotoSlab. Fixes missing glyphs for some languages
 - Bumped minimum Jinja2 version to 2.11
 - Bumped filetype dependency to 1.0.7 because of API changes
+- Relative urls are now as short as possible.
 
 3.1.3
 -----
