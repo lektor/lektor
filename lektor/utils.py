@@ -545,8 +545,8 @@ def make_relative_url(source, target):
     s_is_dir = source.endswith("/")
     t_is_dir = target.endswith("/")
 
-    source = PurePosixPath(os.path.normpath(source))
-    target = PurePosixPath(os.path.normpath(target))
+    source = PurePosixPath(posixpath.normpath(source))
+    target = PurePosixPath(posixpath.normpath(target))
 
     if not s_is_dir:
         source = source.parent
