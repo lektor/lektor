@@ -533,33 +533,10 @@ def bool_from_string(val, default=None):
     return default
 
 
-def make_relative_url(base, target):
-    """Returns a relative URL from base to target."""
-    if base == '/':
-        depth = 0
-        prefix = './'
-    else:
-        depth = ('/' + base.strip('/')).count('/')
-        prefix = ''
-        # If the last part of the base path contains a dot, the page will
-        # render into, for example "404.html" instead of "404/index.html".
-        # Any relative links from it therefore need one less level of depth.
-        if '.' in base.strip('/').split('/')[-1]:
-            depth -= 1
-            if depth == 0:
-                prefix = './'
-
-    ends_in_slash = target[-1:] == '/'
-    target = posixpath.normpath(posixpath.join(base, target))
-    if ends_in_slash and target[-1:] != '/':
-        target += '/'
-
-    return (prefix + '../' * depth).rstrip('/') + target
-
-
-def get_relative_path(source, target):
+def make_relative_url(source, target):
     """
-    Returns the relative path needed to navigate from `source` to `target`.
+    Returns the relative path (url) needed to navigate
+    from `source` to `target`.
     """
 
     # WARNING: this logic makes some unwarranted assumptions about
@@ -574,26 +551,33 @@ def get_relative_path(source, target):
     if not s_is_dir:
         source = source.parent
 
-    def _mktarget(path):
-        # we want to always return a string
-        path = str(path)
-        # and add the final dir slash if there was one
-        if t_is_dir:
-            path += "/"
-        return path
+    relpath = str(get_relative_path(source, target))
+    if t_is_dir:
+        relpath += "/"
 
-    if source.is_absolute():
-        if target.is_absolute():
-            # convert them to relative paths to simplify the logic
-            source = source.relative_to("/")
-            target = target.relative_to("/")
-        else:
-            # nothing to do
-            return _mktarget(target)
+    return relpath
 
-    elif target.is_absolute():
+
+def get_relative_path(source, target):
+    """
+    Returns the relative path needed to navigate from `source` to `target`.
+
+    get_relative_path(source: PurePosixPath,
+                      target: PurePosixPath) -> PurePosixPath
+    """
+
+    if not source.is_absolute() and target.is_absolute():
         raise ValueError("Cannot navigate from a relative path"
                          " to an absolute one")
+
+    if source.is_absolute() and not target.is_absolute():
+        # nothing to do
+        return target
+
+    if source.is_absolute() and target.is_absolute():
+        # convert them to relative paths to simplify the logic
+        source = source.relative_to("/")
+        target = target.relative_to("/")
 
     # is the source an ancestor of the target?
     try:
@@ -601,7 +585,7 @@ def get_relative_path(source, target):
     except ValueError:
         pass
     else:
-        return _mktarget(relpath)
+        return relpath
 
     # even if it isn't, one of the source's ancestors might be
     distance = PurePosixPath(".")
@@ -616,7 +600,7 @@ def get_relative_path(source, target):
 
     # prepend the distance to the common ancestor
     relpath = distance / relpath
-    return _mktarget(relpath)
+    return relpath
 
 
 def get_structure_hash(params):
