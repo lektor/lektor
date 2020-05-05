@@ -581,26 +581,23 @@ def get_relative_path(source, target):
 
     # is the source an ancestor of the target?
     try:
-        relpath = target.relative_to(source)
+        return target.relative_to(source)
     except ValueError:
         pass
-    else:
-        return relpath
 
     # even if it isn't, one of the source's ancestors might be
+    # (and if not, the root will be the common ancestor)
     distance = PurePosixPath(".")
     for ancestor in source.parents:
         distance /= ".."
+
         try:
             relpath = target.relative_to(ancestor)
         except ValueError:
             continue
         else:
-            break
-
-    # prepend the distance to the common ancestor
-    relpath = distance / relpath
-    return relpath
+            # prepend the distance to the common ancestor
+            return distance / relpath
 
 
 def get_structure_hash(params):
