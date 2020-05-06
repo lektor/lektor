@@ -155,7 +155,7 @@ def test_basic_template_rendering(pad, builder):
 
     assert '<title>My Website</title>' in rv
     assert '<h1>Welcome</h1>' in rv
-    assert '<link href="./static/style.css" rel="stylesheet">' in rv
+    assert '<link href="static/style.css" rel="stylesheet">' in rv
     assert '<p>Welcome to this pretty nifty website.</p>' in rv
 
 

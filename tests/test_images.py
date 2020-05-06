@@ -145,7 +145,7 @@ def test_thumbnail_dimensions_reported(builder):
         html = f.read()
 
     for t, (w, h) in _THUMBNAILS.items():
-        assert '<img src="./%s" width="%s" height="%s">' % (t, w, h) in html
+        assert '<img src="%s" width="%s" height="%s">' % (t, w, h) in html
 
 
 def test_thumbnail_dimensions_real(builder):

@@ -135,10 +135,10 @@ def test_thumbnail_height(builder):
 
     # The first thumbnail has the same dimensions as the source video,
     # seeked to 1.5 seconds in
-    assert '<img src="./test@t00-00-01-5.jpg" width="320" height="180">' in html
+    assert '<img src="test@t00-00-01-5.jpg" width="320" height="180">' in html
 
     # Thumbnail is half the original width, so its computed height is half.
-    assert '<img src="./test@t00-00-00_160.jpg" width="160" height="90">' in html
+    assert '<img src="test@t00-00-00_160.jpg" width="160" height="90">' in html
 
     # There should also be a square thumbnail
-    assert '<img src="./test@t00-00-02_160x160_crop.jpg" width="160" height="160">' in html
+    assert '<img src="test@t00-00-02_160x160_crop.jpg" width="160" height="160">' in html
