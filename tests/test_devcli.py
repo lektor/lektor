@@ -23,7 +23,7 @@ def test_new_plugin(project_cli_runner):
     assert result.exit_code == 0
     path = os.path.join('packages', 'plugin-name')
     assert set(os.listdir(path)) == set(
-        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
+        ['lektor_plugin_name.py', 'setup.cfg', 'setup.py', '.gitignore', 'README.md'])
 
     # gitignore
     gitignore_expected = textwrap.dedent("""
@@ -239,7 +239,7 @@ def test_new_plugin_path(project_cli_runner):
     assert result.exit_code == 0
     path = 'path'
     assert set(os.listdir(path)) == set(
-        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
+        ['lektor_plugin_name.py', 'setup.cfg', 'setup.py', '.gitignore', 'README.md'])
 
 
 def test_new_plugin_path_param(project_cli_runner):
@@ -254,7 +254,7 @@ def test_new_plugin_path_param(project_cli_runner):
     assert result.exit_code == 0
     path = 'path'
     assert set(os.listdir(path)) == set(
-        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
+        ['lektor_plugin_name.py', 'setup.cfg', 'setup.py', '.gitignore', 'README.md'])
 
 
 def test_new_plugin_path_and_name_params(project_cli_runner):
@@ -268,7 +268,7 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
     assert result.exit_code == 0
     path = 'path'
     assert set(os.listdir(path)) == set(
-        ['lektor_plugin_name.py', 'setup.py', '.gitignore', 'README.md'])
+        ['lektor_plugin_name.py', 'setup.cfg', 'setup.py', '.gitignore', 'README.md'])
 
 
 # new-theme
