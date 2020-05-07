@@ -28,6 +28,8 @@ Release date TBD
 - Bumped minimum Jinja2 version to 2.11
 - Bumped filetype dependency to 1.0.7 because of API changes
 - Relative urls are now as short as possible.
+- Changed default slug creation to use slugify. This should mean greater language support, but this may produce slightly different results than before for some users
+- Automatically include setup.cfg configured for universal wheels when creating plugins
 
 3.1.3
 -----
