@@ -96,7 +96,7 @@ class Project(object):
     def get_output_path(self):
         """The path where output files are stored."""
         config = self.open_config()
-        output_path = config.get('project.output_path', '')
+        output_path = config.get('project.output_path')
         if output_path:
             return os.path.join(self.tree, os.path.normpath(output_path))
 
