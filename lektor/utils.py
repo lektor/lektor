@@ -27,6 +27,7 @@ except ImportError:
 import click
 from jinja2 import is_undefined
 from markupsafe import Markup
+from slugify import slugify
 from werkzeug import urls
 from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
@@ -45,7 +46,6 @@ _slashes_re = re.compile(r'(/\.{1,2}(/|$))|/')
 _last_num_re = re.compile(r'^(.*)(\d+)(.*?)$')
 _list_marker = object()
 _value_marker = object()
-_slug_re = re.compile(r'([a-zA-Z0-9.-_]+)')
 
 # Figure out our fs encoding, if it's ascii we upgrade to utf-8
 fs_enc = sys.getfilesystemencoding()
@@ -380,14 +380,6 @@ class WorkerPool(object):
 
     def wait_for_completion(self):
         self.tasks.join()
-
-
-def slugify(value):
-    # XXX: not good enough
-    value_ascii = value.strip().encode('ascii', 'ignore').strip().decode()
-    rv = u' '.join(value_ascii.split()).lower()
-    words = _slug_re.findall(rv)
-    return '-'.join(words)
 
 
 class Url(object):
