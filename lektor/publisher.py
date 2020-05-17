@@ -654,8 +654,8 @@ class GithubPagesPublisher(Publisher):
     def _check_error(line):
         """
         Check that line does not contain a git error keyword.
-        Check if a line (string) is interpreted as an error using a list of error related words. If it is interpreted
-        as an error, an exception is raised.
+        Check if a line (string) is interpreted as an error using a list of error related words.
+        If it is interpreted as an error, an exception is raised.
         :param line: String. Line to evaluate. Ie, 'error: src refspec gh-pages does not match any'
         """
         error_substrings = ['fatal:', 'error:']
