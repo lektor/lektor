@@ -650,6 +650,19 @@ class GithubPagesPublisher(Publisher):
             branch = 'gh-pages'
         return branch
 
+    @staticmethod
+    def _check_error(line):
+        """
+        Check that line does not contain a git error keyword.
+        Check if a line (string) is interpreted as an error using a list of error related words. If it is interpreted
+        as an error, an exception is raised.
+        :param line: String. Line to evaluate. Ie, 'error: src refspec gh-pages does not match any'
+        """
+        error_substrings = ['fatal:', 'error:']
+
+        if any(substring in line.lower() for substring in error_substrings):
+            raise PublishError(line)
+
     def publish(self, target_url, credentials=None, **extra):
         if not locate_executable('git'):
             self.fail('git executable not found; cannot deploy.')
@@ -664,10 +677,12 @@ class GithubPagesPublisher(Publisher):
                 return Command(['git'] + args, cwd=path, **kwargs)
 
             for line in git(['init']).output:
+                self._check_error(line)
                 yield line
             ssh_command = self.update_git_config(path, target_url, branch,
                                                  credentials)
             for line in git(['remote', 'update']).output:
+                self._check_error(line)
                 yield line
 
             if git(['checkout', '-q', branch], silent=True).wait() != 0:
@@ -676,10 +691,13 @@ class GithubPagesPublisher(Publisher):
             self.link_artifacts(path)
             self.write_cname(path, target_url)
             for line in git(['add', '-f', '--all', '.']).output:
+                self._check_error(line)
                 yield line
             for line in git(['commit', '-qm', 'Synchronized build']).output:
+                self._check_error(line)
                 yield line
             for line in git(['push', 'origin', branch]).output:
+                self._check_error(line)
                 yield line
 
 
