@@ -95,6 +95,11 @@ class Project(object):
 
     def get_output_path(self):
         """The path where output files are stored."""
+        config = self.open_config()
+        output_path = config.get('project.output_path')
+        if output_path:
+            return os.path.join(self.tree, os.path.normpath(output_path))
+
         return os.path.join(get_cache_dir(), 'builds', self.id)
 
     def get_package_cache_path(self):
