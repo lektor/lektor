@@ -1,0 +1,61 @@
+title: System Fields
+---
+summary: Brief overview of the system fields in Lektor.
+---
+body:
+
+In addition to the fields that are defined through the [Data Model
+:ref](../../models/) there are a lot of fields that come directly from Lektor.
+They can be easily recognized because they are prefixed by a leading underscore
+(`_`).
+
+These fields influence how Lektor treats pages and attachment.  Here we will
+just go over the most important ones but for a full list you can have a look
+[at the API Documentation :ref](../../api/db/system-fields/).
+
+## `_hidden`
+
+This field is a boolean value and controls if a page is hidden or not.  If a
+page is hidden all of its children will automatically also be hidden.  A page
+that is hidden will not be processed by Lektor's build system.  This means such
+pages can be discovered through the query API but they are not rendered
+themselves.  This is useful for situations where you want to have information
+stored but not rendered.  This is for instance used to [implement Single-Page
+websites :ref](../../guides/single-page/).
+
+*To read more read [the field documentation :ref](../../api/db/system-fields/hidden/).*
+
+## `_discoverable`
+
+This fields in many ways is similar to `_hidden` but instead makes a page
+be only hidden from queries.  In particular this means that it will still be
+processed and built, but that it becomes harder for code to reference it.
+Pages that are not set to discoverable can only be found through queries if
+they are [explicitly included :ref](../../api/db/query/include-undiscoverable/).
+
+!! This field was added in Lektor 2.0.  In earlier versions this feature is
+unavailable.
+
+*To read more read [the field documentation :ref](../../api/db/system-fields/discoverable/).*
+
+## `_model`
+
+This key sets the [Data Model :ref](../../models/) that is used for the record.
+If not set this defaults to one of different choices depending on configuration
+or name.  Parent models can pre-define the model for children, which is then used if
+this key is not set. If not set this will be picked up by an algorithm.
+See [Default Model Selection :ref](../../models/selection/) for more information.
+
+*To learn more read [the field documentation :ref](../../api/db/system-fields/model/).*
+
+## `_slug`
+
+This field can override the default URL slug.  For more information about this
+feature see [URLs and Slugs :ref](../urls/).
+
+## `_template`
+
+This field can be used to override the default template selection which is
+just the model name with the `.html` extension.
+
+*To learn more read [the field documentation :ref](../../api/db/system-fields/template/).*

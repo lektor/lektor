@@ -1,0 +1,77 @@
+title: Sitemap
+---
+summary: Quick demo of how to build a custom sitemap.xml.
+---
+body:
+
+If you want to have a `sitemap.xml` file for search engines this is something
+you can very easily create yourself.  All you need is a contents file
+and a custom template.
+
+## Contents File
+
+First we need to create a contents file.  Since `sitemap.xml` always goes
+into the same location we create a folder called `sitemap.xml` inside our
+`content` folder and add a `contents.lr` file with the following data:
+
+```
+_template: sitemap.xml
+----
+_model: none
+```
+
+This instructs Lektor to use the template `sitemap.xml` for this page.  We
+also give it the empty `none` model for good measure.
+
+!!! Starting with Lektor 2.0 you can also add `_discoverable: no` as a field
+into the file to hide it from `.children`.  This is useful for such special
+pages which should be excluded from navigation or automatic link generation.
+
+## Template File
+
+The template loaded will be `templates/sitemap.xml`.  In this file we just
+iterate over all pages of the site recursively.  This also automatically
+skips hidden pages so those will not be generated out.
+
+```xml+jinja
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  {%- for page in [site.root] if page != this recursive %}
+  <url><loc>{{ page|url(external=true) }}</loc></url>
+  {{- loop(page.children|sort(attribute='path')) }}
+  {%- endfor %}
+</urlset>
+```
+
+Sorting the page using `|sort(attribute='path')` is not mandatory, but can be
+useful if you prefer to have stable builds, for instance if you use `git` to
+version the generated page and would like a clean history or a meaningful diff
+from the last build.
+
+Note that because sitemaps need to have external URLs (with scheme and
+everything) you will need to configure the `url` of the site before the
+template starts working.  For more information see [Project File
+:ref](../../project/file/#[project])
+
+## Human Readable Sitemap
+
+But what if you want a beautiful sitemap as a tree for human reading?  This is
+not any harder.  Instead of making a `sitemap.xml/contents.lr` file just
+create a `sitemap/contents.lr` file instead and use a template like
+`sitemap.html`.  Then use something like this:
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}Sitemap{% endblock %}
+{% block body %}
+<ul class="sitemap">
+  {% for page in [site.root] if page.record_label recursive %}
+  <li><a href="{{ page|url }}">{{ page.record_label }}</a>
+    {% if page.children %}
+      <ul>{{ loop(page.children|sort(attribute='path')) }}</ul>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
+```

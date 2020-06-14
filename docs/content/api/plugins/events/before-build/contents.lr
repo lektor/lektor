@@ -1,0 +1,35 @@
+title: before-build
+---
+type: event
+---
+signature: builder, build_state, source, prog
+---
+summary: This event is emitted before an individual source is built.
+---
+body:
+
+This event is emitted right before a source is being built into a final build
+artifact.  Note that this event in itself does not indicate if the build will
+actually take place or not due to the artifact being current already as such
+the usefulness is limited.
+
+The parameters being passed are:
+
+* `builder`: a reference to the builder.
+* `build_state`: a reference to the build state object.
+* `source`: the source object that is being processed. (See
+  [Source Object :ref](../../../db/obj/) for more information)
+* `prog`: the build program that is being used to process the source. (See
+  [Build Program :ref](../../../build/program/) for more information)
+
+!!!! Note that currently both the builder as well as the build state are
+undocumented and unsupported!  This means that if a plugin choses to use those
+references to do something with it they should consider that they might break
+in future versions.
+
+## Example
+
+```python
+def on_before_build(self, source, prog, **extra):
+    print('building %s' % source.source_filename)
+```

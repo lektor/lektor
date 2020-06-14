@@ -1,0 +1,64 @@
+title: Data Bags
+---
+summary: A summary about using the data bag system to store useful data.
+---
+body:
+
+The [Data Bags :ref](../../api/databags/) are a quick way to store structured
+information that templates can access.  It's just a convenient way to access
+data from INI or JSON files.  This is useful for instance to build a navigation
+menu or similar things.
+
+## Creating Bags
+
+To create a data bag just place a `.ini` or `.json` file in the `databags/`
+folder.  The files there are accessible by their name sans the file extension.
+All ordering in the source files is retained.  So for instance this could
+be the `main-nav.ini` data file for a basic navigation:
+
+```ini
+/downloads = Download
+/docs = Documentation
+/blog = Blog
+```
+
+And the template could access it like this:
+
+```html+jinja
+<ul class="nav">
+{% for path, label in bag('main-nav').items() %}
+  <li{% if this.is_child_of(path) %} class="active"{% endif
+    %}><a href="{{ path|url }}">{{ label }}</a>
+  </li>
+{% endfor %}
+</ul>
+```
+
+## Nested Access
+ 
+Data bags can be structured in more complex ways.  For INI files sections
+can be used, for JSON files entire object trees can be stored.  The
+[bag :ref](../../api/templates/globals/bag/) function can thus accept
+arbitrary dotted path (or multiple args to `bag`) to navigate to specific items
+within the bag.  For instance you could use this to look up values that might
+change depending on the alternative of a page for instance.
+
+In this case the system is used to translate buttons.  Take `buttons.ini`
+as an example:
+
+```ini
+[en]
+download = Download
+
+[de]
+download = Herunterladen
+
+[ru]
+download = Скачать
+```
+
+And in a template it could be used like this:
+
+```html+jinja
+<h2>{{ bag('buttons', this.alt, 'download') }}</h2>
+```

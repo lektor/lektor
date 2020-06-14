@@ -1,0 +1,63 @@
+title: virtualpathresolver
+---
+signature: prefix
+---
+summary: Registers a virtual path resolver with the environment.
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+When implementing [Virtual Source Objects :ref](../../db/obj/) it's important
+that you can locate them.  While virtual sources do not appear as children of
+pages they can be navigated to through the database pad.  This is achieved
+through custom virtual path resolvers.
+
+Each source object needs to be a unique prefix which identifies all instances
+of it.  For instance if you want to implement a special page (like a feed)
+that would exist for specific pages, then you can register the virtual path
+prefix `feed` with your plugin.  Though you should use more descriptive names
+for your plugins as these paths are shared.
+
+If a user then resolves the page `/my-page@feed` it would invoke your URL
+resolver with the record `my-page` and an empty list (rest of the path
+segments).  If they would request `/my-page@feed/recent` then it would
+pass `['recent']` as path segments.
+
+## Example
+
+Here an example that would implement a virtual source for feeds and an
+associated virtual path resolver:
+
+```python
+from lektor.sourceobj import VirtualSourceObject
+from lektor.utils import build_url
+
+class Feed(VirtualSourceObject):
+
+    def __init__(self, record, version='default'):
+        VirtualSourceObject.__init__(self, record)
+        self.version = version
+
+    @property
+    def path(self):
+        return '%s@feed%s' % (
+            self.record.path,
+            '/' + self.version if self.version != 'default' else '',
+        )
+
+    @property
+    def url_path(self):
+        return build_url([self.record.url_path, 'feed.xml'])
+
+
+def on_setup_env(self, **extra):
+    @self.env.virtualpathresolver('feed')
+    def resolve_virtual_path(record, pieces):
+        if not pieces:
+            return Feed(record)
+        elif pieces == ['recent']:
+            return Feed(record, version='recent')
+```

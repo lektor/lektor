@@ -1,0 +1,34 @@
+title: process-template-context
+---
+type: event
+---
+signature: context, template=None
+---
+summary: An event that can be handled to customize the template context.
+---
+body:
+
+This event is emitted right before a template is rendered and can be used
+to inject values directly into the template context.  The context is always
+provided and is a dictionary that can be modified.
+
+It's important to know that this is not the only way to modify the template
+context.  Another method is to modify the underlying [Jinja Environment
+:ref](../../../environment/jinja-env/) on the environment directly.  The
+difference is that the globals from the `jinja_env` are available in *all*
+templates whereas the modified template context is only available in the
+toplevel template.  This becomes apparent when you are dealing with imported
+template macros.  A macro will not have access to values you provide here
+unless they are explicitly passed to it.
+
+The filename of the template is passed as `template` but is only available
+if the template was indeed loaded from the templates folder.  There are many
+more places where templates are rendered in those cases the value will
+not be provided.
+
+## Example
+
+```python
+def on_process_template_context(self, context, **extra):
+    context['my_variable'] = 'my value'
+```

@@ -1,0 +1,21 @@
+title: description
+---
+type: property
+---
+summary: The human readable plugin description.
+---
+body:
+
+This is a short string with some more explanation of what the plugin does.
+It's shown in the UI to give the user some ideas about its operation.
+
+## Example
+
+```python
+from lektor.pluginsystem import Plugin
+
+
+class MyPlugin(Plugin):
+    name = 'My Plugin'
+    description = 'This is a small plugin I wrote for testing purposes'
+```

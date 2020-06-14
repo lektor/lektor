@@ -1,0 +1,63 @@
+title: SourceObject
+---
+summary: The basic interface of all source objects.
+---
+module: lektor.db
+---
+type: class
+---
+body:
+
+Source objects is the common interface for all things that come out of the
+database.  There are two types of source objects:
+
+* [Records :ref](../record/) which are pages and attachments from the
+  `contents/` folder.
+* [Assets :ref](../asset/) which are files and directories from the
+  `assets/` folder.
+
+Whatever object you have in hand that comes from the database, they will
+at least provide a minimal useful set of API methods and properties.
+
+Plugins can subclass source objects to come up with their own source
+objects if needed.  In addition to that there is a special source object
+called the `VirtualSourceObject` which is more useful for plugin usage.
+
+## Virtual Source Objects
+
+Most plugins will not have source objects that actually originate on the
+file system.  This means that their "source" is entirely virtual.  Because
+this is a very common situation there is a base class, the
+`VirtualSourceObject` which plugins can subclass.  The constructor takes one
+argument which is the source record the virtual source lives below.  Virtual
+sources are separated from the records they belong to with an at sign (`@`)
+in the path.  The part after the at sign is called the “virtual path”.
+
+For instance in the below example the canonical path for the object would be
+the record's path + `@source`.  So if the record was `/hello` then the
+path would be `/hello@source`.  The true base record it belongs to can be
+referenced from the [record :ref](record/) property.
+
+```python
+from lektor.sourceobj import VirtualSourceObject
+from lektor.utils import build_url
+
+class Source(VirtualSourceObject):
+
+    @property
+    def path(self):
+        return self.record.path + '@source'
+
+    @property
+    def source_content(self):
+        with open(self.record.source_filename) as f:
+            return f.read().decode('utf-8')
+
+    @property
+    def url_path(self):
+        return build_url([self.record.url_path, 'source.txt'])
+```
+
+For more information see [add-build-program
+:ref](../../environment/add-build-program/) as well as
+[virtualpathresolver :ref](../../environment/virtualpathresolver/).

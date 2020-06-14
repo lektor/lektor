@@ -1,0 +1,23 @@
+title: _model
+---
+summary: The model the record uses for its fields.
+---
+type: sysfield
+---
+body:
+
+This field selects the model that should be used for non-system fields.  In
+many situations the model is picked automatically but for equally many
+situations it needs to be selected manually.
+
+This field is most useful for filtering when operating on mixed collections.
+
+## Example
+
+```html+jinja
+<ul class="projects">
+{% for child in this.children.filter(F._model == 'project') %}
+  <li>{{ child.name }}</li>
+{% endfor %}
+</ul>
+```

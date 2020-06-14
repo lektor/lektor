@@ -1,0 +1,22 @@
+title: _path
+---
+summary: The full path of the record.
+---
+type: sysfield
+---
+body:
+
+The `_path` is the more complete version of the [`_id`](../id/).  It contains
+the entire path of records that are the parents of a record.  So if you have a
+record named `docs/api/db/contents.lr` the `_id` would be `db` but the `_path`
+would be `docs/api/db`.
+
+The path can be used to uniquely identify a page but for that purpose the
+[`_gid`](../gid/) can also be used which is a hashed hexadecimal version of
+the page.
+
+## Example
+
+```html+jinja
+<!-- generated from {{ this._path }} -->
+```

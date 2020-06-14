@@ -1,0 +1,10 @@
+title: Database
+---
+summary: Detailed information about Lektor's flat file tree database system.
+---
+body:
+
+While Lektor does not have a real traditional SQL database, it has a tree
+based data layer which is internally called the database.  It's a very
+powerful tool for building websites and is accessible from plugin API,
+the `shell` command as well as from within the templates.

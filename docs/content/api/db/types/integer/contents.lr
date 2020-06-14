@@ -1,0 +1,31 @@
+title: integer
+---
+type: type
+---
+summary: A type that can store natural numbers.
+---
+body:
+
+The `integer` type is one of the most basic ones in Lektor.  It can store
+arbitrary natural numbers both negative and positive.  It should be used
+instead of a string when a real number with such behavior is wanted as it
+sorts numbers correctly and the numbers can be manipulated.
+
+## Field Usage
+
+```ini
+[fields.image_width]
+label = Image width
+type = integer
+description = The intended image width in pixels.
+addon_label = px
+```
+
+## Template Usage
+
+```html+jinja
+<img
+  src="{{ this.image.thumbnail(this.image_width - 10) }}"
+  alt="a thumbnail of that image"
+  style="border: 5px;">
+```

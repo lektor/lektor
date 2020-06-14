@@ -1,0 +1,33 @@
+title: jinja_env
+---
+type: property
+---
+summary: The configured Jinja 2 Environment.
+---
+body:
+
+This object is a configured Jinja2 environment.  For more information you can
+refer to the [Jinja 2 Documentation :ref](http://jinja.pocoo.org/docs/dev/api/#jinja2.Environment).
+
+This is where plugins can inject additional data like custom filters, tests
+or global functions.
+
+## Plugin Example
+
+```python
+from lektor.pluginsystem import Plugin
+
+class MyPlugin(Plugin):
+    ...
+
+    def on_setup_env(self, **extra):
+        def shout_filter(value):
+            return unicode(value).upper() + '!!!!1111'
+        self.env.jinja_env.filters['shout'] = shout_filter
+```
+
+Then you can use this filter from templates:
+
+```html+jinja
+<h1>{{ page.title|shout }}</h1>
+```

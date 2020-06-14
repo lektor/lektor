@@ -1,0 +1,12 @@
+title: source_obj
+---
+summary: A reference to the source object if available.
+---
+type: property
+---
+body:
+
+If an artifact directly corresponds to a [Source Object :ref](../../../db/obj/)
+then this will be a reference to it.  For most plugins this is unlikely but
+if you provide a source obj in the `sub_artifact` call it will be available
+here.

@@ -1,0 +1,48 @@
+title: Redirects
+---
+summary: A guide to setting up redirects.
+---
+body:
+
+Setting up a flexible redirect system to make HTML redirects in Lektor is easy. A better setup would likely be on the server level, for instance in nginx, or configured on your CDN. The redirect will be more performant on the server level. Though this is not the best kind of redirect, it is pretty robust and will work in most situations. This example is flexible and can handle multiple redirects for your site.
+
+## Models and Templates
+
+Set up the models to have a simple field that can hold the value of the target path. This is the path the page will be redirected to.
+
+### `models/redirect.ini`
+
+```ini
+[model]
+name = Redirect
+
+[fields.target]
+label = Redirect Target
+type = string
+description = Target is of type 'string' to allow relative paths. Converted to url in the template.
+```
+
+The template contains the minimal amount of html needed to initiate a redirect, along with a query for the target path.
+
+### `templates/redirect.html`
+
+```jinja
+<meta http-equiv="refresh" content="0; URL='{{ this.target|url }}'" />
+```
+
+## Contents
+
+The `contents.lr` files for each redirect can be created in the admin, but you will probably want to edit them by hand to make them non-discoverable. Setting them to be non-discoverable will mean that they don't show up in other template queries, which means you won't end up with other pages making references to the page that is nothing but a redirect.
+
+### `content/page-to-redirect/contents.lr`
+
+```
+_model: redirect
+----
+target: /new/path
+----
+_discoverable: no
+```
+
+
+

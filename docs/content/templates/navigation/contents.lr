@@ -1,0 +1,85 @@
+title: Navigation
+---
+summary: Shows how to create a dynamic navigation with Lektor.
+---
+sort_key: 20
+---
+body:
+
+Websites are all about hyperlinks and being able to explore more.  As such
+it's important to be able to provide a good navigation experience for your
+users.  Templating in Lektor makes it very easy to make automatic navigation
+that keeps up to date with your pages.  Most of this involves generating
+links with the help of the [URL Filter :ref](../urls/).
+
+## Basic Semi-Automatic Navigation
+
+The most basic form of navigation is a semi automatic one.  It's one of the
+most flexible ones while still being easy to maintain.  It requires knowledge
+of which pages to show and what the link title should be:
+
+```html+jinja
+<nav>
+  <ul class="nav navbar-nav">
+    <li{% if this._path == '/' %} class="active"{% endif
+      %}><a href="{{ '/'|url }}">Welcome</a></li>
+    {% for href, title in [
+      ['/blog', 'Blog'],
+      ['/projects', 'Projects'],
+      ['/about', 'About']
+    ] %}
+      <li{% if this.is_child_of(href) %} class="active"{% endif
+        %}><a href="{{ href|url }}">{{ title }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+```
+
+In this case we use a list of pages (href and title) to automatically
+generate some list items and we ask the current page (`this`) if it is
+a child of the given path.  Based on that information we automatically
+add a class to the link.
+
+The index page requires a bit of special casing as we do not want it to
+be active if any of its children are active.  So we just check if the
+path of the current page is actually the path of the index page.
+
+## Fully Automatic Navigation
+
+Sometimes all we want is to show navigation links for all sub-pages of
+a page.  This is easy to accomplish as well:
+
+```html+jinja
+<nav>
+  <ul class="nav">
+    {% for project in site.get('/projects').children %}
+      <li{% if this == project %} class="active"{% endif
+        %}><a href="{{ project|url }}">{{ project.name }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+```
+
+## Recursive Tree Navigation
+
+In some situations you want to show a tree like navigation.  This is for
+instance something that comes up when building site maps.  In that situation
+the recursive Jinja loop system really comes in handy.
+
+```html+jinja
+<ul class="tree-nav">
+  {% set root = site.get('/') %}
+  {% for child in root.children recursive %}
+    <li{% if this._path == child._path %} class="active"{% endif
+        %}><a href="{{ child|url }}">{{ child.title }}</a>
+      {% if this.is_child_of(child) %}
+      <ul>{{ loop(child.children) }}</ul>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+```
+
+This above template recursively renders out a part of the tree based
+navigation around the current active page.  For a concrete example for this:
+this is how the navigation of this documentation is rendered.

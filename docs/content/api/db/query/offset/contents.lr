@@ -1,0 +1,22 @@
+title: offset
+---
+summary: Skips a certain number of records.
+---
+type: method
+---
+signature: offset
+---
+body:
+
+The offset method can be used to skip a certain number of items.  Typically
+this is not useful as pagination comes built-in, but it can be helpful in
+some manual scenarios when working with data from the `shell`.
+
+This is typically combined with [limit :ref](../limit/).
+
+## Example
+
+```pycon
+>>> pad.query('/projects').limit(5).offset(10).all()
+[...]
+```

@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% from "macros/docs.html" import get_doc_icon, get_doc_link, get_doc_header %}
+{% block title %}{{ (this.title ~ ' | ') if this.title != 'Documentation' }}Documentation{% endblock %}
+{% block body %}
+  <div class="row">
+    <div class="col-sm-3">
+      <ul class="tree-nav nocontent">
+        <li{% if this._path == '/docs' %} class="active"{% endif
+          %}><a href="{{ '/docs'|url }}">Welcome</a></li>
+        {% set docs = site.get('/docs') %}
+        {% for child in docs.children recursive %}
+          <li{% if this._path == child._path %} class="active"{% endif
+              %}>{{ get_doc_link(child) }}
+            {% if this.is_child_of(child) %}
+            <ul>{{ loop(child.children) }}</ul>
+            {% endif %}
+        {% endfor %}
+      </ul>
+
+      {% if this.body.toc %}
+      <div class="visible-md-block visible-lg-block">
+        <h4>This Page</h4>
+        <ul class="toc">
+        {% for item in this.body.toc recursive %}
+          <li><a href="#{{ item.anchor }}">{{ item.title }}</a>{%
+           if item.children %}<ul>{{ loop(item.children) }}</ul>{% endif %}</li>
+        {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-sm-9 doc-styling">
+      {{ get_doc_header(this) }}
+
+      <ul class=page-meta>
+      {% if this.type == 'method' %}
+        <li>Method of {{ get_doc_link(this.parent) }}</li>
+      {% elif this.type == 'property' %}
+        <li>Property of {{ get_doc_link(this.parent) }}</li>
+      {% elif this.type == 'operator' %}
+        <li>Operator of {{ get_doc_link(this.parent) }}</li>
+      {% endif %}
+      {% if this.template_var %}
+        <li>Template variable: <a href="{{ (
+          '/docs/api/templates/globals/' ~ this.template_var|lower ~ '/')|url
+          }}"><code>{{ this.template_var }}</code></a></li>
+      {% endif %}
+      {% if this.version_added %}
+        <li>New in Lektor Version <em>{{ this.version_added }}</em></li>
+      {% endif %}
+      </ul>
+
+      {{ this.body }}
+      {% if this.parent._slug == 'events' %}
+        <br>
+        <p>
+          <a href="{{ ('/plugins/tag/' ~ this._slug ~ '/')|url }}" class="ref">Plugins That Use This Event</a>
+        </p>
+      {% endif %}
+
+      {% if this.version_history %}
+      <div class="version-info version-info-collapsed">
+        <h2>Version Info</h2>
+        <div class="contents">
+          {{ this.version_history }}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if this.children %}
+      <div class="child-pages nocontent">
+        {% for cols in this.children|batch(2) %}
+          <div class="row">
+            {% for page in cols if page %}
+            <div class="col-md-6 child">
+              <h4>
+                {{ get_doc_icon(page) }}
+                {{ get_doc_link(page) }}
+              </h4>
+              {% if page.summary %}
+                <p class="summary">{{ page.summary }}</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if this.allow_comments %}
+      <div class="comment-box">
+        <h2>Comments</h2>
+        {{ render_disqus_comments() }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

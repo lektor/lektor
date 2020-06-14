@@ -1,0 +1,19 @@
+title: url_to
+---
+summary: Calculates the URL to a specific page relative to the current.
+---
+type: function
+---
+module: lektor.context
+---
+signature: path, alt=None, absolute=None, external=None
+---
+body:
+
+Calculates the URL from the current source object on the context to the given
+other source object.  Alternatively a path can also be provided instead of a
+source object.  If the path starts with a leading bang (``!``) then no
+resolving is performed.  If no `alt` is provided the `alt` of the page is used.
+
+This works exactly the same as [the method with the same name
+:ref](../../db/obj/url-to/) on source objects.

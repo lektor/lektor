@@ -1,0 +1,14 @@
+title: Guides
+---
+summary: Guides with solutions for common problems.
+---
+sort_key: 100
+---
+allow_comments: no
+---
+body:
+
+Because Lektor is quite a generic system, sometimes it might not be quite
+obvious what the best course of action is.  This part of the documentation
+contains some guides that should help you find inspiration for solving certain
+problems.

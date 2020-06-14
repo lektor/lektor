@@ -1,0 +1,22 @@
+title: get_random_id
+---
+summary: Generates a new random ID.
+---
+type: function
+---
+template_var: get_random_id
+---
+body:
+
+In some situations it can be very useful to generate a unique ID in templates.
+This is particularly useful when creating templates for the [Flow
+:ref](../../../../flow/) system and you need unique IDs for the DOM.
+
+## Example
+
+```html+jinja
+{% set id = get_random_id() %}
+<div id="{{ id }}">
+  <button data-target="{{ id }}" class="toggle">Hide This</button>
+</div>
+```
