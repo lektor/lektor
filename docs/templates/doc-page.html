@@ -87,13 +87,6 @@
         {% endfor %}
       </div>
       {% endif %}
-
-      {% if this.allow_comments %}
-      <div class="comment-box">
-        <h2>Comments</h2>
-        {{ render_disqus_comments() }}
-      </div>
-      {% endif %}
     </div>
   </div>
 {% endblock %}

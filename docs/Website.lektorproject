@@ -11,10 +11,6 @@ default = yes
 
 [packages]
 lektor-webpack-support = 0.3
-lektor-disqus-comments = 0.1
 lektor-markdown-header-anchors = 0.1
 lektor-markdown-highlighter = 0.1
 lektor-markdown-admonition = 0.1
-lektor-atom = 0.3.1
-lektor-tags = 0.3
-lektor-slugify = 0.4
