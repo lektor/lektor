@@ -10,6 +10,7 @@ from lektor.environment.expressions import FormatExpression
 from lektor.i18n import generate_i18n_kvs
 from lektor.i18n import get_i18n_block
 from lektor.pagination import Pagination
+from lektor.reporter import reporter
 from lektor.types import builtin_types
 from lektor.types.base import RawValue
 from lektor.utils import bool_from_string
@@ -339,8 +340,9 @@ class DataModel:
             return "_".join(
                 self._child_slug_tmpl[1].evaluate(pad, this=data).strip().split()
             ).strip("/")
-        except Exception:
-            # XXX: log
+        except Exception as exc:
+            reporter.report_generic(
+                "Failed to expand child slug_format: %s" % exc)
             return "temp-" + slugify(data["_id"])
 
     def get_default_template_name(self):
