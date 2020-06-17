@@ -452,7 +452,11 @@ class Record(SourceObject):
             else:
                 field = field.lstrip("+")
                 reverse = False
-            rv[idx] = _CmpHelper(self._data.get(field), reverse)
+            try:
+                value = self[field]
+            except KeyError:
+                value = None
+            rv[idx] = _CmpHelper(value, reverse)
         return rv
 
     def __contains__(self, name):
