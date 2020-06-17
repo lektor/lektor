@@ -1283,6 +1283,22 @@ def _iter_datamodel_choices(datamodel_name, path, is_attachment=False):
     yield "none"
 
 
+def get_default_slug(record, type_=None):
+    """Compute the default slug for a page.
+
+    This computes the default value of ``_slug`` for a page.  The slug
+    is computed by expanding the parent’s ``slug_format`` value.
+
+    """
+    parent = getattr(record, 'parent', None)
+    if parent is None:
+        return ''
+    return parent.datamodel.get_default_child_slug(record.pad, record)
+
+
+default_slug_descriptor = property(get_default_slug)
+
+
 class Database:
     def __init__(self, env, config=None):
         self.env = env
@@ -1502,21 +1518,10 @@ class Database:
                         ctx.record_dependency(dep_model.filename)
         return record
 
-    def get_default_slug(self, data, pad):
-        parent_path = posixpath.dirname(data["_path"])
-        parent = None
-        if parent_path != data["_path"]:
-            parent = pad.get(parent_path)
-        if parent:
-            slug = parent.datamodel.get_default_child_slug(pad, data)
-        else:
-            slug = ""
-        return slug
-
     def process_data(self, data, datamodel, pad):
         # Automatically fill in slugs
         if not data["_slug"]:
-            data["_slug"] = self.get_default_slug(data, pad)
+            data["_slug"] = default_slug_descriptor
         else:
             data["_slug"] = data["_slug"].strip("/")
 
