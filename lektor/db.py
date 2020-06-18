@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # pylint: disable=too-many-lines
 import errno
 import functools
