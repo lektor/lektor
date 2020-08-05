@@ -136,7 +136,7 @@ def magic_split_ext(filename, ext_check=True):
     def bad_ext(ext):
         if not ext_check:
             return False
-        if not ext or ext.split() != [ext] or ext.strip():
+        if not ext or ext.split() != [ext] or ext.strip() != ext:
             return True
         return False
 
