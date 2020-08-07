@@ -10,9 +10,8 @@ from functools import partial
 
 import click
 from jinja2 import Environment, PackageLoader
-from slugify import slugify
 
-from lektor.utils import fs_enc
+from lektor.utils import fs_enc, slugify
 from lektor._compat import text_type
 
 
