@@ -51,6 +51,7 @@ def test_is_path_child_of():
 def test_magic_split_ext():
     from lektor.utils import magic_split_ext
 
+    assert magic_split_ext("wow") == ("wow", "")
     assert magic_split_ext("aaa.jpg") == ("aaa", "jpg")
     assert magic_split_ext("aaa. jpg") == ("aaa. jpg", "")
     assert magic_split_ext("aaa.j pg") == ("aaa.j pg", "")
