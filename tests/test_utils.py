@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import pytest
 
 
@@ -49,10 +51,19 @@ def test_is_path_child_of():
 def test_magic_split_ext():
     from lektor.utils import magic_split_ext
 
+    assert magic_split_ext("wow") == ("wow", "")
     assert magic_split_ext("aaa.jpg") == ("aaa", "jpg")
     assert magic_split_ext("aaa. jpg") == ("aaa. jpg", "")
     assert magic_split_ext("aaa.j pg") == ("aaa.j pg", "")
     assert magic_split_ext("aaa.j pg", ext_check=False) == ("aaa", "j pg")
+
+
+def test_slugify():
+    from lektor.utils import slugify
+
+    assert slugify("w o w") == "w-o-w"
+    assert slugify(u"Șö prĕtty") == "so-pretty"
+    assert slugify("im age.jpg") == "im-age.jpg"
 
 
 def test_url_builder():

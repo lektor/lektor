@@ -3,14 +3,13 @@ import math
 import os
 
 from inifile import IniFile
-from slugify import slugify
 
 from lektor import types
 from lektor._compat import iteritems, itervalues
 from lektor.environment import Expression, FormatExpression, PRIMARY_ALT
 from lektor.i18n import get_i18n_block, generate_i18n_kvs
 from lektor.pagination import Pagination
-from lektor.utils import bool_from_string
+from lektor.utils import bool_from_string, slugify
 
 
 class ChildConfig(object):

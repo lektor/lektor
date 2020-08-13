@@ -27,7 +27,7 @@ except ImportError:
 import click
 from jinja2 import is_undefined
 from markupsafe import Markup
-from slugify import slugify
+from slugify import slugify as _slugify
 from werkzeug import urls
 from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
@@ -141,8 +141,10 @@ def magic_split_ext(filename, ext_check=True):
         return False
 
     parts = filename.rsplit('.', 2)
-    if len(parts) == 2 and not parts[0]:
+    if len(parts) == 1:
         return parts[0], ''
+    if len(parts) == 2 and not parts[0]:
+        return '.' + parts[1], ''
     if len(parts) == 3 and len(parts[1]) < 5:
         ext = '.'.join(parts[1:])
         if not bad_ext(ext):
@@ -244,6 +246,18 @@ def merge(a, b):
             a[key] = merge(a.get(key), value)
         return a
     return a
+
+
+def slugify(text):
+    """
+    A wrapper around python-slugify which preserves file extensions.
+    """
+    basename, ext = magic_split_ext(text)
+    out = _slugify(basename)
+
+    if ext:
+        return out + '.' + ext
+    return out
 
 
 def secure_filename(filename, fallback_name='file'):
