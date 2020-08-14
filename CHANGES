@@ -8,6 +8,7 @@ These are all the changes in Lektor since the first public release.
 
 Release date TBD
 
+- Add support for setting an output_path in the project file.
 - Replaced the slugify backend to handle unicode more effectively. This may break some slugs built from unicode.
 - Several modernization and performance improvements to the admin UI
 - Improved speed of source info updates.
