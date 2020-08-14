@@ -13,13 +13,11 @@ admin UI and minimal desktop app.
 
 <img src="https://raw.githubusercontent.com/lektor/lektor-assets/master/screenshots/admin.png" width="100%">
 
-To see how it works look at the ``example`` folder which contains a
-very basic project to get started.
+To see how it works look at the top-level `example/` folder, which contains
+a showcase of the wide variety of Lektor's features.
 
-For a more complete website look at [lektor/lektor-website](https://github.com/lektor/lektor-website)
-which contains the sourcecode for the official lektor website. We also have the example project at the
-top level of this repository `example/` that is a lean example of the wide variety of the features
-of Lektor.
+For a more complete example look at the [lektor/lektor-website](https://github.com/lektor/lektor-website)
+repository, which contains the sourcecode for the official lektor website.
 
 ## How do I use this?
 
