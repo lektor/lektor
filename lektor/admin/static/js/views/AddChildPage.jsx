@@ -8,7 +8,7 @@ import i18n from '../i18n'
 import userLabel from '../userLabel'
 import { apiRequest, loadData } from '../utils'
 import { slug as slugify } from '../slugify'
-import widgets from '../widgets'
+import { getWidgetComponentWithFallback } from '../widgets'
 import makeRichPromise from '../richPromise'
 
 const getGoodDefaultModel = (models) => {
@@ -156,7 +156,7 @@ class AddChildPage extends RecordComponent {
 
     const addField = (id, field, placeholder) => {
       let value = this.state[id]
-      const Widget = widgets.getWidgetComponentWithFallback(field.type)
+      const Widget = getWidgetComponentWithFallback(field.type)
       if (Widget.deserializeValue) {
         value = Widget.deserializeValue(value, field.type)
       }

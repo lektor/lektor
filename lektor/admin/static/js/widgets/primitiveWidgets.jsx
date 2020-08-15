@@ -1,7 +1,7 @@
 'use strict'
 
 import React from 'react'
-import { ValidationFailure, getInputClass, widgetPropTypes } from './mixins'
+import { getInputClass, widgetPropTypes } from './mixins'
 import { isValidUrl } from '../utils'
 import userLabel from '../userLabel'
 import i18n from '../i18n'
@@ -24,14 +24,9 @@ const isValidDate = (year, month, day) => {
 }
 
 function InputWidgetBase (props) {
-  let { type, value, onChange, className, postprocessValue, inputAddon, inputType, validate, ...otherProps } = props
+  const { type, value, onChange, postprocessValue, inputAddon, inputType, validate, disabled, placeholder } = props
   let help = null
-  let failure = null
-  if (validate) {
-    failure = validate(props.value)
-  }
-  className = (className || '')
-  className += ' input-group'
+  let className = 'input-group'
   function onChangeHandler (event) {
     let value = event.target.value
     if (postprocessValue) {
@@ -40,10 +35,16 @@ function InputWidgetBase (props) {
     onChange(value)
   }
 
+  const failure = validate ? validate(value) : null
+  const setValidity = (el) => {
+    if (el) {
+      el.setCustomValidity(failure || '')
+    }
+  }
   if (failure !== null) {
-    className += ' has-feedback has-' + failure.type
-    const valClassName = 'validation-block validation-block-' + failure.type
-    help = <div className={valClassName}>{failure.message}</div>
+    className += ' has-feedback has-error'
+    const valClassName = 'validation-block validation-block-error'
+    help = <div className={valClassName}>{failure}</div>
   }
 
   let addon = null
@@ -58,11 +59,13 @@ function InputWidgetBase (props) {
     <div className='form-group'>
       <div className={className}>
         <input
+          ref={setValidity}
           type={inputType}
+          disabled={disabled}
+          placeholder={placeholder}
           className={getInputClass(type)}
           onChange={onChangeHandler}
           value={value || ''}
-          {...otherProps}
         />
         {addon ? <span className='input-group-addon'>{addon}</span> : null}
       </div>
@@ -91,9 +94,7 @@ function postprocessInteger (value) {
 
 function validateInteger (value) {
   if (value && !value.match(/^-?\d+$/)) {
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_NUMBER')
-    })
+    return i18n.trans('ERROR_INVALID_NUMBER')
   }
   return null
 }
@@ -108,10 +109,8 @@ function postprocessFloat (value) {
 }
 
 function validateFloat (value) {
-  if (value && isNaN(parseFloat(value))) {
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_NUMBER')
-    })
+  if (value && !value.match(/^[+,-]?\d+[.]\d+$/)) {
+    return i18n.trans('ERROR_INVALID_NUMBER')
   }
   return null
 }
@@ -148,9 +147,7 @@ function validateDate (value) {
     return null
   }
 
-  return new ValidationFailure({
-    message: i18n.trans('ERROR_INVALID_DATE')
-  })
+  return i18n.trans('ERROR_INVALID_DATE')
 }
 
 export function DateInputWidget (props) {
@@ -160,9 +157,7 @@ DateInputWidget.propTypes = widgetPropTypes
 
 function validateUrl (value) {
   if (value && !isValidUrl(value)) {
-    return new ValidationFailure({
-      message: i18n.trans('ERROR_INVALID_URL')
-    })
+    return i18n.trans('ERROR_INVALID_URL')
   }
   return null
 }
@@ -180,9 +175,7 @@ export class MultiLineTextInputWidget extends React.Component {
 
   onChange (event) {
     this.recalculateSize()
-    if (this.props.onChange) {
-      this.props.onChange(event.target.value)
-    }
+    this.props.onChange(event.target.value)
   }
 
   componentDidMount () {
@@ -241,10 +234,9 @@ export class MultiLineTextInputWidget extends React.Component {
   }
 
   render () {
-    let { className, type, onChange, style, ...otherProps } = this.props
-    className = (className || '')
+    const { type, value, placeholder, disabled } = this.props
 
-    style = style || {}
+    const style = {}
     if (this.isInAutoResizeMode()) {
       style.display = 'block'
       style.overflow = 'hidden'
@@ -252,13 +244,15 @@ export class MultiLineTextInputWidget extends React.Component {
     }
 
     return (
-      <div className={className}>
+      <div>
         <textarea
           ref='ta'
           className={getInputClass(type)}
           onChange={this.onChange.bind(this)}
           style={style}
-          {...otherProps}
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder}
         />
       </div>
     )
@@ -267,12 +261,17 @@ export class MultiLineTextInputWidget extends React.Component {
 MultiLineTextInputWidget.propTypes = widgetPropTypes
 
 export class BooleanInputWidget extends React.Component {
+  constructor (props) {
+    super(props)
+    this.checkbox = React.createRef()
+  }
+
   onChange (event) {
     this.props.onChange(event.target.checked ? 'yes' : 'no')
   }
 
   componentDidMount () {
-    const checkbox = this.refs.checkbox
+    const checkbox = this.checkbox.current
     if (!this.props.value && this.props.placeholder) {
       checkbox.indeterminate = true
       checkbox.checked = isTrue(this.props.placeholder)
@@ -282,18 +281,17 @@ export class BooleanInputWidget extends React.Component {
   }
 
   render () {
-    let { className, type, placeholder, onChange, value, ...otherProps } = this.props
-    className = (className || '') + ' checkbox'
+    const { type, value, disabled } = this.props
 
     return (
-      <div className={className}>
+      <div className='checkbox'>
         <label>
           <input
             type='checkbox'
-            {...otherProps}
-            ref='checkbox'
+            disabled={disabled}
+            ref={this.checkbox}
             checked={isTrue(value)}
-            onChange={onChange ? this.onChange.bind(this) : undefined}
+            onChange={this.onChange.bind(this)}
           />
           {type.checkbox_label_i18n ? i18n.trans(type.checkbox_label_i18n) : null}
         </label>

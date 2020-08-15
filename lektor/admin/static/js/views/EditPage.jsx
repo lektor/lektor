@@ -6,7 +6,7 @@ import { Prompt } from 'react-router-dom'
 import RecordComponent from '../components/RecordComponent'
 import { apiRequest, loadData, isMetaKey } from '../utils'
 import i18n from '../i18n'
-import widgets from '../widgets'
+import { getWidgetComponentWithFallback, FieldBox, FieldRows } from '../widgets'
 import makeRichPromise from '../richPromise'
 
 class EditPage extends RecordComponent {
@@ -21,6 +21,7 @@ class EditPage extends RecordComponent {
     }
     this._onKeyPress = this._onKeyPress.bind(this)
     this.setFieldValue = this.setFieldValue.bind(this)
+    this.form = React.createRef()
   }
 
   componentDidMount () {
@@ -43,7 +44,10 @@ class EditPage extends RecordComponent {
     // meta+s is open find files
     if (event.which === 83 && isMetaKey(event)) {
       event.preventDefault()
-      this.saveChanges()
+      const { current } = this.form
+      if (current && current.reportValidity()) {
+        this.saveChanges()
+      }
     }
   }
 
@@ -72,7 +76,7 @@ class EditPage extends RecordComponent {
         // transform resp.data into actual data
         const recordData = {}
         resp.datamodel.fields.forEach(field => {
-          const widget = widgets.getWidgetComponentWithFallback(field.type)
+          const widget = getWidgetComponentWithFallback(field.type)
           let value = resp.data[field.name]
           if (value !== undefined) {
             if (widget.deserializeValue) {
@@ -108,7 +112,7 @@ class EditPage extends RecordComponent {
       let value = this.state.recordData[field.name]
 
       if (value !== undefined) {
-        const Widget = widgets.getWidgetComponentWithFallback(field.type)
+        const Widget = getWidgetComponentWithFallback(field.type)
         if (Widget.serializeValue) {
           value = Widget.serializeValue(value, field.type)
         }
@@ -122,7 +126,11 @@ class EditPage extends RecordComponent {
     return rv
   }
 
-  saveChanges () {
+  saveChanges (event) {
+    if (event) {
+      event.preventDefault()
+    }
+
     const path = this.getRecordPath()
     const alt = this.getRecordAlt()
     const newData = this.getValues()
@@ -175,11 +183,11 @@ class EditPage extends RecordComponent {
     return null
   }
 
-  renderFormField (field, idx) {
-    const widget = widgets.getWidgetComponentWithFallback(field.type)
+  renderFormField (field) {
+    const widget = getWidgetComponentWithFallback(field.type)
     return (
-      <widgets.FieldBox
-        key={idx}
+      <FieldBox
+        key={field.name}
         value={this.getValueForField(widget, field)}
         placeholder={this.getPlaceholderForField(widget, field)}
         field={field}
@@ -189,30 +197,19 @@ class EditPage extends RecordComponent {
     )
   }
 
-  renderFormFields () {
-    return widgets.renderFieldRows(
-      this.state.recordDataModel.fields,
-      this.isIllegalField.bind(this),
-      this.renderFormField.bind(this)
-    )
-  }
-
   render () {
     // we have not loaded anything yet.
     if (this.state.recordInfo === null) {
       return null
     }
 
-    let deleteButton = null
-    if (this.state.recordInfo.can_be_deleted) {
-      deleteButton = (
-        <button
-          type='submit' className='btn btn-default'
-          onClick={this.deleteRecord.bind(this)}
-        >{i18n.trans('DELETE')}
+    const deleteButton = this.state.recordInfo.can_be_deleted
+      ? (
+        <button type='button' className='btn btn-default' onClick={this.deleteRecord.bind(this)}>
+          {i18n.trans('DELETE')}
         </button>
       )
-    }
+      : null
 
     const title = this.state.recordInfo.is_attachment
       ? i18n.trans('EDIT_ATTACHMENT_METADATA_OF')
@@ -222,19 +219,23 @@ class EditPage extends RecordComponent {
       ? i18n.trans(this.state.recordInfo.label_i18n)
       : this.state.recordInfo.label
 
+    const fields = this.state.recordDataModel.fields.filter(f => !this.isIllegalField(f))
     return (
       <div className='edit-area'>
         {this.state.hasPendingChanges && <Prompt message={() => i18n.trans('UNLOAD_ACTIVE_TAB')} />}
         <h2>{title.replace('%s', label)}</h2>
-        {this.renderFormFields()}
-        <div className='actions'>
-          <button
-            type='submit' className='btn btn-primary'
-            onClick={this.saveChanges.bind(this)}
-          >{i18n.trans('SAVE_CHANGES')}
-          </button>
-          {deleteButton}
-        </div>
+        <form ref={this.form} onSubmit={this.saveChanges.bind(this)}>
+          <FieldRows
+            fields={fields}
+            renderFunc={this.renderFormField.bind(this)}
+          />
+          <div className='actions'>
+            <button type='submit' className='btn btn-primary'>
+              {i18n.trans('SAVE_CHANGES')}
+            </button>
+            {deleteButton}
+          </div>
+        </form>
       </div>
     )
   }
