@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_paginated_children(pad):
     page1 = pad.get('/projects', page_num=1)
 
@@ -238,3 +241,55 @@ def test_virtual_path_behavior(pad):
     assert blog_page2.url_to('..', absolute=True) == '/'
     assert blog_page2.url_to('@1', absolute=True) == '/blog/'
     assert blog_page2.url_to('@3', absolute=True) == '/blog/page/3/'
+
+
+class Test_Pagination_iter_pages(object):
+    @pytest.fixture
+    def pagination(self, pad, page, pages, monkeypatch):
+        projects = pad.get('/projects', page_num=1)
+        pagination = projects.pagination
+        # hack in the desired page and total
+        monkeypatch.setattr(pagination, 'page', page)
+        monkeypatch.setattr(pagination, 'total', pages)
+        monkeypatch.setattr(pagination, 'per_page', 1)
+        assert pagination.pages == pages
+        return pagination
+
+    @pytest.mark.parametrize(
+        ('page', 'pages',
+         'left_edge', 'left_current', 'right_current', 'right_edge',
+         'expected'),
+        [
+            (1, 9, 0, 0, 0, 0, [1, None]),
+            (2, 9, 0, 0, 0, 0, [None, 2, None]),
+            (8, 9, 0, 0, 0, 0, [None, 8, None]),
+            (9, 9, 0, 0, 0, 0, [None, 9]),
+
+            (1, 9, 1, 0, 0, 1, [1, None, 9]),
+            (2, 9, 1, 0, 0, 1, [1, 2, None, 9]),
+            (3, 9, 1, 0, 0, 1, [1, None, 3, None, 9]),
+            (7, 9, 1, 0, 0, 1, [1, None, 7, None, 9]),
+            (8, 9, 1, 0, 0, 1, [1, None, 8, 9]),
+            (9, 9, 1, 0, 0, 1, [1, None, 9]),
+
+            (1, 9, 0, 1, 1, 0, [1, 2, None]),
+            (2, 9, 0, 1, 1, 0, [1, 2, 3, None]),
+            (3, 9, 0, 1, 1, 0, [None, 2, 3, 4, None]),
+            (7, 9, 0, 1, 1, 0, [None, 6, 7, 8, None]),
+            (8, 9, 0, 1, 1, 0, [None, 7, 8, 9]),
+            (9, 9, 0, 1, 1, 0, [None, 8, 9]),
+
+            (1, 9, 1, 1, 1, 1, [1, 2, None, 9]),
+            (2, 9, 1, 1, 1, 1, [1, 2, 3, None, 9]),
+            (3, 9, 1, 1, 1, 1, [1, 2, 3, 4, None, 9]),
+            (4, 9, 1, 1, 1, 1, [1, None, 3, 4, 5, None, 9]),
+            (6, 9, 1, 1, 1, 1, [1, None, 5, 6, 7, None, 9]),
+            (7, 9, 1, 1, 1, 1, [1, None, 6, 7, 8, 9]),
+            (8, 9, 1, 1, 1, 1, [1, None, 7, 8, 9]),
+            (9, 9, 1, 1, 1, 1, [1, None, 8, 9]),
+            ])
+    def test(self, pagination, page,
+             left_edge, left_current, right_current, right_edge,
+             expected):
+        assert list(pagination.iter_pages(
+            left_edge, left_current, right_current, right_edge)) == expected
