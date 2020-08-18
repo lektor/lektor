@@ -32,7 +32,9 @@ def test_child_sources_basic(pad, builder):
     assert [x['_id'] for x in child_sources] == [
         'a',
         'b',
+        'file.ext',
         'hello.txt',
+        'slash-slug',
     ]
 
 
@@ -220,3 +222,19 @@ def test_iter_child_attachments(child_sources_test_project_builder):
     pad = builder.pad
     prog, _ = builder.build(pad.root)
     assert builder.pad.get('attachment.txt') in prog.iter_child_sources()
+
+
+def test_record_is_file(pad, builder):
+    record = pad.get('/extra/file.ext')
+
+    prog, _ = builder.build(record)
+    artifact, = prog.artifacts
+    assert artifact.artifact_name == 'extra/file.ext'
+
+
+def test_slug_contains_slash(pad, builder):
+    record = pad.get('/extra/slash-slug')
+
+    prog, _ = builder.build(record)
+    artifact, = prog.artifacts
+    assert artifact.artifact_name == 'extra/long/path/index.html'

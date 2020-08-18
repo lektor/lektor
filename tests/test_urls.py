@@ -81,3 +81,13 @@ def test_url_parse_virtual_path(pad):
     slave_de = pad.get('/projects/slave@2', alt='de')
     assert wolf_de.url_path == '/de/projects/wolf/page/2/'
     assert slave_de.url_path == '/de/projects/sklave/page/2/'
+
+
+def test_file_record_url(pad):
+    record = pad.get('/extra/file.ext')
+    assert record.url_path == '/extra/file.ext'
+
+
+def test_url_with_slash_slug(pad):
+    record = pad.get('/extra/slash-slug')
+    assert record.url_path == '/extra/long/path/'
