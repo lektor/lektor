@@ -250,10 +250,16 @@ def merge(a, b):
 
 def slugify(text):
     """
-    A wrapper around python-slugify which preserves file extensions.
+    A wrapper around python-slugify which preserves file extensions
+    and forward slashes.
     """
-    basename, ext = magic_split_ext(text)
-    out = _slugify(basename)
+
+    parts = text.split("/")
+    parts[-1], ext = magic_split_ext(parts[-1])
+
+    out = "/".join(
+        _slugify(part) for part in parts
+    )
 
     if ext:
         return out + '.' + ext
