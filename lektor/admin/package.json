@@ -15,7 +15,7 @@
     "babel-plugin-istanbul": "^6.0.0",
     "bootstrap": "~3.3.0",
     "chai": "^4.2.0",
-    "css-loader": "^3.6.0",
+    "css-loader": "^4.3.0",
     "event-source-polyfill": "^1.0.20",
     "file-loader": "^6.1.0",
     "font-awesome": "^4.3.0",
