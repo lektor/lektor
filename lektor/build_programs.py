@@ -179,12 +179,12 @@ class PageBuildProgram(BuildProgram):
     def build_artifact(self, artifact):
         try:
             self.source.url_path.encode("ascii")
-        except UnicodeError:
+        except UnicodeError as error:
             raise BuildError(
                 "The URL for this record contains non ASCII "
                 "characters.  This is currently not supported "
                 "for portability reasons (%r)." % self.source.url_path
-            )
+            ) from error
 
         artifact.render_template_into(self.source["_template"], this=self.source)
 
