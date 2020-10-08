@@ -39,8 +39,8 @@ class ThumbnailMode(IntEnum):
         name = label.upper().replace('-', '_')
         try:
             return cls.__members__[name] # pylint: disable=no-member
-        except KeyError:
-            raise ValueError("Invalid thumbnail mode '%s'." % label)
+        except KeyError as error:
+            raise ValueError("Invalid thumbnail mode '%s'." % label) from error
 
 # set the default. do it outside the class to not confuse things
 ThumbnailMode.DEFAULT = ThumbnailMode.FIT
