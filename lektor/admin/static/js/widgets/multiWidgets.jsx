@@ -43,7 +43,7 @@ export class CheckboxesInputWidget extends React.PureComponent {
     let { className, value, placeholder, type, onChange, ...otherProps } = this.props
     className = (className || '') + ' checkbox'
 
-    function onChangeHandler (field, event) {
+    const onChangeHandler = (field, event) => {
       const newValue = flipSetValue(this.props.value, field, event.target.checked)
       onChange(newValue)
     }
