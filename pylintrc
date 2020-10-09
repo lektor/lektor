@@ -24,4 +24,10 @@ disable =
     useless-object-inheritance,
     no-else-return,
     import-outside-toplevel,
+    raise-missing-from,
+    super-with-arguments,
     bad-option-value
+
+# disable needed on Python2 for:
+# raise-missing-from
+# super-with-arguments
