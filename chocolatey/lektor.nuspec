@@ -25,6 +25,7 @@
 
     <dependencies>
       <dependency id="python"/>
+      <dependency id="imagemagick"/>
     </dependencies>
   </metadata>
   <files>
