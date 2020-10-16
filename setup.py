@@ -29,6 +29,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms="any",
+    python_requires=">=3.5",
     install_requires=[
         "Babel",
         "click>=6.0",
