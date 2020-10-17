@@ -70,16 +70,17 @@ def get_alts(source=None, fallback=False):
     return rv
 
 
-def _process_slug(slug, last_segment=False):
-    if last_segment:
-        return slug
-    segments = slug.split('/')
-    if '.' not in segments[-1]:
-        return slug
+def _insert_underscore(slug):
+    """Modify a slug by prepending an underscore before the last slash, if any.
+
+    Used to perturb a slug that we want to use as a filename (or a URL path
+    ending in a filename) into a valid distinct directory name (or a URL path
+    ending in a distinct directory name)."""
+
+    segments = slug.rsplit('/', 1)
     if len(segments) == 1:
         return '_' + segments[0]
     return segments[0] + '/_' + segments[1]
-
 
 def _require_ctx(record):
     ctx = get_ctx()
@@ -406,15 +407,19 @@ class Record(SourceObject):
     def record_label(self):
         return (self.get_record_label_i18n() or {}).get('en')
 
-    @property
-    def url_path(self):
+    def get_url_path(self, as_leaf=True):
         """The target path where the record should end up."""
         prefix, suffix = self.pad.db.config.get_alternative_url_span(
             self.alt)
         bits = []
         node = self
         while node is not None:
-            bits.append(_process_slug(node['_slug'], node is self))
+            if as_leaf and node is self:
+                slug_piece = node['_leaf_slug']
+            else:
+                slug_piece = node['_nonleaf_slug']
+
+            bits.append(slug_piece)
             node = node.parent
         bits.reverse()
 
@@ -426,6 +431,11 @@ class Record(SourceObject):
             # actually become 404-de.html
             clean_path += suffix
         return '/' + clean_path.strip('/')
+
+    @property
+    def url_path(self):
+        """The target path where the record should end up."""
+        return self.get_url_path(as_leaf=True)
 
     @property
     def path(self):
@@ -565,16 +575,14 @@ class Page(Record):
     @property
     def url_path(self):
         # pylint: disable=no-value-for-parameter
-        rv = Record.url_path.__get__(self).rstrip('/')
-        last_part = rv.rsplit('/')[-1]
-        if '.' not in last_part:
-            rv += '/'
         if self.page_num in (1, None):
+            rv = self.get_url_path(as_leaf=True).rstrip('/')
+            if self['_leaf_dir']:
+                rv += '/'
             return rv
-        if '.' in last_part:
-            raise RuntimeError('When file extensions is provided pagination '
-                               'cannot be used.')
-        return '%s%s/%d/' % (
+
+        rv = self.get_url_path(as_leaf=False)
+        return '%s/%s/%d/' % (
             rv,
             self.datamodel.pagination_config.url_suffix.strip('/'),
             self.page_num,
@@ -604,9 +612,17 @@ class Page(Record):
 
         for idx in range_type(len(url_path)):
             piece = '/'.join(url_path[:idx + 1])
-            child = q.filter(F._slug == piece).first()
+
+            if idx == len(url_path) - 1:
+                # We are trying to match the entire rest of the URL path
+                predicate = F._leaf_slug == piece
+            else:
+                # We are matching a proper prefix of the URL path
+                predicate = F._nonleaf_slug == piece
+
+            child = q.filter(predicate).first()
             if child is None:
-                attachment = self.attachments.filter(F._slug == piece).first()
+                attachment = self.attachments.filter(predicate).first()
                 if attachment is None:
                     obj = self.pad.db.env.resolve_custom_url_path(
                         self, url_path)
@@ -1482,15 +1498,55 @@ class Database(object):
 
     def process_data(self, data, datamodel, pad):
         # Automatically fill in slugs
+
         if not data['_slug']:
             data['_slug'] = self.get_default_slug(data, pad)
         else:
             data['_slug'] = data['_slug'].strip('/')
+        slug = data['_slug']
+
+        if not data.get('_slug_style'):
+            data['_slug_style'] = self.config.default_slug_style
+
+        is_attachment = bool(data.get('_attachment_for'))
+        if is_attachment:
+            # Attachments must be rendered as a file. (The other fields we set
+            # below don't really make sense, but no harm in setting them.)
+            data['_slug_style'] = 'always_file'
+
+        if not slug:
+            # If the slug is empty (in particular, if this node is a root),
+            # it must be rendered as a directory.
+            data['_slug_style'] = 'always_dir'
+
+        if data['_slug_style'] == 'always_file':
+            data['_leaf_slug'] = slug
+            data['_nonleaf_slug'] = _insert_underscore(slug)
+            data['_leaf_dir'] = False
+        elif data['_slug_style'] == 'always_dir':
+            data['_leaf_slug'] = slug
+            data['_nonleaf_slug'] = slug
+            data['_leaf_dir'] = True
+        elif data['_slug_style'] == 'leaf_html':
+            data['_leaf_slug'] = slug + '.html'
+            data['_nonleaf_slug'] = slug
+            data['_leaf_dir'] = False
+        else: # catch all unrecognized slug styles as auto
+            segments = slug.rsplit('/', 1)
+            if '.' in segments[-1]:
+                # looks like a filename
+                data['_leaf_slug'] = slug
+                data['_nonleaf_slug'] = _insert_underscore(slug)
+                data['_leaf_dir'] = False
+            else:
+                # looks like a directory name
+                data['_leaf_slug'] = slug
+                data['_nonleaf_slug'] = slug
+                data['_leaf_dir'] = True
 
         # For attachments figure out the default attachment type if it's
         # not yet provided.
-        if is_undefined(data['_attachment_type']) and \
-           data['_attachment_for']:
+        if is_undefined(data['_attachment_type']) and is_attachment:
             data['_attachment_type'] = self.get_attachment_type(data['_path'])
 
         # Automatically fill in templates

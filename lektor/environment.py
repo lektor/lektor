@@ -398,6 +398,13 @@ class Config(object):
             return style
         return 'relative'
 
+    @cached_property
+    def default_slug_style(self):
+        """The default strategy for converting slugs into URLs."""
+        style = self.values['PROJECT'].get('default_slug_style')
+        if style in ('auto', 'always_file', 'always_dir', 'leaf_html'):
+            return style
+        return 'auto'
 
 def lookup_from_bag(*args):
     pieces = '.'.join(x for x in args if x)
