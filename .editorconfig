@@ -1,0 +1,28 @@
+# -*- mode: conf-unix; -*-
+
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# defaults
+[*]
+end_of_line = lf
+insert_final_newline = false
+indent_style = space
+
+# 4 space indentation
+[*.{ini,py,rst,js}]
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 88
+
+[*.{html,css}]
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.yml]
+indent_size = 2
+trim_trailing_whitespace = true
