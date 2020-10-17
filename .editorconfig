@@ -11,12 +11,14 @@ end_of_line = lf
 insert_final_newline = false
 indent_style = space
 
-# 4 space indentation
-[*.{ini,py,rst,js}]
+[*.{ini,py,rst}]
 indent_size = 4
 trim_trailing_whitespace = true
 insert_final_newline = true
 max_line_length = 88
+
+[*.{js,jsx}]
+indent_size = 2
 
 [*.{html,css}]
 indent_size = 2
