@@ -6,6 +6,7 @@ with io.open('README.md', 'rt', encoding='utf8') as f:
     readme = f.read()
 
 tests_require = [
+    'pre-commit',
     'pylint',
     'pytest',
     'pytest-cov',
