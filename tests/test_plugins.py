@@ -93,8 +93,7 @@ def scratch_project_with_plugin(scratch_project_data, request, isolated_cli_runn
 
 @pytest.mark.parametrize("scratch_project_with_plugin", build_events, indirect=True)
 def test_plugin_build_events_via_cli(scratch_project_with_plugin):
-    """Test whether a plugin with a given event can successfully use an extra flag.
-    """
+    """Test whether a plugin with a given event can successfully use an extra flag."""
     proj, event, cli_runner = scratch_project_with_plugin
 
     result = cli_runner.invoke(cli, ["build", "-f", "EXTRA"])
@@ -127,8 +126,7 @@ def test_plugin_build_events_via_cli(scratch_project_with_plugin):
 
 @pytest.mark.parametrize("scratch_project_with_plugin", clean_events, indirect=True)
 def test_plugin_clean_events_via_cli(scratch_project_with_plugin):
-    """Test whether a plugin with a given event can successfully use an extra flag.
-    """
+    """Test whether a plugin with a given event can successfully use an extra flag."""
     proj, event, cli_runner = scratch_project_with_plugin
 
     # See comment in test_plugin_build_events_via_cli
@@ -151,8 +149,7 @@ def test_plugin_clean_events_via_cli(scratch_project_with_plugin):
 
 @pytest.mark.parametrize("scratch_project_with_plugin", all_events, indirect=True)
 def test_env_extra_flag_passthrough(scratch_project_with_plugin):
-    """Test whether setting extra_flags passes through to each plugin event.
-    """
+    """Test whether setting extra_flags passes through to each plugin event."""
     from lektor.environment import Environment
 
     proj, event, cli_runner = scratch_project_with_plugin
@@ -167,8 +164,7 @@ def test_env_extra_flag_passthrough(scratch_project_with_plugin):
 
 @pytest.mark.parametrize("scratch_project_with_plugin", ["setup_env"], indirect=True)
 def test_multiple_extra_flags(scratch_project_with_plugin):
-    """Test whether setting extra_flags passes through to each plugin event.
-    """
+    """Test whether setting extra_flags passes through to each plugin event."""
     proj, event, cli_runner = scratch_project_with_plugin
 
     # See comment in test_plugin_build_events_via_cli
@@ -256,8 +252,7 @@ def scratch_project_with_plugin_no_params(
     "scratch_project_with_plugin_no_params", ["setup_env"], indirect=True
 )
 def test_plugin_bad_params(scratch_project_with_plugin_no_params):
-    """Ensure plugins err if event hooks don't accept needed params.
-    """
+    """Ensure plugins err if event hooks don't accept needed params."""
     proj, event, cli_runner = scratch_project_with_plugin_no_params
 
     env = proj.make_env()

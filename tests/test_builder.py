@@ -13,7 +13,7 @@ def test_basic_build(pad, builder):
     assert prog.source is root
     assert build_state.failed_artifacts == []
 
-    artifact, = prog.artifacts
+    (artifact,) = prog.artifacts
     # Root and its thumbnail image were updated.
     assert artifact in build_state.updated_artifacts
     assert artifact.artifact_name == "index.html"
