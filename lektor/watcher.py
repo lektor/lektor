@@ -1,8 +1,10 @@
 import os
 import time
 
+from watchdog.events import DirModifiedEvent
+from watchdog.events import FileMovedEvent
+from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, DirModifiedEvent, FileMovedEvent
 
 from lektor._compat import queue
 from lektor.utils import get_cache_dir
@@ -12,7 +14,6 @@ _Empty = queue.Empty
 
 
 class EventHandler(FileSystemEventHandler):
-
     def __init__(self, callback=None):
         if callback is not None:
             self.queue = None
@@ -23,7 +24,9 @@ class EventHandler(FileSystemEventHandler):
 
     def on_any_event(self, event):
         if not isinstance(event, DirModifiedEvent):
-            path = event.dest_path if isinstance(event, FileMovedEvent) else event.src_path
+            path = (
+                event.dest_path if isinstance(event, FileMovedEvent) else event.src_path
+            )
             item = (time.time(), event.event_type, path)
             if self.queue is not None:
                 self.queue.put(item)
@@ -32,7 +35,6 @@ class EventHandler(FileSystemEventHandler):
 
 
 class BasicWatcher(object):
-
     def __init__(self, paths, callback=None):
         self.event_handler = EventHandler(callback=callback)
         self.observer = Observer()
@@ -45,7 +47,7 @@ class BasicWatcher(object):
 
     def __iter__(self):
         if self.event_handler.queue is None:
-            raise RuntimeError('watcher used with callback')
+            raise RuntimeError("watcher used with callback")
         while 1:
             try:
                 item = self.event_handler.queue.get(timeout=1)
@@ -56,7 +58,6 @@ class BasicWatcher(object):
 
 
 class Watcher(BasicWatcher):
-
     def __init__(self, env, output_path=None):
         BasicWatcher.__init__(self, paths=[env.root_path] + env.theme_paths)
         self.env = env
@@ -70,7 +71,9 @@ class Watcher(BasicWatcher):
             return False
         if path.startswith(self.cache_dir):
             return False
-        if self.output_path is not None and path.startswith(os.path.abspath(self.output_path)):
+        if self.output_path is not None and path.startswith(
+            os.path.abspath(self.output_path)
+        ):
             return False
         return True
 

@@ -2,7 +2,7 @@ from markers import imagemagick
 
 
 def get_child_sources(prog):
-    return sorted(list(prog.iter_child_sources()), key=lambda x: x['_id'])
+    return sorted(list(prog.iter_child_sources()), key=lambda x: x["_id"])
 
 
 @imagemagick
@@ -13,10 +13,10 @@ def test_basic_build(pad, builder):
     assert prog.source is root
     assert build_state.failed_artifacts == []
 
-    artifact, = prog.artifacts
+    (artifact,) = prog.artifacts
     # Root and its thumbnail image were updated.
     assert artifact in build_state.updated_artifacts
-    assert artifact.artifact_name == 'index.html'
+    assert artifact.artifact_name == "index.html"
     assert artifact.sources == [root.source_filename]
     assert artifact.updated
     assert artifact.extra is None
@@ -24,66 +24,66 @@ def test_basic_build(pad, builder):
 
 
 def test_child_sources_basic(pad, builder):
-    extra = pad.get('/extra')
+    extra = pad.get("/extra")
 
     prog, _ = builder.build(extra)
     child_sources = get_child_sources(prog)
 
-    assert [x['_id'] for x in child_sources] == [
-        'a',
-        'b',
-        'file.ext',
-        'hello.txt',
-        'slash-slug',
+    assert [x["_id"] for x in child_sources] == [
+        "a",
+        "b",
+        "file.ext",
+        "hello.txt",
+        "slash-slug",
     ]
 
 
 def test_child_sources_pagination(pad, builder):
-    projects = pad.get('/projects')
+    projects = pad.get("/projects")
 
     def ids(sources):
-        return [x['_id'] for x in sources]
+        return [x["_id"] for x in sources]
 
     prog, _ = builder.build(projects)
 
     child_sources = get_child_sources(prog)
     assert ids(child_sources) == [
-        'attachment.txt',
-        'filtered',
-        'projects',
-        'projects',
-        'secret',
+        "attachment.txt",
+        "filtered",
+        "projects",
+        "projects",
+        "secret",
     ]
 
     page1 = child_sources[2]
-    assert page1['_id'] == 'projects'
+    assert page1["_id"] == "projects"
     assert page1.page_num == 1
     page2 = child_sources[3]
-    assert page2['_id'] == 'projects'
+    assert page2["_id"] == "projects"
     assert page2.page_num == 2
 
     prog, _ = builder.build(page1)
     child_sources_p1 = get_child_sources(prog)
 
     assert ids(child_sources_p1) == [
-        'bagpipe',
-        'coffee',
-        'master',
-        'oven',
+        "bagpipe",
+        "coffee",
+        "master",
+        "oven",
     ]
 
     prog, _ = builder.build(page2)
     child_sources_p2 = get_child_sources(prog)
 
     assert ids(child_sources_p2) == [
-        'postage',
-        'slave',
-        'wolf',
+        "postage",
+        "slave",
+        "wolf",
     ]
 
 
 def test_basic_artifact_current_test(pad, builder, reporter):
-    post1 = pad.get('blog/post1')
+    post1 = pad.get("blog/post1")
 
     def build():
         reporter.clear()
@@ -93,29 +93,44 @@ def test_basic_artifact_current_test(pad, builder, reporter):
     artifact = build()
 
     assert reporter.get_major_events() == [
-        ('enter-source', {
-            'source': post1,
-        }),
-        ('start-artifact-build', {
-            'artifact': artifact,
-            'is_current': False,
-        }),
-        ('build-func', {
-            'func': 'lektor.build_programs.PageBuildProgram',
-        }),
-        ('finish-artifact-build', {
-            'artifact': artifact,
-        }),
-        ('leave-source', {
-            'source': post1,
-        })
+        (
+            "enter-source",
+            {
+                "source": post1,
+            },
+        ),
+        (
+            "start-artifact-build",
+            {
+                "artifact": artifact,
+                "is_current": False,
+            },
+        ),
+        (
+            "build-func",
+            {
+                "func": "lektor.build_programs.PageBuildProgram",
+            },
+        ),
+        (
+            "finish-artifact-build",
+            {
+                "artifact": artifact,
+            },
+        ),
+        (
+            "leave-source",
+            {
+                "source": post1,
+            },
+        ),
     ]
 
     assert reporter.get_recorded_dependencies() == [
-        'Website.lektorproject',
-        'content/blog/post1/contents.lr',
-        'templates/blog-post.html',
-        'templates/layout.html',
+        "Website.lektorproject",
+        "content/blog/post1/contents.lr",
+        "templates/blog-post.html",
+        "templates/layout.html",
     ]
 
     assert artifact.is_current
@@ -125,22 +140,37 @@ def test_basic_artifact_current_test(pad, builder, reporter):
     assert artifact.is_current
 
     assert reporter.get_major_events() == [
-        ('enter-source', {
-            'source': post1,
-        }),
-        ('start-artifact-build', {
-            'artifact': artifact,
-            'is_current': True,
-        }),
-        ('build-func', {
-            'func': 'lektor.build_programs.PageBuildProgram',
-        }),
-        ('finish-artifact-build', {
-            'artifact': artifact,
-        }),
-        ('leave-source', {
-            'source': post1,
-        })
+        (
+            "enter-source",
+            {
+                "source": post1,
+            },
+        ),
+        (
+            "start-artifact-build",
+            {
+                "artifact": artifact,
+                "is_current": True,
+            },
+        ),
+        (
+            "build-func",
+            {
+                "func": "lektor.build_programs.PageBuildProgram",
+            },
+        ),
+        (
+            "finish-artifact-build",
+            {
+                "artifact": artifact,
+            },
+        ),
+        (
+            "leave-source",
+            {
+                "source": post1,
+            },
+        ),
     ]
 
 
@@ -150,43 +180,43 @@ def test_basic_template_rendering(pad, builder):
     prog, _ = builder.build(root)
     artifact = prog.artifacts[0]
 
-    with artifact.open('rb') as f:
-        rv = f.read().decode('utf-8')
+    with artifact.open("rb") as f:
+        rv = f.read().decode("utf-8")
 
-    assert artifact.artifact_name == 'index.html'
+    assert artifact.artifact_name == "index.html"
 
-    assert '<title>My Website</title>' in rv
-    assert '<h1>Welcome</h1>' in rv
+    assert "<title>My Website</title>" in rv
+    assert "<h1>Welcome</h1>" in rv
     assert '<link href="static/style.css" rel="stylesheet">' in rv
-    assert '<p>Welcome to this pretty nifty website.</p>' in rv
+    assert "<p>Welcome to this pretty nifty website.</p>" in rv
 
 
 def test_attachment_copying(pad, builder):
     root = pad.root
-    text_file = root.attachments.get('hello.txt')
+    text_file = root.attachments.get("hello.txt")
 
     prog, _ = builder.build(text_file)
     artifact = prog.artifacts[0]
 
-    assert artifact.artifact_name == 'hello.txt'
+    assert artifact.artifact_name == "hello.txt"
 
-    with artifact.open('rb') as f:
-        rv = f.read().decode('utf-8').strip()
-        assert rv == 'Hello I am an Attachment'
+    with artifact.open("rb") as f:
+        rv = f.read().decode("utf-8").strip()
+        assert rv == "Hello I am an Attachment"
 
 
 def test_asset_processing(pad, builder):
-    static = pad.asset_root.get_child('static')
+    static = pad.asset_root.get_child("static")
 
     prog, _ = builder.build(static)
     assets = list(prog.iter_child_sources())
     assert len(assets) == 1
-    assert assets[0].name == 'demo.css'
+    assert assets[0].name == "demo.css"
 
     prog, _ = builder.build(assets[0])
-    with prog.artifacts[0].open('rb') as f:
-        rv = f.read().decode('utf-8').strip()
-        assert 'color: red' in rv
+    with prog.artifacts[0].open("rb") as f:
+        rv = f.read().decode("utf-8").strip()
+        assert "color: red" in rv
 
 
 def test_included_assets(pad, builder):
@@ -195,7 +225,7 @@ def test_included_assets(pad, builder):
 
     prog, _ = builder.build(root)
     assets = list(prog.iter_child_sources())
-    assert '_include_me_despite_underscore' in [a.name for a in assets]
+    assert "_include_me_despite_underscore" in [a.name for a in assets]
 
 
 def test_excluded_assets(pad, builder):
@@ -204,7 +234,7 @@ def test_excluded_assets(pad, builder):
 
     prog, _ = builder.build(root)
     assets = list(prog.iter_child_sources())
-    assert 'foo-prefix-makes-me-excluded' not in [a.name for a in assets]
+    assert "foo-prefix-makes-me-excluded" not in [a.name for a in assets]
 
 
 def test_iter_child_pages(child_sources_test_project_builder):
@@ -213,7 +243,7 @@ def test_iter_child_pages(child_sources_test_project_builder):
     builder = child_sources_test_project_builder
     pad = builder.pad
     prog, _ = builder.build(pad.root)
-    assert builder.pad.get('filtered-page') in prog.iter_child_sources()
+    assert builder.pad.get("filtered-page") in prog.iter_child_sources()
 
 
 def test_iter_child_attachments(child_sources_test_project_builder):
@@ -221,20 +251,20 @@ def test_iter_child_attachments(child_sources_test_project_builder):
     builder = child_sources_test_project_builder
     pad = builder.pad
     prog, _ = builder.build(pad.root)
-    assert builder.pad.get('attachment.txt') in prog.iter_child_sources()
+    assert builder.pad.get("attachment.txt") in prog.iter_child_sources()
 
 
 def test_record_is_file(pad, builder):
-    record = pad.get('/extra/file.ext')
+    record = pad.get("/extra/file.ext")
 
     prog, _ = builder.build(record)
-    artifact, = prog.artifacts
-    assert artifact.artifact_name == 'extra/file.ext'
+    (artifact,) = prog.artifacts
+    assert artifact.artifact_name == "extra/file.ext"
 
 
 def test_slug_contains_slash(pad, builder):
-    record = pad.get('/extra/slash-slug')
+    record = pad.get("/extra/slash-slug")
 
     prog, _ = builder.build(record)
-    artifact, = prog.artifacts
-    assert artifact.artifact_name == 'extra/long/path/index.html'
+    (artifact,) = prog.artifacts
+    assert artifact.artifact_name == "extra/long/path/index.html"

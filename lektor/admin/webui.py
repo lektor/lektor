@@ -1,20 +1,21 @@
 import os
 import sys
-from flask import Flask, request, abort
+
+from flask import abort
+from flask import Flask
+from flask import request
 from flask.helpers import safe_join
 from werkzeug.utils import append_slash_redirect
 
-from lektor.db import Database
+from lektor.admin.modules import register_modules
 from lektor.builder import Builder
 from lektor.buildfailures import FailureController
-from lektor.admin.modules import register_modules
+from lektor.db import Database
 from lektor.reporter import CliReporter
 
 
 class LektorInfo(object):
-
-    def __init__(self, env, output_path, ui_lang='en', extra_flags=None,
-                 verbosity=0):
+    def __init__(self, env, output_path, ui_lang="en", extra_flags=None, verbosity=0):
         self.env = env
         self.ui_lang = ui_lang
         self.output_path = output_path
@@ -52,9 +53,11 @@ class LektorInfo(object):
             # requested a URL that actually wants a trailing slash, we
             # append it.  This is consistent with what apache and nginx do
             # and it ensures our relative urls work.
-            if not path.endswith('/') and \
-               source.url_path != '/' and \
-               source.url_path != path:
+            if (
+                not path.endswith("/")
+                and source.url_path != "/"
+                and source.url_path != path
+            ):
                 return abort(append_slash_redirect(request.environ))
 
             with CliReporter(self.env, verbosity=self.verbosity):
@@ -67,8 +70,8 @@ class LektorInfo(object):
                 filename = artifact.dst_filename
 
         if filename is None:
-            path_list = path.strip('/').split('/')
-            if sys.platform == 'win32':
+            path_list = path.strip("/").split("/")
+            if sys.platform == "win32":
                 filename = os.path.join(self.output_path, *path_list)
             else:
                 filename = safe_join(self.output_path, *path_list)
@@ -77,15 +80,21 @@ class LektorInfo(object):
 
 
 class WebUI(Flask):
-
-    def __init__(self, env, debug=False, output_path=None, ui_lang='en',
-                 verbosity=0, extra_flags=None):
-        Flask.__init__(self, 'lektor.admin', static_url_path='/admin/static')
-        self.lektor_info = LektorInfo(env, output_path, ui_lang,
-                                      extra_flags=extra_flags,
-                                      verbosity=verbosity)
+    def __init__(
+        self,
+        env,
+        debug=False,
+        output_path=None,
+        ui_lang="en",
+        verbosity=0,
+        extra_flags=None,
+    ):
+        Flask.__init__(self, "lektor.admin", static_url_path="/admin/static")
+        self.lektor_info = LektorInfo(
+            env, output_path, ui_lang, extra_flags=extra_flags, verbosity=verbosity
+        )
         self.debug = debug
-        self.config['PROPAGATE_EXCEPTIONS'] = True
+        self.config["PROPAGATE_EXCEPTIONS"] = True
 
         register_modules(self)
 

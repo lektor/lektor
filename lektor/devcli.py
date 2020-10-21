@@ -1,5 +1,6 @@
 import os
 import sys
+
 import click
 
 try:
@@ -14,17 +15,17 @@ from .cli import pass_context, AliasedGroup, extraflag
 
 def ensure_plugin():
     here = os.getcwd()
-    if not os.path.isfile(os.path.join(here, 'setup.py')):
-        raise click.UsageError('This command must be run in a '
-                               'Lektor plugin folder')
+    if not os.path.isfile(os.path.join(here, "setup.py")):
+        raise click.UsageError("This command must be run in a " "Lektor plugin folder")
     info = get_package_info(here)
-    if not info['name'].lower().startswith('lektor-'):
-        raise click.UsageError('Python package is misnamed. Needs to start '
-                               'with lektor-')
+    if not info["name"].lower().startswith("lektor-"):
+        raise click.UsageError(
+            "Python package is misnamed. Needs to start " "with lektor-"
+        )
     return info
 
 
-@click.group(cls=AliasedGroup, short_help='Development commands.')
+@click.group(cls=AliasedGroup, short_help="Development commands.")
 def cli():
     """Development commands for Lektor.
 
@@ -35,7 +36,7 @@ def cli():
     """
 
 
-@cli.command('shell', short_help='Starts a python shell.')
+@cli.command("shell", short_help="Starts a python shell.")
 @extraflag
 @pass_context
 def shell_cmd(ctx, extra_flags):
@@ -55,16 +56,17 @@ def shell_cmd(ctx, extra_flags):
     import code
     from lektor.db import F, Tree
     from lektor.builder import Builder
-    banner = 'Python %s on %s\nLektor Project: %s' % (
+
+    banner = "Python %s on %s\nLektor Project: %s" % (
         sys.version,
         sys.platform,
         ctx.get_env().root_path,
     )
     ns = {}
-    startup = os.environ.get('PYTHONSTARTUP')
+    startup = os.environ.get("PYTHONSTARTUP")
     if startup and os.path.isfile(startup):
-        with open(startup, 'r') as f:
-            eval(compile(f.read(), startup, 'exec'), ns)  # pylint: disable=eval-used
+        with open(startup, "r") as f:
+            eval(compile(f.read(), startup, "exec"), ns)  # pylint: disable=eval-used
     pad = ctx.get_env().new_pad()
     ns.update(
         project=ctx.get_project(),
@@ -72,19 +74,20 @@ def shell_cmd(ctx, extra_flags):
         pad=pad,
         tree=Tree(pad),
         config=ctx.get_env().load_config(),
-        make_builder=lambda: Builder(ctx.get_env().new_pad(),
-                                     ctx.get_default_output_path()),
-        F=F
+        make_builder=lambda: Builder(
+            ctx.get_env().new_pad(), ctx.get_default_output_path()
+        ),
+        F=F,
     )
     try:
         c = Config()
         c.TerminalInteractiveShell.banner2 = banner
         embed(config=c, user_ns=ns)
-    except NameError: # No IPython
+    except NameError:  # No IPython
         code.interact(banner=banner, local=ns)
 
 
-@cli.command('publish-plugin', short_help='Publish a plugin to PyPI.')
+@cli.command("publish-plugin", short_help="Publish a plugin to PyPI.")
 def publish_plugin_cmd():
     """Publishes the current version of the plugin in the current folder.
 
@@ -92,17 +95,18 @@ def publish_plugin_cmd():
     configuration for valid publishing to PyPI.
     """
     info = ensure_plugin()
-    for key in 'author', 'author_email', 'license', 'url':
+    for key in "author", "author_email", "license", "url":
         if not info[key]:
-            raise click.UsageError('Cannot publish plugin without setting '
-                                   '"%s" in setup.py.' % key)
-    register_package(info['path'])
-    publish_package(info['path'])
+            raise click.UsageError(
+                "Cannot publish plugin without setting " '"%s" in setup.py.' % key
+            )
+    register_package(info["path"])
+    publish_package(info["path"])
 
 
-@cli.command('new-plugin', short_help='Creates a new plugin')
-@click.option('--path', type=click.Path(), help='The destination path')
-@click.argument('plugin_name', required=False)
+@cli.command("new-plugin", short_help="Creates a new plugin")
+@click.option("--path", type=click.Path(), help="The destination path")
+@click.argument("plugin_name", required=False)
 @pass_context
 def new_plugin(ctx, **defaults):
     """This command creates a new plugin.
@@ -114,13 +118,14 @@ def new_plugin(ctx, **defaults):
     This is the fastest way to creating a new plugin.
     """
     from .quickstart import plugin_quickstart
+
     project = ctx.get_project(silent=True)
     plugin_quickstart(defaults, project=project)
 
 
-@cli.command('new-theme', short_help='Creates a new theme')
-@click.option('--path', type=click.Path(), help='The destination path')
-@click.argument('theme_name', required=False)
+@cli.command("new-theme", short_help="Creates a new theme")
+@click.option("--path", type=click.Path(), help="The destination path")
+@click.argument("theme_name", required=False)
 @pass_context
 def new_theme(ctx, **defaults):
     """This command creates a new theme.
@@ -132,5 +137,6 @@ def new_theme(ctx, **defaults):
     This is the fastest way to creating a new theme.
     """
     from .quickstart import theme_quickstart
+
     project = ctx.get_project(silent=True)
     theme_quickstart(defaults, project=project)

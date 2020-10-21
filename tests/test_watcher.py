@@ -1,4 +1,5 @@
 import functools
+
 import py
 
 from lektor import utils

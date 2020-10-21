@@ -1,4 +1,5 @@
 import pytest
+
 from lektor.imagetools import find_imagemagick
 
 

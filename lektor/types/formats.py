@@ -1,9 +1,8 @@
-from lektor.types import Type
 from lektor.markdown import Markdown
+from lektor.types import Type
 
 
 class MarkdownDescriptor(object):
-
     def __init__(self, source):
         self.source = source
 
@@ -14,7 +13,7 @@ class MarkdownDescriptor(object):
 
 
 class MarkdownType(Type):
-    widget = 'multiline-text'
+    widget = "multiline-text"
 
     def value_from_raw(self, raw):
-        return MarkdownDescriptor(raw.value or u'')
+        return MarkdownDescriptor(raw.value or u"")
