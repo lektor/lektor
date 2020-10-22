@@ -33,9 +33,9 @@ if PY2:
 
     NativeStringIO = BytesIO
 
-    exec(
+    exec(  # pylint: disable=exec-used
         "def reraise(tp, value, tb=None):\n raise tp, value, tb"
-    )  # pylint: disable=exec-used
+    )
 
 
 else:
