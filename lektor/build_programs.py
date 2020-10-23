@@ -1,11 +1,13 @@
 import os
 import shutil
-
 from itertools import chain
 
-from lektor._compat import iteritems, range_type
-from lektor.db import Page, Attachment
-from lektor.assets import File, Directory
+from lektor._compat import iteritems
+from lektor._compat import range_type
+from lektor.assets import Directory
+from lektor.assets import File
+from lektor.db import Attachment
+from lektor.db import Page
 from lektor.environment import PRIMARY_ALT
 from lektor.exception import LektorException
 
@@ -21,6 +23,7 @@ def buildprogram(source_cls):
     def decorator(builder_cls):
         builtin_build_programs.append((source_cls, builder_cls))
         return builder_cls
+
     return decorator
 
 
@@ -29,8 +32,9 @@ class SourceInfo(object):
     build state.
     """
 
-    def __init__(self, path, filename, alt=PRIMARY_ALT,
-                 type='unknown', title_i18n=None):
+    def __init__(
+        self, path, filename, alt=PRIMARY_ALT, type="unknown", title_i18n=None
+    ):
         self.path = path
         self.alt = alt
         self.filename = filename
@@ -38,18 +42,17 @@ class SourceInfo(object):
         self.title_i18n = {}
 
         en_title = self.path
-        if 'en' in title_i18n:
-            en_title = title_i18n['en']
+        if "en" in title_i18n:
+            en_title = title_i18n["en"]
         for key, value in iteritems(title_i18n):
-            if key == 'en':
+            if key == "en":
                 continue
             if value != en_title:
                 self.title_i18n[key] = value
-        self.title_i18n['en'] = en_title
+        self.title_i18n["en"] = en_title
 
 
 class BuildProgram(object):
-
     def __init__(self, source, build_state):
         self.source = source
         self.build_state = build_state
@@ -77,7 +80,7 @@ class BuildProgram(object):
     def build(self):
         """Invokes the build program."""
         if self._built:
-            raise RuntimeError('This build program was already used.')
+            raise RuntimeError("This build program was already used.")
         self._built = True
 
         self.produce_artifacts()
@@ -86,6 +89,7 @@ class BuildProgram(object):
         failures = []
 
         gen = self.build_state.builder
+
         def _build(artifact, build_func):
             ctx = gen.build_artifact(artifact, build_func)
             if ctx is not None:
@@ -119,12 +123,14 @@ class BuildProgram(object):
 
     def declare_artifact(self, artifact_name, sources=None, extra=None):
         """This declares an artifact to be built in this program."""
-        self.artifacts.append(self.build_state.new_artifact(
-            artifact_name=artifact_name,
-            sources=sources,
-            source_obj=self.source,
-            extra=extra,
-        ))
+        self.artifacts.append(
+            self.build_state.new_artifact(
+                artifact_name=artifact_name,
+                sources=sources,
+                source_obj=self.source,
+                extra=extra,
+            )
+        )
 
     def build_artifact(self, artifact):
         """This is invoked for each artifact declared."""
@@ -139,7 +145,6 @@ class BuildProgram(object):
 
 @buildprogram(Page)
 class PageBuildProgram(BuildProgram):
-
     def describe_source_record(self):
         # When we describe the source record we need to consider that a
         # page has multiple source file names but only one will actually
@@ -150,43 +155,43 @@ class PageBuildProgram(BuildProgram):
             if os.path.isfile(filename):
                 return SourceInfo(
                     path=self.source.path,
-                    alt=self.source['_source_alt'],
+                    alt=self.source["_source_alt"],
                     filename=filename,
-                    type='page',
-                    title_i18n=self.source.get_record_label_i18n()
+                    type="page",
+                    title_i18n=self.source.get_record_label_i18n(),
                 )
         return None
 
     def produce_artifacts(self):
         pagination_enabled = self.source.datamodel.pagination_config.enabled
 
-        if self.source.is_visible and \
-           (self.source.page_num is not None or not pagination_enabled):
+        if self.source.is_visible and (
+            self.source.page_num is not None or not pagination_enabled
+        ):
             artifact_name = self.source.url_path
-            if artifact_name.endswith('/'):
-                artifact_name += 'index.html'
+            if artifact_name.endswith("/"):
+                artifact_name += "index.html"
 
             self.declare_artifact(
-                artifact_name,
-                sources=list(self.source.iter_source_filenames()))
+                artifact_name, sources=list(self.source.iter_source_filenames())
+            )
 
     def build_artifact(self, artifact):
         try:
-            self.source.url_path.encode('ascii')
+            self.source.url_path.encode("ascii")
         except UnicodeError:
-            raise BuildError('The URL for this record contains non ASCII '
-                             'characters.  This is currently not supported '
-                             'for portability reasons (%r).' %
-                             self.source.url_path)
+            raise BuildError(
+                "The URL for this record contains non ASCII "
+                "characters.  This is currently not supported "
+                "for portability reasons (%r)." % self.source.url_path
+            )
 
-        artifact.render_template_into(
-            self.source['_template'], this=self.source)
+        artifact.render_template_into(self.source["_template"], this=self.source)
 
     def _iter_paginated_children(self):
         total = self.source.datamodel.pagination_config.count_pages(self.source)
         for page_num in range_type(1, total + 1):
-            yield Page(self.source.pad, self.source._data,
-                       page_num=page_num)
+            yield Page(self.source.pad, self.source._data, page_num=page_num)
 
     def iter_child_sources(self):
         p_config = self.source.datamodel.pagination_config
@@ -227,44 +232,41 @@ class PageBuildProgram(BuildProgram):
 
 @buildprogram(Attachment)
 class AttachmentBuildProgram(BuildProgram):
-
     def describe_source_record(self):
         return SourceInfo(
             path=self.source.path,
             alt=self.source.alt,
             filename=self.source.attachment_filename,
-            type='attachment',
-            title_i18n={'en': self.source['_id']}
+            type="attachment",
+            title_i18n={"en": self.source["_id"]},
         )
 
     def produce_artifacts(self):
         if self.source.is_visible:
             self.declare_artifact(
-                self.source.url_path,
-                sources=list(self.source.iter_source_filenames()))
+                self.source.url_path, sources=list(self.source.iter_source_filenames())
+            )
 
     def build_artifact(self, artifact):
-        with artifact.open('wb') as df:
-            with open(self.source.attachment_filename, 'rb') as sf:
+        with artifact.open("wb") as df:
+            with open(self.source.attachment_filename, "rb") as sf:
                 shutil.copyfileobj(sf, df)
 
 
 @buildprogram(File)
 class FileAssetBuildProgram(BuildProgram):
-
     def produce_artifacts(self):
         self.declare_artifact(
-            self.source.artifact_name,
-            sources=[self.source.source_filename])
+            self.source.artifact_name, sources=[self.source.source_filename]
+        )
 
     def build_artifact(self, artifact):
-        with artifact.open('wb') as df:
-            with open(self.source.source_filename, 'rb') as sf:
+        with artifact.open("wb") as df:
+            with open(self.source.source_filename, "rb") as sf:
                 shutil.copyfileobj(sf, df)
 
 
 @buildprogram(Directory)
 class DirectoryAssetBuildProgram(BuildProgram):
-
     def iter_child_sources(self):
         return self.source.children

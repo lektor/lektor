@@ -18,21 +18,24 @@ _identity = lambda x: x
 
 
 if PY2:
-    unichr = unichr  # pylint: disable=self-assigning-variable
-    text_type = unicode
-    range_type = xrange
-    string_types = (str, unicode)
-    integer_types = (int, long)
+    unichr = unichr  # pylint: disable=self-assigning-variable  # noqa
+    text_type = unicode  # noqa
+    range_type = xrange  # noqa
+    string_types = (str, unicode)  # noqa
+    integer_types = (int, long)  # noqa
 
     iterkeys = lambda d: d.iterkeys()
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
 
     from cStringIO import StringIO as BytesIO, StringIO
-    import Queue as queue
+    import Queue as queue  # noqa
+
     NativeStringIO = BytesIO
 
-    exec('def reraise(tp, value, tb=None):\n raise tp, value, tb') # pylint: disable=exec-used
+    exec(  # pylint: disable=exec-used
+        "def reraise(tp, value, tb=None):\n raise tp, value, tb"
+    )
 
 
 else:
@@ -47,7 +50,8 @@ else:
     iteritems = lambda d: iter(d.items())
 
     from io import BytesIO, StringIO
-    import queue
+    import queue  # noqa
+
     NativeStringIO = StringIO
 
     def reraise(tp, value, tb=None):
@@ -64,10 +68,11 @@ def python_2_unicode_compatible(klass):
     returning text and apply this decorator to the class.
     """
     if PY2:
-        if '__str__' not in klass.__dict__:
-            raise ValueError("@python_2_unicode_compatible cannot be applied "
-                             "to %s because it doesn't define __str__()." %
-                             klass.__name__)
+        if "__str__" not in klass.__dict__:
+            raise ValueError(
+                "@python_2_unicode_compatible cannot be applied "
+                "to %s because it doesn't define __str__()." % klass.__name__
+            )
         klass.__unicode__ = klass.__str__
-        klass.__str__ = lambda self: self.__unicode__().encode('utf-8')
+        klass.__str__ = lambda self: self.__unicode__().encode("utf-8")
     return klass

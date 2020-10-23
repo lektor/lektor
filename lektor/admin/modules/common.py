@@ -1,24 +1,27 @@
 import os
 
-from flask import Blueprint, g, request, current_app, url_for
+from flask import Blueprint
+from flask import current_app
+from flask import g
+from flask import request
+from flask import url_for
 from werkzeug.utils import cached_property
 
 from lektor.db import Tree
 
 
-bp = Blueprint('common', __name__)
+bp = Blueprint("common", __name__)
 
 
 class AdminContext(object):
-
     def __init__(self):
-        self.admin_root = url_for('dash.index').rstrip('/')
+        self.admin_root = url_for("dash.index").rstrip("/")
         self.site_root = request.script_root
         self.info = current_app.lektor_info
 
     def get_temp_path(self, name=None):
         if name is None:
-            name = os.urandom(20).encode('hex')
+            name = os.urandom(20).encode("hex")
         dirname = self.info.env.temp_path
         try:
             os.makedirs(dirname)

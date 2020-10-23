@@ -1,6 +1,8 @@
 from contextlib import contextmanager
+
 from jinja2 import Undefined
-from werkzeug.local import LocalStack, LocalProxy
+from werkzeug.local import LocalProxy
+from werkzeug.local import LocalStack
 
 from lektor.reporter import reporter
 
@@ -12,7 +14,7 @@ def url_to(*args, **kwargs):
     """Calculates a URL to another record."""
     ctx = get_ctx()
     if ctx is None:
-        raise RuntimeError('No context found')
+        raise RuntimeError("No context found")
     return ctx.url_to(*args, **kwargs)
 
 
@@ -20,13 +22,13 @@ def get_asset_url(asset):
     """Calculates the asset URL relative to the current record."""
     ctx = get_ctx()
     if ctx is None:
-        raise RuntimeError('No context found')
+        raise RuntimeError("No context found")
     asset = site_proxy.get_asset(asset)
     if asset is None:
-        return Undefined('Asset not found')
+        return Undefined("Asset not found")
     info = ctx.build_state.get_file_info(asset.source_filename)
-    return '%s?h=%s' % (
-        ctx.source.url_to('!' + asset.url_path),
+    return "%s?h=%s" % (
+        ctx.source.url_to("!" + asset.url_path),
         info.checksum[:8],
     )
 
@@ -36,7 +38,7 @@ def site_proxy():
     """Returns the current pad."""
     ctx = get_ctx()
     if ctx is None:
-        return Undefined(hint='Cannot access the site from here', name='site')
+        return Undefined(hint="Cannot access the site from here", name="site")
     return ctx.pad
 
 
@@ -51,7 +53,7 @@ def get_ctx():
     return _ctx_stack.top
 
 
-def get_locale(default='en_US'):
+def get_locale(default="en_US"):
     """Returns the current locale."""
     ctx = get_ctx()
     if ctx is not None:
@@ -75,8 +77,9 @@ class Context(object):
     def __init__(self, artifact=None, pad=None):
         if pad is None:
             if artifact is None:
-                raise TypeError('Either artifact or pad is needed to '
-                                'construct a context.')
+                raise TypeError(
+                    "Either artifact or pad is needed to " "construct a context."
+                )
             pad = artifact.build_state.pad
 
         if artifact is not None:
@@ -116,7 +119,7 @@ class Context(object):
     def record(self):
         """If the source is a record it will be available here."""
         rv = self.source
-        if rv is not None and rv.source_classification == 'record':
+        if rv is not None and rv.source_classification == "record":
             return rv
         return None
 
@@ -127,9 +130,9 @@ class Context(object):
         """
         source = self.source
         if source is not None:
-            alt_cfg = self.pad.db.config['ALTERNATIVES'].get(source.alt)
+            alt_cfg = self.pad.db.config["ALTERNATIVES"].get(source.alt)
             if alt_cfg:
-                return alt_cfg['locale']
+                return alt_cfg["locale"]
         return None
 
     def push(self):
@@ -152,32 +155,44 @@ class Context(object):
             return self._forced_base_url
         if self.source is not None:
             return self.source.url_path
-        return '/'
+        return "/"
 
     def url_to(self, path, alt=None, absolute=None, external=None):
         """Returns a URL to another path."""
         if self.source is None:
-            raise RuntimeError('Can only generate paths to other pages if '
-                               'the context has a source document set.')
+            raise RuntimeError(
+                "Can only generate paths to other pages if "
+                "the context has a source document set."
+            )
         rv = self.source.url_to(path, alt=alt, absolute=True)
         return self.pad.make_url(rv, self.base_url, absolute, external)
 
     def sub_artifact(self, *args, **kwargs):
         """Decorator version of :func:`add_sub_artifact`."""
+
         def decorator(f):
             self.add_sub_artifact(build_func=f, *args, **kwargs)
             return f
+
         return decorator
 
-    def add_sub_artifact(self, artifact_name, build_func=None,
-                         sources=None, source_obj=None, config_hash=None):
+    def add_sub_artifact(
+        self,
+        artifact_name,
+        build_func=None,
+        sources=None,
+        source_obj=None,
+        config_hash=None,
+    ):
         """Sometimes it can happen that while building an artifact another
         artifact needs building.  This function is generally used to record
         this request.
         """
         if self.build_state is None:
-            raise TypeError('The context does not have a build state which '
-                            'means that artifact declaration is not possible.')
+            raise TypeError(
+                "The context does not have a build state which "
+                "means that artifact declaration is not possible."
+            )
         aft = self.build_state.new_artifact(
             artifact_name=artifact_name,
             sources=sources,

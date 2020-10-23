@@ -9,29 +9,30 @@ from datetime import datetime
 from functools import partial
 
 import click
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment
+from jinja2 import PackageLoader
 
-from lektor.utils import fs_enc, slugify
 from lektor._compat import text_type
+from lektor.utils import fs_enc
+from lektor.utils import slugify
 
 
-_var_re = re.compile(r'@([^@]+)@')
+_var_re = re.compile(r"@([^@]+)@")
 
 
 class Generator(object):
-
     def __init__(self, base):
         self.question = 0
         self.jinja_env = Environment(
-            loader=PackageLoader('lektor', 'quickstart-templates/%s' % base),
-            line_statement_prefix='%%',
-            line_comment_prefix='##',
-            variable_start_string='${',
-            variable_end_string='}',
-            block_start_string='<%',
-            block_end_string='%>',
-            comment_start_string='/**',
-            comment_end_string='**/',
+            loader=PackageLoader("lektor", "quickstart-templates/%s" % base),
+            line_statement_prefix="%%",
+            line_comment_prefix="##",
+            variable_start_string="${",
+            variable_end_string="}",
+            block_start_string="<%",
+            block_end_string="%>",
+            comment_start_string="/**",
+            comment_end_string="**/",
         )
         self.options = {}
         # term width in [1, 78]
@@ -40,35 +41,35 @@ class Generator(object):
         self.w = partial(click.wrap_text, width=self.term_width)
 
     def abort(self, message):
-        click.echo('Error: %s' % message, err=True)
+        click.echo("Error: %s" % message, err=True)
         raise click.Abort()
 
     def prompt(self, text, default=None, info=None):
         self.question += 1
-        self.e('')
-        self.e('Step %d:' % self.question, fg='yellow')
+        self.e("")
+        self.e("Step %d:" % self.question, fg="yellow")
         if info is not None:
-            self.e(click.wrap_text(info, self.term_width, '| ', '| '))
-        text = '> ' + click.style(text, fg='green')
+            self.e(click.wrap_text(info, self.term_width, "| ", "| "))
+        text = "> " + click.style(text, fg="green")
 
         if default is True or default is False:
             return click.confirm(text, default=default)
         return click.prompt(text, default=default, show_default=True)
 
     def title(self, title):
-        self.e(title, fg='cyan')
-        self.e('=' * len(title), fg='cyan')
-        self.e('')
+        self.e(title, fg="cyan")
+        self.e("=" * len(title), fg="cyan")
+        self.e("")
 
     def warn(self, text):
-        self.e(self.w(text), fg='magenta')
+        self.e(self.w(text), fg="magenta")
 
     def text(self, text):
         self.e(self.w(text))
 
     def confirm(self, prompt):
-        self.e('')
-        click.confirm(prompt, default=True, abort=True, prompt_suffix=' ')
+        self.e("")
+        click.confirm(prompt, default=True, abort=True, prompt_suffix=" ")
 
     @contextmanager
     def make_target_directory(self, path):
@@ -78,20 +79,20 @@ class Generator(object):
             try:
                 os.makedirs(path)
             except OSError as e:
-                self.abort('Could not create target folder: %s' % e)
+                self.abort("Could not create target folder: %s" % e)
 
         if os.path.isdir(path):
             try:
                 if len(os.listdir(path)) != 0:
-                    raise OSError('Directory not empty')
+                    raise OSError("Directory not empty")
             except OSError as e:
-                self.abort('Bad target folder: %s' % e)
+                self.abort("Bad target folder: %s" % e)
 
         scratch = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
         os.makedirs(scratch)
         try:
             yield scratch
-        except:
+        except Exception:
             shutil.rmtree(scratch)
             raise
         else:
@@ -100,64 +101,73 @@ class Generator(object):
             for filename in os.listdir(scratch):
                 if not isinstance(path, text_type):
                     filename = filename.decode(fs_enc)
-                shutil.move(os.path.join(scratch, filename),
-                            os.path.join(path, filename))
+                shutil.move(
+                    os.path.join(scratch, filename), os.path.join(path, filename)
+                )
             os.rmdir(scratch)
 
     def expand_filename(self, base, ctx, template_filename):
         def _repl(match):
             return ctx[match.group(1)]
+
         return os.path.join(base, _var_re.sub(_repl, template_filename))[:-3]
 
     def run(self, ctx, path):
         with self.make_target_directory(path) as scratch:
             for template in self.jinja_env.list_templates():
-                if not template.endswith('.in'):
+                if not template.endswith(".in"):
                     continue
                 fn = self.expand_filename(scratch, ctx, template)
                 tmpl = self.jinja_env.get_template(template)
-                rv = tmpl.render(ctx).strip('\r\n')
+                rv = tmpl.render(ctx).strip("\r\n")
                 if rv:
                     directory = os.path.dirname(fn)
                     try:
                         os.makedirs(directory)
                     except OSError:
                         pass
-                    with open(fn, 'wb') as f:
-                        f.write((rv + '\n').encode('utf-8'))
+                    with open(fn, "wb") as f:
+                        f.write((rv + "\n").encode("utf-8"))
 
 
 def get_default_author():
     import getpass
 
-    if os.name == 'nt':
+    if os.name == "nt":
         user = getpass.getuser()
         if isinstance(user, text_type):
             return user
-        return user.decode('mbcs')
+        return user.decode("mbcs")
 
     # we disable pylint, because there is no such
     # modules on windows & it's false positive
     import pwd  # pylint: disable=import-error
+
     ent = pwd.getpwuid(os.getuid())  # pylint: disable=no-member
     if ent and ent.pw_gecos:
         name = ent.pw_gecos
         if isinstance(name, text_type):
             return name
-        return name.decode('utf-8', 'replace')
+        return name.decode("utf-8", "replace")
 
     name = getpass.getuser()
     if isinstance(name, text_type):
         return name
-    return name.decode('utf-8', 'replace')
+    return name.decode("utf-8", "replace")
 
 
 def get_default_author_email():
     try:
-        value = subprocess.Popen(['git', 'config', 'user.email'],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE).communicate()[0].strip()
-        return value.decode('utf-8')
+        value = (
+            subprocess.Popen(
+                ["git", "config", "user.email"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            .communicate()[0]
+            .strip()
+        )
+        return value.decode("utf-8")
     except Exception:
         return None
 
@@ -166,28 +176,34 @@ def project_quickstart(defaults=None):
     if not defaults:
         defaults = {}
 
-    g = Generator('project')
+    g = Generator("project")
 
-    g.title('Lektor Quickstart')
+    g.title("Lektor Quickstart")
     g.text(
-        'This wizard will generate a new basic project with some sensible '
-        'defaults for getting started quickly.  We just need to go through '
-        'a few questions so that the project is set up correctly for you.'
+        "This wizard will generate a new basic project with some sensible "
+        "defaults for getting started quickly.  We just need to go through "
+        "a few questions so that the project is set up correctly for you."
     )
 
-    name = defaults.get('name')
+    name = defaults.get("name")
     if name is None:
-        name = g.prompt('Project Name', None,
-            'A project needs a name.  The name is primarily used for the admin '
-            'UI and some other places to refer to your project to not get '
-            'confused if multiple projects exist.  You can change this at '
-            'any later point.')
+        name = g.prompt(
+            "Project Name",
+            None,
+            "A project needs a name.  The name is primarily used for the admin "
+            "UI and some other places to refer to your project to not get "
+            "confused if multiple projects exist.  You can change this at "
+            "any later point.",
+        )
 
-    author_name = g.prompt('Author Name', get_default_author(),
-        'Your name.  This is used in a few places in the default template '
-        'to refer to in the default copyright messages.')
+    author_name = g.prompt(
+        "Author Name",
+        get_default_author(),
+        "Your name.  This is used in a few places in the default template "
+        "to refer to in the default copyright messages.",
+    )
 
-    path = defaults.get('path')
+    path = defaults.get("path")
     if path is None:
         here = os.path.abspath(os.getcwd())
         default_project_path = None
@@ -198,126 +214,165 @@ def project_quickstart(defaults=None):
             pass
         if default_project_path is None:
             default_project_path = os.path.join(os.getcwd(), name)
-        path = g.prompt('Project Path', default_project_path,
-            'This is the path where the project will be located.  You can '
-            'move a project around later if you do not like the path.  If '
-            'you provide a relative path it will be relative to the working '
-            'directory.')
+        path = g.prompt(
+            "Project Path",
+            default_project_path,
+            "This is the path where the project will be located.  You can "
+            "move a project around later if you do not like the path.  If "
+            "you provide a relative path it will be relative to the working "
+            "directory.",
+        )
         path = os.path.expanduser(path)
 
-    with_blog = g.prompt('Add Basic Blog', True,
-        'Do you want to generate a basic blog module?  If you enable this '
-        'the models for a very basic blog will be generated.')
+    with_blog = g.prompt(
+        "Add Basic Blog",
+        True,
+        "Do you want to generate a basic blog module?  If you enable this "
+        "the models for a very basic blog will be generated.",
+    )
 
-    g.confirm('That\'s all. Create project?')
+    g.confirm("That's all. Create project?")
 
-    g.run({
-        'project_name': name,
-        'project_slug': slugify(name),
-        'project_path': path,
-        'with_blog': with_blog,
-        'this_year': datetime.utcnow().year,
-        'today': datetime.utcnow().strftime('%Y-%m-%d'),
-        'author_name': author_name,
-    }, path)
+    g.run(
+        {
+            "project_name": name,
+            "project_slug": slugify(name),
+            "project_path": path,
+            "with_blog": with_blog,
+            "this_year": datetime.utcnow().year,
+            "today": datetime.utcnow().strftime("%Y-%m-%d"),
+            "author_name": author_name,
+        },
+        path,
+    )
 
 
 def plugin_quickstart(defaults=None, project=None):
     if defaults is None:
         defaults = {}
 
-    g = Generator('plugin')
+    g = Generator("plugin")
 
-    plugin_name = defaults.get('plugin_name')
+    plugin_name = defaults.get("plugin_name")
     if plugin_name is None:
-        plugin_name = g.prompt('Plugin Name', default=None,
-            info='This is the human readable name for this plugin')
+        plugin_name = g.prompt(
+            "Plugin Name",
+            default=None,
+            info="This is the human readable name for this plugin",
+        )
 
     plugin_id = plugin_name.lower()  # pylint: disable=no-member
-    if plugin_id.startswith('lektor'):
+    if plugin_id.startswith("lektor"):
         plugin_id = plugin_id[6:]
-    if plugin_id.endswith('plugin'):
+    if plugin_id.endswith("plugin"):
         plugin_id = plugin_id[:-6]
     plugin_id = slugify(plugin_id)
 
-    path = defaults.get('path')
+    path = defaults.get("path")
     if path is None:
         if project is not None:
-            default_path = os.path.join(project.tree, 'packages',
-                                        plugin_id)
+            default_path = os.path.join(project.tree, "packages", plugin_id)
         else:
-            if len(os.listdir('.')) == 0:
+            if len(os.listdir(".")) == 0:
                 default_path = os.getcwd()
             else:
                 default_path = os.path.join(os.getcwd(), plugin_id)
-        path = g.prompt('Plugin Path', default_path,
-            'The place where you want to initialize the plugin')
+        path = g.prompt(
+            "Plugin Path",
+            default_path,
+            "The place where you want to initialize the plugin",
+        )
 
-    author_name = g.prompt('Author Name', get_default_author(),
-        'Your name as it will be embedded in the plugin metadata.')
+    author_name = g.prompt(
+        "Author Name",
+        get_default_author(),
+        "Your name as it will be embedded in the plugin metadata.",
+    )
 
-    author_email = g.prompt('Author E-Mail', get_default_author_email(),
-        'Your e-mail address for the plugin info.')
+    author_email = g.prompt(
+        "Author E-Mail",
+        get_default_author_email(),
+        "Your e-mail address for the plugin info.",
+    )
 
-    g.confirm('Create Plugin?')
+    g.confirm("Create Plugin?")
 
-    g.run({
-        'plugin_name': plugin_name,
-        'plugin_id': plugin_id,
-        'plugin_class': plugin_id.title().replace('-', '') + 'Plugin',
-        'plugin_module': 'lektor_' + plugin_id.replace('-', '_'),
-        'author_name': author_name,
-        'author_email': author_email,
-    }, path)
+    g.run(
+        {
+            "plugin_name": plugin_name,
+            "plugin_id": plugin_id,
+            "plugin_class": plugin_id.title().replace("-", "") + "Plugin",
+            "plugin_module": "lektor_" + plugin_id.replace("-", "_"),
+            "author_name": author_name,
+            "author_email": author_email,
+        },
+        path,
+    )
 
 
 def theme_quickstart(defaults=None, project=None):
     if defaults is None:
         defaults = {}
 
-    g = Generator('theme')
+    g = Generator("theme")
 
-    theme_name = defaults.get('theme_name')
+    theme_name = defaults.get("theme_name")
     if theme_name is None:
-        theme_name = g.prompt('Theme Name', default=None,
-            info='This is the human readable name for this theme')
+        theme_name = g.prompt(
+            "Theme Name",
+            default=None,
+            info="This is the human readable name for this theme",
+        )
 
     theme_id = theme_name.lower()  # pylint: disable=no-member
-    if theme_id != 'lektor' and theme_id.startswith('lektor'):
+    if theme_id != "lektor" and theme_id.startswith("lektor"):
         theme_id = theme_id[6:].strip()
-    if theme_id != 'theme' and theme_id.startswith('theme'):
+    if theme_id != "theme" and theme_id.startswith("theme"):
         theme_id = theme_id[5:]
-    if theme_id != "theme" and theme_id.endswith('theme'):
+    if theme_id != "theme" and theme_id.endswith("theme"):
         theme_id = theme_id[:-5]
     theme_id = slugify(theme_id)
 
-    path = defaults.get('path')
+    path = defaults.get("path")
     if path is None:
         if project is not None:
-            default_path = os.path.join(project.tree, 'themes',
-                                        "lektor-theme-{}".format(theme_id))
+            default_path = os.path.join(
+                project.tree, "themes", "lektor-theme-{}".format(theme_id)
+            )
         else:
-            if len(os.listdir('.')) == 0:
+            if len(os.listdir(".")) == 0:
                 default_path = os.getcwd()
             else:
                 default_path = os.path.join(os.getcwd(), theme_id)
-        path = g.prompt('Theme Path', default_path,
-            'The place where you want to initialize the theme')
+        path = g.prompt(
+            "Theme Path",
+            default_path,
+            "The place where you want to initialize the theme",
+        )
 
-    author_name = g.prompt('Author Name', get_default_author(),
-        'Your name as it will be embedded in the theme metadata.')
+    author_name = g.prompt(
+        "Author Name",
+        get_default_author(),
+        "Your name as it will be embedded in the theme metadata.",
+    )
 
-    author_email = g.prompt('Author E-Mail', get_default_author_email(),
-        'Your e-mail address for the theme info.')
+    author_email = g.prompt(
+        "Author E-Mail",
+        get_default_author_email(),
+        "Your e-mail address for the theme info.",
+    )
 
-    g.confirm('Create Theme?')
+    g.confirm("Create Theme?")
 
-    g.run({
-        'theme_name': theme_name,
-        'theme_id': theme_id,
-        'author_name': author_name,
-        'author_email': author_email,
-    }, path)
+    g.run(
+        {
+            "theme_name": theme_name,
+            "theme_id": theme_id,
+            "author_name": author_name,
+            "author_email": author_email,
+        },
+        path,
+    )
 
     # symlink
     theme_dir = os.getcwd()
@@ -325,12 +380,14 @@ def theme_quickstart(defaults=None, project=None):
     os.makedirs(example_themes)
     os.chdir(example_themes)
     try:
-        os.symlink("../../../lektor-theme-{}".format(theme_id),
-                   "lektor-theme-{}".format(theme_id))
+        os.symlink(
+            "../../../lektor-theme-{}".format(theme_id),
+            "lektor-theme-{}".format(theme_id),
+        )
     except AttributeError:
         g.warn(
-            'Could not automatically make a symlink to have your example-site'
-            'easily pick up your theme.'
+            "Could not automatically make a symlink to have your example-site"
+            "easily pick up your theme."
         )
     os.chdir(theme_dir)
 
@@ -338,9 +395,10 @@ def theme_quickstart(defaults=None, project=None):
     os.makedirs(os.path.join(path, "images"))
     source_image_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        "quickstart-templates/theme/images/homepage.png")
+        "quickstart-templates/theme/images/homepage.png",
+    )
     destination_image_path = os.path.join(path, "images/homepage.png")
-    with open(source_image_path, 'rb') as f:
+    with open(source_image_path, "rb") as f:
         image = f.read()
-    with open(destination_image_path, 'wb') as f:
+    with open(destination_image_path, "wb") as f:
         f.write(image)

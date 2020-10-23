@@ -17,7 +17,7 @@ jobs:
     name: Lint Python
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false 
+      fail-fast: false
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -39,6 +39,8 @@ jobs:
           python -m pip list
       - name: Run python lint
         run: pylint lektor
+      - name: Run pre-commit
+        run: pre-commit run -a
 
   lint-js:
     name: Lint JS
@@ -79,7 +81,7 @@ jobs:
       CI: True
       NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         NODEJS_VERSION: ['13']
     steps:
@@ -111,7 +113,7 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['3.8']
     steps:
@@ -150,7 +152,7 @@ jobs:
       CI: True
       NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         NODEJS_VERSION: ['10', '12']
     steps:
@@ -183,7 +185,7 @@ jobs:
       CI: True
       NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         NODEJS_VERSION: ['13']
     steps:
@@ -216,7 +218,7 @@ jobs:
       CI: True
       NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         NODEJS_VERSION: ['13']
     steps:
@@ -252,7 +254,7 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.6', '3.7']
     steps:
@@ -289,7 +291,7 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.8']
     steps:
@@ -331,7 +333,7 @@ jobs:
       CI: True
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['2.7', '3.5', '3.8']
     steps:

@@ -1,6 +1,6 @@
 import os
-import stat
 import posixpath
+import stat
 
 from lektor.sourceobj import SourceObject
 
@@ -26,10 +26,10 @@ def get_asset(pad, filename, parent=None):
 class Asset(SourceObject):
     # Source specific overrides.  The source_filename to none removes
     # the inherited descriptor.
-    source_classification = 'asset'
+    source_classification = "asset"
     source_filename = None
 
-    artifact_extension = ''
+    artifact_extension = ""
 
     def __init__(self, pad, name, path=None, parent=None):
         SourceObject.__init__(self, pad)
@@ -49,7 +49,7 @@ class Asset(SourceObject):
 
         # If this is a known extension from an attachment then convert it
         # to lowercase
-        if ext.lower() in self.pad.db.config['ATTACHMENT_TYPES']:
+        if ext.lower() in self.pad.db.config["ATTACHMENT_TYPES"]:
             ext = ext.lower()
 
         return base + ext + self.artifact_extension
@@ -57,13 +57,13 @@ class Asset(SourceObject):
     @property
     def url_path(self):
         if self.parent is None:
-            return '/' + self.name
+            return "/" + self.name
         return posixpath.join(self.parent.url_path, self.url_name)
 
     @property
     def artifact_name(self):
         if self.parent is not None:
-            return self.parent.artifact_name.rstrip('/') + '/' + self.url_name
+            return self.parent.artifact_name.rstrip("/") + "/" + self.url_name
         return self.url_path
 
     def build_asset(self, f):
@@ -86,7 +86,7 @@ class Asset(SourceObject):
         return None
 
     def __repr__(self):
-        return '<%s %r>' % (
+        return "<%s %r>" % (
             self.__class__.__name__,
             self.artifact_name,
         )
@@ -116,16 +116,16 @@ class Directory(Asset):
         # came from an URL.  We can try to chop off product suffixes to
         # find the original source asset.  For instance a file called
         # foo.less.css will be reduced to foo.less.
-        prod_suffix = '.' + '.'.join(name.rsplit('.', 2)[1:])
+        prod_suffix = "." + ".".join(name.rsplit(".", 2)[1:])
         ext = self.pad.db.env.special_file_suffixes.get(prod_suffix)
         if ext is not None:
-            return get_asset(self.pad, name[:-len(prod_suffix)] + ext, parent=self)
+            return get_asset(self.pad, name[: -len(prod_suffix)] + ext, parent=self)
         return None
 
     def resolve_url_path(self, url_path):
         # Resolve "/path/" to "/path/index.html", as production servers do.
         if not url_path:
-            index = self.get_child('index.html') or self.get_child('index.htm')
+            index = self.get_child("index.html") or self.get_child("index.htm")
             if index is not None:
                 return index
 

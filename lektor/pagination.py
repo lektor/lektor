@@ -4,7 +4,6 @@ from lektor._compat import range_type
 
 
 class Pagination(object):
-
     def __init__(self, record, pagination_config):
         #: the pagination config
         self.config = pagination_config
@@ -47,8 +46,7 @@ class Pagination(object):
     def prev(self):
         if not self.has_prev:
             return None
-        return self.config.get_record_for_page(self.current,
-                                               self.page - 1)
+        return self.config.get_record_for_page(self.current, self.page - 1)
 
     @property
     def has_next(self):
@@ -66,8 +64,7 @@ class Pagination(object):
     def next(self):
         if not self.has_next:
             return None
-        return self.config.get_record_for_page(self.current,
-                                               self.page + 1)
+        return self.config.get_record_for_page(self.current, self.page + 1)
 
     def for_page(self, page):
         """Returns the pagination for a specific page."""
@@ -75,8 +72,7 @@ class Pagination(object):
             return self.config.get_record_for_page(self.current, page)
         return None
 
-    def iter_pages(self, left_edge=2, left_current=2,
-                   right_current=5, right_edge=2):
+    def iter_pages(self, left_edge=2, left_current=2, right_current=5, right_edge=2):
         """Iterate over the page numbers in the pagination, with elision.
 
         In the general case, this returns the concatenation of three ranges:
@@ -121,10 +117,13 @@ class Pagination(object):
         last = 0
         for num in range_type(1, self.pages + 1):
             # pylint: disable=chained-comparison
-            if num <= left_edge or \
-               (num >= self.page - left_current and
-                num <= self.page + right_current) or \
-               num > self.pages - right_edge:
+            if (
+                num <= left_edge
+                or (
+                    num >= self.page - left_current and num <= self.page + right_current
+                )
+                or num > self.pages - right_edge
+            ):
                 if last + 1 != num:
                     yield None
                 yield num

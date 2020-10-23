@@ -1,32 +1,33 @@
-from lektor.utils import Url, slugify
 from lektor.types.primitives import SingleInputType
+from lektor.utils import slugify
+from lektor.utils import Url
 
 
 class SortKeyType(SingleInputType):
-    widget = 'integer'
+    widget = "integer"
 
     def value_from_raw(self, raw):
         if raw.value is None:
-            return raw.missing_value('Missing sort key')
+            return raw.missing_value("Missing sort key")
         try:
             return int(raw.value.strip())
         except ValueError:
-            return raw.bad_value('Bad sort key value')
+            return raw.bad_value("Bad sort key value")
 
 
 class SlugType(SingleInputType):
-    widget = 'slug'
+    widget = "slug"
 
     def value_from_raw(self, raw):
         if raw.value is None:
-            return raw.missing_value('Missing slug')
+            return raw.missing_value("Missing slug")
         return slugify(raw.value)
 
 
 class UrlType(SingleInputType):
-    widget = 'url'
+    widget = "url"
 
     def value_from_raw(self, raw):
         if raw.value is None:
-            return raw.missing_value('Missing URL')
+            return raw.missing_value("Missing URL")
         return Url(raw.value)

@@ -1,19 +1,21 @@
 import os
-import shutil
 import posixpath
-
+import shutil
 from collections import OrderedDict
 
-from lektor._compat import text_type, iteritems, string_types
-from lektor.metaformat import serialize
-from lektor.utils import atomic_open, is_valid_id, secure_filename, \
-     increment_filename
+from lektor._compat import iteritems
+from lektor._compat import string_types
+from lektor._compat import text_type
 from lektor.environment import PRIMARY_ALT
+from lektor.metaformat import serialize
+from lektor.utils import atomic_open
+from lektor.utils import increment_filename
+from lektor.utils import is_valid_id
+from lektor.utils import secure_filename
 
 
-implied_keys = set(['_id', '_path', '_gid', '_alt', '_source_alt',
-                    '_attachment_for'])
-possibly_implied_keys = set(['_model', '_template', '_attachment_type'])
+implied_keys = set(["_id", "_path", "_gid", "_alt", "_source_alt", "_attachment_for"])
+possibly_implied_keys = set(["_model", "_template", "_attachment_type"])
 
 
 class BadEdit(Exception):
@@ -24,14 +26,12 @@ class BadDelete(BadEdit):
     pass
 
 
-def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
-                        datamodel=None):
+def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamodel=None):
     """Creates an editor session for the given path object."""
     if alt != PRIMARY_ALT and not pad.db.config.is_valid_alternative(alt):
-        raise BadEdit('Attempted to edit an invalid alternative (%s)' % alt)
+        raise BadEdit("Attempted to edit an invalid alternative (%s)" % alt)
 
-    raw_data = pad.db.load_raw_data(path, cls=OrderedDict, alt=alt,
-                                    fallback=False)
+    raw_data = pad.db.load_raw_data(path, cls=OrderedDict, alt=alt, fallback=False)
     raw_data_fallback = None
     if alt != PRIMARY_ALT:
         raw_data_fallback = pad.db.load_raw_data(path, cls=OrderedDict)
@@ -43,7 +43,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
 
     id = posixpath.basename(path)
     if not is_valid_id(id):
-        raise BadEdit('Invalid ID')
+        raise BadEdit("Invalid ID")
 
     record = None
     exists = all_data is not None
@@ -54,16 +54,19 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
         if not exists:
             is_attachment = False
         else:
-            is_attachment = bool(all_data.get('_attachment_for'))
-    elif bool(all_data.get('_attachment_for')) != is_attachment:
-        raise BadEdit('The attachment flag passed is conflicting with the '
-                      'record\'s attachment flag.')
+            is_attachment = bool(all_data.get("_attachment_for"))
+    elif bool(all_data.get("_attachment_for")) != is_attachment:
+        raise BadEdit(
+            "The attachment flag passed is conflicting with the "
+            "record's attachment flag."
+        )
 
     if exists:
         # XXX: what about changing the datamodel after the fact?
         if datamodel is not None:
-            raise BadEdit('When editing an existing record, a datamodel '
-                          'must not be provided.')
+            raise BadEdit(
+                "When editing an existing record, a datamodel " "must not be provided."
+            )
         datamodel = pad.db.get_datamodel_for_raw_data(all_data, pad)
     else:
         if datamodel is None:
@@ -79,15 +82,34 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT,
         if raw_data_fallback:
             raw_data_fallback.pop(key, None)
 
-    return EditorSession(pad, id, text_type(path), raw_data, raw_data_fallback,
-                         datamodel, record, exists, is_attachment, alt)
+    return EditorSession(
+        pad,
+        id,
+        text_type(path),
+        raw_data,
+        raw_data_fallback,
+        datamodel,
+        record,
+        exists,
+        is_attachment,
+        alt,
+    )
 
 
 class EditorSession(object):
-
-    def __init__(self, pad, id, path, original_data, fallback_data,
-                 datamodel, record, exists=True, is_attachment=False,
-                 alt=PRIMARY_ALT):
+    def __init__(
+        self,
+        pad,
+        id,
+        path,
+        original_data,
+        fallback_data,
+        datamodel,
+        record,
+        exists=True,
+        is_attachment=False,
+        alt=PRIMARY_ALT,
+    ):
         self.id = id
         self.pad = pad
         self.path = path
@@ -96,7 +118,7 @@ class EditorSession(object):
         self.original_data = original_data
         self.fallback_data = fallback_data
         self.datamodel = datamodel
-        self.is_root = path.strip('/') == ''
+        self.is_root = path.strip("/") == ""
         self.alt = alt
 
         slug_format = None
@@ -106,7 +128,7 @@ class EditorSession(object):
             if parent is not None:
                 slug_format = parent.datamodel.child_config.slug_format
         if slug_format is None:
-            slug_format = u'{{ this._id }}'
+            slug_format = u"{{ this._id }}"
         self.slug_format = slug_format
         self.implied_attachment_type = None
 
@@ -133,22 +155,22 @@ class EditorSession(object):
             label = self.id
         can_be_deleted = not self.datamodel.protected and not self.is_root
         return {
-            'data': dict(self.iteritems()),
-            'record_info': {
-                'id': self.id,
-                'path': self.path,
-                'exists': self.exists,
-                'label': label,
-                'label_i18n': label_i18n,
-                'url_path': url_path,
-                'alt': self.alt,
-                'is_attachment': self.is_attachment,
-                'can_be_deleted': can_be_deleted,
-                'slug_format': self.slug_format,
-                'implied_attachment_type': self.implied_attachment_type,
-                'default_template': self.datamodel.get_default_template_name(),
+            "data": dict(self.iteritems()),
+            "record_info": {
+                "id": self.id,
+                "path": self.path,
+                "exists": self.exists,
+                "label": label,
+                "label_i18n": label_i18n,
+                "url_path": url_path,
+                "alt": self.alt,
+                "is_attachment": self.is_attachment,
+                "can_be_deleted": can_be_deleted,
+                "slug_format": self.slug_format,
+                "implied_attachment_type": self.implied_attachment_type,
+                "default_template": self.datamodel.get_default_template_name(),
             },
-            'datamodel': self.datamodel.to_json(self.pad, self.record, self.alt)
+            "datamodel": self.datamodel.to_json(self.pad, self.record, self.alt),
         }
 
     def __contains__(self, key):
@@ -260,12 +282,12 @@ class EditorSession(object):
     def get_fs_path(self, alt=PRIMARY_ALT):
         """The path to the record file on the file system."""
         base = self.pad.db.to_fs_path(self.path)
-        suffix = '.lr'
+        suffix = ".lr"
         if alt != PRIMARY_ALT:
-            suffix = '+%s%s' % (alt, suffix)
+            suffix = "+%s%s" % (alt, suffix)
         if self.is_attachment:
             return base + suffix
-        return os.path.join(base, 'contents' + suffix)
+        return os.path.join(base, "contents" + suffix)
 
     @property
     def fs_path(self):
@@ -326,9 +348,9 @@ class EditorSession(object):
     def add_attachment(self, filename, fp):
         """Stores a new attachment.  Returns `None` if the file already"""
         if not self.exists:
-            raise BadEdit('Record does not exist.')
+            raise BadEdit("Record does not exist.")
         if self.is_attachment:
-            raise BadEdit('Cannot attach something to an attachment.')
+            raise BadEdit("Cannot attach something to an attachment.")
         directory = self.pad.db.to_fs_path(self.path)
 
         safe_filename = secure_filename(filename)
@@ -339,7 +361,7 @@ class EditorSession(object):
                 break
             safe_filename = increment_filename(fn)
 
-        with atomic_open(fn, 'wb') as f:
+        with atomic_open(fn, "wb") as f:
             shutil.copyfileobj(fp, f)
         return safe_filename
 
@@ -366,8 +388,9 @@ class EditorSession(object):
                 pass
             return
         elif self._master_delete:
-            raise BadDelete('Master deletes of pages require that recursive '
-                            'deleting is enabled.')
+            raise BadDelete(
+                "Master deletes of pages require that recursive " "deleting is enabled."
+            )
 
         for fn in self.fs_path, directory:
             try:
@@ -378,12 +401,15 @@ class EditorSession(object):
     def _delete_impl(self):
         if self.alt != PRIMARY_ALT:
             if self._master_delete:
-                raise BadDelete('Master deletes need to be done from the primary '
-                                'alt.  Tried to delete from "%s"' % self.alt)
+                raise BadDelete(
+                    "Master deletes need to be done from the primary "
+                    'alt.  Tried to delete from "%s"' % self.alt
+                )
             if self._recursive_delete:
-                raise BadDelete('Cannot perform recursive delete from a non '
-                                'primary alt.  Tried to delete from "%s"' %
-                                self.alt)
+                raise BadDelete(
+                    "Cannot perform recursive delete from a non "
+                    'primary alt.  Tried to delete from "%s"' % self.alt
+                )
 
         if self.is_attachment:
             self._attachment_delete_impl()
@@ -402,15 +428,14 @@ class EditorSession(object):
         except OSError:
             pass
 
-        with atomic_open(self.fs_path, 'wb') as f:
-            for chunk in serialize(self.iteritems(fallback=False),
-                                   encoding='utf-8'):
+        with atomic_open(self.fs_path, "wb") as f:
+            for chunk in serialize(self.iteritems(fallback=False), encoding="utf-8"):
                 f.write(chunk)
 
     def __repr__(self):
-        return '<%s %r%s%s>' % (
+        return "<%s %r%s%s>" % (
             self.__class__.__name__,
             self.path,
-            self.alt != PRIMARY_ALT and ' alt=%r' % self.alt or '',
-            not self.exists and ' new' or '',
+            self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
+            not self.exists and " new" or "",
         )

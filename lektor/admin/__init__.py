@@ -1,4 +1,4 @@
 from .webui import WebAdmin
 
 
-__all__ = ['WebAdmin']
+__all__ = ["WebAdmin"]

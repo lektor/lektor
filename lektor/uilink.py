@@ -2,19 +2,19 @@ import os
 import subprocess
 
 
-RUN_FROM_UI = os.environ.get('LEKTOR_RUN_FROM_UI') == '1'
+RUN_FROM_UI = os.environ.get("LEKTOR_RUN_FROM_UI") == "1"
 
-RESOURCE_PATH = os.environ.get('LEKTOR_RESOURCES') or None
+RESOURCE_PATH = os.environ.get("LEKTOR_RESOURCES") or None
 BUNDLE_BIN_PATH = None
 BUNDLE_LOCAL_ROOT = None
 UI_LANG = None
 
 if RUN_FROM_UI:
-    UI_LANG = os.environ.get('LEKTOR_UI_LANG') or None
+    UI_LANG = os.environ.get("LEKTOR_UI_LANG") or None
 
 if RESOURCE_PATH:
-    BUNDLE_LOCAL_ROOT = os.path.join(RESOURCE_PATH, 'local')
-    BUNDLE_BIN_PATH = os.path.join(BUNDLE_LOCAL_ROOT, 'bin')
+    BUNDLE_LOCAL_ROOT = os.path.join(RESOURCE_PATH, "local")
+    BUNDLE_BIN_PATH = os.path.join(BUNDLE_LOCAL_ROOT, "bin")
 
 
 def get_user_path():
@@ -25,23 +25,30 @@ def get_user_path():
 
     On Windows this always returns the current path.
     """
-    if os.name == 'nt':
-        return os.environ['PATH'].split(';')
-    return subprocess.Popen(
-        ['bash', '--login', '-c', 'echo $PATH'],
-        stdout=subprocess.PIPE).communicate()[0].split(':')
+    if os.name == "nt":
+        return os.environ["PATH"].split(";")
+    return (
+        subprocess.Popen(
+            ["bash", "--login", "-c", "echo $PATH"], stdout=subprocess.PIPE
+        )
+        .communicate()[0]
+        .split(":")
+    )
 
 
 EXTRA_PATHS = []
-if RUN_FROM_UI and os.name == 'darwin':
+if RUN_FROM_UI and os.name == "darwin":
     EXTRA_PATHS.extend(get_user_path())
 
 
 def main():
     """The main function for when invoked from an UI bundle."""
     from .cli import main
-    main(prog_name='lektor')  # pylint: disable=unexpected-keyword-arg, no-value-for-parameter
+
+    main(  # pylint: disable=unexpected-keyword-arg, no-value-for-parameter
+        prog_name="lektor"
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
