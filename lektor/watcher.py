@@ -1,4 +1,5 @@
 import os
+import queue
 import time
 
 from watchdog.events import DirModifiedEvent
@@ -6,7 +7,6 @@ from watchdog.events import FileMovedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from lektor._compat import queue
 from lektor.utils import get_cache_dir
 
 # Alias this as this can be called during interpreter shutdown

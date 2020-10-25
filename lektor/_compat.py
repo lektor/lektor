@@ -8,11 +8,9 @@
     of it.
 
     Taken from jinja2/_compat.py
-"""
-# pylint: disable=unused-import
-import queue  # noqa
-from io import BytesIO  # noqa
 
+    NOTE: This is in the process of being removed.
+"""
 
 range_type = range
 text_type = str

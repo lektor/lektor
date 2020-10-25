@@ -2,6 +2,7 @@ import errno
 import hashlib
 import os
 import posixpath
+import queue
 import select
 import shutil
 import subprocess
@@ -9,13 +10,12 @@ import tempfile
 import threading
 from contextlib import contextmanager
 from ftplib import Error as FTPError
+from io import BytesIO
 
 from werkzeug import urls
 
-from lektor._compat import BytesIO
 from lektor._compat import iteritems
 from lektor._compat import iterkeys
-from lektor._compat import queue
 from lektor._compat import range_type
 from lektor._compat import string_types
 from lektor._compat import text_type
