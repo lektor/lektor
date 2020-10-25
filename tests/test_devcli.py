@@ -4,7 +4,6 @@ import textwrap
 import pytest
 from inifile import IniFile
 
-from lektor._compat import PY2
 from lektor.cli import cli
 from lektor.quickstart import get_default_author
 from lektor.quickstart import get_default_author_email
@@ -70,7 +69,7 @@ def test_new_plugin(project_cli_runner):
                 f.read().decode('utf-8')).group(1)))
 
         setup(
-            author={}'Author Name',
+            author='Author Name',
             author_email='author@email.com',
             description=description,
             keywords='Lektor plugin',
@@ -86,18 +85,15 @@ def test_new_plugin(project_cli_runner):
                 'Framework :: Lektor',
                 'Environment :: Plugins',
             ],
-            entry_points={{
+            entry_points={
                 'lektor.plugins': [
                     'plugin-name = lektor_plugin_name:PluginNamePlugin',
                 ]
-            }}
+            }
         )
     """
     ).strip()
-    if PY2:
-        setup_expected = setup_expected.format("u")
-    else:
-        setup_expected = setup_expected.format("")
+
     with open(os.path.join(path, "setup.py")) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
@@ -110,7 +106,7 @@ def test_new_plugin(project_cli_runner):
 
 
         class PluginNamePlugin(Plugin):
-            name = {}'Plugin Name'
+            name = 'Plugin Name'
             description = u'Add your description here.'
 
             def on_process_template_context(self, context, **extra):
@@ -119,10 +115,6 @@ def test_new_plugin(project_cli_runner):
                 context['test_function'] = test_function
     """
     ).strip()
-    if PY2:
-        plugin_expected = plugin_expected.format("u")
-    else:
-        plugin_expected = plugin_expected.format("")
     with open(os.path.join(path, "lektor_plugin_name.py")) as f:
         plugin_contents = f.read().strip()
     assert plugin_contents == plugin_expected
@@ -180,7 +172,7 @@ def test_new_plugin_name_only(project_cli_runner):
                 f.read().decode('utf-8')).group(1)))
 
         setup(
-            author={}'{}',
+            author='{}',
             author_email='{}',
             description=description,
             keywords='Lektor plugin',
@@ -204,10 +196,7 @@ def test_new_plugin_name_only(project_cli_runner):
         )
     """
     ).strip()
-    if PY2:
-        setup_expected = setup_expected.format("u", author, author_email)
-    else:
-        setup_expected = setup_expected.format("", author, author_email)
+    setup_expected = setup_expected.format(author, author_email)
     with open(os.path.join(path, "plugin-name", "setup.py")) as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected

@@ -14,7 +14,6 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
 from lektor._compat import iteritems
-from lektor._compat import PY2
 from lektor._compat import string_types
 from lektor.context import config_proxy
 from lektor.context import get_asset_url
@@ -27,7 +26,6 @@ from lektor.markdown import Markdown
 from lektor.pluginsystem import PluginController
 from lektor.utils import bool_from_string
 from lektor.utils import format_lat_long
-from lektor.utils import is_windows
 from lektor.utils import secure_url
 from lektor.utils import tojson_filter
 
@@ -220,11 +218,6 @@ class CustomJinjaEnvironment(jinja2.Environment):
             rv = jinja2.Environment._load_template(self, name, globals)
             if ctx is not None:
                 filename = rv.filename
-                if PY2 and is_windows:
-                    try:
-                        filename = filename.decode("utf-8")
-                    except UnicodeDecodeError:
-                        pass
                 ctx.record_dependency(filename)
             return rv
         except jinja2.TemplateSyntaxError as e:

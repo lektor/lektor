@@ -15,11 +15,9 @@ from werkzeug import urls
 from lektor._compat import BytesIO
 from lektor._compat import iteritems
 from lektor._compat import iterkeys
-from lektor._compat import PY2
 from lektor._compat import queue
 from lektor._compat import range_type
 from lektor._compat import string_types
-from lektor._compat import StringIO
 from lektor._compat import text_type
 from lektor.exception import LektorException
 from lektor.utils import locate_executable
@@ -290,16 +288,10 @@ class FtpConnection(object):
 
         try:
             credentials = {}
-            if PY2:
-                if self.username:
-                    credentials["user"] = self.username.encode("utf-8")
-                if self.password:
-                    credentials["passwd"] = self.password.encode("utf-8")
-            else:
-                if self.username:
-                    credentials["user"] = self.username
-                if self.password:
-                    credentials["passwd"] = self.password
+            if self.username:
+                credentials["user"] = self.username
+            if self.password:
+                credentials["passwd"] = self.password
             log.append(self.con.login(**credentials))
 
         except Exception as e:
@@ -341,10 +333,7 @@ class FtpConnection(object):
         if not isinstance(filename, text_type):
             filename = filename.decode("utf-8")
 
-        if PY2:
-            input = StringIO(data)
-        else:
-            input = BytesIO(data.encode("utf-8"))
+        input = BytesIO(data.encode("utf-8"))
 
         try:
             self.con.storbinary("APPE " + filename, input)
@@ -358,10 +347,7 @@ class FtpConnection(object):
             filename = filename.decode("utf-8")
         getvalue = False
         if out is None:
-            if PY2:
-                out = StringIO()
-            else:
-                out = BytesIO()
+            out = BytesIO()
             getvalue = True
         try:
             self.con.retrbinary("RETR " + filename, out.write)
@@ -371,17 +357,12 @@ class FtpConnection(object):
                 self.log_buffer.append(e)
             return None
         if getvalue:
-            if PY2:
-                return out.getvalue()
             return out.getvalue().decode("utf-8")
         return out
 
     def upload_file(self, filename, src, mkdir=False):
         if isinstance(src, string_types):
-            if PY2:
-                src = StringIO(src)
-            else:
-                src = BytesIO(src.encode("utf-8"))
+            src = BytesIO(src.encode("utf-8"))
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:

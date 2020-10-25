@@ -12,10 +12,6 @@
 # pylint: disable=unused-import
 import queue  # noqa
 from io import BytesIO  # noqa
-from io import StringIO  # noqa
-
-
-PY2 = False
 
 
 range_type = range

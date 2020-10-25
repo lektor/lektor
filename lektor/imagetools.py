@@ -13,7 +13,6 @@ import exifread
 import filetype
 
 from lektor._compat import iteritems
-from lektor._compat import PY2
 from lektor._compat import text_type
 from lektor.reporter import reporter
 from lektor.utils import get_dependent_url
@@ -652,8 +651,5 @@ class Thumbnail(object):
         #: the URL path of the image.
         self.url_path = url_path
 
-    def __unicode__(self):
+    def __str__(self):
         return posixpath.basename(self.url_path)
-
-    if not PY2:
-        __str__ = __unicode__
