@@ -130,12 +130,12 @@ class _CmpHelper(object):
             if isinstance(b, Undefined):
                 b = None
             return a, b
-        if isinstance(a, integer_types) or isinstance(a, float):
+        if isinstance(a, (integer_types, float)):
             try:
                 return a, type(a)(b)
             except (ValueError, TypeError, OverflowError):
                 pass
-        if isinstance(b, integer_types) or isinstance(b, float):
+        if isinstance(b, (integer_types, float)):
             try:
                 return type(b)(a), b
             except (ValueError, TypeError, OverflowError):
