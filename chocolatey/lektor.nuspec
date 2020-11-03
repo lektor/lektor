@@ -7,25 +7,24 @@
     <owners>Nimish Bongale</owners>
 
     <title>lektor</title>
-    <authors>lektor</authors>
+    <authors>The Lektor Team</authors>
     <projectUrl>https://www.getlektor.com/</projectUrl>
-    <!--<iconUrl>http://cdn.rawgit.com/__REPLACE_YOUR_REPO__/master/icons/lektor.png</iconUrl>-->
-    <!-- <copyright>Year Software Vendor</copyright> -->
-    <licenseUrl>https://github.com/lektor/lektor/blob/master/LICENSE</licenseUrl>
+    <iconUrl>https://www.getlektor.com/static/favicon.png</iconUrl>
+    <copyright>2015 Armin Ronacher</copyright>
+    <licenseUrl>https://www.getlektor.com/license/</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     
     <projectSourceUrl>https://github.com/lektor/lektor</projectSourceUrl>
     <docsUrl>https://www.getlektor.com/docs/</docsUrl>
-    <!--<mailingListUrl></mailingListUrl>-->
     <bugTrackerUrl>https://github.com/lektor/lektor/issues</bugTrackerUrl>
-    <tags>python pipenv cms</tags>
+    <tags>python virtualenv cms</tags>
     <summary>lektor</summary>
     <description>The lektor static file content management system</description>
-    <!-- <releaseNotes>__REPLACE_OR_REMOVE__MarkDown_Okay</releaseNotes> -->
 
     <dependencies>
-      <dependency id="python"/>
-      <dependency id="imagemagick"/>
+       <dependency id="ffmpeg" version="4.1.5"/>
+      <dependency id="imagemagick" version="6.8.4"/>
+      <dependency id="python" version="3.5.3"/>
     </dependencies>
   </metadata>
   <files>
