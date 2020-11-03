@@ -4,10 +4,10 @@
     <id>lektor</id>
     <version>3.2.0</version>
     <packageSourceUrl>https://github.com/lektor/lektor</packageSourceUrl>
-    <owners>Nimish Bongale</owners>
+    <owners>The Lektor Team</owners>
 
     <title>lektor</title>
-    <authors>The Lektor Team</authors>
+    <authors>Nimish Bongale</authors>
     <projectUrl>https://www.getlektor.com/</projectUrl>
     <iconUrl>https://www.getlektor.com/static/favicon.png</iconUrl>
     <copyright>2015 Armin Ronacher</copyright>
