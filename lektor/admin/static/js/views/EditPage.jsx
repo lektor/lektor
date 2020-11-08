@@ -94,11 +94,11 @@ class EditPage extends RecordComponent {
       })
   }
 
-  setFieldValue (field, value) {
+  setFieldValue (field, value, uiChange) {
     const rd = { ...this.state.recordData, [field.name]: value || '' }
     this.setState({
       recordData: rd,
-      hasPendingChanges: true
+      hasPendingChanges: !uiChange // !undefined => true
     })
   }
 

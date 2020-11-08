@@ -45,9 +45,9 @@ FallbackWidget.propTypes = widgetPropTypes
  */
 export const FieldBox = React.memo(function FieldBox (props) {
   const { field, value, placeholder, disabled } = props
-  const onChange = props.onChange ? props.onChange : (value) => props.setFieldValue(field, value)
+  const onChange = props.onChange ? props.onChange : (value, uiChange) => props.setFieldValue(field, value, uiChange)
   const className = 'col-md-' + getFieldColumns(field) + ' field-box'
-  let innerClassName = 'field'
+  let innerClassName = `field ${field.type.name}`
 
   if (field.name.substr(0, 1) === '_') {
     innerClassName += ' system-field'
