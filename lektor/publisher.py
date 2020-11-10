@@ -235,8 +235,10 @@ class RsyncPublisher(Publisher):
         if username:
             target.append(username + "@")
 
-        target.append(target_url.ascii_host)
-        target.append(":" + target_url.path.rstrip("/") + "/")
+        if target_url.ascii_host is not None:
+            target.append(target_url.ascii_host)
+            target.append(":")
+        target.append(target_url.path.rstrip("/") + "/")
 
         argline.append(self.output_path.rstrip("/\\") + "/")
         argline.append("".join(target))
