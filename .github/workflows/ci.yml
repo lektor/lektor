@@ -308,9 +308,6 @@ jobs:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
         run: |
-          # Temporary workaround for https://github.com/actions/virtual-environments/issues/1811
-          brew untap local/homebrew-openssl
-          brew untap local/homebrew-python2
           brew update
           brew install imagemagick
           brew install ffmpeg
