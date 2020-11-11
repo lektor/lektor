@@ -40,6 +40,3 @@ coverage-js: test-js
 test: test-python test-js
 
 coverage: coverage-python coverage-js
-
-install-git-hooks:
-	ln -sT $(PWD)/bin/pre-commit .git/hooks/pre-commit
