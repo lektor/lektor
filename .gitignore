@@ -17,6 +17,7 @@ coverage.xml
 coverage.lcov
 .nyc_output
 .pytest_cache
+.tox
 
 node_modules
 gui/build
