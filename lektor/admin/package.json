@@ -35,16 +35,14 @@
     "react-dom": "^17.0.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "standard": "^14.3.4",
     "style-loader": "^2.0.0",
     "webpack": "^5.4.0",
     "webpack-cli": "^4.2.0"
   },
   "scripts": {
     "prettier": "prettier --write static/js static/less",
-    "eslint": "eslint --ext .js,.jsx static/js",
-    "lint": "standard",
-    "fix-lint": "standard --fix",
+    "lint": "eslint --ext .js,.jsx static/js",
+    "fix-lint": "eslint --ext .js,.jsx static/js --fix",
     "test": "nyc mocha static/js/**/*.test.js",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
     "dev": "webpack --watch --config ./static/webpack.config.js --context ./static",
@@ -70,15 +68,6 @@
     ],
     "require": [
       "@babel/register"
-    ]
-  },
-  "standard": {
-    "parser": "babel-eslint",
-    "ignore": [
-      "static/gen/"
-    ],
-    "globals": [
-      "$LEKTOR_CONFIG"
     ]
   },
   "author": "",
