@@ -1,14 +1,14 @@
-'use strict'
+"use strict";
 
-import Component from './Component'
-import { getParentFsPath, urlToFsPath, fsToUrlPath } from '../utils'
+import Component from "./Component";
+import { getParentFsPath, urlToFsPath, fsToUrlPath } from "../utils";
 
-export function getRecordPathAndAlt (path) {
+export function getRecordPathAndAlt(path) {
   if (!path) {
-    return [null, null]
+    return [null, null];
   }
-  const items = path.split(/\+/, 2)
-  return [urlToFsPath(items[0]), items[1]]
+  const items = path.split(/\+/, 2);
+  return [urlToFsPath(items[0]), items[1]];
 }
 
 /* a react component baseclass that has some basic knowledge about
@@ -16,35 +16,35 @@ export function getRecordPathAndAlt (path) {
 export default class RecordComponent extends Component {
   /* this returns the path of the current record.  If the current page does
    * not have a path component then null is returned. */
-  getRecordPath () {
-    const [path] = getRecordPathAndAlt(this.props.match.params.path)
-    return path
+  getRecordPath() {
+    const [path] = getRecordPathAndAlt(this.props.match.params.path);
+    return path;
   }
 
   /* returns the current alt */
-  getRecordAlt () {
-    const [, alt] = getRecordPathAndAlt(this.props.match.params.path)
-    return !alt ? '_primary' : alt
+  getRecordAlt() {
+    const [, alt] = getRecordPathAndAlt(this.props.match.params.path);
+    return !alt ? "_primary" : alt;
   }
 
   /* return the url path for the current record path (or a modified one)
      by preserving or overriding the alt */
-  getUrlRecordPathWithAlt (newPath, newAlt) {
+  getUrlRecordPathWithAlt(newPath, newAlt) {
     if (newPath === undefined || newPath === null) {
-      newPath = this.getRecordPath()
+      newPath = this.getRecordPath();
     }
     if (newAlt === undefined || newAlt === null) {
-      newAlt = this.getRecordAlt()
+      newAlt = this.getRecordAlt();
     }
-    let rv = fsToUrlPath(newPath)
-    if (newAlt !== '_primary') {
-      rv += '+' + newAlt
+    let rv = fsToUrlPath(newPath);
+    if (newAlt !== "_primary") {
+      rv += "+" + newAlt;
     }
-    return rv
+    return rv;
   }
 
   /* returns the parent path if available */
-  getParentRecordPath () {
-    return getParentFsPath(this.getRecordPath())
+  getParentRecordPath() {
+    return getParentFsPath(this.getRecordPath());
   }
 }
