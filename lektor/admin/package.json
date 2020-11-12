@@ -41,7 +41,7 @@
   },
   "scripts": {
     "prettier": "prettier --write static/js static/less",
-    "lint": "eslint --ext .js,.jsx static/js",
+    "lint": "prettier --check static/js static/less && eslint --ext .js,.jsx static/js",
     "fix-lint": "eslint --ext .js,.jsx static/js --fix",
     "test": "nyc mocha static/js/**/*.test.js",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
