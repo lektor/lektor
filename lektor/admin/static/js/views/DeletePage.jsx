@@ -1,5 +1,3 @@
-"use strict";
-
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import { apiRequest, loadData, getParentFsPath } from "../utils";

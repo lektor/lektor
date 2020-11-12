@@ -3,8 +3,6 @@
 // which breaks super.  This is why we do this here.  Note that this is
 // also used by the standalone admin UI app.
 
-"use strict";
-
 import React from "react";
 
 class BaseComponent extends React.Component {

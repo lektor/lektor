@@ -1,5 +1,3 @@
-"use strict";
-
 class Hub {
   constructor() {
     this._subscriptions = {};

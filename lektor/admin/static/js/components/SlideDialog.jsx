@@ -1,5 +1,3 @@
-"use strict";
-
 import PropTypes from "prop-types";
 import React from "react";
 import dialogSystem from "../dialogSystem";

@@ -1,5 +1,3 @@
-"use strict";
-
 import React from "react";
 import { flipSetValue } from "../utils";
 import i18n from "../i18n";

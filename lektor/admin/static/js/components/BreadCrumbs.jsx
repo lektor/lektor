@@ -1,5 +1,3 @@
-"use strict";
-
 import React from "react";
 import RecordComponent from "./RecordComponent";
 import Link from "./Link";

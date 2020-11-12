@@ -1,5 +1,3 @@
-"use strict";
-
 const lineIsDashes = (line) => {
   line = line.match(/^\s*(.*?)\s*$/)[1];
   return line.length >= 3 && line === new Array(line.length + 1).join("-");

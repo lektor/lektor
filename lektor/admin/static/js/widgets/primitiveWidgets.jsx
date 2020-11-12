@@ -1,5 +1,3 @@
-"use strict";
-
 import React from "react";
 import { getInputClass, widgetPropTypes } from "./mixins";
 import { isValidUrl } from "../utils";

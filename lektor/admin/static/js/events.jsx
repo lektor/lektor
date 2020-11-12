@@ -1,5 +1,3 @@
-"use strict";
-
 class Event {
   get type() {
     return Object.getPrototypeOf(this).constructor.getEventType();

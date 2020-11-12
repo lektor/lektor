@@ -1,5 +1,3 @@
-"use strict";
-
 import Component from "./Component";
 import { getParentFsPath, urlToFsPath, fsToUrlPath } from "../utils";
 

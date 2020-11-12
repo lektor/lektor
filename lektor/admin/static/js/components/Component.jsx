@@ -1,5 +1,3 @@
-"use strict";
-
 import BaseComponent from "./BaseComponent";
 
 class Component extends BaseComponent {

@@ -1,5 +1,3 @@
-"use strict";
-
 /* eslint-env browser */
 
 import React from "react";

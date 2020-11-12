@@ -1,5 +1,3 @@
-"use strict";
-
 import hub from "./hub";
 import { DialogChangedEvent } from "./events";
 
