@@ -7,7 +7,7 @@ export function getRecordPathAndAlt (path) {
   if (!path) {
     return [null, null]
   }
-  const items = path.split(/\+/, 2)
+  const items = decodeURIComponent(path).split(/\+/, 2)
   return [urlToFsPath(items[0]), items[1]]
 }
 
