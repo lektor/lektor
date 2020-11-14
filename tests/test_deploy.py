@@ -324,3 +324,22 @@ def test_rsync_command_delete_no(tmpdir, mocker, env):
             "example.com:/",
         ],
     )
+
+
+def test_rsync_local(tmpdir, mocker, env):
+    output_path = tmpdir.mkdir("output")
+    publisher = RsyncPublisher(env, str(output_path))
+    target_url = url_parse("file:///path/to/directory")
+    ssh_path = tmpdir.mkdir("ssh")
+    mock_popen = mocker.patch("lektor.publisher.portable_popen")
+    publisher.get_command(target_url, str(ssh_path), credentials=None)
+    assert mock_popen.called
+    assert mock_popen.call_args[0] == (
+        [
+            "rsync",
+            "-rclzv",
+            "--exclude=.lektor",
+            str(output_path) + "/",
+            "/path/to/directory/",
+        ],
+    )
