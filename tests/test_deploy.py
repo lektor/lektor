@@ -1,5 +1,8 @@
 import textwrap
+from os.path import dirname
+from os.path import join
 
+import pytest
 from werkzeug.urls import url_parse
 
 from lektor.publisher import GithubPagesPublisher
@@ -118,25 +121,6 @@ def test_ghpages_detect_branch_project(tmpdir, env):
     assert branch == "gh-pages"
 
 
-def test_rsync_command(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com")
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
 def test_rsync_command_credentials(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
@@ -160,167 +144,131 @@ def test_rsync_command_credentials(tmpdir, mocker, env):
     )
 
 
-def test_rsync_command_username_in_url(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
+output_path = join(dirname(__file__), "OUTPUT_PATH")
+
+
+@pytest.mark.parametrize(
+    "target_url,called_command",
+    [
+        (
+            "http://example.com",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            "http://fakeuser@example.com",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                str(output_path) + "/",
+                "fakeuser@example.com:/",
+            ],
+        ),
+        (
+            "http://example.com?exclude=file",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                "--exclude",
+                "file",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            "http://example.com?exclude=file_one&exclude=file_two",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                "--exclude",
+                "file_one",
+                "--exclude",
+                "file_two",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            """http://example.com?exclude='user's "special" file name'""",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                "--exclude",
+                "'user's \"special\" file name'",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            'http://example.com?exclude="file name"',
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                "--exclude",
+                '"file name"',
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            "http://example.com?delete",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                "--delete-delay",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            "http://example.com?delete=yes",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                "--delete-delay",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            "http://example.com?delete=no",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                str(output_path) + "/",
+                "example.com:/",
+            ],
+        ),
+        (
+            "file:///path/to/directory",
+            [
+                "rsync",
+                "-rclzv",
+                "--exclude=.lektor",
+                str(output_path) + "/",
+                "/path/to/directory/",
+            ],
+        ),
+    ],
+)
+def test_rsync_publisher(target_url, called_command, tmpdir, mocker, env):
     publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://fakeuser@example.com")
-    ssh_path = tmpdir.mkdir("ssh")
+    target_url = url_parse(target_url)
+    ssh_path = join(output_path, "ssh")
     mock_popen = mocker.patch("lektor.publisher.portable_popen")
     publisher.get_command(target_url, str(ssh_path), credentials=None)
     assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            str(output_path) + "/",
-            "fakeuser@example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_exclude(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com?exclude=file")
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            "--exclude",
-            "file",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_exclude_many(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com?exclude=file_one&exclude=file_two")
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            "--exclude",
-            "file_one",
-            "--exclude",
-            "file_two",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_exclude_escape_file_name(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse(
-        """http://example.com?exclude='user's "special" file name'"""
-    )
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            "--exclude",
-            "'user's \"special\" file name'",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_exclude_escape_file_name_reverse_string(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse('http://example.com?exclude="file name"')
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            "--exclude",
-            '"file name"',
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_delete(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com?delete")
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            "--delete-delay",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_delete_yes(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com?delete=yes")
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            "--delete-delay",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
-
-
-def test_rsync_command_delete_no(tmpdir, mocker, env):
-    output_path = tmpdir.mkdir("output")
-    publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com?delete=no")
-    ssh_path = tmpdir.mkdir("ssh")
-    mock_popen = mocker.patch("lektor.publisher.portable_popen")
-    publisher.get_command(target_url, str(ssh_path), credentials=None)
-    assert mock_popen.called
-    assert mock_popen.call_args[0] == (
-        [
-            "rsync",
-            "-rclzv",
-            "--exclude=.lektor",
-            str(output_path) + "/",
-            "example.com:/",
-        ],
-    )
+    assert mock_popen.call_args[0] == (called_command,)
