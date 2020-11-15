@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import React from "react";
+import React, { createRef } from "react";
 import RecordComponent from "../components/RecordComponent";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
@@ -17,6 +17,7 @@ class AddAttachmentPage extends RecordComponent {
       isUploading: false,
       currentProgress: 0,
     };
+    this.fileInput = createRef();
   }
 
   componentDidMount() {
@@ -43,7 +44,7 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   uploadFile(event) {
-    this.refs.file.click();
+    this.fileInput.current.click();
   }
 
   onUploadProgress(event) {
@@ -79,7 +80,7 @@ class AddAttachmentPage extends RecordComponent {
       return;
     }
 
-    const files = this.refs.file.files;
+    const files = this.fileInput.current.files;
     this.setState({
       currentFiles: Array.prototype.slice.call(files, 0),
       isUploading: true,
@@ -131,7 +132,7 @@ class AddAttachmentPage extends RecordComponent {
         </p>
         <input
           type="file"
-          ref="file"
+          ref={this.fileInput}
           multiple
           style={{ display: "none" }}
           onChange={this.onFileSelected.bind(this)}

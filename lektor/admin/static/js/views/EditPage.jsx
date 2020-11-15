@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createRef } from "react";
 import { Prompt } from "react-router-dom";
 
 import RecordComponent from "../components/RecordComponent";
@@ -23,7 +23,7 @@ class EditPage extends RecordComponent {
     };
     this._onKeyPress = this._onKeyPress.bind(this);
     this.setFieldValue = this.setFieldValue.bind(this);
-    this.form = React.createRef();
+    this.form = createRef();
   }
 
   componentDidMount() {

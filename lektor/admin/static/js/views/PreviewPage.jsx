@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createRef } from "react";
 import {
   loadData,
   fsPathFromAdminObservedPath,
@@ -15,6 +15,7 @@ class PreviewPage extends RecordComponent {
       pageUrl: null,
       pageUrlFor: null,
     };
+    this.iframe = createRef();
   }
 
   componentDidMount() {
@@ -62,7 +63,7 @@ class PreviewPage extends RecordComponent {
     if (nextProps.match.params.path !== this.props.match.params.path) {
       this.setState({}, this.syncState.bind(this));
     }
-    const frame = this.refs.iframe;
+    const frame = this.iframe.current;
     const intendedPath = this.getIntendedPath();
     if (intendedPath !== null) {
       const framePath = this.getFramePath();
@@ -78,7 +79,7 @@ class PreviewPage extends RecordComponent {
   }
 
   getFramePath() {
-    const frameLocation = this.refs.iframe.contentWindow.location;
+    const frameLocation = this.iframe.current.contentWindow.location;
     if (frameLocation.href === "about:blank") {
       return frameLocation.href;
     }
@@ -103,7 +104,7 @@ class PreviewPage extends RecordComponent {
   render() {
     return (
       <div className="preview">
-        <iframe ref="iframe" />
+        <iframe ref={this.iframe} />
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createRef } from "react";
 import { getInputClass, widgetPropTypes } from "./mixins";
 import { isValidUrl } from "../utils";
 import userLabel from "../userLabel";
@@ -229,6 +229,7 @@ export class MultiLineTextInputWidget extends React.Component {
   constructor(props) {
     super(props);
     this.recalculateSize = this.recalculateSize.bind(this);
+    this.textarea = createRef();
   }
 
   onChange(event) {
@@ -258,7 +259,7 @@ export class MultiLineTextInputWidget extends React.Component {
       return;
     }
     let diff;
-    const node = this.refs.ta;
+    const node = this.textarea.current;
 
     if (window.getComputedStyle) {
       const s = window.getComputedStyle(node);
@@ -308,7 +309,7 @@ export class MultiLineTextInputWidget extends React.Component {
     return (
       <div>
         <textarea
-          ref="ta"
+          ref={this.textarea}
           className={getInputClass(type)}
           onChange={this.onChange.bind(this)}
           style={style}
@@ -325,7 +326,7 @@ MultiLineTextInputWidget.propTypes = widgetPropTypes;
 export class BooleanInputWidget extends React.Component {
   constructor(props) {
     super(props);
-    this.checkbox = React.createRef();
+    this.checkbox = createRef();
   }
 
   onChange(event) {

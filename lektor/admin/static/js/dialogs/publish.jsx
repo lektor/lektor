@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import React from "react";
+import React, { createRef } from "react";
 
 import Component from "../components/Component";
 import SlideDialog from "../components/SlideDialog";
@@ -19,6 +19,8 @@ class Publish extends Component {
       log: [],
       currentState: "IDLE",
     };
+
+    this.buildLog = createRef();
   }
 
   componentDidMount() {
@@ -31,7 +33,7 @@ class Publish extends Component {
     if (nextProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
-    const node = this.refs.log;
+    const node = this.buildLog.current;
     if (node) {
       node.scrollTop = node.scrollHeight;
     }
@@ -136,7 +138,7 @@ class Publish extends Component {
               ": " +
               i18n.trans("PUBLISH_STATE_" + this.state.currentState)}
           </pre>
-          <pre ref="log" className="build-log">
+          <pre ref={this.buildLog} className="build-log">
             {this.state.log.join("\n")}
           </pre>
         </div>

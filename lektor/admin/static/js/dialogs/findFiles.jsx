@@ -17,11 +17,6 @@ class FindFiles extends RecordComponent {
     };
   }
 
-  componentDidMount() {
-    super.componentDidMount();
-    this.refs.q.focus();
-  }
-
   onInputChange(e) {
     const q = e.target.value;
 
@@ -129,7 +124,7 @@ class FindFiles extends RecordComponent {
         <div className="form-group">
           <input
             type="text"
-            ref="q"
+            autoFocus
             className="form-control"
             value={this.state.query}
             onChange={this.onInputChange.bind(this)}
