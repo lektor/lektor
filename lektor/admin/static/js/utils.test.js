@@ -9,5 +9,10 @@ describe("Utils", () => {
     ok(!isValidUrl("https:file"));
     ok(!isValidUrl("https:/example.com"));
     ok(isValidUrl("ftp://example.com"));
+    ok(isValidUrl("ftps://example.com"));
+    ok(!isValidUrl("ftps:/example.com"));
+    ok(isValidUrl("mailto:user@example.com"));
+    ok(isValidUrl("mailto:anythingreally"));
+    ok(!isValidUrl("mailto:with spaces"));
   });
 });
