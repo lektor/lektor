@@ -32,26 +32,26 @@
 
 // Fonts
 @font-face {
-  font-family: 'Roboto Slab';
+  font-family: "Roboto Slab";
   font-style: normal;
   font-weight: 300;
-  src:
-      local('Roboto Slab Light'),
-      local('RobotoSlab-Light'),
-      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff2') format('woff2'),
-      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff') format('woff');
+  src: local("Roboto Slab Light"), local("RobotoSlab-Light"),
+    url("~@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff2")
+      format("woff2"),
+    url("~@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff")
+      format("woff");
 }
 @font-face {
-  font-family: 'Roboto Slab';
+  font-family: "Roboto Slab";
   font-style: normal;
   font-weight: 400;
-  src:
-      local('Roboto Slab Regular'),
-      local('RobotoSlab-Regular'),
-      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff2') format('woff2'),
-      url('~@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff') format('woff');
+  src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"),
+    url("~@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff2")
+      format("woff2"),
+    url("~@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff")
+      format("woff");
 }
-@font-family-serif: 'Roboto Slab', 'Georgia', 'Times New Roman', serif;
+@font-family-serif: "Roboto Slab", "Georgia", "Times New Roman", serif;
 @font-family-base: @font-family-serif;
 
 // Get rid of rounded things
@@ -97,7 +97,6 @@
 @container-md: (970px + @grid-gutter-width);
 @container-lg: (1320px + @grid-gutter-width);
 
-
 // Fix up breadcrumbs
 .breadcrumb > li + li:before {
   content: "∕";
@@ -109,8 +108,8 @@
   margin-right: -5px;
 
   [class*="col-"] {
-    padding-left: 5px!important;
-    padding-right: 5px!important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
   }
 }
 
@@ -120,7 +119,8 @@
     position: relative;
   }
 
-  .block-offcanvas, .sidebar-offcanvas {
+  .block-offcanvas,
+  .sidebar-offcanvas {
     -webkit-transition: all 0.25s ease-out;
     -moz-transition: all 0.25s ease-out;
     transition: all 0.25s ease-out;
@@ -136,16 +136,16 @@
 
   /* this really should not go here, it's the wrong place but oh well */
   .block-offcanvas div.view {
-    padding-left: 0!important;
+    padding-left: 0 !important;
   }
   .block-offcanvas.active div.view {
-    padding-left: 10px!important;
+    padding-left: 10px !important;
   }
   .block-offcanvas nav {
-    opacity: 0!important;
+    opacity: 0 !important;
   }
   .block-offcanvas.active nav {
-    opacity: 1.0!important;
+    opacity: 1 !important;
   }
 
   .sidebar-offcanvas {
