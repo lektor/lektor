@@ -1,13 +1,10 @@
 import React from "react";
 import RecordComponent from "./RecordComponent";
 import Link from "./Link";
-import { loadData, isMetaKey, getCanonicalUrl } from "../utils";
+import { loadData } from "../utils";
 import i18n from "../i18n";
-import dialogSystem from "../dialogSystem";
-import FindFiles from "../dialogs/findFiles";
-import Publish from "../dialogs/publish";
-import Refresh from "../dialogs/Refresh";
 import makeRichPromise from "../richPromise";
+import GlobalActions from "./GlobalActions";
 
 class BreadCrumbs extends RecordComponent {
   constructor(props) {
@@ -15,13 +12,11 @@ class BreadCrumbs extends RecordComponent {
     this.state = {
       recordPathInfo: null,
     };
-    this._onKeyPress = this._onKeyPress.bind(this);
   }
 
   componentDidMount() {
     super.componentDidMount();
     this.updateCrumbs();
-    window.addEventListener("keydown", this._onKeyPress);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -29,10 +24,6 @@ class BreadCrumbs extends RecordComponent {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.updateCrumbs();
     }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this._onKeyPress);
   }
 
   updateCrumbs() {
@@ -52,78 +43,6 @@ class BreadCrumbs extends RecordComponent {
         },
       });
     });
-  }
-
-  _onKeyPress(event) {
-    // meta+g is open find files
-    if (event.which === 71 && isMetaKey(event)) {
-      event.preventDefault();
-      dialogSystem.showDialog(FindFiles);
-    }
-  }
-
-  _onCloseClick(e) {
-    loadData(
-      "/previewinfo",
-      {
-        path: this.getRecordPath(),
-        alt: this.getRecordAlt(),
-      },
-      makeRichPromise
-    ).then((resp) => {
-      if (resp.url === null) {
-        window.location.href = getCanonicalUrl("/");
-      } else {
-        window.location.href = getCanonicalUrl(resp.url);
-      }
-    });
-  }
-
-  _onFindFiles(e) {
-    dialogSystem.showDialog(FindFiles);
-  }
-
-  _onRefresh(e) {
-    dialogSystem.showDialog(Refresh);
-  }
-
-  _onPublish(e) {
-    dialogSystem.showDialog(Publish);
-  }
-
-  renderGlobalActions() {
-    return (
-      <div className="btn-group">
-        <button
-          className="btn btn-default"
-          onClick={this._onFindFiles.bind(this)}
-          title={i18n.trans("FIND_FILES")}
-        >
-          <i className="fa fa-search fa-fw" />
-        </button>
-        <button
-          className="btn btn-default"
-          onClick={this._onPublish.bind(this)}
-          title={i18n.trans("PUBLISH")}
-        >
-          <i className="fa fa-cloud-upload fa-fw" />
-        </button>
-        <button
-          className="btn btn-default"
-          onClick={this._onRefresh.bind(this)}
-          title={i18n.trans("REFRESH_BUILD")}
-        >
-          <i className="fa fa-refresh fa-fw" />
-        </button>
-        <button
-          className="btn btn-default"
-          onClick={this._onCloseClick.bind(this)}
-          title={i18n.trans("RETURN_TO_WEBSITE")}
-        >
-          <i className="fa fa-eye fa-fw" />
-        </button>
-      </div>
-    );
   }
 
   render() {
@@ -179,7 +98,9 @@ class BreadCrumbs extends RecordComponent {
             </li>
           ) : null}
           {" " /* this space is needed for chrome ... */}
-          <li className="meta">{this.renderGlobalActions()}</li>
+          <li className="meta">
+            <GlobalActions {...this.props} />
+          </li>
         </ul>
       </div>
     );
