@@ -1,5 +1,5 @@
-import React from "react";
-import { Route } from "react-router-dom";
+import React, { useState } from "react";
+import { Route, useRouteMatch } from "react-router-dom";
 
 import BreadCrumbs from "../components/BreadCrumbs";
 import Sidebar from "../components/Sidebar";
@@ -7,14 +7,19 @@ import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
 
 function Header(props) {
+  const match = useRouteMatch();
+
+  const buttonClass = props.sidebarIsActive
+    ? "navbar-toggle active"
+    : "navbar-toggle";
+
   return (
     <header>
-      <BreadCrumbs {...props}>
+      <BreadCrumbs match={match}>
         <button
           type="button"
-          className="navbar-toggle"
-          data-toggle="offcanvas"
-          data-target=".sidebar-block"
+          className={buttonClass}
+          onClick={props.toggleSidebar}
         >
           <span className="sr-only">Toggle navigation</span>
           <span className="icon-list" />
@@ -28,13 +33,29 @@ function Header(props) {
 
 function App(props) {
   const fullPath = `${props.match.path}/:path/:page`;
+  const [sidebarIsActive, setSidebarIsActive] = useState(false);
+
+  function toggleSidebar() {
+    setSidebarIsActive(!sidebarIsActive);
+  }
+  const baseSidebarClasses =
+    "sidebar-block block-offcanvas block-offcanvas-left";
+  const sidebarClasses = sidebarIsActive
+    ? baseSidebarClasses + " active"
+    : baseSidebarClasses;
+
   return (
     <div className="application">
       <ServerStatus />
-      <Route path={fullPath} component={Header} />
+      <Route path={fullPath}>
+        <Header
+          sidebarIsActive={sidebarIsActive}
+          toggleSidebar={toggleSidebar}
+        />
+      </Route>
       <div className="editor container">
         <Route path={fullPath} component={DialogSlot} />
-        <div className="sidebar-block block-offcanvas block-offcanvas-left">
+        <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
             <Route path={fullPath} component={Sidebar} />
           </nav>

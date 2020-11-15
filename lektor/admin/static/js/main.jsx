@@ -9,7 +9,6 @@ import {
 import i18n from "./i18n";
 
 import "bootstrap";
-import "./bootstrap-extras";
 import "font-awesome/css/font-awesome.css";
 
 // polyfill for internet explorer
