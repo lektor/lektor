@@ -215,6 +215,12 @@ class Expression(object):
     def contains(self, item):
         return _ContainmentExpr(self, _auto_wrap_expr(item))
 
+    def isin(self, seq):
+        return _ContainmentExpr(_SeqExpr(seq), self)
+
+    def isnotin(self, seq):
+        return _ContainmentExpr(_SeqExpr(seq), self, True)
+
     def startswith(self, other):
         return _BinExpr(
             self,
@@ -283,6 +289,30 @@ class _Literal(Expression):
         return self.__value
 
 
+class _SeqExpr(Expression):
+    def __init__(self, value):
+        try:
+            iter(value)
+        except TypeError:
+            value = [value]
+        self.__evaluated = False
+        self.__value = value
+
+    def __eval__(self, record):
+        def eval(item):
+            if isinstance(item, Record):
+                return item["_id"]
+            if isinstance(item, Expression):
+                return item.__eval__(record)
+            return item
+
+        if self.__evaluated:
+            return self.__value
+        self.__value = [eval(v) for v in self.__value]
+        self.__evaluated = True
+        return self.__value
+
+
 class _BinExpr(Expression):
     def __init__(self, left, right, op):
         self.__left = left
@@ -294,15 +324,18 @@ class _BinExpr(Expression):
 
 
 class _ContainmentExpr(Expression):
-    def __init__(self, seq, item):
+    def __init__(self, seq, item, isnot=False):
         self.__seq = seq
         self.__item = item
+        self.__isnot = isnot
 
     def __eval__(self, record):
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
             item = item["_id"]
+        if self.__isnot:
+            return item not in seq
         return item in seq
 
 
@@ -319,7 +352,7 @@ class _RecordQueryField(Expression):
 
 class _RecordQueryProxy(object):
     def __getattr__(self, name):
-        if name[:2] != "__":
+        if not name.startswith("__"):
             return _RecordQueryField(name)
         raise AttributeError(name)
 
@@ -987,6 +1020,7 @@ class Query(object):
         self._include_undiscoverable = False
         self._page_num = None
         self._filter_func = None
+        self._negate = False
 
     def __get_lektor_param_hash__(self, h):
         h.update(str(self.alt))
@@ -998,6 +1032,7 @@ class Query(object):
         h.update(str(self._include_hidden))
         h.update(str(self._include_undiscoverable))
         h.update(str(self._page_num))
+        h.update(str(self._negate))
 
     @property
     def self(self):
@@ -1027,10 +1062,12 @@ class Query(object):
                 return False
         if not self._include_undiscoverable and record.is_undiscoverable:
             return False
+        # De Morgan's Law(s): !(A and B and C) = !A or !B or !C
+        negate = self._negate
         for filter in self._filters or ():
             if not save_eval(filter, record):
-                return False
-        return True
+                return negate
+        return not negate
 
     def _iterate(self):
         """Low level record iteration."""
@@ -1133,9 +1170,15 @@ class Query(object):
         return rv
 
     def limit(self, limit):
-        """Sets the ordering of the query."""
+        """Sets the limit of the query."""
         rv = self._clone(mark_dirty=True)
         rv._limit = limit
+        return rv
+
+    def isnot(self):
+        """Return a complemented (not) query."""
+        rv = self._clone(mark_dirty=True)
+        rv._negate = not self._negate
         return rv
 
     def count(self):
