@@ -39,17 +39,14 @@ class PreviewPage extends RecordComponent {
     }
 
     const recordUrl = this.getUrlRecordPathWithAlt();
-    loadData(
-      "/previewinfo",
-      { path: path, alt: alt },
-      null,
-      makeRichPromise
-    ).then((resp) => {
-      this.setState({
-        pageUrl: resp.url,
-        pageUrlFor: recordUrl,
-      });
-    });
+    loadData("/previewinfo", { path: path, alt: alt }, makeRichPromise).then(
+      (resp) => {
+        this.setState({
+          pageUrl: resp.url,
+          pageUrlFor: recordUrl,
+        });
+      }
+    );
   }
 
   getIntendedPath() {
@@ -91,7 +88,7 @@ class PreviewPage extends RecordComponent {
     if (fsPath === null) {
       return;
     }
-    loadData("/matchurl", { url_path: fsPath }, null, makeRichPromise).then(
+    loadData("/matchurl", { url_path: fsPath }, makeRichPromise).then(
       (resp) => {
         if (resp.exists) {
           const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);

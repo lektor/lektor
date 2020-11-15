@@ -76,7 +76,6 @@ class EditPage extends RecordComponent {
         path: this.getRecordPath(),
         alt: this.getRecordAlt(),
       },
-      null,
       makeRichPromise
     ).then((resp) => {
       // transform resp.data into actual data

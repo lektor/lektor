@@ -31,7 +31,6 @@ class DeletePage extends RecordComponent {
     loadData(
       "/recordinfo",
       { path: this.getRecordPath() },
-      null,
       makeRichPromise
     ).then((resp) => {
       this.setState({

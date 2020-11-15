@@ -44,7 +44,7 @@ class Publish extends Component {
   }
 
   syncDialog() {
-    loadData("/servers", {}, null, makeRichPromise).then(({ servers }) => {
+    loadData("/servers", {}, makeRichPromise).then(({ servers }) => {
       this.setState({
         servers: servers,
         activeTarget: servers && servers.length ? servers[0].id : null,

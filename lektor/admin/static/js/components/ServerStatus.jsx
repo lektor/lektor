@@ -27,7 +27,7 @@ class ServerStatus extends React.Component {
   }
 
   onInterval() {
-    loadData("/ping", {}, null, makeRichPromise).then(
+    loadData("/ping", {}, makeRichPromise).then(
       (resp) => {
         if (this.state.projectId === null) {
           this.setState({

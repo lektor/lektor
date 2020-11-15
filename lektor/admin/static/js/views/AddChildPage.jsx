@@ -43,7 +43,6 @@ class AddChildPage extends RecordComponent {
     loadData(
       "/newrecord",
       { path: this.getRecordPath() },
-      null,
       makeRichPromise
     ).then((resp) => {
       let selectedModel = resp.implied_model;

@@ -114,14 +114,19 @@ export function fsPathFromAdminObservedPath(adminPath) {
   return "/" + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1];
 }
 
-export function loadData(url, params, options, createPromise) {
-  options = options || {};
+/**
+ * Make an API request.
+ * @param {string} url - The API endpoint to request.
+ * @param {any} params - The data to send.
+ * @param {any} createPromise - Promise-constructor-like function.
+ */
+export function loadData(url, params, createPromise) {
   return createPromise((resolve, reject) => {
     jQuery
       .ajax({
         url: getApiUrl(url),
         data: params,
-        method: options.method || "GET",
+        method: "GET",
       })
       .done((data) => {
         resolve(data);

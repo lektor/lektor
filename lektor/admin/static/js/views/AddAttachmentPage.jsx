@@ -34,7 +34,6 @@ class AddAttachmentPage extends RecordComponent {
     loadData(
       "/newattachment",
       { path: this.getRecordPath() },
-      null,
       makeRichPromise
     ).then((resp) => {
       this.setState({

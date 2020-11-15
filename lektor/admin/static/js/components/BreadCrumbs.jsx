@@ -44,16 +44,14 @@ class BreadCrumbs extends RecordComponent {
       return;
     }
 
-    loadData("/pathinfo", { path: path }, null, makeRichPromise).then(
-      (resp) => {
-        this.setState({
-          recordPathInfo: {
-            path: path,
-            segments: resp.segments,
-          },
-        });
-      }
-    );
+    loadData("/pathinfo", { path: path }, makeRichPromise).then((resp) => {
+      this.setState({
+        recordPathInfo: {
+          path: path,
+          segments: resp.segments,
+        },
+      });
+    });
   }
 
   _onKeyPress(event) {
@@ -71,7 +69,6 @@ class BreadCrumbs extends RecordComponent {
         path: this.getRecordPath(),
         alt: this.getRecordAlt(),
       },
-      null,
       makeRichPromise
     ).then((resp) => {
       if (resp.url === null) {

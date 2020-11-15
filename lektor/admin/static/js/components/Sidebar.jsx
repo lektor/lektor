@@ -115,7 +115,7 @@ class Sidebar extends RecordComponent {
         lastRecordRequest: path,
       },
       () => {
-        loadData("/recordinfo", { path: path }, null, makeRichPromise).then(
+        loadData("/recordinfo", { path: path }, makeRichPromise).then(
           (resp) => {
             // we're already fetching something else.
             if (path !== this.state.lastRecordRequest) {
