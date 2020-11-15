@@ -144,7 +144,6 @@ class EditPage extends RecordComponent {
       "/rawrecord",
       {
         json: { data: newData, path: path, alt: alt },
-        // eslint-disable-next-line indent
         method: "PUT",
       },
       makeRichPromise

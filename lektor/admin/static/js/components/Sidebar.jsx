@@ -158,7 +158,6 @@ class Sidebar extends RecordComponent {
           path: this.getRecordPath(),
           alt: this.getRecordAlt(),
         },
-        // eslint-disable-next-line indent
         method: "POST",
       },
       makeRichPromise
