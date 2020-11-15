@@ -1,143 +1,146 @@
-'use strict'
+import React from "react";
 
-import React from 'react'
-
-import RecordComponent from '../components/RecordComponent'
-import SlideDialog from '../components/SlideDialog'
-import { apiRequest } from '../utils'
-import i18n from '../i18n'
-import dialogSystem from '../dialogSystem'
-import makeRichPromise from '../richPromise'
+import RecordComponent from "../components/RecordComponent";
+import SlideDialog from "../components/SlideDialog";
+import { apiRequest } from "../utils";
+import i18n from "../i18n";
+import dialogSystem from "../dialogSystem";
+import makeRichPromise from "../richPromise";
 
 class FindFiles extends RecordComponent {
-  constructor (props) {
-    super(props)
+  constructor(props) {
+    super(props);
     this.state = {
-      query: '',
+      query: "",
       currentSelection: -1,
-      results: []
-    }
+      results: [],
+    };
   }
 
-  componentDidMount () {
-    super.componentDidMount()
-    this.refs.q.focus()
+  componentDidMount() {
+    super.componentDidMount();
+    this.refs.q.focus();
   }
 
-  onInputChange (e) {
-    const q = e.target.value
+  onInputChange(e) {
+    const q = e.target.value;
 
-    if (q === '') {
+    if (q === "") {
       this.setState({
-        query: '',
+        query: "",
         results: [],
-        currentSelection: -1
-      })
+        currentSelection: -1,
+      });
     } else {
       this.setState({
-        query: q
-      })
+        query: q,
+      });
 
-      apiRequest('/find', {
-        data: {
-          q: q,
-          alt: this.getRecordAlt(),
-          lang: i18n.currentLanguage
+      apiRequest(
+        "/find",
+        {
+          data: {
+            q: q,
+            alt: this.getRecordAlt(),
+            lang: i18n.currentLanguage,
+          },
+          method: "POST",
         },
-        method: 'POST'
-      }, makeRichPromise).then((resp) => {
+        makeRichPromise
+      ).then((resp) => {
         this.setState({
           results: resp.results,
-          currentSelection: Math.min(this.state.currentSelection,
-            resp.results.length - 1)
-        })
-      })
+          currentSelection: Math.min(
+            this.state.currentSelection,
+            resp.results.length - 1
+          ),
+        });
+      });
     }
   }
 
-  onInputKey (e) {
-    let sel = this.state.currentSelection
-    const max = this.state.results.length
+  onInputKey(e) {
+    let sel = this.state.currentSelection;
+    const max = this.state.results.length;
     if (e.which === 40) {
-      e.preventDefault()
-      sel = (sel + 1) % max
+      e.preventDefault();
+      sel = (sel + 1) % max;
     } else if (e.which === 38) {
-      e.preventDefault()
-      sel = (sel - 1 + max) % max
+      e.preventDefault();
+      sel = (sel - 1 + max) % max;
     } else if (e.which === 13) {
-      this.onActiveItem(this.state.currentSelection)
+      this.onActiveItem(this.state.currentSelection);
     }
     this.setState({
-      currentSelection: sel
-    })
+      currentSelection: sel,
+    });
   }
 
-  onActiveItem (index) {
-    const item = this.state.results[index]
+  onActiveItem(index) {
+    const item = this.state.results[index];
     if (item !== undefined) {
-      const target = this.props.match.params.page === 'preview' ? '.preview' : '.edit'
-      const urlPath = this.getUrlRecordPathWithAlt(item.path)
-      dialogSystem.dismissDialog()
-      this.transitionToAdminPage(target, { path: urlPath })
+      const target =
+        this.props.match.params.page === "preview" ? ".preview" : ".edit";
+      const urlPath = this.getUrlRecordPathWithAlt(item.path);
+      dialogSystem.dismissDialog();
+      this.transitionToAdminPage(target, { path: urlPath });
     }
   }
 
-  selectItem (index) {
+  selectItem(index) {
     this.setState({
-      currentSelection: Math.min(index, this.state.results.length - 1)
-    })
+      currentSelection: Math.min(index, this.state.results.length - 1),
+    });
   }
 
-  renderResults () {
+  renderResults() {
     const rv = this.state.results.map((result, idx) => {
       const parents = result.parents.map((item, idx) => {
         return (
-          <span className='parent' key={idx}>
+          <span className="parent" key={idx}>
             {item.title}
           </span>
-        )
-      })
+        );
+      });
 
       return (
         <li
           key={idx}
-          className={idx === this.state.currentSelection ? 'active' : ''}
+          className={idx === this.state.currentSelection ? "active" : ""}
           onClick={this.onActiveItem.bind(this, idx)}
           onMouseEnter={this.selectItem.bind(this, idx)}
         >
           {parents}
           <strong>{result.title}</strong>
         </li>
-      )
-    })
+      );
+    });
 
-    return (
-      <ul className='search-results'>{rv}</ul>
-    )
+    return <ul className="search-results">{rv}</ul>;
   }
 
-  render () {
+  render() {
     return (
       <SlideDialog
         hasCloseButton
         closeOnEscape
-        title={i18n.trans('FIND_FILES')}
+        title={i18n.trans("FIND_FILES")}
       >
-        <div className='form-group'>
+        <div className="form-group">
           <input
-            type='text'
-            ref='q'
-            className='form-control'
+            type="text"
+            ref="q"
+            className="form-control"
             value={this.state.query}
             onChange={this.onInputChange.bind(this)}
             onKeyDown={this.onInputKey.bind(this)}
-            placeholder={i18n.trans('FIND_FILES_PLACEHOLDER')}
+            placeholder={i18n.trans("FIND_FILES_PLACEHOLDER")}
           />
         </div>
         {this.renderResults()}
       </SlideDialog>
-    )
+    );
   }
 }
 
-export default FindFiles
+export default FindFiles;

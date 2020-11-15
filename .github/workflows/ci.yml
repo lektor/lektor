@@ -13,19 +13,30 @@ jobs:
   ############################################################################
   # Lint jobs
   ############################################################################
-  lint-py:
-    name: Lint Python
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+      - name: Cache npm
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-14-${{ hashFiles('**/lektor/admin/package-lock.json') }}
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.8-pip-${{ hashFiles('**/setup.py') }}
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14'
+      - name: Install node dependencies
+        run: cd lektor/admin && npm ci
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
@@ -34,42 +45,11 @@ jobs:
       - name: Install python dependencies
         run: python -m pip install --editable .[test]
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
-      - name: Run python lint
+        run: python -m pip list
+      - name: Run pylint
         run: pylint lektor
       - name: Run pre-commit
         run: pre-commit run -a
-
-  lint-js:
-    name: Lint JS
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v1
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-13-${{ hashFiles('**/lektor/admin/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v1
-        with:
-          node-version: '13'
-      - name: Install node dependencies
-        run: |
-          cd lektor/admin/
-          npm install .
-          npm run webpack
-      - name: Show node environment
-        run: |
-          node --version
-          npm --version
-      - name: Run JS lint
-        run: |
-          cd lektor/admin/
-          npm run lint
 
   ############################################################################
   # Smoke tests

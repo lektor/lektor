@@ -1,86 +1,95 @@
-'use strict'
-
-import React from 'react'
-import Component from '../components/Component'
-import SlideDialog from '../components/SlideDialog'
-import { apiRequest } from '../utils'
-import i18n from '../i18n'
-import dialogSystem from '../dialogSystem'
-import makeRichPromise from '../richPromise'
+import React from "react";
+import Component from "../components/Component";
+import SlideDialog from "../components/SlideDialog";
+import { apiRequest } from "../utils";
+import i18n from "../i18n";
+import dialogSystem from "../dialogSystem";
+import makeRichPromise from "../richPromise";
 
 class Refresh extends Component {
-  constructor (props) {
-    super(props)
+  constructor(props) {
+    super(props);
     this.state = {
-      currentState: 'IDLE'
-    }
+      currentState: "IDLE",
+    };
   }
 
-  preventNavigation () {
-    return !this.isSafeToNavigate()
+  preventNavigation() {
+    return !this.isSafeToNavigate();
   }
 
-  isSafeToNavigate () {
-    return this.state.currentState === 'IDLE' ||
-      this.state.currentState === 'DONE'
+  isSafeToNavigate() {
+    return (
+      this.state.currentState === "IDLE" || this.state.currentState === "DONE"
+    );
   }
 
-  onRefresh () {
+  onRefresh() {
     this.setState({
-      currentState: 'CLEANING'
-    })
-    apiRequest('/clean', {
-      method: 'POST'
-    }, makeRichPromise).then((resp) => {
+      currentState: "CLEANING",
+    });
+    apiRequest(
+      "/clean",
+      {
+        method: "POST",
+      },
+      makeRichPromise
+    ).then((resp) => {
       this.setState({
-        currentState: 'DONE'
-      })
-    })
+        currentState: "DONE",
+      });
+    });
   }
 
-  onCancel () {
-    dialogSystem.dismissDialog()
+  onCancel() {
+    dialogSystem.dismissDialog();
   }
 
-  render () {
-    let progress = null
-    if (this.state.currentState !== 'IDLE') {
+  render() {
+    let progress = null;
+    if (this.state.currentState !== "IDLE") {
       progress = (
         <div>
-          <h3>{this.state.currentState !== 'DONE'
-            ? i18n.trans('CURRENTLY_REFRESHING_BUILD')
-            : i18n.trans('REFRESHING_BUILD_DONE')}
+          <h3>
+            {this.state.currentState !== "DONE"
+              ? i18n.trans("CURRENTLY_REFRESHING_BUILD")
+              : i18n.trans("REFRESHING_BUILD_DONE")}
           </h3>
         </div>
-      )
+      );
     }
 
     return (
       <SlideDialog
         hasCloseButton={false}
         closeOnEscape
-        title={i18n.trans('REFRESH_BUILD')}
+        title={i18n.trans("REFRESH_BUILD")}
       >
-        <p>{i18n.trans('REFRESH_BUILD_NOTE')}</p>
+        <p>{i18n.trans("REFRESH_BUILD_NOTE")}</p>
         {progress}
-        <div className='actions'>
+        <div className="actions">
           <button
-            type='submit' className='btn btn-primary'
+            type="submit"
+            className="btn btn-primary"
             disabled={!this.isSafeToNavigate()}
             onClick={this.onRefresh.bind(this)}
-          >{i18n.trans('REFRESH_BUILD')}
+          >
+            {i18n.trans("REFRESH_BUILD")}
           </button>
           <button
-            type='submit' className='btn btn-default'
+            type="submit"
+            className="btn btn-default"
             disabled={!this.isSafeToNavigate()}
             onClick={this.onCancel.bind(this)}
-          >{i18n.trans(
-              this.state.currentState === 'DONE' ? 'CLOSE' : 'CANCEL')}
+          >
+            {i18n.trans(
+              this.state.currentState === "DONE" ? "CLOSE" : "CANCEL"
+            )}
           </button>
         </div>
       </SlideDialog>
-    )
+    );
   }
 }
 
-export default Refresh
+export default Refresh;
