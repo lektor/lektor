@@ -1,7 +1,8 @@
 @import "./bootstrap-overrides.less";
 @import "./utils.less";
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -65,8 +66,8 @@ div.application {
       border: 1px solid @toggle-group-color;
       background: white;
       margin-left: 10px;
-      height: 20px!important;
-      width: 20px!important;
+      height: 20px !important;
+      width: 20px !important;
 
       &:hover {
         border-color: #aaa;
@@ -111,7 +112,7 @@ div.application {
           border: 1px solid @header-taint;
           color: @block-item-color;
           border-radius: @panel-radius;
-          text-decoration: none!important;
+          text-decoration: none !important;
 
           &:hover {
             background: @block-item-active-background;
@@ -188,7 +189,8 @@ div.application {
             color: @block-item-hover-color;
           }
 
-          a, > em {
+          a,
+          > em {
             display: inline-block;
             padding: 5px 10px;
             background: @block-item-background;
@@ -324,7 +326,9 @@ div.application {
       padding: 5px 10px;
       border-radius: @panel-radius;
 
-      label { padding-right: 10px; }
+      label {
+        padding-right: 10px;
+      }
     }
   }
 
@@ -334,7 +338,7 @@ div.application {
     padding: 0 10px;
     border-radius: @panel-radius;
 
-    &+ div.flow-block {
+    & + div.flow-block {
       border-top: 1px solid @panel-border-color;
     }
 
@@ -342,8 +346,8 @@ div.application {
       margin: 0 -10px;
 
       [class*="col-"] {
-        padding-left: 10px!important;
-        padding-right: 10px!important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
       }
     }
 
@@ -352,9 +356,9 @@ div.application {
       margin: 0 -10px 0 -10px;
       padding: 5px 10px 0 10px;
     }
-    
+
     h4.block-name {
-      line-height: 2.0;
+      line-height: 2;
     }
 
     dl {
@@ -405,7 +409,9 @@ div.application {
     margin: 0;
     padding: 5px 10px;
 
-    p { margin: 0; }
+    p {
+      margin: 0;
+    }
   }
 
   div.spacing {
@@ -437,9 +443,9 @@ div.toggle-group {
       display: block;
       float: left;
       width: 16px;
-      font-size: 12px!important;
+      font-size: 12px !important;
       text-align: left;
-      text-decoration: none!important;
+      text-decoration: none !important;
       color: @toggle-group-color!important;
     }
   }

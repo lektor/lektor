@@ -12,3 +12,15 @@ repos:
   hooks:
   - id: flake8
     language_version: python3
+- repo: local
+  hooks:
+  - id: eslint
+    name: eslint
+    language: node
+    entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix
+    files: \.(js|jsx)$
+  - id: prettier
+    name: prettier
+    language: node
+    entry: ./lektor/admin/node_modules/prettier/bin-prettier.js --write --list-different
+    files: \.(js|jsx|less)$
