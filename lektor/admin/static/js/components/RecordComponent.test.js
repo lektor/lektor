@@ -8,5 +8,6 @@ describe('Get Record paths', () => {
     deepStrictEqual(getRecordPathAndAlt('root:about'), ['/about', undefined])
     deepStrictEqual(getRecordPathAndAlt('root+fr'), ['', 'fr'])
     deepStrictEqual(getRecordPathAndAlt('root:blog+fr'), ['/blog', 'fr'])
+    deepStrictEqual(getRecordPathAndAlt('root:blog%2Bfr'), ['/blog', 'fr'])
   })
 })

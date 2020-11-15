@@ -1185,7 +1185,9 @@ class Query(object):
 
         if self._offset is not None or self._limit is not None:
             iterable = islice(
-                iterable, self._offset or 0, (self._offset or 0) + self._limit
+                iterable,
+                self._offset or 0,
+                (self._offset or 0) + self._limit if self._limit else None,
             )
 
         for item in iterable:

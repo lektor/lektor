@@ -305,3 +305,11 @@ def test_default_order_by(scratch_project, scratch_env):
     assert list(children.get_order_by()) == ["title"]
     assert list(children.order_by("explicit").get_order_by()) == ["explicit"]
     assert list(myobj.attachments.get_order_by()) == ["attachment_filename"]
+
+
+def test_offset_without_limit_query(pad):
+    projects = pad.get("/projects")
+
+    x = projects.children.offset(1).order_by("_slug").first()
+
+    assert x["name"] == "Coffee"

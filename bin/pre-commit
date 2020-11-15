@@ -1,7 +1,0 @@
-#!/bin/bash
-
-touched_js_admin_files=`git diff --cached --name-only | egrep '\.jsx?$' || true`
-
-if [ -n "$touched_js_admin_files" ]; then
-    cd lektor/admin/ && npm run lint
-fi

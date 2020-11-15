@@ -6,17 +6,11 @@ module.exports = {
   mode: 'development',
   entry: {
     app: './js/main.jsx',
-    styles: './less/main.less',
-    vendor: [
-      'jquery',
-      'bootstrap',
-      'react',
-      'react-dom',
-      'react-router-dom'
-    ]
+    styles: './less/main.less'
   },
   output: {
     path: path.join(__dirname, '/gen'),
+    publicPath: './',
     filename: '[name].js'
   },
   devtool: 'source-map',
@@ -27,9 +21,7 @@ module.exports = {
     }
   },
   resolve: {
-    modules: [
-      '../node_modules'
-    ],
+    modules: ['../node_modules'],
     extensions: ['.jsx', '.js', '.json']
   },
   module: {
@@ -73,6 +65,5 @@ module.exports = {
       $: 'jquery',
       jQuery: 'jquery'
     })
-  ],
-  externals: {}
+  ]
 }
