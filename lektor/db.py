@@ -324,17 +324,17 @@ class _BinExpr(Expression):
 
 
 class _ContainmentExpr(Expression):
-    def __init__(self, seq, item, isnot=False):
+    def __init__(self, seq, item, negate=False):
         self.__seq = seq
         self.__item = item
-        self.__isnot = isnot
+        self.__negate = negate
 
     def __eval__(self, record):
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
             item = item["_id"]
-        if self.__isnot:
+        if self.__negate:
             return item not in seq
         return item in seq
 
