@@ -302,7 +302,7 @@ export class FlowWidget extends React.PureComponent {
     return (
       <div className="flow">
         {this.renderBlocks()}
-        <div className="add-block">
+        <div className="add-flow-block">
           <label>{i18n.trans("ADD_FLOWBLOCK") + ": "}</label>
           <div className="btn-group">{addBlockButtons}</div>
         </div>
