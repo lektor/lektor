@@ -24,7 +24,6 @@ class Publish extends Component {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncDialog();
   }
 

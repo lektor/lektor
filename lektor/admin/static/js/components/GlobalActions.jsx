@@ -37,7 +37,6 @@ class GlobalActions extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     window.addEventListener("keydown", onKeyPress);
   }
 

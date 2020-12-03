@@ -27,7 +27,6 @@ class EditPage extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncEditor();
     window.addEventListener("keydown", this._onKeyPress);
   }

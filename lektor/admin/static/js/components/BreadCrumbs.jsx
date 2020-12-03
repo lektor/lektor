@@ -15,7 +15,6 @@ class BreadCrumbs extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.updateCrumbs();
   }
 

@@ -1,6 +1,6 @@
-import BaseComponent from "./BaseComponent";
+import React from "react";
 
-class Component extends BaseComponent {
+class Component extends React.Component {
   /* helper that can generate a path to a rule */
   getPathToAdminPage(name, params) {
     const parameters = { ...this.props.match.params, ...params };

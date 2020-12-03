@@ -79,7 +79,6 @@ class Sidebar extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this._updateRecordInfo();
 
     hub.subscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
@@ -92,7 +91,6 @@ class Sidebar extends RecordComponent {
   }
 
   componentWillUnmount() {
-    super.componentWillUnmount();
     hub.unsubscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
   }
 

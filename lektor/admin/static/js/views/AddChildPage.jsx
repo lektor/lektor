@@ -29,7 +29,6 @@ class AddChildPage extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncDialog();
   }
 

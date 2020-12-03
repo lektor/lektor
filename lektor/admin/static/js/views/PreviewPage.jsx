@@ -19,7 +19,6 @@ class PreviewPage extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncState();
   }
 

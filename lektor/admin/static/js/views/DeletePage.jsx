@@ -17,7 +17,6 @@ class DeletePage extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncDialog();
   }
 
