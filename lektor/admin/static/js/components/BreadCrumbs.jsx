@@ -19,8 +19,7 @@ class BreadCrumbs extends RecordComponent {
     this.updateCrumbs();
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    super.componentDidUpdate(prevProps, prevState);
+  componentDidUpdate(prevProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.updateCrumbs();
     }

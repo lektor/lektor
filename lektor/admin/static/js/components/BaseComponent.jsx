@@ -9,8 +9,6 @@ class BaseComponent extends React.Component {
   componentDidMount() {}
 
   componentWillUnmount() {}
-
-  componentDidUpdate() {}
 }
 
 export default BaseComponent;

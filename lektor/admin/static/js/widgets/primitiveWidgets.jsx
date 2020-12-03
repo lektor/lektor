@@ -246,7 +246,7 @@ export class MultiLineTextInputWidget extends React.Component {
     window.removeEventListener("resize", this.recalculateSize);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate() {
     this.recalculateSize();
   }
 
