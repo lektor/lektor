@@ -14,7 +14,6 @@ import click
 from werkzeug.posixemulation import rename
 
 from lektor._compat import iteritems
-from lektor._compat import text_type
 from lektor.build_programs import builtin_build_programs
 from lektor.buildfailures import FailureController
 from lektor.context import Context
@@ -552,7 +551,7 @@ class FileInfo(object):
                 for filename in sorted(os.listdir(self.filename)):
                     if self.env.is_uninteresting_source_name(filename):
                         continue
-                    if isinstance(filename, text_type):
+                    if isinstance(filename, str):
                         filename = filename.encode("utf-8")
                     h.update(filename)
                     h.update(
@@ -1008,7 +1007,7 @@ class PathCache(object):
         if rv is not None:
             return rv
         folder = os.path.abspath(self.env.root_path)
-        if isinstance(folder, text_type) and not isinstance(filename, text_type):
+        if isinstance(folder, str) and not isinstance(filename, str):
             filename = filename.decode(fs_enc)
         filename = os.path.normpath(os.path.join(folder, filename))
         if filename.startswith(folder):

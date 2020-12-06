@@ -12,10 +12,6 @@
     NOTE: This is in the process of being removed.
 """
 
-range_type = range
-text_type = str
-string_types = (str,)
-integer_types = (int,)
 
 iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())

@@ -7,8 +7,6 @@ from click import style
 from werkzeug.local import LocalProxy
 from werkzeug.local import LocalStack
 
-from lektor._compat import text_type
-
 
 _reporter_stack = LocalStack()
 _build_buffer_stack = LocalStack()
@@ -278,7 +276,7 @@ class CliReporter(Reporter):
         click.echo(" " * (self.indentation * 2) + text)
 
     def _write_kv_info(self, key, value):
-        self._write_line("%s: %s" % (key, style(text_type(value), fg="yellow")))
+        self._write_line("%s: %s" % (key, style(str(value), fg="yellow")))
 
     def start_build(self, activity):
         self._write_line(style("Started %s" % activity, fg="cyan"))
@@ -368,7 +366,7 @@ class CliReporter(Reporter):
             self._write_kv_info(key, value)
 
     def report_generic(self, message):
-        self._write_line(style(text_type(message), fg="cyan"))
+        self._write_line(style(str(message), fg="cyan"))
 
     def enter_source(self):
         if not self.show_source_internals:

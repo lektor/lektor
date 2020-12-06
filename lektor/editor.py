@@ -4,8 +4,6 @@ import shutil
 from collections import OrderedDict
 
 from lektor._compat import iteritems
-from lektor._compat import string_types
-from lektor._compat import text_type
 from lektor.environment import PRIMARY_ALT
 from lektor.metaformat import serialize
 from lektor.utils import atomic_open
@@ -71,7 +69,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     else:
         if datamodel is None:
             datamodel = pad.db.get_implied_datamodel(path, is_attachment, pad)
-        elif isinstance(datamodel, string_types):
+        elif isinstance(datamodel, str):
             datamodel = pad.db.datamodels[datamodel]
 
     if exists:
@@ -85,7 +83,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     return EditorSession(
         pad,
         id,
-        text_type(path),
+        str(path),
         raw_data,
         raw_data_fallback,
         datamodel,

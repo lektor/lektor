@@ -28,12 +28,8 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from lektor._compat import integer_types
 from lektor._compat import iteritems
-from lektor._compat import range_type
 from lektor._compat import reraise
-from lektor._compat import string_types
-from lektor._compat import text_type
 from lektor.uilink import BUNDLE_BIN_PATH
 from lektor.uilink import EXTRA_PATHS
 
@@ -119,7 +115,7 @@ def is_path_child_of(a, b, strict=True):
 
 def untrusted_to_os_path(path):
     path = path.strip("/").replace("/", os.path.sep)
-    if not isinstance(path, text_type):
+    if not isinstance(path, str):
         path = path.decode(fs_enc, "replace")
     return path
 
@@ -162,7 +158,7 @@ def iter_dotted_path_prefixes(dotted_path):
     if len(pieces) == 1:
         yield dotted_path, None
     else:
-        for x in range_type(1, len(pieces)):
+        for x in range(1, len(pieces)):
             yield ".".join(pieces[:x]), ".".join(pieces[x:])
 
 
@@ -226,7 +222,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
         for part in parts:
             last_container = container
             container = _enter_container(container, part)
-            last_container[_list_marker] = isinstance(part, integer_types)
+            last_container[_list_marker] = isinstance(part, int)
         container[_value_marker] = [value]
 
     return _convert(result)
@@ -342,7 +338,7 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, uuid.UUID):
             return str(o)
         if hasattr(o, "__html__"):
-            return text_type(o.__html__())
+            return str(o.__html__())
         return json.JSONEncoder.default(self, o)
 
 
@@ -455,7 +451,7 @@ def prune_file_and_folder(name, base):
 
 
 def sort_normalize_string(s):
-    return unicodedata.normalize("NFD", text_type(s).lower().strip())
+    return unicodedata.normalize("NFD", str(s).lower().strip())
 
 
 def get_dependent_url(url_path, suffix, ext=None):
@@ -505,7 +501,7 @@ def portable_popen(cmd, *args, **kwargs):
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
 
-    if isinstance(exe, text_type) and sys.platform != "win32":
+    if isinstance(exe, str) and sys.platform != "win32":
         exe = exe.encode(sys.getfilesystemencoding())
     cmd[0] = exe
     return subprocess.Popen(cmd, *args, **kwargs)
@@ -538,7 +534,7 @@ def secure_url(url):
 def bool_from_string(val, default=None):
     if val in (True, False, 1, 0):
         return bool(val)
-    if isinstance(val, string_types):
+    if isinstance(val, str):
         val = val.lower()
         if val in ("true", "yes", "1"):
             return True
@@ -640,11 +636,11 @@ def get_structure_hash(params):
             h.update("L%d;" % len(obj))
             for item in obj:
                 _hash(item)
-        elif isinstance(obj, integer_types):
+        elif isinstance(obj, int):
             h.update("T%d;" % obj)
         elif isinstance(obj, bytes):
             h.update("B%d;%s;" % (len(obj), obj))
-        elif isinstance(obj, text_type):
+        elif isinstance(obj, str):
             h.update("S%d;%s;" % (len(obj), obj.encode("utf-8")))
         elif hasattr(obj, "__get_lektor_param_hash__"):
             obj.__get_lektor_param_hash__(h)
@@ -721,7 +717,7 @@ class URLBuilder(object):
     def append(self, item):
         if item is None:
             return
-        item = text_type(item).strip("/")
+        item = str(item).strip("/")
         if item:
             self.items.append(item)
 

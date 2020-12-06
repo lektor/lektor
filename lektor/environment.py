@@ -14,7 +14,6 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
 from lektor._compat import iteritems
-from lektor._compat import string_types
 from lektor.context import config_proxy
 from lektor.context import get_asset_url
 from lektor.context import get_ctx
@@ -556,7 +555,7 @@ class Environment(object):
         if alt is None:
             if this is not None:
                 alt = getattr(this, "alt", None)
-                if not isinstance(alt, string_types):
+                if not isinstance(alt, str):
                     alt = None
             if alt is None:
                 alt = PRIMARY_ALT

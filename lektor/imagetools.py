@@ -13,7 +13,6 @@ import exifread
 import filetype
 
 from lektor._compat import iteritems
-from lektor._compat import text_type
 from lektor.reporter import reporter
 from lektor.utils import get_dependent_url
 from lektor.utils import locate_executable
@@ -103,7 +102,7 @@ class EXIFInfo(object):
             value = self._mapping[key].values
         except KeyError:
             return None
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             return value
         return value.decode("utf-8", "replace")
 
@@ -206,7 +205,7 @@ class EXIFInfo(object):
             value = self._mapping["EXIF Flash"].printable
         except KeyError:
             return None
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             return value
         return value.decode("utf-8")
 

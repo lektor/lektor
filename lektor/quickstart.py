@@ -12,7 +12,6 @@ import click
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
-from lektor._compat import text_type
 from lektor.utils import fs_enc
 from lektor.utils import slugify
 
@@ -99,7 +98,7 @@ class Generator(object):
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
-                if not isinstance(path, text_type):
+                if not isinstance(path, str):
                     filename = filename.decode(fs_enc)
                 shutil.move(
                     os.path.join(scratch, filename), os.path.join(path, filename)
@@ -135,7 +134,7 @@ def get_default_author():
 
     if os.name == "nt":
         user = getpass.getuser()
-        if isinstance(user, text_type):
+        if isinstance(user, str):
             return user
         return user.decode("mbcs")
 
@@ -146,12 +145,12 @@ def get_default_author():
     ent = pwd.getpwuid(os.getuid())  # pylint: disable=no-member
     if ent and ent.pw_gecos:
         name = ent.pw_gecos
-        if isinstance(name, text_type):
+        if isinstance(name, str):
             return name
         return name.decode("utf-8", "replace")
 
     name = getpass.getuser()
-    if isinstance(name, text_type):
+    if isinstance(name, str):
         return name
     return name.decode("utf-8", "replace")
 

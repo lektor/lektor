@@ -5,7 +5,6 @@ from markupsafe import escape
 from markupsafe import Markup
 
 from lektor._compat import itervalues
-from lektor._compat import text_type
 from lektor.context import Context
 from lektor.datamodel import Field
 from lektor.types import BadValue
@@ -52,7 +51,7 @@ def test_markdown_links(env, pad):
     def md(s):
         rv = field.deserialize_value(s, pad=pad)
         assert isinstance(rv, MarkdownDescriptor)
-        return text_type(rv.__get__(source)).strip()
+        return str(rv.__get__(source)).strip()
 
     with Context(pad=pad):
         assert md("[foo](http://example.com/)") == (
