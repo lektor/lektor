@@ -4,7 +4,6 @@ import textwrap
 
 import pytest
 
-from lektor._compat import PY2
 from lektor.cli import cli
 
 
@@ -116,10 +115,7 @@ def test_plugin_build_events_via_cli(scratch_project_with_plugin):
     hits = [r for r in output_lines if "event on_{}".format(event) in r]
 
     for hit in hits:
-        if PY2:
-            assert "{u'EXTRA': u'EXTRA'}" in hit
-        else:
-            assert "{'EXTRA': 'EXTRA'}" in hit
+        assert "{'EXTRA': 'EXTRA'}" in hit
 
     assert len(hits) != 0
 
@@ -139,10 +135,7 @@ def test_plugin_clean_events_via_cli(scratch_project_with_plugin):
     hits = [r for r in output_lines if "event on_{}".format(event) in r]
 
     for hit in hits:
-        if PY2:
-            assert "{u'EXTRA': u'EXTRA'}" in hit
-        else:
-            assert "{'EXTRA': 'EXTRA'}" in hit
+        assert "{'EXTRA': 'EXTRA'}" in hit
 
     assert len(hits) != 0
 

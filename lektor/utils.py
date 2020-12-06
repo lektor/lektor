@@ -14,16 +14,10 @@ import unicodedata
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
+from functools import lru_cache
+from pathlib import PurePosixPath
+from queue import Queue
 from threading import Thread
-
-try:
-    from functools import lru_cache
-except ImportError:
-    from functools32 import lru_cache
-try:
-    from pathlib import PurePosixPath
-except ImportError:
-    from pathlib2 import PurePosixPath
 
 import click
 from jinja2 import is_undefined
@@ -34,16 +28,14 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from lektor._compat import (
-    queue,
-    integer_types,
-    iteritems,
-    reraise,
-    string_types,
-    text_type,
-    range_type,
-)
-from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
+from lektor._compat import integer_types
+from lektor._compat import iteritems
+from lektor._compat import range_type
+from lektor._compat import reraise
+from lektor._compat import string_types
+from lektor._compat import text_type
+from lektor.uilink import BUNDLE_BIN_PATH
+from lektor.uilink import EXTRA_PATHS
 
 
 is_windows = os.name == "nt"
@@ -398,7 +390,7 @@ class WorkerPool(object):
     def __init__(self, num_threads=None):
         if num_threads is None:
             num_threads = multiprocessing.cpu_count()
-        self.tasks = queue.Queue(num_threads)
+        self.tasks = Queue(num_threads)
         for _ in range(num_threads):
             Worker(self.tasks)
 

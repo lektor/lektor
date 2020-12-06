@@ -6,7 +6,6 @@ from markupsafe import escape
 from markupsafe import Markup
 from werkzeug.urls import url_parse
 
-from lektor._compat import PY2
 from lektor.context import get_ctx
 
 
@@ -120,12 +119,9 @@ class Markdown(object):
     def __getitem__(self, name):
         return self.meta[name]
 
-    def __unicode__(self):
+    def __str__(self):
         self.__render()
         return self.__html
-
-    if not PY2:
-        __str__ = __unicode__
 
     def __html__(self):
         self.__render()

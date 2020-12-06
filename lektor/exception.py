@@ -1,8 +1,6 @@
-from lektor._compat import python_2_unicode_compatible
 from lektor._compat import text_type
 
 
-@python_2_unicode_compatible
 class LektorException(Exception):
     def __init__(self, message=None):
         Exception.__init__(self)

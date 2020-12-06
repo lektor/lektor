@@ -1,7 +1,7 @@
-import io
 import os
 from datetime import datetime
 from hashlib import md5
+from io import BytesIO
 
 import pytest
 
@@ -36,7 +36,7 @@ height="{h}{unit}" width="{w}{unit}">
         else:
             svg = emotional_face
 
-        return io.BytesIO(svg)
+        return BytesIO(svg)
 
     return _make_svg
 

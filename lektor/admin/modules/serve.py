@@ -1,6 +1,7 @@
 import mimetypes
 import os
 import posixpath
+from io import BytesIO
 from zlib import adler32
 
 from flask import abort
@@ -13,7 +14,6 @@ from werkzeug.datastructures import Headers
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import wrap_file
 
-from lektor._compat import BytesIO
 from lektor._compat import string_types
 
 

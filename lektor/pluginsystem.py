@@ -24,8 +24,8 @@ def get_plugin(plugin_id_or_class, env=None):
     plugin_id = env.plugin_ids_by_class.get(plugin_id_or_class, plugin_id_or_class)
     try:
         return env.plugins[plugin_id]
-    except KeyError:
-        raise LookupError("Plugin %r not found" % plugin_id)
+    except KeyError as error:
+        raise LookupError("Plugin %r not found" % plugin_id) from error
 
 
 class Plugin(object):

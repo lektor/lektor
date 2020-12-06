@@ -326,8 +326,8 @@ class _RecordQueryProxy(object):
     def __getitem__(self, name):
         try:
             return self.__getattr__(name)
-        except AttributeError:
-            raise KeyError(name)
+        except AttributeError as error:
+            raise KeyError(name) from error
 
 
 F = _RecordQueryProxy()
