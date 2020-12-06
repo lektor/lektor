@@ -317,7 +317,7 @@ class FtpConnection(object):
             path = path.decode("utf-8")
         if path in self._known_folders:
             return
-        dirname, basename = posixpath.split(path)
+        dirname, _ = posixpath.split(path)
         if dirname and recursive:
             self.mkdir(dirname)
         try:

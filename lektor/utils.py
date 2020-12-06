@@ -732,7 +732,7 @@ class URLBuilder(object):
         if url == "/":
             return url
         if trailing_slash is None:
-            rest, last = url.split("/", 1)
+            _, last = url.split("/", 1)
             if "." in last:
                 return url
         return url + "/"

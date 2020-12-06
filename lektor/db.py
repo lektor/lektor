@@ -1141,7 +1141,7 @@ class Query(object):
     def count(self):
         """Counts all matched objects."""
         rv = 0
-        for item in self:
+        for _ in self:
             rv += 1
         return rv
 
@@ -1372,7 +1372,7 @@ class Database(object):
 
         choiceiter = _iter_filename_choices(fn_base, alts, self.config)
 
-        for fs_path, actual_alt, is_attachment in choiceiter:
+        for fs_path, _actual_alt, is_attachment in choiceiter:
             if not os.path.isfile(fs_path):
                 continue
 

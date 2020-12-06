@@ -624,7 +624,6 @@ def make_image_thumbnail(
     else:
         computed_width, computed_height = width, height
 
-    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
         process_image(
@@ -636,6 +635,10 @@ def make_image_thumbnail(
             mode,
             quality=quality,
         )
+
+    ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])(
+        build_thumbnail_artifact
+    )
 
     return Thumbnail(dst_url_path, computed_width, computed_height)
 

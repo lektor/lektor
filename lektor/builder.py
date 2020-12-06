@@ -371,7 +371,7 @@ class BuildState(object):
 
             # If we do have an already existing artifact, we need to check if
             # any of the source files we depend on changed.
-            for source_name, info in self._iter_artifact_dependency_infos(
+            for _, info in self._iter_artifact_dependency_infos(
                 cur, artifact_name, sources
             ):
                 # if we get a missing source info it means that we never
@@ -837,7 +837,6 @@ class Artifact(object):
     def clear_dirty_flag(self):
         """Clears the dirty flag for all sources."""
 
-        @self._auto_deferred_update_operation
         def operation(con):
             sources = [self.build_state.to_source_filename(x) for x in self.sources]
             cur = con.cursor()
@@ -851,12 +850,13 @@ class Artifact(object):
             cur.close()
             reporter.report_dirty_flag(False)
 
+        self._auto_deferred_update_operation(operation)
+
     def set_dirty_flag(self):
         """Given a list of artifacts this will mark all of their sources
         as dirty so that they will be rebuilt next time.
         """
 
-        @self._auto_deferred_update_operation
         def operation(con):
             sources = set()
             for source in self.sources:
@@ -875,6 +875,8 @@ class Artifact(object):
             cur.close()
 
             reporter.report_dirty_flag(True)
+
+        self._auto_deferred_update_operation(operation)
 
     def _auto_deferred_update_operation(self, f):
         """Helper that defers an update operation when inside an update

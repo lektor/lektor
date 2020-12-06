@@ -16,7 +16,6 @@ max-returns=8
 disable =
     missing-docstring,
     unused-argument,
-    unused-variable,
     bad-continuation,
     no-self-use,
     redefined-outer-name,
