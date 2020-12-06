@@ -5,6 +5,8 @@ import textwrap
 import pytest
 
 from lektor.cli import cli
+from lektor.environment import Environment
+from lektor.project import Project
 
 
 clean_events = ["before_prune", "after_prune", "setup_env"]
@@ -85,8 +87,6 @@ def scratch_project_with_plugin(scratch_project_data, request, isolated_cli_runn
         else:
             shutil.copy2(entry_path, entry)
 
-    from lektor.project import Project
-
     yield (Project.from_path(str(base)), request.param, isolated_cli_runner)
 
 
@@ -143,7 +143,6 @@ def test_plugin_clean_events_via_cli(scratch_project_with_plugin):
 @pytest.mark.parametrize("scratch_project_with_plugin", all_events, indirect=True)
 def test_env_extra_flag_passthrough(scratch_project_with_plugin):
     """Test whether setting extra_flags passes through to each plugin event."""
-    from lektor.environment import Environment
 
     proj, event, _ = scratch_project_with_plugin
 
@@ -233,8 +232,6 @@ def scratch_project_with_plugin_no_params(
             shutil.copytree(entry_path, entry)
         else:
             shutil.copy2(entry_path, entry)
-
-    from lektor.project import Project
 
     yield (Project.from_path(str(base)), request.param, isolated_cli_runner)
 

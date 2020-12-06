@@ -4,13 +4,16 @@ import shutil
 import pytest
 
 from lektor.builder import Builder
+from lektor.context import Context
+from lektor.db import Database
+from lektor.db import Siblings
+from lektor.environment import Environment
+from lektor.project import Project
 from lektor.reporter import Reporter
 
 
 @pytest.fixture(scope="function")
 def pntest_project(request):
-    from lektor.project import Project
-
     return Project.from_path(
         os.path.join(os.path.dirname(__file__), "dependency-test-project")
     )
@@ -18,15 +21,11 @@ def pntest_project(request):
 
 @pytest.fixture(scope="function")
 def pntest_env(request, pntest_project):
-    from lektor.environment import Environment
-
     return Environment(pntest_project)
 
 
 @pytest.fixture(scope="function")
 def pntest_pad(request, pntest_env):
-    from lektor.db import Database
-
     return Database(pntest_env).new_pad()
 
 
@@ -114,9 +113,6 @@ def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
 
 
 def test_prev_next_virtual_resolver(pntest_pad):
-    from lektor.context import Context
-    from lektor.db import Siblings
-
     with Context(pad=pntest_pad):
         siblings = pntest_pad.get("post2@siblings")
         assert isinstance(siblings, Siblings)

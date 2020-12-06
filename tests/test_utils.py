@@ -1,9 +1,16 @@
 # coding: utf-8
 import pytest
 
+from lektor.utils import build_url
+from lektor.utils import is_path_child_of
+from lektor.utils import join_path
+from lektor.utils import magic_split_ext
+from lektor.utils import make_relative_url
+from lektor.utils import parse_path
+from lektor.utils import slugify
+
 
 def test_join_path():
-    from lektor.utils import join_path
 
     assert join_path("a", "b") == "a/b"
     assert join_path("/a", "b") == "/a/b"
@@ -32,7 +39,6 @@ def test_join_path():
 
 
 def test_is_path_child_of():
-    from lektor.utils import is_path_child_of
 
     assert not is_path_child_of("a/b", "a/b")
     assert is_path_child_of("a/b", "a/b", strict=False)
@@ -48,7 +54,6 @@ def test_is_path_child_of():
 
 
 def test_magic_split_ext():
-    from lektor.utils import magic_split_ext
 
     assert magic_split_ext("wow") == ("wow", "")
     assert magic_split_ext("aaa.jpg") == ("aaa", "jpg")
@@ -58,7 +63,6 @@ def test_magic_split_ext():
 
 
 def test_slugify():
-    from lektor.utils import slugify
 
     assert slugify("w o w") == "w-o-w"
     assert slugify(u"Șö prĕtty") == "so-pretty"
@@ -67,7 +71,6 @@ def test_slugify():
 
 
 def test_url_builder():
-    from lektor.utils import build_url
 
     assert build_url([]) == "/"
     assert build_url(["a", "b/c"]) == "/a/b/c/"
@@ -78,7 +81,6 @@ def test_url_builder():
 
 
 def test_parse_path():
-    from lektor.utils import parse_path
 
     assert parse_path("") == []
     assert parse_path("/") == []
@@ -119,13 +121,9 @@ def test_parse_path():
     ],
 )
 def test_make_relative_url(source, target, expected):
-    from lektor.utils import make_relative_url
-
     assert make_relative_url(source, target) == expected
 
 
 def test_make_relative_url_relative_source_absolute_target():
-    from lektor.utils import make_relative_url
-
     with pytest.raises(ValueError):
         make_relative_url("rel/a/tive/", "/abs/o/lute")
