@@ -33,5 +33,4 @@ disable =
     duplicate-code,
     useless-object-inheritance,
     no-else-return,
-    import-outside-toplevel,
-    bad-option-value
+    import-outside-toplevel
