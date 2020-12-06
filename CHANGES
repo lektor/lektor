@@ -3,6 +3,17 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
+UNRELEASED - in development
+
+- Fix the checkboxes widget in the admin UI.
+- Fix queries with offset but without a limit.
+- Fix the toggling of flow widgets in the admin UI to not mark the content as changed.
+- Fix the handling of the URLs when opening the admin UI from the pencil button.
+- Allow rsync deployment to a local path.
+- Relax the checking of URL fields and allow FTP and mailto URLs.
+- Correctly track the page URL on the admin preview page.
+- Rename a CSS class in the admin UI so that it is not blocked by the EasyList FR adblock list.
+
 3.2.0
 -----
 
