@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
 
-import "bootstrap";
 import "font-awesome/css/font-awesome.css";
 
 // polyfill for internet explorer

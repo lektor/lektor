@@ -1,5 +1,3 @@
-import jQuery from "jquery";
-
 export function isValidUrl(url) {
   return !!url.match(/^(https?|ftps?):\/\/\S+$|^mailto:\S+$/);
 }
