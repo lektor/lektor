@@ -57,13 +57,13 @@ class FindFiles extends RecordComponent {
   onInputKey(e) {
     let sel = this.state.currentSelection;
     const max = this.state.results.length;
-    if (e.which === 40) {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       sel = (sel + 1) % max;
-    } else if (e.which === 38) {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       sel = (sel - 1 + max) % max;
-    } else if (e.which === 13) {
+    } else if (e.key === "Enter") {
       this.onActiveItem(this.state.currentSelection);
     }
     this.setState({

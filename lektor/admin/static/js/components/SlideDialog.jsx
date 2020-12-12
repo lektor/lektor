@@ -20,7 +20,7 @@ class SlideDialog extends React.Component {
   }
 
   _onKeyPress(event) {
-    if (event.which === 27 && this.props.closeOnEscape) {
+    if (event.key === "Escape" && this.props.closeOnEscape) {
       event.preventDefault();
       dialogSystem.dismissDialog();
     }

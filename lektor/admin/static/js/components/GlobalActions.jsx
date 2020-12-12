@@ -20,9 +20,9 @@ function showPublishDialog() {
   dialogSystem.showDialog(Publish);
 }
 
-// meta+g is open find files
 function onKeyPress(event) {
-  if (event.which === 71 && isMetaKey(event)) {
+  // Command+g/Ctrl+g to open the find files dialog.
+  if (event.key === "g" && isMetaKey(event)) {
     event.preventDefault();
     dialogSystem.showDialog(FindFiles);
   }

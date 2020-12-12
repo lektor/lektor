@@ -59,7 +59,7 @@ export function urlPathsConsideredEqual(a, b) {
 }
 
 export function getApiUrl(url) {
-  return $LEKTOR_CONFIG.admin_root + "/api" + url;
+  return `${$LEKTOR_CONFIG.admin_root}/api${url}`;
 }
 
 export function getPlatform() {
@@ -76,12 +76,15 @@ export function getPlatform() {
   return "other";
 }
 
+/**
+ * Whether the meta key (command on Mac, Ctrl otherwise) and no other control
+ * keys is pressed.
+ * @param {KeyboardEvent} event - A keyboard event.
+ */
 export function isMetaKey(event) {
-  if (getPlatform() === "mac") {
-    return event.metaKey;
-  } else {
-    return event.ctrlKey;
-  }
+  return getPlatform() === "mac"
+    ? event.metaKey && !event.altKey && !event.shiftKey
+    : event.ctrlKey && !event.altKey && !event.shiftKey;
 }
 
 export function getParentFsPath(fsPath) {

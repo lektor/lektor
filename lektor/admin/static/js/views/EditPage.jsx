@@ -21,14 +21,14 @@ class EditPage extends RecordComponent {
       recordInfo: null,
       hasPendingChanges: false,
     };
-    this._onKeyPress = this._onKeyPress.bind(this);
+    this.onKeyPress = this.onKeyPress.bind(this);
     this.setFieldValue = this.setFieldValue.bind(this);
     this.form = createRef();
   }
 
   componentDidMount() {
     this.syncEditor();
-    window.addEventListener("keydown", this._onKeyPress);
+    window.addEventListener("keydown", this.onKeyPress);
   }
 
   componentDidUpdate(prevProps) {
@@ -38,15 +38,15 @@ class EditPage extends RecordComponent {
   }
 
   componentWillUnmount() {
-    window.removeEventListener("keydown", this._onKeyPress);
+    window.removeEventListener("keydown", this.onKeyPress);
   }
 
-  _onKeyPress(event) {
-    // meta+s is open find files
-    if (event.which === 83 && isMetaKey(event)) {
+  onKeyPress(event) {
+    // Command+s/Ctrl+s to save
+    if (event.key === "s" && isMetaKey(event)) {
       event.preventDefault();
-      const { current } = this.form;
-      if (current && current.reportValidity()) {
+      const form = this.form.current;
+      if (form && form.reportValidity()) {
         this.saveChanges();
       }
     }
