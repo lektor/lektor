@@ -3,7 +3,7 @@ import RecordComponent from "./RecordComponent";
 import Link from "./Link";
 import { loadData } from "../utils";
 import { trans } from "../i18n";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 import GlobalActions from "./GlobalActions";
 
 class BreadCrumbs extends RecordComponent {
@@ -33,14 +33,14 @@ class BreadCrumbs extends RecordComponent {
       return;
     }
 
-    loadData("/pathinfo", { path: path }, makeRichPromise).then((resp) => {
+    loadData("/pathinfo", { path: path }).then((resp) => {
       this.setState({
         recordPathInfo: {
           path: path,
           segments: resp.segments,
         },
       });
-    });
+    }, bringUpDialog);
   }
 
   render() {

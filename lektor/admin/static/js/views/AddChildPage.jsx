@@ -7,7 +7,7 @@ import { formatUserLabel } from "../userLabel";
 import { apiRequest, loadData } from "../utils";
 import { slug as slugify } from "../slugify";
 import { getWidgetComponentWithFallback } from "../widgets";
-import makeRichPromise from "../richPromise";
+import makeRichPromise, { bringUpDialog } from "../richPromise";
 
 const getGoodDefaultModel = (models) => {
   if (models.page !== undefined) {
@@ -39,11 +39,7 @@ class AddChildPage extends RecordComponent {
   }
 
   syncDialog() {
-    loadData(
-      "/newrecord",
-      { path: this.getRecordPath() },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/newrecord", { path: this.getRecordPath() }).then((resp) => {
       let selectedModel = resp.implied_model;
       if (!selectedModel) {
         selectedModel = getGoodDefaultModel(resp.available_models);
@@ -55,7 +51,7 @@ class AddChildPage extends RecordComponent {
         primary: undefined,
         selectedModel: selectedModel,
       });
-    });
+    }, bringUpDialog);
   }
 
   onValueChange(id, value) {

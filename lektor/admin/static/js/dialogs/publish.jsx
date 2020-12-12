@@ -6,7 +6,7 @@ import SlideDialog from "../components/SlideDialog";
 import { apiRequest, loadData, getApiUrl } from "../utils";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
-import makeRichPromise from "../richPromise";
+import makeRichPromise, { bringUpDialog } from "../richPromise";
 
 /**
  * Render a <select for the available target servers.
@@ -73,12 +73,12 @@ class Publish extends React.Component {
   }
 
   syncDialog() {
-    loadData("/servers", {}, makeRichPromise).then(({ servers }) => {
+    loadData("/servers", {}).then(({ servers }) => {
       this.setState({
         servers: servers,
         activeTarget: servers && servers.length ? servers[0].id : null,
       });
-    });
+    }, bringUpDialog);
   }
 
   isSafeToPublish() {

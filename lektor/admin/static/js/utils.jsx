@@ -119,7 +119,9 @@ export function fsPathFromAdminObservedPath(adminPath) {
 
 function handleJSON(response) {
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new Error({
+      code: "REQUEST_FAILED",
+    });
   }
   return response.json();
 }
@@ -129,7 +131,7 @@ function handleJSON(response) {
  * @param {string} url - The API endpoint to fetch
  * @param {any} params - URL params to set.
  */
-export function fetchData(url, params) {
+export function loadData(url, params) {
   const urlParams = new URLSearchParams();
   const apiUrl = `${$LEKTOR_CONFIG.admin_root}/api${url}`;
   if (params) {
@@ -143,31 +145,6 @@ export function fetchData(url, params) {
     method: "GET",
     credentials: "same-origin",
   }).then(handleJSON);
-}
-
-/**
- * Make an API request.
- * @param {string} url - The API endpoint to request.
- * @param {any} params - The data to send.
- * @param {any} createPromise - Promise-constructor-like function.
- */
-export function loadData(url, params, createPromise) {
-  return createPromise((resolve, reject) => {
-    jQuery
-      .ajax({
-        url: getApiUrl(url),
-        data: params,
-        method: "GET",
-      })
-      .done((data) => {
-        resolve(data);
-      })
-      .fail(() => {
-        reject({
-          code: "REQUEST_FAILED",
-        });
-      });
-  });
 }
 
 export function apiRequest(url, options, createPromise) {

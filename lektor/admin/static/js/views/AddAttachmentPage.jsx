@@ -6,7 +6,7 @@ import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { loadData, getApiUrl } from "../utils";
 import { trans } from "../i18n";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class AddAttachmentPage extends RecordComponent {
   constructor(props) {
@@ -31,15 +31,11 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   syncDialog() {
-    loadData(
-      "/newattachment",
-      { path: this.getRecordPath() },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/newattachment", { path: this.getRecordPath() }).then((resp) => {
       this.setState({
         newAttachmentInfo: resp,
       });
-    });
+    }, bringUpDialog);
   }
 
   uploadFile(event) {

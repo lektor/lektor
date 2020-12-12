@@ -1,7 +1,6 @@
 import React from "react";
 import { loadData } from "../utils";
 import { trans } from "../i18n";
-import makeRichPromise from "../richPromise";
 
 class ServerStatus extends React.Component {
   constructor(props) {
@@ -27,7 +26,7 @@ class ServerStatus extends React.Component {
   }
 
   onInterval() {
-    loadData("/ping", {}, makeRichPromise).then(
+    loadData("/ping", {}).then(
       (resp) => {
         if (this.state.projectId === null) {
           this.setState({

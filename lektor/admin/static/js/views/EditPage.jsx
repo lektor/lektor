@@ -9,7 +9,7 @@ import {
   FieldBox,
   FieldRows,
 } from "../widgets";
-import makeRichPromise from "../richPromise";
+import makeRichPromise, { bringUpDialog } from "../richPromise";
 
 class EditPage extends RecordComponent {
   constructor(props) {
@@ -69,14 +69,10 @@ class EditPage extends RecordComponent {
   }
 
   syncEditor() {
-    loadData(
-      "/rawrecord",
-      {
-        path: this.getRecordPath(),
-        alt: this.getRecordAlt(),
-      },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/rawrecord", {
+      path: this.getRecordPath(),
+      alt: this.getRecordAlt(),
+    }).then((resp) => {
       // transform resp.data into actual data
       const recordData = {};
       resp.datamodel.fields.forEach((field) => {
@@ -95,7 +91,8 @@ class EditPage extends RecordComponent {
         recordInfo: resp.record_info,
         hasPendingChanges: false,
       });
-    });
+    }),
+      bringUpDialog;
   }
 
   setFieldValue(field, value, uiChange = false) {

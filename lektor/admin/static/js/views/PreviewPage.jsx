@@ -6,7 +6,7 @@ import {
   urlPathsConsideredEqual,
 } from "../utils";
 import RecordComponent from "../components/RecordComponent";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class PreviewPage extends RecordComponent {
   constructor(props) {
@@ -38,14 +38,12 @@ class PreviewPage extends RecordComponent {
     }
 
     const recordUrl = this.getUrlRecordPathWithAlt();
-    loadData("/previewinfo", { path: path, alt: alt }, makeRichPromise).then(
-      (resp) => {
-        this.setState({
-          pageUrl: resp.url,
-          pageUrlFor: recordUrl,
-        });
-      }
-    );
+    loadData("/previewinfo", { path: path, alt: alt }).then((resp) => {
+      this.setState({
+        pageUrl: resp.url,
+        pageUrlFor: recordUrl,
+      });
+    }, bringUpDialog);
   }
 
   getIntendedPath() {
@@ -87,14 +85,12 @@ class PreviewPage extends RecordComponent {
     if (fsPath === null) {
       return;
     }
-    loadData("/matchurl", { url_path: fsPath }, makeRichPromise).then(
-      (resp) => {
-        if (resp.exists) {
-          const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
-          this.transitionToAdminPage("preview", urlPath);
-        }
+    loadData("/matchurl", { url_path: fsPath }).then((resp) => {
+      if (resp.exists) {
+        const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
+        this.transitionToAdminPage("preview", urlPath);
       }
-    );
+    }, bringUpDialog);
   }
 
   render() {

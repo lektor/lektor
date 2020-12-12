@@ -6,7 +6,7 @@ import dialogSystem from "../dialogSystem";
 import FindFiles from "../dialogs/findFiles";
 import Publish from "../dialogs/publish";
 import Refresh from "../dialogs/Refresh";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 function showFindFilesDialog() {
   dialogSystem.showDialog(FindFiles);
@@ -45,20 +45,16 @@ class GlobalActions extends RecordComponent {
   }
 
   _onCloseClick(e) {
-    loadData(
-      "/previewinfo",
-      {
-        path: this.getRecordPath(),
-        alt: this.getRecordAlt(),
-      },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/previewinfo", {
+      path: this.getRecordPath(),
+      alt: this.getRecordAlt(),
+    }).then((resp) => {
       if (resp.url === null) {
         window.location.href = getCanonicalUrl("/");
       } else {
         window.location.href = getCanonicalUrl(resp.url);
       }
-    });
+    }, bringUpDialog);
   }
 
   render() {

@@ -7,7 +7,7 @@ import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import RecordComponent from "./RecordComponent";
 import Link from "../components/Link";
-import makeRichPromise from "../richPromise";
+import makeRichPromise, { bringUpDialog } from "../richPromise";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -112,34 +112,32 @@ class Sidebar extends RecordComponent {
         lastRecordRequest: path,
       },
       () => {
-        loadData("/recordinfo", { path: path }, makeRichPromise).then(
-          (resp) => {
-            // we're already fetching something else.
-            if (path !== this.state.lastRecordRequest) {
-              return;
-            }
-            const alts = resp.alts;
-            alts.sort((a, b) => {
-              const nameA = (a.is_primary ? "A" : "B") + trans(a.name_i18n);
-              const nameB = (b.is_primary ? "A" : "B") + trans(b.name_i18n);
-              return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
-            });
-            this.setState({
-              recordAttachments: resp.attachments,
-              recordChildren: resp.children,
-              recordAlts: alts,
-              canHaveAttachments: resp.can_have_attachments,
-              canHaveChildren: resp.can_have_children,
-              isAttachment: resp.is_attachment,
-              canBeDeleted: resp.can_be_deleted,
-              recordExists: resp.exists,
-              childrenPage: this.childPosCache.getPosition(
-                path,
-                resp.children.length
-              ),
-            });
+        loadData("/recordinfo", { path: path }).then((resp) => {
+          // we're already fetching something else.
+          if (path !== this.state.lastRecordRequest) {
+            return;
           }
-        );
+          const alts = resp.alts;
+          alts.sort((a, b) => {
+            const nameA = (a.is_primary ? "A" : "B") + trans(a.name_i18n);
+            const nameB = (b.is_primary ? "A" : "B") + trans(b.name_i18n);
+            return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+          });
+          this.setState({
+            recordAttachments: resp.attachments,
+            recordChildren: resp.children,
+            recordAlts: alts,
+            canHaveAttachments: resp.can_have_attachments,
+            canHaveChildren: resp.can_have_children,
+            isAttachment: resp.is_attachment,
+            canBeDeleted: resp.can_be_deleted,
+            recordExists: resp.exists,
+            childrenPage: this.childPosCache.getPosition(
+              path,
+              resp.children.length
+            ),
+          });
+        }, bringUpDialog);
       }
     );
   }

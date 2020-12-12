@@ -4,7 +4,7 @@ import { apiRequest, loadData, getParentFsPath } from "../utils";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import makeRichPromise from "../richPromise";
+import makeRichPromise, { bringUpDialog } from "../richPromise";
 
 class DeletePage extends RecordComponent {
   constructor(props) {
@@ -27,16 +27,12 @@ class DeletePage extends RecordComponent {
   }
 
   syncDialog() {
-    loadData(
-      "/recordinfo",
-      { path: this.getRecordPath() },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/recordinfo", { path: this.getRecordPath() }).then((resp) => {
       this.setState({
         recordInfo: resp,
         deleteMasterRecord: this.isPrimary(),
       });
-    });
+    }, bringUpDialog);
   }
 
   deleteRecord(event) {
