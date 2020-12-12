@@ -126,49 +126,35 @@ function handleJSON(response) {
   return response.json();
 }
 
+function paramsToQueryString(params) {
+  const urlParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    urlParams.set(key, value);
+  });
+  return urlParams.toString();
+}
+
 /**
  * Load data from the JSON API.
  * @param {string} url - The API endpoint to fetch
- * @param {any} params - URL params to set.
+ * @param {Record<string,string> | null} params - URL params to set.
+ * @param {any} options - Additional fetch options, like the HTTP method.
+ *                        If this contains a `json` key, that will be encoded to JSON
+ *                        and sent as a request with the appropriate content type.
  */
-export function loadData(url, params) {
-  const urlParams = new URLSearchParams();
+export function loadData(url, params, options) {
   const apiUrl = `${$LEKTOR_CONFIG.admin_root}/api${url}`;
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      urlParams.set(key, value);
-    });
-  }
+  const fetchUrl = params ? `${apiUrl}?${paramsToQueryString(params)}` : apiUrl;
 
-  const query = urlParams.toString();
-  return fetch(query ? `${apiUrl}?${query}` : apiUrl, {
-    method: "GET",
-    credentials: "same-origin",
-  }).then(handleJSON);
-}
-
-export function apiRequest(url, options, createPromise) {
-  options = options || {};
-  options.url = getApiUrl(url);
-  if (options.json !== undefined) {
-    options.data = JSON.stringify(options.json);
-    options.contentType = "application/json";
+  if (options && options.json !== undefined) {
+    options.body = JSON.stringify(options.json);
+    options.headers = { "Content-Type": "application/json" };
     delete options.json;
   }
-  if (!options.method) {
-    options.method = "GET";
-  }
 
-  return createPromise((resolve, reject) => {
-    jQuery
-      .ajax(options)
-      .done((data) => {
-        resolve(data);
-      })
-      .fail(() => {
-        reject({
-          code: "REQUEST_FAILED",
-        });
-      });
-  });
+  return fetch(fetchUrl, {
+    credentials: "same-origin",
+    method: "GET",
+    ...options,
+  }).then(handleJSON);
 }

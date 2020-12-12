@@ -4,10 +4,10 @@ import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import { trans } from "../i18n";
 import { formatUserLabel } from "../userLabel";
-import { apiRequest, loadData } from "../utils";
+import { loadData } from "../utils";
 import { slug as slugify } from "../slugify";
 import { getWidgetComponentWithFallback } from "../widgets";
-import makeRichPromise, { bringUpDialog } from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 const getGoodDefaultModel = (models) => {
   if (models.page !== undefined) {
@@ -108,20 +108,19 @@ class AddChildPage extends RecordComponent {
       data[primaryField.name] = this.state.primary;
     }
 
-    apiRequest(
-      "/newrecord",
-      { json: params, method: "POST" },
-      makeRichPromise
-    ).then((resp) => {
-      if (resp.exists) {
-        errMsg(trans("ERROR_PAGE_ID_DUPLICATE").replace("%s", id));
-      } else if (!resp.valid_id) {
-        errMsg(trans("ERROR_INVALID_ID").replace("%s", id));
-      } else {
-        const urlPath = this.getUrlRecordPathWithAlt(resp.path);
-        this.transitionToAdminPage("edit", urlPath);
-      }
-    });
+    loadData("/newrecord", null, { json: params, method: "POST" }).then(
+      (resp) => {
+        if (resp.exists) {
+          errMsg(trans("ERROR_PAGE_ID_DUPLICATE").replace("%s", id));
+        } else if (!resp.valid_id) {
+          errMsg(trans("ERROR_INVALID_ID").replace("%s", id));
+        } else {
+          const urlPath = this.getUrlRecordPathWithAlt(resp.path);
+          this.transitionToAdminPage("edit", urlPath);
+        }
+      },
+      bringUpDialog
+    );
   }
 
   renderFields() {

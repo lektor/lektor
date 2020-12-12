@@ -1,13 +1,13 @@
 /* eslint-env browser */
 
 import React from "react";
-import { apiRequest, loadData, getPlatform } from "../utils";
+import { loadData, getPlatform } from "../utils";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import RecordComponent from "./RecordComponent";
 import Link from "../components/Link";
-import makeRichPromise, { bringUpDialog } from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -144,21 +144,15 @@ class Sidebar extends RecordComponent {
 
   fsOpen(event) {
     event.preventDefault();
-    apiRequest(
+    loadData(
       "/browsefs",
-      {
-        data: {
-          path: this.getRecordPath(),
-          alt: this.getRecordAlt(),
-        },
-        method: "POST",
-      },
-      makeRichPromise
+      { path: this.getRecordPath(), alt: this.getRecordAlt() },
+      { method: "POST" }
     ).then((resp) => {
       if (!resp.okay) {
         alert(trans("ERROR_CANNOT_BROWSE_FS"));
       }
-    });
+    }, bringUpDialog);
   }
 
   renderPageActions() {

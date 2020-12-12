@@ -2,10 +2,10 @@ import React from "react";
 
 import RecordComponent from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
-import { apiRequest } from "../utils";
+import { loadData } from "../utils";
 import { getCurrentLanguge, trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class FindFiles extends RecordComponent {
   constructor(props) {
@@ -31,17 +31,10 @@ class FindFiles extends RecordComponent {
         query: q,
       });
 
-      apiRequest(
+      loadData(
         "/find",
-        {
-          data: {
-            q: q,
-            alt: this.getRecordAlt(),
-            lang: getCurrentLanguge(),
-          },
-          method: "POST",
-        },
-        makeRichPromise
+        { q: q, alt: this.getRecordAlt(), lang: getCurrentLanguge() },
+        { method: "POST" }
       ).then((resp) => {
         this.setState({
           results: resp.results,
@@ -50,7 +43,7 @@ class FindFiles extends RecordComponent {
             resp.results.length - 1
           ),
         });
-      });
+      }, bringUpDialog);
     }
   }
 

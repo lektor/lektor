@@ -2,14 +2,14 @@ import React, { createRef } from "react";
 import { Prompt } from "react-router-dom";
 
 import RecordComponent from "../components/RecordComponent";
-import { apiRequest, loadData, isMetaKey } from "../utils";
+import { loadData, isMetaKey } from "../utils";
 import { trans } from "../i18n";
 import {
   getWidgetComponentWithFallback,
   FieldBox,
   FieldRows,
 } from "../widgets";
-import makeRichPromise, { bringUpDialog } from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class EditPage extends RecordComponent {
   constructor(props) {
@@ -135,14 +135,10 @@ class EditPage extends RecordComponent {
     const path = this.getRecordPath();
     const alt = this.getRecordAlt();
     const newData = this.getValues();
-    apiRequest(
-      "/rawrecord",
-      {
-        json: { data: newData, path: path, alt: alt },
-        method: "PUT",
-      },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/rawrecord", null, {
+      json: { data: newData, path: path, alt: alt },
+      method: "PUT",
+    }).then(() => {
       this.setState(
         {
           hasPendingChanges: false,
@@ -154,7 +150,7 @@ class EditPage extends RecordComponent {
           );
         }
       );
-    });
+    }, bringUpDialog);
   }
 
   deleteRecord(event) {

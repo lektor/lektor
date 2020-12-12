@@ -1,10 +1,10 @@
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
-import { apiRequest, loadData, getParentFsPath } from "../utils";
+import { loadData, getParentFsPath } from "../utils";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import makeRichPromise, { bringUpDialog } from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class DeletePage extends RecordComponent {
   constructor(props) {
@@ -45,17 +45,14 @@ class DeletePage extends RecordComponent {
       targetPath = this.getUrlRecordPathWithAlt(parent);
     }
 
-    apiRequest(
+    loadData(
       "/deleterecord",
       {
-        data: {
-          path: path,
-          alt: this.getRecordAlt(),
-          delete_master: this.state.deleteMasterRecord ? "1" : "0",
-        },
-        method: "POST",
+        path: path,
+        alt: this.getRecordAlt(),
+        delete_master: this.state.deleteMasterRecord ? "1" : "0",
       },
-      makeRichPromise
+      { method: "POST" }
     ).then((resp) => {
       if (this.state.recordInfo.is_attachment) {
         hub.emit(
@@ -66,7 +63,7 @@ class DeletePage extends RecordComponent {
         );
       }
       this.transitionToAdminPage("edit", targetPath);
-    });
+    }, bringUpDialog);
   }
 
   cancelDelete(event) {

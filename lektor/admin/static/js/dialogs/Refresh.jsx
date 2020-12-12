@@ -1,9 +1,9 @@
 import React from "react";
 import SlideDialog from "../components/SlideDialog";
-import { apiRequest } from "../utils";
+import { loadData } from "../utils";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class Refresh extends React.Component {
   constructor(props) {
@@ -27,17 +27,11 @@ class Refresh extends React.Component {
     this.setState({
       currentState: "CLEANING",
     });
-    apiRequest(
-      "/clean",
-      {
-        method: "POST",
-      },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/clean", null, { method: "POST" }).then((resp) => {
       this.setState({
         currentState: "DONE",
       });
-    });
+    }, bringUpDialog);
   }
 
   onCancel() {

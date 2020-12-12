@@ -3,10 +3,10 @@
 import React, { createRef } from "react";
 
 import SlideDialog from "../components/SlideDialog";
-import { apiRequest, loadData, getApiUrl } from "../utils";
+import { loadData, getApiUrl } from "../utils";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
-import makeRichPromise, { bringUpDialog } from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 /**
  * Render a <select for the available target servers.
@@ -73,7 +73,7 @@ class Publish extends React.Component {
   }
 
   syncDialog() {
-    loadData("/servers", {}).then(({ servers }) => {
+    loadData("/servers", null).then(({ servers }) => {
       this.setState({
         servers: servers,
         activeTarget: servers && servers.length ? servers[0].id : null,
@@ -102,15 +102,9 @@ class Publish extends React.Component {
       log: [],
       currentState: "BUILDING",
     });
-    apiRequest(
-      "/build",
-      {
-        method: "POST",
-      },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/build", null, { method: "POST" }).then(() => {
       this._beginPublish();
-    });
+    }, bringUpDialog);
   }
 
   _beginPublish() {
