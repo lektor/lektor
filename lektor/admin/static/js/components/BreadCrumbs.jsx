@@ -46,7 +46,7 @@ class BreadCrumbs extends RecordComponent {
   render() {
     let crumbs = [];
     const target =
-      this.props.match.params.page === "preview" ? ".preview" : ".edit";
+      this.props.match.params.page === "preview" ? "preview" : "edit";
     let lastItem = null;
 
     if (this.state.recordPathInfo != null) {
@@ -61,7 +61,7 @@ class BreadCrumbs extends RecordComponent {
         }
         lastItem = item;
 
-        const adminPath = this.getPathToAdminPage(target, { path: urlPath });
+        const adminPath = this.getPathToAdminPage(target, urlPath);
 
         return (
           <li key={item.path} className={className}>
@@ -72,7 +72,7 @@ class BreadCrumbs extends RecordComponent {
     } else {
       crumbs = (
         <li>
-          <Link to={this.getPathToAdminPage(".edit", { path: "root" })}>
+          <Link to={this.getPathToAdminPage("edit", "root")}>
             {i18n.trans("BACK_TO_OVERVIEW")}
           </Link>
         </li>
@@ -87,9 +87,10 @@ class BreadCrumbs extends RecordComponent {
           {lastItem && lastItem.can_have_children ? (
             <li className="new-record-crumb">
               <Link
-                to={this.getPathToAdminPage(".add-child", {
-                  path: this.getUrlRecordPathWithAlt(lastItem.path),
-                })}
+                to={this.getPathToAdminPage(
+                  "add-child",
+                  this.getUrlRecordPathWithAlt(lastItem.path)
+                )}
               >
                 +
               </Link>

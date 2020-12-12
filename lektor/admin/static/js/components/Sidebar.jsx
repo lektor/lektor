@@ -254,9 +254,10 @@ class Sidebar extends RecordComponent {
         className += " alt-missing";
       }
 
-      const path = this.getPathToAdminPage(null, {
-        path: this.getUrlRecordPathWithAlt(null, item.alt),
-      });
+      const path = this.getPathToAdminPage(
+        null,
+        this.getUrlRecordPathWithAlt(null, item.alt)
+      );
       return (
         <li key={item.alt} className={className}>
           <Link to={path}>{title}</Link>

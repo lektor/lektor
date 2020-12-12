@@ -69,13 +69,13 @@ class DeletePage extends RecordComponent {
           })
         );
       }
-      this.transitionToAdminPage(".edit", { path: targetPath });
+      this.transitionToAdminPage("edit", targetPath);
     });
   }
 
   cancelDelete(event) {
     const urlPath = this.getUrlRecordPathWithAlt();
-    this.transitionToAdminPage(".edit", { path: urlPath });
+    this.transitionToAdminPage("edit", urlPath);
   }
 
   onDeleteAllAltsChange(event) {

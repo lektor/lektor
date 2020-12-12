@@ -1,30 +1,24 @@
 import React from "react";
 
 class Component extends React.Component {
-  /* helper that can generate a path to a rule */
-  getPathToAdminPage(name, params) {
-    const parameters = { ...this.props.match.params, ...params };
-    if (name !== null) {
-      if (name.substr(0, 1) === ".") {
-        parameters.page = name.substr(1);
-      } else {
-        parameters.page = name;
-      }
-    }
-
-    return `${$LEKTOR_CONFIG.admin_root}/:path/:page`.replace(
-      /:[a-zA-Z]+/g,
-      (m) => {
-        const key = m.substr(1);
-        return parameters[key];
-      }
-    );
+  /**
+   * Helper to generate URL path for an admin page.
+   * @param {string | null} name - Name of the page (or null for the current one)
+   * @param {string} path - Record path
+   */
+  getPathToAdminPage(name, path) {
+    const pageName = name !== null ? name : this.props.match.params.page;
+    return `${$LEKTOR_CONFIG.admin_root}/${path}/${pageName}`;
   }
 
-  /* helper to transition to a specific page */
-  transitionToAdminPage(name, params) {
-    const path = this.getPathToAdminPage(name, params);
-    this.props.history.push(path);
+  /**
+   * Helper to transition to a specific page
+   * @param {string} name - Page name
+   * @param {string} path - Record path
+   */
+  transitionToAdminPage(name, path) {
+    const url = this.getPathToAdminPage(name, path);
+    this.props.history.push(url);
   }
 }
 

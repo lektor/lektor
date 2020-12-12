@@ -91,7 +91,7 @@ class PreviewPage extends RecordComponent {
       (resp) => {
         if (resp.exists) {
           const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
-          this.transitionToAdminPage(".preview", { path: urlPath });
+          this.transitionToAdminPage("preview", urlPath);
         }
       }
     );

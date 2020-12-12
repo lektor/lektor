@@ -151,18 +151,17 @@ class EditPage extends RecordComponent {
           hasPendingChanges: false,
         },
         () => {
-          this.transitionToAdminPage(".preview", {
-            path: this.getUrlRecordPathWithAlt(path),
-          });
+          this.transitionToAdminPage(
+            "preview",
+            this.getUrlRecordPathWithAlt(path)
+          );
         }
       );
     });
   }
 
   deleteRecord(event) {
-    this.transitionToAdminPage(".delete", {
-      path: this.getUrlRecordPathWithAlt(),
-    });
+    this.transitionToAdminPage("delete", this.getUrlRecordPathWithAlt());
   }
 
   getValueForField(widget, field) {

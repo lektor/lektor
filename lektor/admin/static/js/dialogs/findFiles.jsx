@@ -75,10 +75,10 @@ class FindFiles extends RecordComponent {
     const item = this.state.results[index];
     if (item !== undefined) {
       const target =
-        this.props.match.params.page === "preview" ? ".preview" : ".edit";
+        this.props.match.params.page === "preview" ? "preview" : "edit";
       const urlPath = this.getUrlRecordPathWithAlt(item.path);
       dialogSystem.dismissDialog();
-      this.transitionToAdminPage(target, { path: urlPath });
+      this.transitionToAdminPage(target, urlPath);
     }
   }
 
