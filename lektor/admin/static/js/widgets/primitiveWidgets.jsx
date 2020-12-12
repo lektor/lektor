@@ -1,7 +1,7 @@
 import React, { createRef } from "react";
 import { getInputClass, widgetPropTypes } from "./mixins";
 import { isValidUrl } from "../utils";
-import userLabel from "../userLabel";
+import { formatUserLabel } from "../userLabel";
 import { trans } from "../i18n";
 
 const isTrue = (value) => {
@@ -60,7 +60,7 @@ function InputWidgetBase(props) {
   let addon = null;
   const configuredAddon = type.addon_label_i18n;
   if (configuredAddon) {
-    addon = userLabel.format(configuredAddon);
+    addon = formatUserLabel(configuredAddon);
   } else if (inputAddon) {
     addon = inputAddon;
   }

@@ -3,7 +3,7 @@
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import { trans } from "../i18n";
-import userLabel from "../userLabel";
+import { formatUserLabel } from "../userLabel";
 import { apiRequest, loadData } from "../utils";
 import { slug as slugify } from "../slugify";
 import { getWidgetComponentWithFallback } from "../widgets";
@@ -169,7 +169,7 @@ class AddChildPage extends RecordComponent {
         <div className="row field-row" key={field.name}>
           <div className="field-box col-md-12">
             <dl className="field">
-              <dt>{userLabel.format(field.label_i18n || field.label)}</dt>
+              <dt>{formatUserLabel(field.label_i18n || field.label)}</dt>
               <dd>
                 <Widget
                   value={value}

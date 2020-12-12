@@ -4,7 +4,7 @@ import React from "react";
 import { trans } from "../i18n";
 import metaformat from "../metaformat";
 import { widgetPropTypes } from "./mixins";
-import userLabel from "../userLabel";
+import { formatUserLabel } from "../userLabel";
 import {
   getWidgetComponent,
   getWidgetComponentWithFallback,
@@ -268,7 +268,7 @@ export class FlowWidget extends React.PureComponent {
             </button>
           </div>
           <h4 className="block-name">
-            {userLabel.format(blockInfo.flowBlockModel.name_i18n)}
+            {formatUserLabel(blockInfo.flowBlockModel.name_i18n)}
           </h4>
           {fields}
         </div>
@@ -280,8 +280,8 @@ export class FlowWidget extends React.PureComponent {
     const addBlockButtons = this.props.type.flowblock_order.map((key) => {
       const flowBlockModel = this.props.type.flowblocks[key];
       const label = flowBlockModel.button_label
-        ? userLabel.format(flowBlockModel.button_label)
-        : userLabel.format(flowBlockModel.name_i18n);
+        ? formatUserLabel(flowBlockModel.button_label)
+        : formatUserLabel(flowBlockModel.name_i18n);
       return (
         <button
           type="button"
