@@ -117,6 +117,34 @@ export function fsPathFromAdminObservedPath(adminPath) {
   return "/" + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1];
 }
 
+function handleJSON(response) {
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+  return response.json();
+}
+
+/**
+ * Load data from the JSON API.
+ * @param {string} url - The API endpoint to fetch
+ * @param {any} params - URL params to set.
+ */
+export function fetchData(url, params) {
+  const urlParams = new URLSearchParams();
+  const apiUrl = `${$LEKTOR_CONFIG.admin_root}/api${url}`;
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      urlParams.set(key, value);
+    });
+  }
+
+  const query = urlParams.toString();
+  return fetch(query ? `${apiUrl}?${query}` : apiUrl, {
+    method: "GET",
+    credentials: "same-origin",
+  }).then(handleJSON);
+}
+
 /**
  * Make an API request.
  * @param {string} url - The API endpoint to request.

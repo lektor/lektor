@@ -1,13 +1,13 @@
 import ErrorDialog from "./dialogs/errorDialog";
 import dialogSystem from "./dialogSystem";
 
-const bringUpDialog = (error) => {
+export function bringUpDialog(error) {
   if (!dialogSystem.dialogIsOpen()) {
     dialogSystem.showDialog(ErrorDialog, {
       error: error,
     });
   }
-};
+}
 
 const makeRichPromise = (callback, fallback = bringUpDialog) => {
   const rv = new Promise(callback);
