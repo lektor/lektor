@@ -2,14 +2,13 @@
 
 import React, { createRef } from "react";
 
-import Component from "../components/Component";
 import SlideDialog from "../components/SlideDialog";
 import { apiRequest, loadData, getApiUrl } from "../utils";
 import i18n from "../i18n";
 import dialogSystem from "../dialogSystem";
 import makeRichPromise from "../richPromise";
 
-class Publish extends Component {
+class Publish extends React.Component {
   constructor(props) {
     super(props);
 

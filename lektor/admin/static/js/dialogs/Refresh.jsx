@@ -1,12 +1,11 @@
 import React from "react";
-import Component from "../components/Component";
 import SlideDialog from "../components/SlideDialog";
 import { apiRequest } from "../utils";
 import i18n from "../i18n";
 import dialogSystem from "../dialogSystem";
 import makeRichPromise from "../richPromise";
 
-class Refresh extends Component {
+class Refresh extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
