@@ -8,6 +8,37 @@ import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import makeRichPromise from "../richPromise";
 
+/**
+ * Render a <select for the available target servers.
+ */
+function TargetServers({ activeTarget, servers, setActiveTarget }) {
+  function onChange(event) {
+    setActiveTarget(event.target.value);
+  }
+  const serverOptions = servers.map((server) => (
+    <option value={server.id} key={server.id}>
+      {trans(server.name_i18n) + " (" + server.short_target + ")"}
+    </option>
+  ));
+
+  return (
+    <dl>
+      <dt>{trans("PUBLISH_SERVER")}</dt>
+      <dd>
+        <div className="input-group">
+          <select
+            value={activeTarget || ""}
+            onChange={onChange}
+            className="form-control"
+          >
+            {serverOptions}
+          </select>
+        </div>
+      </dd>
+    </dl>
+  );
+}
+
 class Publish extends React.Component {
   constructor(props) {
     super(props);
@@ -20,6 +51,7 @@ class Publish extends React.Component {
     };
 
     this.buildLog = createRef();
+    this.setActiveTarget = this.setActiveTarget.bind(this);
   }
 
   componentDidMount() {
@@ -106,24 +138,13 @@ class Publish extends React.Component {
     });
   }
 
-  onSelectServer(event) {
-    this.setState({
-      activeTarget: event.target.value,
-    });
+  setActiveTarget(activeTarget) {
+    this.setState({ activeTarget: activeTarget });
   }
 
   render() {
-    const servers = this.state.servers.map((server) => {
-      return (
-        <option value={server.id} key={server.id}>
-          {trans(server.name_i18n) + " (" + server.short_target + ")"}
-        </option>
-      );
-    });
-
-    let progress = null;
-    if (this.state.currentState !== "IDLE") {
-      progress = (
+    const progress =
+      this.state.currentState !== "IDLE" ? (
         <div>
           <h3>
             {this.state.currentState !== "DONE"
@@ -139,8 +160,7 @@ class Publish extends React.Component {
             {this.state.log.join("\n")}
           </pre>
         </div>
-      );
-    }
+      ) : null;
 
     return (
       <SlideDialog
@@ -149,20 +169,11 @@ class Publish extends React.Component {
         title={trans("PUBLISH")}
       >
         <p>{trans("PUBLISH_NOTE")}</p>
-        <dl>
-          <dt>{trans("PUBLISH_SERVER")}</dt>
-          <dd>
-            <div className="input-group">
-              <select
-                value={this.state.activeTarget}
-                onChange={this.onSelectServer.bind(this)}
-                className="form-control"
-              >
-                {servers}
-              </select>
-            </div>
-          </dd>
-        </dl>
+        <TargetServers
+          activeTarget={this.state.activeTarget}
+          servers={this.state.servers}
+          setActiveTarget={this.setActiveTarget}
+        />
         <div className="actions">
           <button
             type="submit"
