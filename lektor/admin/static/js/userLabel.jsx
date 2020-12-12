@@ -1,5 +1,5 @@
 import React from "react";
-import i18n from "./i18n";
+import { trans } from "./i18n";
 
 const userLabel = {
   // formats a user label appropriately
@@ -8,7 +8,7 @@ const userLabel = {
     if (typeof inputConfig === "string") {
       label = inputConfig;
     } else {
-      label = i18n.trans(inputConfig);
+      label = trans(inputConfig);
     }
     if (!label) {
       return <span className="" />;

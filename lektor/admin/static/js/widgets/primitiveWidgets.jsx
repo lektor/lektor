@@ -2,7 +2,7 @@ import React, { createRef } from "react";
 import { getInputClass, widgetPropTypes } from "./mixins";
 import { isValidUrl } from "../utils";
 import userLabel from "../userLabel";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 
 const isTrue = (value) => {
   return value === "true" || value === "yes" || value === "1";
@@ -117,7 +117,7 @@ function postprocessInteger(value) {
 
 function validateInteger(value) {
   if (value && !value.match(/^-?\d+$/)) {
-    return i18n.trans("ERROR_INVALID_NUMBER");
+    return trans("ERROR_INVALID_NUMBER");
   }
   return null;
 }
@@ -141,7 +141,7 @@ function postprocessFloat(value) {
 
 function validateFloat(value) {
   if (value && !value.match(/^[+,-]?\d+[.]\d+$/)) {
-    return i18n.trans("ERROR_INVALID_NUMBER");
+    return trans("ERROR_INVALID_NUMBER");
   }
   return null;
 }
@@ -190,7 +190,7 @@ function validateDate(value) {
     return null;
   }
 
-  return i18n.trans("ERROR_INVALID_DATE");
+  return trans("ERROR_INVALID_DATE");
 }
 
 export function DateInputWidget(props) {
@@ -208,7 +208,7 @@ DateInputWidget.propTypes = widgetPropTypes;
 
 function validateUrl(value) {
   if (value && !isValidUrl(value)) {
-    return i18n.trans("ERROR_INVALID_URL");
+    return trans("ERROR_INVALID_URL");
   }
   return null;
 }
@@ -356,9 +356,7 @@ export class BooleanInputWidget extends React.Component {
             checked={isTrue(value)}
             onChange={this.onChange.bind(this)}
           />
-          {type.checkbox_label_i18n
-            ? i18n.trans(type.checkbox_label_i18n)
-            : null}
+          {type.checkbox_label_i18n ? trans(type.checkbox_label_i18n) : null}
         </label>
       </div>
     );

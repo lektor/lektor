@@ -3,7 +3,7 @@ import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import { apiRequest } from "../utils";
-import i18n from "../i18n";
+import { getCurrentLanguge, trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import makeRichPromise from "../richPromise";
 
@@ -37,7 +37,7 @@ class FindFiles extends RecordComponent {
           data: {
             q: q,
             alt: this.getRecordAlt(),
-            lang: i18n.currentLanguage,
+            lang: getCurrentLanguge(),
           },
           method: "POST",
         },
@@ -116,11 +116,7 @@ class FindFiles extends RecordComponent {
 
   render() {
     return (
-      <SlideDialog
-        hasCloseButton
-        closeOnEscape
-        title={i18n.trans("FIND_FILES")}
-      >
+      <SlideDialog hasCloseButton closeOnEscape title={trans("FIND_FILES")}>
         <div className="form-group">
           <input
             type="text"
@@ -129,7 +125,7 @@ class FindFiles extends RecordComponent {
             value={this.state.query}
             onChange={this.onInputChange.bind(this)}
             onKeyDown={this.onInputKey.bind(this)}
-            placeholder={i18n.trans("FIND_FILES_PLACEHOLDER")}
+            placeholder={trans("FIND_FILES_PLACEHOLDER")}
           />
         </div>
         {this.renderResults()}

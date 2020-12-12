@@ -1,6 +1,6 @@
 import React from "react";
 import { flipSetValue } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import { getInputClass, widgetPropTypes } from "./mixins";
 
 function checkboxIsActive(field, props) {
@@ -66,7 +66,7 @@ export class CheckboxesInputWidget extends React.PureComponent {
             checked={checkboxIsActive(item[0], this.props)}
             onChange={(e) => onChangeHandler(item[0], e)}
           />
-          {i18n.trans(item[1])}
+          {trans(item[1])}
         </label>
       </div>
     ));
@@ -87,7 +87,7 @@ export function SelectInputWidget(props) {
 
   const choices = type.choices.map((item) => (
     <option key={item[0]} value={item[0]}>
-      {i18n.trans(item[1])}
+      {trans(item[1])}
     </option>
   ));
 

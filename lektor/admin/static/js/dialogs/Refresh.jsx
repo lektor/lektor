@@ -1,7 +1,7 @@
 import React from "react";
 import SlideDialog from "../components/SlideDialog";
 import { apiRequest } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import makeRichPromise from "../richPromise";
 
@@ -51,8 +51,8 @@ class Refresh extends React.Component {
         <div>
           <h3>
             {this.state.currentState !== "DONE"
-              ? i18n.trans("CURRENTLY_REFRESHING_BUILD")
-              : i18n.trans("REFRESHING_BUILD_DONE")}
+              ? trans("CURRENTLY_REFRESHING_BUILD")
+              : trans("REFRESHING_BUILD_DONE")}
           </h3>
         </div>
       );
@@ -62,9 +62,9 @@ class Refresh extends React.Component {
       <SlideDialog
         hasCloseButton={false}
         closeOnEscape
-        title={i18n.trans("REFRESH_BUILD")}
+        title={trans("REFRESH_BUILD")}
       >
-        <p>{i18n.trans("REFRESH_BUILD_NOTE")}</p>
+        <p>{trans("REFRESH_BUILD_NOTE")}</p>
         {progress}
         <div className="actions">
           <button
@@ -73,7 +73,7 @@ class Refresh extends React.Component {
             disabled={!this.isSafeToNavigate()}
             onClick={this.onRefresh.bind(this)}
           >
-            {i18n.trans("REFRESH_BUILD")}
+            {trans("REFRESH_BUILD")}
           </button>
           <button
             type="submit"
@@ -81,9 +81,7 @@ class Refresh extends React.Component {
             disabled={!this.isSafeToNavigate()}
             onClick={this.onCancel.bind(this)}
           >
-            {i18n.trans(
-              this.state.currentState === "DONE" ? "CLOSE" : "CANCEL"
-            )}
+            {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
           </button>
         </div>
       </SlideDialog>

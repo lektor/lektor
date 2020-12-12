@@ -2,7 +2,7 @@ import React from "react";
 import RecordComponent from "./RecordComponent";
 import Link from "./Link";
 import { loadData } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import makeRichPromise from "../richPromise";
 import GlobalActions from "./GlobalActions";
 
@@ -52,7 +52,7 @@ class BreadCrumbs extends RecordComponent {
     if (this.state.recordPathInfo != null) {
       crumbs = this.state.recordPathInfo.segments.map((item) => {
         const urlPath = this.getUrlRecordPathWithAlt(item.path);
-        let label = item.label_i18n ? i18n.trans(item.label_i18n) : item.label;
+        let label = item.label_i18n ? trans(item.label_i18n) : item.label;
         let className = "record-crumb";
 
         if (!item.exists) {
@@ -73,7 +73,7 @@ class BreadCrumbs extends RecordComponent {
       crumbs = (
         <li>
           <Link to={this.getPathToAdminPage("edit", "root")}>
-            {i18n.trans("BACK_TO_OVERVIEW")}
+            {trans("BACK_TO_OVERVIEW")}
           </Link>
         </li>
       );

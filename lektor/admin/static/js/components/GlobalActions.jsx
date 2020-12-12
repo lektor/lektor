@@ -1,7 +1,7 @@
 import React from "react";
 import RecordComponent from "./RecordComponent";
 import { loadData, isMetaKey, getCanonicalUrl } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import FindFiles from "../dialogs/findFiles";
 import Publish from "../dialogs/publish";
@@ -67,28 +67,28 @@ class GlobalActions extends RecordComponent {
         <button
           className="btn btn-default"
           onClick={showFindFilesDialog}
-          title={i18n.trans("FIND_FILES")}
+          title={trans("FIND_FILES")}
         >
           <i className="fa fa-search fa-fw" />
         </button>
         <button
           className="btn btn-default"
           onClick={showPublishDialog}
-          title={i18n.trans("PUBLISH")}
+          title={trans("PUBLISH")}
         >
           <i className="fa fa-cloud-upload fa-fw" />
         </button>
         <button
           className="btn btn-default"
           onClick={showRefreshDialog}
-          title={i18n.trans("REFRESH_BUILD")}
+          title={trans("REFRESH_BUILD")}
         >
           <i className="fa fa-refresh fa-fw" />
         </button>
         <button
           className="btn btn-default"
           onClick={this._onCloseClick.bind(this)}
-          title={i18n.trans("RETURN_TO_WEBSITE")}
+          title={trans("RETURN_TO_WEBSITE")}
         >
           <i className="fa fa-eye fa-fw" />
         </button>

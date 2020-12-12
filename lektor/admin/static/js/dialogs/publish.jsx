@@ -4,7 +4,7 @@ import React, { createRef } from "react";
 
 import SlideDialog from "../components/SlideDialog";
 import { apiRequest, loadData, getApiUrl } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import makeRichPromise from "../richPromise";
 
@@ -116,7 +116,7 @@ class Publish extends React.Component {
     const servers = this.state.servers.map((server) => {
       return (
         <option value={server.id} key={server.id}>
-          {i18n.trans(server.name_i18n) + " (" + server.short_target + ")"}
+          {trans(server.name_i18n) + " (" + server.short_target + ")"}
         </option>
       );
     });
@@ -127,13 +127,13 @@ class Publish extends React.Component {
         <div>
           <h3>
             {this.state.currentState !== "DONE"
-              ? i18n.trans("CURRENTLY_PUBLISHING")
-              : i18n.trans("PUBLISH_DONE")}
+              ? trans("CURRENTLY_PUBLISHING")
+              : trans("PUBLISH_DONE")}
           </h3>
           <pre>
-            {i18n.trans("STATE") +
+            {trans("STATE") +
               ": " +
-              i18n.trans("PUBLISH_STATE_" + this.state.currentState)}
+              trans("PUBLISH_STATE_" + this.state.currentState)}
           </pre>
           <pre ref={this.buildLog} className="build-log">
             {this.state.log.join("\n")}
@@ -146,11 +146,11 @@ class Publish extends React.Component {
       <SlideDialog
         hasCloseButton={false}
         closeOnEscape
-        title={i18n.trans("PUBLISH")}
+        title={trans("PUBLISH")}
       >
-        <p>{i18n.trans("PUBLISH_NOTE")}</p>
+        <p>{trans("PUBLISH_NOTE")}</p>
         <dl>
-          <dt>{i18n.trans("PUBLISH_SERVER")}</dt>
+          <dt>{trans("PUBLISH_SERVER")}</dt>
           <dd>
             <div className="input-group">
               <select
@@ -170,7 +170,7 @@ class Publish extends React.Component {
             disabled={!this.isSafeToPublish()}
             onClick={this.onPublish.bind(this)}
           >
-            {i18n.trans("PUBLISH")}
+            {trans("PUBLISH")}
           </button>
           <button
             type="submit"
@@ -178,9 +178,7 @@ class Publish extends React.Component {
             disabled={!this.isSafeToPublish()}
             onClick={this.onCancel.bind(this)}
           >
-            {i18n.trans(
-              this.state.currentState === "DONE" ? "CLOSE" : "CANCEL"
-            )}
+            {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
           </button>
         </div>
         {progress}

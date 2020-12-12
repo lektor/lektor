@@ -5,7 +5,7 @@ import RecordComponent from "../components/RecordComponent";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { loadData, getApiUrl } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import makeRichPromise from "../richPromise";
 
 class AddAttachmentPage extends RecordComponent {
@@ -123,11 +123,11 @@ class AddAttachmentPage extends RecordComponent {
 
     return (
       <div>
-        <h2>{i18n.trans("ADD_ATTACHMENT_TO").replace("%s", nai.label)}</h2>
-        <p>{i18n.trans("ADD_ATTACHMENT_NOTE")}</p>
+        <h2>{trans("ADD_ATTACHMENT_TO").replace("%s", nai.label)}</h2>
+        <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
         {this.renderCurrentFiles()}
         <p>
-          {i18n.trans("PROGRESS")}: {this.state.currentProgress}%
+          {trans("PROGRESS")}: {this.state.currentProgress}%
         </p>
         <input
           type="file"
@@ -141,7 +141,7 @@ class AddAttachmentPage extends RecordComponent {
             className="btn btn-primary"
             onClick={this.uploadFile.bind(this)}
           >
-            {i18n.trans("UPLOAD")}
+            {trans("UPLOAD")}
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import userLabel from "../userLabel";
 import { apiRequest, loadData } from "../utils";
 import { slug as slugify } from "../slugify";
@@ -93,12 +93,12 @@ class AddChildPage extends RecordComponent {
 
   createRecord() {
     const errMsg = (text) => {
-      alert(i18n.trans("ERROR_PREFIX") + text);
+      alert(trans("ERROR_PREFIX") + text);
     };
 
     const id = this.state.id || this.getImpliedId();
     if (!id) {
-      errMsg(i18n.trans("ERROR_NO_ID_PROVIDED"));
+      errMsg(trans("ERROR_NO_ID_PROVIDED"));
       return;
     }
 
@@ -118,9 +118,9 @@ class AddChildPage extends RecordComponent {
       makeRichPromise
     ).then((resp) => {
       if (resp.exists) {
-        errMsg(i18n.trans("ERROR_PAGE_ID_DUPLICATE").replace("%s", id));
+        errMsg(trans("ERROR_PAGE_ID_DUPLICATE").replace("%s", id));
       } else if (!resp.valid_id) {
-        errMsg(i18n.trans("ERROR_INVALID_ID").replace("%s", id));
+        errMsg(trans("ERROR_INVALID_ID").replace("%s", id));
       } else {
         const urlPath = this.getUrlRecordPathWithAlt(resp.path);
         this.transitionToAdminPage("edit", urlPath);
@@ -135,7 +135,7 @@ class AddChildPage extends RecordComponent {
       const choices = this.getAvailableModels().map((model) => {
         return (
           <option value={model.id} key={model.id}>
-            {i18n.trans(model.name_i18n)}
+            {trans(model.name_i18n)}
           </option>
         );
       });
@@ -143,7 +143,7 @@ class AddChildPage extends RecordComponent {
         <div className="row" key="_model">
           <div className="field-box col-md-12">
             <dl className="field">
-              <dt>{i18n.trans("MODEL")}</dt>
+              <dt>{trans("MODEL")}</dt>
               <dd>
                 <select
                   value={this.state.selectedModel}
@@ -193,7 +193,7 @@ class AddChildPage extends RecordComponent {
       "id",
       {
         name: "_id",
-        label: i18n.trans("ID"),
+        label: trans("ID"),
         type: { name: "slug", widget: "slug" },
       },
       this.getImpliedId()
@@ -212,18 +212,19 @@ class AddChildPage extends RecordComponent {
     return (
       <div className="edit-area">
         <h2>
-          {i18n
-            .trans("ADD_CHILD_PAGE_TO")
-            .replace("%s", this.state.newChildInfo.label)}
+          {trans("ADD_CHILD_PAGE_TO").replace(
+            "%s",
+            this.state.newChildInfo.label
+          )}
         </h2>
-        <p>{i18n.trans("ADD_CHILD_PAGE_NOTE")}</p>
+        <p>{trans("ADD_CHILD_PAGE_NOTE")}</p>
         {this.renderFields()}
         <div className="actions">
           <button
             className="btn btn-primary"
             onClick={this.createRecord.bind(this)}
           >
-            {i18n.trans("CREATE_CHILD_PAGE")}
+            {trans("CREATE_CHILD_PAGE")}
           </button>
         </div>
       </div>

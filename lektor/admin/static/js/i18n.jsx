@@ -1,4 +1,4 @@
-const loadTranslations = () => {
+function loadTranslations() {
   const ctx = require.context("../../../translations", true, /\.json$/);
   const rv = {};
   ctx.keys().forEach((key) => {
@@ -6,33 +6,28 @@ const loadTranslations = () => {
     rv[langIdMatch[1]] = ctx(key);
   });
   return rv;
-};
+}
 
-const i18n = {
-  translations: loadTranslations(),
+const translations = loadTranslations();
 
-  currentLanguage: "en",
+let currentLanguage = "en";
 
-  setLanguageFromLocale(locale) {
-    if (locale) {
-      const lang = locale.split(/[-_]/)[0].toLowerCase();
-      if (this.translations[lang] !== undefined) {
-        this.currentLanguage = lang;
-      }
+export function setCurrentLanguage(lang) {
+  currentLanguage = lang;
+}
+
+export function getCurrentLanguge() {
+  return currentLanguage;
+}
+
+export function trans(key) {
+  let rv;
+  if (typeof key === "object") {
+    rv = key[currentLanguage];
+    if (rv === undefined) {
+      rv = key.en;
     }
-  },
-
-  trans(key) {
-    let rv;
-    if (typeof key === "object") {
-      rv = key[i18n.currentLanguage];
-      if (rv === undefined) {
-        rv = key.en;
-      }
-      return rv;
-    }
-    return i18n.translations[i18n.currentLanguage][key] || key;
-  },
-};
-
-export default i18n;
+    return rv;
+  }
+  return translations[currentLanguage][key] || key;
+}

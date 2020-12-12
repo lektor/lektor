@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 import dialogSystem from "../dialogSystem";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 
 class SlideDialog extends React.Component {
   constructor(props) {
@@ -43,7 +43,7 @@ class SlideDialog extends React.Component {
               className="close-btn"
               onClick={this._onCloseClick.bind(this)}
             >
-              {i18n.trans("CLOSE")}
+              {trans("CLOSE")}
             </a>
           )}
           <h3>{title}</h3>

@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 import React from "react";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import metaformat from "../metaformat";
 import { widgetPropTypes } from "./mixins";
 import userLabel from "../userLabel";
@@ -160,7 +160,7 @@ export class FlowWidget extends React.PureComponent {
   }
 
   removeBlock(idx) {
-    if (confirm(i18n.trans("REMOVE_FLOWBLOCK_PROMPT"))) {
+    if (confirm(trans("REMOVE_FLOWBLOCK_PROMPT"))) {
       this.props.onChange(this.props.value.filter((item, i) => i !== idx));
     }
   }
@@ -231,11 +231,7 @@ export class FlowWidget extends React.PureComponent {
             <button
               type="button"
               className="btn btn-default btn-xs"
-              title={
-                blockInfo.collapsed
-                  ? i18n.trans("Expand")
-                  : i18n.trans("Collapse")
-              }
+              title={blockInfo.collapsed ? trans("Expand") : trans("Collapse")}
               onClick={this.toggleBlock.bind(this, idx)}
             >
               <i
@@ -247,7 +243,7 @@ export class FlowWidget extends React.PureComponent {
             <button
               type="button"
               className="btn btn-default btn-xs"
-              title={i18n.trans("UP")}
+              title={trans("UP")}
               disabled={idx === 0}
               onClick={this.moveBlock.bind(this, idx, -1)}
             >
@@ -256,7 +252,7 @@ export class FlowWidget extends React.PureComponent {
             <button
               type="button"
               className="btn btn-default btn-xs"
-              title={i18n.trans("DOWN")}
+              title={trans("DOWN")}
               disabled={idx >= this.props.value.length - 1}
               onClick={this.moveBlock.bind(this, idx, 1)}
             >
@@ -265,7 +261,7 @@ export class FlowWidget extends React.PureComponent {
             <button
               type="button"
               className="btn btn-default btn-xs"
-              title={i18n.trans("REMOVE")}
+              title={trans("REMOVE")}
               onClick={this.removeBlock.bind(this, idx)}
             >
               <i className="fa fa-fw fa-times" />
@@ -291,7 +287,7 @@ export class FlowWidget extends React.PureComponent {
           type="button"
           className="btn btn-default"
           onClick={this.addNewBlock.bind(this, key)}
-          title={i18n.trans(flowBlockModel.name_i18n)}
+          title={trans(flowBlockModel.name_i18n)}
           key={flowBlockModel.id}
         >
           {label}
@@ -303,7 +299,7 @@ export class FlowWidget extends React.PureComponent {
       <div className="flow">
         {this.renderBlocks()}
         <div className="add-flow-block">
-          <label>{i18n.trans("ADD_FLOWBLOCK") + ": "}</label>
+          <label>{trans("ADD_FLOWBLOCK") + ": "}</label>
           <div className="btn-group">{addBlockButtons}</div>
         </div>
       </div>

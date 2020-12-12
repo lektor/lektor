@@ -3,7 +3,7 @@ import { Prompt } from "react-router-dom";
 
 import RecordComponent from "../components/RecordComponent";
 import { apiRequest, loadData, isMetaKey } from "../utils";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 import {
   getWidgetComponentWithFallback,
   FieldBox,
@@ -222,16 +222,16 @@ class EditPage extends RecordComponent {
         className="btn btn-default"
         onClick={this.deleteRecord.bind(this)}
       >
-        {i18n.trans("DELETE")}
+        {trans("DELETE")}
       </button>
     ) : null;
 
     const title = this.state.recordInfo.is_attachment
-      ? i18n.trans("EDIT_ATTACHMENT_METADATA_OF")
-      : i18n.trans("EDIT_PAGE_NAME");
+      ? trans("EDIT_ATTACHMENT_METADATA_OF")
+      : trans("EDIT_PAGE_NAME");
 
     const label = this.state.recordInfo.label_i18n
-      ? i18n.trans(this.state.recordInfo.label_i18n)
+      ? trans(this.state.recordInfo.label_i18n)
       : this.state.recordInfo.label;
 
     const fields = this.state.recordDataModel.fields.filter(
@@ -240,7 +240,7 @@ class EditPage extends RecordComponent {
     return (
       <div className="edit-area">
         {this.state.hasPendingChanges && (
-          <Prompt message={() => i18n.trans("UNLOAD_ACTIVE_TAB")} />
+          <Prompt message={() => trans("UNLOAD_ACTIVE_TAB")} />
         )}
         <h2>{title.replace("%s", label)}</h2>
         <form ref={this.form} onSubmit={this.saveChanges.bind(this)}>
@@ -250,7 +250,7 @@ class EditPage extends RecordComponent {
           />
           <div className="actions">
             <button type="submit" className="btn btn-primary">
-              {i18n.trans("SAVE_CHANGES")}
+              {trans("SAVE_CHANGES")}
             </button>
             {deleteButton}
           </div>
