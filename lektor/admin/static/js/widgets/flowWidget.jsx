@@ -2,7 +2,7 @@
 
 import React from "react";
 import { trans } from "../i18n";
-import metaformat from "../metaformat";
+import { tokenize, serialize } from "../metaformat";
 import { widgetPropTypes } from "./mixins";
 import { formatUserLabel } from "../userLabel";
 import {
@@ -75,7 +75,7 @@ const deserializeFlowBlock = (flowBlockModel, lines, localId) => {
   const data = {};
   const rawData = {};
 
-  metaformat.tokenize(lines).forEach((item) => {
+  tokenize(lines).forEach((item) => {
     const [key, lines] = item;
     const value = lines.join("");
     rawData[key] = value;
@@ -119,7 +119,7 @@ const serializeFlowBlock = (flockBlockModel, data) => {
 
     rv.push([field.name, value]);
   });
-  return metaformat.serialize(rv);
+  return serialize(rv);
 };
 
 export class FlowWidget extends React.PureComponent {
