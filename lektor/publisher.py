@@ -15,7 +15,6 @@ from io import BytesIO
 from werkzeug import urls
 
 from lektor._compat import iteritems
-from lektor._compat import iterkeys
 from lektor.exception import LektorException
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
@@ -487,7 +486,7 @@ class FtpPublisher(Publisher):
     def consolidate_listing(self, con, current_artifacts):
         server_artifacts, duplicates = self.read_existing_artifacts(con)
         known_folders = set()
-        for artifact_name in iterkeys(current_artifacts):
+        for artifact_name in current_artifacts.keys():
             known_folders.add(posixpath.dirname(artifact_name))
 
         for artifact_name, checksum in iteritems(server_artifacts):

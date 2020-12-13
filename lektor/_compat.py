@@ -13,7 +13,6 @@
 """
 
 
-iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())
 
