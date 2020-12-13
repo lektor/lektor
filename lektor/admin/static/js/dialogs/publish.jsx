@@ -125,9 +125,9 @@ class Publish extends React.Component {
         });
         es.close();
       } else {
-        this.setState({
-          log: this.state.log.concat(data.msg),
-        });
+        this.setState((state) => ({
+          log: state.log.concat(data.msg),
+        }));
       }
     });
   }

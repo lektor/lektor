@@ -8,13 +8,15 @@ import {
 import RecordComponent from "../components/RecordComponent";
 import { bringUpDialog } from "../richPromise";
 
+const initialState = () => ({
+  pageUrl: null,
+  pageUrlFor: null,
+});
+
 class PreviewPage extends RecordComponent {
   constructor(props) {
     super(props);
-    this.state = {
-      pageUrl: null,
-      pageUrlFor: null,
-    };
+    this.state = initialState();
     this.iframe = createRef();
   }
 
@@ -33,7 +35,7 @@ class PreviewPage extends RecordComponent {
     const alt = this.getRecordAlt();
     const path = this.getRecordPath();
     if (path === null) {
-      this.setState(this.getInitialState());
+      this.setState(initialState);
       return;
     }
 
@@ -55,7 +57,7 @@ class PreviewPage extends RecordComponent {
 
   componentDidUpdate(prevProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
-      this.setState({}, this.syncState.bind(this));
+      this.syncState();
     }
     const frame = this.iframe.current;
     const intendedPath = this.getIntendedPath();

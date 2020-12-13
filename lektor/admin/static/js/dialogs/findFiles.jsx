@@ -36,13 +36,13 @@ class FindFiles extends RecordComponent {
         { q: q, alt: this.getRecordAlt(), lang: getCurrentLanguge() },
         { method: "POST" }
       ).then((resp) => {
-        this.setState({
+        this.setState((state) => ({
           results: resp.results,
           currentSelection: Math.min(
-            this.state.currentSelection,
+            state.currentSelection,
             resp.results.length - 1
           ),
-        });
+        }));
       }, bringUpDialog);
     }
   }
@@ -76,9 +76,9 @@ class FindFiles extends RecordComponent {
   }
 
   selectItem(index) {
-    this.setState({
-      currentSelection: Math.min(index, this.state.results.length - 1),
-    });
+    this.setState((state) => ({
+      currentSelection: Math.min(index, state.results.length - 1),
+    }));
   }
 
   renderResults() {

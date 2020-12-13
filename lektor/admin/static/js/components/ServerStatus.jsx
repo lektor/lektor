@@ -33,9 +33,9 @@ class ServerStatus extends React.Component {
             projectId: resp.project_id,
           });
         }
-        this.setState({
-          serverIsUp: this.state.projectId === resp.project_id,
-        });
+        this.setState((state) => ({
+          serverIsUp: state.projectId === resp.project_id,
+        }));
       },
       () => {
         this.setState({
