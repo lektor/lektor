@@ -11,9 +11,11 @@ function loadTranslations() {
 const translations = loadTranslations();
 
 let currentLanguage = "en";
+let currentTranslations = translations[currentLanguage];
 
 export function setCurrentLanguage(lang) {
   currentLanguage = lang;
+  currentTranslations = translations[currentLanguage];
 }
 
 export function getCurrentLanguge() {
@@ -21,13 +23,8 @@ export function getCurrentLanguge() {
 }
 
 export function trans(key) {
-  let rv;
   if (typeof key === "object") {
-    rv = key[currentLanguage];
-    if (rv === undefined) {
-      rv = key.en;
-    }
-    return rv;
+    return key[currentLanguage] ?? key.en;
   }
-  return translations[currentLanguage][key] || key;
+  return currentTranslations[key] || key;
 }
