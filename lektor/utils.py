@@ -28,7 +28,6 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from lektor._compat import reraise
 from lektor.uilink import BUNDLE_BIN_PATH
 from lektor.uilink import EXTRA_PATHS
 
@@ -474,15 +473,18 @@ def atomic_open(filename, mode="r"):
         tmp_filename = None
     try:
         yield f
-    except Exception:
+    except Exception as e:
         f.close()
-        exc_type, exc_value, tb = sys.exc_info()
+        _exc_type, exc_value, tb = sys.exc_info()
         if tmp_filename is not None:
             try:
                 os.remove(tmp_filename)
             except OSError:
                 pass
-        reraise(exc_type, exc_value, tb)
+
+        if exc_value.__traceback__ is not tb:
+            raise exc_value.with_traceback(tb) from e
+        raise exc_value from e
     else:
         f.close()
         if tmp_filename is not None:
