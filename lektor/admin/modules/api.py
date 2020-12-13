@@ -8,7 +8,6 @@ from flask import g
 from flask import jsonify
 from flask import request
 
-from lektor._compat import itervalues
 from lektor.admin.utils import eventstream
 from lektor.environment import PRIMARY_ALT
 from lektor.publisher import publish
@@ -68,7 +67,7 @@ def get_record_info():
 
     primary_alt = pad.db.config.primary_alternative
     if primary_alt is not None:
-        for alt in itervalues(tree_item.alts):
+        for alt in tree_item.alts.values():
             alt_cfg = pad.db.config.get_alternative(alt.id)
             alts.append(
                 {

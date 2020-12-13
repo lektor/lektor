@@ -4,7 +4,6 @@ from babel.dates import get_timezone
 from markupsafe import escape
 from markupsafe import Markup
 
-from lektor._compat import itervalues
 from lektor.context import Context
 from lektor.datamodel import Field
 from lektor.types import BadValue
@@ -264,7 +263,7 @@ def test_datetime_timezone_location(env, pad):
         assert rv.minute == 2
         assert rv.second == 3
         tzinfos = get_timezone("Asia/Seoul")._tzinfos  # pylint: disable=no-member
-        assert rv.tzinfo in itervalues(tzinfos)
+        assert rv.tzinfo in tzinfos.values()
 
 
 def test_datetime_timezone_kst(env, pad):

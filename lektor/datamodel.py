@@ -5,7 +5,6 @@ import os
 from inifile import IniFile
 
 from lektor import types
-from lektor._compat import itervalues
 from lektor.environment import Expression
 from lektor.environment import FormatExpression
 from lektor.environment import PRIMARY_ALT
@@ -375,7 +374,7 @@ class DataModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in itervalues(self.field_map):
+        for field in self.field_map.values():
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv["_model"] = self.id
@@ -437,7 +436,7 @@ class FlowBlockModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in itervalues(self.field_map):
+        for field in self.field_map.values():
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv["_flowblock"] = self.id

@@ -6,7 +6,6 @@ from weakref import ref as weakref
 import pkg_resources
 from inifile import IniFile
 
-from lektor._compat import itervalues
 from lektor.context import get_ctx
 
 
@@ -156,7 +155,7 @@ class PluginController(object):
 
     def iter_plugins(self):
         # XXX: sort?
-        return itervalues(self.env.plugins)
+        return self.env.plugins.values()
 
     def emit(self, event, **kwargs):
         from lektor.builder import process_extra_flags
