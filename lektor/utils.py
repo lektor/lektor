@@ -28,7 +28,6 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from lektor._compat import iteritems
 from lektor._compat import reraise
 from lektor.uilink import BUNDLE_BIN_PATH
 from lektor.uilink import EXTRA_PATHS
@@ -210,7 +209,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
             return _convert(container)
         elif container.pop(_list_marker, False):
             return [_convert(x[1]) for x in sorted(container.items())]
-        return dict_cls((k, _convert(v)) for k, v in iteritems(container))
+        return dict_cls((k, _convert(v)) for k, v in container.items())
 
     result = dict_cls()
 
@@ -238,7 +237,7 @@ def merge(a, b):
         for idx, (item_1, item_2) in enumerate(zip(a, b)):
             a[idx] = merge(item_1, item_2)
     if isinstance(a, dict) and isinstance(b, dict):
-        for key, value in iteritems(b):
+        for key, value in b.items():
             a[key] = merge(a.get(key), value)
         return a
     return a

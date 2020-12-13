@@ -5,7 +5,6 @@ from io import BytesIO
 
 import pytest
 
-from lektor._compat import iteritems
 from lektor.imagetools import compute_dimensions
 from lektor.imagetools import get_image_info
 from lektor.imagetools import is_rotated
@@ -76,7 +75,7 @@ def test_exif(pad):
 
     assert isinstance(image.exif.to_dict(), dict)
 
-    for key, value in iteritems(image.exif.to_dict()):
+    for key, value in image.exif.to_dict().items():
         assert getattr(image.exif, key) == value
 
 

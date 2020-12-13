@@ -13,7 +13,6 @@ from itertools import chain
 import click
 from werkzeug.posixemulation import rename
 
-from lektor._compat import iteritems
 from lektor.build_programs import builtin_build_programs
 from lektor.buildfailures import FailureController
 from lektor.context import Context
@@ -262,7 +261,7 @@ class BuildState(object):
         con = self.connect_to_database()
         try:
             cur = con.cursor()
-            for lang, title in iteritems(info.title_i18n):
+            for lang, title in info.title_i18n.items():
                 cur.execute(
                     """
                     insert or replace into source_info

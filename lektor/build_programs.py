@@ -2,7 +2,6 @@ import os
 import shutil
 from itertools import chain
 
-from lektor._compat import iteritems
 from lektor.assets import Directory
 from lektor.assets import File
 from lektor.db import Attachment
@@ -43,7 +42,7 @@ class SourceInfo(object):
         en_title = self.path
         if "en" in title_i18n:
             en_title = title_i18n["en"]
-        for key, value in iteritems(title_i18n):
+        for key, value in title_i18n.items():
             if key == "en":
                 continue
             if value != en_title:

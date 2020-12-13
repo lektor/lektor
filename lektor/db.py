@@ -18,7 +18,6 @@ from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
 from lektor import metaformat
-from lektor._compat import iteritems
 from lektor.assets import Directory
 from lektor.context import Context
 from lektor.context import get_ctx
@@ -403,7 +402,7 @@ class Record(SourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in iteritems((self.datamodel.label_i18n or {})):
+        for lang, _ in (self.datamodel.label_i18n or {}).items():
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)

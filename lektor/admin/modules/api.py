@@ -8,7 +8,6 @@ from flask import g
 from flask import jsonify
 from flask import request
 
-from lektor._compat import iteritems
 from lektor._compat import itervalues
 from lektor.admin.utils import eventstream
 from lektor.environment import PRIMARY_ALT
@@ -201,7 +200,7 @@ def get_new_record_info():
             "implied_model": implied,
             "available_models": dict(
                 (k, describe_model(v))
-                for k, v in iteritems(pad.db.datamodels)
+                for k, v in pad.db.datamodels.items()
                 if not v.hidden or k == implied
             ),
         }

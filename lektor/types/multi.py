@@ -1,6 +1,5 @@
 import traceback
 
-from lektor._compat import iteritems
 from lektor.environment import Expression
 from lektor.environment import FormatExpression
 from lektor.environment import PRIMARY_ALT
@@ -10,7 +9,7 @@ from lektor.types import Type
 
 def _reflow_and_split_labels(labels):
     rv = []
-    for lang, string in iteritems(labels):
+    for lang, string in labels.items():
         for idx, item in enumerate(string.split(",")):
             try:
                 d = rv[idx]

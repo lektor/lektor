@@ -5,7 +5,6 @@ import os
 from inifile import IniFile
 
 from lektor import types
-from lektor._compat import iteritems
 from lektor._compat import itervalues
 from lektor.environment import Expression
 from lektor.environment import FormatExpression
@@ -272,7 +271,7 @@ class DataModel(object):
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
         self.field_map = dict((x.name, x) for x in fields)
-        for key, (ty, opts) in iteritems(system_fields):
+        for key, (ty, opts) in system_fields.items():
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
         self._child_slug_tmpl = None

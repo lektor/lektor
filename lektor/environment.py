@@ -13,7 +13,6 @@ from jinja2.loaders import split_template_path
 from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
-from lektor._compat import iteritems
 from lektor.context import config_proxy
 from lektor.context import get_asset_url
 from lektor.context import get_ctx
@@ -116,7 +115,7 @@ def update_config_from_ini(config, inifile):
                 "locale": inifile.get("alternatives.%s.locale" % alt, "en_US"),
             }
 
-    for alt, alt_data in iteritems(config["ALTERNATIVES"]):
+    for alt, alt_data in config["ALTERNATIVES"].items():
         if alt_data["primary"]:
             config["PRIMARY_ALTERNATIVE"] = alt
             break
@@ -326,7 +325,7 @@ class Config(object):
         """Returns a list of alternative url prefixes by length."""
         items = [
             (v["url_prefix"].lstrip("/"), k)
-            for k, v in iteritems(self.values["ALTERNATIVES"])
+            for k, v in self.values["ALTERNATIVES"].items()
             if v["url_prefix"]
         ]
         items.sort(key=lambda x: -len(x[0]))
@@ -336,7 +335,7 @@ class Config(object):
         """Returns a list of alternative url suffixes by length."""
         items = [
             (v["url_suffix"].rstrip("/"), k)
-            for k, v in iteritems(self.values["ALTERNATIVES"])
+            for k, v in self.values["ALTERNATIVES"].items()
             if v["url_suffix"]
         ]
         items.sort(key=lambda x: -len(x[0]))

@@ -3,7 +3,6 @@ import posixpath
 import shutil
 from collections import OrderedDict
 
-from lektor._compat import iteritems
 from lektor.environment import PRIMARY_ALT
 from lektor.metaformat import serialize
 from lektor.utils import atomic_open
@@ -223,13 +222,13 @@ class EditorSession(object):
             self.commit()
 
     def update(self, *args, **kwargs):
-        for key, value in iteritems(dict(*args, **kwargs)):
+        for key, value in dict(*args, **kwargs).items():
             self[key] = value
 
     def iteritems(self, fallback=True):
         done = set()
 
-        for key, value in iteritems(self.original_data):
+        for key, value in self.original_data.items():
             done.add(key)
             if key in implied_keys:
                 continue
@@ -239,7 +238,7 @@ class EditorSession(object):
                 yield key, value
 
         if fallback and self.fallback_data:
-            for key, value in iteritems(self.fallback_data):
+            for key, value in self.fallback_data.items():
                 if key in implied_keys or key in done:
                     continue
                 done.add(key)

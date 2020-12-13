@@ -14,7 +14,6 @@
 
 
 itervalues = lambda d: iter(d.values())
-iteritems = lambda d: iter(d.items())
 
 
 def reraise(tp, value, tb=None):

@@ -14,7 +14,6 @@ from io import BytesIO
 
 from werkzeug import urls
 
-from lektor._compat import iteritems
 from lektor.exception import LektorException
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
@@ -489,7 +488,7 @@ class FtpPublisher(Publisher):
         for artifact_name in current_artifacts.keys():
             known_folders.add(posixpath.dirname(artifact_name))
 
-        for artifact_name, checksum in iteritems(server_artifacts):
+        for artifact_name, checksum in server_artifacts.items():
             if artifact_name not in current_artifacts:
                 con.log_buffer.append("000 Deleting %s" % artifact_name)
                 con.delete_file(artifact_name)
@@ -500,7 +499,7 @@ class FtpPublisher(Publisher):
 
         if duplicates or server_artifacts != current_artifacts:
             listing = []
-            for artifact_name, checksum in iteritems(current_artifacts):
+            for artifact_name, checksum in current_artifacts.items():
                 listing.append("%s|%s\n" % (artifact_name, checksum))
             listing.sort()
             con.upload_file(".lektor/.listing.tmp", "".join(listing))

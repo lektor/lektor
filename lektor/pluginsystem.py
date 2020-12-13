@@ -6,7 +6,6 @@ from weakref import ref as weakref
 import pkg_resources
 from inifile import IniFile
 
-from lektor._compat import iteritems
 from lektor._compat import itervalues
 from lektor.context import get_ctx
 
@@ -127,7 +126,7 @@ def load_plugins():
 def initialize_plugins(env):
     """Initializes the plugins for the environment."""
     plugins = load_plugins()
-    for plugin_id, plugin_cls in iteritems(plugins):
+    for plugin_id, plugin_cls in plugins.items():
         env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls)
     env.plugin_controller.emit("setup-env")
 

@@ -12,7 +12,6 @@ from xml.etree import ElementTree as etree
 import exifread
 import filetype
 
-from lektor._compat import iteritems
 from lektor.reporter import reporter
 from lektor.utils import get_dependent_url
 from lektor.utils import locate_executable
@@ -92,7 +91,7 @@ class EXIFInfo(object):
 
     def to_dict(self):
         rv = {}
-        for key, value in iteritems(self.__class__.__dict__):
+        for key, value in self.__class__.__dict__.items():
             if key[:1] != "_" and isinstance(value, property):
                 rv[key] = getattr(self, key)
         return rv
