@@ -77,14 +77,7 @@ jobs:
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
-        run: |
-          cd lektor/admin/
-          npm install .
-          npm run webpack
-      - name: Show node environment
-        run: |
-          node --version
-          npm --version
+        run: cd lektor/admin && npm ci && npm run webpack
 
   linux-smoke-py:
     name: Linux py${{ matrix.PYTHON_VERSION }} smoke test
@@ -148,14 +141,7 @@ jobs:
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
-        run: |
-          cd lektor/admin/
-          npm install .
-          npm run webpack
-      - name: Show node environment
-        run: |
-          node --version
-          npm --version
+        run: cd lektor/admin && npm ci && npm run webpack
 
   mac-node:
     name: Mac node${{ matrix.NODEJS_VERSION }} tests
@@ -181,14 +167,7 @@ jobs:
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
-        run: |
-          cd lektor/admin/
-          npm install .
-          npm run webpack
-      - name: Show node environment
-        run: |
-          node --version
-          npm --version
+        run: cd lektor/admin && npm ci && npm run webpack
 
   win-node:
     name: Win node${{ matrix.NODEJS_VERSION }} tests
@@ -214,14 +193,7 @@ jobs:
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
-        run: |
-          cd lektor/admin/
-          npm install .
-          npm run webpack
-      - name: Show node environment
-        run: |
-          node --version
-          npm --version
+        run: cd lektor/admin && npm ci && npm run webpack
 
   ############################################################################
   # Python tests
