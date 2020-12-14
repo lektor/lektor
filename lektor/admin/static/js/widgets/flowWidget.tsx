@@ -3,8 +3,8 @@
 import React from "react";
 import { trans } from "../i18n";
 import { tokenize, serialize } from "../metaformat";
-import { widgetPropTypes } from "./mixins";
 import { formatUserLabel } from "../userLabel";
+import { WidgetProps } from "./mixins";
 import {
   getWidgetComponent,
   getWidgetComponentWithFallback,
@@ -122,7 +122,7 @@ const serializeFlowBlock = (flockBlockModel, data) => {
   return serialize(rv);
 };
 
-export class FlowWidget extends React.PureComponent {
+export class FlowWidget extends React.PureComponent<WidgetProps> {
   static deserializeValue(value, type) {
     let blockId = 0;
     return parseFlowFormat(value).map((item) => {
@@ -306,4 +306,3 @@ export class FlowWidget extends React.PureComponent {
     );
   }
 }
-FlowWidget.propTypes = widgetPropTypes;

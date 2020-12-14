@@ -1,19 +1,15 @@
 import PropTypes from "prop-types";
-import React from "react";
-import {
-  DateInputWidget,
-  IntegerInputWidget,
-  FloatInputWidget,
-  UrlInputWidget,
-  SlugInputWidget,
-  BooleanInputWidget,
-  MultiLineTextInputWidget,
-  SingleLineTextInputWidget,
-} from "./widgets/primitiveWidgets";
-import {
-  CheckboxesInputWidget,
-  SelectInputWidget,
-} from "./widgets/multiWidgets";
+import React, { ComponentType } from "react";
+import { IntegerInputWidget } from "./widgets/IntegerInputWidget";
+import { MultiLineTextInputWidget } from "./widgets/MultiLineTextInputWidget";
+import { BooleanInputWidget } from "./widgets/BooleanInputWidget";
+import { DateInputWidget } from "./widgets/DateInputWidget";
+import { FloatInputWidget } from "./widgets/FloatInputWidget";
+import { UrlInputWidget } from "./widgets/UrlInputWidget";
+import { SlugInputWidget } from "./widgets/SlugInputWidget";
+import { SingleLineTextInputWidget } from "./widgets/SingleLineTextInputWidget";
+import { CheckboxesInputWidget } from "./widgets/CheckboxesInputWidget";
+import { SelectInputWidget } from "./widgets/SelectInputWidget";
 import { FlowWidget } from "./widgets/flowWidget";
 import {
   LineWidget,
@@ -21,7 +17,7 @@ import {
   InfoWidget,
   HeadingWidget,
 } from "./widgets/fakeWidgets";
-import { widgetPropTypes } from "./widgets/mixins";
+import { WidgetProps } from "./widgets/mixins";
 import ToggleGroup from "./components/ToggleGroup";
 import { trans } from "./i18n";
 
@@ -43,7 +39,10 @@ const widgetComponents = {
   "f-heading": HeadingWidget,
 };
 
-function FallbackWidget(props) {
+/**
+ * A fallback widget to render for fields missing a component.
+ */
+function FallbackWidget(props: WidgetProps) {
   return (
     <div>
       <em>
@@ -53,7 +52,6 @@ function FallbackWidget(props) {
     </div>
   );
 }
-FallbackWidget.propTypes = widgetPropTypes;
 
 /**
  * An input widget wrapped in a <div> with description and label.
@@ -110,11 +108,15 @@ FieldBox.propTypes = {
   placeholder: PropTypes.any,
 };
 
-export function getWidgetComponent(type) {
+export function getWidgetComponent(
+  type: string
+): ComponentType<WidgetProps> | null {
   return widgetComponents[type.widget] || null;
 }
 
-export function getWidgetComponentWithFallback(type) {
+export function getWidgetComponentWithFallback(
+  type: string
+): ComponentType<WidgetProps> {
   return widgetComponents[type.widget] || FallbackWidget;
 }
 

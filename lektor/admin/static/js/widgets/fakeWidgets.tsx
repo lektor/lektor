@@ -1,4 +1,4 @@
-import { widgetPropTypes } from "./mixins";
+import { WidgetProps } from "./mixins";
 import React from "react";
 import { trans } from "../i18n";
 
@@ -6,15 +6,13 @@ export function LineWidget() {
   return <hr />;
 }
 LineWidget.isFakeWidget = true;
-LineWidget.propTypes = widgetPropTypes;
 
 export function SpacingWidget() {
   return <div className="spacing" />;
 }
 SpacingWidget.isFakeWidget = true;
-SpacingWidget.propTypes = widgetPropTypes;
 
-export function InfoWidget(props) {
+export function InfoWidget(props: WidgetProps) {
   const label = trans(props.field.label_i18n);
   return (
     <div className="info">
@@ -26,10 +24,8 @@ export function InfoWidget(props) {
   );
 }
 InfoWidget.isFakeWidget = true;
-InfoWidget.propTypes = widgetPropTypes;
 
-export function HeadingWidget(props) {
+export function HeadingWidget(props: WidgetProps) {
   return <h3>{trans(props.type.heading_i18n)}</h3>;
 }
 HeadingWidget.isFakeWidget = true;
-HeadingWidget.propTypes = widgetPropTypes;

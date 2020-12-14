@@ -1,9 +1,9 @@
 import React from "react";
 import { flipSetValue } from "../utils";
 import { trans } from "../i18n";
-import { getInputClass, widgetPropTypes } from "./mixins";
+import { WidgetProps } from "./mixins";
 
-function checkboxIsActive(field, props) {
+function checkboxIsActive(field, props: WidgetProps) {
   let value = props.value;
   if (value == null) {
     value = props.placeholder;
@@ -19,7 +19,7 @@ function checkboxIsActive(field, props) {
   return false;
 }
 
-export class CheckboxesInputWidget extends React.PureComponent {
+export class CheckboxesInputWidget extends React.PureComponent<WidgetProps> {
   static serializeValue(value) {
     return (value || "").join(", ");
   }
@@ -73,40 +73,3 @@ export class CheckboxesInputWidget extends React.PureComponent {
     return <div className="checkboxes">{choices}</div>;
   }
 }
-CheckboxesInputWidget.propTypes = widgetPropTypes;
-
-export function SelectInputWidget(props) {
-  const {
-    className,
-    type,
-    value,
-    placeholder,
-    onChange,
-    ...otherProps
-  } = props;
-
-  const choices = type.choices.map((item) => (
-    <option key={item[0]} value={item[0]}>
-      {trans(item[1])}
-    </option>
-  ));
-
-  return (
-    <div className="form-group">
-      <div className={className}>
-        <select
-          className={getInputClass(type)}
-          value={value || placeholder || ""}
-          onChange={(e) => onChange(e.target.value)}
-          {...otherProps}
-        >
-          <option key="" value="">
-            ----
-          </option>
-          {choices}
-        </select>
-      </div>
-    </div>
-  );
-}
-SelectInputWidget.propTypes = widgetPropTypes;
