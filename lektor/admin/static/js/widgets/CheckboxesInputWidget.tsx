@@ -1,9 +1,9 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { flipSetValue } from "../utils";
 import { trans } from "../i18n";
 import { WidgetProps } from "./mixins";
 
-function checkboxIsActive(field, props: WidgetProps) {
+function checkboxIsActive(field: string, props: WidgetProps) {
   let value = props.value;
   if (value == null) {
     value = props.placeholder;
@@ -38,17 +38,12 @@ export class CheckboxesInputWidget extends React.PureComponent<WidgetProps> {
   }
 
   render() {
-    let {
-      className,
-      value,
-      placeholder,
-      type,
-      onChange,
-      ...otherProps
-    } = this.props;
-    className = (className || "") + " checkbox";
+    let { disabled, type, onChange } = this.props;
 
-    const onChangeHandler = (field, event) => {
+    const onChangeHandler = (
+      field: string,
+      event: ChangeEvent<HTMLInputElement>
+    ) => {
       const newValue = flipSetValue(
         this.props.value,
         field,
@@ -58,11 +53,11 @@ export class CheckboxesInputWidget extends React.PureComponent<WidgetProps> {
     };
 
     const choices = type.choices.map((item) => (
-      <div className={className} key={item[0]}>
+      <div className="checkbox" key={item[0]}>
         <label>
           <input
             type="checkbox"
-            {...otherProps}
+            disabled={disabled}
             checked={checkboxIsActive(item[0], this.props)}
             onChange={(e) => onChangeHandler(item[0], e)}
           />

@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { ComponentType } from "react";
+import React, { ReactNode } from "react";
 import { IntegerInputWidget } from "./widgets/IntegerInputWidget";
 import { MultiLineTextInputWidget } from "./widgets/MultiLineTextInputWidget";
 import { BooleanInputWidget } from "./widgets/BooleanInputWidget";
@@ -17,7 +17,12 @@ import {
   InfoWidget,
   HeadingWidget,
 } from "./widgets/fakeWidgets";
-import { WidgetProps } from "./widgets/mixins";
+import {
+  Field,
+  WidgetComponent,
+  WidgetProps,
+  WidgetType,
+} from "./widgets/mixins";
 import ToggleGroup from "./components/ToggleGroup";
 import { trans } from "./i18n";
 
@@ -56,8 +61,12 @@ function FallbackWidget(props: WidgetProps) {
 /**
  * An input widget wrapped in a <div> with description and label.
  */
-
-export const FieldBox = React.memo(function FieldBox(props) {
+export const FieldBox = React.memo(function FieldBox(props: {
+  field: Field;
+  value: string;
+  placeholder: string;
+  disabled?: boolean;
+}) {
   const { field, value, placeholder, disabled } = props;
   const onChange = props.onChange
     ? props.onChange
@@ -73,7 +82,7 @@ export const FieldBox = React.memo(function FieldBox(props) {
   if (Widget.isFakeWidget) {
     return (
       <div className={className} key={field.name}>
-        <Widget key={field.name} type={field.type} field={field} />
+        <Widget key={field.name} field={field} />
       </div>
     );
   }
@@ -101,29 +110,20 @@ export const FieldBox = React.memo(function FieldBox(props) {
   );
 });
 
-FieldBox.propTypes = {
-  value: PropTypes.any,
-  onChange: PropTypes.func,
-  field: PropTypes.any,
-  placeholder: PropTypes.any,
-};
-
-export function getWidgetComponent(
-  type: string
-): ComponentType<WidgetProps> | null {
+export function getWidgetComponent(type: WidgetType): WidgetComponent | null {
   return widgetComponents[type.widget] || null;
 }
 
 export function getWidgetComponentWithFallback(
-  type: string
-): ComponentType<WidgetProps> {
+  type: WidgetType
+): WidgetComponent {
   return widgetComponents[type.widget] || FallbackWidget;
 }
 
 /**
  * Get the width of a field in columns.
  */
-function getFieldColumns(field) {
+function getFieldColumns(field: Field) {
   const widthSpec = (field.type.width || "1/1").split("/");
   return Math.min(
     12,
@@ -134,10 +134,10 @@ function getFieldColumns(field) {
 /**
  * Process fields into rows.
  */
-function processFields(fields) {
+function processFields(fields: Field[]) {
   const rows = [];
   let currentColumns = 0;
-  let row = [];
+  let row: Field[] = [];
 
   fields.forEach((field) => {
     const columns = getFieldColumns(field);
@@ -159,9 +159,9 @@ function processFields(fields) {
 /**
  * Split the fields into normal and system fields and process into rows.
  */
-function getFieldRows(fields) {
-  const normalFields = [];
-  const systemFields = [];
+function getFieldRows(fields: Field[]) {
+  const normalFields: Field[] = [];
+  const systemFields: Field[] = [];
 
   fields.forEach((field) => {
     if (field.name.substr(0, 1) === "_") {
@@ -177,7 +177,13 @@ function getFieldRows(fields) {
 /**
  * Render field rows using a render function.
  */
-export function FieldRows({ fields, renderFunc }) {
+export function FieldRows({
+  fields,
+  renderFunc,
+}: {
+  fields: Field[];
+  renderFunc: (field: Field) => ReactNode;
+}) {
   const [normalRows, systemRows] = getFieldRows(fields);
 
   return (

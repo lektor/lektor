@@ -185,12 +185,12 @@ class EditPage extends RecordComponent {
   }
 
   renderFormField(field) {
-    const widget = getWidgetComponentWithFallback(field.type);
+    const Widget = getWidgetComponentWithFallback(field.type);
     return (
       <FieldBox
         key={field.name}
-        value={this.getValueForField(widget, field)}
-        placeholder={this.getPlaceholderForField(widget, field)}
+        value={this.getValueForField(Widget, field)}
+        placeholder={this.getPlaceholderForField(Widget, field)}
         field={field}
         setFieldValue={this.setFieldValue}
         disabled={

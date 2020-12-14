@@ -3,14 +3,7 @@ import { trans } from "../i18n";
 import { getInputClass, WidgetProps } from "./mixins";
 
 export function SelectInputWidget(props: WidgetProps) {
-  const {
-    className,
-    type,
-    value,
-    placeholder,
-    onChange,
-    ...otherProps
-  } = props;
+  const { type, value, placeholder, onChange, disabled } = props;
 
   const choices = type.choices.map((item) => (
     <option key={item[0]} value={item[0]}>
@@ -20,12 +13,12 @@ export function SelectInputWidget(props: WidgetProps) {
 
   return (
     <div className="form-group">
-      <div className={className}>
+      <div>
         <select
           className={getInputClass(type)}
           value={value || placeholder || ""}
           onChange={(e) => onChange(e.target.value)}
-          {...otherProps}
+          disabled={disabled}
         >
           <option key="" value="">
             ----

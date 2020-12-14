@@ -4,7 +4,7 @@ import React from "react";
 import { trans } from "../i18n";
 import { tokenize, serialize } from "../metaformat";
 import { formatUserLabel } from "../userLabel";
-import { WidgetProps } from "./mixins";
+import { Field, WidgetProps } from "./mixins";
 import {
   getWidgetComponent,
   getWidgetComponentWithFallback,
@@ -187,7 +187,7 @@ export class FlowWidget extends React.PureComponent<WidgetProps> {
     this.props.onChange(newValue, true); // true => just ui changed
   }
 
-  renderFormField(blockInfo, field, idx) {
+  renderFormField(blockInfo, field: Field, idx: number) {
     const value = blockInfo.data[field.name];
     let placeholder = field.default;
     const Widget = getWidgetComponentWithFallback(field.type);

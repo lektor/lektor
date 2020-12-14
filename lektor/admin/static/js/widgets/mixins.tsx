@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { ComponentType } from "react";
 
 export const widgetPropTypes = {
   value: PropTypes.any,
@@ -8,15 +9,36 @@ export const widgetPropTypes = {
   disabled: PropTypes.bool,
 };
 
+type Translations = Partial<Record<string, string>>;
+
+export interface WidgetType {
+  widget: string;
+  heading_i18n?: Translations;
+  checkbox_label_i18n?: Translations;
+  addon_label_i18n?: Translations;
+  size?: string;
+}
+
+export interface Field {
+  name: string;
+  type: WidgetType;
+  description_i18n: Translations;
+  label_i18n: Translations;
+}
+
 export type WidgetProps<ValueType = string> = {
   value?: ValueType;
-  type?: any;
+  type: WidgetType;
   placeholder?: ValueType;
   onChange: (value: ValueType) => void;
   disabled?: boolean;
 };
 
-export function getInputClass(type: { size: string }) {
+type FakeWidget = ComponentType<{ field: Field }> & { isFakeWidget: true };
+type RealWidget = ComponentType<WidgetProps> & { isFakeWidget: undefined };
+export type WidgetComponent = FakeWidget | RealWidget;
+
+export function getInputClass(type: WidgetType) {
   let rv = "form-control";
   if (type.size === "small") {
     rv = "input-sm " + rv;
