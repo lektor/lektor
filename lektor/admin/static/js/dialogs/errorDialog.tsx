@@ -5,7 +5,7 @@ import SlideDialog from "../components/SlideDialog";
 import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
-class ErrorDialog extends RecordComponent {
+export default class ErrorDialog extends RecordComponent {
   onClose() {
     dialogSystem.dismissDialog();
   }
@@ -35,5 +35,3 @@ class ErrorDialog extends RecordComponent {
 ErrorDialog.propTypes = {
   error: PropTypes.object,
 };
-
-export default ErrorDialog;

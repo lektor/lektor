@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-import React, { createRef } from "react";
+import React, { ChangeEvent, createRef, RefObject } from "react";
 
 import SlideDialog from "../components/SlideDialog";
 import { loadData, getApiUrl } from "../utils";
@@ -8,11 +8,25 @@ import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
 
+interface Server {
+  id: string;
+  short_target: string;
+  name_i18n: Partial<Record<string, string>>;
+}
+
 /**
  * Render a <select for the available target servers.
  */
-function TargetServers({ activeTarget, servers, setActiveTarget }) {
-  function onChange(event) {
+function TargetServers({
+  activeTarget,
+  servers,
+  setActiveTarget,
+}: {
+  activeTarget: string;
+  servers: Server[];
+  setActiveTarget: (value: string) => void;
+}) {
+  function onChange(event: ChangeEvent<HTMLSelectElement>) {
     setActiveTarget(event.target.value);
   }
   const serverOptions = servers.map((server) => (
@@ -27,7 +41,7 @@ function TargetServers({ activeTarget, servers, setActiveTarget }) {
       <dd>
         <div className="input-group">
           <select
-            value={activeTarget || ""}
+            value={activeTarget}
             onChange={onChange}
             className="form-control"
           >
@@ -39,13 +53,22 @@ function TargetServers({ activeTarget, servers, setActiveTarget }) {
   );
 }
 
-class Publish extends React.Component {
-  constructor(props) {
+interface PublishState {
+  servers: Server[];
+  activeTarget: string;
+  log: string[];
+  currentState: "IDLE" | "BUILDING" | "PUBLISH" | "DONE";
+}
+
+class Publish extends React.Component<{}, PublishState> {
+  buildLog: RefObject<HTMLPreElement>;
+
+  constructor(props: {}) {
     super(props);
 
     this.state = {
       servers: [],
-      activeTarget: null,
+      activeTarget: "",
       log: [],
       currentState: "IDLE",
     };
@@ -132,7 +155,7 @@ class Publish extends React.Component {
     });
   }
 
-  setActiveTarget(activeTarget) {
+  setActiveTarget(activeTarget: string) {
     this.setState({ activeTarget: activeTarget });
   }
 

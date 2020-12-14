@@ -1,10 +1,16 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { MouseEvent } from "react";
 import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
-class SlideDialog extends React.Component {
-  constructor(props) {
+type Props = {
+  title: string;
+  hasCloseButton: boolean;
+  closeOnEscape: boolean;
+};
+
+export default class SlideDialog extends React.Component<Props> {
+  constructor(props: Props) {
     super(props);
     this._onKeyPress = this._onKeyPress.bind(this);
   }
@@ -19,23 +25,22 @@ class SlideDialog extends React.Component {
     window.removeEventListener("keydown", this._onKeyPress);
   }
 
-  _onKeyPress(event) {
+  _onKeyPress(event: KeyboardEvent) {
     if (event.key === "Escape" && this.props.closeOnEscape) {
       event.preventDefault();
       dialogSystem.dismissDialog();
     }
   }
 
-  _onCloseClick(event) {
+  _onCloseClick(event: MouseEvent) {
     event.preventDefault();
     dialogSystem.dismissDialog();
   }
 
   render() {
-    let { children, title, hasCloseButton, className } = this.props;
-    className = (className || "") + " sliding-panel container";
+    let { children, title, hasCloseButton } = this.props;
     return (
-      <div className={className}>
+      <div className="sliding-panel container">
         <div className="col-md-6 col-md-offset-4">
           {hasCloseButton && (
             <a
@@ -53,11 +58,3 @@ class SlideDialog extends React.Component {
     );
   }
 }
-
-SlideDialog.propTypes = {
-  title: PropTypes.string,
-  hasCloseButton: PropTypes.bool,
-  closeOnEscape: PropTypes.bool,
-};
-
-export default SlideDialog;

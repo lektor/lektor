@@ -5,8 +5,13 @@ import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
 
-class Refresh extends React.Component {
-  constructor(props) {
+type State = "IDLE" | "DONE" | "CLEANING";
+
+export default class Refresh extends React.Component<
+  {},
+  { currentState: State }
+> {
+  constructor(props: {}) {
     super(props);
     this.state = {
       currentState: "IDLE",
@@ -82,5 +87,3 @@ class Refresh extends React.Component {
     );
   }
 }
-
-export default Refresh;
