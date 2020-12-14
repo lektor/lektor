@@ -47,8 +47,8 @@ function FallbackWidget(props) {
   return (
     <div>
       <em>
-        Widget "{props.type.widget}" not implemented (used by type "
-        {props.type.name}")
+        {`Widget "${props.type.widget}" not implemented`}
+        {` (used by type "${props.type.name}")`}
       </em>
     </div>
   );
