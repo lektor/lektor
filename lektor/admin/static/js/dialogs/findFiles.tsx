@@ -1,14 +1,25 @@
-import React from "react";
+import React, { ChangeEvent, KeyboardEvent } from "react";
 
-import RecordComponent from "../components/RecordComponent";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import { loadData } from "../utils";
 import { getCurrentLanguge, trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
 
-class FindFiles extends RecordComponent {
-  constructor(props) {
+type Result = {
+  parents: { title: string }[];
+  title: string;
+};
+
+type State = {
+  query: string;
+  currentSelection: number;
+  results: Result[];
+};
+
+class FindFiles extends RecordComponent<unknown, State> {
+  constructor(props: RecordProps) {
     super(props);
     this.state = {
       query: "",
@@ -17,7 +28,7 @@ class FindFiles extends RecordComponent {
     };
   }
 
-  onInputChange(e) {
+  onInputChange(e: ChangeEvent<HTMLInputElement>) {
     const q = e.target.value;
 
     if (q === "") {
@@ -47,7 +58,7 @@ class FindFiles extends RecordComponent {
     }
   }
 
-  onInputKey(e) {
+  onInputKey(e: KeyboardEvent) {
     let sel = this.state.currentSelection;
     const max = this.state.results.length;
     if (e.key === "ArrowDown") {
@@ -64,7 +75,7 @@ class FindFiles extends RecordComponent {
     });
   }
 
-  onActiveItem(index) {
+  onActiveItem(index: number) {
     const item = this.state.results[index];
     if (item !== undefined) {
       const target =
@@ -75,7 +86,7 @@ class FindFiles extends RecordComponent {
     }
   }
 
-  selectItem(index) {
+  selectItem(index: number) {
     this.setState((state) => ({
       currentSelection: Math.min(index, state.results.length - 1),
     }));
@@ -83,13 +94,11 @@ class FindFiles extends RecordComponent {
 
   renderResults() {
     const rv = this.state.results.map((result, idx) => {
-      const parents = result.parents.map((item, idx) => {
-        return (
-          <span className="parent" key={idx}>
-            {item.title}
-          </span>
-        );
-      });
+      const parents = result.parents.map((item, idx) => (
+        <span className="parent" key={idx}>
+          {item.title}
+        </span>
+      ));
 
       return (
         <li

@@ -32,10 +32,11 @@ function BadRoute() {
   );
 }
 
-function Main(props) {
-  const { path } = props.match;
+function Main() {
+  const path = $LEKTOR_CONFIG.admin_root;
+
   return (
-    <App {...props}>
+    <App>
       <Switch>
         <Route name="edit" path={`${path}/:path/edit`} component={EditPage} />
         <Route
@@ -72,7 +73,7 @@ const dash = document.getElementById("dash");
 if (dash) {
   ReactDOM.render(
     <Router>
-      <Route name="app" path={$LEKTOR_CONFIG.admin_root} component={Main} />
+      <Main />
     </Router>,
     dash
   );

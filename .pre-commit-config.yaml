@@ -18,9 +18,9 @@ repos:
     name: eslint
     language: node
     entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix
-    files: \.(js|jsx)$
+    files: \.(ts|tsx)$
   - id: prettier
     name: prettier
     language: node
     entry: ./lektor/admin/node_modules/prettier/bin-prettier.js --write --list-different
-    files: \.(js|jsx|less)$
+    files: \.(ts|tsxjs|jsx|less)$

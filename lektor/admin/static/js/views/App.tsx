@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Route, useRouteMatch } from "react-router-dom";
 
 import BreadCrumbs from "../components/BreadCrumbs";
@@ -6,21 +6,24 @@ import Sidebar from "../components/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
 
-function Header(props) {
-  const match = useRouteMatch();
+function Header({
+  sidebarIsActive,
+  toggleSidebar,
+}: {
+  sidebarIsActive: boolean;
+  toggleSidebar: () => void;
+}) {
+  const fullPath = `${$LEKTOR_CONFIG.admin_root}/:path/:page`;
+  const match = useRouteMatch(fullPath);
 
-  const buttonClass = props.sidebarIsActive
+  const buttonClass = sidebarIsActive
     ? "navbar-toggle active"
     : "navbar-toggle";
 
   return (
     <header>
       <BreadCrumbs match={match}>
-        <button
-          type="button"
-          className={buttonClass}
-          onClick={props.toggleSidebar}
-        >
+        <button type="button" className={buttonClass} onClick={toggleSidebar}>
           <span className="sr-only">Toggle navigation</span>
           <span className="icon-list" />
           <span className="icon-list" />
@@ -31,8 +34,9 @@ function Header(props) {
   );
 }
 
-function App(props) {
-  const fullPath = `${props.match.path}/:path/:page`;
+export default function App(props: { children: ReactNode }) {
+  const fullPath = `${$LEKTOR_CONFIG.admin_root}/:path/:page`;
+
   const [sidebarIsActive, setSidebarIsActive] = useState(false);
 
   function toggleSidebar() {
@@ -47,12 +51,7 @@ function App(props) {
   return (
     <div className="application">
       <ServerStatus />
-      <Route path={fullPath}>
-        <Header
-          sidebarIsActive={sidebarIsActive}
-          toggleSidebar={toggleSidebar}
-        />
-      </Route>
+      <Header sidebarIsActive={sidebarIsActive} toggleSidebar={toggleSidebar} />
       <div className="editor container">
         <Route path={fullPath} component={DialogSlot} />
         <div className={sidebarClasses}>
@@ -65,5 +64,3 @@ function App(props) {
     </div>
   );
 }
-
-export default App;

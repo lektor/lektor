@@ -1,7 +1,10 @@
 import React from "react";
+import { RouteChildrenProps } from "react-router";
 import { getParentFsPath, urlToFsPath, fsToUrlPath } from "../utils";
 
-export function getRecordPathAndAlt(path) {
+export function getRecordPathAndAlt(
+  path: string
+): [string, string] | [null, null] {
   if (!path) {
     return [null, null];
   }
@@ -9,27 +12,32 @@ export function getRecordPathAndAlt(path) {
   return [urlToFsPath(items[0]), items[1]];
 }
 
+export type RecordProps = RouteChildrenProps;
+
 /**
  * A React component baseclass that has some basic knowledge about
  * the record it works with.
  */
-export default class RecordComponent extends React.Component {
+export default class RecordComponent<P, S> extends React.Component<
+  P & RecordProps,
+  S
+> {
   /**
    * Helper to generate URL path for an admin page.
-   * @param {string | null} name - Name of the page (or null for the current one)
-   * @param {string} path - Record path
+   * @param name - Name of the page (or null for the current one)
+   * @param path - Record path
    */
-  getPathToAdminPage(name, path) {
+  getPathToAdminPage(name: string | null, path: string) {
     const pageName = name !== null ? name : this.props.match.params.page;
     return `${$LEKTOR_CONFIG.admin_root}/${path}/${pageName}`;
   }
 
   /**
    * Helper to transition to a specific page
-   * @param {string} name - Page name
-   * @param {string} path - Record path
+   * @param name - Page name
+   * @param path - Record path
    */
-  transitionToAdminPage(name, path) {
+  transitionToAdminPage(name: string, path: string) {
     const url = this.getPathToAdminPage(name, path);
     this.props.history.push(url);
   }
@@ -49,7 +57,7 @@ export default class RecordComponent extends React.Component {
 
   /* return the url path for the current record path (or a modified one)
      by preserving or overriding the alt */
-  getUrlRecordPathWithAlt(newPath, newAlt) {
+  getUrlRecordPathWithAlt(newPath?: string, newAlt?: string) {
     if (newPath === undefined || newPath === null) {
       newPath = this.getRecordPath();
     }
