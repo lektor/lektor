@@ -21,5 +21,6 @@ module.exports = {
     "react/prop-types": 0,
     "react/no-access-state-in-setstate": 1,
     "@typescript-eslint/explicit-module-boundary-types": 0,
+    "@typescript-eslint/no-explicit-any": 0,
   },
 };
