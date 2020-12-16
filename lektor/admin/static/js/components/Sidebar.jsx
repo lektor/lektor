@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import React from "react";
 import { loadData, getPlatform } from "../utils";
 import { trans } from "../i18n";

@@ -1,10 +1,4 @@
-import React, {
-  ChangeEvent,
-  Component,
-  createRef,
-  CSSProperties,
-  RefObject,
-} from "react";
+import React, { ChangeEvent, Component, createRef, RefObject } from "react";
 import { getInputClass, WidgetProps } from "./mixins";
 
 export class MultiLineTextInputWidget extends Component<WidgetProps> {
@@ -34,33 +28,18 @@ export class MultiLineTextInputWidget extends Component<WidgetProps> {
     this.recalculateSize();
   }
 
-  isInAutoResizeMode() {
-    return this.props.rows === undefined;
-  }
-
   recalculateSize() {
-    if (!this.isInAutoResizeMode()) {
+    const node = this.textarea.current;
+    if (!node) {
       return;
     }
-    let diff;
-    const node = this.textarea.current;
 
-    if (window.getComputedStyle) {
-      const s = window.getComputedStyle(node);
-      if (
-        s.getPropertyValue("box-sizing") === "border-box" ||
-        s.getPropertyValue("-moz-box-sizing") === "border-box" ||
-        s.getPropertyValue("-webkit-box-sizing") === "border-box"
-      ) {
-        diff = 0;
-      } else {
-        diff =
-          parseInt(s.getPropertyValue("padding-bottom") || 0, 10) +
-          parseInt(s.getPropertyValue("padding-top") || 0, 10);
-      }
-    } else {
-      diff = 0;
-    }
+    const style = window.getComputedStyle(node);
+    const diff =
+      style.getPropertyValue("box-sizing") === "border-box"
+        ? 0
+        : parseInt(style.getPropertyValue("padding-bottom") || "0", 10) +
+          parseInt(style.getPropertyValue("padding-top") || "0", 10);
 
     const updateScrollPosition = node === document.activeElement;
     // Cross-browser compatibility for scroll position
@@ -83,21 +62,17 @@ export class MultiLineTextInputWidget extends Component<WidgetProps> {
   render() {
     const { type, value, placeholder, disabled } = this.props;
 
-    const style: CSSProperties = this.isInAutoResizeMode()
-      ? {
-          display: "block",
-          overflow: "hidden",
-          resize: "none",
-        }
-      : {};
-
     return (
       <div>
         <textarea
           ref={this.textarea}
           className={getInputClass(type)}
           onChange={this.onChange.bind(this)}
-          style={style}
+          style={{
+            display: "block",
+            overflow: "hidden",
+            resize: "none",
+          }}
           value={value}
           disabled={disabled}
           placeholder={placeholder}

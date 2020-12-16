@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import { trans } from "../i18n";

@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import React, { ChangeEvent, createRef, RefObject } from "react";
 
 import SlideDialog from "../components/SlideDialog";

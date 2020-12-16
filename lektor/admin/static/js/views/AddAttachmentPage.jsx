@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import React, { createRef } from "react";
 import RecordComponent from "../components/RecordComponent";
 import hub from "../hub";

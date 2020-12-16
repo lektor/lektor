@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import React from "react";
 import { trans } from "../i18n";
 import { tokenize, serialize } from "../metaformat";

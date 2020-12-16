@@ -1,4 +1,4 @@
-import { Field, WidgetProps } from "./mixins";
+import { Field } from "./mixins";
 import React from "react";
 import { trans } from "../i18n";
 
