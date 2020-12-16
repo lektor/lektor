@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import React, { ReactNode } from "react";
 import { IntegerInputWidget } from "./widgets/IntegerInputWidget";
 import { MultiLineTextInputWidget } from "./widgets/MultiLineTextInputWidget";

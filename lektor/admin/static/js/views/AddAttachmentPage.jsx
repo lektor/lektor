@@ -36,7 +36,7 @@ class AddAttachmentPage extends RecordComponent {
     }, bringUpDialog);
   }
 
-  uploadFile(event) {
+  uploadFile() {
     this.fileInput.current.click();
   }
 
@@ -49,7 +49,7 @@ class AddAttachmentPage extends RecordComponent {
     }
   }
 
-  onUploadComplete(resp, event) {
+  onUploadComplete(resp) {
     this.setState(
       {
         isUploading: false,
@@ -68,7 +68,7 @@ class AddAttachmentPage extends RecordComponent {
     );
   }
 
-  onFileSelected(event) {
+  onFileSelected() {
     if (this.state.isUploading) {
       return;
     }
@@ -88,8 +88,8 @@ class AddAttachmentPage extends RecordComponent {
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", getApiUrl("/newattachment"));
-    xhr.onload = (event) => {
-      this.onUploadComplete(JSON.parse(xhr.responseText), event);
+    xhr.onload = () => {
+      this.onUploadComplete(JSON.parse(xhr.responseText));
     };
     xhr.upload.onprogress = (event) => {
       this.onUploadProgress(event);

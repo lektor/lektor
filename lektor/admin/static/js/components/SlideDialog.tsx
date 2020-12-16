@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import React, { MouseEvent } from "react";
 import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
@@ -38,7 +37,7 @@ export default class SlideDialog extends React.Component<Props> {
   }
 
   render() {
-    let { children, title, hasCloseButton } = this.props;
+    const { children, title, hasCloseButton } = this.props;
     return (
       <div className="sliding-panel container">
         <div className="col-md-6 col-md-offset-4">

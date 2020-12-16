@@ -8,7 +8,7 @@ function loadTranslations() {
   return rv;
 }
 
-const translations: any = loadTranslations();
+const translations: Record<string, Record<string, string>> = loadTranslations();
 
 let currentLanguage = "en";
 let currentTranslations = translations[currentLanguage];

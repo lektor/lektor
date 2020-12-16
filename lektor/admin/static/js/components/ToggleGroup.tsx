@@ -1,15 +1,23 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React, { MouseEvent } from "react";
 
-class ToggleGroup extends React.Component {
-  constructor(props) {
+type Props = {
+  className: string;
+  groupTitle: string;
+  defaultVisibility: boolean;
+};
+type State = {
+  isVisible: boolean;
+};
+
+export default class ToggleGroup extends React.Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       isVisible: props.defaultVisibility,
     };
   }
 
-  toggle(event) {
+  toggle(event: MouseEvent) {
     event.preventDefault();
     this.setState((state) => ({
       isVisible: !state.isVisible,
@@ -17,14 +25,8 @@ class ToggleGroup extends React.Component {
   }
 
   render() {
-    let {
-      className,
-      groupTitle,
-      children,
-      defaultVisibility,
-      ...otherProps
-    } = this.props;
-    className = (className || "") + " toggle-group";
+    const { groupTitle, children } = this.props;
+    let className = (this.props.className || "") + " toggle-group";
     if (this.state.isVisible) {
       className += " toggle-group-open";
     } else {
@@ -32,7 +34,7 @@ class ToggleGroup extends React.Component {
     }
 
     return (
-      <div className={className} {...otherProps}>
+      <div className={className}>
         <div className="header">
           <h4 className="toggle" onClick={this.toggle.bind(this)}>
             {groupTitle}
@@ -43,10 +45,3 @@ class ToggleGroup extends React.Component {
     );
   }
 }
-
-ToggleGroup.propTypes = {
-  groupTitle: PropTypes.string,
-  defaultVisibility: PropTypes.bool,
-};
-
-export default ToggleGroup;

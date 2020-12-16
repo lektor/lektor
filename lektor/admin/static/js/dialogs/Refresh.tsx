@@ -8,10 +8,10 @@ import { bringUpDialog } from "../richPromise";
 type State = "IDLE" | "DONE" | "CLEANING";
 
 export default class Refresh extends React.Component<
-  {},
+  unknown,
   { currentState: State }
 > {
-  constructor(props: {}) {
+  constructor(props: unknown) {
     super(props);
     this.state = {
       currentState: "IDLE",
@@ -32,7 +32,7 @@ export default class Refresh extends React.Component<
     this.setState({
       currentState: "CLEANING",
     });
-    loadData("/clean", null, { method: "POST" }).then((resp) => {
+    loadData("/clean", null, { method: "POST" }).then(() => {
       this.setState({
         currentState: "DONE",
       });

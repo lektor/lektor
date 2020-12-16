@@ -6,7 +6,7 @@ function isTrue(value?: string) {
   return value === "true" || value === "yes" || value === "1";
 }
 
-export class BooleanInputWidget extends React.Component<WidgetProps, {}> {
+export class BooleanInputWidget extends React.Component<WidgetProps, unknown> {
   checkbox: RefObject<HTMLInputElement>;
 
   constructor(props: WidgetProps) {

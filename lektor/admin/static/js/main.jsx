@@ -23,7 +23,7 @@ import AddAttachmentPage from "./views/AddAttachmentPage";
 
 setCurrentLanguage($LEKTOR_CONFIG.lang);
 
-function BadRoute(props) {
+function BadRoute() {
   return (
     <div>
       <h2>Nothing to see here</h2>

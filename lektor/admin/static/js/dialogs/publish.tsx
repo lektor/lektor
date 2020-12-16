@@ -58,10 +58,10 @@ interface PublishState {
   currentState: "IDLE" | "BUILDING" | "PUBLISH" | "DONE";
 }
 
-class Publish extends React.Component<{}, PublishState> {
+class Publish extends React.Component<unknown, PublishState> {
   buildLog: RefObject<HTMLPreElement>;
 
-  constructor(props: {}) {
+  constructor(props: unknown) {
     super(props);
 
     this.state = {

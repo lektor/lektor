@@ -38,7 +38,7 @@ export class CheckboxesInputWidget extends React.PureComponent<WidgetProps> {
   }
 
   render() {
-    let { disabled, type, onChange } = this.props;
+    const { disabled, type, onChange } = this.props;
 
     const onChangeHandler = (
       field: string,

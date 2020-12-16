@@ -2,7 +2,7 @@
 import { expect } from "chai";
 import ToggleGroup from "./ToggleGroup";
 import React from "react";
-import ReactDOM, { render } from "react-dom";
+import { render } from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import JSDOMGlobal from "jsdom-global";
 
@@ -10,7 +10,7 @@ JSDOMGlobal();
 
 const renderToggle = (defaultVisibility) => {
   document.body.innerHTML = '<div id="container"></div>';
-  ReactDOM.render(
+  render(
     <ToggleGroup defaultVisibility={defaultVisibility}>
       <div>Rick Astley rulz</div>
     </ToggleGroup>,

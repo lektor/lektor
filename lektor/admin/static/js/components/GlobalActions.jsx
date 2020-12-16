@@ -44,7 +44,7 @@ class GlobalActions extends RecordComponent {
     window.removeEventListener("keydown", onKeyPress);
   }
 
-  _onCloseClick(e) {
+  _onCloseClick() {
     loadData("/previewinfo", {
       path: this.getRecordPath(),
       alt: this.getRecordAlt(),

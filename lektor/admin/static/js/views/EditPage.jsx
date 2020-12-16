@@ -153,7 +153,7 @@ class EditPage extends RecordComponent {
     }, bringUpDialog);
   }
 
-  deleteRecord(event) {
+  deleteRecord() {
     this.transitionToAdminPage("delete", this.getUrlRecordPathWithAlt());
   }
 

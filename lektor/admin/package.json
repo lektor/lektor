@@ -68,17 +68,18 @@
     }
   },
   "mocha": {
-    "spec": "static/js/**/*.test.js",
+    "spec": "static/js/**/*.test.[jt]s",
     "require": [
-      "@babel/register"
+      "./babel-require.js"
     ]
   },
   "nyc": {
     "extension": [
-      ".jsx"
+      ".jsx",
+      ".tsx"
     ],
     "require": [
-      "@babel/register"
+      "./babel-require.js"
     ]
   },
   "author": "",

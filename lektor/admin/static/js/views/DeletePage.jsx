@@ -35,7 +35,7 @@ class DeletePage extends RecordComponent {
     }, bringUpDialog);
   }
 
-  deleteRecord(event) {
+  deleteRecord() {
     const path = this.getRecordPath();
     const parent = getParentFsPath(path);
     let targetPath;
@@ -53,7 +53,7 @@ class DeletePage extends RecordComponent {
         delete_master: this.state.deleteMasterRecord ? "1" : "0",
       },
       { method: "POST" }
-    ).then((resp) => {
+    ).then(() => {
       if (this.state.recordInfo.is_attachment) {
         hub.emit(
           new AttachmentsChangedEvent({
@@ -66,7 +66,7 @@ class DeletePage extends RecordComponent {
     }, bringUpDialog);
   }
 
-  cancelDelete(event) {
+  cancelDelete() {
     const urlPath = this.getUrlRecordPathWithAlt();
     this.transitionToAdminPage("edit", urlPath);
   }

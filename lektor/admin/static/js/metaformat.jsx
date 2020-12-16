@@ -86,7 +86,7 @@ export function serialize(blocks) {
       if (lines[lines.length - 1] === "") {
         lines.pop();
       }
-      lines.forEach((line, idx, arr) => {
+      lines.forEach((line) => {
         if (lineIsDashes(line)) {
           line = "-" + line;
         }
