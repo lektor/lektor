@@ -1,13 +1,33 @@
-import React from "react";
-import RecordComponent from "./RecordComponent";
+import React, { ReactNode } from "react";
+import RecordComponent, {
+  pathToAdminPage,
+  RecordProps,
+} from "./RecordComponent";
 import Link from "./Link";
 import { loadData } from "../utils";
 import { trans } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 import GlobalActions from "./GlobalActions";
 
-class BreadCrumbs extends RecordComponent {
-  constructor(props) {
+interface Item {
+  id: string;
+  path: string;
+  label: string;
+  label_i18n?: Record<string, string>;
+  exists: boolean;
+}
+
+type State = {
+  recordPathInfo: {
+    path: string;
+    segments: Item[];
+  } | null;
+};
+
+type Props = { children: ReactNode } & RecordProps;
+
+class BreadCrumbs extends RecordComponent<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       recordPathInfo: null,
@@ -18,7 +38,7 @@ class BreadCrumbs extends RecordComponent {
     this.updateCrumbs();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.updateCrumbs();
     }
@@ -47,7 +67,7 @@ class BreadCrumbs extends RecordComponent {
     let crumbs = [];
     const target =
       this.props.match.params.page === "preview" ? "preview" : "edit";
-    let lastItem = null;
+    let lastItem: Item | null = null;
 
     if (this.state.recordPathInfo != null) {
       crumbs = this.state.recordPathInfo.segments.map((item) => {
@@ -61,7 +81,7 @@ class BreadCrumbs extends RecordComponent {
         }
         lastItem = item;
 
-        const adminPath = this.getPathToAdminPage(target, urlPath);
+        const adminPath = pathToAdminPage(target, urlPath);
 
         return (
           <li key={item.path} className={className}>
@@ -72,7 +92,7 @@ class BreadCrumbs extends RecordComponent {
     } else {
       crumbs = (
         <li>
-          <Link to={this.getPathToAdminPage("edit", "root")}>
+          <Link to={pathToAdminPage("edit", "root")}>
             {trans("BACK_TO_OVERVIEW")}
           </Link>
         </li>
@@ -87,7 +107,7 @@ class BreadCrumbs extends RecordComponent {
           {lastItem && lastItem.can_have_children ? (
             <li className="new-record-crumb">
               <Link
-                to={this.getPathToAdminPage(
+                to={pathToAdminPage(
                   "add-child",
                   this.getUrlRecordPathWithAlt(lastItem.path)
                 )}

@@ -5,7 +5,7 @@ import SlideDialog from "../components/SlideDialog";
 import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
-export default class ErrorDialog extends RecordComponent {
+export default class ErrorDialog extends RecordComponent<unknown, unknown> {
   onClose() {
     dialogSystem.dismissDialog();
   }

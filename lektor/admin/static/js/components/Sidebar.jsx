@@ -3,7 +3,7 @@ import { loadData, getPlatform } from "../utils";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import RecordComponent from "./RecordComponent";
+import RecordComponent, { pathToAdminPage } from "./RecordComponent";
 import Link from "../components/Link";
 import { bringUpDialog } from "../richPromise";
 
@@ -238,8 +238,8 @@ class Sidebar extends RecordComponent {
         className += " alt-missing";
       }
 
-      const path = this.getPathToAdminPage(
-        null,
+      const path = pathToAdminPage(
+        this.props.match.params.page,
         this.getUrlRecordPathWithAlt(null, item.alt)
       );
       return (

@@ -1,5 +1,4 @@
 import React from "react";
-import { RouteChildrenProps } from "react-router";
 import { getParentFsPath, urlToFsPath, fsToUrlPath } from "../utils";
 
 export function getRecordPathAndAlt(
@@ -12,7 +11,16 @@ export function getRecordPathAndAlt(
   return [urlToFsPath(items[0]), items[1]];
 }
 
-export type RecordProps = RouteChildrenProps;
+/**
+ * Helper to generate URL path for an admin page.
+ * @param name - Name of the page (or null for the current one)
+ * @param path - Record path
+ */
+export function pathToAdminPage(name: string, path: string) {
+  return `${$LEKTOR_CONFIG.admin_root}/${path}/${name}`;
+}
+
+export type RecordProps = { match: { params: { path: string; page: string } } };
 
 /**
  * A React component baseclass that has some basic knowledge about
@@ -23,22 +31,12 @@ export default class RecordComponent<P, S> extends React.Component<
   S
 > {
   /**
-   * Helper to generate URL path for an admin page.
-   * @param name - Name of the page (or null for the current one)
-   * @param path - Record path
-   */
-  getPathToAdminPage(name: string | null, path: string) {
-    const pageName = name !== null ? name : this.props.match.params.page;
-    return `${$LEKTOR_CONFIG.admin_root}/${path}/${pageName}`;
-  }
-
-  /**
    * Helper to transition to a specific page
    * @param name - Page name
    * @param path - Record path
    */
   transitionToAdminPage(name: string, path: string) {
-    const url = this.getPathToAdminPage(name, path);
+    const url = pathToAdminPage(name, path);
     this.props.history.push(url);
   }
 

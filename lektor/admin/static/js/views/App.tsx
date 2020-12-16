@@ -1,28 +1,29 @@
 import React, { ReactNode, useState } from "react";
-import { Route, useRouteMatch } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import BreadCrumbs from "../components/BreadCrumbs";
 import Sidebar from "../components/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
 
+type Params = { page: string; path: string };
+
 function Header({
+  params,
   sidebarIsActive,
   toggleSidebar,
 }: {
+  params: Params;
   sidebarIsActive: boolean;
   toggleSidebar: () => void;
 }) {
-  const fullPath = `${$LEKTOR_CONFIG.admin_root}/:path/:page`;
-  const match = useRouteMatch(fullPath);
-
   const buttonClass = sidebarIsActive
     ? "navbar-toggle active"
     : "navbar-toggle";
 
   return (
     <header>
-      <BreadCrumbs match={match}>
+      <BreadCrumbs match={{ params }}>
         <button type="button" className={buttonClass} onClick={toggleSidebar}>
           <span className="sr-only">Toggle navigation</span>
           <span className="icon-list" />
@@ -34,8 +35,15 @@ function Header({
   );
 }
 
-export default function App(props: { children: ReactNode }) {
-  const fullPath = `${$LEKTOR_CONFIG.admin_root}/:path/:page`;
+export default function App({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Params;
+}) {
+  const history = useHistory();
+  const routeProps = { match: { params }, history };
 
   const [sidebarIsActive, setSidebarIsActive] = useState(false);
 
@@ -51,14 +59,18 @@ export default function App(props: { children: ReactNode }) {
   return (
     <div className="application">
       <ServerStatus />
-      <Header sidebarIsActive={sidebarIsActive} toggleSidebar={toggleSidebar} />
+      <Header
+        params={params}
+        sidebarIsActive={sidebarIsActive}
+        toggleSidebar={toggleSidebar}
+      />
       <div className="editor container">
-        <Route path={fullPath} component={DialogSlot} />
+        <DialogSlot {...routeProps} />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
-            <Route path={fullPath} component={Sidebar} />
+            <Sidebar {...routeProps} />
           </nav>
-          <div className="view col-md-10 col-sm-9">{props.children}</div>
+          <div className="view col-md-10 col-sm-9">{children}</div>
         </div>
       </div>
     </div>

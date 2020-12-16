@@ -2,9 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import {
   BrowserRouter as Router,
-  Route,
-  Switch,
   Redirect,
+  useHistory,
+  useRouteMatch,
 } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
 
@@ -23,47 +23,35 @@ import AddAttachmentPage from "./views/AddAttachmentPage";
 
 setCurrentLanguage($LEKTOR_CONFIG.lang);
 
-function BadRoute() {
-  return (
-    <div>
-      <h2>Nothing to see here</h2>
-      <p>There is really nothing to see here.</p>
-    </div>
-  );
-}
-
 function Main() {
-  const path = $LEKTOR_CONFIG.admin_root;
+  const root = $LEKTOR_CONFIG.admin_root;
+  const fullPath = `${root}/:path/:page`;
+  const match = useRouteMatch<{ path: string; page: string }>(fullPath);
+  if (!match) {
+    return <Redirect to={`${root}/root/edit`} />;
+  }
+  const { page, path } = match.params;
+  let Component = null;
+  if (page === "edit") {
+    Component = EditPage;
+  } else if (page === "delete") {
+    Component = DeletePage;
+  } else if (page === "preview") {
+    Component = PreviewPage;
+  } else if (page === "add-child") {
+    Component = AddChildPage;
+  } else if (page === "upload") {
+    Component = AddAttachmentPage;
+  }
+  if (!Component) {
+    return <Redirect to={`${root}/root/edit`} />;
+  }
+  const history = useHistory();
 
+  const params = { path, page };
   return (
-    <App>
-      <Switch>
-        <Route name="edit" path={`${path}/:path/edit`} component={EditPage} />
-        <Route
-          name="delete"
-          path={`${path}/:path/delete`}
-          component={DeletePage}
-        />
-        <Route
-          name="preview"
-          path={`${path}/:path/preview`}
-          component={PreviewPage}
-        />
-        <Route
-          name="add-child"
-          path={`${path}/:path/add-child`}
-          component={AddChildPage}
-        />
-        <Route
-          name="upload"
-          path={`${path}/:path/upload`}
-          component={AddAttachmentPage}
-        />
-        <Route exact path={path}>
-          <Redirect to={`${path}/root/edit`} />
-        </Route>
-        <Route component={BadRoute} />
-      </Switch>
+    <App params={params}>
+      <Component match={{ params }} history={history} />
     </App>
   );
 }
