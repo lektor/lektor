@@ -9,7 +9,7 @@ import { SlugInputWidget } from "./widgets/SlugInputWidget";
 import { SingleLineTextInputWidget } from "./widgets/SingleLineTextInputWidget";
 import { CheckboxesInputWidget } from "./widgets/CheckboxesInputWidget";
 import { SelectInputWidget } from "./widgets/SelectInputWidget";
-import { FlowWidget } from "./widgets/flowWidget";
+import { FlowWidget } from "./widgets/FlowWidget";
 import {
   LineWidget,
   SpacingWidget,

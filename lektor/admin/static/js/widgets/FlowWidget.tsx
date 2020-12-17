@@ -10,8 +10,10 @@ import {
   FieldRows,
 } from "../widgets";
 
-const parseFlowFormat = (value) => {
-  const blocks = [];
+type Block = [string, string[]];
+
+function parseFlowFormat(value: string) {
+  const blocks: Block[] = [];
   let buf = [];
   const lines = value.split(/\r?\n/);
   let block = null;
@@ -45,9 +47,9 @@ const parseFlowFormat = (value) => {
   }
 
   return blocks;
-};
+}
 
-const serializeFlowFormat = (blocks) => {
+function serializeFlowFormat(blocks: Block[]) {
   let rv = [];
   blocks.forEach((block) => {
     const [blockName, lines] = block;
@@ -67,11 +69,21 @@ const serializeFlowFormat = (blocks) => {
   }
 
   return rv;
-};
+}
 
-const deserializeFlowBlock = (flowBlockModel, lines, localId) => {
-  const data = {};
-  const rawData = {};
+interface FlowBlockModel {
+  order: number;
+  id: string;
+  fields: Field[];
+}
+
+function deserializeFlowBlock(
+  flowBlockModel: FlowBlockModel,
+  lines: string[],
+  localId: number
+) {
+  const data: Record<string, unknown> = {};
+  const rawData: Record<string, string> = {};
 
   tokenize(lines).forEach((item) => {
     const [key, lines] = item;
@@ -96,9 +108,9 @@ const deserializeFlowBlock = (flowBlockModel, lines, localId) => {
     flowBlockModel: flowBlockModel,
     data: data,
   };
-};
+}
 
-const serializeFlowBlock = (flockBlockModel, data) => {
+function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
   const rv = [];
   flockBlockModel.fields.forEach((field) => {
     const Widget = getWidgetComponent(field.type);
@@ -118,9 +130,17 @@ const serializeFlowBlock = (flockBlockModel, data) => {
     rv.push([field.name, value]);
   });
   return serialize(rv);
-};
+}
 
-export class FlowWidget extends React.PureComponent<WidgetProps> {
+type FlowWidgetType = {
+  collapsed: boolean;
+  localId: number;
+  flowBlockModel: FlowBlockModel;
+}[];
+
+export class FlowWidget extends React.PureComponent<
+  WidgetProps<FlowWidgetType>
+> {
   static deserializeValue(value, type) {
     let blockId = 0;
     return parseFlowFormat(value).map((item) => {
@@ -133,7 +153,7 @@ export class FlowWidget extends React.PureComponent<WidgetProps> {
     });
   }
 
-  static serializeValue(value) {
+  static serializeValue(value: FlowWidgetType) {
     return serializeFlowFormat(
       value.map((item) => {
         return [
@@ -157,7 +177,7 @@ export class FlowWidget extends React.PureComponent<WidgetProps> {
     this.props.onChange(newValue);
   }
 
-  removeBlock(idx) {
+  removeBlock(idx: string) {
     if (confirm(trans("REMOVE_FLOWBLOCK_PROMPT"))) {
       this.props.onChange(this.props.value.filter((item, i) => i !== idx));
     }

@@ -1,9 +1,9 @@
-function lineIsDashes(line) {
-  line = line.match(/^\s*(.*?)\s*$/)[1];
+function lineIsDashes(rawLine: string) {
+  const line = rawLine.trim();
   return line.length >= 3 && line === new Array(line.length + 1).join("-");
 }
 
-function processBuf(buf) {
+function processBuf(buf: string[]) {
   const lines = buf.map((line) => {
     if (lineIsDashes(line)) {
       line = line.substr(1);
@@ -21,9 +21,9 @@ function processBuf(buf) {
   return lines;
 }
 
-export function tokenize(lines) {
-  let key = null;
-  let buf = [];
+export function tokenize(lines: string[]) {
+  let key: string | null = null;
+  let buf: string[] = [];
   let wantNewline = false;
   const rv = [];
 
