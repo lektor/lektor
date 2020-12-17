@@ -1,7 +1,6 @@
 import React, { ChangeEvent } from "react";
-import { flipSetValue } from "../utils";
 import { trans } from "../i18n";
-import { WidgetProps } from "./mixins";
+import { MultiWidgetType, WidgetProps } from "./mixins";
 
 function checkboxIsActive(field: string, props: WidgetProps<string[]>) {
   let value = props.value;
@@ -19,20 +18,26 @@ function checkboxIsActive(field: string, props: WidgetProps<string[]>) {
   return false;
 }
 
+function flipSetValue(set: string[], value: string, isActive: boolean) {
+  if (isActive) {
+    return set.includes(value) ? set : [...set, value];
+  } else {
+    return set.filter((v) => v !== value);
+  }
+}
+
 export class CheckboxesInputWidget extends React.PureComponent<
-  WidgetProps<string[]>
+  WidgetProps<string[], MultiWidgetType>
 > {
   static serializeValue(value: string[] | null) {
     return (value || []).join(", ");
   }
 
-  static deserializeValue(value: string): string[] | null{
+  static deserializeValue(value: string): string[] | null {
     if (value === "") {
       return null;
     }
-    let rv = value.split(",").map((x) => {
-      return x.match(/^\s*(.*?)\s*$/)[1];
-    });
+    let rv = value.split(",").map((x) => x.trim());
     if (rv.length === 1 && rv[0] === "") {
       rv = [];
     }
@@ -47,7 +52,7 @@ export class CheckboxesInputWidget extends React.PureComponent<
       event: ChangeEvent<HTMLInputElement>
     ) => {
       const newValue = flipSetValue(
-        this.props.value,
+        this.props.value || [],
         field,
         event.target.checked
       );

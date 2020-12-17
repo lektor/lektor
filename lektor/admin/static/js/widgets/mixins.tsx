@@ -1,22 +1,21 @@
-import PropTypes from "prop-types";
 import { ComponentType } from "react";
-
-export const widgetPropTypes = {
-  value: PropTypes.any,
-  type: PropTypes.object,
-  placeholder: PropTypes.any,
-  onChange: PropTypes.any,
-  disabled: PropTypes.bool,
-};
 
 type Translations = Partial<Record<string, string>>;
 
-export interface WidgetType {
+interface BaseWidgetType {
   widget: string;
+  size: "normal" | "small" | "large";
+}
+
+export interface WidgetType extends BaseWidgetType {
   heading_i18n?: Translations;
   checkbox_label_i18n?: Translations;
   addon_label_i18n?: Translations;
-  size?: string;
+}
+
+export interface MultiWidgetType extends BaseWidgetType {
+  widget: "checkboxes" | "select";
+  choices: [string, Translations][];
 }
 
 export interface Field {
@@ -26,11 +25,11 @@ export interface Field {
   label_i18n: Translations;
 }
 
-export type WidgetProps<ValueType = string> = {
-  value?: ValueType;
-  type: WidgetType;
-  placeholder?: ValueType;
-  onChange: (value: ValueType) => void;
+export type WidgetProps<V = string, W = WidgetType> = {
+  value?: V;
+  type: W;
+  placeholder?: V;
+  onChange: (value: V) => void;
   disabled?: boolean;
 };
 
