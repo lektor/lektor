@@ -1,7 +1,8 @@
 import React, { ChangeEvent, createRef, RefObject } from "react";
 
 import SlideDialog from "../components/SlideDialog";
-import { loadData, getApiUrl } from "../utils";
+import { getApiUrl } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
@@ -9,6 +10,7 @@ import { bringUpDialog } from "../richPromise";
 interface Server {
   id: string;
   short_target: string;
+  name: string;
   name_i18n: Partial<Record<string, string>>;
 }
 
@@ -29,7 +31,7 @@ function TargetServers({
   }
   const serverOptions = servers.map((server) => (
     <option value={server.id} key={server.id}>
-      {trans(server.name_i18n) + " (" + server.short_target + ")"}
+      {trans(server.name_i18n, server.name) + " (" + server.short_target + ")"}
     </option>
   ));
 

@@ -1,9 +1,13 @@
 import React from "react";
-import { loadData, getPlatform } from "../utils";
+import { getPlatform } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import RecordComponent, { pathToAdminPage } from "./RecordComponent";
+import RecordComponent, {
+  pathToAdminPage,
+  RecordProps,
+} from "./RecordComponent";
 import Link from "../components/Link";
 import { bringUpDialog } from "../richPromise";
 
@@ -52,8 +56,21 @@ class ChildPosCache {
   }
 }
 
-class Sidebar extends RecordComponent {
-  constructor(props) {
+type State = {
+  recordAttachments: unknown[];
+  recordChildren: unknown[];
+  recordAlts: unknown[];
+  canHaveAttachments: boolean;
+  canHaveChildren: boolean;
+  isAttachment: boolean;
+  canBeDeleted: boolean;
+  recordExists: boolean;
+  lastRecordRequest: null;
+  childrenPage: number;
+};
+
+class Sidebar extends RecordComponent<unknown, State> {
+  constructor(props: RecordProps) {
     super(props);
 
     this.state = this._getInitialState();
@@ -82,7 +99,7 @@ class Sidebar extends RecordComponent {
     hub.subscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this._updateRecordInfo();
     }
@@ -92,7 +109,7 @@ class Sidebar extends RecordComponent {
     hub.unsubscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
   }
 
-  onAttachmentsChanged(event) {
+  onAttachmentsChanged(event: AttachmentsChangedEvent) {
     if (event.recordPath === this.getRecordPath()) {
       this._updateRecordInfo();
     }

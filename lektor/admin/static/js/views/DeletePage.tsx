@@ -1,13 +1,19 @@
 import React from "react";
-import RecordComponent from "../components/RecordComponent";
-import { loadData, getParentFsPath } from "../utils";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import { getParentFsPath } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { bringUpDialog } from "../richPromise";
 
-class DeletePage extends RecordComponent {
-  constructor(props) {
+type State = {
+  recordInfo: null;
+  deleteMasterRecord: boolean;
+};
+
+class DeletePage extends RecordComponent<unknown, State> {
+  constructor(props: RecordProps) {
     super(props);
 
     this.state = {
@@ -20,7 +26,7 @@ class DeletePage extends RecordComponent {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
@@ -38,12 +44,8 @@ class DeletePage extends RecordComponent {
   deleteRecord() {
     const path = this.getRecordPath();
     const parent = getParentFsPath(path);
-    let targetPath;
-    if (parent === null) {
-      targetPath = "root";
-    } else {
-      targetPath = this.getUrlRecordPathWithAlt(parent);
-    }
+    const targetPath =
+      parent === null ? "root" : this.getUrlRecordPathWithAlt(parent);
 
     loadData(
       "/deleterecord",

@@ -1,11 +1,11 @@
-import React, { createRef } from "react";
+import React, { createRef, RefObject } from "react";
 import {
-  loadData,
   fsPathFromAdminObservedPath,
   getCanonicalUrl,
   urlPathsConsideredEqual,
 } from "../utils";
-import RecordComponent from "../components/RecordComponent";
+import { loadData } from "../fetch";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { bringUpDialog } from "../richPromise";
 
 const initialState = () => ({
@@ -13,8 +13,15 @@ const initialState = () => ({
   pageUrlFor: null,
 });
 
-class PreviewPage extends RecordComponent {
-  constructor(props) {
+type State = {
+  pageUrl: string | null;
+  pageUrlFor: string | null;
+};
+
+class PreviewPage extends RecordComponent<unknown, State> {
+  iframe: RefObject<HTMLIFrameElement>;
+
+  constructor(props: RecordProps) {
     super(props);
     this.state = initialState();
     this.iframe = createRef();
@@ -24,7 +31,7 @@ class PreviewPage extends RecordComponent {
     this.syncState();
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: RecordProps) {
     return (
       this.getUrlRecordPathWithAlt() !== this.state.pageUrlFor ||
       nextProps.match.params.path !== this.props.match.params.path
@@ -55,13 +62,13 @@ class PreviewPage extends RecordComponent {
     return null;
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncState();
     }
     const frame = this.iframe.current;
     const intendedPath = this.getIntendedPath();
-    if (intendedPath !== null) {
+    if (frame && intendedPath !== null) {
       const framePath = this.getFramePath();
 
       if (!urlPathsConsideredEqual(intendedPath, framePath)) {

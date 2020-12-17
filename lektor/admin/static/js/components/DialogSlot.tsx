@@ -1,10 +1,16 @@
 import React from "react";
-import dialogSystem from "../dialogSystem";
+import dialogSystem, { Dialog, DialogInstance } from "../dialogSystem";
 import { DialogChangedEvent } from "../events";
 import hub from "../hub";
+import { RecordProps } from "./RecordComponent";
 
-class DialogSlot extends React.Component {
-  constructor(props) {
+type State = {
+  currentDialog: Dialog | null;
+  currentDialogOptions: unknown;
+};
+
+class DialogSlot extends React.Component<RecordProps, State> {
+  constructor(props: RecordProps) {
     super(props);
     this.state = {
       currentDialog: null,
@@ -21,14 +27,14 @@ class DialogSlot extends React.Component {
     hub.unsubscribe(DialogChangedEvent, this.onDialogChanged);
   }
 
-  onDialogChanged(event) {
+  onDialogChanged(event: DialogChangedEvent) {
     this.setState({
       currentDialog: event.dialog,
       currentDialogOptions: event.dialogOptions || {},
     });
   }
 
-  initDialogInstance(dialog) {
+  initDialogInstance(dialog: DialogInstance) {
     dialogSystem.notifyDialogInstance(dialog);
     window.scrollTo(0, 0);
   }

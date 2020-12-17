@@ -1,6 +1,7 @@
 import React from "react";
 import RecordComponent from "./RecordComponent";
-import { loadData, isMetaKey, getCanonicalUrl } from "../utils";
+import { isMetaKey, getCanonicalUrl } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import FindFiles from "../dialogs/findFiles";
@@ -20,7 +21,7 @@ function showPublishDialog() {
   dialogSystem.showDialog(Publish);
 }
 
-function onKeyPress(event) {
+function onKeyPress(event: KeyboardEvent) {
   // Command+g/Ctrl+g to open the find files dialog.
   if (event.key === "g" && isMetaKey(event)) {
     event.preventDefault();
@@ -28,14 +29,7 @@ function onKeyPress(event) {
   }
 }
 
-class GlobalActions extends RecordComponent {
-  constructor(props) {
-    super(props);
-    this.state = {
-      recordPathInfo: null,
-    };
-  }
-
+class GlobalActions extends RecordComponent<unknown, unknown> {
   componentDidMount() {
     window.addEventListener("keydown", onKeyPress);
   }

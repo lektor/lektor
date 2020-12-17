@@ -1,19 +1,35 @@
 import hub from "./hub";
 import { DialogChangedEvent } from "./events";
+import FindFiles from "./dialogs/findFiles";
+import ErrorDialog from "./dialogs/errorDialog";
+import Publish from "./dialogs/publish";
+import Refresh from "./dialogs/Refresh";
+
+export type Dialog =
+  | typeof FindFiles
+  | typeof ErrorDialog
+  | typeof Publish
+  | typeof Refresh;
+
+export type DialogInstance = InstanceType<Dialog> & {
+  preventNavigation?: () => boolean;
+};
 
 class DialogSystem {
+  private instance: DialogInstance | null;
+
   constructor() {
-    this._dialogInstance = null;
+    this.instance = null;
   }
 
   // invoked by the application once the dialog has been created.
-  notifyDialogInstance(dialog) {
-    this._dialogInstance = dialog;
+  notifyDialogInstance(dialog: DialogInstance | null) {
+    this.instance = dialog;
   }
 
   // given a dialog class this will instruct the application to bring up
   // the dialog and display it.
-  showDialog(dialog, options) {
+  showDialog(dialog: Dialog, options?: unknown) {
     // if the current dialog prevents navigation, then we just silently
     // will not show the dialog.
     if (!this.preventNavigation()) {
@@ -31,7 +47,7 @@ class DialogSystem {
     if (!this.preventNavigation()) {
       hub.emit(
         new DialogChangedEvent({
-          currentDialog: null,
+          dialog: null,
         })
       );
     }
@@ -39,15 +55,15 @@ class DialogSystem {
 
   // indicates if a dialog is shown
   dialogIsOpen() {
-    return !!this._dialogInstance;
+    return !!this.instance;
   }
 
   // returns true if the current dialog prevents navigation.
   preventNavigation() {
     return (
-      this._dialogInstance &&
-      this._dialogInstance.preventNavigation !== undefined &&
-      this._dialogInstance.preventNavigation()
+      this.instance &&
+      this.instance.preventNavigation !== undefined &&
+      this.instance.preventNavigation()
     );
   }
 }

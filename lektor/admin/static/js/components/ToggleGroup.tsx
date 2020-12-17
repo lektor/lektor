@@ -1,7 +1,7 @@
 import React, { MouseEvent } from "react";
 
 type Props = {
-  className: string;
+  className?: string;
   groupTitle: string;
   defaultVisibility: boolean;
 };

@@ -1,8 +1,9 @@
-import React, { createRef } from "react";
+import React, { createRef, FormEvent, RefObject } from "react";
 import { Prompt } from "react-router-dom";
 
-import RecordComponent from "../components/RecordComponent";
-import { loadData, isMetaKey } from "../utils";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import { isMetaKey } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import {
   getWidgetComponentWithFallback,
@@ -11,8 +12,17 @@ import {
 } from "../widgets";
 import { bringUpDialog } from "../richPromise";
 
-class EditPage extends RecordComponent {
-  constructor(props) {
+type State = {
+  recordData: null;
+  recordDataModel: null;
+  recordInfo: null;
+  hasPendingChanges: boolean;
+};
+
+class EditPage extends RecordComponent<unknown, State> {
+  form: RefObject<HTMLFormElement>;
+
+  constructor(props: RecordProps) {
     super(props);
 
     this.state = {
@@ -31,7 +41,7 @@ class EditPage extends RecordComponent {
     window.addEventListener("keydown", this.onKeyPress);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncEditor();
     }
@@ -41,7 +51,7 @@ class EditPage extends RecordComponent {
     window.removeEventListener("keydown", this.onKeyPress);
   }
 
-  onKeyPress(event) {
+  onKeyPress(event: KeyboardEvent) {
     // Command+s/Ctrl+s to save
     if (event.key === "s" && isMetaKey(event)) {
       event.preventDefault();
@@ -127,7 +137,7 @@ class EditPage extends RecordComponent {
     return rv;
   }
 
-  saveChanges(event) {
+  saveChanges(event?: FormEvent) {
     if (event) {
       event.preventDefault();
     }

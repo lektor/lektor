@@ -1,8 +1,8 @@
 import React from "react";
-import RecordComponent from "../components/RecordComponent";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { trans } from "../i18n";
 import { formatUserLabel } from "../userLabel";
-import { loadData } from "../utils";
+import { loadData } from "../fetch";
 import { slug as slugify } from "../slugify";
 import { getWidgetComponentWithFallback } from "../widgets";
 import { bringUpDialog } from "../richPromise";
@@ -16,8 +16,14 @@ const getGoodDefaultModel = (models) => {
   return choices[0];
 };
 
-class AddChildPage extends RecordComponent {
-  constructor(props) {
+type State = {
+  newChildInfo: null;
+  id: undefined;
+  selectedModel: null;
+};
+
+class AddChildPage extends RecordComponent<unknown, State> {
+  constructor(props: RecordProps) {
     super(props);
     this.state = {
       newChildInfo: null,
@@ -30,7 +36,7 @@ class AddChildPage extends RecordComponent {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }

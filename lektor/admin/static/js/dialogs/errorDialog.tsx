@@ -1,11 +1,13 @@
-import PropTypes from "prop-types";
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
-export default class ErrorDialog extends RecordComponent<unknown, unknown> {
+export default class ErrorDialog extends RecordComponent<
+  { error: any },
+  unknown
+> {
   onClose() {
     dialogSystem.dismissDialog();
   }
@@ -31,7 +33,3 @@ export default class ErrorDialog extends RecordComponent<unknown, unknown> {
     );
   }
 }
-
-ErrorDialog.propTypes = {
-  error: PropTypes.object,
-};

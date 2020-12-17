@@ -1,25 +1,26 @@
+import { Event } from "./events";
+
 class Hub {
+  _subscriptions: Record<string, ((e: any) => void)[] | undefined>;
   constructor() {
     this._subscriptions = {};
   }
 
   /* subscribes a callback to an event */
-  subscribe(event, callback) {
-    if (typeof event !== "string") {
-      event = event.getEventType();
-    }
+  subscribe<T extends typeof Event>(
+    event: T,
+    callback: (e: InstanceType<T>) => void
+  ) {
+    const eventType = event.getEventType();
 
-    let subs = this._subscriptions[event];
+    let subs = this._subscriptions[eventType];
     if (subs === undefined) {
-      this._subscriptions[event] = subs = [];
+      this._subscriptions[eventType] = subs = [];
     }
 
-    for (let i = 0; i < subs.length; i++) {
-      if (subs[i] === callback) {
-        return false;
-      }
+    if (subs.includes(callback)) {
+      return false;
     }
-
     subs.push(callback);
     return true;
   }

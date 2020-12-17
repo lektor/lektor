@@ -1,6 +1,6 @@
 import React from "react";
 import SlideDialog from "../components/SlideDialog";
-import { loadData } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";

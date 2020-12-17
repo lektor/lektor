@@ -22,9 +22,12 @@ export function getCurrentLanguge() {
   return currentLanguage;
 }
 
-export function trans(key: Partial<Record<string, string>> | string): string {
+export function trans(
+  key: Partial<Record<string, string>> | string,
+  fallback?: string
+): string {
   if (typeof key === "object") {
-    return key[currentLanguage] ?? key.en ?? "MISSING TRANSLATION";
+    return key[currentLanguage] ?? key.en ?? fallback ?? "MISSING TRANSLATION";
   }
   return currentTranslations[key] || key;
 }

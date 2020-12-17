@@ -1,13 +1,23 @@
-import React, { createRef } from "react";
-import RecordComponent from "../components/RecordComponent";
+import React, { createRef, RefObject } from "react";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import { loadData, getApiUrl } from "../utils";
+import { getApiUrl } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 
-class AddAttachmentPage extends RecordComponent {
-  constructor(props) {
+type State = {
+  newAttachmentInfo: null;
+  currentFiles: File[];
+  isUploading: boolean;
+  currentProgress: number;
+};
+
+class AddAttachmentPage extends RecordComponent<unknown, State> {
+  fileInput: RefObject<HTMLInputElement>;
+
+  constructor(props: RecordProps) {
     super(props);
     this.state = {
       newAttachmentInfo: null,
@@ -22,7 +32,7 @@ class AddAttachmentPage extends RecordComponent {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
@@ -37,10 +47,10 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   uploadFile() {
-    this.fileInput.current.click();
+    this.fileInput.current?.click();
   }
 
-  onUploadProgress(event) {
+  onUploadProgress(event: ProgressEvent) {
     const newProgress = Math.round((event.loaded * 100) / event.total);
     if (newProgress !== this.state.currentProgress) {
       this.setState({
@@ -53,7 +63,7 @@ class AddAttachmentPage extends RecordComponent {
     this.setState(
       {
         isUploading: false,
-        newProgress: 100,
+        currentProgress: 100,
       },
       () => {
         hub.emit(
@@ -69,22 +79,25 @@ class AddAttachmentPage extends RecordComponent {
   }
 
   onFileSelected() {
-    if (this.state.isUploading) {
+    if (this.state.isUploading || !this.fileInput.current?.files) {
       return;
     }
 
-    const files = this.fileInput.current.files;
+    const files: File[] = Array.prototype.slice.call(
+      this.fileInput.current.files,
+      0
+    );
     this.setState({
-      currentFiles: Array.prototype.slice.call(files, 0),
+      currentFiles: files,
       isUploading: true,
     });
 
     const formData = new FormData();
     formData.append("path", this.getRecordPath());
 
-    for (let i = 0; i < files.length; i++) {
-      formData.append("file", files[i], files[i].name);
-    }
+    files.forEach((file) => {
+      formData.append("file", file, file.name);
+    });
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", getApiUrl("/newattachment"));
@@ -95,17 +108,6 @@ class AddAttachmentPage extends RecordComponent {
       this.onUploadProgress(event);
     };
     xhr.send(formData);
-  }
-
-  renderCurrentFiles() {
-    const files = this.state.currentFiles.map((file) => {
-      return (
-        <li key={file.name}>
-          {file.name} ({file.type})
-        </li>
-      );
-    });
-    return <ul>{files}</ul>;
   }
 
   render() {
@@ -119,7 +121,13 @@ class AddAttachmentPage extends RecordComponent {
       <div>
         <h2>{trans("ADD_ATTACHMENT_TO").replace("%s", nai.label)}</h2>
         <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
-        {this.renderCurrentFiles()}
+        <ul>
+          {this.state.currentFiles.map((file) => (
+            <li key={file.name}>
+              {file.name} ({file.type})
+            </li>
+          ))}
+        </ul>
         <p>
           {trans("PROGRESS")}: {this.state.currentProgress}%
         </p>
@@ -132,6 +140,7 @@ class AddAttachmentPage extends RecordComponent {
         />
         <div className="actions">
           <button
+            type="button"
             className="btn btn-primary"
             onClick={this.uploadFile.bind(this)}
           >

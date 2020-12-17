@@ -2,13 +2,14 @@ import React, { ChangeEvent, KeyboardEvent } from "react";
 
 import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
-import { loadData } from "../utils";
+import { loadData } from "../fetch";
 import { getCurrentLanguge, trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
 
 type Result = {
   parents: { title: string }[];
+  path: string;
   title: string;
 };
 

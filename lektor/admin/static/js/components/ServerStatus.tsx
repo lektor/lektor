@@ -1,9 +1,13 @@
 import React from "react";
-import { loadData } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 
-class ServerStatus extends React.Component {
-  constructor(props) {
+type State = { serverIsUp: boolean; projectId: string | null };
+
+export default class ServerStatus extends React.Component<unknown, State> {
+  intervalId: number | null;
+
+  constructor(props: unknown) {
     super(props);
     this.state = {
       serverIsUp: true,
@@ -59,5 +63,3 @@ class ServerStatus extends React.Component {
     );
   }
 }
-
-export default ServerStatus;

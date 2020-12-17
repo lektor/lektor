@@ -3,7 +3,7 @@ import { flipSetValue } from "../utils";
 import { trans } from "../i18n";
 import { WidgetProps } from "./mixins";
 
-function checkboxIsActive(field: string, props: WidgetProps) {
+function checkboxIsActive(field: string, props: WidgetProps<string[]>) {
   let value = props.value;
   if (value == null) {
     value = props.placeholder;
@@ -19,12 +19,14 @@ function checkboxIsActive(field: string, props: WidgetProps) {
   return false;
 }
 
-export class CheckboxesInputWidget extends React.PureComponent<WidgetProps> {
-  static serializeValue(value) {
-    return (value || "").join(", ");
+export class CheckboxesInputWidget extends React.PureComponent<
+  WidgetProps<string[]>
+> {
+  static serializeValue(value: string[] | null) {
+    return (value || []).join(", ");
   }
 
-  static deserializeValue(value) {
+  static deserializeValue(value: string): string[] | null{
     if (value === "") {
       return null;
     }

@@ -4,7 +4,7 @@ import RecordComponent, {
   RecordProps,
 } from "./RecordComponent";
 import Link from "./Link";
-import { loadData } from "../utils";
+import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 import GlobalActions from "./GlobalActions";

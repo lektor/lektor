@@ -35,7 +35,7 @@ function validateDate(value: string) {
   return trans("ERROR_INVALID_DATE");
 }
 
-export function postprocessDate(value: string) {
+function postprocessDate(value: string) {
   value = value.trim();
   const match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/);
   let day, month, year;
