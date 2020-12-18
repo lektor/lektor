@@ -3,7 +3,7 @@ import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { trans } from "../i18n";
 import { formatUserLabel } from "../userLabel";
 import { loadData } from "../fetch";
-import { slug as slugify } from "../slugify";
+import { slugify } from "../slugify";
 import { getWidgetComponentWithFallback } from "../widgets";
 import { bringUpDialog } from "../richPromise";
 

@@ -71,7 +71,10 @@
     }
   },
   "mocha": {
-    "spec": ["static/js/**/*.test.ts","static/js/**/*.test.tsx"],
+    "spec": [
+      "static/js/**/*.test.ts",
+      "static/js/**/*.test.tsx"
+    ],
     "require": [
       "./babel-require.js"
     ]
@@ -79,7 +82,9 @@
   "nyc": {
     "extension": [
       ".jsx",
-      ".tsx"
+      ".js",
+      ".tsx",
+      ".ts"
     ],
     "require": [
       "./babel-require.js"

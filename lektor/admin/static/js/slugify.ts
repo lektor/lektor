@@ -1,63 +1,5 @@
-export const slug = (string, opts) => {
-  opts = opts || {};
-  string = string.toString();
-  if (typeof opts === "string") {
-    opts = { replacement: opts };
-  }
-  opts.mode = opts.mode || slug.defaults.mode;
-  const defaults = slug.defaults.modes[opts.mode];
-  ["replacement", "multicharmap", "charmap", "remove"].forEach((key) => {
-    opts[key] = opts[key] || defaults[key];
-  });
-  if (typeof opts.symbols === "undefined") {
-    opts.symbols = defaults.symbols;
-  }
-  const lengths = [];
-  Object.keys(opts.multicharmap).forEach((key) => {
-    const len = key.length;
-    if (lengths.indexOf(len) === -1) {
-      lengths.push(len);
-    }
-  });
-  let result = "";
-  for (let char, i = 0, l = string.length; i < l; i++) {
-    char = string[i];
-    if (
-      !lengths.some((len) => {
-        const str = string.substr(i, len);
-        if (opts.multicharmap[str]) {
-          i += len - 1;
-          char = opts.multicharmap[str];
-          return true;
-        } else return false;
-      })
-    ) {
-      if (opts.charmap[char]) {
-        char = opts.charmap[char];
-      }
-    }
-    char = char.replace(/[^\w\s\-._~]/g, ""); // allowed
-    if (opts.remove) char = char.replace(opts.remove, ""); // add flavour
-    result += char;
-  }
-  result = result.replace(/^\s+|\s+$/g, ""); // trim leading/trailing spaces
-  result = result.replace(/[-\s]+/g, opts.replacement); // convert spaces
-  return result.replace(opts.replacement + "$", ""); // remove trailing separator
-};
-
-slug.defaults = {
-  mode: "pretty",
-};
-
-slug.multicharmap = slug.defaults.multicharmap = {
-  "<3": "love",
-  "&&": "and",
-  "||": "or",
-  "w/": "with",
-};
-
 // https://code.djangoproject.com/browser/django/trunk/django/contrib/admin/media/js/urlify.js
-slug.charmap = slug.defaults.charmap = {
+const charmap: Record<string, string> = {
   // latin
   À: "A",
   Á: "A",
@@ -410,12 +352,68 @@ slug.charmap = slug.defaults.charmap = {
   "=": "equals",
 };
 
-slug.defaults.modes = {
-  pretty: {
-    replacement: "-",
-    symbols: true,
-    remove: /[.]/g,
-    charmap: slug.defaults.charmap,
-    multicharmap: slug.defaults.multicharmap,
-  },
+const multicharmap: Record<string, string> = {
+  "<3": "love",
+  "&&": "and",
+  "||": "or",
+  "w/": "with",
 };
+
+interface SlugifyOptions {
+  replacement: string;
+  remove: string | RegExp;
+  charmap: Record<string, string>;
+  multicharmap: Record<string, string>;
+}
+
+const pretty: SlugifyOptions = {
+  replacement: "-",
+  remove: /[.]/g,
+  charmap,
+  multicharmap,
+};
+
+export function slugify(rawString: string) {
+  const string = rawString.toString();
+  const opts = pretty;
+  const lengths: number[] = [];
+  Object.keys(opts.multicharmap).forEach((key) => {
+    const len = key.length;
+    if (!lengths.includes(len)) {
+      lengths.push(len);
+    }
+  });
+  let result = "";
+  for (let char, i = 0, l = string.length; i < l; i++) {
+    char = string[i];
+    if (
+      !lengths.some((len) => {
+        const str = string.substr(i, len);
+        if (opts.multicharmap[str]) {
+          i += len - 1;
+          char = opts.multicharmap[str];
+          return true;
+        } else {
+          return false;
+        }
+      })
+    ) {
+      if (opts.charmap[char]) {
+        char = opts.charmap[char];
+      }
+    }
+    char = char.replace(/[^\w\s\-._~]/g, ""); // allowed
+    if (opts.remove) {
+      // add flavour:
+      char = char.replace(opts.remove, "");
+    }
+    result += char;
+  }
+
+  // trim leading/trailing spaces:
+  result = result.replace(/^\s+|\s+$/g, "");
+  // convert spaces:
+  result = result.replace(/[-\s]+/g, opts.replacement);
+  // remove trailing separator:
+  return result.replace(opts.replacement + "$", "");
+}
