@@ -38,7 +38,7 @@ jobs:
       - name: Install node dependencies
         run: cd lektor/admin && npm ci
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: '3.9'
           architecture: 'x64'
@@ -98,7 +98,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
@@ -218,7 +218,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
@@ -255,7 +255,7 @@ jobs:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
@@ -296,7 +296,7 @@ jobs:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**\setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       # ImageMagick is temporarily pinned because of 404 issues while installing
