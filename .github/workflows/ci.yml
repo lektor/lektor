@@ -32,7 +32,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.9-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: '14'
       - name: Install node dependencies
@@ -73,7 +73,7 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -137,7 +137,7 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -163,7 +163,7 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -189,7 +189,7 @@ jobs:
           path: ~\AppData\Roaming\npm-cache
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
