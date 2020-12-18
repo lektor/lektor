@@ -1,15 +1,15 @@
 import React from "react";
-import { trans } from "./i18n";
+import { trans, Translatable } from "./i18n";
 
 /**
  * Formats a user label appropriately
  */
-export function formatUserLabel(inputConfig) {
+export function formatUserLabel(inputConfig: Translatable) {
   const label =
     typeof inputConfig === "string" ? inputConfig : trans(inputConfig);
 
   if (!label) {
-    return <span className="" />;
+    return <span />;
   }
 
   const iconData = label.match(/^\[\[\s*(.*?)\s*(;\s*(.*?))?\s*\]\]$/);

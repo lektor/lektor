@@ -12,6 +12,7 @@ export class BooleanInputWidget extends React.Component<WidgetProps, unknown> {
   constructor(props: WidgetProps) {
     super(props);
     this.checkbox = createRef();
+    this.onChange = this.onChange.bind(this);
   }
 
   onChange(event: ChangeEvent<HTMLInputElement>) {
@@ -41,7 +42,7 @@ export class BooleanInputWidget extends React.Component<WidgetProps, unknown> {
             disabled={disabled}
             ref={this.checkbox}
             checked={isTrue(value)}
-            onChange={this.onChange.bind(this)}
+            onChange={this.onChange}
           />
           {type.checkbox_label_i18n ? trans(type.checkbox_label_i18n) : null}
         </label>
