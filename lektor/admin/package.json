@@ -11,6 +11,7 @@
     "@babel/preset-react": "^7.12.10",
     "@babel/preset-typescript": "^7.12.7",
     "@babel/register": "^7.12.10",
+    "@types/mocha": "^8.2.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.6",
@@ -70,7 +71,7 @@
     }
   },
   "mocha": {
-    "spec": "static/js/**/*.test.[jt]s",
+    "spec": ["static/js/**/*.test.ts","static/js/**/*.test.tsx"],
     "require": [
       "./babel-require.js"
     ]

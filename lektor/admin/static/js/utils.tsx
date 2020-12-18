@@ -1,12 +1,12 @@
-export function isValidUrl(url) {
+export function isValidUrl(url: string) {
   return !!url.match(/^(https?|ftps?):\/\/\S+$|^mailto:\S+$/);
 }
 
-function stripLeadingSlash(string) {
+function stripLeadingSlash(string: string) {
   return string.match(/^\/*(.*?)$/)[1];
 }
 
-function stripTrailingSlash(string) {
+function stripTrailingSlash(string: string) {
   return string.match(/^(.*?)\/*$/)[1];
 }
 
@@ -46,9 +46,9 @@ export function getPlatform() {
 /**
  * Whether the meta key (command on Mac, Ctrl otherwise) and no other control
  * keys is pressed.
- * @param {KeyboardEvent} event - A keyboard event.
+ * @param event - A keyboard event.
  */
-export function isMetaKey(event) {
+export function isMetaKey(event: KeyboardEvent) {
   return getPlatform() === "mac"
     ? event.metaKey && !event.altKey && !event.shiftKey
     : event.ctrlKey && !event.altKey && !event.shiftKey;

@@ -70,6 +70,8 @@ type State = {
 };
 
 class Sidebar extends RecordComponent<unknown, State> {
+  childPosCache: ChildPosCache;
+
   constructor(props: RecordProps) {
     super(props);
 

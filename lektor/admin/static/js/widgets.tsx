@@ -181,7 +181,7 @@ export function FieldRows({
   renderFunc,
 }: {
   fields: Field[];
-  renderFunc: (field: Field) => ReactNode;
+  renderFunc: (field: Field, index: number) => ReactNode;
 }) {
   const [normalRows, systemRows] = getFieldRows(fields);
 

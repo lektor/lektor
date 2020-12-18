@@ -11,27 +11,28 @@ type Props = {
 export default class SlideDialog extends React.Component<Props> {
   constructor(props: Props) {
     super(props);
-    this._onKeyPress = this._onKeyPress.bind(this);
+    this.onKeyPress = this.onKeyPress.bind(this);
+    this.onCloseClick = this.onCloseClick.bind(this);
   }
 
   componentDidMount() {
     if (this.props.closeOnEscape) {
-      window.addEventListener("keydown", this._onKeyPress);
+      window.addEventListener("keydown", this.onKeyPress);
     }
   }
 
   componentWillUnmount() {
-    window.removeEventListener("keydown", this._onKeyPress);
+    window.removeEventListener("keydown", this.onKeyPress);
   }
 
-  _onKeyPress(event: KeyboardEvent) {
+  onKeyPress(event: KeyboardEvent) {
     if (event.key === "Escape" && this.props.closeOnEscape) {
       event.preventDefault();
       dialogSystem.dismissDialog();
     }
   }
 
-  _onCloseClick(event: MouseEvent) {
+  onCloseClick(event: MouseEvent) {
     event.preventDefault();
     dialogSystem.dismissDialog();
   }
@@ -42,11 +43,7 @@ export default class SlideDialog extends React.Component<Props> {
       <div className="sliding-panel container">
         <div className="col-md-6 col-md-offset-4">
           {hasCloseButton && (
-            <a
-              href="#"
-              className="close-btn"
-              onClick={this._onCloseClick.bind(this)}
-            >
+            <a href="#" className="close-btn" onClick={this.onCloseClick}>
               {trans("CLOSE")}
             </a>
           )}

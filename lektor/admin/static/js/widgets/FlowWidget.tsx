@@ -12,7 +12,7 @@ import {
 
 type Block = [string, string[]];
 
-function parseFlowFormat(value: string) {
+export function parseFlowFormat(value: string) {
   const blocks: Block[] = [];
   let buf = [];
   const lines = value.split(/\r?\n/);
@@ -49,7 +49,7 @@ function parseFlowFormat(value: string) {
   return blocks;
 }
 
-function serializeFlowFormat(blocks: Block[]) {
+export function serializeFlowFormat(blocks: Block[]) {
   let rv = [];
   blocks.forEach((block) => {
     const [blockName, lines] = block;

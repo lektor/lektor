@@ -5,6 +5,7 @@ type Translations = Partial<Record<string, string>>;
 interface BaseWidgetType {
   widget: string;
   size: "normal" | "small" | "large";
+  width?: string;
 }
 
 export interface WidgetType extends BaseWidgetType {
@@ -21,6 +22,7 @@ export interface MultiWidgetType extends BaseWidgetType {
 export interface Field {
   name: string;
   type: WidgetType;
+  default?: string;
   description_i18n: Translations;
   label_i18n: Translations;
 }
