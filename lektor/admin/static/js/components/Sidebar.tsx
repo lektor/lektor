@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEvent } from "react";
 import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
@@ -25,11 +25,13 @@ const getBrowseButtonTitle = () => {
 const CHILDREN_PER_PAGE = 15;
 
 class ChildPosCache {
+  memo: [record: string, page: number][];
+
   constructor() {
     this.memo = [];
   }
 
-  rememberPosition(record, page) {
+  rememberPosition(record: string, page: number): void {
     for (let i = 0; i < this.memo.length; i++) {
       if (this.memo[i][0] === record) {
         this.memo[i][1] = page;
@@ -42,7 +44,7 @@ class ChildPosCache {
     }
   }
 
-  getPosition(record, childCount) {
+  getPosition(record: string, childCount: number): number {
     for (let i = 0; i < this.memo.length; i++) {
       if (this.memo[i][0] === record) {
         let rv = this.memo[i][1];
@@ -56,16 +58,24 @@ class ChildPosCache {
   }
 }
 
+type Alternative = {
+  alt: string;
+  is_primary: boolean;
+  primary_overlay: boolean;
+  name_i18n: string;
+  exists: boolean;
+};
+
 type State = {
   recordAttachments: unknown[];
   recordChildren: unknown[];
-  recordAlts: unknown[];
+  recordAlts: Alternative[];
   canHaveAttachments: boolean;
   canHaveChildren: boolean;
   isAttachment: boolean;
   canBeDeleted: boolean;
   recordExists: boolean;
-  lastRecordRequest: null;
+  lastRecordRequest: string | null;
   childrenPage: number;
 };
 
@@ -77,6 +87,7 @@ class Sidebar extends RecordComponent<unknown, State> {
 
     this.state = this._getInitialState();
     this.childPosCache = new ChildPosCache();
+
     this.onAttachmentsChanged = this.onAttachmentsChanged.bind(this);
   }
 
@@ -134,7 +145,7 @@ class Sidebar extends RecordComponent<unknown, State> {
           if (path !== this.state.lastRecordRequest) {
             return;
           }
-          const alts = resp.alts;
+          const alts: Alternative[] = resp.alts;
           alts.sort((a, b) => {
             const nameA = (a.is_primary ? "A" : "B") + trans(a.name_i18n);
             const nameB = (b.is_primary ? "A" : "B") + trans(b.name_i18n);
@@ -159,7 +170,7 @@ class Sidebar extends RecordComponent<unknown, State> {
     );
   }
 
-  fsOpen(event) {
+  fsOpen(event: MouseEvent) {
     event.preventDefault();
     loadData(
       "/browsefs",
@@ -284,13 +295,11 @@ class Sidebar extends RecordComponent<unknown, State> {
       return null;
     }
     const page = this.state.childrenPage;
-    const goToPage = (diff, event) => {
+    const goToPage = (diff: number, event: MouseEvent) => {
       event.preventDefault();
       const newPage = page + diff;
       this.childPosCache.rememberPosition(this.getRecordPath(), newPage);
-      this.setState({
-        childrenPage: newPage,
-      });
+      this.setState({ childrenPage: newPage });
     };
 
     return (
