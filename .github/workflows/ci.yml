@@ -25,20 +25,20 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-14-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-14-${{ hashFiles('**/package-lock.json') }}
       - name: Cache pip
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.9-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: '14'
       - name: Install node dependencies
         run: cd lektor/admin && npm ci
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: '3.9'
           architecture: 'x64'
@@ -68,12 +68,12 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -93,12 +93,12 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
@@ -127,17 +127,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['10', '14']
+        NODEJS_VERSION: ['10']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -153,17 +153,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
+        NODEJS_VERSION: ['12']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -179,17 +179,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
+        NODEJS_VERSION: ['12']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~\AppData\Roaming\npm-cache
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\lektor\admin\package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\package-lock.json') }}
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
@@ -213,12 +213,12 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
@@ -250,12 +250,12 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
@@ -291,12 +291,12 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**\setup.py') }}
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       # ImageMagick is temporarily pinned because of 404 issues while installing
