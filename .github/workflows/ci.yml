@@ -68,7 +68,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -93,7 +93,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
@@ -132,7 +132,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -158,7 +158,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -184,7 +184,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache node
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~\AppData\Roaming\npm-cache
           key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\package-lock.json') }}
@@ -213,7 +213,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
@@ -250,7 +250,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
@@ -291,7 +291,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**\setup.py') }}
