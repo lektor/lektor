@@ -6,10 +6,8 @@ import {
   Switch,
   Redirect,
 } from "react-router-dom";
-import i18n from "./i18n";
+import { setCurrentLanguage } from "./i18n";
 
-import "bootstrap";
-import "./bootstrap-extras";
 import "font-awesome/css/font-awesome.css";
 
 // polyfill for internet explorer
@@ -23,7 +21,7 @@ import PreviewPage from "./views/PreviewPage";
 import AddChildPage from "./views/AddChildPage";
 import AddAttachmentPage from "./views/AddAttachmentPage";
 
-i18n.currentLanguage = $LEKTOR_CONFIG.lang;
+setCurrentLanguage($LEKTOR_CONFIG.lang);
 
 function BadRoute(props) {
   return (

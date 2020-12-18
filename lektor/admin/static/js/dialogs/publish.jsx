@@ -1,15 +1,45 @@
 /* eslint-env browser */
 
-import React from "react";
+import React, { createRef } from "react";
 
-import Component from "../components/Component";
 import SlideDialog from "../components/SlideDialog";
-import { apiRequest, loadData, getApiUrl } from "../utils";
-import i18n from "../i18n";
+import { loadData, getApiUrl } from "../utils";
+import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
-class Publish extends Component {
+/**
+ * Render a <select for the available target servers.
+ */
+function TargetServers({ activeTarget, servers, setActiveTarget }) {
+  function onChange(event) {
+    setActiveTarget(event.target.value);
+  }
+  const serverOptions = servers.map((server) => (
+    <option value={server.id} key={server.id}>
+      {trans(server.name_i18n) + " (" + server.short_target + ")"}
+    </option>
+  ));
+
+  return (
+    <dl>
+      <dt>{trans("PUBLISH_SERVER")}</dt>
+      <dd>
+        <div className="input-group">
+          <select
+            value={activeTarget || ""}
+            onChange={onChange}
+            className="form-control"
+          >
+            {serverOptions}
+          </select>
+        </div>
+      </dd>
+    </dl>
+  );
+}
+
+class Publish extends React.Component {
   constructor(props) {
     super(props);
 
@@ -19,19 +49,20 @@ class Publish extends Component {
       log: [],
       currentState: "IDLE",
     };
+
+    this.buildLog = createRef();
+    this.setActiveTarget = this.setActiveTarget.bind(this);
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncDialog();
   }
 
-  componentDidUpdate(nextProps) {
-    super.componentDidUpdate();
-    if (nextProps.match.params.path !== this.props.match.params.path) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
-    const node = this.refs.log;
+    const node = this.buildLog.current;
     if (node) {
       node.scrollTop = node.scrollHeight;
     }
@@ -42,12 +73,12 @@ class Publish extends Component {
   }
 
   syncDialog() {
-    loadData("/servers", {}, null, makeRichPromise).then(({ servers }) => {
+    loadData("/servers", null).then(({ servers }) => {
       this.setState({
         servers: servers,
         activeTarget: servers && servers.length ? servers[0].id : null,
       });
-    });
+    }, bringUpDialog);
   }
 
   isSafeToPublish() {
@@ -71,15 +102,9 @@ class Publish extends Component {
       log: [],
       currentState: "BUILDING",
     });
-    apiRequest(
-      "/build",
-      {
-        method: "POST",
-      },
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/build", null, { method: "POST" }).then(() => {
       this._beginPublish();
-    });
+    }, bringUpDialog);
   }
 
   _beginPublish() {
@@ -100,70 +125,49 @@ class Publish extends Component {
         });
         es.close();
       } else {
-        this.setState({
-          log: this.state.log.concat(data.msg),
-        });
+        this.setState((state) => ({
+          log: state.log.concat(data.msg),
+        }));
       }
     });
   }
 
-  onSelectServer(event) {
-    this.setState({
-      activeTarget: event.target.value,
-    });
+  setActiveTarget(activeTarget) {
+    this.setState({ activeTarget: activeTarget });
   }
 
   render() {
-    const servers = this.state.servers.map((server) => {
-      return (
-        <option value={server.id} key={server.id}>
-          {i18n.trans(server.name_i18n) + " (" + server.short_target + ")"}
-        </option>
-      );
-    });
-
-    let progress = null;
-    if (this.state.currentState !== "IDLE") {
-      progress = (
+    const progress =
+      this.state.currentState !== "IDLE" ? (
         <div>
           <h3>
             {this.state.currentState !== "DONE"
-              ? i18n.trans("CURRENTLY_PUBLISHING")
-              : i18n.trans("PUBLISH_DONE")}
+              ? trans("CURRENTLY_PUBLISHING")
+              : trans("PUBLISH_DONE")}
           </h3>
           <pre>
-            {i18n.trans("STATE") +
+            {trans("STATE") +
               ": " +
-              i18n.trans("PUBLISH_STATE_" + this.state.currentState)}
+              trans("PUBLISH_STATE_" + this.state.currentState)}
           </pre>
-          <pre ref="log" className="build-log">
+          <pre ref={this.buildLog} className="build-log">
             {this.state.log.join("\n")}
           </pre>
         </div>
-      );
-    }
+      ) : null;
 
     return (
       <SlideDialog
         hasCloseButton={false}
         closeOnEscape
-        title={i18n.trans("PUBLISH")}
+        title={trans("PUBLISH")}
       >
-        <p>{i18n.trans("PUBLISH_NOTE")}</p>
-        <dl>
-          <dt>{i18n.trans("PUBLISH_SERVER")}</dt>
-          <dd>
-            <div className="input-group">
-              <select
-                value={this.state.activeTarget}
-                onChange={this.onSelectServer.bind(this)}
-                className="form-control"
-              >
-                {servers}
-              </select>
-            </div>
-          </dd>
-        </dl>
+        <p>{trans("PUBLISH_NOTE")}</p>
+        <TargetServers
+          activeTarget={this.state.activeTarget}
+          servers={this.state.servers}
+          setActiveTarget={this.setActiveTarget}
+        />
         <div className="actions">
           <button
             type="submit"
@@ -171,7 +175,7 @@ class Publish extends Component {
             disabled={!this.isSafeToPublish()}
             onClick={this.onPublish.bind(this)}
           >
-            {i18n.trans("PUBLISH")}
+            {trans("PUBLISH")}
           </button>
           <button
             type="submit"
@@ -179,9 +183,7 @@ class Publish extends Component {
             disabled={!this.isSafeToPublish()}
             onClick={this.onCancel.bind(this)}
           >
-            {i18n.trans(
-              this.state.currentState === "DONE" ? "CLOSE" : "CANCEL"
-            )}
+            {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
           </button>
         </div>
         {progress}

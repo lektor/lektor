@@ -1,5 +1,3 @@
-import jQuery from "jquery";
-
 export function isValidUrl(url) {
   return !!url.match(/^(https?|ftps?):\/\/\S+$|^mailto:\S+$/);
 }
@@ -59,7 +57,7 @@ export function urlPathsConsideredEqual(a, b) {
 }
 
 export function getApiUrl(url) {
-  return $LEKTOR_CONFIG.admin_root + "/api" + url;
+  return `${$LEKTOR_CONFIG.admin_root}/api${url}`;
 }
 
 export function getPlatform() {
@@ -76,12 +74,15 @@ export function getPlatform() {
   return "other";
 }
 
+/**
+ * Whether the meta key (command on Mac, Ctrl otherwise) and no other control
+ * keys is pressed.
+ * @param {KeyboardEvent} event - A keyboard event.
+ */
 export function isMetaKey(event) {
-  if (getPlatform() === "mac") {
-    return event.metaKey;
-  } else {
-    return event.ctrlKey;
-  }
+  return getPlatform() === "mac"
+    ? event.metaKey && !event.altKey && !event.shiftKey
+    : event.ctrlKey && !event.altKey && !event.shiftKey;
 }
 
 export function getParentFsPath(fsPath) {
@@ -114,48 +115,44 @@ export function fsPathFromAdminObservedPath(adminPath) {
   return "/" + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1];
 }
 
-export function loadData(url, params, options, createPromise) {
-  options = options || {};
-  return createPromise((resolve, reject) => {
-    jQuery
-      .ajax({
-        url: getApiUrl(url),
-        data: params,
-        method: options.method || "GET",
-      })
-      .done((data) => {
-        resolve(data);
-      })
-      .fail(() => {
-        reject({
-          code: "REQUEST_FAILED",
-        });
-      });
-  });
+function handleJSON(response) {
+  if (!response.ok) {
+    throw new Error({
+      code: "REQUEST_FAILED",
+    });
+  }
+  return response.json();
 }
 
-export function apiRequest(url, options, createPromise) {
-  options = options || {};
-  options.url = getApiUrl(url);
-  if (options.json !== undefined) {
-    options.data = JSON.stringify(options.json);
-    options.contentType = "application/json";
+function paramsToQueryString(params) {
+  const urlParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    urlParams.set(key, value);
+  });
+  return urlParams.toString();
+}
+
+/**
+ * Load data from the JSON API.
+ * @param {string} url - The API endpoint to fetch
+ * @param {Record<string,string> | null} params - URL params to set.
+ * @param {any} options - Additional fetch options, like the HTTP method.
+ *                        If this contains a `json` key, that will be encoded to JSON
+ *                        and sent as a request with the appropriate content type.
+ */
+export function loadData(url, params, options) {
+  const apiUrl = `${$LEKTOR_CONFIG.admin_root}/api${url}`;
+  const fetchUrl = params ? `${apiUrl}?${paramsToQueryString(params)}` : apiUrl;
+
+  if (options && options.json !== undefined) {
+    options.body = JSON.stringify(options.json);
+    options.headers = { "Content-Type": "application/json" };
     delete options.json;
   }
-  if (!options.method) {
-    options.method = "GET";
-  }
 
-  return createPromise((resolve, reject) => {
-    jQuery
-      .ajax(options)
-      .done((data) => {
-        resolve(data);
-      })
-      .fail(() => {
-        reject({
-          code: "REQUEST_FAILED",
-        });
-      });
-  });
+  return fetch(fetchUrl, {
+    credentials: "same-origin",
+    method: "GET",
+    ...options,
+  }).then(handleJSON);
 }

@@ -3,7 +3,7 @@ import React from "react";
 import RecordComponent from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import dialogSystem from "../dialogSystem";
-import i18n from "../i18n";
+import { trans } from "../i18n";
 
 class ErrorDialog extends RecordComponent {
   onClose() {
@@ -12,11 +12,11 @@ class ErrorDialog extends RecordComponent {
 
   render() {
     return (
-      <SlideDialog hasCloseButton closeOnEscape title={i18n.trans("ERROR")}>
+      <SlideDialog hasCloseButton closeOnEscape title={trans("ERROR")}>
         <p>
-          {i18n.trans("ERROR_OCURRED")}
+          {trans("ERROR_OCURRED")}
           {": "}
-          {i18n.trans("ERROR_" + this.props.error.code)}
+          {trans("ERROR_" + this.props.error.code)}
         </p>
         <div className="actions">
           <button
@@ -24,7 +24,7 @@ class ErrorDialog extends RecordComponent {
             className="btn btn-primary"
             onClick={this.onClose.bind(this)}
           >
-            {i18n.trans("CLOSE")}
+            {trans("CLOSE")}
           </button>
         </div>
       </SlideDialog>

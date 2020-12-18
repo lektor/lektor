@@ -23,7 +23,7 @@ import {
 } from "./widgets/fakeWidgets";
 import { widgetPropTypes } from "./widgets/mixins";
 import ToggleGroup from "./components/ToggleGroup";
-import i18n from "./i18n";
+import { trans } from "./i18n";
 
 const widgetComponents = {
   "singleline-text": SingleLineTextInputWidget,
@@ -81,13 +81,13 @@ export const FieldBox = React.memo(function FieldBox(props) {
   }
 
   const description = field.description_i18n ? (
-    <div className="help-text">{i18n.trans(field.description_i18n)}</div>
+    <div className="help-text">{trans(field.description_i18n)}</div>
   ) : null;
 
   return (
     <div className={className} key={field.name}>
       <dl className={innerClassName}>
-        {!field.hide_label ? <dt>{i18n.trans(field.label_i18n)}</dt> : null}
+        {!field.hide_label ? <dt>{trans(field.label_i18n)}</dt> : null}
         <dd>
           {description}
           <Widget
@@ -188,7 +188,7 @@ export function FieldRows({ fields, renderFunc }) {
       {systemRows.length > 1 ? (
         <ToggleGroup
           key="sys"
-          groupTitle={i18n.trans("SYSTEM_FIELDS")}
+          groupTitle={trans("SYSTEM_FIELDS")}
           defaultVisibility={false}
         >
           {systemRows.map((row, idx) => (

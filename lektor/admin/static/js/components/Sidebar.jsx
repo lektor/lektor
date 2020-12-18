@@ -1,22 +1,22 @@
 /* eslint-env browser */
 
 import React from "react";
-import { apiRequest, loadData, getPlatform } from "../utils";
-import i18n from "../i18n";
+import { loadData, getPlatform } from "../utils";
+import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import RecordComponent from "./RecordComponent";
 import Link from "../components/Link";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
   if (platform === "mac") {
-    return i18n.trans("BROWSE_FS_MAC");
+    return trans("BROWSE_FS_MAC");
   } else if (platform === "windows") {
-    return i18n.trans("BROWSE_FS_WINDOWS");
+    return trans("BROWSE_FS_WINDOWS");
   } else {
-    return i18n.trans("BROWSE_FS");
+    return trans("BROWSE_FS");
   }
 };
 
@@ -79,21 +79,18 @@ class Sidebar extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this._updateRecordInfo();
 
     hub.subscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    super.componentDidUpdate(prevProps, prevState);
+  componentDidUpdate(prevProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this._updateRecordInfo();
     }
   }
 
   componentWillUnmount() {
-    super.componentWillUnmount();
     hub.unsubscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
   }
 
@@ -115,58 +112,47 @@ class Sidebar extends RecordComponent {
         lastRecordRequest: path,
       },
       () => {
-        loadData("/recordinfo", { path: path }, null, makeRichPromise).then(
-          (resp) => {
-            // we're already fetching something else.
-            if (path !== this.state.lastRecordRequest) {
-              return;
-            }
-            const alts = resp.alts;
-            alts.sort((a, b) => {
-              const nameA =
-                (a.is_primary ? "A" : "B") + i18n.trans(a.name_i18n);
-              const nameB =
-                (b.is_primary ? "A" : "B") + i18n.trans(b.name_i18n);
-              return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
-            });
-            this.setState({
-              recordAttachments: resp.attachments,
-              recordChildren: resp.children,
-              recordAlts: alts,
-              canHaveAttachments: resp.can_have_attachments,
-              canHaveChildren: resp.can_have_children,
-              isAttachment: resp.is_attachment,
-              canBeDeleted: resp.can_be_deleted,
-              recordExists: resp.exists,
-              childrenPage: this.childPosCache.getPosition(
-                path,
-                resp.children.length
-              ),
-            });
+        loadData("/recordinfo", { path: path }).then((resp) => {
+          // we're already fetching something else.
+          if (path !== this.state.lastRecordRequest) {
+            return;
           }
-        );
+          const alts = resp.alts;
+          alts.sort((a, b) => {
+            const nameA = (a.is_primary ? "A" : "B") + trans(a.name_i18n);
+            const nameB = (b.is_primary ? "A" : "B") + trans(b.name_i18n);
+            return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+          });
+          this.setState({
+            recordAttachments: resp.attachments,
+            recordChildren: resp.children,
+            recordAlts: alts,
+            canHaveAttachments: resp.can_have_attachments,
+            canHaveChildren: resp.can_have_children,
+            isAttachment: resp.is_attachment,
+            canBeDeleted: resp.can_be_deleted,
+            recordExists: resp.exists,
+            childrenPage: this.childPosCache.getPosition(
+              path,
+              resp.children.length
+            ),
+          });
+        }, bringUpDialog);
       }
     );
   }
 
   fsOpen(event) {
     event.preventDefault();
-    apiRequest(
+    loadData(
       "/browsefs",
-      {
-        data: {
-          path: this.getRecordPath(),
-          alt: this.getRecordAlt(),
-        },
-        // eslint-disable-next-line indent
-        method: "POST",
-      },
-      makeRichPromise
+      { path: this.getRecordPath(), alt: this.getRecordAlt() },
+      { method: "POST" }
     ).then((resp) => {
       if (!resp.okay) {
-        alert(i18n.trans("ERROR_CANNOT_BROWSE_FS"));
+        alert(trans("ERROR_CANNOT_BROWSE_FS"));
       }
-    });
+    }, bringUpDialog);
   }
 
   renderPageActions() {
@@ -177,9 +163,7 @@ class Sidebar extends RecordComponent {
     links.push(
       <li key="edit">
         <Link to={`${urlPath}/edit`}>
-          {this.state.isAttachment
-            ? i18n.trans("EDIT_METADATA")
-            : i18n.trans("EDIT")}
+          {this.state.isAttachment ? trans("EDIT_METADATA") : trans("EDIT")}
         </Link>
       </li>
     );
@@ -187,14 +171,14 @@ class Sidebar extends RecordComponent {
     if (this.state.canBeDeleted) {
       links.push(
         <li key="delete">
-          <Link to={`${urlPath}/delete`}>{i18n.trans("DELETE")}</Link>
+          <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
         </li>
       );
     }
 
     links.push(
       <li key="preview">
-        <Link to={`${urlPath}/preview`}>{i18n.trans("PREVIEW")}</Link>
+        <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
       </li>
     );
 
@@ -211,9 +195,7 @@ class Sidebar extends RecordComponent {
     if (this.state.canHaveChildren) {
       links.push(
         <li key="add-child">
-          <Link to={`${urlPath}/add-child`}>
-            {i18n.trans("ADD_CHILD_PAGE")}
-          </Link>
+          <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
         </li>
       );
     }
@@ -221,14 +203,14 @@ class Sidebar extends RecordComponent {
     if (this.state.canHaveAttachments) {
       links.push(
         <li key="add-attachment">
-          <Link to={`${urlPath}/upload`}>{i18n.trans("ADD_ATTACHMENT")}</Link>
+          <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
         </li>
       );
     }
 
     const title = this.state.isAttachment
-      ? i18n.trans("ATTACHMENT_ACTIONS")
-      : i18n.trans("PAGE_ACTIONS");
+      ? trans("ATTACHMENT_ACTIONS")
+      : trans("PAGE_ACTIONS");
 
     return (
       <div key="actions" className="section">
@@ -247,20 +229,21 @@ class Sidebar extends RecordComponent {
     }
 
     const items = this.state.recordAlts.map((item) => {
-      let title = i18n.trans(item.name_i18n);
+      let title = trans(item.name_i18n);
       let className = "alt";
       if (item.is_primary) {
-        title += " (" + i18n.trans("PRIMARY_ALT") + ")";
+        title += " (" + trans("PRIMARY_ALT") + ")";
       } else if (item.primary_overlay) {
-        title += " (" + i18n.trans("PRIMARY_OVERLAY") + ")";
+        title += " (" + trans("PRIMARY_OVERLAY") + ")";
       }
       if (!item.exists) {
         className += " alt-missing";
       }
 
-      const path = this.getPathToAdminPage(null, {
-        path: this.getUrlRecordPathWithAlt(null, item.alt),
-      });
+      const path = this.getPathToAdminPage(
+        null,
+        this.getUrlRecordPathWithAlt(null, item.alt)
+      );
       return (
         <li key={item.alt} className={className}>
           <Link to={path}>{title}</Link>
@@ -270,7 +253,7 @@ class Sidebar extends RecordComponent {
 
     return (
       <div key="alts" className="section">
-        <h3>{i18n.trans("ALTS")}</h3>
+        <h3>{trans("ALTS")}</h3>
         <ul className="nav">{items}</ul>
       </div>
     );
@@ -327,9 +310,7 @@ class Sidebar extends RecordComponent {
       const urlPath = this.getUrlRecordPathWithAlt(child.path);
       return (
         <li key={child.id}>
-          <Link to={`${urlPath}/${target}`}>
-            {i18n.trans(child.label_i18n)}
-          </Link>
+          <Link to={`${urlPath}/${target}`}>{trans(child.label_i18n)}</Link>
         </li>
       );
     });
@@ -337,14 +318,14 @@ class Sidebar extends RecordComponent {
     if (items.length === 0) {
       items.push(
         <li key="_missing">
-          <em>{i18n.trans("NO_CHILD_PAGES")}</em>
+          <em>{trans("NO_CHILD_PAGES")}</em>
         </li>
       );
     }
 
     return (
       <div key="children" className="section">
-        <h3>{i18n.trans("CHILD_PAGES")}</h3>
+        <h3>{trans("CHILD_PAGES")}</h3>
         <ul className="nav record-children">
           {this.renderChildPagination()}
           {items}
@@ -368,14 +349,14 @@ class Sidebar extends RecordComponent {
     if (items.length === 0) {
       items.push(
         <li key="_missing">
-          <em>{i18n.trans("NO_ATTACHMENTS")}</em>
+          <em>{trans("NO_ATTACHMENTS")}</em>
         </li>
       );
     }
 
     return (
       <div key="attachments" className="section">
-        <h3>{i18n.trans("ATTACHMENTS")}</h3>
+        <h3>{trans("ATTACHMENTS")}</h3>
         <ul className="nav record-attachments">{items}</ul>
       </div>
     );

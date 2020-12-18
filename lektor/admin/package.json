@@ -21,7 +21,6 @@
     "event-source-polyfill": "^1.0.22",
     "file-loader": "^6.2.0",
     "font-awesome": "^4.3.0",
-    "jquery": "^3.5.1",
     "jsdom": "^16.4.0",
     "jsdom-global": "^3.0.2",
     "json-loader": "^0.5.2",

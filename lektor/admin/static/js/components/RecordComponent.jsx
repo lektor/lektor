@@ -1,4 +1,4 @@
-import Component from "./Component";
+import React from "react";
 import { getParentFsPath, urlToFsPath, fsToUrlPath } from "../utils";
 
 export function getRecordPathAndAlt(path) {
@@ -9,9 +9,31 @@ export function getRecordPathAndAlt(path) {
   return [urlToFsPath(items[0]), items[1]];
 }
 
-/* a react component baseclass that has some basic knowledge about
-   the record it works with. */
-export default class RecordComponent extends Component {
+/**
+ * A React component baseclass that has some basic knowledge about
+ * the record it works with.
+ */
+export default class RecordComponent extends React.Component {
+  /**
+   * Helper to generate URL path for an admin page.
+   * @param {string | null} name - Name of the page (or null for the current one)
+   * @param {string} path - Record path
+   */
+  getPathToAdminPage(name, path) {
+    const pageName = name !== null ? name : this.props.match.params.page;
+    return `${$LEKTOR_CONFIG.admin_root}/${path}/${pageName}`;
+  }
+
+  /**
+   * Helper to transition to a specific page
+   * @param {string} name - Page name
+   * @param {string} path - Record path
+   */
+  transitionToAdminPage(name, path) {
+    const url = this.getPathToAdminPage(name, path);
+    this.props.history.push(url);
+  }
+
   /* this returns the path of the current record.  If the current page does
    * not have a path component then null is returned. */
   getRecordPath() {

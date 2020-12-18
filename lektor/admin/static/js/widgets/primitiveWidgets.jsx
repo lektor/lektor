@@ -1,8 +1,8 @@
-import React from "react";
+import React, { createRef } from "react";
 import { getInputClass, widgetPropTypes } from "./mixins";
 import { isValidUrl } from "../utils";
-import userLabel from "../userLabel";
-import i18n from "../i18n";
+import { formatUserLabel } from "../userLabel";
+import { trans } from "../i18n";
 
 const isTrue = (value) => {
   return value === "true" || value === "yes" || value === "1";
@@ -60,7 +60,7 @@ function InputWidgetBase(props) {
   let addon = null;
   const configuredAddon = type.addon_label_i18n;
   if (configuredAddon) {
-    addon = userLabel.format(configuredAddon);
+    addon = formatUserLabel(configuredAddon);
   } else if (inputAddon) {
     addon = inputAddon;
   }
@@ -117,7 +117,7 @@ function postprocessInteger(value) {
 
 function validateInteger(value) {
   if (value && !value.match(/^-?\d+$/)) {
-    return i18n.trans("ERROR_INVALID_NUMBER");
+    return trans("ERROR_INVALID_NUMBER");
   }
   return null;
 }
@@ -141,7 +141,7 @@ function postprocessFloat(value) {
 
 function validateFloat(value) {
   if (value && !value.match(/^[+,-]?\d+[.]\d+$/)) {
-    return i18n.trans("ERROR_INVALID_NUMBER");
+    return trans("ERROR_INVALID_NUMBER");
   }
   return null;
 }
@@ -190,7 +190,7 @@ function validateDate(value) {
     return null;
   }
 
-  return i18n.trans("ERROR_INVALID_DATE");
+  return trans("ERROR_INVALID_DATE");
 }
 
 export function DateInputWidget(props) {
@@ -208,7 +208,7 @@ DateInputWidget.propTypes = widgetPropTypes;
 
 function validateUrl(value) {
   if (value && !isValidUrl(value)) {
-    return i18n.trans("ERROR_INVALID_URL");
+    return trans("ERROR_INVALID_URL");
   }
   return null;
 }
@@ -229,6 +229,7 @@ export class MultiLineTextInputWidget extends React.Component {
   constructor(props) {
     super(props);
     this.recalculateSize = this.recalculateSize.bind(this);
+    this.textarea = createRef();
   }
 
   onChange(event) {
@@ -245,7 +246,7 @@ export class MultiLineTextInputWidget extends React.Component {
     window.removeEventListener("resize", this.recalculateSize);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate() {
     this.recalculateSize();
   }
 
@@ -258,7 +259,7 @@ export class MultiLineTextInputWidget extends React.Component {
       return;
     }
     let diff;
-    const node = this.refs.ta;
+    const node = this.textarea.current;
 
     if (window.getComputedStyle) {
       const s = window.getComputedStyle(node);
@@ -308,7 +309,7 @@ export class MultiLineTextInputWidget extends React.Component {
     return (
       <div>
         <textarea
-          ref="ta"
+          ref={this.textarea}
           className={getInputClass(type)}
           onChange={this.onChange.bind(this)}
           style={style}
@@ -325,7 +326,7 @@ MultiLineTextInputWidget.propTypes = widgetPropTypes;
 export class BooleanInputWidget extends React.Component {
   constructor(props) {
     super(props);
-    this.checkbox = React.createRef();
+    this.checkbox = createRef();
   }
 
   onChange(event) {
@@ -355,9 +356,7 @@ export class BooleanInputWidget extends React.Component {
             checked={isTrue(value)}
             onChange={this.onChange.bind(this)}
           />
-          {type.checkbox_label_i18n
-            ? i18n.trans(type.checkbox_label_i18n)
-            : null}
+          {type.checkbox_label_i18n ? trans(type.checkbox_label_i18n) : null}
         </label>
       </div>
     );

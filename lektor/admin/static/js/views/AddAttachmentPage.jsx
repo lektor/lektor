@@ -1,12 +1,12 @@
 /* eslint-env browser */
 
-import React from "react";
+import React, { createRef } from "react";
 import RecordComponent from "../components/RecordComponent";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { loadData, getApiUrl } from "../utils";
-import i18n from "../i18n";
-import makeRichPromise from "../richPromise";
+import { trans } from "../i18n";
+import { bringUpDialog } from "../richPromise";
 
 class AddAttachmentPage extends RecordComponent {
   constructor(props) {
@@ -17,33 +17,29 @@ class AddAttachmentPage extends RecordComponent {
       isUploading: false,
       currentProgress: 0,
     };
+    this.fileInput = createRef();
   }
 
   componentDidMount() {
     this.syncDialog();
   }
 
-  componentDidUpdate(nextProps) {
-    if (nextProps.match.params.path !== this.props.match.params.path) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
   }
 
   syncDialog() {
-    loadData(
-      "/newattachment",
-      { path: this.getRecordPath() },
-      null,
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/newattachment", { path: this.getRecordPath() }).then((resp) => {
       this.setState({
         newAttachmentInfo: resp,
       });
-    });
+    }, bringUpDialog);
   }
 
   uploadFile(event) {
-    this.refs.file.click();
+    this.fileInput.current.click();
   }
 
   onUploadProgress(event) {
@@ -79,7 +75,7 @@ class AddAttachmentPage extends RecordComponent {
       return;
     }
 
-    const files = this.refs.file.files;
+    const files = this.fileInput.current.files;
     this.setState({
       currentFiles: Array.prototype.slice.call(files, 0),
       isUploading: true,
@@ -123,15 +119,15 @@ class AddAttachmentPage extends RecordComponent {
 
     return (
       <div>
-        <h2>{i18n.trans("ADD_ATTACHMENT_TO").replace("%s", nai.label)}</h2>
-        <p>{i18n.trans("ADD_ATTACHMENT_NOTE")}</p>
+        <h2>{trans("ADD_ATTACHMENT_TO").replace("%s", nai.label)}</h2>
+        <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
         {this.renderCurrentFiles()}
         <p>
-          {i18n.trans("PROGRESS")}: {this.state.currentProgress}%
+          {trans("PROGRESS")}: {this.state.currentProgress}%
         </p>
         <input
           type="file"
-          ref="file"
+          ref={this.fileInput}
           multiple
           style={{ display: "none" }}
           onChange={this.onFileSelected.bind(this)}
@@ -141,7 +137,7 @@ class AddAttachmentPage extends RecordComponent {
             className="btn btn-primary"
             onClick={this.uploadFile.bind(this)}
           >
-            {i18n.trans("UPLOAD")}
+            {trans("UPLOAD")}
           </button>
         </div>
       </div>

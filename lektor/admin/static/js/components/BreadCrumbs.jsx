@@ -1,13 +1,10 @@
 import React from "react";
 import RecordComponent from "./RecordComponent";
 import Link from "./Link";
-import { loadData, isMetaKey, getCanonicalUrl } from "../utils";
-import i18n from "../i18n";
-import dialogSystem from "../dialogSystem";
-import FindFiles from "../dialogs/findFiles";
-import Publish from "../dialogs/publish";
-import Refresh from "../dialogs/Refresh";
-import makeRichPromise from "../richPromise";
+import { loadData } from "../utils";
+import { trans } from "../i18n";
+import { bringUpDialog } from "../richPromise";
+import GlobalActions from "./GlobalActions";
 
 class BreadCrumbs extends RecordComponent {
   constructor(props) {
@@ -15,24 +12,16 @@ class BreadCrumbs extends RecordComponent {
     this.state = {
       recordPathInfo: null,
     };
-    this._onKeyPress = this._onKeyPress.bind(this);
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.updateCrumbs();
-    window.addEventListener("keydown", this._onKeyPress);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    super.componentDidUpdate(prevProps, prevState);
+  componentDidUpdate(prevProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.updateCrumbs();
     }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this._onKeyPress);
   }
 
   updateCrumbs() {
@@ -44,101 +33,26 @@ class BreadCrumbs extends RecordComponent {
       return;
     }
 
-    loadData("/pathinfo", { path: path }, null, makeRichPromise).then(
-      (resp) => {
-        this.setState({
-          recordPathInfo: {
-            path: path,
-            segments: resp.segments,
-          },
-        });
-      }
-    );
-  }
-
-  _onKeyPress(event) {
-    // meta+g is open find files
-    if (event.which === 71 && isMetaKey(event)) {
-      event.preventDefault();
-      dialogSystem.showDialog(FindFiles);
-    }
-  }
-
-  _onCloseClick(e) {
-    loadData(
-      "/previewinfo",
-      {
-        path: this.getRecordPath(),
-        alt: this.getRecordAlt(),
-      },
-      null,
-      makeRichPromise
-    ).then((resp) => {
-      if (resp.url === null) {
-        window.location.href = getCanonicalUrl("/");
-      } else {
-        window.location.href = getCanonicalUrl(resp.url);
-      }
-    });
-  }
-
-  _onFindFiles(e) {
-    dialogSystem.showDialog(FindFiles);
-  }
-
-  _onRefresh(e) {
-    dialogSystem.showDialog(Refresh);
-  }
-
-  _onPublish(e) {
-    dialogSystem.showDialog(Publish);
-  }
-
-  renderGlobalActions() {
-    return (
-      <div className="btn-group">
-        <button
-          className="btn btn-default"
-          onClick={this._onFindFiles.bind(this)}
-          title={i18n.trans("FIND_FILES")}
-        >
-          <i className="fa fa-search fa-fw" />
-        </button>
-        <button
-          className="btn btn-default"
-          onClick={this._onPublish.bind(this)}
-          title={i18n.trans("PUBLISH")}
-        >
-          <i className="fa fa-cloud-upload fa-fw" />
-        </button>
-        <button
-          className="btn btn-default"
-          onClick={this._onRefresh.bind(this)}
-          title={i18n.trans("REFRESH_BUILD")}
-        >
-          <i className="fa fa-refresh fa-fw" />
-        </button>
-        <button
-          className="btn btn-default"
-          onClick={this._onCloseClick.bind(this)}
-          title={i18n.trans("RETURN_TO_WEBSITE")}
-        >
-          <i className="fa fa-eye fa-fw" />
-        </button>
-      </div>
-    );
+    loadData("/pathinfo", { path: path }).then((resp) => {
+      this.setState({
+        recordPathInfo: {
+          path: path,
+          segments: resp.segments,
+        },
+      });
+    }, bringUpDialog);
   }
 
   render() {
     let crumbs = [];
     const target =
-      this.props.match.params.page === "preview" ? ".preview" : ".edit";
+      this.props.match.params.page === "preview" ? "preview" : "edit";
     let lastItem = null;
 
     if (this.state.recordPathInfo != null) {
       crumbs = this.state.recordPathInfo.segments.map((item) => {
         const urlPath = this.getUrlRecordPathWithAlt(item.path);
-        let label = item.label_i18n ? i18n.trans(item.label_i18n) : item.label;
+        let label = item.label_i18n ? trans(item.label_i18n) : item.label;
         let className = "record-crumb";
 
         if (!item.exists) {
@@ -147,7 +61,7 @@ class BreadCrumbs extends RecordComponent {
         }
         lastItem = item;
 
-        const adminPath = this.getPathToAdminPage(target, { path: urlPath });
+        const adminPath = this.getPathToAdminPage(target, urlPath);
 
         return (
           <li key={item.path} className={className}>
@@ -158,8 +72,8 @@ class BreadCrumbs extends RecordComponent {
     } else {
       crumbs = (
         <li>
-          <Link to={this.getPathToAdminPage(".edit", { path: "root" })}>
-            {i18n.trans("BACK_TO_OVERVIEW")}
+          <Link to={this.getPathToAdminPage("edit", "root")}>
+            {trans("BACK_TO_OVERVIEW")}
           </Link>
         </li>
       );
@@ -173,16 +87,19 @@ class BreadCrumbs extends RecordComponent {
           {lastItem && lastItem.can_have_children ? (
             <li className="new-record-crumb">
               <Link
-                to={this.getPathToAdminPage(".add-child", {
-                  path: this.getUrlRecordPathWithAlt(lastItem.path),
-                })}
+                to={this.getPathToAdminPage(
+                  "add-child",
+                  this.getUrlRecordPathWithAlt(lastItem.path)
+                )}
               >
                 +
               </Link>
             </li>
           ) : null}
           {" " /* this space is needed for chrome ... */}
-          <li className="meta">{this.renderGlobalActions()}</li>
+          <li className="meta">
+            <GlobalActions {...this.props} />
+          </li>
         </ul>
       </div>
     );

@@ -1,9 +1,9 @@
-const lineIsDashes = (line) => {
+function lineIsDashes(line) {
   line = line.match(/^\s*(.*?)\s*$/)[1];
   return line.length >= 3 && line === new Array(line.length + 1).join("-");
-};
+}
 
-const processBuf = (buf) => {
+function processBuf(buf) {
   const lines = buf.map((line) => {
     if (lineIsDashes(line)) {
       line = line.substr(1);
@@ -19,9 +19,9 @@ const processBuf = (buf) => {
   }
 
   return lines;
-};
+}
 
-const tokenize = (lines) => {
+export function tokenize(lines) {
   let key = null;
   let buf = [];
   let wantNewline = false;
@@ -69,9 +69,9 @@ const tokenize = (lines) => {
   }
 
   return rv;
-};
+}
 
-const serialize = (blocks) => {
+export function serialize(blocks) {
   const rv = [];
 
   blocks.forEach((item, idx) => {
@@ -98,9 +98,4 @@ const serialize = (blocks) => {
   });
 
   return rv;
-};
-
-export default {
-  tokenize: tokenize,
-  serialize: serialize,
-};
+}

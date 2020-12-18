@@ -1,30 +1,25 @@
 import React from "react";
-import i18n from "./i18n";
+import { trans } from "./i18n";
 
-const userLabel = {
-  // formats a user label appropriately
-  format(inputConfig) {
-    let label = null;
-    if (typeof inputConfig === "string") {
-      label = inputConfig;
-    } else {
-      label = i18n.trans(inputConfig);
+/**
+ * Formats a user label appropriately
+ */
+export function formatUserLabel(inputConfig) {
+  const label =
+    typeof inputConfig === "string" ? inputConfig : trans(inputConfig);
+
+  if (!label) {
+    return <span className="" />;
+  }
+
+  const iconData = label.match(/^\[\[\s*(.*?)\s*(;\s*(.*?))?\s*\]\]$/);
+  if (iconData) {
+    let className = "fa fa-" + iconData[1];
+    if ((iconData[3] || "").match(/90|180|270/)) {
+      className += " fa-rotate-" + iconData[3];
     }
-    if (!label) {
-      return <span className="" />;
-    }
+    return <i className={className} />;
+  }
 
-    const iconData = label.match(/^\[\[\s*(.*?)\s*(;\s*(.*?))?\s*\]\]$/); // eslint-disable-line no-useless-escape
-    if (iconData) {
-      let className = "fa fa-" + iconData[1];
-      if ((iconData[3] || "").match(/90|180|270/)) {
-        className += " fa-rotate-" + iconData[3];
-      }
-      return <i className={className} />;
-    }
-
-    return <span>{label}</span>;
-  },
-};
-
-export default userLabel;
+  return <span>{label}</span>;
+}

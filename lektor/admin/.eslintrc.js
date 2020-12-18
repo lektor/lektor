@@ -20,8 +20,8 @@ module.exports = {
   rules: {
     "no-undef": 0,
     "no-unused-vars": 0,
-    "react/no-string-refs": 0,
     "react/no-unescaped-entities": 0,
     "react/prop-types": 0,
+    "react/no-access-state-in-setstate": 1,
   },
 };

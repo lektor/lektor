@@ -2,10 +2,10 @@ import React from "react";
 
 import RecordComponent from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
-import { apiRequest } from "../utils";
-import i18n from "../i18n";
+import { loadData } from "../utils";
+import { getCurrentLanguge, trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class FindFiles extends RecordComponent {
   constructor(props) {
@@ -15,11 +15,6 @@ class FindFiles extends RecordComponent {
       currentSelection: -1,
       results: [],
     };
-  }
-
-  componentDidMount() {
-    super.componentDidMount();
-    this.refs.q.focus();
   }
 
   onInputChange(e) {
@@ -36,39 +31,32 @@ class FindFiles extends RecordComponent {
         query: q,
       });
 
-      apiRequest(
+      loadData(
         "/find",
-        {
-          data: {
-            q: q,
-            alt: this.getRecordAlt(),
-            lang: i18n.currentLanguage,
-          },
-          method: "POST",
-        },
-        makeRichPromise
+        { q: q, alt: this.getRecordAlt(), lang: getCurrentLanguge() },
+        { method: "POST" }
       ).then((resp) => {
-        this.setState({
+        this.setState((state) => ({
           results: resp.results,
           currentSelection: Math.min(
-            this.state.currentSelection,
+            state.currentSelection,
             resp.results.length - 1
           ),
-        });
-      });
+        }));
+      }, bringUpDialog);
     }
   }
 
   onInputKey(e) {
     let sel = this.state.currentSelection;
     const max = this.state.results.length;
-    if (e.which === 40) {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       sel = (sel + 1) % max;
-    } else if (e.which === 38) {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       sel = (sel - 1 + max) % max;
-    } else if (e.which === 13) {
+    } else if (e.key === "Enter") {
       this.onActiveItem(this.state.currentSelection);
     }
     this.setState({
@@ -80,17 +68,17 @@ class FindFiles extends RecordComponent {
     const item = this.state.results[index];
     if (item !== undefined) {
       const target =
-        this.props.match.params.page === "preview" ? ".preview" : ".edit";
+        this.props.match.params.page === "preview" ? "preview" : "edit";
       const urlPath = this.getUrlRecordPathWithAlt(item.path);
       dialogSystem.dismissDialog();
-      this.transitionToAdminPage(target, { path: urlPath });
+      this.transitionToAdminPage(target, urlPath);
     }
   }
 
   selectItem(index) {
-    this.setState({
-      currentSelection: Math.min(index, this.state.results.length - 1),
-    });
+    this.setState((state) => ({
+      currentSelection: Math.min(index, state.results.length - 1),
+    }));
   }
 
   renderResults() {
@@ -121,20 +109,16 @@ class FindFiles extends RecordComponent {
 
   render() {
     return (
-      <SlideDialog
-        hasCloseButton
-        closeOnEscape
-        title={i18n.trans("FIND_FILES")}
-      >
+      <SlideDialog hasCloseButton closeOnEscape title={trans("FIND_FILES")}>
         <div className="form-group">
           <input
             type="text"
-            ref="q"
+            autoFocus
             className="form-control"
             value={this.state.query}
             onChange={this.onInputChange.bind(this)}
             onKeyDown={this.onInputKey.bind(this)}
-            placeholder={i18n.trans("FIND_FILES_PLACEHOLDER")}
+            placeholder={trans("FIND_FILES_PLACEHOLDER")}
           />
         </div>
         {this.renderResults()}

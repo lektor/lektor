@@ -1,7 +1,6 @@
 import React from "react";
 import { loadData } from "../utils";
-import i18n from "../i18n";
-import makeRichPromise from "../richPromise";
+import { trans } from "../i18n";
 
 class ServerStatus extends React.Component {
   constructor(props) {
@@ -27,16 +26,16 @@ class ServerStatus extends React.Component {
   }
 
   onInterval() {
-    loadData("/ping", {}, null, makeRichPromise).then(
+    loadData("/ping", {}).then(
       (resp) => {
         if (this.state.projectId === null) {
           this.setState({
             projectId: resp.project_id,
           });
         }
-        this.setState({
-          serverIsUp: this.state.projectId === resp.project_id,
-        });
+        this.setState((state) => ({
+          serverIsUp: state.projectId === resp.project_id,
+        }));
       },
       () => {
         this.setState({
@@ -53,8 +52,8 @@ class ServerStatus extends React.Component {
     return (
       <div className="server-down-panel">
         <div className="server-down-dialog">
-          <h3>{i18n.trans("ERROR_SERVER_UNAVAILABLE")}</h3>
-          <p>{i18n.trans("ERROR_SERVER_UNAVAILABLE_MESSAGE")}</p>
+          <h3>{trans("ERROR_SERVER_UNAVAILABLE")}</h3>
+          <p>{trans("ERROR_SERVER_UNAVAILABLE_MESSAGE")}</p>
         </div>
       </div>
     );

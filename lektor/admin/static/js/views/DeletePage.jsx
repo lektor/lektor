@@ -1,10 +1,10 @@
 import React from "react";
 import RecordComponent from "../components/RecordComponent";
-import { apiRequest, loadData, getParentFsPath } from "../utils";
-import i18n from "../i18n";
+import { loadData, getParentFsPath } from "../utils";
+import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import makeRichPromise from "../richPromise";
+import { bringUpDialog } from "../richPromise";
 
 class DeletePage extends RecordComponent {
   constructor(props) {
@@ -17,28 +17,22 @@ class DeletePage extends RecordComponent {
   }
 
   componentDidMount() {
-    super.componentDidMount();
     this.syncDialog();
   }
 
-  componentDidUpdate(nextProps) {
-    if (nextProps.match.params.path !== this.props.match.params.path) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
   }
 
   syncDialog() {
-    loadData(
-      "/recordinfo",
-      { path: this.getRecordPath() },
-      null,
-      makeRichPromise
-    ).then((resp) => {
+    loadData("/recordinfo", { path: this.getRecordPath() }).then((resp) => {
       this.setState({
         recordInfo: resp,
         deleteMasterRecord: this.isPrimary(),
       });
-    });
+    }, bringUpDialog);
   }
 
   deleteRecord(event) {
@@ -51,18 +45,14 @@ class DeletePage extends RecordComponent {
       targetPath = this.getUrlRecordPathWithAlt(parent);
     }
 
-    apiRequest(
+    loadData(
       "/deleterecord",
       {
-        data: {
-          path: path,
-          alt: this.getRecordAlt(),
-          delete_master: this.state.deleteMasterRecord ? "1" : "0",
-        },
-        // eslint-disable-next-line indent
-        method: "POST",
+        path: path,
+        alt: this.getRecordAlt(),
+        delete_master: this.state.deleteMasterRecord ? "1" : "0",
       },
-      makeRichPromise
+      { method: "POST" }
     ).then((resp) => {
       if (this.state.recordInfo.is_attachment) {
         hub.emit(
@@ -72,13 +62,13 @@ class DeletePage extends RecordComponent {
           })
         );
       }
-      this.transitionToAdminPage(".edit", { path: targetPath });
-    });
+      this.transitionToAdminPage("edit", targetPath);
+    }, bringUpDialog);
   }
 
   cancelDelete(event) {
     const urlPath = this.getUrlRecordPathWithAlt();
-    this.transitionToAdminPage(".edit", { path: urlPath });
+    this.transitionToAdminPage("edit", urlPath);
   }
 
   onDeleteAllAltsChange(event) {
@@ -118,25 +108,25 @@ class DeletePage extends RecordComponent {
       elements.push(
         <p key="attachment">
           {this.isPrimary()
-            ? i18n.trans("DELETE_ATTACHMENT_PROMPT")
-            : i18n.trans("DELETE_ATTACHMENT_ALT_PROMPT")}{" "}
+            ? trans("DELETE_ATTACHMENT_PROMPT")
+            : trans("DELETE_ATTACHMENT_ALT_PROMPT")}{" "}
         </p>
       );
     } else {
       elements.push(
         <p key="child-info">
           {this.isPrimary()
-            ? i18n.trans("DELETE_PAGE_PROMPT")
-            : i18n.trans("DELETE_PAGE_ALT_PROMPT")}{" "}
+            ? trans("DELETE_PAGE_PROMPT")
+            : trans("DELETE_PAGE_ALT_PROMPT")}{" "}
           {ri.children.length > 0 && this.isPrimary()
-            ? i18n.trans("DELETE_PAGE_CHILDREN_WARNING")
+            ? trans("DELETE_PAGE_CHILDREN_WARNING")
             : null}
         </p>
       );
 
       if (ri.children.length > 0) {
         children = ri.children.map((child) => {
-          return <li key={child.id}>{i18n.trans(child.label_i18n)}</li>;
+          return <li key={child.id}>{trans(child.label_i18n)}</li>;
         });
         if (ri.child_count > children.length) {
           children.push(<li key="...">...</li>);
@@ -157,16 +147,16 @@ class DeletePage extends RecordComponent {
         if (!item.exists) {
           return;
         }
-        let title = i18n.trans(item.name_i18n);
+        let title = trans(item.name_i18n);
         if (item.is_primary) {
-          title += " (" + i18n.trans("PRIMARY_ALT") + ")";
+          title += " (" + trans("PRIMARY_ALT") + ")";
         } else if (item.primary_overlay) {
-          title += " (" + i18n.trans("PRIMARY_OVERLAY") + ")";
+          title += " (" + trans("PRIMARY_OVERLAY") + ")";
         }
         alts.push(<li key={item.alt}>{title}</li>);
       });
       elements.push(
-        <p key="alt-warning">{i18n.trans("DELETE_PRIMARY_ALT_INFO")}</p>
+        <p key="alt-warning">{trans("DELETE_PRIMARY_ALT_INFO")}</p>
       );
       elements.push(
         <ul key="delete-all-alts">
@@ -180,7 +170,7 @@ class DeletePage extends RecordComponent {
               onChange={this.onDeleteAllAltsChange.bind(this)}
             />{" "}
             <label htmlFor="delete-all-alts">
-              {i18n.trans(
+              {trans(
                 ri.is_attachment
                   ? "DELETE_ALL_ATTACHMENT_ALTS"
                   : "DELETE_ALL_PAGE_ALTS"
@@ -197,7 +187,7 @@ class DeletePage extends RecordComponent {
               onChange={this.onDeleteAllAltsChange.bind(this)}
             />{" "}
             <label htmlFor="delete-only-this-alt">
-              {i18n.trans(
+              {trans(
                 ri.is_attachment
                   ? "DELETE_ONLY_PRIMARY_ATTACHMENT_ALT"
                   : "DELETE_ONLY_PRIMARY_PAGE_ALT"
@@ -208,14 +198,14 @@ class DeletePage extends RecordComponent {
       );
     }
 
-    let label = ri.label_i18n ? i18n.trans(ri.label_i18n) : ri.id;
+    let label = ri.label_i18n ? trans(ri.label_i18n) : ri.id;
     if (this.getRecordAlt() !== "_primary" && altInfo != null) {
-      label += " (" + i18n.trans(altInfo.name_i18n) + ")";
+      label += " (" + trans(altInfo.name_i18n) + ")";
     }
 
     return (
       <div>
-        <h2>{i18n.trans("DELETE_RECORD").replace("%s", label)}</h2>
+        <h2>{trans("DELETE_RECORD").replace("%s", label)}</h2>
         {elements}
         <div
           style={{
@@ -225,7 +215,7 @@ class DeletePage extends RecordComponent {
                 : "none",
           }}
         >
-          <h4>{i18n.trans("ALTS_TO_BE_DELETED")}</h4>
+          <h4>{trans("ALTS_TO_BE_DELETED")}</h4>
           <ul>{alts}</ul>
         </div>
         <div
@@ -236,7 +226,7 @@ class DeletePage extends RecordComponent {
                 : "none",
           }}
         >
-          <h4>{i18n.trans("CHILD_PAGES_TO_BE_DELETED")}</h4>
+          <h4>{trans("CHILD_PAGES_TO_BE_DELETED")}</h4>
           <ul>{children}</ul>
         </div>
         <div
@@ -247,7 +237,7 @@ class DeletePage extends RecordComponent {
                 : "none",
           }}
         >
-          <h4>{i18n.trans("ATTACHMENTS_TO_BE_DELETED")}</h4>
+          <h4>{trans("ATTACHMENTS_TO_BE_DELETED")}</h4>
           <ul>{attachments}</ul>
         </div>
         <div className="actions">
@@ -255,13 +245,13 @@ class DeletePage extends RecordComponent {
             className="btn btn-primary"
             onClick={this.deleteRecord.bind(this)}
           >
-            {i18n.trans("YES_DELETE")}
+            {trans("YES_DELETE")}
           </button>
           <button
             className="btn btn-default"
             onClick={this.cancelDelete.bind(this)}
           >
-            {i18n.trans("NO_CANCEL")}
+            {trans("NO_CANCEL")}
           </button>
         </div>
       </div>
