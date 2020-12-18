@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-14-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-14-${{ hashFiles('**/package-lock.json') }}
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -71,7 +71,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -127,7 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['10', '14']
+        NODEJS_VERSION: ['10']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -135,7 +135,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -161,7 +161,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/lektor/admin/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -187,7 +187,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~\AppData\Roaming\npm-cache
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\lektor\admin\package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\package-lock.json') }}
       - name: Setup node
         uses: actions/setup-node@v1
         with:
