@@ -153,7 +153,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
+        NODEJS_VERSION: ['12']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -179,7 +179,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
+        NODEJS_VERSION: ['12']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
