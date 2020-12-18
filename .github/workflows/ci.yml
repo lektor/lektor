@@ -260,7 +260,6 @@ jobs:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
         run: |
-          brew update
           brew install imagemagick
           brew install ffmpeg
       - name: Install python dependencies
