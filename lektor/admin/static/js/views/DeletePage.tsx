@@ -21,6 +21,10 @@ class DeletePage extends RecordComponent<unknown, State> {
       recordInfo: null,
       deleteMasterRecord: true,
     };
+
+    this.cancelDelete = this.cancelDelete.bind(this);
+    this.deleteRecord = this.deleteRecord.bind(this);
+    this.onDeleteAllAltsChange = this.onDeleteAllAltsChange.bind(this);
   }
 
   componentDidMount() {
@@ -91,10 +95,8 @@ class DeletePage extends RecordComponent<unknown, State> {
       return null;
     }
 
-    const elements = [];
-    let children: ReactNode[] = [];
+    const elements: ReactNode[] = [];
     const alts: ReactNode[] = [];
-    let attachments: ReactNode[] = [];
     let altInfo: Alternative | null = null;
     let altCount = 0;
 
@@ -106,39 +108,6 @@ class DeletePage extends RecordComponent<unknown, State> {
         altCount++;
       }
     });
-
-    if (ri.is_attachment) {
-      elements.push(
-        <p key="attachment">
-          {this.isPrimary()
-            ? trans("DELETE_ATTACHMENT_PROMPT")
-            : trans("DELETE_ATTACHMENT_ALT_PROMPT")}{" "}
-        </p>
-      );
-    } else {
-      elements.push(
-        <p key="child-info">
-          {this.isPrimary()
-            ? trans("DELETE_PAGE_PROMPT")
-            : trans("DELETE_PAGE_ALT_PROMPT")}{" "}
-          {ri.children.length > 0 && this.isPrimary()
-            ? trans("DELETE_PAGE_CHILDREN_WARNING")
-            : null}
-        </p>
-      );
-
-      if (ri.children.length > 0) {
-        children = ri.children.map((child) => (
-          <li key={child.id}>{trans(child.label_i18n)}</li>
-        ));
-      }
-
-      attachments = ri.attachments.map((atch) => (
-        <li key={atch.id}>
-          {atch.id} ({atch.type})
-        </li>
-      ));
-    }
 
     if (altCount > 1 && this.getRecordAlt() === "_primary") {
       ri.alts.forEach((item) => {
@@ -159,15 +128,13 @@ class DeletePage extends RecordComponent<unknown, State> {
       elements.push(
         <ul key="delete-all-alts">
           <li>
-            <input
-              type="radio"
-              id="delete-all-alts"
-              value="1"
-              name="delete-master-record"
-              checked={this.state.deleteMasterRecord}
-              onChange={this.onDeleteAllAltsChange.bind(this)}
-            />{" "}
-            <label htmlFor="delete-all-alts">
+            <label>
+              <input
+                type="radio"
+                value="1"
+                checked={this.state.deleteMasterRecord}
+                onChange={this.onDeleteAllAltsChange}
+              />{" "}
               {trans(
                 ri.is_attachment
                   ? "DELETE_ALL_ATTACHMENT_ALTS"
@@ -176,15 +143,13 @@ class DeletePage extends RecordComponent<unknown, State> {
             </label>
           </li>
           <li>
-            <input
-              type="radio"
-              id="delete-only-this-alt"
-              value="0"
-              name="delete-master-record"
-              checked={!this.state.deleteMasterRecord}
-              onChange={this.onDeleteAllAltsChange.bind(this)}
-            />{" "}
-            <label htmlFor="delete-only-this-alt">
+            <label>
+              <input
+                type="radio"
+                value="0"
+                checked={!this.state.deleteMasterRecord}
+                onChange={this.onDeleteAllAltsChange}
+              />{" "}
               {trans(
                 ri.is_attachment
                   ? "DELETE_ONLY_PRIMARY_ATTACHMENT_ALT"
@@ -204,51 +169,56 @@ class DeletePage extends RecordComponent<unknown, State> {
     return (
       <div>
         <h2>{trans("DELETE_RECORD").replace("%s", label)}</h2>
+        {ri.is_attachment ? (
+          <p>
+            {this.isPrimary()
+              ? trans("DELETE_ATTACHMENT_PROMPT")
+              : trans("DELETE_ATTACHMENT_ALT_PROMPT")}{" "}
+          </p>
+        ) : (
+          <p>
+            {this.isPrimary()
+              ? trans("DELETE_PAGE_PROMPT")
+              : trans("DELETE_PAGE_ALT_PROMPT")}{" "}
+            {ri.children.length > 0 && this.isPrimary()
+              ? trans("DELETE_PAGE_CHILDREN_WARNING")
+              : null}
+          </p>
+        )}
         {elements}
-        <div
-          style={{
-            display:
-              this.state.deleteMasterRecord && alts.length > 0
-                ? "block"
-                : "none",
-          }}
-        >
-          <h4>{trans("ALTS_TO_BE_DELETED")}</h4>
-          <ul>{alts}</ul>
-        </div>
-        <div
-          style={{
-            display:
-              this.state.deleteMasterRecord && children.length > 0
-                ? "block"
-                : "none",
-          }}
-        >
-          <h4>{trans("CHILD_PAGES_TO_BE_DELETED")}</h4>
-          <ul>{children}</ul>
-        </div>
-        <div
-          style={{
-            display:
-              this.state.deleteMasterRecord && attachments.length > 0
-                ? "block"
-                : "none",
-          }}
-        >
-          <h4>{trans("ATTACHMENTS_TO_BE_DELETED")}</h4>
-          <ul>{attachments}</ul>
-        </div>
+        {this.state.deleteMasterRecord && alts.length > 0 && (
+          <div>
+            <h4>{trans("ALTS_TO_BE_DELETED")}</h4>
+            <ul>{alts}</ul>
+          </div>
+        )}
+        {this.state.deleteMasterRecord && ri.children.length > 0 && (
+          <div>
+            <h4>{trans("CHILD_PAGES_TO_BE_DELETED")}</h4>
+            <ul>
+              {ri.children.map((child) => (
+                <li key={child.id}>{trans(child.label_i18n)}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {this.state.deleteMasterRecord && ri.attachments.length > 0 && (
+          <div>
+            <h4>{trans("ATTACHMENTS_TO_BE_DELETED")}</h4>
+            <ul>
+              {ri.attachments.map((atch) => (
+                <li key={atch.id}>
+                  {atch.id} ({atch.type})
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="actions">
-          <button
-            className="btn btn-primary"
-            onClick={this.deleteRecord.bind(this)}
-          >
+          <button className="btn btn-primary" onClick={this.deleteRecord}>
             {trans("YES_DELETE")}
           </button>
-          <button
-            className="btn btn-default"
-            onClick={this.cancelDelete.bind(this)}
-          >
+          <button className="btn btn-default" onClick={this.cancelDelete}>
             {trans("NO_CANCEL")}
           </button>
         </div>
