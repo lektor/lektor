@@ -1,5 +1,10 @@
-import { ok } from "assert";
-import { isValidUrl } from "./utils";
+import { ok, strictEqual } from "assert";
+import {
+  isValidUrl,
+  stripLeadingSlash,
+  stripTrailingSlash,
+  urlPathsConsideredEqual,
+} from "./utils";
 
 describe("Utils", () => {
   it("check URL validity", () => {
@@ -13,5 +18,21 @@ describe("Utils", () => {
     ok(isValidUrl("mailto:user@example.com"));
     ok(isValidUrl("mailto:anythingreally"));
     ok(!isValidUrl("mailto:with spaces"));
+  });
+
+  it("strip slashes", () => {
+    strictEqual(stripLeadingSlash("///asdf"), "asdf");
+    strictEqual(stripLeadingSlash("asdf///"), "asdf///");
+    strictEqual(stripLeadingSlash(""), "");
+    strictEqual(stripTrailingSlash("///asdf"), "///asdf");
+    strictEqual(stripTrailingSlash("asdf///"), "asdf");
+    strictEqual(stripTrailingSlash(""), "");
+  });
+
+  it("urlPathsConsideredEqual", () => {
+    strictEqual(urlPathsConsideredEqual(null, null), false);
+    strictEqual(urlPathsConsideredEqual("asdfs/", null), false);
+    strictEqual(urlPathsConsideredEqual("asdfs/", "asdf"), false);
+    strictEqual(urlPathsConsideredEqual("asdf/", "asdf"), true);
   });
 });

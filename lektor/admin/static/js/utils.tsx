@@ -2,12 +2,14 @@ export function isValidUrl(url: string) {
   return !!url.match(/^(https?|ftps?):\/\/\S+$|^mailto:\S+$/);
 }
 
-function stripLeadingSlash(string: string) {
-  return string.match(/^\/*(.*?)$/)[1];
+export function stripLeadingSlash(string: string) {
+  const match = /^\/*(.*?)$/.exec(string);
+  return match ? match[1] : "";
 }
 
-function stripTrailingSlash(string: string) {
-  return string.match(/^(.*?)\/*$/)[1];
+export function stripTrailingSlash(string: string) {
+  const match = /^(.*?)\/*$/.exec(string);
+  return match ? match[1] : "";
 }
 
 export function getCanonicalUrl(localPath: string) {
