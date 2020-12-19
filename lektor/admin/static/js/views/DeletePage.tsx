@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent, ReactNode } from "react";
 import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { getParentFsPath } from "../utils";
 import { loadData } from "../fetch";
@@ -6,9 +6,10 @@ import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { bringUpDialog } from "../richPromise";
+import { Alternative, RecordInfo } from "../components/types";
 
 type State = {
-  recordInfo: null;
+  recordInfo: RecordInfo | null;
   deleteMasterRecord: boolean;
 };
 
@@ -56,7 +57,7 @@ class DeletePage extends RecordComponent<unknown, State> {
       },
       { method: "POST" }
     ).then(() => {
-      if (this.state.recordInfo.is_attachment) {
+      if (this.state.recordInfo?.is_attachment) {
         hub.emit(
           new AttachmentsChangedEvent({
             recordPath: this.getParentRecordPath(),
@@ -73,7 +74,7 @@ class DeletePage extends RecordComponent<unknown, State> {
     this.transitionToAdminPage("edit", urlPath);
   }
 
-  onDeleteAllAltsChange(event) {
+  onDeleteAllAltsChange(event: ChangeEvent<HTMLInputElement>) {
     this.setState({
       deleteMasterRecord: event.target.value === "1",
     });
@@ -91,20 +92,20 @@ class DeletePage extends RecordComponent<unknown, State> {
     }
 
     const elements = [];
-    let children = [];
-    const alts = [];
-    let attachments = [];
-    let altInfo = null;
+    let children: ReactNode[] = [];
+    const alts: ReactNode[] = [];
+    let attachments: ReactNode[] = [];
+    let altInfo: Alternative | null = null;
     let altCount = 0;
 
-    for (let i = 0; i < ri.alts.length; i++) {
-      if (ri.alts[i].alt === this.getRecordAlt()) {
-        altInfo = ri.alts[i];
+    ri.alts.forEach((alternative) => {
+      if (alternative.alt === this.getRecordAlt()) {
+        altInfo = alternative;
       }
-      if (ri.alts[i].exists) {
+      if (alternative.exists) {
         altCount++;
       }
-    }
+    });
 
     if (ri.is_attachment) {
       elements.push(
@@ -127,21 +128,16 @@ class DeletePage extends RecordComponent<unknown, State> {
       );
 
       if (ri.children.length > 0) {
-        children = ri.children.map((child) => {
-          return <li key={child.id}>{trans(child.label_i18n)}</li>;
-        });
-        if (ri.child_count > children.length) {
-          children.push(<li key="...">...</li>);
-        }
+        children = ri.children.map((child) => (
+          <li key={child.id}>{trans(child.label_i18n)}</li>
+        ));
       }
 
-      attachments = ri.attachments.map((atch) => {
-        return (
-          <li key={atch.id}>
-            {atch.id} ({atch.type})
-          </li>
-        );
-      });
+      attachments = ri.attachments.map((atch) => (
+        <li key={atch.id}>
+          {atch.id} ({atch.type})
+        </li>
+      ));
     }
 
     if (altCount > 1 && this.getRecordAlt() === "_primary") {

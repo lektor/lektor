@@ -10,6 +10,7 @@ import RecordComponent, {
 } from "./RecordComponent";
 import Link from "../components/Link";
 import { bringUpDialog } from "../richPromise";
+import { Alternative } from "./types";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -57,14 +58,6 @@ class ChildPosCache {
     return 1;
   }
 }
-
-type Alternative = {
-  alt: string;
-  is_primary: boolean;
-  primary_overlay: boolean;
-  name_i18n: string;
-  exists: boolean;
-};
 
 type State = {
   recordAttachments: unknown[];
