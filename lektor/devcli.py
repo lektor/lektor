@@ -3,14 +3,18 @@ import sys
 
 import click
 
+from lektor.cli_utils import AliasedGroup
+from lektor.cli_utils import extraflag
+from lektor.cli_utils import pass_context
+from lektor.packages import get_package_info
+from lektor.packages import publish_package
+from lektor.packages import register_package
+
 try:
     from IPython import embed
     from traitlets.config.loader import Config
 except ImportError:
     pass  # fallback to normal Python InteractiveConsole
-
-from .packages import get_package_info, register_package, publish_package
-from .cli import pass_context, AliasedGroup, extraflag
 
 
 def ensure_plugin():
