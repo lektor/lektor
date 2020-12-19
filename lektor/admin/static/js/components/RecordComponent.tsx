@@ -56,17 +56,10 @@ export default class RecordComponent<P, S> extends React.Component<
   /* return the url path for the current record path (or a modified one)
      by preserving or overriding the alt */
   getUrlRecordPathWithAlt(newPath?: string, newAlt?: string) {
-    if (newPath === undefined || newPath === null) {
-      newPath = this.getRecordPath();
-    }
-    if (newAlt === undefined || newAlt === null) {
-      newAlt = this.getRecordAlt();
-    }
-    let rv = fsToUrlPath(newPath);
-    if (newAlt !== "_primary") {
-      rv += "+" + newAlt;
-    }
-    return rv;
+    const path = newPath ?? this.getRecordPath();
+    const alt = newAlt ?? this.getRecordAlt();
+    const urlPath = fsToUrlPath(path);
+    return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
   }
 
   /* returns the parent path if available */

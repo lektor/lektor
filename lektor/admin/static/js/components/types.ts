@@ -8,7 +8,7 @@ export type Alternative = {
   exists: boolean;
 };
 
-type RecordChild = {
+export type RecordChild = {
   id: string;
   path: string;
   label: string;
@@ -16,7 +16,7 @@ type RecordChild = {
   visible: boolean;
 };
 
-type RecordAttachment = {
+export type RecordAttachment = {
   id: string;
   path: string;
   type: string;

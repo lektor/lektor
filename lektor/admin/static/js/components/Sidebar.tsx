@@ -10,7 +10,7 @@ import RecordComponent, {
 } from "./RecordComponent";
 import Link from "../components/Link";
 import { bringUpDialog } from "../richPromise";
-import { Alternative } from "./types";
+import { Alternative, RecordAttachment, RecordChild } from "./types";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -60,8 +60,8 @@ class ChildPosCache {
 }
 
 type State = {
-  recordAttachments: unknown[];
-  recordChildren: unknown[];
+  recordAttachments: RecordAttachment[];
+  recordChildren: RecordChild[];
   recordAlts: Alternative[];
   canHaveAttachments: boolean;
   canHaveChildren: boolean;
@@ -178,56 +178,6 @@ class Sidebar extends RecordComponent<unknown, State> {
 
   renderPageActions() {
     const urlPath = this.getUrlRecordPathWithAlt();
-    const links = [];
-    const deleteLink = null;
-
-    links.push(
-      <li key="edit">
-        <Link to={`${urlPath}/edit`}>
-          {this.state.isAttachment ? trans("EDIT_METADATA") : trans("EDIT")}
-        </Link>
-      </li>
-    );
-
-    if (this.state.canBeDeleted) {
-      links.push(
-        <li key="delete">
-          <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
-        </li>
-      );
-    }
-
-    links.push(
-      <li key="preview">
-        <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
-      </li>
-    );
-
-    if (this.state.recordExists) {
-      links.push(
-        <li key="fs-open">
-          <a href="#" onClick={this.fsOpen.bind(this)}>
-            {getBrowseButtonTitle()}
-          </a>
-        </li>
-      );
-    }
-
-    if (this.state.canHaveChildren) {
-      links.push(
-        <li key="add-child">
-          <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
-        </li>
-      );
-    }
-
-    if (this.state.canHaveAttachments) {
-      links.push(
-        <li key="add-attachment">
-          <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
-        </li>
-      );
-    }
 
     const title = this.state.isAttachment
       ? trans("ATTACHMENT_ACTIONS")
@@ -237,8 +187,36 @@ class Sidebar extends RecordComponent<unknown, State> {
       <div key="actions" className="section">
         <h3>{title}</h3>
         <ul className="nav">
-          {links}
-          {deleteLink}
+          <li key="edit">
+            <Link to={`${urlPath}/edit`}>
+              {this.state.isAttachment ? trans("EDIT_METADATA") : trans("EDIT")}
+            </Link>
+          </li>
+          {this.state.canBeDeleted && (
+            <li key="delete">
+              <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
+            </li>
+          )}
+          <li key="preview">
+            <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
+          </li>
+          {this.state.recordExists && (
+            <li key="fs-open">
+              <a href="#" onClick={this.fsOpen.bind(this)}>
+                {getBrowseButtonTitle()}
+              </a>
+            </li>
+          )}
+          {this.state.canHaveChildren && (
+            <li key="add-child">
+              <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
+            </li>
+          )}
+          {this.state.canHaveAttachments && (
+            <li key="add-attachment">
+              <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
+            </li>
+          )}
         </ul>
       </div>
     );
@@ -263,7 +241,7 @@ class Sidebar extends RecordComponent<unknown, State> {
 
       const path = pathToAdminPage(
         this.props.match.params.page,
-        this.getUrlRecordPathWithAlt(null, item.alt)
+        this.getUrlRecordPathWithAlt(undefined, item.alt)
       );
       return (
         <li key={item.alt} className={className}>
@@ -325,80 +303,68 @@ class Sidebar extends RecordComponent<unknown, State> {
       this.state.childrenPage * CHILDREN_PER_PAGE
     );
 
-    const items = children.map((child) => {
-      const urlPath = this.getUrlRecordPathWithAlt(child.path);
-      return (
-        <li key={child.id}>
-          <Link to={`${urlPath}/${target}`}>{trans(child.label_i18n)}</Link>
-        </li>
-      );
-    });
-
-    if (items.length === 0) {
-      items.push(
-        <li key="_missing">
-          <em>{trans("NO_CHILD_PAGES")}</em>
-        </li>
-      );
-    }
-
     return (
       <div key="children" className="section">
         <h3>{trans("CHILD_PAGES")}</h3>
         <ul className="nav record-children">
           {this.renderChildPagination()}
-          {items}
+          {children.length > 0 ? (
+            children.map((child) => {
+              const urlPath = this.getUrlRecordPathWithAlt(child.path);
+              return (
+                <li key={child.id}>
+                  <Link to={`${urlPath}/${target}`}>
+                    {trans(child.label_i18n)}
+                  </Link>
+                </li>
+              );
+            })
+          ) : (
+            <li key="_missing">
+              <em>{trans("NO_CHILD_PAGES")}</em>
+            </li>
+          )}
         </ul>
       </div>
     );
   }
 
   renderAttachmentActions() {
-    const items = this.state.recordAttachments.map((atch) => {
-      const urlPath = this.getUrlRecordPathWithAlt(atch.path);
-      return (
-        <li key={atch.id}>
-          <Link to={`${urlPath}/edit`}>
-            {atch.id} ({atch.type})
-          </Link>
-        </li>
-      );
-    });
-
-    if (items.length === 0) {
-      items.push(
-        <li key="_missing">
-          <em>{trans("NO_ATTACHMENTS")}</em>
-        </li>
-      );
-    }
-
+    const attachments = this.state.recordAttachments;
     return (
       <div key="attachments" className="section">
         <h3>{trans("ATTACHMENTS")}</h3>
-        <ul className="nav record-attachments">{items}</ul>
+        <ul className="nav record-attachments">
+          {attachments.length > 0 ? (
+            attachments.map((atch) => {
+              const urlPath = this.getUrlRecordPathWithAlt(atch.path);
+              return (
+                <li key={atch.id}>
+                  <Link to={`${urlPath}/edit`}>
+                    {atch.id} ({atch.type})
+                  </Link>
+                </li>
+              );
+            })
+          ) : (
+            <li key="_missing">
+              <em>{trans("NO_ATTACHMENTS")}</em>
+            </li>
+          )}
+        </ul>
       </div>
     );
   }
 
   render() {
-    const sections = [];
-
-    if (this.getRecordPath() !== null) {
-      sections.push(this.renderPageActions());
-    }
-
-    sections.push(this.renderAlts());
-
-    if (this.state.canHaveChildren) {
-      sections.push(this.renderChildActions());
-    }
-
-    if (this.state.canHaveAttachments) {
-      sections.push(this.renderAttachmentActions());
-    }
-
-    return <div className="sidebar-wrapper">{sections}</div>;
+    return (
+      <div className="sidebar-wrapper">
+        {this.getRecordPath() !== null && this.renderPageActions()}
+        {this.renderAlts()}
+        {this.state.canHaveChildren && this.renderChildActions()}
+        {this.state.canHaveAttachments && this.renderAttachmentActions()}
+      </div>
+    );
   }
 }
 
