@@ -1,53 +1,47 @@
-import { Event } from "./events";
+import { LektorEvent } from "./events";
 
 class Hub {
-  _subscriptions: Record<string, ((e: any) => void)[] | undefined>;
+  _subscriptions: Map<string, Set<(e: any) => void>>;
+
   constructor() {
-    this._subscriptions = {};
+    this._subscriptions = new Map();
   }
 
-  /* subscribes a callback to an event */
-  subscribe<T extends typeof Event>(
+  /**
+   * Subscribes a callback to an event.
+   */
+  subscribe<T extends LektorEvent>(
     event: T,
     callback: (e: InstanceType<T>) => void
   ) {
     const eventType = event.getEventType();
-
-    let subs = this._subscriptions[eventType];
+    let subs = this._subscriptions.get(eventType);
     if (subs === undefined) {
-      this._subscriptions[eventType] = subs = [];
+      subs = new Set();
+      this._subscriptions.set(eventType, subs);
     }
-
-    if (subs.includes(callback)) {
-      return false;
-    }
-    subs.push(callback);
-    return true;
+    subs.add(callback);
   }
 
-  /* unsubscribes a callback from an event */
-  unsubscribe(event, callback) {
-    if (typeof event !== "string") {
-      event = event.getEventType();
+  /**
+   * Unsubscribes a callback from an event.
+   */
+  unsubscribe<T extends LektorEvent>(
+    event: T,
+    callback: (e: InstanceType<T>) => void
+  ) {
+    const eventType = event.getEventType();
+    const subs = this._subscriptions.get(eventType);
+    if (subs !== undefined) {
+      subs.delete(callback);
     }
-
-    const subs = this._subscriptions[event];
-    if (subs === undefined) {
-      return false;
-    }
-
-    for (let i = 0; i < subs.length; i++) {
-      if (subs[i] === callback) {
-        subs.splice(i, 1);
-        return true;
-      }
-    }
-    return false;
   }
 
-  /* emits an event with some parameters */
-  emit(event) {
-    const subs = this._subscriptions[event.type];
+  /**
+   * Emits an event with some parameters.
+   */
+  emit(event: InstanceType<LektorEvent>) {
+    const subs = this._subscriptions.get(event.type);
     if (subs !== undefined) {
       subs.forEach((callback) => {
         try {

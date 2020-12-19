@@ -17,6 +17,7 @@ class DialogSlot extends React.Component<RecordProps, State> {
       currentDialogOptions: null,
     };
     this.onDialogChanged = this.onDialogChanged.bind(this);
+    this.initDialogInstance = this.initDialogInstance.bind(this);
   }
 
   componentDidMount() {
@@ -34,7 +35,7 @@ class DialogSlot extends React.Component<RecordProps, State> {
     });
   }
 
-  initDialogInstance(dialog: DialogInstance) {
+  initDialogInstance(dialog: DialogInstance | null) {
     dialogSystem.notifyDialogInstance(dialog);
     window.scrollTo(0, 0);
   }
@@ -44,7 +45,7 @@ class DialogSlot extends React.Component<RecordProps, State> {
     if (this.state.currentDialog) {
       dialog = (
         <this.state.currentDialog
-          ref={(ref) => this.initDialogInstance(ref)}
+          ref={this.initDialogInstance}
           {...this.props}
           {...this.state.currentDialogOptions}
         />

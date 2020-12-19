@@ -1,6 +1,6 @@
 import { Dialog } from "./dialogSystem";
 
-export class Event {
+export class BaseEvent {
   get type() {
     return Object.getPrototypeOf(this).constructor.getEventType();
   }
@@ -8,20 +8,21 @@ export class Event {
   toString() {
     return "[Event " + this.type + "]";
   }
+
+  static getEventType() {
+    return this.name;
+  }
 }
 
-Event.getEventType = function () {
-  return this.name;
-};
-
-export class AttachmentsChangedEvent extends Event {
-  attachmentsAdded: unknown[];
-  attachmentsRemoved: unknown[];
+export class AttachmentsChangedEvent extends BaseEvent {
+  attachmentsAdded: string[];
+  attachmentsRemoved: string[];
   recordPath: string | null;
+
   constructor(options: {
     recordPath: string | null;
-    attachmentsAdded?: unknown[];
-    attachmentsRemoved?: unknown[];
+    attachmentsAdded?: string[];
+    attachmentsRemoved?: string[];
   }) {
     super();
     this.recordPath = options.recordPath;
@@ -30,7 +31,7 @@ export class AttachmentsChangedEvent extends Event {
   }
 }
 
-export class DialogChangedEvent extends Event {
+export class DialogChangedEvent extends BaseEvent {
   dialog: Dialog | null;
   dialogOptions?: unknown;
   constructor(options: { dialog: Dialog | null; dialogOptions?: unknown }) {
@@ -39,3 +40,7 @@ export class DialogChangedEvent extends Event {
     this.dialogOptions = options.dialogOptions;
   }
 }
+
+export type LektorEvent =
+  | typeof AttachmentsChangedEvent
+  | typeof DialogChangedEvent;
