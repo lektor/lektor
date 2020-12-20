@@ -23,30 +23,35 @@ import AddAttachmentPage from "./views/AddAttachmentPage";
 
 setCurrentLanguage($LEKTOR_CONFIG.lang);
 
+function getMainComponent(page: string) {
+  if (page === "edit") {
+    return EditPage;
+  } else if (page === "delete") {
+    return DeletePage;
+  } else if (page === "preview") {
+    return PreviewPage;
+  } else if (page === "add-child") {
+    return AddChildPage;
+  } else if (page === "upload") {
+    return AddAttachmentPage;
+  }
+  return null;
+}
+
 function Main() {
   const root = $LEKTOR_CONFIG.admin_root;
   const fullPath = `${root}/:path/:page`;
   const match = useRouteMatch<{ path: string; page: string }>(fullPath);
+  const history = useHistory();
+
   if (!match) {
     return <Redirect to={`${root}/root/edit`} />;
   }
   const { page, path } = match.params;
-  let Component = null;
-  if (page === "edit") {
-    Component = EditPage;
-  } else if (page === "delete") {
-    Component = DeletePage;
-  } else if (page === "preview") {
-    Component = PreviewPage;
-  } else if (page === "add-child") {
-    Component = AddChildPage;
-  } else if (page === "upload") {
-    Component = AddAttachmentPage;
-  }
+  const Component = getMainComponent(page);
   if (!Component) {
     return <Redirect to={`${root}/root/edit`} />;
   }
-  const history = useHistory();
 
   const params = { path, page };
   return (
