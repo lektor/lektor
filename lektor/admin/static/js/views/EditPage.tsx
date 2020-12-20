@@ -4,21 +4,59 @@ import { Prompt } from "react-router-dom";
 import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { isMetaKey } from "../utils";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, Translatable } from "../i18n";
 import {
   getWidgetComponentWithFallback,
   FieldBox,
   FieldRows,
 } from "../widgets";
 import { bringUpDialog } from "../richPromise";
-import { Field } from "../widgets/types";
+import { Field, WidgetComponent } from "../widgets/types";
+
+type RecordInfo = {
+  can_be_deleted: boolean;
+  exists: boolean;
+  is_attachment: boolean;
+  label: string;
+  label_i18n?: Translatable;
+};
+
+type RecordDataModel = {
+  alt: string;
+  fields: Field[];
+};
 
 type State = {
-  recordData: null;
-  recordDataModel: null;
-  recordInfo: null;
+  recordData: Record<string, string> | null;
+  recordDataModel: RecordDataModel | null;
+  recordInfo: RecordInfo | null;
   hasPendingChanges: boolean;
 };
+
+type RawRecord = {
+  datamodel: RecordDataModel;
+  record_info: RecordInfo;
+  data: Record<string, string>;
+};
+
+function isIllegalField(
+  field: Field,
+  recordInfo: Pick<RecordInfo, "is_attachment">
+): boolean {
+  switch (field.name) {
+    case "_id":
+    case "_path":
+    case "_gid":
+    case "_alt":
+    case "_source_alt":
+    case "_model":
+    case "_attachment_for":
+      return true;
+    case "_attachment_type":
+      return !recordInfo.is_attachment;
+  }
+  return false;
+}
 
 class EditPage extends RecordComponent<unknown, State> {
   form: RefObject<HTMLFormElement>;
@@ -63,35 +101,19 @@ class EditPage extends RecordComponent<unknown, State> {
     }
   }
 
-  isIllegalField(field: Field) {
-    switch (field.name) {
-      case "_id":
-      case "_path":
-      case "_gid":
-      case "_alt":
-      case "_source_alt":
-      case "_model":
-      case "_attachment_for":
-        return true;
-      case "_attachment_type":
-        return !this.state.recordInfo.is_attachment;
-    }
-    return false;
-  }
-
   syncEditor() {
     loadData("/rawrecord", {
       path: this.getRecordPath(),
       alt: this.getRecordAlt(),
-    }).then((resp) => {
+    }).then((resp: RawRecord) => {
       // transform resp.data into actual data
-      const recordData = {};
+      const recordData: Record<string, string> = {};
       resp.datamodel.fields.forEach((field) => {
-        const widget = getWidgetComponentWithFallback(field.type);
+        const Widget = getWidgetComponentWithFallback(field.type);
         let value = resp.data[field.name];
         if (value !== undefined) {
-          if (widget.deserializeValue) {
-            value = widget.deserializeValue(value, field.type);
+          if (Widget.deserializeValue) {
+            value = Widget.deserializeValue(value, field.type);
           }
           recordData[field.name] = value;
         }
@@ -106,7 +128,7 @@ class EditPage extends RecordComponent<unknown, State> {
       bringUpDialog;
   }
 
-  setFieldValue(field, value, uiChange = false) {
+  setFieldValue(field: Field, value: string, uiChange = false) {
     const rd = { ...this.state.recordData, [field.name]: value || "" };
     this.setState({
       recordData: rd,
@@ -117,7 +139,7 @@ class EditPage extends RecordComponent<unknown, State> {
   getValues() {
     const rv = {};
     this.state.recordDataModel.fields.forEach((field) => {
-      if (this.isIllegalField(field)) {
+      if (isIllegalField(field, this.state.recordInfo)) {
         return;
       }
 
@@ -168,21 +190,21 @@ class EditPage extends RecordComponent<unknown, State> {
     this.transitionToAdminPage("delete", this.getUrlRecordPathWithAlt());
   }
 
-  getValueForField(widget, field) {
+  getValueForField(Widget: WidgetComponent, field: Field) {
     let value = this.state.recordData[field.name];
     if (value === undefined) {
       value = "";
-      if (widget.deserializeValue) {
-        value = widget.deserializeValue(value, field.type);
+      if (Widget.deserializeValue) {
+        value = Widget.deserializeValue(value, field.type);
       }
     }
     return value;
   }
 
-  getPlaceholderForField(widget, field) {
+  getPlaceholderForField(Widget: WidgetComponent, field: Field) {
     if (field.default !== null) {
-      if (widget.deserializeValue) {
-        return widget.deserializeValue(field.default, field.type);
+      if (Widget.deserializeValue) {
+        return Widget.deserializeValue(field.default, field.type);
       }
       return field.default;
     } else if (field.name === "_slug") {
@@ -216,30 +238,21 @@ class EditPage extends RecordComponent<unknown, State> {
 
   render() {
     // we have not loaded anything yet.
-    if (this.state.recordInfo === null) {
+    const { recordInfo, recordDataModel } = this.state;
+    if (recordInfo === null || recordDataModel === null) {
       return null;
     }
 
-    const deleteButton = this.state.recordInfo.can_be_deleted ? (
-      <button
-        type="button"
-        className="btn btn-default"
-        onClick={this.deleteRecord.bind(this)}
-      >
-        {trans("DELETE")}
-      </button>
-    ) : null;
-
-    const title = this.state.recordInfo.is_attachment
+    const title = recordInfo.is_attachment
       ? trans("EDIT_ATTACHMENT_METADATA_OF")
       : trans("EDIT_PAGE_NAME");
 
-    const label = this.state.recordInfo.label_i18n
-      ? trans(this.state.recordInfo.label_i18n)
-      : this.state.recordInfo.label;
+    const label = recordInfo.label_i18n
+      ? trans(recordInfo.label_i18n)
+      : recordInfo.label;
 
-    const fields = this.state.recordDataModel.fields.filter(
-      (f) => !this.isIllegalField(f)
+    const fields = recordDataModel.fields.filter(
+      (f) => !isIllegalField(f, recordInfo)
     );
     return (
       <div className="edit-area">
@@ -256,7 +269,15 @@ class EditPage extends RecordComponent<unknown, State> {
             <button type="submit" className="btn btn-primary">
               {trans("SAVE_CHANGES")}
             </button>
-            {deleteButton}
+            {recordInfo.can_be_deleted ? (
+              <button
+                type="button"
+                className="btn btn-default"
+                onClick={this.deleteRecord.bind(this)}
+              >
+                {trans("DELETE")}
+              </button>
+            ) : null}
           </div>
         </form>
       </div>

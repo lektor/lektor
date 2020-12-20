@@ -1,37 +1,38 @@
 import { ComponentType } from "react";
+import { Translatable } from "../i18n";
 
-type Translations = Partial<Record<string, string>>;
-
-interface BaseWidgetType {
+export interface BaseWidgetType {
   widget: string;
   size: "normal" | "small" | "large";
   width?: string;
 }
 
 export interface WidgetType extends BaseWidgetType {
-  heading_i18n?: Translations;
-  checkbox_label_i18n?: Translations;
-  addon_label_i18n?: Translations;
+  heading_i18n?: Translatable;
+  checkbox_label_i18n?: Translatable;
+  addon_label_i18n?: Translatable;
 }
 
 export interface MultiWidgetType extends BaseWidgetType {
   widget: "checkboxes" | "select";
-  choices: [string, Translations][];
+  choices: [string, Translatable][];
 }
 
 export interface Field {
   name: string;
   type: WidgetType;
   default?: string;
-  description_i18n: Translations;
-  label_i18n: Translations;
+  description_i18n: Translatable;
+  label_i18n: Translatable;
+  hide_label: boolean;
+  alts_enabled: boolean;
 }
 
 export type WidgetProps<V = string, W = WidgetType> = {
   value?: V;
   type: W;
   placeholder?: V;
-  onChange: (value: V) => void;
+  onChange: (value: V, uiChange?: boolean) => void;
   disabled?: boolean;
 };
 

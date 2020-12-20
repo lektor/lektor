@@ -7,40 +7,37 @@ import JSDOMGlobal from "jsdom-global";
 
 JSDOMGlobal();
 
-const renderToggle = (defaultVisibility) => {
-  document.body.innerHTML = '<div id="container"></div>';
+const renderToggle = (defaultVisibility: boolean) => {
+  document.body.innerHTML = "";
+  const container = document.createElement("div");
+  document.body.appendChild(container);
   render(
-    <ToggleGroup defaultVisibility={defaultVisibility}>
+    <ToggleGroup groupTitle={"TITLE"} defaultVisibility={defaultVisibility}>
       <div>Rick Astley rulz</div>
     </ToggleGroup>,
-    document.getElementById("container")
+    container
   );
+  return container;
 };
 
 describe("ToggleGroup", () => {
   describe("when rendered with defaults", () => {
     it("renders a closed toggle group", () => {
-      renderToggle(false);
-      expect(document.getElementById("container").innerHTML).to.contain(
-        "toggle-group-closed"
-      );
+      const container = renderToggle(false);
+      expect(container.innerHTML).to.contain("toggle-group-closed");
     });
 
     it("renders an open toggle group when toggled", () => {
-      renderToggle(false);
+      const container = renderToggle(false);
       ReactTestUtils.Simulate.click(document.querySelector(".toggle"));
-      expect(document.getElementById("container").innerHTML).to.contain(
-        "toggle-group-open"
-      );
+      expect(container.innerHTML).to.contain("toggle-group-open");
     });
   });
 
   describe("when rendered with a default visibility of true", () => {
     it("renders an open toggle group", () => {
-      renderToggle(true);
-      expect(document.getElementById("container").innerHTML).to.contain(
-        "toggle-group-open"
-      );
+      const container = renderToggle(true);
+      expect(container.innerHTML).to.contain("toggle-group-open");
     });
   });
 });

@@ -65,6 +65,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
   value: string;
   placeholder: string;
   disabled?: boolean;
+  onChange: (value: string, uiChange?: boolean) => void;
 }) {
   const { field, value, placeholder, disabled } = props;
   const onChange = props.onChange

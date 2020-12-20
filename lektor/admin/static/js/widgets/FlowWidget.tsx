@@ -1,8 +1,8 @@
 import React from "react";
-import { trans } from "../i18n";
+import { trans, Translatable } from "../i18n";
 import { tokenize, serialize } from "../metaformat";
 import { formatUserLabel } from "../userLabel";
-import { Field, WidgetProps } from "./types";
+import { Field, BaseWidgetType, WidgetProps } from "./types";
 import {
   getWidgetComponent,
   getWidgetComponentWithFallback,
@@ -75,13 +75,29 @@ interface FlowBlockModel {
   order: number;
   id: string;
   fields: Field[];
+  name: string;
+  name_i18n: Translatable;
+  button_label?: string;
+}
+
+export interface FlowBlockWidgetType extends BaseWidgetType {
+  widget: "flow";
+  flowblock_order: string[];
+  flowblocks: Record<string, FlowBlockModel>;
+}
+
+interface FlowBlock {
+  data: Record<string, unknown>;
+  flowBlockModel: FlowBlockModel;
+  localId: number;
+  collapsed: boolean;
 }
 
 function deserializeFlowBlock(
   flowBlockModel: FlowBlockModel,
   lines: string[],
   localId: number
-) {
+): FlowBlock {
   const data: Record<string, unknown> = {};
   const rawData: Record<string, string> = {};
 
@@ -103,11 +119,7 @@ function deserializeFlowBlock(
     data[field.name] = value;
   });
 
-  return {
-    localId: localId || null,
-    flowBlockModel: flowBlockModel,
-    data: data,
-  };
+  return { localId, flowBlockModel, data, collapsed: false };
 }
 
 function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
@@ -132,16 +144,10 @@ function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
   return serialize(rv);
 }
 
-type FlowWidgetType = {
-  collapsed: boolean;
-  localId: number;
-  flowBlockModel: FlowBlockModel;
-}[];
-
 export class FlowWidget extends React.PureComponent<
-  WidgetProps<FlowWidgetType>
+  WidgetProps<FlowBlock[], FlowBlockWidgetType>
 > {
-  static deserializeValue(value, type) {
+  static deserializeValue(value: string, type): (FlowBlock | null)[] {
     let blockId = 0;
     return parseFlowFormat(value).map((item) => {
       const [id, lines] = item;
@@ -153,7 +159,7 @@ export class FlowWidget extends React.PureComponent<
     });
   }
 
-  static serializeValue(value: FlowWidgetType) {
+  static serializeValue(value: FlowBlock[]) {
     return serializeFlowFormat(
       value.map((item) => {
         return [
@@ -164,73 +170,84 @@ export class FlowWidget extends React.PureComponent<
     );
   }
 
-  moveBlock(idx, offset) {
-    const newIndex = idx + offset;
-    if (newIndex < 0 || newIndex >= this.props.value.length) {
-      return;
+  moveBlock(idx: number, offset: number) {
+    if (this.props.value) {
+      const newIndex = idx + offset;
+      if (newIndex < 0 || newIndex >= this.props.value.length) {
+        return;
+      }
+
+      const newValue = [...this.props.value];
+      newValue[newIndex] = this.props.value[idx];
+      newValue[idx] = this.props.value[newIndex];
+
+      this.props.onChange(newValue);
     }
-
-    const newValue = [...this.props.value];
-    newValue[newIndex] = this.props.value[idx];
-    newValue[idx] = this.props.value[newIndex];
-
-    this.props.onChange(newValue);
   }
 
   removeBlock(idx: string) {
-    if (confirm(trans("REMOVE_FLOWBLOCK_PROMPT"))) {
-      this.props.onChange(this.props.value.filter((item, i) => i !== idx));
+    if (this.props.value) {
+      if (confirm(trans("REMOVE_FLOWBLOCK_PROMPT"))) {
+        this.props.onChange(this.props.value.filter((item, i) => i !== idx));
+      }
     }
   }
 
-  addNewBlock(key) {
-    const flowBlockModel = this.props.type.flowblocks[key];
+  addNewBlock(key: string) {
+    if (this.props.value) {
+      const flowBlockModel = this.props.type.flowblocks[key];
 
-    // find the first available id for this new block - use findMax + 1
-    const blockIds = this.props.value.map((block) => block.localId);
-    const newBlockId = blockIds.length === 0 ? 1 : Math.max(...blockIds) + 1;
+      // find the first available id for this new block - use findMax + 1
+      const blockIds = this.props.value.map((block) => block.localId);
+      const newBlockId = blockIds.length === 0 ? 1 : Math.max(...blockIds) + 1;
 
-    // this is a rather ugly way to do this, but hey, it works.
-    const newValue = [
-      ...this.props.value,
-      deserializeFlowBlock(flowBlockModel, [], newBlockId),
-    ];
-    this.props.onChange(newValue);
-  }
-
-  toggleBlock(idx) {
-    const { collapsed } = this.props.value[idx];
-    const newValue = [...this.props.value];
-    newValue[idx] = { ...this.props.value[idx], collapsed: !collapsed };
-    this.props.onChange(newValue, true); // true => just ui changed
-  }
-
-  renderFormField(blockInfo, field: Field, idx: number) {
-    const value = blockInfo.data[field.name];
-    let placeholder = field.default;
-    const Widget = getWidgetComponentWithFallback(field.type);
-    if (Widget.deserializeValue && placeholder != null) {
-      placeholder = Widget.deserializeValue(placeholder, field.type);
+      // this is a rather ugly way to do this, but hey, it works.
+      const newValue = [
+        ...this.props.value,
+        deserializeFlowBlock(flowBlockModel, [], newBlockId),
+      ];
+      this.props.onChange(newValue);
     }
+  }
 
-    const onChange = (value) => {
-      blockInfo.data[field.name] = value;
-      this.props.onChange([...this.props.value]);
-    };
+  toggleBlock(idx: number) {
+    if (this.props.value) {
+      const { collapsed } = this.props.value[idx];
+      const newValue = [...this.props.value];
+      newValue[idx] = { ...this.props.value[idx], collapsed: !collapsed };
+      this.props.onChange(newValue, true); // true => just ui changed
+    }
+  }
 
-    return (
-      <FieldBox
-        key={idx}
-        value={value}
-        placeholder={placeholder}
-        field={field}
-        onChange={onChange}
-      />
-    );
+  renderFormField(blockInfo: FlowBlock, field: Field, idx: number) {
+    if (this.props.value) {
+      const value = blockInfo.data[field.name];
+      let placeholder = field.default;
+      const Widget = getWidgetComponentWithFallback(field.type);
+      if (Widget.deserializeValue && placeholder != null) {
+        placeholder = Widget.deserializeValue(placeholder, field.type);
+      }
+
+      const onChange = (value: unknown) => {
+        blockInfo.data[field.name] = value;
+        this.props.onChange([...this.props.value]);
+      };
+
+      return (
+        <FieldBox
+          key={idx}
+          value={value}
+          placeholder={placeholder}
+          field={field}
+          onChange={onChange}
+        />
+      );
+    }
   }
 
   renderBlocks() {
-    return this.props.value.map((blockInfo, idx) => {
+    const flowBlocks = this.props.value ?? [];
+    return flowBlocks.map((blockInfo, idx) => {
       // bad block is no block
       if (blockInfo === null) {
         return null;
@@ -271,7 +288,7 @@ export class FlowWidget extends React.PureComponent<
               type="button"
               className="btn btn-default btn-xs"
               title={trans("DOWN")}
-              disabled={idx >= this.props.value.length - 1}
+              disabled={idx >= flowBlocks.length - 1}
               onClick={this.moveBlock.bind(this, idx, 1)}
             >
               <i className="fa fa-fw fa-chevron-down" />
