@@ -9,18 +9,19 @@ import { trans } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 import GlobalActions from "./GlobalActions";
 
-interface Item {
+interface RecordPathInfoSegment {
   id: string;
   path: string;
   label: string;
   label_i18n?: Record<string, string>;
   exists: boolean;
+  can_have_children: boolean;
 }
 
 type State = {
   recordPathInfo: {
     path: string;
-    segments: Item[];
+    segments: RecordPathInfoSegment[];
   } | null;
 };
 
@@ -29,9 +30,7 @@ type Props = { children: ReactNode } & RecordProps;
 class BreadCrumbs extends RecordComponent<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {
-      recordPathInfo: null,
-    };
+    this.state = { recordPathInfo: null };
   }
 
   componentDidMount() {
@@ -47,57 +46,48 @@ class BreadCrumbs extends RecordComponent<Props, State> {
   updateCrumbs() {
     const path = this.getRecordPath();
     if (path === null) {
-      this.setState({
-        recordPathInfo: null,
-      });
-      return;
+      this.setState({ recordPathInfo: null });
+    } else {
+      loadData("/pathinfo", { path: path }).then((resp) => {
+        this.setState({
+          recordPathInfo: { path: path, segments: resp.segments },
+        });
+      }, bringUpDialog);
     }
-
-    loadData("/pathinfo", { path: path }).then((resp) => {
-      this.setState({
-        recordPathInfo: {
-          path: path,
-          segments: resp.segments,
-        },
-      });
-    }, bringUpDialog);
   }
 
   render() {
-    let crumbs = [];
     const target =
       this.props.match.params.page === "preview" ? "preview" : "edit";
-    let lastItem: Item | null = null;
+    const recordPathInfo = this.state.recordPathInfo;
+    const lastItem = recordPathInfo
+      ? recordPathInfo.segments[recordPathInfo.segments.length - 1]
+      : null;
 
-    if (this.state.recordPathInfo != null) {
-      crumbs = this.state.recordPathInfo.segments.map((item) => {
-        const urlPath = this.getUrlRecordPathWithAlt(item.path);
-        let label = item.label_i18n ? trans(item.label_i18n) : item.label;
-        let className = "record-crumb";
+    const crumbs =
+      recordPathInfo != null ? (
+        recordPathInfo.segments.map((item) => {
+          const urlPath = this.getUrlRecordPathWithAlt(item.path);
+          let label = item.label_i18n ? trans(item.label_i18n) : item.label;
+          let className = "record-crumb";
 
-        if (!item.exists) {
-          label = item.id;
-          className += " missing-record-crumb";
-        }
-        lastItem = item;
-
-        const adminPath = pathToAdminPage(target, urlPath);
-
-        return (
-          <li key={item.path} className={className}>
-            <Link to={adminPath}>{label}</Link>
-          </li>
-        );
-      });
-    } else {
-      crumbs = (
+          if (!item.exists) {
+            label = item.id;
+            className += " missing-record-crumb";
+          }
+          return (
+            <li key={item.path} className={className}>
+              <Link to={pathToAdminPage(target, urlPath)}>{label}</Link>
+            </li>
+          );
+        })
+      ) : (
         <li>
           <Link to={pathToAdminPage("edit", "root")}>
             {trans("BACK_TO_OVERVIEW")}
           </Link>
         </li>
       );
-    }
 
     return (
       <div className="breadcrumbs">
