@@ -1,33 +1,69 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import RecordComponent, { RecordProps } from "../components/RecordComponent";
-import { trans } from "../i18n";
+import { trans, Translatable } from "../i18n";
 import { formatUserLabel } from "../userLabel";
 import { loadData } from "../fetch";
 import { slugify } from "../slugify";
 import { getWidgetComponentWithFallback } from "../widgets";
 import { bringUpDialog } from "../richPromise";
+import { SlugInputWidget } from "../widgets/SlugInputWidget";
+import { Field } from "../widgets/types";
 
-const getGoodDefaultModel = (models) => {
-  if (models.page !== undefined) {
-    return "page";
-  }
-  const choices = Object.keys(models);
-  choices.sort();
-  return choices[0];
+type Model = {
+  id: string;
+  name: string;
+  name_i18n: Translatable;
+  primary_field: Field;
+};
+
+type NewRecordInfo = {
+  label: string;
+  can_have_children: boolean;
+  implied_model: Model;
+  available_models: Record<string, Model>;
 };
 
 type State = {
-  newChildInfo: null;
-  id: undefined;
-  selectedModel: null;
+  newChildInfo: NewRecordInfo | null;
+  selectedModel: Model | null;
+  id?: string;
+  primary?: string;
 };
+
+function getGoodDefaultModel(models: Record<string, Model>) {
+  if (models.page !== undefined) {
+    return "page";
+  }
+  return Object.keys(models).sort()[0];
+}
+
+function getAvailableModels(newChildInfo: NewRecordInfo) {
+  const rv = [];
+  for (const key in newChildInfo.available_models) {
+    const model = newChildInfo.available_models[key];
+    rv.push(model);
+  }
+  rv.sort((a, b) => {
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+  return rv;
+}
+
+function FieldRow({ children }: { children: ReactNode }) {
+  return (
+    <div className="row field-row" key="_model">
+      <div className="field-box col-md-12">
+        <dl className="field">{children}</dl>
+      </div>
+    </div>
+  );
+}
 
 class AddChildPage extends RecordComponent<unknown, State> {
   constructor(props: RecordProps) {
     super(props);
     this.state = {
       newChildInfo: null,
-      id: undefined,
       selectedModel: null,
     };
   }
@@ -53,7 +89,7 @@ class AddChildPage extends RecordComponent<unknown, State> {
         newChildInfo: resp,
         id: undefined,
         primary: undefined,
-        selectedModel: selectedModel,
+        selectedModel,
       });
     }, bringUpDialog);
   }
@@ -62,18 +98,6 @@ class AddChildPage extends RecordComponent<unknown, State> {
     const obj = {};
     obj[id] = value;
     this.setState(obj);
-  }
-
-  getAvailableModels() {
-    const rv = [];
-    for (const key in this.state.newChildInfo.available_models) {
-      const model = this.state.newChildInfo.available_models[key];
-      rv.push(model);
-    }
-    rv.sort((a, b) => {
-      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-    });
-    return rv;
   }
 
   onModelSelected(event) {
@@ -92,7 +116,7 @@ class AddChildPage extends RecordComponent<unknown, State> {
   }
 
   createRecord() {
-    const errMsg = (text) => {
+    const errMsg = (text: string) => {
       alert(trans("ERROR_PREFIX") + text);
     };
 
@@ -127,97 +151,70 @@ class AddChildPage extends RecordComponent<unknown, State> {
     );
   }
 
-  renderFields() {
-    const fields = [];
+  render() {
+    const newChildInfo = this.state.newChildInfo;
 
-    if (!this.state.newChildInfo.implied_model) {
-      const choices = this.getAvailableModels().map((model) => {
-        return (
-          <option value={model.id} key={model.id}>
-            {trans(model.name_i18n)}
-          </option>
-        );
-      });
-      fields.push(
-        <div className="row" key="_model">
-          <div className="field-box col-md-12">
-            <dl className="field">
-              <dt>{trans("MODEL")}</dt>
-              <dd>
-                <select
-                  value={this.state.selectedModel}
-                  className="form-control"
-                  onChange={this.onModelSelected.bind(this)}
-                >
-                  {choices}
-                </select>
-              </dd>
-            </dl>
-          </div>
-        </div>
-      );
+    if (!newChildInfo) {
+      return null;
     }
-
-    const addField = (id, field, placeholder) => {
-      let value = this.state[id];
+    const fields = [];
+    const primaryField = this.getPrimaryField();
+    if (primaryField) {
+      let value = this.state.primary;
+      const field = primaryField;
       const Widget = getWidgetComponentWithFallback(field.type);
       if (Widget.deserializeValue) {
         value = Widget.deserializeValue(value, field.type);
       }
       fields.push(
-        <div className="row field-row" key={field.name}>
-          <div className="field-box col-md-12">
-            <dl className="field">
-              <dt>{formatUserLabel(field.label_i18n || field.label)}</dt>
-              <dd>
-                <Widget
-                  value={value}
-                  placeholder={placeholder}
-                  onChange={this.onValueChange.bind(this, id)}
-                  type={field.type}
-                />
-              </dd>
-            </dl>
-          </div>
-        </div>
+        <FieldRow key={field.name}>
+          <dt>{formatUserLabel(field.label_i18n || field.label)}</dt>
+          <dd>
+            <Widget
+              value={value}
+              onChange={this.onValueChange.bind(this, "primary")}
+              type={field.type}
+              field={field}
+            />
+          </dd>
+        </FieldRow>
       );
-    };
-
-    const primaryField = this.getPrimaryField();
-    if (primaryField) {
-      addField("primary", primaryField);
-    }
-
-    addField(
-      "id",
-      {
-        name: "_id",
-        label: trans("ID"),
-        type: { name: "slug", widget: "slug" },
-      },
-      this.getImpliedId()
-    );
-
-    return fields;
-  }
-
-  render() {
-    const nci = this.state.newChildInfo;
-
-    if (!nci) {
-      return null;
     }
 
     return (
       <div className="edit-area">
-        <h2>
-          {trans("ADD_CHILD_PAGE_TO").replace(
-            "%s",
-            this.state.newChildInfo.label
-          )}
-        </h2>
+        <h2>{trans("ADD_CHILD_PAGE_TO").replace("%s", newChildInfo.label)}</h2>
         <p>{trans("ADD_CHILD_PAGE_NOTE")}</p>
-        {this.renderFields()}
+        {!newChildInfo.implied_model && (
+          <FieldRow key="_model">
+            <dt>{trans("MODEL")}</dt>
+            <dd>
+              <select
+                value={this.state.selectedModel}
+                className="form-control"
+                onChange={this.onModelSelected.bind(this)}
+              >
+                {getAvailableModels(newChildInfo).map((model) => (
+                  <option value={model.id} key={model.id}>
+                    {trans(model.name_i18n)}
+                  </option>
+                ))}
+              </select>
+            </dd>
+          </FieldRow>
+        )}
+        {fields}
+        <FieldRow key="_id">
+          <dt>{formatUserLabel(trans("ID"))}</dt>
+          <dd>
+            <SlugInputWidget
+              value={this.state.id}
+              placeholder={this.getImpliedId()}
+              onChange={this.onValueChange.bind(this, "id")}
+              type={{ widget: "slug", size: "normal" }}
+            />
+          </dd>
+        </FieldRow>
         <div className="actions">
           <button
             className="btn btn-primary"
