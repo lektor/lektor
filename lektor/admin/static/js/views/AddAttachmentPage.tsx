@@ -7,8 +7,13 @@ import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 
+type NewAttachmentInfo = {
+  label: string;
+  can_upload: boolean;
+};
+
 type State = {
-  newAttachmentInfo: null;
+  newAttachmentInfo: NewAttachmentInfo | null;
   currentFiles: File[];
   isUploading: boolean;
   currentProgress: number;
@@ -26,6 +31,10 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
       currentProgress: 0,
     };
     this.fileInput = createRef();
+    this.onUploadProgress = this.onUploadProgress.bind(this);
+    this.onUploadComplete = this.onUploadComplete.bind(this);
+    this.onFileSelected = this.onFileSelected.bind(this);
+    this.uploadFile = this.uploadFile.bind(this);
   }
 
   componentDidMount() {
@@ -40,9 +49,7 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
 
   syncDialog() {
     loadData("/newattachment", { path: this.getRecordPath() }).then((resp) => {
-      this.setState({
-        newAttachmentInfo: resp,
-      });
+      this.setState({ newAttachmentInfo: resp });
     }, bringUpDialog);
   }
 
@@ -53,24 +60,16 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
   onUploadProgress(event: ProgressEvent) {
     const newProgress = Math.round((event.loaded * 100) / event.total);
     if (newProgress !== this.state.currentProgress) {
-      this.setState({
-        currentProgress: newProgress,
-      });
+      this.setState({ currentProgress: newProgress });
     }
   }
 
-  onUploadComplete(resp) {
-    this.setState(
-      {
-        isUploading: false,
-        currentProgress: 100,
-      },
-      () => {
-        hub.emit(
-          new AttachmentsChangedEvent({ recordPath: this.getRecordPath() })
-        );
-      }
-    );
+  onUploadComplete() {
+    this.setState({ isUploading: false, currentProgress: 100 }, () => {
+      hub.emit(
+        new AttachmentsChangedEvent({ recordPath: this.getRecordPath() })
+      );
+    });
   }
 
   onFileSelected() {
@@ -82,10 +81,7 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
       this.fileInput.current.files,
       0
     );
-    this.setState({
-      currentFiles: files,
-      isUploading: true,
-    });
+    this.setState({ currentFiles: files, isUploading: true });
 
     const formData = new FormData();
     formData.append("path", this.getRecordPath());
@@ -96,25 +92,23 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", getApiUrl("/newattachment"));
-    xhr.onload = () => {
-      this.onUploadComplete(JSON.parse(xhr.responseText));
-    };
-    xhr.upload.onprogress = (event) => {
-      this.onUploadProgress(event);
-    };
+    xhr.onload = this.onUploadComplete;
+    xhr.onprogress = this.onUploadProgress;
     xhr.send(formData);
   }
 
   render() {
-    const nai = this.state.newAttachmentInfo;
+    const newAttachmentInfo = this.state.newAttachmentInfo;
 
-    if (!nai) {
+    if (!newAttachmentInfo) {
       return null;
     }
 
     return (
       <div>
-        <h2>{trans("ADD_ATTACHMENT_TO").replace("%s", nai.label)}</h2>
+        <h2>
+          {trans("ADD_ATTACHMENT_TO").replace("%s", newAttachmentInfo.label)}
+        </h2>
         <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
         <ul>
           {this.state.currentFiles.map((file) => (
@@ -131,13 +125,13 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
           ref={this.fileInput}
           multiple
           style={{ display: "none" }}
-          onChange={this.onFileSelected.bind(this)}
+          onChange={this.onFileSelected}
         />
         <div className="actions">
           <button
             type="button"
             className="btn btn-primary"
-            onClick={this.uploadFile.bind(this)}
+            onClick={this.uploadFile}
           >
             {trans("UPLOAD")}
           </button>
