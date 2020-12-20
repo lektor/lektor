@@ -1,4 +1,4 @@
-import React, { createRef, RefObject } from "react";
+import React, { createRef, RefObject, SyntheticEvent } from "react";
 import {
   fsPathFromAdminObservedPath,
   getCanonicalUrl,
@@ -18,13 +18,24 @@ type State = {
   pageUrlFor: string | null;
 };
 
-class PreviewPage extends RecordComponent<unknown, State> {
+function getIframePath(iframe: HTMLIFrameElement): string | null {
+  const frameLocation = iframe.contentWindow?.location;
+  if (!frameLocation) {
+    return null;
+  }
+  return frameLocation.href === "about:blank"
+    ? frameLocation.href
+    : fsPathFromAdminObservedPath(frameLocation.pathname);
+}
+
+export default class PreviewPage extends RecordComponent<unknown, State> {
   iframe: RefObject<HTMLIFrameElement>;
 
   constructor(props: RecordProps) {
     super(props);
     this.state = initialState();
     this.iframe = createRef();
+    this.onFrameNavigated = this.onFrameNavigated.bind(this);
   }
 
   componentDidMount() {
@@ -55,60 +66,41 @@ class PreviewPage extends RecordComponent<unknown, State> {
     }, bringUpDialog);
   }
 
-  getIntendedPath() {
-    if (this.state.pageUrlFor === this.getUrlRecordPathWithAlt()) {
-      return this.state.pageUrl;
-    }
-    return null;
-  }
-
   componentDidUpdate(prevProps: RecordProps) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncState();
     }
     const frame = this.iframe.current;
-    const intendedPath = this.getIntendedPath();
+    const intendedPath =
+      this.state.pageUrlFor === this.getUrlRecordPathWithAlt()
+        ? this.state.pageUrl
+        : null;
     if (frame && intendedPath !== null) {
-      const framePath = this.getFramePath();
+      const framePath = getIframePath(frame);
 
       if (!urlPathsConsideredEqual(intendedPath, framePath)) {
         frame.src = getCanonicalUrl(intendedPath);
       }
-
-      frame.onload = () => {
-        this.onFrameNavigated();
-      };
     }
   }
 
-  getFramePath() {
-    const frameLocation = this.iframe.current.contentWindow.location;
-    if (frameLocation.href === "about:blank") {
-      return frameLocation.href;
+  onFrameNavigated(event: SyntheticEvent<HTMLIFrameElement>) {
+    const fsPath = getIframePath(event.currentTarget);
+    if (fsPath !== null) {
+      loadData("/matchurl", { url_path: fsPath }).then((resp) => {
+        if (resp.exists) {
+          const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
+          this.transitionToAdminPage("preview", urlPath);
+        }
+      }, bringUpDialog);
     }
-    return fsPathFromAdminObservedPath(frameLocation.pathname);
-  }
-
-  onFrameNavigated() {
-    const fsPath = this.getFramePath();
-    if (fsPath === null) {
-      return;
-    }
-    loadData("/matchurl", { url_path: fsPath }).then((resp) => {
-      if (resp.exists) {
-        const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
-        this.transitionToAdminPage("preview", urlPath);
-      }
-    }, bringUpDialog);
   }
 
   render() {
     return (
       <div className="preview">
-        <iframe ref={this.iframe} />
+        <iframe ref={this.iframe} onLoad={this.onFrameNavigated} />
       </div>
     );
   }
 }
-
-export default PreviewPage;
