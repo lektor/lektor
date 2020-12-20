@@ -2,29 +2,48 @@ export function isValidUrl(url: string) {
   return !!url.match(/^(https?|ftps?):\/\/\S+$|^mailto:\S+$/);
 }
 
-export function stripLeadingSlash(string: string) {
+/**
+ * Trim leading slashes from a string.
+ */
+export function stripLeadingSlashes(string: string) {
   const match = /^\/*(.*?)$/.exec(string);
   return match ? match[1] : "";
 }
 
-export function stripTrailingSlash(string: string) {
+/**
+ * Trim trailing slashes from a string.
+ */
+export function stripTrailingSlashes(string: string) {
   const match = /^(.*?)\/*$/.exec(string);
   return match ? match[1] : "";
 }
 
+/**
+ * Trim both leading and trailing slashes from a string.
+ */
+export function trimSlashes(string: string) {
+  const match = /^\/*(.*?)\/*$/.exec(string);
+  return match ? match[1] : "";
+}
+
+/**
+ * Trim both leading and trailing colons from a string.
+ */
+export function trimColons(string: string) {
+  const match = /^:*(.*?):*$/.exec(string);
+  return match ? match[1] : "";
+}
+
 export function getCanonicalUrl(localPath: string) {
-  return (
-    $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1] +
-    "/" +
-    stripLeadingSlash(localPath)
-  );
+  const base = stripTrailingSlashes($LEKTOR_CONFIG.site_root);
+  return `${base}/${stripLeadingSlashes(localPath)}`;
 }
 
 export function urlPathsConsideredEqual(a: string | null, b: string | null) {
   if (a == null || b == null) {
     return false;
   }
-  return stripTrailingSlash(a) === stripTrailingSlash(b);
+  return stripTrailingSlashes(a) === stripTrailingSlashes(b);
 }
 
 export function getApiUrl(url: string) {
@@ -57,11 +76,12 @@ export function isMetaKey(event: KeyboardEvent) {
 }
 
 export function getParentFsPath(fsPath: string) {
-  return fsPath.match(/^(.*?)\/([^/]*)$/)[1];
+  const match = /^(.*?)\/([^/]*)$/.exec(fsPath);
+  return match ? match[1] : null;
 }
 
 export function fsToUrlPath(fsPath: string) {
-  let segments = fsPath.match(/^\/*(.*?)\/*$/)[1].split("/");
+  let segments = trimSlashes(fsPath).split("/");
   if (segments.length === 1 && segments[0] === "") {
     segments = [];
   }
@@ -70,7 +90,7 @@ export function fsToUrlPath(fsPath: string) {
 }
 
 export function urlToFsPath(urlPath: string) {
-  const segments = urlPath.match(/^:*(.*?):*$/)[1].split(":");
+  const segments = trimColons(urlPath).split(":");
   if (segments.length < 1 || segments[0] !== "root") {
     return null;
   }
@@ -79,9 +99,9 @@ export function urlToFsPath(urlPath: string) {
 }
 
 export function fsPathFromAdminObservedPath(adminPath: string) {
-  const base = $LEKTOR_CONFIG.site_root.match(/^(.*?)\/*$/)[1];
+  const base = stripTrailingSlashes($LEKTOR_CONFIG.site_root);
   if (adminPath.substr(0, base.length) !== base) {
     return null;
   }
-  return "/" + adminPath.substr(base.length).match(/^\/*(.*?)\/*$/)[1];
+  return "/" + trimSlashes(adminPath.substr(base.length));
 }

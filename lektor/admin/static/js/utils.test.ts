@@ -1,9 +1,11 @@
 import { ok, strictEqual } from "assert";
 import {
   isValidUrl,
-  stripLeadingSlash,
-  stripTrailingSlash,
+  stripLeadingSlashes,
+  stripTrailingSlashes,
   urlPathsConsideredEqual,
+  trimSlashes,
+  trimColons,
 } from "./utils";
 
 describe("Utils", () => {
@@ -20,13 +22,19 @@ describe("Utils", () => {
     ok(!isValidUrl("mailto:with spaces"));
   });
 
-  it("strip slashes", () => {
-    strictEqual(stripLeadingSlash("///asdf"), "asdf");
-    strictEqual(stripLeadingSlash("asdf///"), "asdf///");
-    strictEqual(stripLeadingSlash(""), "");
-    strictEqual(stripTrailingSlash("///asdf"), "///asdf");
-    strictEqual(stripTrailingSlash("asdf///"), "asdf");
-    strictEqual(stripTrailingSlash(""), "");
+  it("trim strings of slashes and colons", () => {
+    strictEqual(stripLeadingSlashes("///asdf"), "asdf");
+    strictEqual(stripLeadingSlashes("asdf///"), "asdf///");
+    strictEqual(stripLeadingSlashes(""), "");
+    strictEqual(stripTrailingSlashes("///asdf"), "///asdf");
+    strictEqual(stripTrailingSlashes("asdf///"), "asdf");
+    strictEqual(stripTrailingSlashes(""), "");
+    strictEqual(trimSlashes("///asdf///"), "asdf");
+    strictEqual(trimSlashes("asdf///"), "asdf");
+    strictEqual(trimSlashes("///asdf"), "asdf");
+    strictEqual(trimSlashes(""), "");
+    strictEqual(trimColons(":asdf:"), "asdf");
+    strictEqual(trimColons(":asdf:asdf:"), "asdf:asdf");
   });
 
   it("urlPathsConsideredEqual", () => {

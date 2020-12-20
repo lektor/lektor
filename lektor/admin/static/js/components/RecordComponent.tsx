@@ -4,12 +4,12 @@ import { urlToFsPath, fsToUrlPath } from "../utils";
 
 export function getRecordPathAndAlt(
   path: string
-): [string, string] | [null, null] {
+): [string | null, string | null] {
   if (!path) {
     return [null, null];
   }
-  const items = path.split(/\+/, 2);
-  return [urlToFsPath(items[0]), items[1]];
+  const [p, a] = path.split(/\+/, 2);
+  return [urlToFsPath(p), a];
 }
 
 /**
