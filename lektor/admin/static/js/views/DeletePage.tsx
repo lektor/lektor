@@ -13,7 +13,7 @@ type State = {
   deleteMasterRecord: boolean;
 };
 
-class DeletePage extends RecordComponent<unknown, State> {
+class DeletePage extends RecordComponent<RecordProps, State> {
   constructor(props: RecordProps) {
     super(props);
 
@@ -64,7 +64,7 @@ class DeletePage extends RecordComponent<unknown, State> {
       if (this.state.recordInfo?.is_attachment) {
         hub.emit(
           new AttachmentsChangedEvent({
-            recordPath: this.getParentRecordPath(),
+            recordPath: parent
           })
         );
       }

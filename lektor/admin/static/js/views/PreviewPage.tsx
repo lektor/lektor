@@ -28,7 +28,7 @@ function getIframePath(iframe: HTMLIFrameElement): string | null {
     : fsPathFromAdminObservedPath(frameLocation.pathname);
 }
 
-export default class PreviewPage extends RecordComponent<unknown, State> {
+export default class PreviewPage extends RecordComponent<RecordProps, State> {
   iframe: RefObject<HTMLIFrameElement>;
 
   constructor(props: RecordProps) {

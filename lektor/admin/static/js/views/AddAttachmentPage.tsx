@@ -19,7 +19,7 @@ type State = {
   currentProgress: number;
 };
 
-class AddAttachmentPage extends RecordComponent<unknown, State> {
+class AddAttachmentPage extends RecordComponent<RecordProps, State> {
   fileInput: RefObject<HTMLInputElement>;
 
   constructor(props: RecordProps) {

@@ -1,5 +1,6 @@
 import React from "react";
-import { getParentFsPath, urlToFsPath, fsToUrlPath } from "../utils";
+import { useHistory } from "react-router";
+import { urlToFsPath, fsToUrlPath } from "../utils";
 
 export function getRecordPathAndAlt(
   path: string
@@ -20,24 +21,26 @@ export function pathToAdminPage(name: string, path: string) {
   return `${$LEKTOR_CONFIG.admin_root}/${path}/${name}`;
 }
 
-export type RecordProps = { match: { params: { path: string; page: string } } };
+export type RecordProps = {
+  match: { params: { path: string; page: string } };
+  history: ReturnType<typeof useHistory>;
+};
 
 /**
  * A React component baseclass that has some basic knowledge about
  * the record it works with.
  */
-export default class RecordComponent<P, S> extends React.Component<
-  P & RecordProps,
-  S
-> {
+export default class RecordComponent<
+  Props extends RecordProps,
+  State
+> extends React.Component<Props, State> {
   /**
    * Helper to transition to a specific page
    * @param name - Page name
    * @param path - Record path
    */
   transitionToAdminPage(name: string, path: string) {
-    const url = pathToAdminPage(name, path);
-    this.props.history.push(url);
+    this.props.history.push(pathToAdminPage(name, path));
   }
 
   /* this returns the path of the current record.  If the current page does
@@ -60,10 +63,5 @@ export default class RecordComponent<P, S> extends React.Component<
     const alt = newAlt ?? this.getRecordAlt();
     const urlPath = fsToUrlPath(path);
     return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
-  }
-
-  /* returns the parent path if available */
-  getParentRecordPath() {
-    return getParentFsPath(this.getRecordPath());
   }
 }

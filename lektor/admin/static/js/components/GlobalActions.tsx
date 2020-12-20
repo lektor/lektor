@@ -1,5 +1,5 @@
 import React from "react";
-import RecordComponent from "./RecordComponent";
+import RecordComponent, { RecordProps } from "./RecordComponent";
 import { isMetaKey, getCanonicalUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
@@ -29,7 +29,7 @@ function onKeyPress(event: KeyboardEvent) {
   }
 }
 
-class GlobalActions extends RecordComponent<unknown, unknown> {
+class GlobalActions extends RecordComponent<RecordProps, unknown> {
   componentDidMount() {
     window.addEventListener("keydown", onKeyPress);
   }

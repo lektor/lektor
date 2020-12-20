@@ -59,7 +59,7 @@ function FieldRow({ children }: { children: ReactNode }) {
   );
 }
 
-class AddChildPage extends RecordComponent<unknown, State> {
+class AddChildPage extends RecordComponent<RecordProps, State> {
   constructor(props: RecordProps) {
     super(props);
     this.state = {

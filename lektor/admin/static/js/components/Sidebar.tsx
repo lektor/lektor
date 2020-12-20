@@ -72,7 +72,7 @@ type State = {
   childrenPage: number;
 };
 
-class Sidebar extends RecordComponent<unknown, State> {
+class Sidebar extends RecordComponent<RecordProps, State> {
   childPosCache: ChildPosCache;
 
   constructor(props: RecordProps) {

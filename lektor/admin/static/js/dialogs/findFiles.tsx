@@ -19,7 +19,7 @@ type State = {
   results: Result[];
 };
 
-class FindFiles extends RecordComponent<unknown, State> {
+class FindFiles extends RecordComponent<RecordProps, State> {
   constructor(props: RecordProps) {
     super(props);
     this.state = {

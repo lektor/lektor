@@ -58,7 +58,7 @@ function isIllegalField(
   return false;
 }
 
-class EditPage extends RecordComponent<unknown, State> {
+class EditPage extends RecordComponent<RecordProps, State> {
   form: RefObject<HTMLFormElement>;
 
   constructor(props: RecordProps) {

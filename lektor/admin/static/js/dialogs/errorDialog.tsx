@@ -1,11 +1,11 @@
 import React from "react";
-import RecordComponent from "../components/RecordComponent";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
 export default class ErrorDialog extends RecordComponent<
-  { error: any },
+  RecordProps & { error: any },
   unknown
 > {
   onClose() {
