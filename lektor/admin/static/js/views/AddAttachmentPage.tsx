@@ -67,12 +67,7 @@ class AddAttachmentPage extends RecordComponent<unknown, State> {
       },
       () => {
         hub.emit(
-          new AttachmentsChangedEvent({
-            recordPath: this.getRecordPath(),
-            attachmentsAdded: resp.buckets.map((bucket) => {
-              return bucket.stored_filename;
-            }),
-          })
+          new AttachmentsChangedEvent({ recordPath: this.getRecordPath() })
         );
       }
     );

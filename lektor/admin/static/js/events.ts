@@ -15,19 +15,11 @@ export class BaseEvent {
 }
 
 export class AttachmentsChangedEvent extends BaseEvent {
-  attachmentsAdded: string[];
-  attachmentsRemoved: string[];
   recordPath: string | null;
 
-  constructor(options: {
-    recordPath: string | null;
-    attachmentsAdded?: string[];
-    attachmentsRemoved?: string[];
-  }) {
+  constructor(options: { recordPath: string | null }) {
     super();
     this.recordPath = options.recordPath;
-    this.attachmentsAdded = options.attachmentsAdded || [];
-    this.attachmentsRemoved = options.attachmentsRemoved || [];
   }
 }
 
