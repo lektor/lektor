@@ -1,11 +1,14 @@
-import { expect } from "chai";
 import ToggleGroup from "./ToggleGroup";
 import React from "react";
 import { render } from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
-import JSDOMGlobal from "jsdom-global";
+import { JSDOM } from "jsdom";
+import { ok } from "assert";
 
-JSDOMGlobal();
+const jsdom = new JSDOM(`<!DOCTYPE html>`);
+// @ts-expect-error Assigning jsdom.window to window fails
+global.window = jsdom.window;
+const document = window.document;
 
 const renderToggle = (defaultVisibility: boolean) => {
   document.body.innerHTML = "";
@@ -24,20 +27,20 @@ describe("ToggleGroup", () => {
   describe("when rendered with defaults", () => {
     it("renders a closed toggle group", () => {
       const container = renderToggle(false);
-      expect(container.innerHTML).to.contain("toggle-group-closed");
+      ok(container.innerHTML.includes("toggle-group-closed"));
     });
 
     it("renders an open toggle group when toggled", () => {
       const container = renderToggle(false);
       ReactTestUtils.Simulate.click(document.querySelector(".toggle"));
-      expect(container.innerHTML).to.contain("toggle-group-open");
+      ok(container.innerHTML.includes("toggle-group-open"));
     });
   });
 
   describe("when rendered with a default visibility of true", () => {
     it("renders an open toggle group", () => {
       const container = renderToggle(true);
-      expect(container.innerHTML).to.contain("toggle-group-open");
+      ok(container.innerHTML.includes("toggle-group-open"));
     });
   });
 });
