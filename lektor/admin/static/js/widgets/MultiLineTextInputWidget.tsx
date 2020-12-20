@@ -1,5 +1,5 @@
 import React, { ChangeEvent, Component, createRef, RefObject } from "react";
-import { getInputClass, WidgetProps } from "./mixins";
+import { getInputClass, WidgetProps } from "./types";
 
 export class MultiLineTextInputWidget extends Component<WidgetProps> {
   textarea: RefObject<HTMLTextAreaElement>;

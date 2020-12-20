@@ -2,7 +2,7 @@ import React from "react";
 import { trans } from "../i18n";
 import { tokenize, serialize } from "../metaformat";
 import { formatUserLabel } from "../userLabel";
-import { Field, WidgetProps } from "./mixins";
+import { Field, WidgetProps } from "./types";
 import {
   getWidgetComponent,
   getWidgetComponentWithFallback,

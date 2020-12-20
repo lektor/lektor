@@ -1,6 +1,6 @@
 import React from "react";
 import { trans } from "../i18n";
-import { getInputClass, MultiWidgetType, WidgetProps } from "./mixins";
+import { getInputClass, MultiWidgetType, WidgetProps } from "./types";
 
 export function SelectInputWidget(props: WidgetProps<string, MultiWidgetType>) {
   const { type, value, placeholder, onChange, disabled } = props;

@@ -1,4 +1,4 @@
-import { Field } from "./mixins";
+import { Field } from "./types";
 import React from "react";
 import { trans } from "../i18n";
 

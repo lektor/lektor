@@ -1,5 +1,5 @@
 import React from "react";
-import { WidgetProps } from "./mixins";
+import { WidgetProps } from "./types";
 import InputWidgetBase from "./InputWidgetBase";
 
 function postprocessSlug(value: string) {

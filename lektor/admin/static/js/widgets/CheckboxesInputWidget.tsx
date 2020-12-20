@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from "react";
 import { trans } from "../i18n";
-import { MultiWidgetType, WidgetProps } from "./mixins";
+import { MultiWidgetType, WidgetProps } from "./types";
 
 function checkboxIsActive(field: string, props: WidgetProps<string[]>) {
   let value = props.value;

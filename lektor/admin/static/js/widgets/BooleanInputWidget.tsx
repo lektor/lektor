@@ -1,5 +1,5 @@
 import React, { ChangeEvent, createRef, RefObject } from "react";
-import { WidgetProps } from "./mixins";
+import { WidgetProps } from "./types";
 import { trans } from "../i18n";
 
 function isTrue(value?: string) {

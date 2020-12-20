@@ -1,5 +1,5 @@
 import React from "react";
-import { WidgetProps } from "./mixins";
+import { WidgetProps } from "./types";
 import InputWidgetBase from "./InputWidgetBase";
 import { isValidUrl } from "../utils";
 import { trans } from "../i18n";

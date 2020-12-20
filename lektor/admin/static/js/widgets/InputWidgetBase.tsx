@@ -1,6 +1,6 @@
 import React, { ChangeEvent, ReactNode } from "react";
 import { formatUserLabel } from "../userLabel";
-import { getInputClass, WidgetProps } from "./mixins";
+import { getInputClass, WidgetProps } from "./types";
 
 export default function InputWidgetBase(
   props: WidgetProps & {

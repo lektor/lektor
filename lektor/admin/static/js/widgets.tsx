@@ -21,7 +21,7 @@ import {
   WidgetComponent,
   WidgetProps,
   WidgetType,
-} from "./widgets/mixins";
+} from "./widgets/types";
 import ToggleGroup from "./components/ToggleGroup";
 import { trans } from "./i18n";
 

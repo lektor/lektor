@@ -11,6 +11,7 @@ import {
   FieldRows,
 } from "../widgets";
 import { bringUpDialog } from "../richPromise";
+import { Field } from "../widgets/types";
 
 type State = {
   recordData: null;
@@ -62,7 +63,7 @@ class EditPage extends RecordComponent<unknown, State> {
     }
   }
 
-  isIllegalField(field) {
+  isIllegalField(field: Field) {
     switch (field.name) {
       case "_id":
       case "_path":
