@@ -13,9 +13,8 @@ export default class Refresh extends React.Component<
 > {
   constructor(props: Props) {
     super(props);
-    this.state = {
-      currentState: "IDLE",
-    };
+    this.state = { currentState: "IDLE" };
+    this.onRefresh = this.onRefresh.bind(this);
   }
 
   preventNavigation() {
@@ -29,30 +28,13 @@ export default class Refresh extends React.Component<
   }
 
   onRefresh() {
-    this.setState({
-      currentState: "CLEANING",
-    });
+    this.setState({ currentState: "CLEANING" });
     loadData("/clean", null, { method: "POST" }).then(() => {
-      this.setState({
-        currentState: "DONE",
-      });
+      this.setState({ currentState: "DONE" });
     }, bringUpDialog);
   }
 
   render() {
-    let progress = null;
-    if (this.state.currentState !== "IDLE") {
-      progress = (
-        <div>
-          <h3>
-            {this.state.currentState !== "DONE"
-              ? trans("CURRENTLY_REFRESHING_BUILD")
-              : trans("REFRESHING_BUILD_DONE")}
-          </h3>
-        </div>
-      );
-    }
-
     return (
       <SlideDialog
         dismiss={this.props.dismiss}
@@ -60,13 +42,21 @@ export default class Refresh extends React.Component<
         title={trans("REFRESH_BUILD")}
       >
         <p>{trans("REFRESH_BUILD_NOTE")}</p>
-        {progress}
+        {this.state.currentState !== "IDLE" && (
+          <div>
+            <h3>
+              {this.state.currentState !== "DONE"
+                ? trans("CURRENTLY_REFRESHING_BUILD")
+                : trans("REFRESHING_BUILD_DONE")}
+            </h3>
+          </div>
+        )}
         <div className="actions">
           <button
             type="submit"
             className="btn btn-primary"
             disabled={!this.isSafeToNavigate()}
-            onClick={this.onRefresh.bind(this)}
+            onClick={this.onRefresh}
           >
             {trans("REFRESH_BUILD")}
           </button>

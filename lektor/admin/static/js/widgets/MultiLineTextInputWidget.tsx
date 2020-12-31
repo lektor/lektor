@@ -1,13 +1,20 @@
 import React, { ChangeEvent, Component, createRef, RefObject } from "react";
 import { getInputClass, WidgetProps } from "./types";
 
+const style = {
+  display: "block",
+  overflow: "hidden",
+  resize: "none",
+} as const;
+
 export class MultiLineTextInputWidget extends Component<WidgetProps> {
   textarea: RefObject<HTMLTextAreaElement>;
 
   constructor(props: WidgetProps) {
     super(props);
-    this.recalculateSize = this.recalculateSize.bind(this);
     this.textarea = createRef();
+    this.onChange = this.onChange.bind(this);
+    this.recalculateSize = this.recalculateSize.bind(this);
   }
 
   onChange(event: ChangeEvent<HTMLTextAreaElement>) {
@@ -67,12 +74,8 @@ export class MultiLineTextInputWidget extends Component<WidgetProps> {
         <textarea
           ref={this.textarea}
           className={getInputClass(type)}
-          onChange={this.onChange.bind(this)}
-          style={{
-            display: "block",
-            overflow: "hidden",
-            resize: "none",
-          }}
+          onChange={this.onChange}
+          style={style}
           value={value}
           disabled={disabled}
           placeholder={placeholder}

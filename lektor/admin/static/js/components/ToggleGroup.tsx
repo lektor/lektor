@@ -15,13 +15,12 @@ export default class ToggleGroup extends React.Component<Props, State> {
     this.state = {
       isVisible: props.defaultVisibility,
     };
+    this.toggle = this.toggle.bind(this);
   }
 
   toggle(event: MouseEvent) {
     event.preventDefault();
-    this.setState((state) => ({
-      isVisible: !state.isVisible,
-    }));
+    this.setState((state) => ({ isVisible: !state.isVisible }));
   }
 
   render() {
@@ -36,7 +35,7 @@ export default class ToggleGroup extends React.Component<Props, State> {
     return (
       <div className={className}>
         <div className="header">
-          <h4 className="toggle" onClick={this.toggle.bind(this)}>
+          <h4 className="toggle" onClick={this.toggle}>
             {groupTitle}
           </h4>
         </div>
