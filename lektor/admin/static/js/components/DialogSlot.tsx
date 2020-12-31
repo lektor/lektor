@@ -46,6 +46,7 @@ class DialogSlot extends React.Component<RecordProps, State> {
       dialog = (
         <this.state.currentDialog
           ref={this.initDialogInstance}
+          dismiss={dialogSystem.dismissDialog}
           {...this.props}
           {...this.state.currentDialogOptions}
         />

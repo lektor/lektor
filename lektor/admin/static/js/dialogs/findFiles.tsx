@@ -4,7 +4,6 @@ import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import { loadData } from "../fetch";
 import { getCurrentLanguge, trans } from "../i18n";
-import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
 
 type Result = {
@@ -19,8 +18,10 @@ type State = {
   results: Result[];
 };
 
-class FindFiles extends RecordComponent<RecordProps, State> {
-  constructor(props: RecordProps) {
+type Props = RecordProps & { dismiss: () => void };
+
+class FindFiles extends RecordComponent<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       query: "",
@@ -82,7 +83,7 @@ class FindFiles extends RecordComponent<RecordProps, State> {
       const target =
         this.props.match.params.page === "preview" ? "preview" : "edit";
       const urlPath = this.getUrlRecordPathWithAlt(item.path);
-      dialogSystem.dismissDialog();
+      this.props.dismiss();
       this.transitionToAdminPage(target, urlPath);
     }
   }
@@ -119,7 +120,12 @@ class FindFiles extends RecordComponent<RecordProps, State> {
 
   render() {
     return (
-      <SlideDialog hasCloseButton closeOnEscape title={trans("FIND_FILES")}>
+      <SlideDialog
+        dismiss={this.props.dismiss}
+        hasCloseButton
+        closeOnEscape
+        title={trans("FIND_FILES")}
+      >
         <div className="form-group">
           <input
             type="text"

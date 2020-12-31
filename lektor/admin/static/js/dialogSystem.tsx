@@ -20,6 +20,7 @@ class DialogSystem {
 
   constructor() {
     this.instance = null;
+    this.dismissDialog = this.dismissDialog.bind(this);
   }
 
   // invoked by the application once the dialog has been created.
@@ -29,7 +30,10 @@ class DialogSystem {
 
   // given a dialog class this will instruct the application to bring up
   // the dialog and display it.
-  showDialog(dialog: Dialog, options?: unknown) {
+  showDialog(dialog: Dialog, options?: unknown, showIfOpen = true) {
+    if (!showIfOpen && this.instance !== null) {
+      return;
+    }
     // if the current dialog prevents navigation, then we just silently
     // will not show the dialog.
     if (!this.preventNavigation()) {
@@ -44,18 +48,9 @@ class DialogSystem {
     }
   }
 
-  // indicates if a dialog is shown
-  dialogIsOpen() {
-    return !!this.instance;
-  }
-
   // returns true if the current dialog prevents navigation.
-  preventNavigation() {
-    return (
-      this.instance &&
-      this.instance.preventNavigation !== undefined &&
-      this.instance.preventNavigation()
-    );
+  private preventNavigation() {
+    return this.instance?.preventNavigation?.();
   }
 }
 
