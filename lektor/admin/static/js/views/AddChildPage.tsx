@@ -66,6 +66,9 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
       newChildInfo: null,
       selectedModel: null,
     };
+
+    this.createRecord = this.createRecord.bind(this);
+    this.onModelSelected = this.onModelSelected.bind(this);
   }
 
   componentDidMount() {
@@ -192,7 +195,7 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
               <select
                 value={this.state.selectedModel}
                 className="form-control"
-                onChange={this.onModelSelected.bind(this)}
+                onChange={this.onModelSelected}
               >
                 {getAvailableModels(newChildInfo).map((model) => (
                   <option value={model.id} key={model.id}>
@@ -216,10 +219,7 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
           </dd>
         </FieldRow>
         <div className="actions">
-          <button
-            className="btn btn-primary"
-            onClick={this.createRecord.bind(this)}
-          >
+          <button className="btn btn-primary" onClick={this.createRecord}>
             {trans("CREATE_CHILD_PAGE")}
           </button>
         </div>

@@ -76,7 +76,9 @@ class Publish extends React.Component<Props, PublishState> {
     };
 
     this.buildLog = createRef();
+
     this.setActiveTarget = this.setActiveTarget.bind(this);
+    this.onPublish = this.onPublish.bind(this);
   }
 
   componentDidMount() {
@@ -194,7 +196,7 @@ class Publish extends React.Component<Props, PublishState> {
             type="submit"
             className="btn btn-primary"
             disabled={!this.isSafeToPublish()}
-            onClick={this.onPublish.bind(this)}
+            onClick={this.onPublish}
           >
             {trans("PUBLISH")}
           </button>

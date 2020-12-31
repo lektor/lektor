@@ -82,6 +82,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
     this.childPosCache = new ChildPosCache();
 
     this.onAttachmentsChanged = this.onAttachmentsChanged.bind(this);
+    this.fsOpen = this.fsOpen.bind(this);
   }
 
   _getInitialState() {
@@ -202,7 +203,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
           </li>
           {this.state.recordExists && (
             <li key="fs-open">
-              <a href="#" onClick={this.fsOpen.bind(this)}>
+              <a href="#" onClick={this.fsOpen}>
                 {getBrowseButtonTitle()}
               </a>
             </li>

@@ -70,9 +70,13 @@ class EditPage extends RecordComponent<RecordProps, State> {
       recordInfo: null,
       hasPendingChanges: false,
     };
+    this.form = createRef();
+
     this.onKeyPress = this.onKeyPress.bind(this);
     this.setFieldValue = this.setFieldValue.bind(this);
-    this.form = createRef();
+    this.saveChanges = this.saveChanges.bind(this);
+    this.renderFormField = this.renderFormField.bind(this);
+    this.deleteRecord = this.deleteRecord.bind(this);
   }
 
   componentDidMount() {
@@ -260,11 +264,8 @@ class EditPage extends RecordComponent<RecordProps, State> {
           <Prompt message={() => trans("UNLOAD_ACTIVE_TAB")} />
         )}
         <h2>{title.replace("%s", label)}</h2>
-        <form ref={this.form} onSubmit={this.saveChanges.bind(this)}>
-          <FieldRows
-            fields={fields}
-            renderFunc={this.renderFormField.bind(this)}
-          />
+        <form ref={this.form} onSubmit={this.saveChanges}>
+          <FieldRows fields={fields} renderFunc={this.renderFormField} />
           <div className="actions">
             <button type="submit" className="btn btn-primary">
               {trans("SAVE_CHANGES")}
@@ -273,7 +274,7 @@ class EditPage extends RecordComponent<RecordProps, State> {
               <button
                 type="button"
                 className="btn btn-default"
-                onClick={this.deleteRecord.bind(this)}
+                onClick={this.deleteRecord}
               >
                 {trans("DELETE")}
               </button>

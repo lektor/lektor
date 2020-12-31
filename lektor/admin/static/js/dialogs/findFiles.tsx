@@ -51,6 +51,9 @@ class FindFiles extends RecordComponent<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { query: "", results: [], currentSelection: -1 };
+
+    this.onInputChange = this.onInputChange.bind(this);
+    this.onInputKey = this.onInputKey.bind(this);
   }
 
   onInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -118,8 +121,8 @@ class FindFiles extends RecordComponent<Props, State> {
             autoFocus
             className="form-control"
             value={this.state.query}
-            onChange={this.onInputChange.bind(this)}
-            onKeyDown={this.onInputKey.bind(this)}
+            onChange={this.onInputChange}
+            onKeyDown={this.onInputKey}
             placeholder={trans("FIND_FILES_PLACEHOLDER")}
           />
         </div>
