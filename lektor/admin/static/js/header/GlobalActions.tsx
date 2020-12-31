@@ -1,5 +1,5 @@
 import React from "react";
-import RecordComponent, { RecordProps } from "./RecordComponent";
+import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { isMetaKey, getCanonicalUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
@@ -30,6 +30,11 @@ function onKeyPress(event: KeyboardEvent) {
 }
 
 class GlobalActions extends RecordComponent<RecordProps, unknown> {
+  constructor(props: RecordProps) {
+    super(props);
+    this.onCloseClick = this.onCloseClick.bind(this);
+  }
+
   componentDidMount() {
     window.addEventListener("keydown", onKeyPress);
   }
@@ -38,7 +43,7 @@ class GlobalActions extends RecordComponent<RecordProps, unknown> {
     window.removeEventListener("keydown", onKeyPress);
   }
 
-  _onCloseClick() {
+  onCloseClick() {
     loadData("/previewinfo", {
       path: this.getRecordPath(),
       alt: this.getRecordAlt(),
@@ -77,7 +82,7 @@ class GlobalActions extends RecordComponent<RecordProps, unknown> {
         </button>
         <button
           className="btn btn-default"
-          onClick={this._onCloseClick.bind(this)}
+          onClick={this.onCloseClick}
           title={trans("RETURN_TO_WEBSITE")}
         >
           <i className="fa fa-eye fa-fw" />

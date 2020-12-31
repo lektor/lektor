@@ -2,8 +2,8 @@ import React, { ReactNode } from "react";
 import RecordComponent, {
   pathToAdminPage,
   RecordProps,
-} from "./RecordComponent";
-import Link from "./Link";
+} from "../components/RecordComponent";
+import Link from "../components/Link";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import { bringUpDialog } from "../richPromise";
