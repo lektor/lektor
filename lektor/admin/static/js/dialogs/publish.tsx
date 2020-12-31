@@ -4,8 +4,8 @@ import SlideDialog from "../components/SlideDialog";
 import { getApiUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
-import dialogSystem from "../dialogSystem";
 import { bringUpDialog } from "../richPromise";
+import { RecordProps } from "../components/RecordComponent";
 
 interface Server {
   id: string;
@@ -60,10 +60,12 @@ interface PublishState {
   currentState: "IDLE" | "BUILDING" | "PUBLISH" | "DONE";
 }
 
-class Publish extends React.Component<unknown, PublishState> {
+type Props = RecordProps & { dismiss: () => void };
+
+class Publish extends React.Component<Props, PublishState> {
   buildLog: RefObject<HTMLPreElement>;
 
-  constructor(props: unknown) {
+  constructor(props: Props) {
     super(props);
 
     this.state = {
@@ -81,7 +83,7 @@ class Publish extends React.Component<unknown, PublishState> {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.match.params.path !== this.props.match.params.path) {
       this.syncDialog();
     }
@@ -114,10 +116,6 @@ class Publish extends React.Component<unknown, PublishState> {
     if (this.isSafeToPublish()) {
       this._beginBuild();
     }
-  }
-
-  onCancel() {
-    dialogSystem.dismissDialog();
   }
 
   _beginBuild() {
@@ -181,6 +179,7 @@ class Publish extends React.Component<unknown, PublishState> {
 
     return (
       <SlideDialog
+        dismiss={this.props.dismiss}
         hasCloseButton={false}
         closeOnEscape
         title={trans("PUBLISH")}
@@ -204,7 +203,7 @@ class Publish extends React.Component<unknown, PublishState> {
             type="submit"
             className="btn btn-default"
             disabled={!this.isSafeToPublish()}
-            onClick={this.onCancel.bind(this)}
+            onClick={this.props.dismiss}
           >
             {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
           </button>

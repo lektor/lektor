@@ -1,11 +1,11 @@
 import React, { MouseEvent } from "react";
-import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
 type Props = {
   title: string;
   hasCloseButton: boolean;
   closeOnEscape: boolean;
+  dismiss: () => void;
 };
 
 export default class SlideDialog extends React.Component<Props> {
@@ -28,13 +28,13 @@ export default class SlideDialog extends React.Component<Props> {
   onKeyPress(event: KeyboardEvent) {
     if (event.key === "Escape" && this.props.closeOnEscape) {
       event.preventDefault();
-      dialogSystem.dismissDialog();
+      this.props.dismiss();
     }
   }
 
   onCloseClick(event: MouseEvent) {
     event.preventDefault();
-    dialogSystem.dismissDialog();
+    this.props.dismiss();
   }
 
   render() {

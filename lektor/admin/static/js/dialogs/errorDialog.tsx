@@ -1,20 +1,19 @@
-import React from "react";
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import React, { Component } from "react";
 import SlideDialog from "../components/SlideDialog";
-import dialogSystem from "../dialogSystem";
 import { trans } from "../i18n";
 
-export default class ErrorDialog extends RecordComponent<
-  RecordProps & { error: any },
+export default class ErrorDialog extends Component<
+  { dismiss: () => void; error: any },
   unknown
 > {
-  onClose() {
-    dialogSystem.dismissDialog();
-  }
-
   render() {
     return (
-      <SlideDialog hasCloseButton closeOnEscape title={trans("ERROR")}>
+      <SlideDialog
+        dismiss={this.props.dismiss}
+        hasCloseButton
+        closeOnEscape
+        title={trans("ERROR")}
+      >
         <p>
           {trans("ERROR_OCURRED")}
           {": "}
@@ -24,7 +23,7 @@ export default class ErrorDialog extends RecordComponent<
           <button
             type="submit"
             className="btn btn-primary"
-            onClick={this.onClose.bind(this)}
+            onClick={this.props.dismiss}
           >
             {trans("CLOSE")}
           </button>
