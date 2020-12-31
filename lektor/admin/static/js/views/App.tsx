@@ -1,49 +1,21 @@
 import React, { ReactNode, useState } from "react";
 import { useHistory } from "react-router-dom";
 
-import BreadCrumbs from "../components/BreadCrumbs";
+import Header from "../header/Header";
 import Sidebar from "../components/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-
-type Params = { page: string; path: string };
-
-function Header({
-  params,
-  sidebarIsActive,
-  toggleSidebar,
-}: {
-  params: Params;
-  sidebarIsActive: boolean;
-  toggleSidebar: () => void;
-}) {
-  const buttonClass = sidebarIsActive
-    ? "navbar-toggle active"
-    : "navbar-toggle";
-
-  return (
-    <header>
-      <BreadCrumbs match={{ params }}>
-        <button type="button" className={buttonClass} onClick={toggleSidebar}>
-          <span className="sr-only">Toggle navigation</span>
-          <span className="icon-list" />
-          <span className="icon-list" />
-          <span className="icon-list" />
-        </button>
-      </BreadCrumbs>
-    </header>
-  );
-}
+import { RecordProps } from "../components/RecordComponent";
 
 export default function App({
   children,
   params,
 }: {
   children: ReactNode;
-  params: Params;
+  params: { page: string; path: string };
 }) {
   const history = useHistory();
-  const routeProps = { match: { params }, history };
+  const recordProps: RecordProps = { match: { params }, history };
 
   const [sidebarIsActive, setSidebarIsActive] = useState(false);
 
@@ -60,15 +32,15 @@ export default function App({
     <div className="application">
       <ServerStatus />
       <Header
-        params={params}
         sidebarIsActive={sidebarIsActive}
         toggleSidebar={toggleSidebar}
+        {...recordProps}
       />
       <div className="editor container">
-        <DialogSlot {...routeProps} />
+        <DialogSlot {...recordProps} />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
-            <Sidebar {...routeProps} />
+            <Sidebar {...recordProps} />
           </nav>
           <div className="view col-md-10 col-sm-9">{children}</div>
         </div>
