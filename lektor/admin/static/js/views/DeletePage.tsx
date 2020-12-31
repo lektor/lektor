@@ -62,11 +62,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
       { method: "POST" }
     ).then(() => {
       if (this.state.recordInfo?.is_attachment) {
-        hub.emit(
-          new AttachmentsChangedEvent({
-            recordPath: parent,
-          })
-        );
+        hub.emit(new AttachmentsChangedEvent(parent));
       }
       this.transitionToAdminPage("edit", targetPath);
     }, bringUpDialog);
