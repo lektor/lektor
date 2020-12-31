@@ -1,7 +1,5 @@
 from math import ceil
 
-from lektor._compat import range_type
-
 
 class Pagination(object):
     def __init__(self, record, pagination_config):
@@ -115,7 +113,7 @@ class Pagination(object):
 
         """
         last = 0
-        for num in range_type(1, self.pages + 1):
+        for num in range(1, self.pages + 1):
             # pylint: disable=chained-comparison
             if (
                 num <= left_edge

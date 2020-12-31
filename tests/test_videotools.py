@@ -66,7 +66,6 @@ def test_dimensions_aspect_ratio(dim, ar):
 
 
 @pytest.mark.parametrize(
-    # pylint: disable=bad-whitespace
     "source, target, upscale, rescale",
     [
         ((100, 100), (50, None), None, (50, 50)),
@@ -87,7 +86,6 @@ def test_dimensions_fit_within(source, target, upscale, rescale):
 
 
 @pytest.mark.parametrize(
-    # pylint: disable=bad-whitespace
     "source, target, upscale, rescale, crop",
     [
         ((100, 50), (25, 25), None, (50, 25), (25, 25)),
@@ -107,7 +105,6 @@ def test_dimensions_cover(source, target, upscale, rescale, crop):
 
 
 @pytest.mark.parametrize(
-    # pylint: disable=bad-whitespace
     "source, target, upscale, rescale",
     [
         ((100, 50), (25, 25), None, (25, 25)),

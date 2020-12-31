@@ -13,8 +13,6 @@ from itertools import chain
 import click
 from werkzeug.posixemulation import rename
 
-from lektor._compat import iteritems
-from lektor._compat import text_type
 from lektor.build_programs import builtin_build_programs
 from lektor.buildfailures import FailureController
 from lektor.context import Context
@@ -263,7 +261,7 @@ class BuildState(object):
         con = self.connect_to_database()
         try:
             cur = con.cursor()
-            for lang, title in iteritems(info.title_i18n):
+            for lang, title in info.title_i18n.items():
                 cur.execute(
                     """
                     insert or replace into source_info
@@ -371,7 +369,7 @@ class BuildState(object):
 
             # If we do have an already existing artifact, we need to check if
             # any of the source files we depend on changed.
-            for source_name, info in self._iter_artifact_dependency_infos(
+            for _, info in self._iter_artifact_dependency_infos(
                 cur, artifact_name, sources
             ):
                 # if we get a missing source info it means that we never
@@ -552,7 +550,7 @@ class FileInfo(object):
                 for filename in sorted(os.listdir(self.filename)):
                     if self.env.is_uninteresting_source_name(filename):
                         continue
-                    if isinstance(filename, text_type):
+                    if isinstance(filename, str):
                         filename = filename.encode("utf-8")
                     h.update(filename)
                     h.update(
@@ -837,7 +835,6 @@ class Artifact(object):
     def clear_dirty_flag(self):
         """Clears the dirty flag for all sources."""
 
-        @self._auto_deferred_update_operation
         def operation(con):
             sources = [self.build_state.to_source_filename(x) for x in self.sources]
             cur = con.cursor()
@@ -851,12 +848,13 @@ class Artifact(object):
             cur.close()
             reporter.report_dirty_flag(False)
 
+        self._auto_deferred_update_operation(operation)
+
     def set_dirty_flag(self):
         """Given a list of artifacts this will mark all of their sources
         as dirty so that they will be rebuilt next time.
         """
 
-        @self._auto_deferred_update_operation
         def operation(con):
             sources = set()
             for source in self.sources:
@@ -875,6 +873,8 @@ class Artifact(object):
             cur.close()
 
             reporter.report_dirty_flag(True)
+
+        self._auto_deferred_update_operation(operation)
 
     def _auto_deferred_update_operation(self, f):
         """Helper that defers an update operation when inside an update
@@ -1006,7 +1006,7 @@ class PathCache(object):
         if rv is not None:
             return rv
         folder = os.path.abspath(self.env.root_path)
-        if isinstance(folder, text_type) and not isinstance(filename, text_type):
+        if isinstance(folder, str) and not isinstance(filename, str):
             filename = filename.decode(fs_enc)
         filename = os.path.normpath(os.path.join(folder, filename))
         if filename.startswith(folder):

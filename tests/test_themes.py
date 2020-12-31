@@ -4,6 +4,11 @@ import textwrap
 
 import pytest
 
+from lektor.builder import Builder
+from lektor.db import Database
+from lektor.environment import Environment
+from lektor.project import Project
+
 sep = os.path.sep
 
 
@@ -32,8 +37,6 @@ def theme_project(theme_project_tmpdir, request):
     except AttributeError:
         with_themes_var = True
 
-    from lektor.project import Project
-
     # Create the .lektorproject file
     lektorfile_text = textwrap.dedent(
         u"""
@@ -53,21 +56,18 @@ def theme_project(theme_project_tmpdir, request):
 
 @pytest.fixture(scope="function")
 def theme_env(theme_project):
-    from lektor.environment import Environment
 
     return Environment(theme_project)
 
 
 @pytest.fixture(scope="function")
 def theme_pad(theme_env):
-    from lektor.db import Database
 
     return Database(theme_env).new_pad()
 
 
 @pytest.fixture(scope="function")
 def theme_builder(theme_pad, tmpdir):
-    from lektor.builder import Builder
 
     return Builder(theme_pad, str(tmpdir.mkdir("output")))
 

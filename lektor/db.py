@@ -18,11 +18,6 @@ from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
 from lektor import metaformat
-from lektor._compat import integer_types
-from lektor._compat import iteritems
-from lektor._compat import range_type
-from lektor._compat import string_types
-from lektor._compat import text_type
 from lektor.assets import Directory
 from lektor.context import Context
 from lektor.context import get_ctx
@@ -120,7 +115,7 @@ class _CmpHelper(object):
 
     @staticmethod
     def coerce(a, b):
-        if isinstance(a, string_types) and isinstance(b, string_types):
+        if isinstance(a, str) and isinstance(b, str):
             return sort_normalize_string(a), sort_normalize_string(b)
         if type(a) is type(b):
             return a, b
@@ -130,12 +125,12 @@ class _CmpHelper(object):
             if isinstance(b, Undefined):
                 b = None
             return a, b
-        if isinstance(a, integer_types) or isinstance(a, float):
+        if isinstance(a, (int, float)):
             try:
                 return a, type(a)(b)
             except (ValueError, TypeError, OverflowError):
                 pass
-        if isinstance(b, integer_types) or isinstance(b, float):
+        if isinstance(b, (int, float)):
             try:
                 return type(b)(a), b
             except (ValueError, TypeError, OverflowError):
@@ -219,28 +214,28 @@ class Expression(object):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).lower().startswith(text_type(b).lower()),
+            lambda a, b: str(a).lower().startswith(str(b).lower()),
         )
 
     def endswith(self, other):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).lower().endswith(text_type(b).lower()),
+            lambda a, b: str(a).lower().endswith(str(b).lower()),
         )
 
     def startswith_cs(self, other):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).startswith(text_type(b)),
+            lambda a, b: str(a).startswith(str(b)),
         )
 
     def endswith_cs(self, other):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).endswith(text_type(b)),
+            lambda a, b: str(a).endswith(str(b)),
         )
 
     def false(self):
@@ -407,7 +402,7 @@ class Record(SourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in iteritems((self.datamodel.label_i18n or {})):
+        for lang, _ in (self.datamodel.label_i18n or {}).items():
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)
@@ -616,7 +611,7 @@ class Page(Record):
         # rewarded.
         q = self.children.include_undiscoverable(True)
 
-        for idx in range_type(len(url_path)):
+        for idx in range(len(url_path)):
             piece = "/".join(url_path[: idx + 1])
             child = q.filter(F._slug == piece).first()
             if child is None:
@@ -1141,7 +1136,7 @@ class Query(object):
     def count(self):
         """Counts all matched objects."""
         rv = 0
-        for item in self:
+        for _ in self:
             rv += 1
         return rv
 
@@ -1372,7 +1367,7 @@ class Database(object):
 
         choiceiter = _iter_filename_choices(fn_base, alts, self.config)
 
-        for fs_path, actual_alt, is_attachment in choiceiter:
+        for fs_path, _actual_alt, is_attachment in choiceiter:
             if not os.path.isfile(fs_path):
                 continue
 
@@ -1385,7 +1380,7 @@ class Database(object):
             try:
                 dir_path = os.path.dirname(fs_path)
                 for filename in os.listdir(dir_path):
-                    if not isinstance(filename, text_type):
+                    if not isinstance(filename, str):
                         try:
                             filename = filename.decode(fs_enc)
                         except UnicodeError:
@@ -2047,7 +2042,7 @@ class RecordCache(object):
         self.ephemeral = LRUCache(ephemeral_cache_size)
 
     def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT, virtual_path=None):
-        if isinstance(record_or_path, string_types):
+        if isinstance(record_or_path, str):
             path = record_or_path.strip("/")
         else:
             path, virtual_path = split_virtual_path(record_or_path.path)

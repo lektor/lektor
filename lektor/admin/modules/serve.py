@@ -14,8 +14,6 @@ from werkzeug.datastructures import Headers
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import wrap_file
 
-from lektor._compat import string_types
-
 
 bp = Blueprint("serve", __name__)
 
@@ -132,7 +130,7 @@ def send_file(filename):
                     os.path.getsize(filename),
                     adler32(
                         filename.encode("utf-8")
-                        if isinstance(filename, string_types)
+                        if isinstance(filename, str)
                         else filename
                     )
                     & 0xFFFFFFFF,

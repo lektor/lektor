@@ -12,8 +12,6 @@ from xml.etree import ElementTree as etree
 import exifread
 import filetype
 
-from lektor._compat import iteritems
-from lektor._compat import text_type
 from lektor.reporter import reporter
 from lektor.utils import get_dependent_url
 from lektor.utils import locate_executable
@@ -93,7 +91,7 @@ class EXIFInfo(object):
 
     def to_dict(self):
         rv = {}
-        for key, value in iteritems(self.__class__.__dict__):
+        for key, value in self.__class__.__dict__.items():
             if key[:1] != "_" and isinstance(value, property):
                 rv[key] = getattr(self, key)
         return rv
@@ -103,7 +101,7 @@ class EXIFInfo(object):
             value = self._mapping[key].values
         except KeyError:
             return None
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             return value
         return value.decode("utf-8", "replace")
 
@@ -206,7 +204,7 @@ class EXIFInfo(object):
             value = self._mapping["EXIF Flash"].printable
         except KeyError:
             return None
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             return value
         return value.decode("utf-8")
 
@@ -624,7 +622,6 @@ def make_image_thumbnail(
     else:
         computed_width, computed_height = width, height
 
-    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
         process_image(
@@ -636,6 +633,10 @@ def make_image_thumbnail(
             mode,
             quality=quality,
         )
+
+    ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])(
+        build_thumbnail_artifact
+    )
 
     return Thumbnail(dst_url_path, computed_width, computed_height)
 

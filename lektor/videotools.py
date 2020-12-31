@@ -325,7 +325,6 @@ def make_video_thumbnail(
     if quality is None and format == "jpg":
         quality = 95
 
-    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_video])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
 
@@ -364,5 +363,9 @@ def make_video_thumbnail(
                 "is outside of the video duration?"
             )
             raise RuntimeError(msg.format(source_video))
+
+    ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_video])(
+        build_thumbnail_artifact
+    )
 
     return Thumbnail(dst_url_path, crop_dim.width, crop_dim.height)

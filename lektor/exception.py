@@ -1,6 +1,3 @@
-from lektor._compat import text_type
-
-
 class LektorException(Exception):
     def __init__(self, message=None):
         Exception.__init__(self)
@@ -15,7 +12,7 @@ class LektorException(Exception):
         }
 
     def __str__(self):
-        return text_type(self.message)
+        return str(self.message)
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.message)

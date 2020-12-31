@@ -5,6 +5,7 @@ import pytest
 from flask import json
 
 from lektor.admin import WebAdmin
+from lektor.admin.utils import eventstream
 
 
 @pytest.fixture
@@ -69,7 +70,6 @@ def test_children_sorting_via_api(scratch_project, scratch_env, children_records
 
 def test_eventstream_yield_bytes():
     count = 0
-    from lektor.admin.utils import eventstream
 
     @eventstream
     def testfunc():

@@ -2,7 +2,12 @@ import os
 from datetime import date
 
 from lektor.context import Context
+from lektor.db import Database
+from lektor.db import F
 from lektor.db import get_alts
+from lektor.db import Image
+from lektor.db import Query
+from lektor.db import Video
 
 
 def test_root(pad):
@@ -74,7 +79,7 @@ def test_basic_alts(pad):
         assert get_alts() == ["en", "de"]
 
 
-def test_basic_query_syntax(pad, F):
+def test_basic_query_syntax(pad):
     projects = pad.get("/projects")
 
     encumbered = (
@@ -139,7 +144,6 @@ def test_undiscoverable_basics(pad):
 
 
 def test_attachment_api(pad):
-    from lektor.db import Image, Video
 
     root = pad.root
     root_attachments = [
@@ -221,8 +225,6 @@ def test_root_pagination(scratch_project, scratch_env):
                 "body: Hello World!\n" % name
             )
 
-    from lektor.db import Database
-
     scratch_pad = Database(scratch_env).new_pad()
 
     root = scratch_pad.root
@@ -238,8 +240,6 @@ def test_root_pagination(scratch_project, scratch_env):
 def test_undefined_order(pad):
     # A missing value should sort after all others.
     blog_post = pad.db.datamodels["blog-post"]
-
-    from lektor.db import Query
 
     class TestQuery(Query):
         def _iterate(self):
@@ -285,8 +285,6 @@ def test_hidden_flag(pad):
 
 
 def test_default_order_by(scratch_project, scratch_env):
-    from lektor.db import Database
-
     tree = scratch_project.tree
     with open(os.path.join(tree, "models", "mymodel.ini"), "w") as f:
         f.write(

@@ -3,9 +3,6 @@ import posixpath
 import shutil
 from collections import OrderedDict
 
-from lektor._compat import iteritems
-from lektor._compat import string_types
-from lektor._compat import text_type
 from lektor.environment import PRIMARY_ALT
 from lektor.metaformat import serialize
 from lektor.utils import atomic_open
@@ -71,7 +68,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     else:
         if datamodel is None:
             datamodel = pad.db.get_implied_datamodel(path, is_attachment, pad)
-        elif isinstance(datamodel, string_types):
+        elif isinstance(datamodel, str):
             datamodel = pad.db.datamodels[datamodel]
 
     if exists:
@@ -85,7 +82,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     return EditorSession(
         pad,
         id,
-        text_type(path),
+        str(path),
         raw_data,
         raw_data_fallback,
         datamodel,
@@ -225,13 +222,13 @@ class EditorSession(object):
             self.commit()
 
     def update(self, *args, **kwargs):
-        for key, value in iteritems(dict(*args, **kwargs)):
+        for key, value in dict(*args, **kwargs).items():
             self[key] = value
 
     def iteritems(self, fallback=True):
         done = set()
 
-        for key, value in iteritems(self.original_data):
+        for key, value in self.original_data.items():
             done.add(key)
             if key in implied_keys:
                 continue
@@ -241,7 +238,7 @@ class EditorSession(object):
                 yield key, value
 
         if fallback and self.fallback_data:
-            for key, value in iteritems(self.fallback_data):
+            for key, value in self.fallback_data.items():
                 if key in implied_keys or key in done:
                     continue
                 done.add(key)

@@ -5,8 +5,6 @@ import os
 from inifile import IniFile
 
 from lektor import types
-from lektor._compat import iteritems
-from lektor._compat import itervalues
 from lektor.environment import Expression
 from lektor.environment import FormatExpression
 from lektor.environment import PRIMARY_ALT
@@ -272,7 +270,7 @@ class DataModel(object):
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
         self.field_map = dict((x.name, x) for x in fields)
-        for key, (ty, opts) in iteritems(system_fields):
+        for key, (ty, opts) in system_fields.items():
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
         self._child_slug_tmpl = None
@@ -376,7 +374,7 @@ class DataModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in itervalues(self.field_map):
+        for field in self.field_map.values():
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv["_model"] = self.id
@@ -438,7 +436,7 @@ class FlowBlockModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in itervalues(self.field_map):
+        for field in self.field_map.values():
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv["_flowblock"] = self.id

@@ -1,6 +1,5 @@
 import sqlite3
 
-from lektor._compat import iteritems
 from lektor.environment import PRIMARY_ALT
 
 
@@ -74,7 +73,7 @@ def _process_search_results(builder, cur, alt, lang, limit):
 
     files_needed = set()
 
-    for path, infos in iteritems(mapping):
+    for path, infos in mapping.items():
         info = _find_best_info(infos, alt, lang)
         if info is None:
             continue

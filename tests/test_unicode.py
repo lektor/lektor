@@ -32,7 +32,6 @@ def test_unicode_attachment_filename(tmpdir):
     with BufferReporter(builder.env) as reporter:
         prog, _ = builder.build(pad.root.attachments.first())
 
-        # pylint: disable=no-member
         failures = reporter.get_failures()
         assert len(failures) == 0
 
@@ -44,8 +43,7 @@ def test_bad_file_ignored(tmpdir):
     pad, builder = get_unicode_builder(tmpdir)
     record = pad.root.children.first()
     with BufferReporter(builder.env) as reporter:
-        prog, _ = builder.build(record)
-        # pylint: disable=no-member
+        builder.build(record)
         failures = reporter.get_failures()
         assert len(failures) == 1
         exc_info = failures[0]["exc_info"]

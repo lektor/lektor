@@ -2,7 +2,6 @@ import os
 
 from flask import json
 
-from lektor._compat import iteritems
 from lektor.uilink import UI_LANG
 
 
@@ -81,7 +80,7 @@ def generate_i18n_kvs(**opts):
     for key, value in opts.items():
         if key.endswith("_i18n"):
             base_key = key[:-5]
-            for lang, trans in iteritems(load_i18n_block(value)):
+            for lang, trans in load_i18n_block(value).items():
                 lang_key = "%s[%s]" % (base_key, lang)
                 yield lang_key, trans
         else:
