@@ -57,7 +57,6 @@ export default class Refresh extends React.Component<
       <SlideDialog
         dismiss={this.props.dismiss}
         hasCloseButton={false}
-        closeOnEscape
         title={trans("REFRESH_BUILD")}
       >
         <p>{trans("REFRESH_BUILD_NOTE")}</p>

@@ -123,7 +123,6 @@ class FindFiles extends RecordComponent<Props, State> {
       <SlideDialog
         dismiss={this.props.dismiss}
         hasCloseButton
-        closeOnEscape
         title={trans("FIND_FILES")}
       >
         <div className="form-group">
