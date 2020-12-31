@@ -181,7 +181,6 @@ class Publish extends React.Component<Props, PublishState> {
       <SlideDialog
         dismiss={this.props.dismiss}
         hasCloseButton={false}
-        closeOnEscape
         title={trans("PUBLISH")}
       >
         <p>{trans("PUBLISH_NOTE")}</p>

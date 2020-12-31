@@ -11,7 +11,6 @@ export default class ErrorDialog extends Component<
       <SlideDialog
         dismiss={this.props.dismiss}
         hasCloseButton
-        closeOnEscape
         title={trans("ERROR")}
       >
         <p>

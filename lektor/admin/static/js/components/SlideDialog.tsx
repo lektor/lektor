@@ -4,7 +4,6 @@ import { trans } from "../i18n";
 type Props = {
   title: string;
   hasCloseButton: boolean;
-  closeOnEscape: boolean;
   dismiss: () => void;
 };
 
@@ -16,9 +15,7 @@ export default class SlideDialog extends React.Component<Props> {
   }
 
   componentDidMount() {
-    if (this.props.closeOnEscape) {
-      window.addEventListener("keydown", this.onKeyPress);
-    }
+    window.addEventListener("keydown", this.onKeyPress);
   }
 
   componentWillUnmount() {
@@ -26,7 +23,7 @@ export default class SlideDialog extends React.Component<Props> {
   }
 
   onKeyPress(event: KeyboardEvent) {
-    if (event.key === "Escape" && this.props.closeOnEscape) {
+    if (event.key === "Escape") {
       event.preventDefault();
       this.props.dismiss();
     }
