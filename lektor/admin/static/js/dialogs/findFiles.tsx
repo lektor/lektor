@@ -18,63 +18,74 @@ type State = {
   results: Result[];
 };
 
+function ResultRow({
+  result,
+  isActive,
+  onClick,
+  onMouseEnter,
+}: {
+  result: Result;
+  isActive: boolean;
+  onClick: () => void;
+  onMouseEnter: () => void;
+}) {
+  return (
+    <li
+      className={isActive ? "active" : ""}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+    >
+      {result.parents.map((item, idx) => (
+        <span className="parent" key={idx}>
+          {item.title}
+        </span>
+      ))}
+      <strong>{result.title}</strong>
+    </li>
+  );
+}
+
 type Props = RecordProps & { dismiss: () => void };
 
 class FindFiles extends RecordComponent<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {
-      query: "",
-      currentSelection: -1,
-      results: [],
-    };
+    this.state = { query: "", results: [], currentSelection: -1 };
   }
 
-  onInputChange(e: ChangeEvent<HTMLInputElement>) {
-    const q = e.target.value;
+  onInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const query = event.target.value;
 
-    if (q === "") {
-      this.setState({
-        query: "",
-        results: [],
-        currentSelection: -1,
-      });
+    if (query === "") {
+      this.setState({ query: "", results: [], currentSelection: -1 });
     } else {
-      this.setState({
-        query: q,
-      });
+      this.setState({ query });
 
       loadData(
         "/find",
-        { q: q, alt: this.getRecordAlt(), lang: getCurrentLanguge() },
+        { q: query, alt: this.getRecordAlt(), lang: getCurrentLanguge() },
         { method: "POST" }
-      ).then((resp) => {
-        this.setState((state) => ({
-          results: resp.results,
-          currentSelection: Math.min(
-            state.currentSelection,
-            resp.results.length - 1
-          ),
+      ).then(({ results }) => {
+        this.setState(({ currentSelection }) => ({
+          results,
+          currentSelection: Math.min(currentSelection, results.length - 1),
         }));
       }, bringUpDialog);
     }
   }
 
-  onInputKey(e: KeyboardEvent) {
-    let sel = this.state.currentSelection;
+  onInputKey(event: KeyboardEvent) {
+    const sel = this.state.currentSelection;
     const max = this.state.results.length;
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      sel = (sel + 1) % max;
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      sel = (sel - 1 + max) % max;
-    } else if (e.key === "Enter") {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      this.setState({ currentSelection: (sel + 1) % max });
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      this.setState({ currentSelection: (sel - 1 + max) % max });
+    } else if (event.key === "Enter") {
       this.onActiveItem(this.state.currentSelection);
     }
-    this.setState({
-      currentSelection: sel,
-    });
   }
 
   onActiveItem(index: number) {
@@ -92,30 +103,6 @@ class FindFiles extends RecordComponent<Props, State> {
     this.setState((state) => ({
       currentSelection: Math.min(index, state.results.length - 1),
     }));
-  }
-
-  renderResults() {
-    const rv = this.state.results.map((result, idx) => {
-      const parents = result.parents.map((item, idx) => (
-        <span className="parent" key={idx}>
-          {item.title}
-        </span>
-      ));
-
-      return (
-        <li
-          key={idx}
-          className={idx === this.state.currentSelection ? "active" : ""}
-          onClick={this.onActiveItem.bind(this, idx)}
-          onMouseEnter={this.selectItem.bind(this, idx)}
-        >
-          {parents}
-          <strong>{result.title}</strong>
-        </li>
-      );
-    });
-
-    return <ul className="search-results">{rv}</ul>;
   }
 
   render() {
@@ -136,7 +123,17 @@ class FindFiles extends RecordComponent<Props, State> {
             placeholder={trans("FIND_FILES_PLACEHOLDER")}
           />
         </div>
-        {this.renderResults()}
+        <ul className="search-results">
+          {this.state.results.map((result, idx) => (
+            <ResultRow
+              key={idx}
+              result={result}
+              isActive={idx === this.state.currentSelection}
+              onClick={this.onActiveItem.bind(this, idx)}
+              onMouseEnter={this.selectItem.bind(this, idx)}
+            />
+          ))}
+        </ul>
       </SlideDialog>
     );
   }
