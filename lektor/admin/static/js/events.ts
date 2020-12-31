@@ -15,21 +15,17 @@ export class BaseEvent {
 }
 
 export class AttachmentsChangedEvent extends BaseEvent {
-  recordPath: string | null;
-
-  constructor(options: { recordPath: string | null }) {
+  constructor(readonly recordPath: string | null) {
     super();
-    this.recordPath = options.recordPath;
   }
 }
 
 export class DialogChangedEvent extends BaseEvent {
-  dialog: Dialog | null;
-  dialogOptions?: unknown;
-  constructor(options: { dialog: Dialog | null; dialogOptions?: unknown }) {
+  constructor(
+    readonly dialog: Dialog | null,
+    readonly dialogOptions?: unknown
+  ) {
     super();
-    this.dialog = options.dialog;
-    this.dialogOptions = options.dialogOptions;
   }
 }
 

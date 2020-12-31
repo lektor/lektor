@@ -66,9 +66,7 @@ class AddAttachmentPage extends RecordComponent<RecordProps, State> {
 
   onUploadComplete() {
     this.setState({ isUploading: false, currentProgress: 100 }, () => {
-      hub.emit(
-        new AttachmentsChangedEvent({ recordPath: this.getRecordPath() })
-      );
+      hub.emit(new AttachmentsChangedEvent(this.getRecordPath()));
     });
   }
 
