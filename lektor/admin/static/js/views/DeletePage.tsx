@@ -64,7 +64,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
       if (this.state.recordInfo?.is_attachment) {
         hub.emit(
           new AttachmentsChangedEvent({
-            recordPath: parent
+            recordPath: parent,
           })
         );
       }
