@@ -65,12 +65,11 @@ export const FieldBox = React.memo(function FieldBox(props: {
   value: string;
   placeholder: string | null;
   disabled?: boolean;
-  onChange: (value: string, uiChange?: boolean) => void;
+  setFieldValue: (field: Field, value: string, uiChange?: boolean) => void;
 }) {
   const { field, value, placeholder, disabled } = props;
-  const onChange = props.onChange
-    ? props.onChange
-    : (value, uiChange) => props.setFieldValue(field, value, uiChange);
+  const onChange = (value: string, uiChange?: boolean) =>
+    props.setFieldValue(field, value, uiChange);
   const className = "col-md-" + getFieldColumns(field) + " field-box";
   let innerClassName = "field";
 
@@ -111,24 +110,26 @@ export const FieldBox = React.memo(function FieldBox(props: {
 });
 
 export function getWidgetComponent(type: WidgetType): WidgetComponent | null {
+  // @ts-expect-error This is hard to type and not typed yet.
   return widgetComponents[type.widget] || null;
 }
 
 export function getWidgetComponentWithFallback(
   type: WidgetType
 ): WidgetComponent {
+  // @ts-expect-error This is hard to type and not typed yet.
   return widgetComponents[type.widget] || FallbackWidget;
 }
 
 /**
  * Get the width of a field in columns.
  */
-function getFieldColumns(field: Pick<Field, "type">) {
+export function getFieldColumns(field: { type: Pick<WidgetType, "width"> }) {
   const widthSpec = (field.type.width || "1/1").split("/");
-  return Math.min(
-    12,
-    Math.max(2, parseInt((12 * +widthSpec[0]) / +widthSpec[1]))
-  );
+  const fraction = (12 * +widthSpec[0]) / +widthSpec[1];
+  return Number.isNaN(fraction)
+    ? 12
+    : Math.min(12, Math.max(2, parseInt(`${fraction}`)));
 }
 
 /**

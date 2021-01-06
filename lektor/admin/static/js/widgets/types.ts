@@ -3,6 +3,7 @@ import { Translatable } from "../i18n";
 
 export interface BaseWidgetType {
   widget: string;
+  name: string;
   size: "normal" | "small" | "large";
   width?: string;
 }
