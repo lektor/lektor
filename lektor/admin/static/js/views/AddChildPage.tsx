@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ChangeEvent, ReactNode } from "react";
 import RecordComponent, { RecordProps } from "../components/RecordComponent";
 import { trans, Translatable } from "../i18n";
 import { formatUserLabel } from "../userLabel";
@@ -25,9 +25,9 @@ type NewRecordInfo = {
 
 type State = {
   newChildInfo: NewRecordInfo | null;
-  selectedModel: Model | null;
-  id?: string;
-  primary?: string;
+  selectedModel: string;
+  id: string;
+  primary: string;
 };
 
 function getGoodDefaultModel(models: Record<string, Model>) {
@@ -64,7 +64,9 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
     super(props);
     this.state = {
       newChildInfo: null,
-      selectedModel: null,
+      selectedModel: "",
+      id: "",
+      primary: "",
     };
 
     this.createRecord = this.createRecord.bind(this);
@@ -90,32 +92,32 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
 
       this.setState({
         newChildInfo: resp,
-        id: undefined,
-        primary: undefined,
         selectedModel,
+        id: "",
+        primary: "",
       });
     }, bringUpDialog);
   }
 
-  onValueChange(id, value) {
-    const obj = {};
+  onValueChange(id: "id" | "primary", value: string) {
+    const obj: Partial<State> = {};
     obj[id] = value;
-    this.setState(obj);
+    this.setState((state) => ({ ...state, [id]: value }));
   }
 
-  onModelSelected(event) {
+  onModelSelected(event: ChangeEvent<HTMLSelectElement>) {
     this.setState({
       selectedModel: event.target.value,
     });
   }
 
-  getImpliedId() {
-    return slugify(this.state.primary || "").toLowerCase();
+  getImpliedId(): string {
+    return slugify(this.state.primary).toLowerCase();
   }
 
-  getPrimaryField() {
+  getPrimaryField(): Field | undefined {
     const model = this.state.selectedModel;
-    return this.state.newChildInfo.available_models[model].primary_field;
+    return this.state.newChildInfo?.available_models[model].primary_field;
   }
 
   createRecord() {
@@ -129,9 +131,9 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
       return;
     }
 
-    const data = {};
+    const data: Record<string, string | null> = {};
     const params = { id: id, path: this.getRecordPath(), data: data };
-    if (!this.state.newChildInfo.implied_model) {
+    if (!this.state.newChildInfo?.implied_model) {
       data._model = this.state.selectedModel;
     }
     const primaryField = this.getPrimaryField();
@@ -171,10 +173,10 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
       }
       fields.push(
         <FieldRow key={field.name}>
-          <dt>{formatUserLabel(field.label_i18n || field.label)}</dt>
+          <dt>{formatUserLabel(field.label_i18n)}</dt>
           <dd>
             <Widget
-              value={value}
+              value={value || ""}
               onChange={this.onValueChange.bind(this, "primary")}
               type={field.type}
               field={field}
