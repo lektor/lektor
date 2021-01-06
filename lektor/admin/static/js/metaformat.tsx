@@ -1,15 +1,10 @@
-function lineIsDashes(rawLine: string) {
+function lineIsDashes(rawLine: string): boolean {
   const line = rawLine.trim();
   return line.length >= 3 && line === new Array(line.length + 1).join("-");
 }
 
-function processBuf(buf: string[]) {
-  const lines = buf.map((line) => {
-    if (lineIsDashes(line)) {
-      line = line.substr(1);
-    }
-    return line;
-  });
+function processBuf(buf: string[]): string[] {
+  const lines = buf.map((line) => (lineIsDashes(line) ? line.substr(1) : line));
 
   if (lines.length > 0) {
     const lastLine = lines[lines.length - 1];
@@ -21,26 +16,32 @@ function processBuf(buf: string[]) {
   return lines;
 }
 
-export function tokenize(lines: string[]) {
+function trimTabsAndSpaces(str: string): string {
+  const match = str.match(/^[\t ]*(.*?)[\t ]*$/m);
+  return match ? match[1] : "";
+}
+
+export function tokenize(lines: string[]): [string, string[]][] {
   let key: string | null = null;
   let buf: string[] = [];
   let wantNewline = false;
-  const rv = [];
+  const rv: [string, string[]][] = [];
 
-  const flushItem = () => {
-    rv.push([key, processBuf(buf)]);
-    key = null;
-    buf = [];
-  };
+  function flushItem() {
+    if (key !== null) {
+      rv.push([key, processBuf(buf)]);
+      key = null;
+      buf = [];
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].match(/^(.*?)(\r?\n)*$/m)[1] + "\n";
+    const match = lines[i].match(/^(.*?)(\r?\n)*$/m);
+    const line = match ? `${match[1]}\n` : "\n";
 
-    if (line.match(/^(.*?)\s*$/m)[1] === "---") {
+    if (line.trimRight() === "---") {
       wantNewline = false;
-      if (key !== null) {
-        flushItem();
-      }
+      flushItem();
     } else if (key !== null) {
       if (wantNewline) {
         wantNewline = false;
@@ -52,8 +53,9 @@ export function tokenize(lines: string[]) {
     } else {
       const bits = line.split(":");
       if (bits.length >= 2) {
-        key = bits.shift().match(/^\s*(.*?)\s*$/m)[1];
-        const firstBit = bits.join(":").match(/^[\t ]*(.*?)[\t ]*$/m)[1];
+        const [rawKey, ...rest] = bits;
+        key = rawKey.trim();
+        const firstBit = trimTabsAndSpaces(rest.join(":"));
         if (!firstBit.match(/^\s*$/)) {
           buf = [firstBit];
         } else {
@@ -64,15 +66,12 @@ export function tokenize(lines: string[]) {
     }
   }
 
-  if (key !== null) {
-    flushItem();
-  }
-
+  flushItem();
   return rv;
 }
 
-export function serialize(blocks) {
-  const rv = [];
+export function serialize(blocks: [string, string][]): string[] {
+  const rv: string[] = [];
 
   blocks.forEach((item, idx) => {
     const [key, value] = item;
@@ -87,10 +86,7 @@ export function serialize(blocks) {
         lines.pop();
       }
       lines.forEach((line) => {
-        if (lineIsDashes(line)) {
-          line = "-" + line;
-        }
-        rv.push(line + "\n");
+        rv.push(lineIsDashes(line) ? `-${line}\n` : `${line}\n`);
       });
     } else {
       rv.push(key + ": " + value + "\n");
