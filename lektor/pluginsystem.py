@@ -94,7 +94,7 @@ class Plugin(object):
         return cfg
 
     def emit(self, event, **kwargs):
-        return self.env.pluginsystem.emit(self.id + "-" + event, **kwargs)
+        return self.env.plugin_controller.emit(self.id + "-" + event, **kwargs)
 
     def to_json(self):
         return {
