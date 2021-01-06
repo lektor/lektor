@@ -63,7 +63,7 @@ function FallbackWidget(props: WidgetProps) {
 export const FieldBox = React.memo(function FieldBox(props: {
   field: Field;
   value: string;
-  placeholder: string;
+  placeholder: string | null;
   disabled?: boolean;
   onChange: (value: string, uiChange?: boolean) => void;
 }) {
@@ -123,7 +123,7 @@ export function getWidgetComponentWithFallback(
 /**
  * Get the width of a field in columns.
  */
-function getFieldColumns(field: Field) {
+function getFieldColumns(field: Pick<Field, "type">) {
   const widthSpec = (field.type.width || "1/1").split("/");
   return Math.min(
     12,

@@ -118,7 +118,7 @@ function deserializeFlowBlock(
 }
 
 function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
-  const rv = [];
+  const rv: [string, string][] = [];
   flockBlockModel.fields.forEach((field) => {
     const Widget = getWidgetComponent(field.type);
     if (Widget === null) {
@@ -142,7 +142,10 @@ function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
 export class FlowWidget extends React.PureComponent<
   WidgetProps<FlowBlock[], FlowBlockWidgetType>
 > {
-  static deserializeValue(value: string, type): (FlowBlock | null)[] {
+  static deserializeValue(
+    value: string,
+    type: FlowBlockWidgetType
+  ): (FlowBlock | null)[] {
     let blockId = 0;
     return parseFlowFormat(value).map((item) => {
       const [id, lines] = item;
@@ -180,7 +183,7 @@ export class FlowWidget extends React.PureComponent<
     }
   }
 
-  removeBlock(idx: string) {
+  removeBlock(idx: number) {
     if (this.props.value) {
       if (confirm(trans("REMOVE_FLOWBLOCK_PROMPT"))) {
         this.props.onChange(this.props.value.filter((item, i) => i !== idx));
