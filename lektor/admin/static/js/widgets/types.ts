@@ -21,11 +21,11 @@ export interface MultiWidgetType extends BaseWidgetType {
 export interface Field {
   name: string;
   type: WidgetType;
-  default?: string;
+  default: string | null;
   description_i18n: Translatable;
   label_i18n: Translatable;
   hide_label: boolean;
-  alts_enabled: boolean;
+  alts_enabled: boolean | null;
 }
 
 export type WidgetProps<V = string, W = WidgetType> = {
@@ -36,8 +36,19 @@ export type WidgetProps<V = string, W = WidgetType> = {
   disabled?: boolean;
 };
 
-type FakeWidget = ComponentType<{ field: Field }> & { isFakeWidget: true };
-type RealWidget = ComponentType<WidgetProps> & { isFakeWidget: undefined };
+interface SerializableWidget {
+  deserializeValue: (value: string | undefined, type: WidgetType) => string;
+  serializeValue: (value: string | undefined, type: WidgetType) => string;
+}
+
+type FakeWidget = ComponentType<{ field: Field }> &
+  SerializableWidget & {
+    isFakeWidget: true;
+  };
+type RealWidget = ComponentType<WidgetProps> &
+  SerializableWidget & {
+    isFakeWidget: undefined;
+  };
 export type WidgetComponent = FakeWidget | RealWidget;
 
 export function getInputClass(type: WidgetType) {

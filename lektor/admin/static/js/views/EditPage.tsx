@@ -13,12 +13,19 @@ import {
 import { bringUpDialog } from "../richPromise";
 import { Field, WidgetComponent } from "../widgets/types";
 
-type RecordInfo = {
+type RawRecordInfo = {
+  alt: string;
   can_be_deleted: boolean;
+  default_template: string;
   exists: boolean;
+  id: string;
+  implied_attachment_type: string | null;
   is_attachment: boolean;
   label: string;
   label_i18n?: Translatable;
+  path: string;
+  slug_format: string;
+  url_path: string;
 };
 
 type RecordDataModel = {
@@ -27,35 +34,59 @@ type RecordDataModel = {
 };
 
 type State = {
+  // The deserialised record data.
   recordData: Record<string, string> | null;
   recordDataModel: RecordDataModel | null;
-  recordInfo: RecordInfo | null;
+  recordInfo: RawRecordInfo | null;
   hasPendingChanges: boolean;
 };
 
 type RawRecord = {
   datamodel: RecordDataModel;
-  record_info: RecordInfo;
+  record_info: RawRecordInfo;
   data: Record<string, string>;
 };
 
-function isIllegalField(
-  field: Field,
-  recordInfo: Pick<RecordInfo, "is_attachment">
-): boolean {
-  switch (field.name) {
-    case "_id":
-    case "_path":
-    case "_gid":
-    case "_alt":
-    case "_source_alt":
-    case "_model":
-    case "_attachment_for":
-      return true;
-    case "_attachment_type":
-      return !recordInfo.is_attachment;
+function legalFields(
+  recordDataModel: Pick<RecordDataModel, "fields">,
+  recordInfo: Pick<RawRecordInfo, "is_attachment">
+) {
+  function isLegalField(field: Field): boolean {
+    switch (field.name) {
+      case "_id":
+      case "_path":
+      case "_gid":
+      case "_alt":
+      case "_source_alt":
+      case "_model":
+      case "_attachment_for":
+        return false;
+      case "_attachment_type":
+        return recordInfo.is_attachment;
+    }
+    return true;
   }
-  return false;
+  return recordDataModel.fields.filter(isLegalField);
+}
+
+function getPlaceholderForField(
+  recordInfo: RawRecordInfo,
+  Widget: WidgetComponent,
+  field: Field
+): string | null {
+  if (field.default !== null) {
+    if (Widget.deserializeValue) {
+      return Widget.deserializeValue(field.default, field.type);
+    }
+    return field.default;
+  } else if (field.name === "_slug") {
+    return recordInfo.slug_format;
+  } else if (field.name === "_template") {
+    return recordInfo.default_template;
+  } else if (field.name === "_attachment_type") {
+    return recordInfo.implied_attachment_type;
+  }
+  return null;
 }
 
 class EditPage extends RecordComponent<RecordProps, State> {
@@ -112,7 +143,7 @@ class EditPage extends RecordComponent<RecordProps, State> {
     }).then((resp: RawRecord) => {
       // transform resp.data into actual data
       const recordData: Record<string, string> = {};
-      resp.datamodel.fields.forEach((field) => {
+      legalFields(resp.datamodel, resp.record_info).forEach((field) => {
         const Widget = getWidgetComponentWithFallback(field.type);
         let value = resp.data[field.name];
         if (value !== undefined) {
@@ -141,13 +172,13 @@ class EditPage extends RecordComponent<RecordProps, State> {
   }
 
   getValues() {
-    const rv = {};
-    this.state.recordDataModel.fields.forEach((field) => {
-      if (isIllegalField(field, this.state.recordInfo)) {
-        return;
-      }
-
-      let value = this.state.recordData[field.name];
+    const rv: Record<string, string | null> = {};
+    const { recordDataModel, recordInfo, recordData } = this.state;
+    if (!recordDataModel || !recordInfo || !recordData) {
+      return rv;
+    }
+    legalFields(recordDataModel, recordInfo).forEach((field) => {
+      let value: string | null = recordData[field.name];
 
       if (value !== undefined) {
         const Widget = getWidgetComponentWithFallback(field.type);
@@ -205,37 +236,26 @@ class EditPage extends RecordComponent<RecordProps, State> {
     return value;
   }
 
-  getPlaceholderForField(Widget: WidgetComponent, field: Field) {
-    if (field.default !== null) {
-      if (Widget.deserializeValue) {
-        return Widget.deserializeValue(field.default, field.type);
-      }
-      return field.default;
-    } else if (field.name === "_slug") {
-      return this.state.recordInfo.slug_format;
-    } else if (field.name === "_template") {
-      return this.state.recordInfo.default_template;
-    } else if (field.name === "_attachment_type") {
-      return this.state.recordInfo.implied_attachment_type;
-    }
-    return null;
-  }
-
-  renderFormField(field) {
+  renderFormField(field: Field) {
     const Widget = getWidgetComponentWithFallback(field.type);
+    const { recordInfo } = this.state;
+    if (!recordInfo) {
+      return null;
+    }
+    // If alts_enabled is set, only show allow editing on alts (if true)
+    // or on the primary (if false)
+    const disabled = !(
+      field.alts_enabled === null ||
+      field.alts_enabled !== (recordInfo.alt === "_primary")
+    );
     return (
       <FieldBox
         key={field.name}
         value={this.getValueForField(Widget, field)}
-        placeholder={this.getPlaceholderForField(Widget, field)}
+        placeholder={getPlaceholderForField(recordInfo, Widget, field)}
         field={field}
         setFieldValue={this.setFieldValue}
-        disabled={
-          !(
-            field.alts_enabled == null ||
-            field.alts_enabled ^ (this.state.recordInfo.alt === "_primary")
-          )
-        }
+        disabled={disabled}
       />
     );
   }
@@ -255,9 +275,8 @@ class EditPage extends RecordComponent<RecordProps, State> {
       ? trans(recordInfo.label_i18n)
       : recordInfo.label;
 
-    const fields = recordDataModel.fields.filter(
-      (f) => !isIllegalField(f, recordInfo)
-    );
+    const fields = legalFields(recordDataModel, recordInfo);
+
     return (
       <div className="edit-area">
         {this.state.hasPendingChanges && (
