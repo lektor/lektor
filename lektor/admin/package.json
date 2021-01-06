@@ -86,6 +86,10 @@
       ".tsx",
       ".ts"
     ],
+    "reporter": [
+      "text",
+      "html"
+    ],
     "require": [
       "./babel-require.js"
     ]
