@@ -12,7 +12,7 @@ import {
 
 type Block = [string, string[]];
 
-export function parseFlowFormat(value: string) {
+export function parseFlowFormat(value: string): Block[] | null {
   const blocks: Block[] = [];
   let buf = [];
   const lines = value.split(/\r?\n/);
@@ -49,26 +49,21 @@ export function parseFlowFormat(value: string) {
   return blocks;
 }
 
-export function serializeFlowFormat(blocks: Block[]) {
-  let rv = [];
-  blocks.forEach((block) => {
-    const [blockName, lines] = block;
-    rv.push("#### " + blockName + " ####\n");
+export function serializeFlowFormat(blocks: Block[]): string {
+  const serialisedBlocks: string[] = [];
+  blocks.forEach(([blockName, lines]) => {
+    serialisedBlocks.push("#### " + blockName + " ####\n");
     lines.forEach((line) => {
-      rv.push(line.replace(/^(####(.*)####)(\r?\n)?$/, "#$1#$3"));
+      serialisedBlocks.push(line.replace(/^(####(.*)####)(\r?\n)?$/, "#$1#$3"));
     });
   });
 
-  rv = rv.join("");
+  const rv = serialisedBlocks.join("");
 
   /* we need to chop of the last newline if it exists because this would
      otherwise add a newline to the last block.  This is just a side effect
      of how we serialize the meta format internally */
-  if (rv[rv.length - 1] === "\n") {
-    rv = rv.substr(0, rv.length - 1);
-  }
-
-  return rv;
+  return rv[rv.length - 1] === "\n" ? rv.substr(0, rv.length - 1) : rv;
 }
 
 interface FlowBlockModel {
