@@ -219,14 +219,14 @@ export class FlowWidget extends React.PureComponent<
 
   renderFormField(blockInfo: FlowBlock, field: Field, idx: number) {
     if (this.props.value) {
-      const value = blockInfo.data[field.name];
+      const value: string = blockInfo.data[field.name];
       let placeholder = field.default;
       const Widget = getWidgetComponentWithFallback(field.type);
       if (Widget.deserializeValue && placeholder != null) {
         placeholder = Widget.deserializeValue(placeholder, field.type);
       }
 
-      const onChange = (value: unknown) => {
+      const setFieldValue = (field: Field, value: unknown) => {
         blockInfo.data[field.name] = value;
         this.props.onChange([...this.props.value]);
       };
@@ -237,7 +237,7 @@ export class FlowWidget extends React.PureComponent<
           value={value}
           placeholder={placeholder}
           field={field}
-          onChange={onChange}
+          setFieldValue={setFieldValue}
         />
       );
     }
