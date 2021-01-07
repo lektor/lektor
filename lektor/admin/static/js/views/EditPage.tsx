@@ -35,7 +35,7 @@ type RecordDataModel = {
 
 type State = {
   // The deserialised record data.
-  recordData: Record<string, string> | null;
+  recordData: Record<string, string>;
   recordDataModel: RecordDataModel | null;
   recordInfo: RawRecordInfo | null;
   hasPendingChanges: boolean;
@@ -96,7 +96,7 @@ class EditPage extends RecordComponent<RecordProps, State> {
     super(props);
 
     this.state = {
-      recordData: null,
+      recordData: {},
       recordDataModel: null,
       recordInfo: null,
       hasPendingChanges: false,
@@ -201,6 +201,9 @@ class EditPage extends RecordComponent<RecordProps, State> {
     }
 
     const path = this.getRecordPath();
+    if (path === null) {
+      return;
+    }
     const alt = this.getRecordAlt();
     const newData = this.getValues();
     loadData("/rawrecord", null, {

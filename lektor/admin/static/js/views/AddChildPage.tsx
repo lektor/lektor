@@ -216,7 +216,7 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
               value={this.state.id}
               placeholder={this.getImpliedId()}
               onChange={this.onValueChange.bind(this, "id")}
-              type={{ widget: "slug", size: "normal" }}
+              type={{ widget: "slug", name: "slug", size: "normal" }}
             />
           </dd>
         </FieldRow>

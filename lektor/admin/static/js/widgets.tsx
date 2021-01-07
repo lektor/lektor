@@ -100,7 +100,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
             value={value}
             onChange={onChange}
             type={field.type}
-            placeholder={placeholder}
+            placeholder={placeholder ?? undefined}
             disabled={disabled}
           />
         </dd>

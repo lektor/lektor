@@ -6,7 +6,7 @@ import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { bringUpDialog } from "../richPromise";
-import { Alternative, RecordInfo } from "../components/types";
+import { RecordInfo } from "../components/types";
 
 type State = {
   recordInfo: RecordInfo | null;
@@ -48,7 +48,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
 
   deleteRecord() {
     const path = this.getRecordPath();
-    const parent = getParentFsPath(path);
+    const parent = getParentFsPath(path || "");
     const targetPath =
       parent === null ? "root" : this.getUrlRecordPathWithAlt(parent);
 
@@ -92,19 +92,11 @@ class DeletePage extends RecordComponent<RecordProps, State> {
 
     const elements: ReactNode[] = [];
     const alts: ReactNode[] = [];
-    let altInfo: Alternative | null = null;
-    let altCount = 0;
+    const currentRecordAlternative = this.getRecordAlt();
+    const altInfo = ri.alts.find((a) => a.alt === currentRecordAlternative);
+    const altCount = ri.alts.filter((a) => a.exists).length;
 
-    ri.alts.forEach((alternative) => {
-      if (alternative.alt === this.getRecordAlt()) {
-        altInfo = alternative;
-      }
-      if (alternative.exists) {
-        altCount++;
-      }
-    });
-
-    if (altCount > 1 && this.getRecordAlt() === "_primary") {
+    if (altCount > 1 && currentRecordAlternative === "_primary") {
       ri.alts.forEach((item) => {
         if (!item.exists) {
           return;
@@ -157,7 +149,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
     }
 
     let label = ri.label_i18n ? trans(ri.label_i18n) : ri.id;
-    if (this.getRecordAlt() !== "_primary" && altInfo != null) {
+    if (currentRecordAlternative !== "_primary" && altInfo !== undefined) {
       label += " (" + trans(altInfo.name_i18n) + ")";
     }
 

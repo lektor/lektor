@@ -270,7 +270,10 @@ class Sidebar extends RecordComponent<RecordProps, State> {
     const goToPage = (diff: number, event: MouseEvent) => {
       event.preventDefault();
       const newPage = page + diff;
-      this.childPosCache.rememberPosition(this.getRecordPath(), newPage);
+      const recordPath = this.getRecordPath();
+      if (recordPath) {
+        this.childPosCache.rememberPosition(recordPath, newPage);
+      }
       this.setState({ childrenPage: newPage });
     };
 

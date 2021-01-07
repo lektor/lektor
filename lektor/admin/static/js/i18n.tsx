@@ -1,11 +1,12 @@
 function loadTranslations() {
-  let ctx;
-  const rv = {};
+  const rv: Record<string, Record<string, string>> = {};
   try {
-    ctx = require.context("../../../translations", true, /\.json$/);
+    const ctx = require.context("../../../translations", true, /\.json$/);
     ctx.keys().forEach((key) => {
       const langIdMatch = key.match(/([a-z]+)/);
-      rv[langIdMatch[1]] = ctx(key);
+      if (langIdMatch) {
+        rv[langIdMatch[1]] = ctx(key);
+      }
     });
   } catch (err) {
     // require.context is not available when running tests.
