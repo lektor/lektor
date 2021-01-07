@@ -117,7 +117,10 @@ function deserializeFlowBlock(
   return { localId, flowBlockModel, data, collapsed: false };
 }
 
-function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
+function serializeFlowBlock(
+  flockBlockModel: FlowBlockModel,
+  data: Record<string, unknown>
+) {
   const rv: [string, string][] = [];
   flockBlockModel.fields.forEach((field) => {
     const Widget = getWidgetComponent(field.type);
@@ -131,9 +134,11 @@ function serializeFlowBlock(flockBlockModel: FlowBlockModel, data) {
     }
 
     if (Widget.serializeValue) {
+      // @ts-expect-error The data record is not properly typed yet
       value = Widget.serializeValue(value, field.type);
     }
 
+    // @ts-expect-error The data record is not properly typed yet
     rv.push([field.name, value]);
   });
   return serialize(rv);
@@ -147,7 +152,7 @@ export class FlowWidget extends React.PureComponent<
     type: FlowBlockWidgetType
   ): (FlowBlock | null)[] {
     let blockId = 0;
-    return parseFlowFormat(value).map((item) => {
+    return (parseFlowFormat(value) ?? []).map((item) => {
       const [id, lines] = item;
       const flowBlock = type.flowblocks[id];
       if (flowBlock !== undefined) {
@@ -219,6 +224,7 @@ export class FlowWidget extends React.PureComponent<
 
   renderFormField(blockInfo: FlowBlock, field: Field, idx: number) {
     if (this.props.value) {
+      // @ts-expect-error The data record is not properly typed yet
       const value: string = blockInfo.data[field.name];
       let placeholder = field.default;
       const Widget = getWidgetComponentWithFallback(field.type);
@@ -228,6 +234,8 @@ export class FlowWidget extends React.PureComponent<
 
       const setFieldValue = (field: Field, value: unknown) => {
         blockInfo.data[field.name] = value;
+
+        // @ts-expect-error The data record is not properly typed yet
         this.props.onChange([...this.props.value]);
       };
 

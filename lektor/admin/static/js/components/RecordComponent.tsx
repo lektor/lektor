@@ -39,29 +39,29 @@ export default class RecordComponent<
    * @param name - Page name
    * @param path - Record path
    */
-  transitionToAdminPage(name: string, path: string) {
+  transitionToAdminPage(name: string, path: string): void {
     this.props.history.push(pathToAdminPage(name, path));
   }
 
   /* this returns the path of the current record.  If the current page does
    * not have a path component then null is returned. */
-  getRecordPath() {
+  getRecordPath(): string | null {
     const [path] = getRecordPathAndAlt(this.props.match.params.path);
     return path;
   }
 
   /* returns the current alt */
-  getRecordAlt() {
+  getRecordAlt(): string {
     const [, alt] = getRecordPathAndAlt(this.props.match.params.path);
     return !alt ? "_primary" : alt;
   }
 
   /* return the url path for the current record path (or a modified one)
      by preserving or overriding the alt */
-  getUrlRecordPathWithAlt(newPath?: string, newAlt?: string) {
+  getUrlRecordPathWithAlt(newPath?: string, newAlt?: string): string {
     const path = newPath ?? this.getRecordPath();
     const alt = newAlt ?? this.getRecordAlt();
-    const urlPath = fsToUrlPath(path);
+    const urlPath = fsToUrlPath(path || "");
     return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
   }
 }

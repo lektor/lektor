@@ -44,6 +44,7 @@ class DialogSlot extends React.Component<RecordProps, State> {
     let dialog = null;
     if (this.state.currentDialog) {
       dialog = (
+        // @ts-expect-error This is not sufficiently typed yet
         <this.state.currentDialog
           ref={this.initDialogInstance}
           dismiss={dialogSystem.dismissDialog}

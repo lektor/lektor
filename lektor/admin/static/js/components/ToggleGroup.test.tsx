@@ -32,7 +32,8 @@ describe("ToggleGroup", () => {
 
     it("renders an open toggle group when toggled", () => {
       const container = renderToggle(false);
-      ReactTestUtils.Simulate.click(document.querySelector(".toggle"));
+      const el = document.querySelector(".toggle");
+      el && ReactTestUtils.Simulate.click(el);
       ok(container.innerHTML.includes("toggle-group-open"));
     });
   });

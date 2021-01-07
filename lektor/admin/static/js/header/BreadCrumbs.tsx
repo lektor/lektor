@@ -65,7 +65,7 @@ class BreadCrumbs extends RecordComponent<Props, State> {
       : null;
 
     const crumbs =
-      recordPathInfo != null ? (
+      recordPathInfo !== null ? (
         recordPathInfo.segments.map((item) => {
           const urlPath = this.getUrlRecordPathWithAlt(item.path);
           let label = item.label_i18n ? trans(item.label_i18n) : item.label;

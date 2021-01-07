@@ -82,7 +82,7 @@ class AddAttachmentPage extends RecordComponent<RecordProps, State> {
     this.setState({ currentFiles: files, isUploading: true });
 
     const formData = new FormData();
-    formData.append("path", this.getRecordPath());
+    formData.append("path", this.getRecordPath() || "");
 
     files.forEach((file) => {
       formData.append("file", file, file.name);

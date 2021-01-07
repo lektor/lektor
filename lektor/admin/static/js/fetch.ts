@@ -1,16 +1,22 @@
+class FetchError extends Error {
+  constructor(readonly code: string) {
+    super();
+  }
+}
+
 function handleJSON(response: Response) {
   if (!response.ok) {
-    throw new Error({
-      code: "REQUEST_FAILED",
-    });
+    throw new FetchError("REQUEST_FAILED");
   }
   return response.json();
 }
 
-function paramsToQueryString(params: Record<string, string>) {
+function paramsToQueryString(params: Record<string, string | null>) {
   const urlParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
-    urlParams.set(key, value);
+    if (value !== null) {
+      urlParams.set(key, value);
+    }
   });
   return urlParams.toString();
 }
