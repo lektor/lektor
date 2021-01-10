@@ -8,9 +8,9 @@ import RecordComponent, {
   pathToAdminPage,
   RecordProps,
 } from "./RecordComponent";
-import Link from "../components/Link";
+import Link from "./Link";
 import { bringUpDialog } from "../richPromise";
-import { Alternative, RecordAttachment, RecordChild } from "./types";
+import { Alternative, RecordInfo } from "./types";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -60,14 +60,8 @@ class ChildPosCache {
 }
 
 type State = {
-  recordAttachments: RecordAttachment[];
-  recordChildren: RecordChild[];
+  recordInfo: RecordInfo | null;
   recordAlts: Alternative[];
-  canHaveAttachments: boolean;
-  canHaveChildren: boolean;
-  isAttachment: boolean;
-  canBeDeleted: boolean;
-  recordExists: boolean;
   lastRecordRequest: string | null;
   childrenPage: number;
 };
@@ -87,14 +81,8 @@ class Sidebar extends RecordComponent<RecordProps, State> {
 
   _getInitialState() {
     return {
-      recordAttachments: [],
-      recordChildren: [],
+      recordInfo: null,
       recordAlts: [],
-      canHaveAttachments: false,
-      canHaveChildren: false,
-      isAttachment: false,
-      canBeDeleted: false,
-      recordExists: false,
       lastRecordRequest: null,
       childrenPage: 1,
     };
@@ -134,7 +122,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
         lastRecordRequest: path,
       },
       () => {
-        loadData("/recordinfo", { path: path }).then((resp) => {
+        loadData("/recordinfo", { path: path }).then((resp: RecordInfo) => {
           // we're already fetching something else.
           if (path !== this.state.lastRecordRequest) {
             return;
@@ -146,14 +134,8 @@ class Sidebar extends RecordComponent<RecordProps, State> {
             return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
           });
           this.setState({
-            recordAttachments: resp.attachments,
-            recordChildren: resp.children,
+            recordInfo: resp,
             recordAlts: alts,
-            canHaveAttachments: resp.can_have_attachments,
-            canHaveChildren: resp.can_have_children,
-            isAttachment: resp.is_attachment,
-            canBeDeleted: resp.can_be_deleted,
-            recordExists: resp.exists,
             childrenPage: this.childPosCache.getPosition(
               path,
               resp.children.length
@@ -180,7 +162,12 @@ class Sidebar extends RecordComponent<RecordProps, State> {
   renderPageActions() {
     const urlPath = this.getUrlRecordPathWithAlt();
 
-    const title = this.state.isAttachment
+    const { recordInfo } = this.state;
+    if (!recordInfo) {
+      return null;
+    }
+
+    const title = recordInfo.is_attachment
       ? trans("ATTACHMENT_ACTIONS")
       : trans("PAGE_ACTIONS");
 
@@ -190,10 +177,12 @@ class Sidebar extends RecordComponent<RecordProps, State> {
         <ul className="nav">
           <li key="edit">
             <Link to={`${urlPath}/edit`}>
-              {this.state.isAttachment ? trans("EDIT_METADATA") : trans("EDIT")}
+              {recordInfo.is_attachment
+                ? trans("EDIT_METADATA")
+                : trans("EDIT")}
             </Link>
           </li>
-          {this.state.canBeDeleted && (
+          {recordInfo.can_be_deleted && (
             <li key="delete">
               <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
             </li>
@@ -201,19 +190,19 @@ class Sidebar extends RecordComponent<RecordProps, State> {
           <li key="preview">
             <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
           </li>
-          {this.state.recordExists && (
+          {recordInfo.exists && (
             <li key="fs-open">
               <a href="#" onClick={this.fsOpen}>
                 {getBrowseButtonTitle()}
               </a>
             </li>
           )}
-          {this.state.canHaveChildren && (
+          {recordInfo.can_have_children && (
             <li key="add-child">
               <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
             </li>
           )}
-          {this.state.canHaveAttachments && (
+          {recordInfo.can_have_attachments && (
             <li key="add-attachment">
               <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
             </li>
@@ -260,9 +249,8 @@ class Sidebar extends RecordComponent<RecordProps, State> {
   }
 
   renderChildPagination() {
-    const pages = Math.ceil(
-      this.state.recordChildren.length / CHILDREN_PER_PAGE
-    );
+    const children = this.state.recordInfo?.children ?? [];
+    const pages = Math.ceil(children.length / CHILDREN_PER_PAGE);
     if (pages <= 1) {
       return null;
     }
@@ -302,7 +290,8 @@ class Sidebar extends RecordComponent<RecordProps, State> {
     const target =
       this.props.match.params.page === "preview" ? "preview" : "edit";
 
-    const children = this.state.recordChildren.slice(
+    const allChildren = this.state.recordInfo?.children ?? [];
+    const children = allChildren.slice(
       (this.state.childrenPage - 1) * CHILDREN_PER_PAGE,
       this.state.childrenPage * CHILDREN_PER_PAGE
     );
@@ -334,7 +323,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
   }
 
   renderAttachmentActions() {
-    const attachments = this.state.recordAttachments;
+    const attachments = this.state.recordInfo?.attachments ?? [];
     return (
       <div key="attachments" className="section">
         <h3>{trans("ATTACHMENTS")}</h3>
@@ -365,8 +354,9 @@ class Sidebar extends RecordComponent<RecordProps, State> {
       <div className="sidebar-wrapper">
         {this.getRecordPath() !== null && this.renderPageActions()}
         {this.renderAlts()}
-        {this.state.canHaveChildren && this.renderChildActions()}
-        {this.state.canHaveAttachments && this.renderAttachmentActions()}
+        {this.state.recordInfo?.can_have_children && this.renderChildActions()}
+        {this.state.recordInfo?.can_have_attachments &&
+          this.renderAttachmentActions()}
       </div>
     );
   }
