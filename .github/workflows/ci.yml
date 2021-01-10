@@ -78,6 +78,8 @@ jobs:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
+      - name: Typecheck and run frontend tests
+        run: cd lektor/admin && npx tsc && npm test
 
   linux-smoke-py:
     name: Linux py${{ matrix.PYTHON_VERSION }} smoke test
@@ -142,6 +144,8 @@ jobs:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
+      - name: Typecheck and run frontend tests
+        run: cd lektor/admin && npx tsc && npm test
 
   mac-node:
     name: Mac node${{ matrix.NODEJS_VERSION }} tests
@@ -168,6 +172,8 @@ jobs:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
+      - name: Typecheck and run frontend tests
+        run: cd lektor/admin && npx tsc && npm test
 
   win-node:
     name: Win node${{ matrix.NODEJS_VERSION }} tests
@@ -194,6 +200,8 @@ jobs:
           node-version: ${{ matrix.NODEJS_VERSION }}
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
+      - name: Typecheck and run frontend tests
+        run: cd lektor/admin && npx tsc && npm test
 
   ############################################################################
   # Python tests
