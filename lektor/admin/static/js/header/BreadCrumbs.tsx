@@ -49,9 +49,9 @@ class BreadCrumbs extends Component<Props, State> {
     if (path === null) {
       this.setState({ recordPathInfo: null });
     } else {
-      loadData("/pathinfo", { path: path }).then((resp) => {
+      loadData("/pathinfo", { path }).then((resp) => {
         this.setState({
-          recordPathInfo: { path: path, segments: resp.segments },
+          recordPathInfo: { path, segments: resp.segments },
         });
       }, bringUpDialog);
     }

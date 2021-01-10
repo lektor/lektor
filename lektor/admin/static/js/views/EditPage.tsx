@@ -213,19 +213,14 @@ class EditPage extends Component<RecordProps, State> {
       json: { data: newData, path: path, alt: alt },
       method: "PUT",
     }).then(() => {
-      this.setState(
-        {
-          hasPendingChanges: false,
-        },
-        () => {
-          this.props.history.push(
-            pathToAdminPage(
-              "preview",
-              getUrlRecordPathWithAlt(path, this.props.record.alt)
-            )
-          );
-        }
-      );
+      this.setState({ hasPendingChanges: false }, () => {
+        this.props.history.push(
+          pathToAdminPage(
+            "preview",
+            getUrlRecordPathWithAlt(path, this.props.record.alt)
+          )
+        );
+      });
     }, bringUpDialog);
   }
 

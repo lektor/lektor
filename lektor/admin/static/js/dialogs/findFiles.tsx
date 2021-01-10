@@ -64,7 +64,7 @@ class FindFiles extends Component<Props, State> {
     const query = event.target.value;
 
     if (query === "") {
-      this.setState({ query: "", results: [], currentSelection: -1 });
+      this.setState({ query, results: [], currentSelection: -1 });
     } else {
       this.setState({ query });
 
@@ -82,14 +82,17 @@ class FindFiles extends Component<Props, State> {
   }
 
   onInputKey(event: KeyboardEvent) {
-    const sel = this.state.currentSelection;
-    const max = this.state.results.length;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      this.setState({ currentSelection: (sel + 1) % max });
+      this.setState(({ currentSelection, results }) => ({
+        currentSelection: (currentSelection + 1) % results.length,
+      }));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      this.setState({ currentSelection: (sel - 1 + max) % max });
+      this.setState(({ currentSelection, results }) => ({
+        currentSelection:
+          (currentSelection - 1 + results.length) % results.length,
+      }));
     } else if (event.key === "Enter") {
       this.onActiveItem(this.state.currentSelection);
     }
