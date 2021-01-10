@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { useHistory } from "react-router-dom";
 
 import Header from "../header/Header";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
 import { getRecordDetails, RecordProps } from "../components/RecordComponent";
