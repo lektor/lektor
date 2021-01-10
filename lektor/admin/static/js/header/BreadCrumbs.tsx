@@ -1,5 +1,6 @@
-import React, { ReactNode } from "react";
-import RecordComponent, {
+import React, { Component, ReactNode } from "react";
+import {
+  getUrlRecordPathWithAlt,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
@@ -27,7 +28,7 @@ type State = {
 
 type Props = { children: ReactNode } & RecordProps;
 
-class BreadCrumbs extends RecordComponent<Props, State> {
+class BreadCrumbs extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { recordPathInfo: null };
@@ -44,7 +45,7 @@ class BreadCrumbs extends RecordComponent<Props, State> {
   }
 
   updateCrumbs() {
-    const path = this.getRecordPath();
+    const path = this.props.record.path;
     if (path === null) {
       this.setState({ recordPathInfo: null });
     } else {
@@ -67,7 +68,10 @@ class BreadCrumbs extends RecordComponent<Props, State> {
     const crumbs =
       recordPathInfo !== null ? (
         recordPathInfo.segments.map((item) => {
-          const urlPath = this.getUrlRecordPathWithAlt(item.path);
+          const urlPath = getUrlRecordPathWithAlt(
+            item.path,
+            this.props.record.alt
+          );
           let label = item.label_i18n ? trans(item.label_i18n) : item.label;
           let className = "record-crumb";
 
@@ -99,7 +103,7 @@ class BreadCrumbs extends RecordComponent<Props, State> {
               <Link
                 to={pathToAdminPage(
                   "add-child",
-                  this.getUrlRecordPathWithAlt(lastItem.path)
+                  getUrlRecordPathWithAlt(lastItem.path, this.props.record.alt)
                 )}
               >
                 +

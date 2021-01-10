@@ -1,10 +1,11 @@
-import React, { MouseEvent } from "react";
+import React, { Component, MouseEvent } from "react";
 import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import RecordComponent, {
+import {
+  getUrlRecordPathWithAlt,
   pathToAdminPage,
   RecordProps,
 } from "./RecordComponent";
@@ -66,7 +67,7 @@ type State = {
   childrenPage: number;
 };
 
-class Sidebar extends RecordComponent<RecordProps, State> {
+class Sidebar extends Component<RecordProps, State> {
   childPosCache: ChildPosCache;
 
   constructor(props: RecordProps) {
@@ -105,13 +106,13 @@ class Sidebar extends RecordComponent<RecordProps, State> {
   }
 
   onAttachmentsChanged(event: AttachmentsChangedEvent) {
-    if (event.recordPath === this.getRecordPath()) {
+    if (event.recordPath === this.props.record.path) {
       this._updateRecordInfo();
     }
   }
 
   _updateRecordInfo() {
-    const path = this.getRecordPath();
+    const path = this.props.record.path;
     if (path === null) {
       this.setState(this._getInitialState());
       return;
@@ -150,7 +151,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
     event.preventDefault();
     loadData(
       "/browsefs",
-      { path: this.getRecordPath(), alt: this.getRecordAlt() },
+      { path: this.props.record.path, alt: this.props.record.alt },
       { method: "POST" }
     ).then((resp) => {
       if (!resp.okay) {
@@ -160,7 +161,10 @@ class Sidebar extends RecordComponent<RecordProps, State> {
   }
 
   renderPageActions() {
-    const urlPath = this.getUrlRecordPathWithAlt();
+    const urlPath = getUrlRecordPathWithAlt(
+      this.props.record.path,
+      this.props.record.alt
+    );
 
     const { recordInfo } = this.state;
     if (!recordInfo) {
@@ -231,7 +235,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
 
       const path = pathToAdminPage(
         this.props.match.params.page,
-        this.getUrlRecordPathWithAlt(undefined, item.alt)
+        getUrlRecordPathWithAlt(this.props.record.path, item.alt)
       );
       return (
         <li key={item.alt} className={className}>
@@ -258,7 +262,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
     const goToPage = (diff: number, event: MouseEvent) => {
       event.preventDefault();
       const newPage = page + diff;
-      const recordPath = this.getRecordPath();
+      const recordPath = this.props.record.path;
       if (recordPath) {
         this.childPosCache.rememberPosition(recordPath, newPage);
       }
@@ -303,7 +307,10 @@ class Sidebar extends RecordComponent<RecordProps, State> {
           {this.renderChildPagination()}
           {children.length > 0 ? (
             children.map((child) => {
-              const urlPath = this.getUrlRecordPathWithAlt(child.path);
+              const urlPath = getUrlRecordPathWithAlt(
+                child.path,
+                this.props.record.alt
+              );
               return (
                 <li key={child.id}>
                   <Link to={`${urlPath}/${target}`}>
@@ -330,7 +337,10 @@ class Sidebar extends RecordComponent<RecordProps, State> {
         <ul className="nav record-attachments">
           {attachments.length > 0 ? (
             attachments.map((atch) => {
-              const urlPath = this.getUrlRecordPathWithAlt(atch.path);
+              const urlPath = getUrlRecordPathWithAlt(
+                atch.path,
+                this.props.record.alt
+              );
               return (
                 <li key={atch.id}>
                   <Link to={`${urlPath}/edit`}>
@@ -352,7 +362,7 @@ class Sidebar extends RecordComponent<RecordProps, State> {
   render() {
     return (
       <div className="sidebar-wrapper">
-        {this.getRecordPath() !== null && this.renderPageActions()}
+        {this.props.record.path !== null && this.renderPageActions()}
         {this.renderAlts()}
         {this.state.recordInfo?.can_have_children && this.renderChildActions()}
         {this.state.recordInfo?.can_have_attachments &&

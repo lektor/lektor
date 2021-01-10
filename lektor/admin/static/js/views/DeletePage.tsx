@@ -1,5 +1,9 @@
-import React, { ChangeEvent, ReactNode } from "react";
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import React, { Component, ChangeEvent, ReactNode } from "react";
+import {
+  getUrlRecordPathWithAlt,
+  pathToAdminPage,
+  RecordProps,
+} from "../components/RecordComponent";
 import { getParentFsPath } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
@@ -13,7 +17,7 @@ type State = {
   deleteMasterRecord: boolean;
 };
 
-class DeletePage extends RecordComponent<RecordProps, State> {
+class DeletePage extends Component<RecordProps, State> {
   constructor(props: RecordProps) {
     super(props);
 
@@ -38,7 +42,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
   }
 
   syncDialog() {
-    loadData("/recordinfo", { path: this.getRecordPath() }).then((resp) => {
+    loadData("/recordinfo", { path: this.props.record.path }).then((resp) => {
       this.setState({
         recordInfo: resp,
         deleteMasterRecord: this.isPrimary(),
@@ -47,16 +51,18 @@ class DeletePage extends RecordComponent<RecordProps, State> {
   }
 
   deleteRecord() {
-    const path = this.getRecordPath();
+    const path = this.props.record.path;
     const parent = getParentFsPath(path || "");
     const targetPath =
-      parent === null ? "root" : this.getUrlRecordPathWithAlt(parent);
+      parent === null
+        ? "root"
+        : getUrlRecordPathWithAlt(parent, this.props.record.alt);
 
     loadData(
       "/deleterecord",
       {
         path: path,
-        alt: this.getRecordAlt(),
+        alt: this.props.record.alt,
         delete_master: this.state.deleteMasterRecord ? "1" : "0",
       },
       { method: "POST" }
@@ -64,13 +70,16 @@ class DeletePage extends RecordComponent<RecordProps, State> {
       if (this.state.recordInfo?.is_attachment) {
         hub.emit(new AttachmentsChangedEvent(parent));
       }
-      this.transitionToAdminPage("edit", targetPath);
+      this.props.history.push(pathToAdminPage("edit", targetPath));
     }, bringUpDialog);
   }
 
   cancelDelete() {
-    const urlPath = this.getUrlRecordPathWithAlt();
-    this.transitionToAdminPage("edit", urlPath);
+    const urlPath = getUrlRecordPathWithAlt(
+      this.props.record.path,
+      this.props.record.alt
+    );
+    this.props.history.push(pathToAdminPage("edit", urlPath));
   }
 
   onDeleteAllAltsChange(event: ChangeEvent<HTMLInputElement>) {
@@ -80,7 +89,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
   }
 
   isPrimary() {
-    return this.getRecordAlt() === "_primary";
+    return this.props.record.alt === "_primary";
   }
 
   render() {
@@ -92,7 +101,7 @@ class DeletePage extends RecordComponent<RecordProps, State> {
 
     const elements: ReactNode[] = [];
     const alts: ReactNode[] = [];
-    const currentRecordAlternative = this.getRecordAlt();
+    const currentRecordAlternative = this.props.record.alt;
     const altInfo = ri.alts.find((a) => a.alt === currentRecordAlternative);
     const altCount = ri.alts.filter((a) => a.exists).length;
 

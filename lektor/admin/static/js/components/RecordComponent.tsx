@@ -1,4 +1,3 @@
-import React from "react";
 import { useHistory } from "react-router";
 import { urlToFsPath, fsToUrlPath } from "../utils";
 
@@ -21,47 +20,42 @@ export function pathToAdminPage(name: string, path: string) {
   return `${$LEKTOR_CONFIG.admin_root}/${path}/${name}`;
 }
 
+/** Details about the path to a Lektor record. */
+interface RecordPathDetails {
+  /** Path of the current record (or null). */
+  path: string | null;
+  /** The alternative of the record (or '_primary'). */
+  alt: string;
+}
+
+/**
+ * Extract a file system path and the alt from an URL path.
+ * @param urlPath - A url path, i.e., a path with `:` as a separator and
+ *                  potentially an alt appended with `+` at the end.
+ */
+export function getRecordDetails(urlPath: string): RecordPathDetails {
+  const [path, alt] = getRecordPathAndAlt(urlPath);
+  return {
+    path,
+    alt: !alt ? "_primary" : alt,
+  };
+}
+
 export type RecordProps = {
   match: { params: { path: string; page: string } };
+  record: RecordPathDetails;
   history: ReturnType<typeof useHistory>;
 };
 
 /**
- * A React component baseclass that has some basic knowledge about
- * the record it works with.
+ * Get the URL record path for a given record fs path.
+ * @param path
+ * @param alt
  */
-export default class RecordComponent<
-  Props extends RecordProps,
-  State
-> extends React.Component<Props, State> {
-  /**
-   * Helper to transition to a specific page
-   * @param name - Page name
-   * @param path - Record path
-   */
-  transitionToAdminPage(name: string, path: string): void {
-    this.props.history.push(pathToAdminPage(name, path));
-  }
-
-  /* this returns the path of the current record.  If the current page does
-   * not have a path component then null is returned. */
-  getRecordPath(): string | null {
-    const [path] = getRecordPathAndAlt(this.props.match.params.path);
-    return path;
-  }
-
-  /* returns the current alt */
-  getRecordAlt(): string {
-    const [, alt] = getRecordPathAndAlt(this.props.match.params.path);
-    return !alt ? "_primary" : alt;
-  }
-
-  /* return the url path for the current record path (or a modified one)
-     by preserving or overriding the alt */
-  getUrlRecordPathWithAlt(newPath?: string, newAlt?: string): string {
-    const path = newPath ?? this.getRecordPath();
-    const alt = newAlt ?? this.getRecordAlt();
-    const urlPath = fsToUrlPath(path || "");
-    return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
-  }
+export function getUrlRecordPathWithAlt(
+  path: string | null,
+  alt: string
+): string {
+  const urlPath = fsToUrlPath(path || "");
+  return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
 }

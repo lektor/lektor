@@ -1,5 +1,9 @@
-import React, { ChangeEvent, ReactNode } from "react";
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import React, { ChangeEvent, Component, ReactNode } from "react";
+import {
+  getUrlRecordPathWithAlt,
+  pathToAdminPage,
+  RecordProps,
+} from "../components/RecordComponent";
 import { trans, Translatable } from "../i18n";
 import { formatUserLabel } from "../userLabel";
 import { loadData } from "../fetch";
@@ -59,7 +63,7 @@ function FieldRow({ children }: { children: ReactNode }) {
   );
 }
 
-class AddChildPage extends RecordComponent<RecordProps, State> {
+class AddChildPage extends Component<RecordProps, State> {
   constructor(props: RecordProps) {
     super(props);
     this.state = {
@@ -84,7 +88,7 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
   }
 
   syncDialog() {
-    loadData("/newrecord", { path: this.getRecordPath() }).then((resp) => {
+    loadData("/newrecord", { path: this.props.record.path }).then((resp) => {
       let selectedModel = resp.implied_model;
       if (!selectedModel) {
         selectedModel = getGoodDefaultModel(resp.available_models);
@@ -132,7 +136,7 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
     }
 
     const data: Record<string, string | null> = {};
-    const params = { id: id, path: this.getRecordPath(), data: data };
+    const params = { id: id, path: this.props.record.path, data: data };
     if (!this.state.newChildInfo?.implied_model) {
       data._model = this.state.selectedModel;
     }
@@ -148,8 +152,11 @@ class AddChildPage extends RecordComponent<RecordProps, State> {
         } else if (!resp.valid_id) {
           errMsg(trans("ERROR_INVALID_ID").replace("%s", id));
         } else {
-          const urlPath = this.getUrlRecordPathWithAlt(resp.path);
-          this.transitionToAdminPage("edit", urlPath);
+          const urlPath = getUrlRecordPathWithAlt(
+            resp.path,
+            this.props.record.alt
+          );
+          this.props.history.push(pathToAdminPage("edit", urlPath));
         }
       },
       bringUpDialog

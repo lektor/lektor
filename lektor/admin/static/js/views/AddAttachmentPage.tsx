@@ -1,5 +1,5 @@
-import React, { createRef, RefObject } from "react";
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import React, { Component, createRef, RefObject } from "react";
+import { RecordProps } from "../components/RecordComponent";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { getApiUrl } from "../utils";
@@ -19,7 +19,7 @@ type State = {
   currentProgress: number;
 };
 
-class AddAttachmentPage extends RecordComponent<RecordProps, State> {
+class AddAttachmentPage extends Component<RecordProps, State> {
   fileInput: RefObject<HTMLInputElement>;
 
   constructor(props: RecordProps) {
@@ -48,9 +48,12 @@ class AddAttachmentPage extends RecordComponent<RecordProps, State> {
   }
 
   syncDialog() {
-    loadData("/newattachment", { path: this.getRecordPath() }).then((resp) => {
-      this.setState({ newAttachmentInfo: resp });
-    }, bringUpDialog);
+    loadData("/newattachment", { path: this.props.record.path }).then(
+      (resp) => {
+        this.setState({ newAttachmentInfo: resp });
+      },
+      bringUpDialog
+    );
   }
 
   uploadFile() {
@@ -66,7 +69,7 @@ class AddAttachmentPage extends RecordComponent<RecordProps, State> {
 
   onUploadComplete() {
     this.setState({ isUploading: false, currentProgress: 100 }, () => {
-      hub.emit(new AttachmentsChangedEvent(this.getRecordPath()));
+      hub.emit(new AttachmentsChangedEvent(this.props.record.path));
     });
   }
 
@@ -82,7 +85,7 @@ class AddAttachmentPage extends RecordComponent<RecordProps, State> {
     this.setState({ currentFiles: files, isUploading: true });
 
     const formData = new FormData();
-    formData.append("path", this.getRecordPath() || "");
+    formData.append("path", this.props.record.path || "");
 
     files.forEach((file) => {
       formData.append("file", file, file.name);

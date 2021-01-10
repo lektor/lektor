@@ -1,11 +1,15 @@
-import React, { createRef, RefObject, SyntheticEvent } from "react";
+import React, { Component, createRef, RefObject, SyntheticEvent } from "react";
 import {
   fsPathFromAdminObservedPath,
   getCanonicalUrl,
   urlPathsConsideredEqual,
 } from "../utils";
 import { loadData } from "../fetch";
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import {
+  getUrlRecordPathWithAlt,
+  pathToAdminPage,
+  RecordProps,
+} from "../components/RecordComponent";
 import { bringUpDialog } from "../richPromise";
 
 const initialState = () => ({
@@ -28,7 +32,7 @@ function getIframePath(iframe: HTMLIFrameElement): string | null {
     : fsPathFromAdminObservedPath(frameLocation.pathname);
 }
 
-export default class PreviewPage extends RecordComponent<RecordProps, State> {
+export default class PreviewPage extends Component<RecordProps, State> {
   iframe: RefObject<HTMLIFrameElement>;
 
   constructor(props: RecordProps) {
@@ -44,20 +48,24 @@ export default class PreviewPage extends RecordComponent<RecordProps, State> {
 
   shouldComponentUpdate(nextProps: RecordProps) {
     return (
-      this.getUrlRecordPathWithAlt() !== this.state.pageUrlFor ||
+      getUrlRecordPathWithAlt(this.props.record.path, this.props.record.alt) !==
+        this.state.pageUrlFor ||
       nextProps.match.params.path !== this.props.match.params.path
     );
   }
 
   syncState() {
-    const alt = this.getRecordAlt();
-    const path = this.getRecordPath();
+    const alt = this.props.record.alt;
+    const path = this.props.record.path;
     if (path === null) {
       this.setState(initialState);
       return;
     }
 
-    const recordUrl = this.getUrlRecordPathWithAlt();
+    const recordUrl = getUrlRecordPathWithAlt(
+      this.props.record.path,
+      this.props.record.alt
+    );
     loadData("/previewinfo", { path: path, alt: alt }).then((resp) => {
       this.setState({
         pageUrl: resp.url,
@@ -72,7 +80,8 @@ export default class PreviewPage extends RecordComponent<RecordProps, State> {
     }
     const frame = this.iframe.current;
     const intendedPath =
-      this.state.pageUrlFor === this.getUrlRecordPathWithAlt()
+      this.state.pageUrlFor ===
+      getUrlRecordPathWithAlt(this.props.record.path, this.props.record.alt)
         ? this.state.pageUrl
         : null;
     if (frame && intendedPath !== null) {
@@ -89,8 +98,8 @@ export default class PreviewPage extends RecordComponent<RecordProps, State> {
     if (fsPath !== null) {
       loadData("/matchurl", { url_path: fsPath }).then((resp) => {
         if (resp.exists) {
-          const urlPath = this.getUrlRecordPathWithAlt(resp.path, resp.alt);
-          this.transitionToAdminPage("preview", urlPath);
+          const urlPath = getUrlRecordPathWithAlt(resp.path, resp.alt);
+          this.props.history.push(pathToAdminPage("preview", urlPath));
         }
       }, bringUpDialog);
     }

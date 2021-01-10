@@ -1,7 +1,11 @@
-import React, { createRef, FormEvent, RefObject } from "react";
+import React, { Component, createRef, FormEvent, RefObject } from "react";
 import { Prompt } from "react-router-dom";
 
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import {
+  getUrlRecordPathWithAlt,
+  pathToAdminPage,
+  RecordProps,
+} from "../components/RecordComponent";
 import { isMetaKey } from "../utils";
 import { loadData } from "../fetch";
 import { trans, Translatable } from "../i18n";
@@ -89,7 +93,7 @@ function getPlaceholderForField(
   return null;
 }
 
-class EditPage extends RecordComponent<RecordProps, State> {
+class EditPage extends Component<RecordProps, State> {
   form: RefObject<HTMLFormElement>;
 
   constructor(props: RecordProps) {
@@ -138,8 +142,8 @@ class EditPage extends RecordComponent<RecordProps, State> {
 
   syncEditor() {
     loadData("/rawrecord", {
-      path: this.getRecordPath(),
-      alt: this.getRecordAlt(),
+      path: this.props.record.path,
+      alt: this.props.record.alt,
     }).then((resp: RawRecord) => {
       // transform resp.data into actual data
       const recordData: Record<string, string> = {};
@@ -164,11 +168,10 @@ class EditPage extends RecordComponent<RecordProps, State> {
   }
 
   setFieldValue(field: Field, value: string, uiChange = false) {
-    const rd = { ...this.state.recordData, [field.name]: value || "" };
-    this.setState({
-      recordData: rd,
+    this.setState((state) => ({
+      recordData: { ...state.recordData, [field.name]: value || "" },
       hasPendingChanges: !uiChange,
-    });
+    }));
   }
 
   getValues() {
@@ -200,11 +203,11 @@ class EditPage extends RecordComponent<RecordProps, State> {
       event.preventDefault();
     }
 
-    const path = this.getRecordPath();
+    const path = this.props.record.path;
     if (path === null) {
       return;
     }
-    const alt = this.getRecordAlt();
+    const alt = this.props.record.alt;
     const newData = this.getValues();
     loadData("/rawrecord", null, {
       json: { data: newData, path: path, alt: alt },
@@ -215,9 +218,11 @@ class EditPage extends RecordComponent<RecordProps, State> {
           hasPendingChanges: false,
         },
         () => {
-          this.transitionToAdminPage(
-            "preview",
-            this.getUrlRecordPathWithAlt(path)
+          this.props.history.push(
+            pathToAdminPage(
+              "preview",
+              getUrlRecordPathWithAlt(path, this.props.record.alt)
+            )
           );
         }
       );
@@ -225,7 +230,12 @@ class EditPage extends RecordComponent<RecordProps, State> {
   }
 
   deleteRecord() {
-    this.transitionToAdminPage("delete", this.getUrlRecordPathWithAlt());
+    this.props.history.push(
+      pathToAdminPage(
+        "delete",
+        getUrlRecordPathWithAlt(this.props.record.path, this.props.record.alt)
+      )
+    );
   }
 
   getValueForField(Widget: WidgetComponent, field: Field) {
