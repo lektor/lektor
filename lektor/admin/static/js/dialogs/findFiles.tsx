@@ -1,6 +1,10 @@
-import React, { ChangeEvent, KeyboardEvent } from "react";
+import React, { ChangeEvent, Component, KeyboardEvent } from "react";
 
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import {
+  getUrlRecordPathWithAlt,
+  pathToAdminPage,
+  RecordProps,
+} from "../components/RecordComponent";
 import SlideDialog from "../components/SlideDialog";
 import { loadData } from "../fetch";
 import { getCurrentLanguge, trans } from "../i18n";
@@ -47,7 +51,7 @@ function ResultRow({
 
 type Props = RecordProps & { dismiss: () => void };
 
-class FindFiles extends RecordComponent<Props, State> {
+class FindFiles extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { query: "", results: [], currentSelection: -1 };
@@ -66,7 +70,7 @@ class FindFiles extends RecordComponent<Props, State> {
 
       loadData(
         "/find",
-        { q: query, alt: this.getRecordAlt(), lang: getCurrentLanguge() },
+        { q: query, alt: this.props.record.alt, lang: getCurrentLanguge() },
         { method: "POST" }
       ).then(({ results }) => {
         this.setState(({ currentSelection }) => ({
@@ -96,9 +100,9 @@ class FindFiles extends RecordComponent<Props, State> {
     if (item !== undefined) {
       const target =
         this.props.match.params.page === "preview" ? "preview" : "edit";
-      const urlPath = this.getUrlRecordPathWithAlt(item.path);
+      const urlPath = getUrlRecordPathWithAlt(item.path, this.props.record.alt);
       this.props.dismiss();
-      this.transitionToAdminPage(target, urlPath);
+      this.props.history.push(pathToAdminPage(target, urlPath));
     }
   }
 

@@ -20,6 +20,7 @@ import DeletePage from "./views/DeletePage";
 import PreviewPage from "./views/PreviewPage";
 import AddChildPage from "./views/AddChildPage";
 import AddAttachmentPage from "./views/AddAttachmentPage";
+import { getRecordDetails } from "./components/RecordComponent";
 
 setCurrentLanguage($LEKTOR_CONFIG.lang);
 
@@ -56,7 +57,11 @@ function Main() {
   const params = { path, page };
   return (
     <App params={params}>
-      <Component match={{ params }} history={history} />
+      <Component
+        match={{ params }}
+        history={history}
+        record={getRecordDetails(params.path)}
+      />
     </App>
   );
 }

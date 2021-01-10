@@ -5,7 +5,7 @@ import Header from "../header/Header";
 import Sidebar from "../components/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-import { RecordProps } from "../components/RecordComponent";
+import { getRecordDetails, RecordProps } from "../components/RecordComponent";
 
 export default function App({
   children,
@@ -15,7 +15,12 @@ export default function App({
   params: { page: string; path: string };
 }) {
   const history = useHistory();
-  const recordProps: RecordProps = { match: { params }, history };
+  const match = { params };
+  const recordProps: RecordProps = {
+    match,
+    history,
+    record: getRecordDetails(params.path),
+  };
 
   const [sidebarIsActive, setSidebarIsActive] = useState(false);
 

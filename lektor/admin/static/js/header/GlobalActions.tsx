@@ -1,5 +1,5 @@
-import React from "react";
-import RecordComponent, { RecordProps } from "../components/RecordComponent";
+import React, { Component } from "react";
+import { RecordProps } from "../components/RecordComponent";
 import { isMetaKey, getCanonicalUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
@@ -29,7 +29,7 @@ function onKeyPress(event: KeyboardEvent) {
   }
 }
 
-class GlobalActions extends RecordComponent<RecordProps, unknown> {
+class GlobalActions extends Component<RecordProps, unknown> {
   constructor(props: RecordProps) {
     super(props);
     this.onCloseClick = this.onCloseClick.bind(this);
@@ -45,8 +45,8 @@ class GlobalActions extends RecordComponent<RecordProps, unknown> {
 
   onCloseClick() {
     loadData("/previewinfo", {
-      path: this.getRecordPath(),
-      alt: this.getRecordAlt(),
+      path: this.props.record.path,
+      alt: this.props.record.alt,
     }).then((resp) => {
       if (resp.url === null) {
         window.location.href = getCanonicalUrl("/");
