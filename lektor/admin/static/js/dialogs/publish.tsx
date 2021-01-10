@@ -156,7 +156,7 @@ class Publish extends React.Component<Props, PublishState> {
   }
 
   setActiveTarget(activeTarget: string) {
-    this.setState({ activeTarget: activeTarget });
+    this.setState({ activeTarget });
   }
 
   render() {
