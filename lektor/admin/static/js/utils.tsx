@@ -1,5 +1,5 @@
 export function isValidUrl(url: string) {
-  return !!url.match(/^(https?|ftps?):\/\/\S+$|^(mailto|webcal|feed):\S+$/);
+  return !!url.match(/^([a-zA-Z0-9+.-]+):(\/\/)?[^/]\S+$/);
 }
 
 /**
