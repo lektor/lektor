@@ -1,5 +1,5 @@
 export function isValidUrl(url: string) {
-  return !!url.match(/^([a-zA-Z0-9+.-]+):(\/\/)?[^/]\S+$/);
+  return !!url.match(/^([a-z0-9+.-]+):(\/\/)?[^/]\S+$/);
 }
 
 /**
