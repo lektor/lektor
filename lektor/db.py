@@ -1295,9 +1295,9 @@ def get_default_slug(record, type_=None):
     is computed by expanding the parent’s ``slug_format`` value.
 
     """
-    parent = getattr(record, 'parent', None)
+    parent = getattr(record, "parent", None)
     if parent is None:
-        return ''
+        return ""
     return parent.datamodel.get_default_child_slug(record.pad, record)
 
 

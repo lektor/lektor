@@ -341,8 +341,7 @@ class DataModel:
                 self._child_slug_tmpl[1].evaluate(pad, this=data).strip().split()
             ).strip("/")
         except Exception as exc:
-            reporter.report_generic(
-                "Failed to expand child slug_format: %s" % exc)
+            reporter.report_generic("Failed to expand child slug_format: %s" % exc)
             return "temp-" + slugify(data["_id"])
 
     def get_default_template_name(self):
