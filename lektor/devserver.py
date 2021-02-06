@@ -8,10 +8,10 @@ from werkzeug.serving import WSGIRequestHandler
 
 from lektor.admin import WebAdmin
 from lektor.builder import Builder
-from lektor.builder import process_extra_flags
 from lektor.db import Database
 from lektor.reporter import CliReporter
 from lektor.utils import portable_popen
+from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
 
 

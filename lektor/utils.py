@@ -742,3 +742,16 @@ def comma_delimited(s):
         stripped = part.strip()
         if stripped:
             yield stripped
+
+
+def process_extra_flags(flags):
+    if isinstance(flags, dict):
+        return flags
+    rv = {}
+    for flag in flags or ():
+        if ":" in flag:
+            k, v = flag.split(":", 1)
+            rv[k] = v
+        else:
+            rv[flag] = flag
+    return rv

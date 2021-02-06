@@ -16,8 +16,8 @@ from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
 from lektor.cli_utils import validate_language
 from lektor.project import Project
-from lektor.utils import secure_url
 from lektor.utils import profile_func
+from lektor.utils import secure_url
 
 
 version = pkg_resources.get_distribution("Lektor").version  # pylint: disable=no-member

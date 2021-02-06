@@ -20,6 +20,7 @@ from lektor.context import Context
 from lektor.reporter import reporter
 from lektor.sourcesearch import find_files
 from lektor.utils import fs_enc
+from lektor.utils import process_extra_flags
 from lektor.utils import prune_file_and_folder
 
 
@@ -1040,19 +1041,6 @@ class PathCache:
         if rv is None:
             self.file_info_cache[fn] = rv = FileInfo(self.env, fn)
         return rv
-
-
-def process_extra_flags(flags):
-    if isinstance(flags, dict):
-        return flags
-    rv = {}
-    for flag in flags or ():
-        if ":" in flag:
-            k, v = flag.split(":", 1)
-            rv[k] = v
-        else:
-            rv[flag] = flag
-    return rv
 
 
 class Builder:

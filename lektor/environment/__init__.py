@@ -16,7 +16,11 @@ from lektor.context import site_proxy
 from lektor.context import url_to
 from lektor.environment.config import Config
 from lektor.markdown import Markdown
+from lektor.packages import load_packages
+from lektor.pluginsystem import initialize_plugins
 from lektor.pluginsystem import PluginController
+from lektor.publisher import builtin_publishers
+from lektor.types import builtin_types
 from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
@@ -115,7 +119,7 @@ class Environment:
             loader=jinja2.FileSystemLoader(template_paths),
         )
 
-        from lektor.db import F, get_alts
+        from lektor.db import F, get_alts  # pylint: disable=import-outside-toplevel
 
         self.jinja_env.filters.update(
             tojson=tojson_filter,
@@ -146,11 +150,7 @@ class Environment:
             timeformat=_pass_locale(dates.format_time),
         )
 
-        from lektor.types import builtin_types
-
         self.types = builtin_types.copy()
-
-        from lektor.publisher import builtin_publishers
 
         self.publishers = builtin_publishers.copy()
 
@@ -169,7 +169,7 @@ class Environment:
 
         if load_plugins:
             self.load_plugins()
-
+        # pylint: disable=import-outside-toplevel
         from lektor.db import siblings_resolver
 
         self.virtualpathresolver("siblings")(siblings_resolver)
@@ -184,9 +184,6 @@ class Environment:
 
     def load_plugins(self):
         """Loads the plugins."""
-        from lektor.packages import load_packages
-        from lektor.pluginsystem import initialize_plugins
-
         load_packages(self)
         initialize_plugins(self)
 
@@ -196,7 +193,7 @@ class Environment:
 
     def new_pad(self):
         """Convenience function to create a database and pad."""
-        from lektor.db import Database
+        from lektor.db import Database  # pylint: disable=import-outside-toplevel
 
         return Database(self).new_pad()
 

@@ -5,8 +5,10 @@ from weakref import ref as weakref
 
 import pkg_resources
 from inifile import IniFile
+from pkg_resources import get_distribution
 
 from lektor.context import get_ctx
+from lektor.utils import process_extra_flags
 
 
 def get_plugin(plugin_id_or_class, env=None):
@@ -45,7 +47,6 @@ class Plugin:
 
     @property
     def version(self):
-        from pkg_resources import get_distribution
 
         return get_distribution("lektor-" + self.id).version
 
@@ -158,7 +159,6 @@ class PluginController:
         return self.env.plugins.values()
 
     def emit(self, event, **kwargs):
-        from lektor.builder import process_extra_flags
 
         rv = {}
         kwargs["extra_flags"] = process_extra_flags(self.extra_flags)
