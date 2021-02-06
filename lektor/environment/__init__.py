@@ -15,6 +15,11 @@ from lektor.context import get_locale
 from lektor.context import site_proxy
 from lektor.context import url_to
 from lektor.environment.config import Config
+from lektor.environment.config import DEFAULT_CONFIG  # noqa - reexport
+from lektor.environment.config import ServerInfo  # noqa - reexport
+from lektor.environment.config import update_config_from_ini  # noqa - reexport
+from lektor.environment.expressions import Expression  # noqa - reexport
+from lektor.environment.expressions import FormatExpression  # noqa - reexport
 from lektor.markdown import Markdown
 from lektor.packages import load_packages
 from lektor.pluginsystem import initialize_plugins
