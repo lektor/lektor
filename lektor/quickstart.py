@@ -130,6 +130,7 @@ class Generator(object):
 
 
 def get_default_author():
+    # pylint: disable=import-outside-toplevel
     import getpass
 
     if os.name == "nt":

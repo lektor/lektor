@@ -30,5 +30,4 @@ disable =
     too-many-public-methods,
     duplicate-code,
     useless-object-inheritance,
-    no-else-return,
-    import-outside-toplevel
+    no-else-return

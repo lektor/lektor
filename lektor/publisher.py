@@ -256,6 +256,7 @@ class FtpConnection(object):
         self._known_folders = set()
 
     def make_connection(self):
+        # pylint: disable=import-outside-toplevel
         from ftplib import FTP
 
         return FTP()
@@ -405,6 +406,7 @@ class FtpConnection(object):
 
 class FtpTlsConnection(FtpConnection):
     def make_connection(self):
+        # pylint: disable=import-outside-toplevel
         from ftplib import FTP_TLS
 
         return FTP_TLS()

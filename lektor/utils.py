@@ -643,6 +643,8 @@ def get_structure_hash(params):
 
 
 def profile_func(func):
+    # pylint: disable=import-outside-toplevel
+
     from cProfile import Profile
     from pstats import Stats
 

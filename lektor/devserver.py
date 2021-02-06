@@ -72,6 +72,8 @@ class DevTools(object):
     def start(self):
         if self.watcher is not None:
             return
+
+        # pylint: disable=import-outside-toplevel
         from lektor import admin
 
         admin = os.path.dirname(admin.__file__)
@@ -91,6 +93,7 @@ class DevTools(object):
 
 
 def browse_to_address(addr):
+    # pylint: disable=import-outside-toplevel
     import webbrowser
 
     def browse():
