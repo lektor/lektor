@@ -1,3 +1,7 @@
+from lektor.types.base import BadValue  # noqa - reexport
+from lektor.types.base import get_undefined_info  # noqa - reexport
+from lektor.types.base import RawValue  # noqa - reexport
+from lektor.types.base import Type  # noqa - reexport
 from lektor.types.fake import HeadingType
 from lektor.types.fake import InfoType
 from lektor.types.fake import LineType
