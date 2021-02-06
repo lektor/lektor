@@ -4,10 +4,10 @@ from jinja2 import is_undefined
 from jinja2 import TemplateNotFound
 from markupsafe import Markup
 
+from lektor.constants import PRIMARY_ALT
 from lektor.context import get_ctx
-from lektor.environment import PRIMARY_ALT
 from lektor.metaformat import tokenize
-from lektor.types import Type
+from lektor.types.base import Type
 
 
 _block_re = re.compile(r"^####\s*([^#]*?)\s*####\s*$")
@@ -55,7 +55,7 @@ class BadFlowBlock(Exception):
     pass
 
 
-class FlowBlock(object):
+class FlowBlock:
     """Represents a flowblock for the template."""
 
     def __init__(self, data, pad, record):
@@ -121,7 +121,7 @@ class FlowBlock(object):
         )
 
 
-class Flow(object):
+class Flow:
     def __init__(self, blocks, record):
         self.blocks = blocks
         self.record = record
@@ -141,7 +141,7 @@ class Flow(object):
         )
 
 
-class FlowDescriptor(object):
+class FlowDescriptor:
     def __init__(self, blocks, pad):
         self._blocks = blocks
         self._pad = pad

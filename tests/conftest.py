@@ -8,7 +8,7 @@ from lektor.builder import Builder
 from lektor.db import Database
 from lektor.db import Tree
 from lektor.environment import Environment
-from lektor.environment import Expression
+from lektor.environment.expressions import Expression
 from lektor.project import Project
 from lektor.reporter import BufferReporter
 

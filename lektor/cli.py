@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 import itertools
 import os
 import sys
@@ -15,6 +16,7 @@ from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
 from lektor.cli_utils import validate_language
 from lektor.project import Project
+from lektor.utils import profile_func
 from lektor.utils import secure_url
 
 
@@ -138,8 +140,6 @@ def build_cmd(
             return True
 
         if profile:
-            from .utils import profile_func
-
             failures = profile_func(builder.build_all)
         else:
             failures = builder.build_all()

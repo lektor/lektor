@@ -8,10 +8,10 @@ from werkzeug.serving import WSGIRequestHandler
 
 from lektor.admin import WebAdmin
 from lektor.builder import Builder
-from lektor.builder import process_extra_flags
 from lektor.db import Database
 from lektor.reporter import CliReporter
 from lektor.utils import portable_popen
+from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
 
 
@@ -62,7 +62,7 @@ class BackgroundBuilder(threading.Thread):
                     self.build()
 
 
-class DevTools(object):
+class DevTools:
     """This provides extra helpers for launching tools such as webpack."""
 
     def __init__(self, env):
@@ -72,6 +72,8 @@ class DevTools(object):
     def start(self):
         if self.watcher is not None:
             return
+
+        # pylint: disable=import-outside-toplevel
         from lektor import admin
 
         admin = os.path.dirname(admin.__file__)
@@ -91,6 +93,7 @@ class DevTools(object):
 
 
 def browse_to_address(addr):
+    # pylint: disable=import-outside-toplevel
     import webbrowser
 
     def browse():

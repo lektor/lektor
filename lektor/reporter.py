@@ -21,7 +21,7 @@ def describe_build_func(func):
     return func.__module__ + "." + func.__name__
 
 
-class Reporter(object):
+class Reporter:
     def __init__(self, env, verbosity=0):
         self.env = env
         self.verbosity = verbosity

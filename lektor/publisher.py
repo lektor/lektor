@@ -103,7 +103,7 @@ class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
 
 
-class Command(object):
+class Command:
     def __init__(self, argline, cwd=None, env=None, capture=True, silent=False):
         environ = dict(os.environ)
         if env:
@@ -188,7 +188,7 @@ class Command(object):
         return self.safe_iter()
 
 
-class Publisher(object):
+class Publisher:
     def __init__(self, env, output_path):
         self.env = env
         self.output_path = os.path.abspath(output_path)
@@ -245,7 +245,7 @@ class RsyncPublisher(Publisher):
                     yield line
 
 
-class FtpConnection(object):
+class FtpConnection:
     def __init__(self, url, credentials=None):
         credentials = credentials or {}
         self.con = self.make_connection()
@@ -256,6 +256,7 @@ class FtpConnection(object):
         self._known_folders = set()
 
     def make_connection(self):
+        # pylint: disable=import-outside-toplevel
         from ftplib import FTP
 
         return FTP()
@@ -405,6 +406,7 @@ class FtpConnection(object):
 
 class FtpTlsConnection(FtpConnection):
     def make_connection(self):
+        # pylint: disable=import-outside-toplevel
         from ftplib import FTP_TLS
 
         return FTP_TLS()

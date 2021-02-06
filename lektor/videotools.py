@@ -160,12 +160,12 @@ class Dimensions(namedtuple("Dimensions", ["width", "height"])):
     def resize(self, width=None, height=None, mode=ThumbnailMode.DEFAULT, upscale=None):
         if mode == ThumbnailMode.FIT:
             return self.fit_within(width, height, upscale)
-        elif mode == ThumbnailMode.CROP:
+        if mode == ThumbnailMode.CROP:
             return self.cover(width, height, upscale)
-        elif mode == ThumbnailMode.STRETCH:
+        if mode == ThumbnailMode.STRETCH:
             return self.stretch(width, height, upscale)
-        else:
-            raise ValueError('Unexpected mode "{!r}"'.format(mode))
+
+        raise ValueError('Unexpected mode "{!r}"'.format(mode))
 
 
 def get_timecode(td):

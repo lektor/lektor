@@ -244,7 +244,7 @@ def test_virtual_path_behavior(pad):
     assert blog_page2.url_to("@3", absolute=True) == "/blog/page/3/"
 
 
-class Test_Pagination_iter_pages(object):
+class Test_Pagination_iter_pages:
     @pytest.fixture
     def pagination(self, pad, page, pages, monkeypatch):
         projects = pad.get("/projects", page_num=1)

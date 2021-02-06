@@ -5,8 +5,10 @@ from weakref import ref as weakref
 
 import pkg_resources
 from inifile import IniFile
+from pkg_resources import get_distribution
 
 from lektor.context import get_ctx
+from lektor.utils import process_extra_flags
 
 
 def get_plugin(plugin_id_or_class, env=None):
@@ -26,7 +28,7 @@ def get_plugin(plugin_id_or_class, env=None):
         raise LookupError("Plugin %r not found" % plugin_id) from error
 
 
-class Plugin(object):
+class Plugin:
     """This needs to be subclassed for custom plugins."""
 
     name = "Your Plugin Name"
@@ -45,7 +47,6 @@ class Plugin(object):
 
     @property
     def version(self):
-        from pkg_resources import get_distribution
 
         return get_distribution("lektor-" + self.id).version
 
@@ -130,7 +131,7 @@ def initialize_plugins(env):
     env.plugin_controller.emit("setup-env")
 
 
-class PluginController(object):
+class PluginController:
     """Helper management class that is used to control plugins through
     the environment.
     """
@@ -158,7 +159,6 @@ class PluginController(object):
         return self.env.plugins.values()
 
     def emit(self, event, **kwargs):
-        from lektor.builder import process_extra_flags
 
         rv = {}
         kwargs["extra_flags"] = process_extra_flags(self.extra_flags)

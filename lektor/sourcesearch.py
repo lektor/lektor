@@ -1,6 +1,6 @@
 import sqlite3
 
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 
 
 def _iter_parents(path):

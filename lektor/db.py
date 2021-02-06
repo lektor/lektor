@@ -19,13 +19,13 @@ from werkzeug.utils import cached_property
 
 from lektor import metaformat
 from lektor.assets import Directory
+from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.context import get_ctx
 from lektor.databags import Databags
 from lektor.datamodel import load_datamodels
 from lektor.datamodel import load_flowblocks
 from lektor.editor import make_editor_session
-from lektor.environment import PRIMARY_ALT
 from lektor.filecontents import FileContents
 from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail
@@ -108,7 +108,7 @@ def _is_content_file(filename, alt=PRIMARY_ALT):
     return False
 
 
-class _CmpHelper(object):
+class _CmpHelper:
     def __init__(self, value, reverse):
         self.value = value
         self.reverse = reverse
@@ -179,7 +179,7 @@ def save_eval(filter, record):
         return Undefined(e.message)
 
 
-class Expression(object):
+class Expression:
     def __eval__(self, record):
         return record
 
@@ -312,7 +312,7 @@ class _RecordQueryField(Expression):
             return Undefined(obj=record, name=self.__field)
 
 
-class _RecordQueryProxy(object):
+class _RecordQueryProxy:
     def __getattr__(self, name):
         if name[:2] != "__":
             return _RecordQueryField(name)
@@ -601,7 +601,7 @@ class Page(Record):
             return self
 
         # Try to resolve the correctly paginated version here.
-        elif pg.enabled:
+        if pg.enabled:
             rv = pg.match_pagination(self, url_path)
             if rv is not None:
                 return rv
@@ -906,7 +906,7 @@ class Video(Attachment):
         return VideoFrame(self, seek)
 
 
-class VideoFrame(object):
+class VideoFrame:
     """Representation of a specific frame in a VideoAttachment.
 
     This is currently only useful for thumbnails, but in the future it might
@@ -962,7 +962,7 @@ attachment_classes = {
 }
 
 
-class Query(object):
+class Query:
     """Object that helps finding records.  The default configuration
     only finds pages.
     """
@@ -1071,7 +1071,7 @@ class Query(object):
         if base_record is not None:
             if self._include_attachments and not self._include_pages:
                 return base_record.datamodel.attachment_config.order_by
-            elif self._include_pages and not self._include_attachments:
+            if self._include_pages and not self._include_attachments:
                 return base_record.datamodel.child_config.order_by
             # Otherwise the query includes either both or neither
             # attachments and/nor children.  I have no idea which
@@ -1283,7 +1283,7 @@ def _iter_datamodel_choices(datamodel_name, path, is_attachment=False):
     yield "none"
 
 
-class Database(object):
+class Database:
     def __init__(self, env, config=None):
         self.env = env
         if config is None:
@@ -1554,7 +1554,7 @@ def _split_alt_from_url(config, clean_path):
         if clean_path.startswith(prefix):
             return alt, clean_path[len(prefix) :].strip("/")
         # Special case which is the URL root.
-        elif prefix.strip("/") == clean_path:
+        if prefix.strip("/") == clean_path:
             return alt, ""
 
     # Now find alternatives that are identified by a suffix.
@@ -1570,7 +1570,7 @@ def _split_alt_from_url(config, clean_path):
     return None, None
 
 
-class Pad(object):
+class Pad:
     def __init__(self, db):
         self.db = db
         self.cache = RecordCache(db.config["EPHEMERAL_RECORD_CACHE_SIZE"])
@@ -1743,7 +1743,7 @@ class Pad(object):
             return self.get_virtual(rv, virtual_path)
 
         # Sanity check: there must only be one or things will get weird.
-        elif virt_markers > 1:
+        if virt_markers > 1:
             return None
 
         path = cleanup_path(path)
@@ -1783,7 +1783,7 @@ class Pad(object):
         if rv is not None:
             if rv["_source_alt"] == alt:
                 return True
-            elif fallback or (
+            if fallback or (
                 rv["_source_alt"] == PRIMARY_ALT
                 and alt == self.config.primary_alternative
             ):
@@ -1828,7 +1828,7 @@ class Pad(object):
         ).include_hidden(True)
 
 
-class TreeItem(object):
+class TreeItem:
     """Represents a single tree item and all the alts within it."""
 
     def __init__(
@@ -1897,7 +1897,7 @@ class TreeItem(object):
         )
 
 
-class Alt(object):
+class Alt:
     def __init__(self, id, record):
         self.id = id
         self.record = record
@@ -1907,7 +1907,7 @@ class Alt(object):
         return "<Alt %r%s>" % (self.id, self.exists and "*" or "")
 
 
-class Tree(object):
+class Tree:
     """Special object that can be used to get a broader insight into the
     database in a way that is not bound to the alt system directly.
 
@@ -2032,7 +2032,7 @@ class Tree(object):
         )
 
 
-class RecordCache(object):
+class RecordCache:
     """The record cache holds records eitehr in an persistent or ephemeral
     section which helps the pad not load records it already saw.
     """

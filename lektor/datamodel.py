@@ -4,18 +4,19 @@ import os
 
 from inifile import IniFile
 
-from lektor import types
-from lektor.environment import Expression
-from lektor.environment import FormatExpression
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
+from lektor.environment.expressions import Expression
+from lektor.environment.expressions import FormatExpression
 from lektor.i18n import generate_i18n_kvs
 from lektor.i18n import get_i18n_block
 from lektor.pagination import Pagination
+from lektor.types import builtin_types
+from lektor.types.base import RawValue
 from lektor.utils import bool_from_string
 from lektor.utils import slugify
 
 
-class ChildConfig(object):
+class ChildConfig:
     def __init__(
         self,
         enabled=None,
@@ -45,7 +46,7 @@ class ChildConfig(object):
         }
 
 
-class PaginationConfig(object):
+class PaginationConfig:
     def __init__(self, env, enabled=None, per_page=None, url_suffix=None, items=None):
         self.env = env
         if enabled is None:
@@ -143,7 +144,7 @@ class PaginationConfig(object):
         }
 
 
-class AttachmentConfig(object):
+class AttachmentConfig:
     def __init__(self, enabled=None, model=None, order_by=None, hidden=None):
         if enabled is None:
             enabled = True
@@ -163,7 +164,7 @@ class AttachmentConfig(object):
         }
 
 
-class Field(object):
+class Field:
     def __init__(self, env, name, type=None, options=None):
         if type is None:
             type = env.types["string"]
@@ -200,7 +201,7 @@ class Field(object):
         }
 
     def deserialize_value(self, value, pad=None):
-        raw_value = types.RawValue(self.name, value, field=self, pad=pad)
+        raw_value = RawValue(self.name, value, field=self, pad=pad)
         return self.type.value_from_raw_with_default(raw_value)
 
     def serialize_value(self, value):
@@ -221,7 +222,7 @@ def _iter_all_fields(obj):
         yield field
 
 
-class DataModel(object):
+class DataModel:
     def __init__(
         self,
         env,
@@ -387,7 +388,7 @@ class DataModel(object):
         )
 
 
-class FlowBlockModel(object):
+class FlowBlockModel:
     def __init__(
         self,
         env,
@@ -679,7 +680,7 @@ system_fields = {}
 
 def add_system_field(name, **opts):
     opts = dict(generate_i18n_kvs(**opts))
-    ty = types.builtin_types[opts.pop("type")]
+    ty = builtin_types[opts.pop("type")]
     system_fields[name] = (ty, opts)
 
 

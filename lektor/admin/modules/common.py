@@ -13,7 +13,7 @@ from lektor.db import Tree
 bp = Blueprint("common", __name__)
 
 
-class AdminContext(object):
+class AdminContext:
     def __init__(self):
         self.admin_root = url_for("dash.index").rstrip("/")
         self.site_root = request.script_root

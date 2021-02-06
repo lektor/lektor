@@ -80,7 +80,7 @@ def _parse_svg_units_px(length):
         return None
 
 
-class EXIFInfo(object):
+class EXIFInfo:
     def __init__(self, d):
         self._mapping = d
 
@@ -641,7 +641,7 @@ def make_image_thumbnail(
     return Thumbnail(dst_url_path, computed_width, computed_height)
 
 
-class Thumbnail(object):
+class Thumbnail:
     """Holds information about a thumbnail."""
 
     def __init__(self, url_path, width, height=None):

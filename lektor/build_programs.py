@@ -4,9 +4,9 @@ from itertools import chain
 
 from lektor.assets import Directory
 from lektor.assets import File
+from lektor.constants import PRIMARY_ALT
 from lektor.db import Attachment
 from lektor.db import Page
-from lektor.environment import PRIMARY_ALT
 from lektor.exception import LektorException
 
 
@@ -25,7 +25,7 @@ def buildprogram(source_cls):
     return decorator
 
 
-class SourceInfo(object):
+class SourceInfo:
     """Holds some information about a source file for indexing into the
     build state.
     """
@@ -50,7 +50,7 @@ class SourceInfo(object):
         self.title_i18n["en"] = en_title
 
 
-class BuildProgram(object):
+class BuildProgram:
     def __init__(self, source, build_state):
         self.source = source
         self.build_state = build_state

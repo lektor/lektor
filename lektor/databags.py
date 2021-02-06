@@ -26,7 +26,7 @@ def load_databag(filename):
             raise
 
 
-class Databags(object):
+class Databags:
     def __init__(self, env):
         self.env = env
         self.root_path = os.path.join(self.env.root_path, "databags")

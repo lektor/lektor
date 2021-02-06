@@ -6,7 +6,7 @@ import os
 from werkzeug.debug.tbtools import Traceback
 
 
-class BuildFailure(object):
+class BuildFailure:
     def __init__(self, data):
         self.data = data
 
@@ -26,7 +26,7 @@ class BuildFailure(object):
         return self.data
 
 
-class FailureController(object):
+class FailureController:
     def __init__(self, pad, destination_path):
         self.pad = pad
         self.path = os.path.join(

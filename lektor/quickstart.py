@@ -19,7 +19,7 @@ from lektor.utils import slugify
 _var_re = re.compile(r"@([^@]+)@")
 
 
-class Generator(object):
+class Generator:
     def __init__(self, base):
         self.question = 0
         self.jinja_env = Environment(
@@ -130,6 +130,7 @@ class Generator(object):
 
 
 def get_default_author():
+    # pylint: disable=import-outside-toplevel
     import getpass
 
     if os.name == "nt":

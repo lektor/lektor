@@ -1,7 +1,7 @@
 from math import ceil
 
 
-class Pagination(object):
+class Pagination:
     def __init__(self, record, pagination_config):
         #: the pagination config
         self.config = pagination_config

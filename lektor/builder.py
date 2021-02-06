@@ -15,11 +15,12 @@ from werkzeug.posixemulation import rename
 
 from lektor.build_programs import builtin_build_programs
 from lektor.buildfailures import FailureController
+from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
-from lektor.environment import PRIMARY_ALT
 from lektor.reporter import reporter
 from lektor.sourcesearch import find_files
 from lektor.utils import fs_enc
+from lektor.utils import process_extra_flags
 from lektor.utils import prune_file_and_folder
 
 
@@ -90,7 +91,7 @@ def create_tables(con):
         con.close()
 
 
-class BuildState(object):
+class BuildState:
     def __init__(self, builder, path_cache):
         self.builder = builder
 
@@ -479,7 +480,7 @@ def _describe_fs_path_for_checksum(path):
     return b"\x00"
 
 
-class FileInfo(object):
+class FileInfo:
     """A file info object holds metainformation of a file so that changes
     can be detected easily.
     """
@@ -593,7 +594,7 @@ class FileInfo(object):
         return self.checksum == other.checksum
 
 
-class VirtualSourceInfo(object):
+class VirtualSourceInfo:
     def __init__(self, path, mtime=None, checksum=None):
         self.path = path
         self.mtime = mtime
@@ -629,7 +630,7 @@ artifacts_row = namedtuple(
 )
 
 
-class Artifact(object):
+class Artifact:
     """This class represents a build artifact."""
 
     def __init__(
@@ -990,7 +991,7 @@ class Artifact(object):
         self.build_state.notify_failure(self, exc_info)
 
 
-class PathCache(object):
+class PathCache:
     def __init__(self, env):
         self.file_info_cache = {}
         self.source_filename_cache = {}
@@ -1042,20 +1043,7 @@ class PathCache(object):
         return rv
 
 
-def process_extra_flags(flags):
-    if isinstance(flags, dict):
-        return flags
-    rv = {}
-    for flag in flags or ():
-        if ":" in flag:
-            k, v = flag.split(":", 1)
-            rv[k] = v
-        else:
-            rv[flag] = flag
-    return rv
-
-
-class Builder(object):
+class Builder:
     def __init__(self, pad, destination_path, buildstate_path=None, extra_flags=None):
         self.extra_flags = process_extra_flags(extra_flags)
         self.pad = pad

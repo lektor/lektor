@@ -37,7 +37,7 @@ class ImprovedRenderer(mistune.Renderer):
         return '<img src="%s" alt="%s">' % (src, text)
 
 
-class MarkdownConfig(object):
+class MarkdownConfig:
     def __init__(self):
         self.options = {
             "escape": False,
@@ -83,7 +83,7 @@ def markdown_to_html(text, record=None):
     return rv, meta
 
 
-class Markdown(object):
+class Markdown:
     def __init__(self, source, record=None):
         self.source = source
         self.__record = weakref(record) if record is not None else lambda: None

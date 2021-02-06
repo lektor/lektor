@@ -28,9 +28,6 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from lektor.uilink import BUNDLE_BIN_PATH
-from lektor.uilink import EXTRA_PATHS
-
 
 is_windows = os.name == "nt"
 
@@ -206,7 +203,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
             if not container:
                 return values
             return _convert(container)
-        elif container.pop(_list_marker, False):
+        if container.pop(_list_marker, False):
             return [_convert(x[1]) for x in sorted(container.items())]
         return dict_cls((k, _convert(v)) for k, v in container.items())
 
@@ -307,11 +304,6 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
 
     if resolve:
         paths = os.environ.get("PATH", "").split(os.pathsep)
-        if BUNDLE_BIN_PATH and include_bundle_path:
-            paths.insert(0, BUNDLE_BIN_PATH)
-        for extra_path in EXTRA_PATHS:
-            if extra_path not in paths:
-                paths.append(extra_path)
         choices = [os.path.join(path, exe_file) for path in paths]
 
     if os.name == "nt":
@@ -380,7 +372,7 @@ class Worker(Thread):
             self.tasks.task_done()
 
 
-class WorkerPool(object):
+class WorkerPool:
     def __init__(self, num_threads=None):
         if num_threads is None:
             num_threads = multiprocessing.cpu_count()
@@ -395,7 +387,7 @@ class WorkerPool(object):
         self.tasks.join()
 
 
-class Url(object):
+class Url:
     def __init__(self, value):
         self.url = value
         u = url_parse(value)
@@ -539,7 +531,7 @@ def bool_from_string(val, default=None):
         val = val.lower()
         if val in ("true", "yes", "1"):
             return True
-        elif val in ("false", "no", "0"):
+        if val in ("false", "no", "0"):
             return False
     return default
 
@@ -651,6 +643,8 @@ def get_structure_hash(params):
 
 
 def profile_func(func):
+    # pylint: disable=import-outside-toplevel
+
     from cProfile import Profile
     from pstats import Stats
 
@@ -711,7 +705,7 @@ def get_cache_dir():
     )
 
 
-class URLBuilder(object):
+class URLBuilder:
     def __init__(self):
         self.items = []
 
@@ -748,3 +742,16 @@ def comma_delimited(s):
         stripped = part.strip()
         if stripped:
             yield stripped
+
+
+def process_extra_flags(flags):
+    if isinstance(flags, dict):
+        return flags
+    rv = {}
+    for flag in flags or ():
+        if ":" in flag:
+            k, v = flag.split(":", 1)
+            rv[k] = v
+        else:
+            rv[flag] = flag
+    return rv

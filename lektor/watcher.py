@@ -34,7 +34,7 @@ class EventHandler(FileSystemEventHandler):
                 self.callback(*item)
 
 
-class BasicWatcher(object):
+class BasicWatcher:
     def __init__(self, paths, callback=None):
         self.event_handler = EventHandler(callback=callback)
         self.observer = Observer()
