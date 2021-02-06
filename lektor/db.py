@@ -1288,7 +1288,7 @@ def _iter_datamodel_choices(datamodel_name, path, is_attachment=False):
     yield "none"
 
 
-def get_default_slug(record, type_=None):
+def get_default_slug(record):
     """Compute the default slug for a page.
 
     This computes the default value of ``_slug`` for a page.  The slug
