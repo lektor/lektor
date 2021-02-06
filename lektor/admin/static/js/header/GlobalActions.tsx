@@ -60,6 +60,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
     return (
       <div className="btn-group">
         <button
+          type="button"
           className="btn btn-default"
           onClick={showFindFilesDialog}
           title={trans("FIND_FILES")}
@@ -67,6 +68,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
           <i className="fa fa-search fa-fw" />
         </button>
         <button
+          type="button"
           className="btn btn-default"
           onClick={showPublishDialog}
           title={trans("PUBLISH")}
@@ -74,6 +76,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
           <i className="fa fa-cloud-upload fa-fw" />
         </button>
         <button
+          type="button"
           className="btn btn-default"
           onClick={showRefreshDialog}
           title={trans("REFRESH_BUILD")}
@@ -81,6 +84,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
           <i className="fa fa-refresh fa-fw" />
         </button>
         <button
+          type="button"
           className="btn btn-default"
           onClick={this.onCloseClick}
           title={trans("RETURN_TO_WEBSITE")}

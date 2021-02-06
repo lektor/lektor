@@ -228,7 +228,11 @@ class AddChildPage extends Component<RecordProps, State> {
           </dd>
         </FieldRow>
         <div className="actions">
-          <button className="btn btn-primary" onClick={this.createRecord}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={this.createRecord}
+          >
             {trans("CREATE_CHILD_PAGE")}
           </button>
         </div>

@@ -211,10 +211,18 @@ class DeletePage extends Component<RecordProps, State> {
           </div>
         )}
         <div className="actions">
-          <button className="btn btn-primary" onClick={this.deleteRecord}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={this.deleteRecord}
+          >
             {trans("YES_DELETE")}
           </button>
-          <button className="btn btn-default" onClick={this.cancelDelete}>
+          <button
+            type="button"
+            className="btn btn-default"
+            onClick={this.cancelDelete}
+          >
             {trans("NO_CANCEL")}
           </button>
         </div>
