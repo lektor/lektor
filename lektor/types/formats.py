@@ -1,5 +1,5 @@
 from lektor.markdown import Markdown
-from lektor.types import Type
+from lektor.types.base import Type
 
 
 class MarkdownDescriptor(object):

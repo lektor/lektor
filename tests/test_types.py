@@ -6,8 +6,8 @@ from markupsafe import Markup
 
 from lektor.context import Context
 from lektor.datamodel import Field
-from lektor.types import BadValue
-from lektor.types import Undefined
+from lektor.types.base import BadValue
+from lektor.types.base import Undefined
 from lektor.types.formats import MarkdownDescriptor
 
 

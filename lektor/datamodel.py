@@ -4,13 +4,14 @@ import os
 
 from inifile import IniFile
 
-from lektor import types
 from lektor.environment import Expression
 from lektor.environment import FormatExpression
 from lektor.environment import PRIMARY_ALT
 from lektor.i18n import generate_i18n_kvs
 from lektor.i18n import get_i18n_block
 from lektor.pagination import Pagination
+from lektor.types import builtin_types
+from lektor.types.base import RawValue
 from lektor.utils import bool_from_string
 from lektor.utils import slugify
 
@@ -200,7 +201,7 @@ class Field(object):
         }
 
     def deserialize_value(self, value, pad=None):
-        raw_value = types.RawValue(self.name, value, field=self, pad=pad)
+        raw_value = RawValue(self.name, value, field=self, pad=pad)
         return self.type.value_from_raw_with_default(raw_value)
 
     def serialize_value(self, value):
@@ -679,7 +680,7 @@ system_fields = {}
 
 def add_system_field(name, **opts):
     opts = dict(generate_i18n_kvs(**opts))
-    ty = types.builtin_types[opts.pop("type")]
+    ty = builtin_types[opts.pop("type")]
     system_fields[name] = (ty, opts)
 
 

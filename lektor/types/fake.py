@@ -1,6 +1,6 @@
 from lektor.environment import PRIMARY_ALT
 from lektor.i18n import get_i18n_block
-from lektor.types import Type
+from lektor.types.base import Type
 
 
 class FakeType(Type):

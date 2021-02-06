@@ -7,7 +7,7 @@ from markupsafe import Markup
 from lektor.context import get_ctx
 from lektor.environment import PRIMARY_ALT
 from lektor.metaformat import tokenize
-from lektor.types import Type
+from lektor.types.base import Type
 
 
 _block_re = re.compile(r"^####\s*([^#]*?)\s*####\s*$")
