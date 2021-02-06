@@ -62,7 +62,7 @@ class BackgroundBuilder(threading.Thread):
                     self.build()
 
 
-class DevTools(object):
+class DevTools:
     """This provides extra helpers for launching tools such as webpack."""
 
     def __init__(self, env):

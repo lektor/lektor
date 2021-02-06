@@ -63,12 +63,12 @@ class AliasedGroup(click.Group):
         matches = [x for x in self.list_commands(ctx) if x.startswith(cmd_name)]
         if not matches:
             return None
-        elif len(matches) == 1:
+        if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
         ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
 
 
-class Context(object):
+class Context:
     def __init__(self):
         self._project_path = os.environ.get("LEKTOR_PROJECT") or None
         self._project = None

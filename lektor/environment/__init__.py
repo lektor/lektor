@@ -84,7 +84,7 @@ def lookup_from_bag(*args):
     return site_proxy.databags.lookup(pieces)
 
 
-class Environment(object):
+class Environment:
     def __init__(self, project, load_plugins=True, extra_flags=None):
         self.project = project
         self.root_path = os.path.abspath(project.tree)

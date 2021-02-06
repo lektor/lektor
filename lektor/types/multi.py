@@ -50,7 +50,7 @@ def _parse_choices(options):
     return rv
 
 
-class ChoiceSource(object):
+class ChoiceSource:
     def __init__(self, env, options):
         source = options.get("source")
         if source is not None:

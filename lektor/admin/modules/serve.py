@@ -80,10 +80,10 @@ def rewrite_html_for_editing(fp, edit_url):
             + button_script.encode("utf-8")
             + contents[body_endpos:]
         )
-    else:
-        return BytesIO(
-            contents + button_style.encode("utf-8") + button_script.encode("utf-8")
-        )
+
+    return BytesIO(
+        contents + button_style.encode("utf-8") + button_script.encode("utf-8")
+    )
 
 
 def send_file(filename):

@@ -98,7 +98,7 @@ def update_config_from_ini(config, inifile):
             raise RuntimeError("Alternatives defined but no primary set.")
 
 
-class ServerInfo(object):
+class ServerInfo:
     def __init__(self, id, name_i18n, target, enabled=True, default=False, extra=None):
         self.id = id
         self.name_i18n = name_i18n
@@ -132,7 +132,7 @@ class ServerInfo(object):
         }
 
 
-class Config(object):
+class Config:
     def __init__(self, filename=None):
         self.filename = filename
         self.values = copy.deepcopy(DEFAULT_CONFIG)

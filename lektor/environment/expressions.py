@@ -1,4 +1,4 @@
-class Expression(object):
+class Expression:
     def __init__(self, env, expr):
         self.env = env
         self.tmpl = env.jinja_env.from_string("{{ __result__(%s) }}" % expr)
@@ -16,7 +16,7 @@ class Expression(object):
         return result[0]
 
 
-class FormatExpression(object):
+class FormatExpression:
     def __init__(self, env, expr):
         self.env = env
         self.tmpl = env.jinja_env.from_string(expr)

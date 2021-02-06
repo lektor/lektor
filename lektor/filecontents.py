@@ -5,7 +5,7 @@ import mimetypes
 import os
 
 
-class FileContents(object):
+class FileContents:
     def __init__(self, filename):
         self.filename = filename
         self._md5 = None
@@ -61,7 +61,7 @@ class FileContents(object):
     def open(self, mode="r", encoding=None):
         if mode == "rb":
             return open(self.filename, "rb")
-        elif mode != "r":
+        if mode != "r":
             raise TypeError("Can only open files for reading")
         return codecs.open(self.filename, encoding=encoding or "utf-8")
 

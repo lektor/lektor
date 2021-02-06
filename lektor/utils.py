@@ -203,7 +203,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
             if not container:
                 return values
             return _convert(container)
-        elif container.pop(_list_marker, False):
+        if container.pop(_list_marker, False):
             return [_convert(x[1]) for x in sorted(container.items())]
         return dict_cls((k, _convert(v)) for k, v in container.items())
 
@@ -372,7 +372,7 @@ class Worker(Thread):
             self.tasks.task_done()
 
 
-class WorkerPool(object):
+class WorkerPool:
     def __init__(self, num_threads=None):
         if num_threads is None:
             num_threads = multiprocessing.cpu_count()
@@ -387,7 +387,7 @@ class WorkerPool(object):
         self.tasks.join()
 
 
-class Url(object):
+class Url:
     def __init__(self, value):
         self.url = value
         u = url_parse(value)
@@ -531,7 +531,7 @@ def bool_from_string(val, default=None):
         val = val.lower()
         if val in ("true", "yes", "1"):
             return True
-        elif val in ("false", "no", "0"):
+        if val in ("false", "no", "0"):
             return False
     return default
 
@@ -705,7 +705,7 @@ def get_cache_dir():
     )
 
 
-class URLBuilder(object):
+class URLBuilder:
     def __init__(self):
         self.items = []
 

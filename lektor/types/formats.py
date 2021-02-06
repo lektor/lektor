@@ -2,7 +2,7 @@ from lektor.markdown import Markdown
 from lektor.types.base import Type
 
 
-class MarkdownDescriptor(object):
+class MarkdownDescriptor:
     def __init__(self, source):
         self.source = source
 

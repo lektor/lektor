@@ -11,7 +11,7 @@ from lektor.types.base import Undefined
 from lektor.types.formats import MarkdownDescriptor
 
 
-class DummySource(object):
+class DummySource:
     url_path = "/"
 
 

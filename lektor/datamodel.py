@@ -16,7 +16,7 @@ from lektor.utils import bool_from_string
 from lektor.utils import slugify
 
 
-class ChildConfig(object):
+class ChildConfig:
     def __init__(
         self,
         enabled=None,
@@ -46,7 +46,7 @@ class ChildConfig(object):
         }
 
 
-class PaginationConfig(object):
+class PaginationConfig:
     def __init__(self, env, enabled=None, per_page=None, url_suffix=None, items=None):
         self.env = env
         if enabled is None:
@@ -144,7 +144,7 @@ class PaginationConfig(object):
         }
 
 
-class AttachmentConfig(object):
+class AttachmentConfig:
     def __init__(self, enabled=None, model=None, order_by=None, hidden=None):
         if enabled is None:
             enabled = True
@@ -164,7 +164,7 @@ class AttachmentConfig(object):
         }
 
 
-class Field(object):
+class Field:
     def __init__(self, env, name, type=None, options=None):
         if type is None:
             type = env.types["string"]
@@ -222,7 +222,7 @@ def _iter_all_fields(obj):
         yield field
 
 
-class DataModel(object):
+class DataModel:
     def __init__(
         self,
         env,
@@ -388,7 +388,7 @@ class DataModel(object):
         )
 
 
-class FlowBlockModel(object):
+class FlowBlockModel:
     def __init__(
         self,
         env,

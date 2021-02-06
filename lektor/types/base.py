@@ -16,7 +16,7 @@ def get_undefined_info(undefined):
     return "defined value"
 
 
-class RawValue(object):
+class RawValue:
     __slots__ = ("name", "value", "field", "pad")
 
     def __init__(self, name, value=None, field=None, pad=None):
@@ -37,7 +37,7 @@ class RawValue(object):
         return Undefined(hint=self._get_hint("Missing value", reason), obj=self.value)
 
 
-class _NameDescriptor(object):
+class _NameDescriptor:
     def __get__(self, obj, type):
         rv = type.__name__
         if rv.endswith("Type"):
@@ -45,7 +45,7 @@ class _NameDescriptor(object):
         return rv.lower()
 
 
-class Type(object):
+class Type:
     widget = "multiline-text"
 
     def __init__(self, env, options):

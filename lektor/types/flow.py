@@ -55,7 +55,7 @@ class BadFlowBlock(Exception):
     pass
 
 
-class FlowBlock(object):
+class FlowBlock:
     """Represents a flowblock for the template."""
 
     def __init__(self, data, pad, record):
@@ -121,7 +121,7 @@ class FlowBlock(object):
         )
 
 
-class Flow(object):
+class Flow:
     def __init__(self, blocks, record):
         self.blocks = blocks
         self.record = record
@@ -141,7 +141,7 @@ class Flow(object):
         )
 
 
-class FlowDescriptor(object):
+class FlowDescriptor:
     def __init__(self, blocks, pad):
         self._blocks = blocks
         self._pad = pad

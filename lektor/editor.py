@@ -93,7 +93,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     )
 
 
-class EditorSession(object):
+class EditorSession:
     def __init__(
         self,
         pad,
@@ -384,7 +384,7 @@ class EditorSession(object):
             except (OSError, IOError):
                 pass
             return
-        elif self._master_delete:
+        if self._master_delete:
             raise BadDelete(
                 "Master deletes of pages require that recursive " "deleting is enabled."
             )

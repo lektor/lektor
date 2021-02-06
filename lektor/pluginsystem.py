@@ -26,7 +26,7 @@ def get_plugin(plugin_id_or_class, env=None):
         raise LookupError("Plugin %r not found" % plugin_id) from error
 
 
-class Plugin(object):
+class Plugin:
     """This needs to be subclassed for custom plugins."""
 
     name = "Your Plugin Name"
@@ -130,7 +130,7 @@ def initialize_plugins(env):
     env.plugin_controller.emit("setup-env")
 
 
-class PluginController(object):
+class PluginController:
     """Helper management class that is used to control plugins through
     the environment.
     """

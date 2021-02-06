@@ -10,7 +10,7 @@ from lektor.utils import get_cache_dir
 from lektor.utils import untrusted_to_os_path
 
 
-class Project(object):
+class Project:
     def __init__(self, name, project_file, tree, themes=None):
         self.name = name
         self.project_file = project_file
