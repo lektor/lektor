@@ -5,8 +5,8 @@ import os
 from inifile import IniFile
 
 from lektor.constants import PRIMARY_ALT
-from lektor.environment import Expression
-from lektor.environment import FormatExpression
+from lektor.environment.expressions import Expression
+from lektor.environment.expressions import FormatExpression
 from lektor.i18n import generate_i18n_kvs
 from lektor.i18n import get_i18n_block
 from lektor.pagination import Pagination
