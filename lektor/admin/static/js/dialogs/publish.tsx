@@ -3,7 +3,7 @@ import React, { ChangeEvent, createRef, RefObject } from "react";
 import SlideDialog from "../components/SlideDialog";
 import { getApiUrl } from "../utils";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, trans_fallback } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 import { RecordProps } from "../components/RecordComponent";
 
@@ -31,7 +31,10 @@ function TargetServers({
   }
   const serverOptions = servers.map((server) => (
     <option value={server.id} key={server.id}>
-      {trans(server.name_i18n, server.name) + " (" + server.short_target + ")"}
+      {trans_fallback(server.name_i18n, server.name) +
+        " (" +
+        server.short_target +
+        ")"}
     </option>
   ));
 

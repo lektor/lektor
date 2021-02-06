@@ -4,7 +4,7 @@ import {
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
-import { trans, Translatable } from "../i18n";
+import { trans, Translatable, trans_format } from "../i18n";
 import { formatUserLabel } from "../userLabel";
 import { loadData } from "../fetch";
 import { slugify } from "../slugify";
@@ -148,9 +148,9 @@ class AddChildPage extends Component<RecordProps, State> {
     loadData("/newrecord", null, { json: params, method: "POST" }).then(
       (resp) => {
         if (resp.exists) {
-          errMsg(trans("ERROR_PAGE_ID_DUPLICATE").replace("%s", id));
+          errMsg(trans_format("ERROR_PAGE_ID_DUPLICATE", id));
         } else if (!resp.valid_id) {
-          errMsg(trans("ERROR_INVALID_ID").replace("%s", id));
+          errMsg(trans_format("ERROR_INVALID_ID", id));
         } else {
           const urlPath = getUrlRecordPathWithAlt(
             resp.path,
@@ -195,7 +195,7 @@ class AddChildPage extends Component<RecordProps, State> {
 
     return (
       <div className="edit-area">
-        <h2>{trans("ADD_CHILD_PAGE_TO").replace("%s", newChildInfo.label)}</h2>
+        <h2>{trans_format("ADD_CHILD_PAGE_TO", newChildInfo.label)}</h2>
         <p>{trans("ADD_CHILD_PAGE_NOTE")}</p>
         {!newChildInfo.implied_model && (
           <FieldRow key="_model">

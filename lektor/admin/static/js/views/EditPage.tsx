@@ -8,7 +8,7 @@ import {
 } from "../components/RecordComponent";
 import { isMetaKey } from "../utils";
 import { loadData } from "../fetch";
-import { trans, Translatable } from "../i18n";
+import { trans, Translatable, trans_fallback, trans_format } from "../i18n";
 import {
   getWidgetComponentWithFallback,
   FieldBox,
@@ -275,13 +275,11 @@ class EditPage extends Component<RecordProps, State> {
       return null;
     }
 
-    const title = recordInfo.is_attachment
-      ? trans("EDIT_ATTACHMENT_METADATA_OF")
-      : trans("EDIT_PAGE_NAME");
+    const label = trans_fallback(recordInfo.label_i18n, recordInfo.label);
 
-    const label = recordInfo.label_i18n
-      ? trans(recordInfo.label_i18n)
-      : recordInfo.label;
+    const title = recordInfo.is_attachment
+      ? trans_format("EDIT_ATTACHMENT_METADATA_OF", label)
+      : trans_format("EDIT_PAGE_NAME", label);
 
     const fields = legalFields(recordDataModel, recordInfo);
 
@@ -290,7 +288,7 @@ class EditPage extends Component<RecordProps, State> {
         {this.state.hasPendingChanges && (
           <Prompt message={() => trans("UNLOAD_ACTIVE_TAB")} />
         )}
-        <h2>{title.replace("%s", label)}</h2>
+        <h2>{title}</h2>
         <form ref={this.form} onSubmit={this.saveChanges}>
           <FieldRows fields={fields} renderFunc={this.renderFormField} />
           <div className="actions">

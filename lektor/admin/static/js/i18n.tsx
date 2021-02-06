@@ -30,9 +30,38 @@ export function getCurrentLanguge() {
 
 export type Translatable = Partial<Record<string, string>> | string;
 
-export function trans(key: Translatable, fallback?: string): string {
+/**
+ * Get translation for a key.
+ * @param key - The translation key.
+ */
+export function trans(key: Translatable): string {
   if (typeof key === "object") {
-    return key[currentLanguage] ?? key.en ?? fallback ?? "MISSING TRANSLATION";
+    return key[currentLanguage] ?? key.en ?? "";
   }
-  return currentTranslations[key] || key;
+  return currentTranslations[key] ?? key;
+}
+
+/**
+ * Get translation for a key with a fallback.
+ * @param key - The translation key
+ * @param fallback - A fallback to use if the translation is missing.
+ */
+export function trans_fallback(
+  key: Translatable | undefined,
+  fallback: string
+): string {
+  if (!key) {
+    return fallback;
+  }
+  return trans(key) || fallback;
+}
+
+/**
+ * Get translation for a key with a `%s` replacement.
+ * @param key - The translation key
+ * @param replacement - replacement for `%s`.
+ */
+export function trans_format(key: Translatable, replacement: string): string {
+  const translation = trans(key);
+  return translation.replace("%s", replacement);
 }

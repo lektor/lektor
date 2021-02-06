@@ -6,7 +6,7 @@ import {
 } from "../components/RecordComponent";
 import { getParentFsPath } from "../utils";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, trans_fallback, trans_format } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { bringUpDialog } from "../richPromise";
@@ -157,14 +157,14 @@ class DeletePage extends Component<RecordProps, State> {
       );
     }
 
-    let label = ri.label_i18n ? trans(ri.label_i18n) : ri.id;
+    let label = trans_fallback(ri.label_i18n, ri.id);
     if (currentRecordAlternative !== "_primary" && altInfo !== undefined) {
       label += " (" + trans(altInfo.name_i18n) + ")";
     }
 
     return (
       <div>
-        <h2>{trans("DELETE_RECORD").replace("%s", label)}</h2>
+        <h2>{trans_format("DELETE_RECORD", label)}</h2>
         {ri.is_attachment ? (
           <p>
             {this.isPrimary()
