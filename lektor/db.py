@@ -19,13 +19,13 @@ from werkzeug.utils import cached_property
 
 from lektor import metaformat
 from lektor.assets import Directory
+from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.context import get_ctx
 from lektor.databags import Databags
 from lektor.datamodel import load_datamodels
 from lektor.datamodel import load_flowblocks
 from lektor.editor import make_editor_session
-from lektor.environment import PRIMARY_ALT
 from lektor.filecontents import FileContents
 from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail

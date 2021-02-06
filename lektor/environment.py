@@ -13,6 +13,7 @@ from jinja2.loaders import split_template_path
 from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
+from lektor.constants import PRIMARY_ALT
 from lektor.context import config_proxy
 from lektor.context import get_asset_url
 from lektor.context import get_ctx
@@ -28,8 +29,6 @@ from lektor.utils import secure_url
 from lektor.utils import tojson_filter
 
 
-# Special value that identifies a target to the primary alt
-PRIMARY_ALT = "_primary"
 DEFAULT_CONFIG = {
     "IMAGEMAGICK_EXECUTABLE": None,
     "EPHEMERAL_RECORD_CACHE_SIZE": 500,

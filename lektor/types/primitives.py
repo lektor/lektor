@@ -5,7 +5,7 @@ from babel.dates import get_timezone
 from markupsafe import Markup
 from pytz import FixedOffset
 
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 from lektor.i18n import get_i18n_block
 from lektor.types.base import Type
 from lektor.utils import bool_from_string

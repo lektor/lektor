@@ -3,7 +3,7 @@ import posixpath
 import shutil
 from collections import OrderedDict
 
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 from lektor.metaformat import serialize
 from lektor.utils import atomic_open
 from lektor.utils import increment_filename

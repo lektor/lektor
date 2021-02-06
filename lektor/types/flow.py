@@ -4,8 +4,8 @@ from jinja2 import is_undefined
 from jinja2 import TemplateNotFound
 from markupsafe import Markup
 
+from lektor.constants import PRIMARY_ALT
 from lektor.context import get_ctx
-from lektor.environment import PRIMARY_ALT
 from lektor.metaformat import tokenize
 from lektor.types.base import Type
 

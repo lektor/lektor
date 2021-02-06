@@ -4,9 +4,9 @@ from itertools import chain
 
 from lektor.assets import Directory
 from lektor.assets import File
+from lektor.constants import PRIMARY_ALT
 from lektor.db import Attachment
 from lektor.db import Page
-from lektor.environment import PRIMARY_ALT
 from lektor.exception import LektorException
 
 

@@ -1,4 +1,4 @@
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 from lektor.i18n import get_i18n_block
 from lektor.types.base import Type
 

@@ -1,8 +1,8 @@
 import traceback
 
+from lektor.constants import PRIMARY_ALT
 from lektor.environment import Expression
 from lektor.environment import FormatExpression
-from lektor.environment import PRIMARY_ALT
 from lektor.i18n import get_i18n_block
 from lektor.types.base import Type
 

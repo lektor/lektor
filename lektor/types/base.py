@@ -1,6 +1,6 @@
 from jinja2 import Undefined
 
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 
 
 class BadValue(Undefined):

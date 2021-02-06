@@ -9,7 +9,7 @@ from flask import jsonify
 from flask import request
 
 from lektor.admin.utils import eventstream
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 from lektor.publisher import publish
 from lektor.publisher import PublishError
 from lektor.utils import is_valid_id

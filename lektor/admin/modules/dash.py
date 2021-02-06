@@ -8,7 +8,7 @@ from flask import url_for
 from werkzeug.wsgi import extract_path_info
 
 from lektor.admin.utils import fs_path_to_url_path
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 
 
 bp = Blueprint("dash", __name__, url_prefix="/admin")
