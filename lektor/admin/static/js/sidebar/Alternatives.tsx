@@ -6,7 +6,7 @@ import {
 } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { Alternative } from "../components/types";
-import { trans } from "../i18n";
+import { trans, trans_obj } from "../i18n";
 
 type Props = RecordProps & { recordAlts: Alternative[] };
 
@@ -18,7 +18,7 @@ export default class Alternatives extends PureComponent<Props, unknown> {
     }
 
     const items = recordAlts.map((item) => {
-      let title = trans(item.name_i18n);
+      let title = trans_obj(item.name_i18n);
       let className = "alt";
       if (item.is_primary) {
         title += " (" + trans("PRIMARY_ALT") + ")";

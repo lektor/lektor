@@ -23,7 +23,7 @@ import {
   WidgetType,
 } from "./widgets/types";
 import ToggleGroup from "./components/ToggleGroup";
-import { trans } from "./i18n";
+import { trans, trans_obj } from "./i18n";
 
 const widgetComponents = {
   "singleline-text": SingleLineTextInputWidget,
@@ -87,13 +87,13 @@ export const FieldBox = React.memo(function FieldBox(props: {
   }
 
   const description = field.description_i18n ? (
-    <div className="help-text">{trans(field.description_i18n)}</div>
+    <div className="help-text">{trans_obj(field.description_i18n)}</div>
   ) : null;
 
   return (
     <div className={className} key={field.name}>
       <dl className={innerClassName}>
-        {!field.hide_label ? <dt>{trans(field.label_i18n)}</dt> : null}
+        {!field.hide_label ? <dt>{trans_obj(field.label_i18n)}</dt> : null}
         <dd>
           {description}
           <Widget

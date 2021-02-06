@@ -6,7 +6,7 @@ import {
 } from "../components/RecordComponent";
 import { getParentFsPath } from "../utils";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, trans_fallback, trans_format, trans_obj } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { bringUpDialog } from "../richPromise";
@@ -110,7 +110,7 @@ class DeletePage extends Component<RecordProps, State> {
         if (!item.exists) {
           return;
         }
-        let title = trans(item.name_i18n);
+        let title = trans_obj(item.name_i18n);
         if (item.is_primary) {
           title += " (" + trans("PRIMARY_ALT") + ")";
         } else if (item.primary_overlay) {
@@ -157,14 +157,14 @@ class DeletePage extends Component<RecordProps, State> {
       );
     }
 
-    let label = ri.label_i18n ? trans(ri.label_i18n) : ri.id;
+    let label = trans_fallback(ri.label_i18n, ri.id);
     if (currentRecordAlternative !== "_primary" && altInfo !== undefined) {
-      label += " (" + trans(altInfo.name_i18n) + ")";
+      label += " (" + trans_obj(altInfo.name_i18n) + ")";
     }
 
     return (
       <div>
-        <h2>{trans("DELETE_RECORD").replace("%s", label)}</h2>
+        <h2>{trans_format("DELETE_RECORD", label)}</h2>
         {ri.is_attachment ? (
           <p>
             {this.isPrimary()
@@ -193,7 +193,7 @@ class DeletePage extends Component<RecordProps, State> {
             <h4>{trans("CHILD_PAGES_TO_BE_DELETED")}</h4>
             <ul>
               {ri.children.map((child) => (
-                <li key={child.id}>{trans(child.label_i18n)}</li>
+                <li key={child.id}>{trans_obj(child.label_i18n)}</li>
               ))}
             </ul>
           </div>
@@ -211,10 +211,18 @@ class DeletePage extends Component<RecordProps, State> {
           </div>
         )}
         <div className="actions">
-          <button className="btn btn-primary" onClick={this.deleteRecord}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={this.deleteRecord}
+          >
             {trans("YES_DELETE")}
           </button>
-          <button className="btn btn-default" onClick={this.cancelDelete}>
+          <button
+            type="button"
+            className="btn btn-default"
+            onClick={this.cancelDelete}
+          >
             {trans("NO_CANCEL")}
           </button>
         </div>

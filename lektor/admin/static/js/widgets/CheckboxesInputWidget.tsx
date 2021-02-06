@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from "react";
-import { trans } from "../i18n";
+import { trans_obj } from "../i18n";
 import { MultiWidgetType, WidgetProps } from "./types";
 
 function checkboxIsActive(field: string, props: WidgetProps<string[]>) {
@@ -68,7 +68,7 @@ export class CheckboxesInputWidget extends React.PureComponent<
             checked={checkboxIsActive(item[0], this.props)}
             onChange={(e) => onChangeHandler(item[0], e)}
           />
-          {trans(item[1])}
+          {trans_obj(item[1])}
         </label>
       </div>
     ));

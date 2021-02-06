@@ -4,7 +4,7 @@ export type Alternative = {
   alt: string;
   is_primary: boolean;
   primary_overlay: boolean;
-  name_i18n: string;
+  name_i18n: Translatable;
   exists: boolean;
 };
 

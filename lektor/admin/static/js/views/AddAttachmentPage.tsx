@@ -4,7 +4,7 @@ import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { getApiUrl } from "../utils";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, trans_format } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 
 type NewAttachmentInfo = {
@@ -107,9 +107,7 @@ class AddAttachmentPage extends Component<RecordProps, State> {
 
     return (
       <div>
-        <h2>
-          {trans("ADD_ATTACHMENT_TO").replace("%s", newAttachmentInfo.label)}
-        </h2>
+        <h2>{trans_format("ADD_ATTACHMENT_TO", newAttachmentInfo.label)}</h2>
         <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
         <ul>
           {this.state.currentFiles.map((file) => (

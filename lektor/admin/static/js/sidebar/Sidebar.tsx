@@ -1,6 +1,6 @@
 import React, { Component, MouseEvent } from "react";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, trans_obj } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import {
@@ -118,8 +118,8 @@ class Sidebar extends Component<RecordProps, State> {
           }
           const alts: Alternative[] = resp.alts;
           alts.sort((a, b) => {
-            const nameA = (a.is_primary ? "A" : "B") + trans(a.name_i18n);
-            const nameB = (b.is_primary ? "A" : "B") + trans(b.name_i18n);
+            const nameA = (a.is_primary ? "A" : "B") + trans_obj(a.name_i18n);
+            const nameB = (b.is_primary ? "A" : "B") + trans_obj(b.name_i18n);
             return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
           });
           this.setState({
@@ -197,7 +197,7 @@ class Sidebar extends Component<RecordProps, State> {
               return (
                 <li key={child.id}>
                   <Link to={`${urlPath}/${target}`}>
-                    {trans(child.label_i18n)}
+                    {trans_obj(child.label_i18n)}
                   </Link>
                 </li>
               );
