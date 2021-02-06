@@ -28,9 +28,6 @@ from werkzeug.http import http_date
 from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
-from lektor.uilink import BUNDLE_BIN_PATH
-from lektor.uilink import EXTRA_PATHS
-
 
 is_windows = os.name == "nt"
 
@@ -307,11 +304,6 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
 
     if resolve:
         paths = os.environ.get("PATH", "").split(os.pathsep)
-        if BUNDLE_BIN_PATH and include_bundle_path:
-            paths.insert(0, BUNDLE_BIN_PATH)
-        for extra_path in EXTRA_PATHS:
-            if extra_path not in paths:
-                paths.append(extra_path)
         choices = [os.path.join(path, exe_file) for path in paths]
 
     if os.name == "nt":

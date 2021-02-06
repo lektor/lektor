@@ -2,8 +2,6 @@ import os
 
 from flask import json
 
-from lektor.uilink import UI_LANG
-
 
 translations_path = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "translations"
@@ -33,8 +31,6 @@ def is_valid_language(lang):
 
 def get_default_lang():
     """Returns the default language the system should use."""
-    if UI_LANG is not None:
-        return UI_LANG
     for key in "LANGUAGE", "LC_ALL", "LC_CTYPE", "LANG":
         value = os.environ.get(key)
         if not value:
