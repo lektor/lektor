@@ -270,7 +270,7 @@ class EditPage extends Component<RecordProps, State> {
 
   render() {
     // we have not loaded anything yet.
-    const { recordInfo, recordDataModel } = this.state;
+    const { recordInfo, recordDataModel, hasPendingChanges } = this.state;
     if (recordInfo === null || recordDataModel === null) {
       return null;
     }
@@ -294,7 +294,11 @@ class EditPage extends Component<RecordProps, State> {
         <form ref={this.form} onSubmit={this.saveChanges}>
           <FieldRows fields={fields} renderFunc={this.renderFormField} />
           <div className="actions">
-            <button type="submit" className="btn btn-primary">
+            <button
+              type="submit"
+              disabled={!hasPendingChanges}
+              className="btn btn-primary"
+            >
               {trans("SAVE_CHANGES")}
             </button>
             {recordInfo.can_be_deleted ? (
