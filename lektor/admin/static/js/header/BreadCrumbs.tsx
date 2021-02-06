@@ -6,7 +6,7 @@ import {
 } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { loadData } from "../fetch";
-import { trans } from "../i18n";
+import { trans, trans_fallback } from "../i18n";
 import { bringUpDialog } from "../richPromise";
 import GlobalActions from "./GlobalActions";
 
@@ -72,7 +72,7 @@ class BreadCrumbs extends Component<Props, State> {
             item.path,
             this.props.record.alt
           );
-          let label = item.label_i18n ? trans(item.label_i18n) : item.label;
+          let label = trans_fallback(item.label_i18n, item.label);
           let className = "record-crumb";
 
           if (!item.exists) {

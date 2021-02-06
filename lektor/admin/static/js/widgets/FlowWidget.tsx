@@ -1,5 +1,5 @@
 import React from "react";
-import { trans, Translatable } from "../i18n";
+import { trans, Translatable, trans_obj } from "../i18n";
 import { tokenize, serialize } from "../metaformat";
 import { formatUserLabel } from "../userLabel";
 import { Field, BaseWidgetType, WidgetProps } from "./types";
@@ -328,7 +328,7 @@ export class FlowWidget extends React.PureComponent<
           type="button"
           className="btn btn-default"
           onClick={this.addNewBlock.bind(this, key)}
-          title={trans(flowBlockModel.name_i18n)}
+          title={trans_obj(flowBlockModel.name_i18n)}
           key={flowBlockModel.id}
         >
           {label}

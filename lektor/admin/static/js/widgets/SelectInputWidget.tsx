@@ -1,5 +1,5 @@
 import React from "react";
-import { trans } from "../i18n";
+import { trans_obj } from "../i18n";
 import { getInputClass, MultiWidgetType, WidgetProps } from "./types";
 
 export function SelectInputWidget(props: WidgetProps<string, MultiWidgetType>) {
@@ -7,7 +7,7 @@ export function SelectInputWidget(props: WidgetProps<string, MultiWidgetType>) {
 
   const choices = type.choices.map((item) => (
     <option key={item[0]} value={item[0]}>
-      {trans(item[1])}
+      {trans_obj(item[1])}
     </option>
   ));
 

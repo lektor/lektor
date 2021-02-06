@@ -28,32 +28,37 @@ export function getCurrentLanguge() {
   return currentLanguage;
 }
 
-export type Translatable = Partial<Record<string, string>> | string;
+export type Translatable = Partial<Record<string, string>>;
 
 /**
  * Get translation for a key.
  * @param key - The translation key.
  */
-export function trans(key: Translatable): string {
-  if (typeof key === "object") {
-    return key[currentLanguage] ?? key.en ?? "";
-  }
+export function trans(key: string): string {
   return currentTranslations[key] ?? key;
 }
 
 /**
+ * Get translation from an object of translations
+ * @param translation_object - The object containing translations.
+ */
+export function trans_obj(translation_object: Translatable): string {
+  return translation_object[currentLanguage] ?? translation_object.en ?? "";
+}
+
+/**
  * Get translation for a key with a fallback.
- * @param key - The translation key
+ * @param translation_object - The translation key
  * @param fallback - A fallback to use if the translation is missing.
  */
 export function trans_fallback(
-  key: Translatable | undefined,
+  translation_object: Translatable | undefined,
   fallback: string
 ): string {
-  if (!key) {
+  if (!translation_object) {
     return fallback;
   }
-  return trans(key) || fallback;
+  return trans_obj(translation_object) || fallback;
 }
 
 /**
@@ -61,7 +66,7 @@ export function trans_fallback(
  * @param key - The translation key
  * @param replacement - replacement for `%s`.
  */
-export function trans_format(key: Translatable, replacement: string): string {
+export function trans_format(key: string, replacement: string): string {
   const translation = trans(key);
   return translation.replace("%s", replacement);
 }

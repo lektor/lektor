@@ -6,7 +6,7 @@ import {
 } from "../components/RecordComponent";
 import { getParentFsPath } from "../utils";
 import { loadData } from "../fetch";
-import { trans, trans_fallback, trans_format } from "../i18n";
+import { trans, trans_fallback, trans_format, trans_obj } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
 import { bringUpDialog } from "../richPromise";
@@ -110,7 +110,7 @@ class DeletePage extends Component<RecordProps, State> {
         if (!item.exists) {
           return;
         }
-        let title = trans(item.name_i18n);
+        let title = trans_obj(item.name_i18n);
         if (item.is_primary) {
           title += " (" + trans("PRIMARY_ALT") + ")";
         } else if (item.primary_overlay) {
@@ -159,7 +159,7 @@ class DeletePage extends Component<RecordProps, State> {
 
     let label = trans_fallback(ri.label_i18n, ri.id);
     if (currentRecordAlternative !== "_primary" && altInfo !== undefined) {
-      label += " (" + trans(altInfo.name_i18n) + ")";
+      label += " (" + trans_obj(altInfo.name_i18n) + ")";
     }
 
     return (
@@ -193,7 +193,7 @@ class DeletePage extends Component<RecordProps, State> {
             <h4>{trans("CHILD_PAGES_TO_BE_DELETED")}</h4>
             <ul>
               {ri.children.map((child) => (
-                <li key={child.id}>{trans(child.label_i18n)}</li>
+                <li key={child.id}>{trans_obj(child.label_i18n)}</li>
               ))}
             </ul>
           </div>

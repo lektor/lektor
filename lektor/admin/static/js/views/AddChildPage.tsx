@@ -4,7 +4,7 @@ import {
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
-import { trans, Translatable, trans_format } from "../i18n";
+import { trans, Translatable, trans_format, trans_obj } from "../i18n";
 import { formatUserLabel } from "../userLabel";
 import { loadData } from "../fetch";
 import { slugify } from "../slugify";
@@ -208,7 +208,7 @@ class AddChildPage extends Component<RecordProps, State> {
               >
                 {getAvailableModels(newChildInfo).map((model) => (
                   <option value={model.id} key={model.id}>
-                    {trans(model.name_i18n)}
+                    {trans_obj(model.name_i18n)}
                   </option>
                 ))}
               </select>

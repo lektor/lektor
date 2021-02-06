@@ -1,6 +1,6 @@
 import React, { ChangeEvent, createRef, RefObject } from "react";
 import { WidgetProps } from "./types";
-import { trans } from "../i18n";
+import { trans_obj } from "../i18n";
 
 function isTrue(value?: string) {
   return value === "true" || value === "yes" || value === "1";
@@ -44,7 +44,9 @@ export class BooleanInputWidget extends React.Component<WidgetProps, unknown> {
             checked={isTrue(value)}
             onChange={this.onChange}
           />
-          {type.checkbox_label_i18n ? trans(type.checkbox_label_i18n) : null}
+          {type.checkbox_label_i18n
+            ? trans_obj(type.checkbox_label_i18n)
+            : null}
         </label>
       </div>
     );

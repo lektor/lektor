@@ -1,12 +1,12 @@
 import React from "react";
-import { trans, Translatable } from "./i18n";
+import { trans_obj, Translatable } from "./i18n";
 
 /**
  * Formats a user label appropriately
  */
-export function formatUserLabel(inputConfig: Translatable) {
+export function formatUserLabel(inputConfig: Translatable | string) {
   const label =
-    typeof inputConfig === "string" ? inputConfig : trans(inputConfig);
+    typeof inputConfig === "string" ? inputConfig : trans_obj(inputConfig);
 
   if (!label) {
     return <span />;
