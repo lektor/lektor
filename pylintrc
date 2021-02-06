@@ -28,7 +28,6 @@ disable =
     too-many-arguments,
     too-few-public-methods,
     too-many-public-methods,
-    cyclic-import,
     duplicate-code,
     useless-object-inheritance,
     no-else-return,
