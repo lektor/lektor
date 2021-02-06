@@ -26,7 +26,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(j|t)sx?$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
         loader: "babel-loader",
         options: {
@@ -42,13 +42,16 @@ module.exports = {
         test: /\.less$/,
         use: [
           MiniCssExtractPlugin.loader,
-          "css-loader?sourceMap",
-          "less-loader?sourceMap",
+          { loader: "css-loader", options: { sourceMap: true } },
+          { loader: "less-loader", options: { sourceMap: true } },
         ],
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader?sourceMap"],
+        use: [
+          MiniCssExtractPlugin.loader,
+          { loader: "css-loader", options: { sourceMap: true } },
+        ],
       },
       {
         test: /\.(ttf|eot|svg|woff2?)(\?v=\d+\.\d+\.\d+)?$/,
