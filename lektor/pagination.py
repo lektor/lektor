@@ -21,7 +21,7 @@ class Pagination:
 
     @property
     def pages(self):
-        """The total number of pages"""
+        """The total number of pages."""
         if self.per_page == 0:
             pages = 0
         else:
@@ -30,42 +30,44 @@ class Pagination:
 
     @property
     def prev_num(self):
-        """Number of the previous page."""
+        """The page number of the previous page."""
         if self.page > 1:
             return self.page - 1
         return None
 
     @property
     def has_prev(self):
-        """True if a previous page exists"""
+        """True if a previous page exists."""
         return self.page > 1
 
     @property
     def prev(self):
+        """The record for the previous page."""
         if not self.has_prev:
             return None
         return self.config.get_record_for_page(self.current, self.page - 1)
 
     @property
     def has_next(self):
-        """True if a next page exists."""
+        """True if a following page exists."""
         return self.page < self.pages
 
     @property
     def next_num(self):
-        """Number of the next page"""
+        """The page number of the following page."""
         if self.page < self.pages:
             return self.page + 1
         return None
 
     @property
     def next(self):
+        """The record for the following page."""
         if not self.has_next:
             return None
         return self.config.get_record_for_page(self.current, self.page + 1)
 
     def for_page(self, page):
-        """Returns the pagination for a specific page."""
+        """Returns the record for a specific page."""
         if 1 <= page <= self.pages:
             return self.config.get_record_for_page(self.current, page)
         return None
