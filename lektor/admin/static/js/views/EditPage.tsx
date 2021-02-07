@@ -6,7 +6,7 @@ import {
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
-import { isMetaKey } from "../utils";
+import { keyboardShortcutHandler } from "../utils";
 import { loadData } from "../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../i18n";
 import {
@@ -96,6 +96,8 @@ function getPlaceholderForField(
 class EditPage extends Component<RecordProps, State> {
   form: RefObject<HTMLFormElement>;
 
+  onKeyPress: (ev: KeyboardEvent) => void;
+
   constructor(props: RecordProps) {
     super(props);
 
@@ -106,8 +108,15 @@ class EditPage extends Component<RecordProps, State> {
       hasPendingChanges: false,
     };
     this.form = createRef();
+    this.onKeyPress = keyboardShortcutHandler(
+      { key: "Control+s", mac: "Meta+s", preventDefault: true },
+      () => {
+        if (this.form.current?.reportValidity()) {
+          this.saveChanges();
+        }
+      }
+    );
 
-    this.onKeyPress = this.onKeyPress.bind(this);
     this.setFieldValue = this.setFieldValue.bind(this);
     this.saveChanges = this.saveChanges.bind(this);
     this.renderFormField = this.renderFormField.bind(this);
@@ -127,17 +136,6 @@ class EditPage extends Component<RecordProps, State> {
 
   componentWillUnmount() {
     window.removeEventListener("keydown", this.onKeyPress);
-  }
-
-  onKeyPress(event: KeyboardEvent) {
-    // Command+s/Ctrl+s to save
-    if (event.key === "s" && isMetaKey(event)) {
-      event.preventDefault();
-      const form = this.form.current;
-      if (form && form.reportValidity()) {
-        this.saveChanges();
-      }
-    }
   }
 
   syncEditor() {

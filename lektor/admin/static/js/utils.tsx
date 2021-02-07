@@ -64,15 +64,36 @@ export function getPlatform() {
   return "other";
 }
 
-/**
- * Whether the meta key (command on Mac, Ctrl otherwise) and no other control
- * keys is pressed.
- * @param event - A keyboard event.
- */
-export function isMetaKey(event: KeyboardEvent) {
-  return getPlatform() === "mac"
-    ? event.metaKey && !event.altKey && !event.shiftKey
-    : event.ctrlKey && !event.altKey && !event.shiftKey;
+export interface KeyboardShortcut {
+  key: string;
+  mac?: string;
+  preventDefault?: boolean;
+}
+
+export function keyboardShortcutHandler(
+  shortcut: KeyboardShortcut,
+  action: (ev: KeyboardEvent) => void
+): (ev: KeyboardEvent) => void {
+  const key =
+    getPlatform() === "mac" && shortcut.mac ? shortcut.mac : shortcut.key;
+  return (ev) => {
+    let eventKey = ev.key;
+    if (ev.altKey) {
+      eventKey = `Alt+${eventKey}`;
+    }
+    if (ev.ctrlKey) {
+      eventKey = `Control+${eventKey}`;
+    }
+    if (ev.metaKey) {
+      eventKey = `Meta+${eventKey}`;
+    }
+    if (eventKey === key) {
+      if (shortcut.preventDefault) {
+        ev.preventDefault();
+      }
+      action(ev);
+    }
+  };
 }
 
 export function getParentFsPath(fsPath: string) {
