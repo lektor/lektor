@@ -70,12 +70,15 @@ export interface KeyboardShortcut {
   preventDefault?: boolean;
 }
 
+export function getKey(shortcut: KeyboardShortcut): string {
+  return getPlatform() === "mac" && shortcut.mac ? shortcut.mac : shortcut.key;
+}
+
 export function keyboardShortcutHandler(
   shortcut: KeyboardShortcut,
   action: (ev: KeyboardEvent) => void
 ): (ev: KeyboardEvent) => void {
-  const key =
-    getPlatform() === "mac" && shortcut.mac ? shortcut.mac : shortcut.key;
+  const key = getKey(shortcut);
   return (ev) => {
     let eventKey = ev.key;
     if (ev.altKey) {

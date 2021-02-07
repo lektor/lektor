@@ -9,6 +9,7 @@ import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
 import { bringUpDialog } from "../richPromise";
+import LinkWithHotkey from "../components/LinkWithHotkey";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -44,6 +45,8 @@ function BrowseFSLink({ record }: Pick<RecordProps, "record">) {
   );
 }
 
+const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
+
 function PageActions({
   record,
   recordInfo,
@@ -59,9 +62,9 @@ function PageActions({
       </h3>
       <ul className="nav">
         <li key="edit">
-          <Link to={`${urlPath}/edit`}>
+          <LinkWithHotkey to={`${urlPath}/edit`} shortcut={editKey}>
             {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
-          </Link>
+          </LinkWithHotkey>
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">
