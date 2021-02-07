@@ -1,4 +1,4 @@
-import React, { PureComponent, MouseEvent } from "react";
+import React, { MouseEvent, memo, useCallback } from "react";
 import {
   getUrlRecordPathWithAlt,
   RecordProps,
@@ -9,8 +9,6 @@ import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
 import { bringUpDialog } from "../richPromise";
-
-type Props = RecordProps & { recordInfo: RecordInfo };
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -23,75 +21,74 @@ const getBrowseButtonTitle = () => {
   }
 };
 
-export default class PageActions extends PureComponent<Props, unknown> {
-  constructor(props: Props) {
-    super(props);
-    this.fsOpen = this.fsOpen.bind(this);
-  }
-
-  fsOpen(event: MouseEvent) {
-    event.preventDefault();
-    loadData(
-      "/browsefs",
-      { path: this.props.record.path, alt: this.props.record.alt },
-      { method: "POST" }
-    ).then((resp) => {
-      if (!resp.okay) {
-        alert(trans("ERROR_CANNOT_BROWSE_FS"));
-      }
-    }, bringUpDialog);
-  }
-
-  render() {
-    const urlPath = getUrlRecordPathWithAlt(
-      this.props.record.path,
-      this.props.record.alt
-    );
-
-    const { recordInfo } = this.props;
-
-    const title = recordInfo.is_attachment
-      ? trans("ATTACHMENT_ACTIONS")
-      : trans("PAGE_ACTIONS");
-
-    return (
-      <div className="section">
-        <h3>{title}</h3>
-        <ul className="nav">
-          <li key="edit">
-            <Link to={`${urlPath}/edit`}>
-              {recordInfo.is_attachment
-                ? trans("EDIT_METADATA")
-                : trans("EDIT")}
-            </Link>
-          </li>
-          {recordInfo.can_be_deleted && (
-            <li key="delete">
-              <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
-            </li>
-          )}
-          <li key="preview">
-            <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
-          </li>
-          {recordInfo.exists && (
-            <li key="fs-open">
-              <a href="#" onClick={this.fsOpen}>
-                {getBrowseButtonTitle()}
-              </a>
-            </li>
-          )}
-          {recordInfo.can_have_children && (
-            <li key="add-child">
-              <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
-            </li>
-          )}
-          {recordInfo.can_have_attachments && (
-            <li key="add-attachment">
-              <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
-            </li>
-          )}
-        </ul>
-      </div>
-    );
-  }
+function BrowseFSLink({ record }: Pick<RecordProps, "record">) {
+  const fsOpen = useCallback(
+    (ev: MouseEvent) => {
+      ev.preventDefault();
+      loadData(
+        "/browsefs",
+        { path: record.path, alt: record.alt },
+        { method: "POST" }
+      ).then((resp) => {
+        if (!resp.okay) {
+          alert(trans("ERROR_CANNOT_BROWSE_FS"));
+        }
+      }, bringUpDialog);
+    },
+    [record]
+  );
+  return (
+    <a href="#" onClick={fsOpen}>
+      {getBrowseButtonTitle()}
+    </a>
+  );
 }
+
+function PageActions({
+  record,
+  recordInfo,
+}: RecordProps & { recordInfo: RecordInfo }) {
+  const urlPath = getUrlRecordPathWithAlt(record.path, record.alt);
+
+  return (
+    <div className="section">
+      <h3>
+        {recordInfo.is_attachment
+          ? trans("ATTACHMENT_ACTIONS")
+          : trans("PAGE_ACTIONS")}
+      </h3>
+      <ul className="nav">
+        <li key="edit">
+          <Link to={`${urlPath}/edit`}>
+            {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
+          </Link>
+        </li>
+        {recordInfo.can_be_deleted && (
+          <li key="delete">
+            <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
+          </li>
+        )}
+        <li key="preview">
+          <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
+        </li>
+        {recordInfo.exists && (
+          <li key="fs-open">
+            <BrowseFSLink record={record} />
+          </li>
+        )}
+        {recordInfo.can_have_children && (
+          <li key="add-child">
+            <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
+          </li>
+        )}
+        {recordInfo.can_have_attachments && (
+          <li key="add-attachment">
+            <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+export default memo(PageActions);
