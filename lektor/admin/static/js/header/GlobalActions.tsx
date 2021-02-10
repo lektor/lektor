@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import { isMetaKey, getCanonicalUrl } from "../utils";
+import { getCanonicalUrl, keyboardShortcutHandler } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
 import dialogSystem from "../dialogSystem";
@@ -21,13 +21,10 @@ function showPublishDialog() {
   dialogSystem.showDialog(Publish);
 }
 
-function onKeyPress(event: KeyboardEvent) {
-  // Command+g/Ctrl+g to open the find files dialog.
-  if (event.key === "g" && isMetaKey(event)) {
-    event.preventDefault();
-    dialogSystem.showDialog(FindFiles);
-  }
-}
+const onKeyPress = keyboardShortcutHandler(
+  { key: "Control+g", mac: "Meta+g", preventDefault: true },
+  () => dialogSystem.showDialog(FindFiles)
+);
 
 class GlobalActions extends Component<RecordProps, unknown> {
   constructor(props: RecordProps) {
