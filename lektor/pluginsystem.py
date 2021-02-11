@@ -115,9 +115,10 @@ def load_plugins():
         match_name = "lektor-" + ep.name.lower()
         if match_name != ep.dist.project_name.lower():
             raise RuntimeError(
-                "Mismatching entry point name.  Found "
-                '"%s" but expected "%s" for package "%s".'
-                % (ep.name, ep.dist.project_name[7:], ep.dist.project_name)
+                "Disallowed distribution name: distribution name for "
+                "plugin {ep.name!r} must be {match_name!r}.".format(
+                    ep=ep, match_name=match_name
+                )
             )
         rv[ep.name] = ep.load()
     return rv
