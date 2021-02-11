@@ -154,24 +154,31 @@ def install_local_package(package_root, path):
 
         if os.path.isfile(requires_path):
             # We have dependencies, install them!
-            requirements_path = \
-                requiriements_txt_from_requires_file_in_same_directory(requires_path)
-            download_and_install_package(package_root, requirements_file=requirements_path)
+            requirements_path = requiriements_txt_from_requires_file_in_same_directory(
+                requires_path
+            )
+            download_and_install_package(
+                package_root, requirements_file=requirements_path
+            )
 
     finally:
         shutil.rmtree(tmp)
 
+
 def requiriements_txt_from_requires_file_in_same_directory(requires_path):
     "requirex.txt can contain [extras_require] sections wich pip doesn't understand"
     requirements_path = os.path.join(os.path.dirname(requires_path), "requirements.txt")
-    with open(requirements_path, "w") as requirements, open(requires_path, 'r') as requires:
+    with open(requirements_path, "w") as requirements, open(
+        requires_path, "r"
+    ) as requires:
         for line in requires.readlines():
             # extra requires section starts here -> not valid requirements.txt syntax
-            if line.strip().startswith('['):
+            if line.strip().startswith("["):
                 break
             requirements.write(line)
 
     return requirements_path
+
 
 def get_package_info(path):
     """Returns the name of a package at a path."""

@@ -1,12 +1,11 @@
-import os
-import shutil
+import pathlib
 import tempfile
 import textwrap
-import pathlib
 
 import pytest
 
 from lektor import packages
+
 
 @pytest.fixture
 def temp_dir():
@@ -17,35 +16,41 @@ def temp_dir():
 def create_plugin(package_dir, plugin_name, setup):
     plugin_dir = package_dir / plugin_name
     plugin_dir.mkdir(parents=True)
-    setup_py = plugin_dir / 'setup.py'
+    setup_py = plugin_dir / "setup.py"
     setup_py.write_text(textwrap.dedent(setup))
     return plugin_dir
 
 
 def test_install_local_package_with_dependency(temp_dir):
-    packages_dir = temp_dir / 'packages'
-    plugin_dir = create_plugin(packages_dir, 'dependency', setup="""
+    packages_dir = temp_dir / "packages"
+    plugin_dir = create_plugin(
+        packages_dir,
+        "dependency",
+        setup="""
         from setuptools import setup
 
         setup(
             name='dependency',
             install_requires=['fluentpy']
         )
-        """
+        """,
     )
-    
-    install_dir = temp_dir / 'target'
+
+    install_dir = temp_dir / "target"
     install_dir.mkdir()
-    
+
     packages.install_local_package(install_dir, plugin_dir)
-    
-    assert (install_dir / 'dependency.egg-link').is_file()
-    assert (install_dir / 'fluentpy').is_dir()
+
+    assert (install_dir / "dependency.egg-link").is_file()
+    assert (install_dir / "fluentpy").is_dir()
 
 
 def test_install_local_package_with_dependency_and_extras_require(temp_dir):
-    packages_dir = temp_dir / 'packages'
-    plugin_dir = create_plugin(packages_dir, 'dependency', setup="""
+    packages_dir = temp_dir / "packages"
+    plugin_dir = create_plugin(
+        packages_dir,
+        "dependency",
+        setup="""
         from setuptools import setup
 
         setup(
@@ -55,22 +60,25 @@ def test_install_local_package_with_dependency_and_extras_require(temp_dir):
                 'test': ['pyexpect']
             }
         )
-        """
+        """,
     )
-    
-    install_dir = temp_dir / 'target'
+
+    install_dir = temp_dir / "target"
     install_dir.mkdir()
-    
+
     packages.install_local_package(install_dir, plugin_dir)
-    
-    assert (install_dir / 'dependency.egg-link').is_file()
-    assert (install_dir / 'fluentpy').is_dir()
-    assert not (install_dir / 'pyexpect').is_dir()
+
+    assert (install_dir / "dependency.egg-link").is_file()
+    assert (install_dir / "fluentpy").is_dir()
+    assert not (install_dir / "pyexpect").is_dir()
 
 
 def test_install_local_package_with_only_extras_require(temp_dir):
-    packages_dir = temp_dir / 'packages'
-    plugin_dir = create_plugin(packages_dir, 'extras_require', setup="""
+    packages_dir = temp_dir / "packages"
+    plugin_dir = create_plugin(
+        packages_dir,
+        "extras_require",
+        setup="""
         from setuptools import setup
 
         setup(
@@ -79,13 +87,13 @@ def test_install_local_package_with_only_extras_require(temp_dir):
                 'test': ['pyexpect']
             }
         )
-        """
+        """,
     )
-    
-    install_dir = temp_dir / 'target'
+
+    install_dir = temp_dir / "target"
     install_dir.mkdir()
-    
+
     packages.install_local_package(install_dir, plugin_dir)
-    
-    assert (install_dir / 'extras-require.egg-link').is_file()
-    assert not (install_dir / 'pyexpect').is_dir()
+
+    assert (install_dir / "extras-require.egg-link").is_file()
+    assert not (install_dir / "pyexpect").is_dir()
