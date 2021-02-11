@@ -39,7 +39,7 @@ def test_install_local_package_with_dependency(temp_dir):
     install_dir = temp_dir / "target"
     install_dir.mkdir()
 
-    packages.install_local_package(install_dir, plugin_dir)
+    packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
 
     assert (install_dir / "dependency.egg-link").is_file()
     assert (install_dir / "fluentpy").is_dir()
@@ -66,7 +66,7 @@ def test_install_local_package_with_dependency_and_extras_require(temp_dir):
     install_dir = temp_dir / "target"
     install_dir.mkdir()
 
-    packages.install_local_package(install_dir, plugin_dir)
+    packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
 
     assert (install_dir / "dependency.egg-link").is_file()
     assert (install_dir / "fluentpy").is_dir()
@@ -93,7 +93,7 @@ def test_install_local_package_with_only_extras_require(temp_dir):
     install_dir = temp_dir / "target"
     install_dir.mkdir()
 
-    packages.install_local_package(install_dir, plugin_dir)
+    packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
 
     assert (install_dir / "extras-require.egg-link").is_file()
     assert not (install_dir / "pyexpect").is_dir()
