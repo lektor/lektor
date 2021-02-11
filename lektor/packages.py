@@ -103,6 +103,13 @@ def download_and_install_package(
 
 def install_local_package(package_root, path):
     """This installs a local dependency of a package."""
+
+    # Becaus of these bugs:
+    # - pip https://github.com/pypa/pip/issues/4390
+    # - setuptools https://github.com/pypa/setuptools/issues/392
+    # we cannot just call `pip install --target $folder --editable $package`.
+    # Hence the workaround of first installing only the package and then it's dependencies
+
     # XXX: windows
     env = dict(os.environ)
     env["PYTHONPATH"] = package_root
@@ -143,14 +150,28 @@ def install_local_package(package_root, path):
         dirs = os.listdir(tmp)
         if rv != 0 or len(dirs) != 1:
             raise RuntimeError("Failed to create egg info for local package.")
-        requires = os.path.join(tmp, dirs[0], "requires.txt")
+        requires_path = os.path.join(tmp, dirs[0], "requires.txt")
 
-        # We have dependencies, install them!
-        if os.path.isfile(requires):
-            download_and_install_package(package_root, requirements_file=requires)
+        if os.path.isfile(requires_path):
+            # We have dependencies, install them!
+            requirements_path = \
+                requiriements_txt_from_requires_file_in_same_directory(requires_path)
+            download_and_install_package(package_root, requirements_file=requirements_path)
+
     finally:
         shutil.rmtree(tmp)
 
+def requiriements_txt_from_requires_file_in_same_directory(requires_path):
+    "requirex.txt can contain [extras_require] sections wich pip doesn't understand"
+    requirements_path = os.path.join(os.path.dirname(requires_path), "requirements.txt")
+    with open(requirements_path, "w") as requirements, open(requires_path, 'r') as requires:
+        for line in requires.readlines():
+            # extra requires section starts here -> not valid requirements.txt syntax
+            if line.strip().startswith('['):
+                break
+            requirements.write(line)
+
+    return requirements_path
 
 def get_package_info(path):
     """Returns the name of a package at a path."""
