@@ -31,7 +31,7 @@ def test_install_local_package_with_dependency(temp_dir):
 
         setup(
             name='dependency',
-            install_requires=['fluentpy']
+            install_requires=['watching_testrunner']
         )
         """,
     )
@@ -42,7 +42,7 @@ def test_install_local_package_with_dependency(temp_dir):
     packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
 
     assert (install_dir / "dependency.egg-link").is_file()
-    assert (install_dir / "fluentpy").is_dir()
+    assert (install_dir / "watching_testrunner").is_dir()
 
 
 def test_install_local_package_with_dependency_and_extras_require(temp_dir):
@@ -55,7 +55,7 @@ def test_install_local_package_with_dependency_and_extras_require(temp_dir):
 
         setup(
             name='dependency',
-            install_requires=['fluentpy'],
+            install_requires=['watching_testrunner'],
             extras_require={
                 'test': ['pyexpect']
             }
@@ -69,7 +69,7 @@ def test_install_local_package_with_dependency_and_extras_require(temp_dir):
     packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
 
     assert (install_dir / "dependency.egg-link").is_file()
-    assert (install_dir / "fluentpy").is_dir()
+    assert (install_dir / "watching_testrunner").is_dir()
     assert not (install_dir / "pyexpect").is_dir()
 
 
