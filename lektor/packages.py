@@ -166,7 +166,8 @@ def install_local_package(package_root, path):
 
 
 def requiriements_txt_from_requires_file_in_same_directory(requires_path):
-    "requirex.txt can contain [extras_require] sections wich pip doesn't understand"
+    """Create a sanitized copy of `requires.txt`."""
+    # requires.txt can contain [extras_require] sections wich pip doesn't understand
     requirements_path = os.path.join(os.path.dirname(requires_path), "requirements.txt")
     with open(requirements_path, "w") as requirements, open(
         requires_path, "r"
