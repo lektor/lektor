@@ -1,16 +1,6 @@
-import pathlib
-import tempfile
 import textwrap
 
-import pytest
-
 from lektor import packages
-
-
-@pytest.fixture
-def temp_dir():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        yield pathlib.Path(temp_dir)
 
 
 def create_plugin(package_dir, plugin_name, setup):
@@ -21,8 +11,8 @@ def create_plugin(package_dir, plugin_name, setup):
     return plugin_dir
 
 
-def test_install_local_package_with_dependency(temp_dir):
-    packages_dir = temp_dir / "packages"
+def test_install_local_package_with_dependency(tmp_path):
+    packages_dir = tmp_path / "packages"
     plugin_dir = create_plugin(
         packages_dir,
         "dependency",
@@ -36,7 +26,7 @@ def test_install_local_package_with_dependency(temp_dir):
         """,
     )
 
-    install_dir = temp_dir / "target"
+    install_dir = tmp_path / "target"
     install_dir.mkdir()
 
     packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
@@ -45,8 +35,8 @@ def test_install_local_package_with_dependency(temp_dir):
     assert (install_dir / "watching_testrunner.py").is_file()
 
 
-def test_install_local_package_with_dependency_and_extras_require(temp_dir):
-    packages_dir = temp_dir / "packages"
+def test_install_local_package_with_dependency_and_extras_require(tmp_path):
+    packages_dir = tmp_path / "packages"
     plugin_dir = create_plugin(
         packages_dir,
         "dependency",
@@ -63,7 +53,7 @@ def test_install_local_package_with_dependency_and_extras_require(temp_dir):
         """,
     )
 
-    install_dir = temp_dir / "target"
+    install_dir = tmp_path / "target"
     install_dir.mkdir()
 
     packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
@@ -73,8 +63,8 @@ def test_install_local_package_with_dependency_and_extras_require(temp_dir):
     assert not (install_dir / "pyexpect").is_dir()
 
 
-def test_install_local_package_with_only_extras_require(temp_dir):
-    packages_dir = temp_dir / "packages"
+def test_install_local_package_with_only_extras_require(tmp_path):
+    packages_dir = tmp_path / "packages"
     plugin_dir = create_plugin(
         packages_dir,
         "extras_require",
@@ -90,7 +80,7 @@ def test_install_local_package_with_only_extras_require(temp_dir):
         """,
     )
 
-    install_dir = temp_dir / "target"
+    install_dir = tmp_path / "target"
     install_dir.mkdir()
 
     packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
