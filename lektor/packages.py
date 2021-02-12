@@ -104,7 +104,7 @@ def download_and_install_package(
 def install_local_package(package_root, path):
     """This installs a local dependency of a package."""
 
-    # Becaus of these bugs:
+    # Because of these bugs:
     # - pip https://github.com/pypa/pip/issues/4390
     # - setuptools https://github.com/pypa/setuptools/issues/392
     # we cannot just call `pip install --target $folder --editable $package`.
