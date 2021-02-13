@@ -116,9 +116,7 @@ def load_plugins():
         if match_name != ep.dist.project_name.lower():
             raise RuntimeError(
                 "Disallowed distribution name: distribution name for "
-                "plugin {ep.name!r} must be {match_name!r}.".format(
-                    ep=ep, match_name=match_name
-                )
+                f"plugin {ep.name!r} must be {match_name!r}."
             )
         rv[ep.name] = ep.load()
     return rv
