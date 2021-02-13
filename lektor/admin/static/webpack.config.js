@@ -5,7 +5,7 @@ module.exports = {
   mode: "development",
   entry: {
     app: "./js/main.tsx",
-    styles: "./less/main.scss",
+    styles: "./scss/main.scss",
   },
   output: {
     path: path.join(__dirname, "/gen"),
