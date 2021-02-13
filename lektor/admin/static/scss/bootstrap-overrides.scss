@@ -4,30 +4,7 @@
 @import "bootstrap/scss/mixins";
 
 // Font awesome
-// @import "font-awesome/less/font-awesome";
-
-// Fonts
-@font-face {
-  font-family: "Roboto Slab";
-  font-style: normal;
-  font-weight: 300;
-  src: local("Roboto Slab Light"), local("RobotoSlab-Light"),
-    url("../../node_modules/@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff2")
-      format("woff2"),
-    url("../../node_modules/@openfonts/roboto-slab_all/files/roboto-slab-all-300.woff")
-      format("woff");
-}
-
-@font-face {
-  font-family: "Roboto Slab";
-  font-style: normal;
-  font-weight: 400;
-  src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"),
-    url("../../node_modules/@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff2")
-      format("woff2"),
-    url("../../node_modules/@openfonts/roboto-slab_all/files/roboto-slab-all-400.woff")
-      format("woff");
-}
+// @import "font-awesome/scss/font-awesome";
 
 $font-family-serif: "Roboto Slab", "Georgia", "Times New Roman", serif;
 $font-family-base: $font-family-serif;
