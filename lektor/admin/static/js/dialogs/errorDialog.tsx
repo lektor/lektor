@@ -18,7 +18,7 @@ export default class ErrorDialog extends Component<
           {": "}
           {trans("ERROR_" + this.props.error.code)}
         </p>
-        <div className="actions">
+        <p>
           <button
             type="submit"
             className="btn btn-primary"
@@ -26,7 +26,7 @@ export default class ErrorDialog extends Component<
           >
             {trans("CLOSE")}
           </button>
-        </div>
+        </p>
       </SlideDialog>
     );
   }

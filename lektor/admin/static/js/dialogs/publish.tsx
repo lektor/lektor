@@ -194,7 +194,7 @@ class Publish extends React.Component<Props, PublishState> {
           servers={this.state.servers}
           setActiveTarget={this.setActiveTarget}
         />
-        <div className="actions">
+        <p>
           <button
             type="submit"
             className="btn btn-primary"
@@ -202,7 +202,7 @@ class Publish extends React.Component<Props, PublishState> {
             onClick={this.onPublish}
           >
             {trans("PUBLISH")}
-          </button>
+          </button>{" "}
           <button
             type="submit"
             className="btn btn-secondary"
@@ -211,7 +211,7 @@ class Publish extends React.Component<Props, PublishState> {
           >
             {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
           </button>
-        </div>
+        </p>
         {progress}
       </SlideDialog>
     );

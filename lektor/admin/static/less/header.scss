@@ -81,15 +81,8 @@ header {
       }
     }
 
-    li.meta {
+    .global-actions {
       margin-top: -8px;
-      float: right;
-      a {
-        margin-left: 10px;
-      }
-      &:before {
-        content: "";
-      }
     }
   }
 }

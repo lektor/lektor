@@ -58,7 +58,6 @@ $container-lg: (1320px + $grid-gutter-width);
 @import "bootstrap/scss/print";
 
 // // Core CSS
-// @import "bootstrap/scss/scaffolding";
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
@@ -67,23 +66,19 @@ $container-lg: (1320px + $grid-gutter-width);
 @import "bootstrap/scss/navbar";
 
 // // Components
-// @import "bootstrap/scss/component-animations";
 @import "bootstrap/scss/input-group";
 @import "bootstrap/scss/list-group";
 @import "bootstrap/scss/breadcrumb";
-@import "bootstrap/scss/utilities/embed";
-// @import "bootstrap/scss/panels";
 
 // // Utility classes
-// @import "bootstrap/scss/utilities";
-// @import "bootstrap/scss/responsive-utilities";
+@import "bootstrap/scss/utilities/embed";
+@import "bootstrap/scss/utilities/flex";
 
 $border-radius: 0;
 $panel-radius: 0;
 
 $panel-border-color: #ddd;
 $toggle-group-color: $primary;
-
 
 $background-taint: #eee;
 $header-taint: #3d3639;
@@ -102,20 +97,10 @@ $flow-panel-background: #f8f8f8;
 $flow-block-panel-background: #fafafa;
 $tab-header-background: #ccc;
 $tab-header-color: $header-taint;
-$protector-background: fade($header-taint, 50%);
+$protector-background: rgba(61, 54, 57, 50%);
 
 // Shadows
 $panel-shadow: 0 0 40px $header-taint;
-
-.row-inline-thin-padding {
-  margin-left: -5px;
-  margin-right: -5px;
-
-  [class*="col-"] {
-    padding-left: 5px !important;
-    padding-right: 5px !important;
-  }
-}
 
 /* collapsed sidebar styles */
 @media screen and (max-width: ($screen-sm-min - 1)) {

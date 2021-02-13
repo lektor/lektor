@@ -94,28 +94,26 @@ class BreadCrumbs extends Component<Props, State> {
       );
 
     return (
-      <div>
-        <ul className="breadcrumb container">
-          {this.props.children}
-          {crumbs}
-          {lastItem && lastItem.can_have_children ? (
-            <li className="new-record-crumb">
-              <Link
-                to={pathToAdminPage(
-                  "add-child",
-                  getUrlRecordPathWithAlt(lastItem.path, this.props.record.alt)
-                )}
-              >
-                +
-              </Link>
-            </li>
-          ) : null}
-          <li style={{ flex: 1 }} />
-          <li className="meta">
-            <GlobalActions {...this.props} />
+      <ul className="breadcrumb container">
+        {this.props.children}
+        {crumbs}
+        {lastItem && lastItem.can_have_children ? (
+          <li className="new-record-crumb">
+            <Link
+              to={pathToAdminPage(
+                "add-child",
+                getUrlRecordPathWithAlt(lastItem.path, this.props.record.alt)
+              )}
+            >
+              +
+            </Link>
           </li>
-        </ul>
-      </div>
+        ) : null}
+        <li className="flex-grow-1" />
+        <li className="global-actions">
+          <GlobalActions {...this.props} />
+        </li>
+      </ul>
     );
   }
 }

@@ -51,7 +51,7 @@ export default class Refresh extends React.Component<
             </h3>
           </div>
         )}
-        <div className="actions">
+        <p>
           <button
             type="submit"
             className="btn btn-primary"
@@ -59,7 +59,7 @@ export default class Refresh extends React.Component<
             onClick={this.onRefresh}
           >
             {trans("REFRESH_BUILD")}
-          </button>
+          </button>{" "}
           <button
             type="submit"
             className="btn btn-secondary"
@@ -68,7 +68,7 @@ export default class Refresh extends React.Component<
           >
             {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
           </button>
-        </div>
+        </p>
       </SlideDialog>
     );
   }
