@@ -73,7 +73,7 @@ class BreadCrumbs extends Component<Props, State> {
             this.props.record.alt
           );
           let label = trans_fallback(item.label_i18n, item.label);
-          let className = "record-crumb";
+          let className = "breadcrumb-item record-crumb";
 
           if (!item.exists) {
             label = item.id;
@@ -94,7 +94,7 @@ class BreadCrumbs extends Component<Props, State> {
       );
 
     return (
-      <div className="breadcrumbs">
+      <div>
         <ul className="breadcrumb container">
           {this.props.children}
           {crumbs}
@@ -110,7 +110,7 @@ class BreadCrumbs extends Component<Props, State> {
               </Link>
             </li>
           ) : null}
-          {" " /* this space is needed for chrome ... */}
+          <li style={{ flex: 1 }} />
           <li className="meta">
             <GlobalActions {...this.props} />
           </li>

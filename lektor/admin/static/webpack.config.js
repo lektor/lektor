@@ -5,7 +5,7 @@ module.exports = {
   mode: "development",
   entry: {
     app: "./js/main.tsx",
-    styles: "./less/main.less",
+    styles: "./less/main.scss",
   },
   output: {
     path: path.join(__dirname, "/gen"),
@@ -39,11 +39,11 @@ module.exports = {
         },
       },
       {
-        test: /\.less$/,
+        test: /\.scss$/,
         use: [
           MiniCssExtractPlugin.loader,
           { loader: "css-loader", options: { sourceMap: true } },
-          { loader: "less-loader", options: { sourceMap: true } },
+          { loader: "sass-loader", options: { sourceMap: true } },
         ],
       },
       {

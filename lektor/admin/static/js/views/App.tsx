@@ -28,7 +28,7 @@ export default function App({
     setSidebarIsActive(!sidebarIsActive);
   }
   const baseSidebarClasses =
-    "sidebar-block block-offcanvas block-offcanvas-left";
+    "sidebar-block block-offcanvas block-offcanvas-left row";
   const sidebarClasses = sidebarIsActive
     ? baseSidebarClasses + " active"
     : baseSidebarClasses;

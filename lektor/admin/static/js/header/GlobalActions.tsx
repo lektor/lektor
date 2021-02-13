@@ -58,7 +58,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
       <div className="btn-group">
         <button
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={showFindFilesDialog}
           title={trans("FIND_FILES")}
         >
@@ -66,7 +66,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
         </button>
         <button
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={showPublishDialog}
           title={trans("PUBLISH")}
         >
@@ -74,7 +74,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
         </button>
         <button
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={showRefreshDialog}
           title={trans("REFRESH_BUILD")}
         >
@@ -82,7 +82,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
         </button>
         <button
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={this.onCloseClick}
           title={trans("RETURN_TO_WEBSITE")}
         >

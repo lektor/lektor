@@ -271,7 +271,7 @@ export class FlowWidget extends React.PureComponent<
           <div className="btn-group action-bar">
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className="btn btn-secondary btn-sm"
               title={blockInfo.collapsed ? trans("Expand") : trans("Collapse")}
               onClick={this.toggleBlock.bind(this, idx)}
             >
@@ -283,7 +283,7 @@ export class FlowWidget extends React.PureComponent<
             </button>
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className="btn btn-secondary btn-sm"
               title={trans("UP")}
               disabled={idx === 0}
               onClick={this.moveBlock.bind(this, idx, -1)}
@@ -292,7 +292,7 @@ export class FlowWidget extends React.PureComponent<
             </button>
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className="btn btn-secondary btn-sm"
               title={trans("DOWN")}
               disabled={idx >= flowBlocks.length - 1}
               onClick={this.moveBlock.bind(this, idx, 1)}
@@ -301,7 +301,7 @@ export class FlowWidget extends React.PureComponent<
             </button>
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className="btn btn-secondary btn-sm"
               title={trans("REMOVE")}
               onClick={this.removeBlock.bind(this, idx)}
             >
@@ -326,7 +326,7 @@ export class FlowWidget extends React.PureComponent<
       return (
         <button
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary"
           onClick={this.addNewBlock.bind(this, key)}
           title={trans_obj(flowBlockModel.name_i18n)}
           key={flowBlockModel.id}

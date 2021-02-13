@@ -300,7 +300,7 @@ class EditPage extends Component<RecordProps, State> {
             {recordInfo.can_be_deleted ? (
               <button
                 type="button"
-                className="btn btn-default"
+                className="btn btn-secondary"
                 onClick={this.deleteRecord}
               >
                 {trans("DELETE")}
