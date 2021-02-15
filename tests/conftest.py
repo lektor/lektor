@@ -1,9 +1,13 @@
 import os
 import shutil
+import sys
 import textwrap
 
+import pkg_resources
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
+import lektor.project
 from lektor.builder import Builder
 from lektor.db import Database
 from lektor.db import Tree
@@ -11,6 +15,79 @@ from lektor.environment import Environment
 from lektor.environment.expressions import Expression
 from lektor.project import Project
 from lektor.reporter import BufferReporter
+
+
+@pytest.fixture(scope="session", autouse=True)
+def temporary_lektor_cache(tmp_path_factory):
+    """Get Lektor to use a temporary cache directory.
+
+    This prevents the tests from leaving scats behind in the
+    user’s real cache directory.
+
+    """
+    cache_dir = tmp_path_factory.mktemp("lektor_cache")
+
+    # NB: lektor.utils.get_cache_dir() does not make it easy to configure
+    # a non-standard cache directory
+    #
+    # On posix systems one can adjust the choice of cache directory
+    # by setting the XDG_CACHE_HOME environment variable.  On windows
+    # one can do similar by setting LOCALAPPDATA.  However the semantics
+    # of these two settings are different; and furthermore, there is no
+    # way to configure the selection of cache directory on darwin.
+    #
+    # For now, we punt and monkeypatch get_cache_dir().  It might be
+    # better for fix get_cache_dir so as to provide a cleaner way of
+    # doing this (e.g. obey a LEKTOR_TMPDIR environment variable?)
+
+    # The stock monkeypatch fixture is function-scoped and so can not
+    # be used in a session-scoped fixture.
+    # Workaround from:
+    # https://github.com/pytest-dev/pytest/issues/363#issuecomment-406536200
+
+    def get_cache_dir():
+        return str(cache_dir)
+
+    mp = MonkeyPatch()
+    mp.setattr(lektor.project, "get_cache_dir", get_cache_dir)
+    yield cache_dir
+    mp.undo()
+
+
+@pytest.fixture
+def save_sys_path(monkeypatch):
+    """Save `sys.path`, `sys.modules`, and `pkg_resources` state on test
+    entry, restore after test completion.
+
+    Any test which constructs a `lektor.environment.Environment` instance
+    or which runs any of the Lektor CLI commands should use this fixture
+    to ensure that alternations made to `sys.path` do not interfere with
+    other tests.
+
+    Lektor's private package cache is added to `sys.path` by
+    `lektor.packages.load_packages`.  This happens, for example,
+    whenever a Lektor `Environment` is constructed (unless
+    `load_plugins=False` is specified.)  Since all tests are run
+    within an single invocation of the python interpreter, this can
+    cause problems when different tests are using different private
+    package caches.
+
+    """
+    monkeypatch.setattr(sys, "path", sys.path.copy())
+
+    # Restoring `sys.modules` is an attempt to unload any
+    # modules loaded during the test so that they can be re-loaded for
+    # the next test.  This is not guaranteed to work, since there are
+    # numerous ways that a reference to a loaded module may still be held.
+    monkeypatch.setattr(sys, "modules", sys.modules.copy())
+
+    # While pkg_resources.__getstate__ and pkg_resources.__setstate__
+    # do not appear to be a documented part of the pkg_resources API,
+    # they are used in setuptools' own tests, and appear to have been
+    # a stable feature since 2011.
+    saved_state = pkg_resources.__getstate__()
+    yield
+    pkg_resources.__setstate__(saved_state)
 
 
 @pytest.fixture(scope="function")
@@ -73,12 +150,12 @@ def scratch_project(scratch_project_data):
 
 
 @pytest.fixture(scope="function")
-def env(project):
+def env(project, save_sys_path):
     return Environment(project)
 
 
 @pytest.fixture(scope="function")
-def scratch_env(scratch_project):
+def scratch_env(scratch_project, save_sys_path):
     return Environment(scratch_project)
 
 
@@ -167,7 +244,7 @@ def os_user(monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def project_cli_runner(isolated_cli_runner, project):
+def project_cli_runner(isolated_cli_runner, project, save_sys_path):
     """
     Copy the project files into the isolated file system used by the
     Click test runner.
