@@ -2,6 +2,7 @@ import os
 import shutil
 import textwrap
 
+import pkg_resources
 import pytest
 
 from lektor.cli import cli
@@ -254,3 +255,44 @@ def test_plugin_bad_params(scratch_project_with_plugin_no_params):
     # A new (unaccepted) param is passed.
     with pytest.raises(TypeError):
         env.plugin_controller.emit(event, new_param="new param")
+
+
+@pytest.fixture
+def save_pkg_resources_state():
+    """Save and restore the state of pkg_resources.
+
+    This allows tests to, for example, add plugins to the working set without
+    affecting subsequent tests.
+
+    """
+    saved_state = pkg_resources.__getstate__()
+    try:
+        yield pkg_resources.working_set
+    finally:
+        pkg_resources.__setstate__(saved_state)
+
+
+@pytest.mark.usefixtures("save_pkg_resources_state")
+def test_bad_plugin_distribution_name_triggers_exception(scratch_project_data):
+    """Test that error is raised if plugin distribution name is not just exactly perfect."""
+    plugin_dir = scratch_project_data.join("packages", "test-plugin")
+    # Minimum viable setup.py
+    setup_py = textwrap.dedent(
+        u"""
+        from setuptools import setup
+
+        setup(
+            name='evil-distribution-name',
+            entry_points={
+                'lektor.plugins': [
+                    'test-plugin = test_plugin:TestPlugin',
+                ]
+            }
+        )
+        """
+    )
+    plugin_dir.join("setup.py").write_text(setup_py, "utf8", ensure=True)
+    proj = Project.from_path(str(scratch_project_data))
+
+    with pytest.raises(RuntimeError, match=r"Disallowed distribution name"):
+        proj.make_env()
