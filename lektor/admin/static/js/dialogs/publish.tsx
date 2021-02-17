@@ -205,7 +205,7 @@ class Publish extends React.Component<Props, PublishState> {
           </button>{" "}
           <button
             type="submit"
-            className="btn btn-secondary"
+            className="btn btn-secondary border"
             disabled={!this.isSafeToPublish()}
             onClick={this.props.dismiss}
           >

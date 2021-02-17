@@ -48,6 +48,7 @@ $container-lg: (1320px + $grid-gutter-width);
 @import "bootstrap/scss/breadcrumb";
 
 // // Utility classes
+@import "bootstrap/scss/utilities/borders";
 @import "bootstrap/scss/utilities/embed";
 @import "bootstrap/scss/utilities/flex";
 

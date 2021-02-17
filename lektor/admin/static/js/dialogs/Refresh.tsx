@@ -62,7 +62,7 @@ export default class Refresh extends React.Component<
           </button>{" "}
           <button
             type="submit"
-            className="btn btn-secondary"
+            className="btn btn-secondary border"
             disabled={!this.isSafeToNavigate()}
             onClick={this.props.dismiss}
           >
