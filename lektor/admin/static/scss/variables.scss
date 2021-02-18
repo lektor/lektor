@@ -1,0 +1,27 @@
+$border-radius: 0;
+$panel-radius: 0;
+
+$panel-border-color: #ddd;
+$toggle-group-color: $primary;
+
+$background-taint: #eee;
+$header-taint: #3d3639;
+$header-sep-color: lighten($header-taint, 40);
+$header-link-color: white;
+$header-link-hover-color: $header-sep-color;
+$block-header-background: $header-taint;
+$block-item-background: #eee;
+$block-item-color: $primary;
+$block-item-hover-background: #ccc;
+$block-item-hover-color: $primary;
+$block-item-missing-color: #aaa;
+$block-item-active-background: #6c5f65;
+$block-item-active-color: white;
+$flow-panel-background: #f8f8f8;
+$flow-block-panel-background: #fafafa;
+$tab-header-background: #ccc;
+$tab-header-color: $header-taint;
+$protector-background: rgba(61, 54, 57, 50%);
+
+// Shadows
+$panel-shadow: 0 0 40px $header-taint;
