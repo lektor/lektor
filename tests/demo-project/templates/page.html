@@ -24,7 +24,7 @@
     <img src="{{ ts|url }}" width="{{ ts.width }}" height="{{ ts.height }}">
 
     {# larger than original#}
-    {% set t0 = img.thumbnail(400, 600) %}
+    {% set t0 = img.thumbnail(400, 600, upscale=True) %}
     <img alt="original" src="{{ t0|url }}" width="{{ t0.width }}" height="{{ t0.height }}">
   {% endfor %}
 
