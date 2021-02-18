@@ -4,6 +4,7 @@ import shutil
 import site
 import sys
 import tempfile
+from contextlib import contextmanager
 from subprocess import PIPE
 
 import click
@@ -131,6 +132,15 @@ def install_local_package(package_root, path):
     if rv != 0:
         raise RuntimeError("Failed to install local package")
 
+    with requirements_from_unfinished_editable_install_at_path(
+        path
+    ) as requirements_path:
+
+        download_and_install_package(package_root, requirements_file=requirements_path)
+
+
+@contextmanager
+def requirements_from_unfinished_editable_install_at_path(path):
     # Step 2: generate the egg info into a temp folder to find the
     # requirements.
     tmp = tempfile.mkdtemp()
@@ -154,18 +164,13 @@ def install_local_package(package_root, path):
 
         if os.path.isfile(requires_path):
             # We have dependencies, install them!
-            requirements_path = requiriements_txt_from_requires_file_in_same_directory(
-                requires_path
-            )
-            download_and_install_package(
-                package_root, requirements_file=requirements_path
-            )
-
+            requirements_path = requiriements_txt_from_requires_file(requires_path)
+            yield requirements_path
     finally:
         shutil.rmtree(tmp)
 
 
-def requiriements_txt_from_requires_file_in_same_directory(requires_path):
+def requiriements_txt_from_requires_file(requires_path):
     """Create a sanitized copy of `requires.txt`."""
     # requires.txt can contain [extras_require] sections wich pip doesn't understand
     requirements_path = os.path.join(os.path.dirname(requires_path), "requirements.txt")
