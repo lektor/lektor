@@ -582,12 +582,16 @@ def make_image_thumbnail(
     if format == "svg":
         return Thumbnail(source_url_path, width, height)
 
-    if height is None:
-        upscaling_requested = width > source_width
-    elif width is None:
-        upscaling_requested = height > source_height
+    if mode == ThumbnailMode.FIT:
+        computed_width, computed_height = compute_dimensions(
+            width, height, source_width, source_height
+        )
     else:
-        upscaling_requested = width > source_width and height > source_height
+        computed_width, computed_height = width, height
+
+    upscaling_requested = (
+        computed_width > source_width or computed_height > source_height
+    )
 
     # this part needs to be removed once backward-compatibility period passes
     if upscale is None and upscaling_requested:
@@ -601,13 +605,6 @@ def make_image_thumbnail(
 
     if upscaling_requested and not upscale:
         return Thumbnail(source_url_path, source_width, source_height)
-
-    if mode == ThumbnailMode.FIT:
-        computed_width, computed_height = compute_dimensions(
-            width, height, source_width, source_height
-        )
-    else:
-        computed_width, computed_height = width, height
 
     suffix = get_suffix(width, height, mode, quality=quality)
     dst_url_path = get_dependent_url(
