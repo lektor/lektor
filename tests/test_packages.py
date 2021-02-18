@@ -11,6 +11,28 @@ def create_plugin(package_dir, plugin_name, setup):
     return plugin_dir
 
 
+def test_install_local_package_without_dependency(tmp_path):
+    packages_dir = tmp_path / "packages"
+    plugin_dir = create_plugin(
+        packages_dir,
+        "dependency",
+        setup="""
+        from setuptools import setup
+
+        setup(
+            name='dependency',
+        )
+        """,
+    )
+
+    install_dir = tmp_path / "target"
+    install_dir.mkdir()
+
+    packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
+
+    assert (install_dir / "dependency.egg-link").is_file()
+
+
 def test_install_local_package_with_dependency(tmp_path):
     packages_dir = tmp_path / "packages"
     plugin_dir = create_plugin(

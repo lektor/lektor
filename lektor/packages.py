@@ -4,7 +4,6 @@ import shutil
 import site
 import sys
 import tempfile
-from contextlib import contextmanager
 from subprocess import PIPE
 
 import click
@@ -111,6 +110,15 @@ def install_local_package(package_root, path):
     # we cannot just call `pip install --target $folder --editable $package`.
     # Hence the workaround of first installing only the package and then it's dependencies
 
+    editable_install_without_dependencies(package_root, path)
+
+    for requirements_path in requirements_from_unfinished_editable_install_at_path(
+        path
+    ):
+        download_and_install_package(package_root, requirements_file=requirements_path)
+
+
+def editable_install_without_dependencies(package_root, path):
     # XXX: windows
     env = dict(os.environ)
     env["PYTHONPATH"] = package_root
@@ -132,14 +140,7 @@ def install_local_package(package_root, path):
     if rv != 0:
         raise RuntimeError("Failed to install local package")
 
-    with requirements_from_unfinished_editable_install_at_path(
-        path
-    ) as requirements_path:
 
-        download_and_install_package(package_root, requirements_file=requirements_path)
-
-
-@contextmanager
 def requirements_from_unfinished_editable_install_at_path(path):
     # Step 2: generate the egg info into a temp folder to find the
     # requirements.
@@ -166,6 +167,7 @@ def requirements_from_unfinished_editable_install_at_path(path):
             # We have dependencies, install them!
             requirements_path = requiriements_txt_from_requires_file(requires_path)
             yield requirements_path
+
     finally:
         shutil.rmtree(tmp)
 
