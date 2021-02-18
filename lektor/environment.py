@@ -585,7 +585,8 @@ class Environment(object):
         )
         return values
 
-    def select_jinja_autoescape(self, filename):
+    @staticmethod
+    def select_jinja_autoescape(filename):
         if filename is None:
             return False
         return filename.endswith((".html", ".htm", ".xml", ".xhtml"))
