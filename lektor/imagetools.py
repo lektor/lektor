@@ -6,7 +6,7 @@ import re
 import struct
 import warnings
 from datetime import datetime
-from enum import IntEnum
+from enum import Enum
 from xml.etree import ElementTree as etree
 
 import exifread
@@ -22,30 +22,32 @@ from lektor.utils import portable_popen
 datetime.strptime("", "")
 
 
-class ThumbnailMode(IntEnum):
-    FIT, CROP, STRETCH = range(1, 4)
+class ThumbnailMode(Enum):
+    FIT = "fit"
+    CROP = "crop"
+    STRETCH = "stretch"
+
+    DEFAULT = "fit"
 
     @property
     def label(self):
         """The mode's label as used in templates."""
-        # our constants are uppercase with underscores,
-        # while template uses lowercase and dashes.
-        return self.name.lower().replace("_", "-")  # pylint: disable=no-member
+        warnings.warn(
+            "ThumbnailMode.label is deprecated. (Use ThumbnailMode.value instead.)",
+            DeprecationWarning,
+        )
+        return self.value
 
     @classmethod
     def from_label(cls, label):
-        """
-        Looks up the thumbnail mode by its textual representation.
-        """
-        name = label.upper().replace("-", "_")
-        try:
-            return cls.__members__[name]  # pylint: disable=unsubscriptable-object
-        except KeyError as error:
-            raise ValueError("Invalid thumbnail mode '%s'." % label) from error
-
-
-# set the default. do it outside the class to not confuse things
-ThumbnailMode.DEFAULT = ThumbnailMode.FIT
+        """Looks up the thumbnail mode by its textual representation."""
+        warnings.warn(
+            "ThumbnailMode.from_label is deprecated. "
+            "Use the ThumbnailMode constructor, "
+            'e.g. "ThumbnailMode(label)", instead.',
+            DeprecationWarning,
+        )
+        return cls(label)
 
 
 def _convert_gps(coords, hem):
@@ -299,7 +301,7 @@ def get_suffix(width, height, mode, quality=None):
     if height is not None:
         suffix += "x%s" % height
     if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.label
+        suffix += "_%s" % mode.value
     if quality is not None:
         suffix += "_q%s" % quality
     return suffix
@@ -563,7 +565,7 @@ def make_image_thumbnail(
     if mode != ThumbnailMode.FIT and (width is None or height is None):
         warnings.warn(
             '"%s" mode requires both `width` and `height` to be defined. '
-            'Falling back to "fit" mode.`' % mode.label
+            'Falling back to "fit" mode.`' % mode.value
         )
         mode = ThumbnailMode.FIT
 
