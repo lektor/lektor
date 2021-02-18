@@ -557,22 +557,6 @@ def make_image_thumbnail(
     if width is None and height is None:
         raise ValueError("Must specify at least one of width or height.")
 
-    # this part needs to be removed once backward-compatibility period passes
-    if upscale is None and mode == ThumbnailMode.FIT:
-        warnings.warn(
-            "Your images are currently scaled up when the thumbnail requested "
-            "is larger than the source. This default will change in the future. "
-            "If you want to preserve the current behaviour, use `upscale=True`."
-        )
-        upscale = True
-
-    if upscale is None:
-        upscale = {
-            ThumbnailMode.FIT: False,
-            ThumbnailMode.CROP: True,
-            ThumbnailMode.STRETCH: True,
-        }[mode]
-
     # temporarily fallback to "fit" in case of erroneous arguments
     # to preserve backward-compatibility.
     # this needs to change to an exception in the future.
@@ -582,6 +566,9 @@ def make_image_thumbnail(
             'Falling back to "fit" mode.`' % mode.label
         )
         mode = ThumbnailMode.FIT
+
+    if upscale is None and mode in (ThumbnailMode.CROP, ThumbnailMode.STRETCH):
+        upscale = True
 
     with open(source_image, "rb") as f:
         format, source_width, source_height = get_image_info(f)
@@ -595,25 +582,25 @@ def make_image_thumbnail(
     if format == "svg":
         return Thumbnail(source_url_path, width, height)
 
-    if not upscale:
+    if height is None:
+        upscaling_requested = width > source_width
+    elif width is None:
+        upscaling_requested = height > source_height
+    else:
+        upscaling_requested = width > source_width and height > source_height
 
-        def _original():
-            return Thumbnail(source_url_path, source_width, source_height)
+    # this part needs to be removed once backward-compatibility period passes
+    if upscale is None and upscaling_requested:
+        warnings.warn(
+            "Your image is being scaled up since the requested thumbnail "
+            "size is larger than the source. This default will change "
+            "in the future. If you want to preserve the current behaviour, "
+            "use `upscale=True`."
+        )
+        upscale = True
 
-        if height is None:
-            if source_width < width:
-                return _original()
-        elif width is None:
-            if source_height < height:
-                return _original()
-        else:
-            if source_width < width and source_height < height:
-                return _original()
-
-    suffix = get_suffix(width, height, mode, quality=quality)
-    dst_url_path = get_dependent_url(
-        source_url_path, suffix, ext=get_thumbnail_ext(source_image)
-    )
+    if upscaling_requested and not upscale:
+        return Thumbnail(source_url_path, source_width, source_height)
 
     if mode == ThumbnailMode.FIT:
         computed_width, computed_height = compute_dimensions(
@@ -621,6 +608,11 @@ def make_image_thumbnail(
         )
     else:
         computed_width, computed_height = width, height
+
+    suffix = get_suffix(width, height, mode, quality=quality)
+    dst_url_path = get_dependent_url(
+        source_url_path, suffix, ext=get_thumbnail_ext(source_image)
+    )
 
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
