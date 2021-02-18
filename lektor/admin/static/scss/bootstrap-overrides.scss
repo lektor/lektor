@@ -1,34 +1,24 @@
-// Required
-@import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/mixins";
-
-// Font awesome
-// @import "font-awesome/scss/font-awesome";
-
-$font-family-serif: "Roboto Slab", "Georgia", "Times New Roman", serif;
-$font-family-base: $font-family-serif;
-
-// Get rid of rounded things
-$enable-rounded: false;
-
 // Colors
 $primary: #77304c;
 $theme-colors: (
   "primary": $primary,
   "secondary": #fff,
 );
+
+// Fonts
+$font-family-serif: "Roboto Slab", "Georgia", "Times New Roman", serif;
+$font-family-base: $font-family-serif;
+
+// Get rid of rounded things
+$enable-rounded: false;
+
 $input-color: #111;
 $input-border-focus: #807177;
 
-// Sizes
-$screen-sm-min: 768px;
-$screen-md-min: 1024px;
-$screen-lg-min: 1366px;
-
-$container-sm: (720px + $grid-gutter-width);
-$container-md: (970px + $grid-gutter-width);
-$container-lg: (1320px + $grid-gutter-width);
+// Required
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
 
 // // Reset and dependencies
 @import "bootstrap/scss/reboot";
@@ -81,7 +71,7 @@ $protector-background: rgba(61, 54, 57, 50%);
 $panel-shadow: 0 0 40px $header-taint;
 
 /* collapsed sidebar styles */
-@media screen and (max-width: ($screen-sm-min - 1)) {
+@media screen and (max-width: (map-get($grid-breakpoints, "sm") - 1)) {
   .block-offcanvas {
     position: relative;
   }
