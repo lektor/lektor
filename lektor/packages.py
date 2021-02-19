@@ -110,8 +110,19 @@ def install_local_package(package_root, path):
     # we cannot just call `pip install --target $folder --editable $package`.
     # Hence the workaround of first installing only the package and then it's dependencies
 
+    # Because pip can resolve dependencies differently when it is called with them individually,
+    # it is important to call it with all of them together. Also
+
+    # requires.txt is specified here:
+    # https://setuptools.readthedocs.io/en/latest/deprecated/python_eggs.html#requires-txt
+    # requirementx.txt is specified here:
+    # https://pip.pypa.io/en/stable/reference/pip_install/#requirements-file-format
+    # What can be part of the dependencies is specified here:
+    # https://setuptools.readthedocs.io/en/latest/userguide/dependency_management.html#id4
+
     editable_install_without_dependencies(package_root, path)
 
+    # using a for loop syntax here so the generator can clean up the tempdir after the loop
     for requirements_path in requirements_from_unfinished_editable_install_at_path(
         path
     ):
