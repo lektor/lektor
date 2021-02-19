@@ -28,10 +28,7 @@ class SilentWSGIRequestHandler(WSGIRequestHandler):
 class BackgroundBuilder(threading.Thread):
     def __init__(self, env, output_path, prune=True, verbosity=0, extra_flags=None):
         threading.Thread.__init__(self)
-        watcher = Watcher(env, output_path)
-        watcher.observer.start()
         self.env = env
-        self.watcher = watcher
         self.output_path = output_path
         self.prune = prune
         self.verbosity = verbosity
@@ -57,9 +54,10 @@ class BackgroundBuilder(threading.Thread):
     def run(self):
         with CliReporter(self.env, verbosity=self.verbosity):
             self.build(update_source_info_first=True)
-            for ts, _, _ in self.watcher:
-                if self.last_build is None or ts > self.last_build:
-                    self.build()
+            with Watcher(self.env, self.output_path) as watcher:
+                for ts, _, _ in watcher:
+                    if self.last_build is None or ts > self.last_build:
+                        self.build()
 
 
 class DevTools:

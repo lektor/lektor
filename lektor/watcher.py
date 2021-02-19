@@ -2,10 +2,12 @@ import os
 import queue
 import time
 
+import click
 from watchdog.events import DirModifiedEvent
 from watchdog.events import FileMovedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 
 from lektor.utils import get_cache_dir
 
@@ -35,12 +37,49 @@ class EventHandler(FileSystemEventHandler):
 
 
 class BasicWatcher:
-    def __init__(self, paths, callback=None):
+    def __init__(
+        self, paths, callback=None, observer_classes=(Observer, PollingObserver)
+    ):
         self.event_handler = EventHandler(callback=callback)
-        self.observer = Observer()
-        for path in paths:
-            self.observer.schedule(self.event_handler, path, recursive=True)
-        self.observer.setDaemon(True)
+        self.paths = paths
+        self.observer_classes = observer_classes
+        self.observer = None
+
+    def start(self):
+        untried = set(self.observer_classes)
+        for observer_class in self.observer_classes:
+            try:
+                self._start_observer(observer_class)
+            except Exception as exc:
+                untried.remove(observer_class)
+                if len(untried) == 0:
+                    raise
+                click.secho(
+                    f"Creation of {observer_class.__module__}.{observer_class.__name__} "
+                    f"failed with exception:\n  {exc.__class__.__name__}: {exc!s}\n"
+                    "This may be due to a configuration or other issue with "
+                    "your system.\nFalling back to polling for file modifications.",
+                    fg="red",
+                    bold=True,
+                )
+
+    def stop(self):
+        self.observer.stop()
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, ex_type, ex_value, ex_tb):
+        self.stop()
+
+    def _start_observer(self, observer_class=Observer):
+        observer = observer_class()
+        for path in self.paths:
+            observer.schedule(self.event_handler, path, recursive=True)
+        observer.setDaemon(True)
+        observer.start()
+        self.observer = observer
 
     def is_interesting(self, time, event_type, path):
         # pylint: disable=no-self-use
@@ -81,10 +120,9 @@ class Watcher(BasicWatcher):
 
 def watch(env):
     """Returns a generator of file system events in the environment."""
-    watcher = Watcher(env)
-    watcher.observer.start()
-    try:
-        for event in watcher:
-            yield event
-    except KeyboardInterrupt:
-        watcher.observer.stop()
+    with Watcher(env) as watcher:
+        try:
+            for event in watcher:
+                yield event
+        except KeyboardInterrupt:
+            pass
