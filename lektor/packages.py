@@ -165,14 +165,14 @@ def requirements_from_unfinished_editable_install_at_path(path):
 
         if os.path.isfile(requires_path):
             # We have dependencies, install them!
-            requirements_path = requiriements_txt_from_requires_file(requires_path)
+            requirements_path = requirements_txt_from_requires_file(requires_path)
             yield requirements_path
 
     finally:
         shutil.rmtree(tmp)
 
 
-def requiriements_txt_from_requires_file(requires_path):
+def requirements_txt_from_requires_file(requires_path):
     """Create a sanitized copy of `requires.txt`."""
     # requires.txt can contain [extras_require] sections wich pip doesn't understand
     requirements_path = os.path.join(os.path.dirname(requires_path), "requirements.txt")
