@@ -56,6 +56,8 @@ class DummyEntryPointMetadata:
     Distribution that it has an entry point.
     """
 
+    # pylint: disable=no-self-use
+
     def __init__(self, entry_points_txt):
         self.entry_points_txt = entry_points_txt
 
@@ -119,6 +121,8 @@ def test_get_plugin_no_env_or_ctx(dummy_plugin):
 
 
 class TestPlugin:
+    # pylint: disable=no-self-use
+
     @pytest.fixture
     def scratch_project_data(self, scratch_project_data):
         """Add plugin config file to scratch project."""
@@ -143,7 +147,7 @@ class TestPlugin:
         plugin = DummyPlugin(env, "dummy-plugin")
         del env
         with pytest.raises(RuntimeError, match=r"Environment went away"):
-            plugin.env
+            getattr(plugin, "env")
 
     def test_version(self, dummy_plugin, dummy_plugin_distribution):
         assert dummy_plugin.version == dummy_plugin_distribution.version
@@ -227,6 +231,8 @@ def test_load_plugins_bad_distname(dummy_plugin_distribution):
 
 
 class TestPluginController:
+    # pylint: disable=no-self-use
+
     @pytest.fixture
     def extra_flags(self):
         return {"flag": "value"}
@@ -243,7 +249,7 @@ class TestPluginController:
         plugin_controller = PluginController(env)
         del env
         with pytest.raises(RuntimeError, match=r"Environment went away"):
-            plugin_controller.env
+            getattr(plugin_controller, "env")
 
     def test_instantiate_plugin(self, plugin_controller, env):
         plugin_controller.instanciate_plugin("plugin-id", DummyPlugin)
