@@ -109,3 +109,29 @@ def test_install_local_package_with_only_extras_require(tmp_path):
 
     assert (install_dir / "extras-require.egg-link").is_file()
     assert not (install_dir / "pyexpect").is_dir()
+
+
+def test_install_local_package_with_extravagant_requires(tmp_path):
+    packages_dir = tmp_path / "packages"
+    plugin_dir = create_plugin(
+        packages_dir,
+        "extras_require",
+        setup="""
+        from setuptools import setup
+
+        setup(
+            name='extras_require',
+            install_requires=[
+                'watching_testrunner;python_version>="3.6"',
+            ]
+        )
+        """,
+    )
+
+    install_dir = tmp_path / "target"
+    install_dir.mkdir()
+
+    packages.install_local_package(install_dir.as_posix(), plugin_dir.as_posix())
+
+    assert (install_dir / "extras-require.egg-link").is_file()
+    assert (install_dir / "watching_testrunner.py").is_file()
