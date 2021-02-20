@@ -111,16 +111,25 @@ def test_install_local_package_with_only_extras_require(tmp_path):
     assert not (install_dir / "pyexpect").is_dir()
 
 
-def test_install_local_package_with_extravagant_requires(tmp_path):
+def test_install_local_package_with_environment_markers_in_requires(tmp_path):
+    # See https://www.python.org/dev/peps/pep-0508/#environment-markers
+    # This test is bad news, as it seems that setuptools internally transforms the more exotic specifiers to
+    # [:python_version >= "3.6"]
+    # watching_testrunner
+    # Which is then of course incompatible with a pip requirements.txt
+    # This seems contrary to what
+    # https://setuptools.readthedocs.io/en/latest/pkg_resources.html?highlight=parse_requirements#requirements-parsing
+    # specifies - not sure what is going on here
+
     packages_dir = tmp_path / "packages"
     plugin_dir = create_plugin(
         packages_dir,
-        "extras_require",
+        "environment_markers",
         setup="""
         from setuptools import setup
 
         setup(
-            name='extras_require',
+            name='environment_markers',
             install_requires=[
                 'watching_testrunner;python_version>="3.6"',
             ]
