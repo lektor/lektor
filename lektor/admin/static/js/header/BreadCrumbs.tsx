@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from "react";
+import React, { Component } from "react";
 import {
   getUrlRecordPathWithAlt,
   pathToAdminPage,
@@ -8,7 +8,6 @@ import Link from "../components/Link";
 import { loadData } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { bringUpDialog } from "../richPromise";
-import GlobalActions from "./GlobalActions";
 
 interface RecordPathInfoSegment {
   id: string;
@@ -26,7 +25,7 @@ type State = {
   } | null;
 };
 
-type Props = { children: ReactNode } & RecordProps;
+type Props = RecordProps;
 
 class BreadCrumbs extends Component<Props, State> {
   constructor(props: Props) {
@@ -94,32 +93,21 @@ class BreadCrumbs extends Component<Props, State> {
       );
 
     return (
-      <div className="container">
-        {this.props.children}
-        <div className="row d-flex justify-content-between">
-          <ul className="breadcrumb">
-            {crumbs}
-            {lastItem && lastItem.can_have_children ? (
-              <li className="new-record-crumb">
-                <Link
-                  to={pathToAdminPage(
-                    "add-child",
-                    getUrlRecordPathWithAlt(
-                      lastItem.path,
-                      this.props.record.alt
-                    )
-                  )}
-                >
-                  +
-                </Link>
-              </li>
-            ) : null}
-          </ul>
-          <div className="global-actions">
-            <GlobalActions {...this.props} />
-          </div>
-        </div>
-      </div>
+      <ul className="breadcrumb">
+        {crumbs}
+        {lastItem && lastItem.can_have_children ? (
+          <li className="new-record-crumb">
+            <Link
+              to={pathToAdminPage(
+                "add-child",
+                getUrlRecordPathWithAlt(lastItem.path, this.props.record.alt)
+              )}
+            >
+              +
+            </Link>
+          </li>
+        ) : null}
+      </ul>
     );
   }
 }
