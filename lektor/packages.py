@@ -101,6 +101,26 @@ def download_and_install_package(
         raise RuntimeError("Failed to install dependency package.")
 
 
+def download_and_install_packages(package_root, packages_with_versions):
+    """This downloads and installs a specific version of a package."""
+    # XXX: windows
+    env = dict(os.environ)
+
+    args = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--target",
+        package_root,
+    ]
+
+    args.extend(packages_with_versions)
+    rv = portable_popen(args, env=env).wait()
+    if rv != 0:
+        raise RuntimeError("Failed to install dependency package.")
+
+
 def install_local_package(package_root, path):
     """This installs a local dependency of a package."""
 
@@ -123,10 +143,9 @@ def install_local_package(package_root, path):
     editable_install_without_dependencies(package_root, path)
 
     # using a for loop syntax here so the generator can clean up the tempdir after the loop
-    for requirements_path in requirements_from_unfinished_editable_install_at_path(
-        path
-    ):
-        download_and_install_package(package_root, requirements_file=requirements_path)
+    requirements = requirements_from_unfinished_editable_install_at_path(path)
+    if requirements is not None:
+        download_and_install_packages(package_root, requirements)
 
 
 def editable_install_without_dependencies(package_root, path):
@@ -176,27 +195,20 @@ def requirements_from_unfinished_editable_install_at_path(path):
 
         if os.path.isfile(requires_path):
             # We have dependencies, install them!
-            requirements_path = requirements_txt_from_requires_file(requires_path)
-            yield requirements_path
-
+            return requirements_from_requires_file(requires_path)
     finally:
         shutil.rmtree(tmp)
 
 
-def requirements_txt_from_requires_file(requires_path):
+def requirements_from_requires_file(requires_path):
     """Create a sanitized copy of `requires.txt`."""
     # requires.txt can contain [extras_require] sections wich pip doesn't understand
-    requirements_path = os.path.join(os.path.dirname(requires_path), "requirements.txt")
-    with open(requirements_path, "w") as requirements, open(
-        requires_path, "r"
-    ) as requires:
+    with open(requires_path, "r") as requires:
         section_name, extracted_requirements = next(
             pkg_resources.split_sections(requires)
         )
         if section_name is None:
-            requirements.write("\n".join(extracted_requirements))
-
-    return requirements_path
+            return extracted_requirements
 
 
 def get_package_info(path):
