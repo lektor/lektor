@@ -182,6 +182,7 @@ def save_eval(filter, record):
 
 class Expression:
     def __eval__(self, record):
+        # pylint: disable=no-self-use
         return record
 
     def __eq__(self, other):
@@ -1539,7 +1540,8 @@ class Database:
         if is_undefined(data["_template"]):
             data["_template"] = datamodel.get_default_template_name()
 
-    def get_record_class(self, datamodel, raw_data):
+    @staticmethod
+    def get_record_class(datamodel, raw_data):
         """Returns the appropriate record class for a datamodel and raw data."""
         is_attachment = bool(raw_data.get("_attachment_for"))
         if not is_attachment:
@@ -2051,7 +2053,8 @@ class RecordCache:
         self.persistent = {}
         self.ephemeral = LRUCache(ephemeral_cache_size)
 
-    def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT, virtual_path=None):
+    @staticmethod
+    def _get_cache_key(record_or_path, alt=PRIMARY_ALT, virtual_path=None):
         if isinstance(record_or_path, str):
             path = record_or_path.strip("/")
         else:

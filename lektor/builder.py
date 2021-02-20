@@ -343,7 +343,8 @@ class BuildState:
         )
         return cur.fetchone() is not None
 
-    def _get_artifact_config_hash(self, cur, artifact_name):
+    @staticmethod
+    def _get_artifact_config_hash(cur, artifact_name):
         """Returns the artifact's config hash."""
         cur.execute(
             """
@@ -1159,7 +1160,8 @@ class Builder:
                 return ctx
         return None
 
-    def update_source_info(self, prog, build_state):
+    @staticmethod
+    def update_source_info(prog, build_state):
         """Updates a single source info based on a program.  This is done
         automatically as part of a build.
         """

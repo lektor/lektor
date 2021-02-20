@@ -33,7 +33,8 @@ class Reporter:
     def push(self):
         _reporter_stack.push(self)
 
-    def pop(self):
+    @staticmethod
+    def pop():
         _reporter_stack.pop()
 
     def __enter__(self):

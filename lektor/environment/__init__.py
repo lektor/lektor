@@ -214,7 +214,8 @@ class Environment:
             return False
         return any_fnmatch(filename, EXCLUDED_ASSETS + proj.excluded_assets)
 
-    def is_ignored_artifact(self, asset_name):
+    @staticmethod
+    def is_ignored_artifact(asset_name):
         """This is used by the prune tool to figure out which files in the
         artifact folder should be ignored.
         """

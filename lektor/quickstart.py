@@ -39,7 +39,8 @@ class Generator:
         self.e = click.secho
         self.w = partial(click.wrap_text, width=self.term_width)
 
-    def abort(self, message):
+    @staticmethod
+    def abort(message):
         click.echo("Error: %s" % message, err=True)
         raise click.Abort()
 
@@ -105,7 +106,8 @@ class Generator:
                 )
             os.rmdir(scratch)
 
-    def expand_filename(self, base, ctx, template_filename):
+    @staticmethod
+    def expand_filename(base, ctx, template_filename):
         def _repl(match):
             return ctx[match.group(1)]
 

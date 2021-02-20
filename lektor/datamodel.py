@@ -78,7 +78,8 @@ class PaginationConfig:
             return query
         return query.limit(self.per_page).offset((page - 1) * self.per_page)
 
-    def get_record_for_page(self, record, page_num):
+    @staticmethod
+    def get_record_for_page(record, page_num):
         """Given a normal record this one returns the version specific
         for a page.
         """

@@ -74,6 +74,7 @@ class Type:
         }
 
     def value_from_raw(self, raw):
+        # pylint: disable=no-self-use
         return raw
 
     def value_from_raw_with_default(self, raw):

@@ -74,6 +74,7 @@ class Asset(SourceObject):
         return iter(())
 
     def get_child(self, name, from_url=False):
+        # pylint: disable=no-self-use
         return None
 
     def resolve_url_path(self, url_path):
