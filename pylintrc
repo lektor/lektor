@@ -17,7 +17,6 @@ disable =
     missing-docstring,
     unused-argument,
     bad-continuation,
-    no-self-use,
     redefined-outer-name,
     invalid-name,
     protected-access,

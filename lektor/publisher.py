@@ -194,6 +194,7 @@ class Publisher:
         self.output_path = os.path.abspath(output_path)
 
     def fail(self, message):
+        # pylint: disable=no-self-use
         raise PublishError(message)
 
     def publish(self, target_url, credentials=None, **extra):
@@ -255,7 +256,8 @@ class FtpConnection:
         self.log_buffer = []
         self._known_folders = set()
 
-    def make_connection(self):
+    @staticmethod
+    def make_connection():
         # pylint: disable=import-outside-toplevel
         from ftplib import FTP
 
@@ -422,7 +424,8 @@ class FtpTlsConnection(FtpConnection):
 class FtpPublisher(Publisher):
     connection_class = FtpConnection
 
-    def read_existing_artifacts(self, con):
+    @staticmethod
+    def read_existing_artifacts(con):
         contents = con.get_file(".lektor/listing")
         if not contents:
             return {}, set()
@@ -472,7 +475,8 @@ class FtpPublisher(Publisher):
                     h.hexdigest(),
                 )
 
-    def get_temp_filename(self, filename):
+    @staticmethod
+    def get_temp_filename(filename):
         dirname, basename = posixpath.split(filename)
         return posixpath.join(dirname, "." + basename + ".tmp")
 
@@ -544,7 +548,8 @@ class FtpTlsPublisher(FtpPublisher):
 
 
 class GithubPagesPublisher(Publisher):
-    def get_credentials(self, url, credentials=None):
+    @staticmethod
+    def get_credentials(url, credentials=None):
         credentials = credentials or {}
         username = credentials.get("username") or url.username
         password = credentials.get("password") or url.password
@@ -618,14 +623,16 @@ class GithubPagesPublisher(Publisher):
                 except OSError:  # Different Filesystems
                     shutil.copy(full_path, dst)
 
-    def write_cname(self, path, target_url):
+    @staticmethod
+    def write_cname(path, target_url):
         params = target_url.decode_query()
         cname = params.get("cname")
         if cname is not None:
             with open(os.path.join(path, "CNAME"), "w") as f:
                 f.write("%s\n" % cname)
 
-    def detect_target_branch(self, target_url):
+    @staticmethod
+    def detect_target_branch(target_url):
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
         if target_url.host.lower() + ".github.io" == target_url.path.strip("/").lower():

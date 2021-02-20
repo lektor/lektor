@@ -44,6 +44,7 @@ class SourceObject:
             yield self.source_filename
 
     def iter_virtual_sources(self):
+        # pylint: disable=no-self-use
         return []
 
     @property
@@ -143,9 +144,11 @@ class VirtualSourceObject(SourceObject):
         raise NotImplementedError()
 
     def get_mtime(self, path_cache):
+        # pylint: disable=no-self-use
         return None
 
     def get_checksum(self, path_cache):
+        # pylint: disable=no-self-use
         return None
 
     @property

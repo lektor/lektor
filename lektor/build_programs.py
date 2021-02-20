@@ -138,6 +138,7 @@ class BuildProgram:
         building.  An individual build never recurses down to this, but
         a `build_all` will use this.
         """
+        # pylint: disable=no-self-use
         return iter(())
 
 

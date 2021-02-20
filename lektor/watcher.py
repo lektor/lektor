@@ -43,6 +43,7 @@ class BasicWatcher:
         self.observer.setDaemon(True)
 
     def is_interesting(self, time, event_type, path):
+        # pylint: disable=no-self-use
         return True
 
     def __iter__(self):

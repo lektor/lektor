@@ -138,7 +138,8 @@ class Context:
     def push(self):
         _ctx_stack.push(self)
 
-    def pop(self):
+    @staticmethod
+    def pop():
         _ctx_stack.pop()
 
     def __enter__(self):
