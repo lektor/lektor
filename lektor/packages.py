@@ -3,7 +3,6 @@ import os
 import shutil
 import site
 import sys
-import tempfile
 from subprocess import PIPE
 
 import click
@@ -75,9 +74,7 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_package(
-    package_root, package=None, version=None, requirements_file=None
-):
+def download_and_install_package(package_root, package=None, version=None):
     """This downloads and installs a specific version of a package."""
     # XXX: windows
     env = dict(os.environ)
@@ -93,8 +90,6 @@ def download_and_install_package(
 
     if package is not None:
         args.append("%s%s%s" % (package, version and "==" or "", version or ""))
-    if requirements_file is not None:
-        args.extend(("-r", requirements_file))
 
     rv = portable_popen(args, env=env).wait()
     if rv != 0:
@@ -114,42 +109,14 @@ def install_local_package(package_root, path):
             "-m",
             "pip",
             "install",
-            "--editable",
             path,
-            "--install-option=--install-dir=%s" % package_root,
-            "--no-deps",
+            "--target",
+            package_root,
         ],
         env=env,
     ).wait()
     if rv != 0:
         raise RuntimeError("Failed to install local package")
-
-    # Step 2: generate the egg info into a temp folder to find the
-    # requirements.
-    tmp = tempfile.mkdtemp()
-    try:
-        rv = portable_popen(
-            [
-                sys.executable,
-                "setup.py",
-                "--quiet",
-                "egg_info",
-                "--quiet",
-                "--egg-base",
-                tmp,
-            ],
-            cwd=path,
-        ).wait()
-        dirs = os.listdir(tmp)
-        if rv != 0 or len(dirs) != 1:
-            raise RuntimeError("Failed to create egg info for local package.")
-        requires = os.path.join(tmp, dirs[0], "requires.txt")
-
-        # We have dependencies, install them!
-        if os.path.isfile(requires):
-            download_and_install_package(package_root, requirements_file=requires)
-    finally:
-        shutil.rmtree(tmp)
 
 
 def get_package_info(path):
