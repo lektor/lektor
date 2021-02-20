@@ -1,14 +1,13 @@
 /* sidebar toggle button */
 .navbar-toggle {
-  float: right;
-  margin: 0;
+  float: left;
   padding: 4px;
+  margin-top: 8px;
   z-index: 999999;
   border: 1px solid $toggle-group-color;
   background: white;
-  margin-left: 10px;
-  height: 20px !important;
-  width: 20px !important;
+  height: 20px;
+  width: 20px;
   display: none;
 
   &:hover {
@@ -26,7 +25,7 @@
     display: block;
     height: 2px;
     width: 100%;
-    background: #c00;
+    background: $primary;
     margin: 0 0 2px 0;
   }
 }
@@ -47,7 +46,7 @@ header {
 
   ul.breadcrumb {
     background: transparent;
-    margin: 0 auto;
+    margin: 0;
     height: 38px;
     border-radius: 0;
     z-index: 9000;
@@ -80,9 +79,8 @@ header {
         }
       }
     }
-
-    .global-actions {
-      margin-top: -8px;
-    }
+  }
+  .global-actions {
+    margin-top: 2px;
   }
 }
