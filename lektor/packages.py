@@ -190,11 +190,11 @@ def requirements_txt_from_requires_file(requires_path):
     with open(requirements_path, "w") as requirements, open(
         requires_path, "r"
     ) as requires:
-        for line in requires.readlines():
-            # extra requires section starts here -> not valid requirements.txt syntax
-            if line.strip().startswith("["):
-                break
-            requirements.write(line)
+        section_name, extracted_requirements = next(
+            pkg_resources.split_sections(requires)
+        )
+        if section_name is None:
+            requirements.write("\n".join(extracted_requirements))
 
     return requirements_path
 
