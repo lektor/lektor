@@ -59,3 +59,10 @@ class TestBasicWatcher:
             with BasicWatcher(paths, observer_classes=observer_classes):
                 pass
         assert capsys.readouterr() == ("", "")
+
+    def test_perverse_usage(self, paths):
+        # This exercises a bug which occurred when BasicWatcher was
+        # called with repeated (failing) values in observer_classes.
+        observer_classes = (BrokenObserver, BrokenObserver, PollingObserver)
+        with BasicWatcher(paths, observer_classes=observer_classes) as watcher:
+            assert isinstance(watcher.observer, BaseObserver)

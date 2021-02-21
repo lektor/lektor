@@ -51,7 +51,7 @@ class BasicWatcher:
             try:
                 self._start_observer(observer_class)
             except Exception as exc:
-                untried.remove(observer_class)
+                untried.discard(observer_class)
                 if len(untried) == 0:
                     raise
                 click.secho(
