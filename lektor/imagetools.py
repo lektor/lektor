@@ -564,8 +564,8 @@ def make_image_thumbnail(
     # this needs to change to an exception in the future.
     if mode != ThumbnailMode.FIT and (width is None or height is None):
         warnings.warn(
-            '"%s" mode requires both `width` and `height` to be defined. '
-            'Falling back to "fit" mode.`' % mode.value
+            f'"{mode.value}" mode requires both `width` and `height` '
+            'to be specified. Falling back to "fit" mode.'
         )
         mode = ThumbnailMode.FIT
 
