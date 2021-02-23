@@ -11,9 +11,6 @@ from watchdog.observers.polling import PollingObserver
 
 from lektor.utils import get_cache_dir
 
-# Alias this as this can be called during interpreter shutdown
-_Empty = queue.Empty
-
 
 class EventHandler(FileSystemEventHandler):
     def __init__(self):
@@ -76,12 +73,15 @@ class BasicWatcher:
         return True
 
     def __iter__(self):
+        # Alias this since we may need it during interpreter shutdown
+        queue_Empty = queue.Empty
+
         while 1:
             try:
                 item = self.event_handler.queue.get(timeout=1)
                 if self.is_interesting(*item):
                     yield item
-            except _Empty:
+            except queue_Empty:
                 pass
 
 
