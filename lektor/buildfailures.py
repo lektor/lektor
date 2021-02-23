@@ -52,6 +52,7 @@ class FailureController:
         except IOError as e:
             if e.errno != errno.ENOENT:
                 raise
+            return None
 
     def clear_failure(self, artifact_name):
         """Clears a stored failure."""
