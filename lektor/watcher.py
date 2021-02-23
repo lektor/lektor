@@ -16,31 +16,21 @@ _Empty = queue.Empty
 
 
 class EventHandler(FileSystemEventHandler):
-    def __init__(self, callback=None):
-        if callback is not None:
-            self.queue = None
-            self.callback = callback
-        else:
-            self.queue = queue.Queue()
-            self.callback = self.queue.put
+    def __init__(self):
+        self.queue = queue.Queue()
 
     def on_any_event(self, event):
         if not isinstance(event, DirModifiedEvent):
-            path = (
-                event.dest_path if isinstance(event, FileMovedEvent) else event.src_path
-            )
-            item = (time.time(), event.event_type, path)
-            if self.queue is not None:
-                self.queue.put(item)
+            if isinstance(event, FileMovedEvent):
+                path = event.dest_path
             else:
-                self.callback(*item)
+                path = event.src_path
+            self.queue.put((time.time(), event.event_type, path))
 
 
 class BasicWatcher:
-    def __init__(
-        self, paths, callback=None, observer_classes=(Observer, PollingObserver)
-    ):
-        self.event_handler = EventHandler(callback=callback)
+    def __init__(self, paths, observer_classes=(Observer, PollingObserver)):
+        self.event_handler = EventHandler()
         self.paths = paths
         self.observer_classes = observer_classes
         self.observer = None
@@ -86,8 +76,6 @@ class BasicWatcher:
         return True
 
     def __iter__(self):
-        if self.event_handler.queue is None:
-            raise RuntimeError("watcher used with callback")
         while 1:
             try:
                 item = self.event_handler.queue.get(timeout=1)
