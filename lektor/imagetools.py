@@ -61,7 +61,7 @@ def _combine_make(make, model):
     model = model or ""
     if make and model.startswith(make):
         return make
-    return u" ".join([make, model]).strip()
+    return " ".join([make, model]).strip()
 
 
 _parse_svg_units_re = re.compile(
@@ -171,7 +171,7 @@ class EXIFInfo:
 
     @property
     def f(self):
-        return u"ƒ/%s" % self.f_num
+        return "ƒ/%s" % self.f_num
 
     @property
     def exposure_time(self):
@@ -190,14 +190,14 @@ class EXIFInfo:
     def focal_length(self):
         val = self._get_float("EXIF FocalLength")
         if val is not None:
-            return u"%smm" % val
+            return "%smm" % val
         return None
 
     @property
     def focal_length_35mm(self):
         val = self._get_float("EXIF FocalLengthIn35mmFilm")
         if val is not None:
-            return u"%dmm" % val
+            return "%dmm" % val
         return None
 
     @property
