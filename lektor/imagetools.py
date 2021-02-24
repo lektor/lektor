@@ -39,7 +39,7 @@ class ThumbnailMode(IntEnum):
         """
         name = label.upper().replace("-", "_")
         try:
-            return cls.__members__[name]  # pylint: disable=no-member
+            return cls.__members__[name]  # pylint: disable=unsubscriptable-object
         except KeyError as error:
             raise ValueError("Invalid thumbnail mode '%s'." % label) from error
 

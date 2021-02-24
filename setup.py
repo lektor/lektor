@@ -8,7 +8,7 @@ with io.open("README.md", "rt", encoding="utf8") as f:
 
 tests_require = [
     "pre-commit",
-    "pylint",
+    "pylint==2.7.0",
     "pytest",
     "pytest-cov",
     "pytest-mock",

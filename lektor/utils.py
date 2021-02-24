@@ -316,7 +316,7 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
                     return path + ext
         return None
     except OSError:
-        pass
+        return None
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -356,6 +356,7 @@ def safe_call(func, args=None, kwargs=None):
     except Exception:
         # XXX: logging
         traceback.print_exc()
+        return None
 
 
 class Worker(Thread):
@@ -600,6 +601,9 @@ def get_relative_path(source, target):
         else:
             # prepend the distance to the common ancestor
             return distance / relpath
+    # We should never get here.  (The last ancestor in source.parents will
+    # be '.' — target.relative_to('.') will always succeed.)
+    raise AssertionError("This should not happen")
 
 
 def get_structure_hash(params):

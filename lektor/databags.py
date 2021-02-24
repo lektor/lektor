@@ -24,6 +24,7 @@ def load_databag(filename):
     except (OSError, IOError) as e:
         if e.errno != errno.ENOENT:
             raise
+        return None
 
 
 class Databags:
