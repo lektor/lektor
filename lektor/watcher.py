@@ -64,7 +64,7 @@ class BasicWatcher:
         observer = observer_class()
         for path in self.paths:
             observer.schedule(self.event_handler, path, recursive=True)
-        observer.setDaemon(True)
+        observer.daemon = True
         observer.start()
         self.observer = observer
 
