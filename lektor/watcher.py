@@ -1,6 +1,8 @@
 import os
 import queue
 import time
+from collections import OrderedDict
+from itertools import zip_longest
 
 import click
 from watchdog.events import DirModifiedEvent
@@ -25,6 +27,16 @@ class EventHandler(FileSystemEventHandler):
             self.queue.put((time.time(), event.event_type, path))
 
 
+def _fullname(cls):
+    """Return the full name of a class (including the module name)."""
+    return f"{cls.__module__}.{cls.__qualname__}"
+
+
+def _unique_everseen(seq):
+    """Return the unique elements in sequence, preserving order."""
+    return OrderedDict.fromkeys(seq).keys()
+
+
 class BasicWatcher:
     def __init__(self, paths, observer_classes=(Observer, PollingObserver)):
         self.event_handler = EventHandler()
@@ -33,19 +45,21 @@ class BasicWatcher:
         self.observer = None
 
     def start(self):
-        untried = set(self.observer_classes)
-        for observer_class in self.observer_classes:
+        observer_classes = list(_unique_everseen(self.observer_classes))
+        for observer_class, next_observer_class in zip_longest(
+            observer_classes, observer_classes[1:]
+        ):
             try:
                 self._start_observer(observer_class)
+                return
             except Exception as exc:
-                untried.discard(observer_class)
-                if len(untried) == 0:
+                if next_observer_class is None:
                     raise
                 click.secho(
-                    f"Creation of {observer_class.__module__}.{observer_class.__name__} "
-                    f"failed with exception:\n  {exc.__class__.__name__}: {exc!s}\n"
-                    "This may be due to a configuration or other issue with "
-                    "your system.\nFalling back to polling for file modifications.",
+                    f"Creation of {_fullname(observer_class)} failed with exception:\n"
+                    f"  {exc.__class__.__name__}: {exc!s}\n"
+                    "This may be due to a configuration or other issue with your system.\n"
+                    f"Falling back to {_fullname(next_observer_class)}.",
                     fg="red",
                     bold=True,
                 )
