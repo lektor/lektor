@@ -61,6 +61,8 @@ class BasicWatcher:
         self.stop()
 
     def _start_observer(self, observer_class=Observer):
+        if self.observer is not None:
+            raise RuntimeError("Watcher already started.")
         observer = observer_class()
         for path in self.paths:
             observer.schedule(self.event_handler, path, recursive=True)

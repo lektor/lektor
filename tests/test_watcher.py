@@ -66,3 +66,8 @@ class TestBasicWatcher:
         observer_classes = (BrokenObserver, BrokenObserver, PollingObserver)
         with BasicWatcher(paths, observer_classes=observer_classes) as watcher:
             assert isinstance(watcher.observer, BaseObserver)
+
+    def test_raises_error_if_started_twice(self, paths):
+        with BasicWatcher(paths) as watcher:
+            with pytest.raises(RuntimeError, match="already started"):
+                watcher.start()
