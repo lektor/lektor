@@ -27,19 +27,6 @@ def temporary_lektor_cache(tmp_path_factory):
     """
     cache_dir = tmp_path_factory.mktemp("lektor_cache")
 
-    # NB: lektor.utils.get_cache_dir() does not make it easy to configure
-    # a non-standard cache directory
-    #
-    # On posix systems one can adjust the choice of cache directory
-    # by setting the XDG_CACHE_HOME environment variable.  On windows
-    # one can do similar by setting LOCALAPPDATA.  However the semantics
-    # of these two settings are different; and furthermore, there is no
-    # way to configure the selection of cache directory on darwin.
-    #
-    # For now, we punt and monkeypatch get_cache_dir().  It might be
-    # better for fix get_cache_dir so as to provide a cleaner way of
-    # doing this (e.g. obey a LEKTOR_TMPDIR environment variable?)
-
     # The stock monkeypatch fixture is function-scoped and so can not
     # be used in a session-scoped fixture.
     # Workaround from:
