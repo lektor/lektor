@@ -214,7 +214,7 @@ def get_suffix(seek, width, height, mode, quality):
         suffix += "_%s" % "x".join(str(x) for x in [width, height] if x is not None)
 
     if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.label
+        suffix += "_%s" % mode.value
 
     if quality is not None:
         suffix += "_q%s" % quality
@@ -290,7 +290,7 @@ def make_video_thumbnail(
 ):
     if mode != ThumbnailMode.FIT and (width is None or height is None):
         msg = '"%s" mode requires both `width` and `height` to be defined.'
-        raise ValueError(msg % mode.label)
+        raise ValueError(msg % mode.value)
 
     if upscale is None:
         upscale = {

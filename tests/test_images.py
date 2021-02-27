@@ -1,4 +1,5 @@
 import os
+import warnings
 from datetime import datetime
 from hashlib import md5
 from io import BytesIO
@@ -8,6 +9,8 @@ import pytest
 from lektor.imagetools import compute_dimensions
 from lektor.imagetools import get_image_info
 from lektor.imagetools import is_rotated
+from lektor.imagetools import make_image_thumbnail
+from lektor.imagetools import ThumbnailMode
 
 
 def almost_equal(a, b, e=0.00001):
@@ -233,3 +236,100 @@ def test_dimensions():
     #
     assert compute_dimensions(None, 49, w, h) == (25, 49)
     assert compute_dimensions(None, 51, w, h) == (26, 51)
+
+
+class DummyContext:
+    def __init__(self):
+        self.sub_artifacts = []
+
+    def sub_artifact(self, **kwargs):
+        def decorate(f):
+            self.add_sub_artifact(build_func=f, **kwargs)
+            return f
+
+        return decorate
+
+    def add_sub_artifact(self, **kwargs):
+        self.sub_artifacts.append(kwargs)
+
+
+class Test_make_image_thumbnail:
+    @pytest.fixture
+    def ctx(self):
+        return DummyContext()
+
+    @pytest.fixture
+    def test_jpg(self, project):
+        return os.path.join(project.tree, "content/test.jpg")
+
+    @pytest.fixture
+    def svg_image(self, make_svg, tmp_path):
+        svg_path = tmp_path / "test.svg"
+        svg_path.write_bytes(make_svg().getvalue())
+        return str(svg_path)
+
+    @pytest.fixture
+    def source_url_path(self):
+        return "test.jpg"
+
+    def test_no_width_or_height(self, ctx, test_jpg, source_url_path):
+        with pytest.raises(ValueError, match=r"Must specify at least one"):
+            make_image_thumbnail(ctx, test_jpg, source_url_path)
+        assert len(ctx.sub_artifacts) == 0
+
+    def test_warn_fallback_to_fit(self, ctx, test_jpg, source_url_path):
+        with pytest.warns(UserWarning, match=r"mode requires both"):
+            make_image_thumbnail(
+                ctx, test_jpg, source_url_path, width=80, mode=ThumbnailMode.CROP
+            )
+        assert len(ctx.sub_artifacts) == 1
+
+    def test_unknown_image_format(self, ctx, project, source_url_path):
+        bad_img = os.path.join(project.tree, "content/contents.lr")
+        with pytest.raises(RuntimeError, match=r"unknown image"):
+            make_image_thumbnail(ctx, bad_img, source_url_path, width=80)
+        assert len(ctx.sub_artifacts) == 0
+
+    def test_svg(self, ctx, svg_image, source_url_path):
+        rv = make_image_thumbnail(ctx, svg_image, source_url_path, 40, 60)
+        assert rv.width == 40
+        assert rv.height == 60
+        assert rv.url_path == source_url_path
+        assert len(ctx.sub_artifacts) == 0
+
+    @pytest.mark.parametrize(
+        "w, h, mode, upscale, expect",
+        [
+            (50, None, ThumbnailMode.FIT, None, (50, 67)),
+            (None, 128, ThumbnailMode.FIT, None, (96, 128)),
+            (50, 50, ThumbnailMode.CROP, None, (50, 50)),
+            (50, 50, ThumbnailMode.STRETCH, None, (50, 50)),
+            (512, None, ThumbnailMode.FIT, True, (512, 683)),
+            (512, 512, ThumbnailMode.CROP, None, (512, 512)),
+            (512, 512, ThumbnailMode.STRETCH, None, (512, 512)),
+        ],
+    )
+    def test_scale(
+        self, ctx, test_jpg, source_url_path, w, h, mode, upscale, expect, recwarn
+    ):
+        warnings.simplefilter("error")  # no warnings should be emitted
+        rv = make_image_thumbnail(ctx, test_jpg, source_url_path, w, h, mode, upscale)
+        assert (rv.width, rv.height) == expect
+        assert rv.url_path != source_url_path
+        assert len(ctx.sub_artifacts) == 1
+
+    def test_implicit_upscale(self, ctx, test_jpg, source_url_path):
+        with pytest.warns(UserWarning, match=r"image is being scaled up"):
+            rv = make_image_thumbnail(ctx, test_jpg, source_url_path, 512)
+        assert (rv.width, rv.height) == (512, 683)
+        assert rv.url_path == "test@512.jpg"
+        assert len(ctx.sub_artifacts) == 1
+
+    @pytest.mark.parametrize("mode", iter(ThumbnailMode))
+    def test_upscale_false(self, ctx, test_jpg, source_url_path, mode):
+        rv = make_image_thumbnail(
+            ctx, test_jpg, source_url_path, 4096, 4069, mode, upscale=False
+        )
+        assert (rv.width, rv.height) == (384, 512)
+        assert rv.url_path == source_url_path
+        assert len(ctx.sub_artifacts) == 0

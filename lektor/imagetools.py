@@ -6,7 +6,7 @@ import re
 import struct
 import warnings
 from datetime import datetime
-from enum import IntEnum
+from enum import Enum
 from xml.etree import ElementTree as etree
 
 import exifread
@@ -22,30 +22,32 @@ from lektor.utils import portable_popen
 datetime.strptime("", "")
 
 
-class ThumbnailMode(IntEnum):
-    FIT, CROP, STRETCH = range(1, 4)
+class ThumbnailMode(Enum):
+    FIT = "fit"
+    CROP = "crop"
+    STRETCH = "stretch"
+
+    DEFAULT = "fit"
 
     @property
     def label(self):
         """The mode's label as used in templates."""
-        # our constants are uppercase with underscores,
-        # while template uses lowercase and dashes.
-        return self.name.lower().replace("_", "-")  # pylint: disable=no-member
+        warnings.warn(
+            "ThumbnailMode.label is deprecated. (Use ThumbnailMode.value instead.)",
+            DeprecationWarning,
+        )
+        return self.value
 
     @classmethod
     def from_label(cls, label):
-        """
-        Looks up the thumbnail mode by its textual representation.
-        """
-        name = label.upper().replace("-", "_")
-        try:
-            return cls.__members__[name]  # pylint: disable=unsubscriptable-object
-        except KeyError as error:
-            raise ValueError("Invalid thumbnail mode '%s'." % label) from error
-
-
-# set the default. do it outside the class to not confuse things
-ThumbnailMode.DEFAULT = ThumbnailMode.FIT
+        """Looks up the thumbnail mode by its textual representation."""
+        warnings.warn(
+            "ThumbnailMode.from_label is deprecated. "
+            "Use the ThumbnailMode constructor, "
+            'e.g. "ThumbnailMode(label)", instead.',
+            DeprecationWarning,
+        )
+        return cls(label)
 
 
 def _convert_gps(coords, hem):
@@ -59,7 +61,7 @@ def _combine_make(make, model):
     model = model or ""
     if make and model.startswith(make):
         return make
-    return u" ".join([make, model]).strip()
+    return " ".join([make, model]).strip()
 
 
 _parse_svg_units_re = re.compile(
@@ -169,7 +171,7 @@ class EXIFInfo:
 
     @property
     def f(self):
-        return u"ƒ/%s" % self.f_num
+        return "ƒ/%s" % self.f_num
 
     @property
     def exposure_time(self):
@@ -188,14 +190,14 @@ class EXIFInfo:
     def focal_length(self):
         val = self._get_float("EXIF FocalLength")
         if val is not None:
-            return u"%smm" % val
+            return "%smm" % val
         return None
 
     @property
     def focal_length_35mm(self):
         val = self._get_float("EXIF FocalLengthIn35mmFilm")
         if val is not None:
-            return u"%dmm" % val
+            return "%dmm" % val
         return None
 
     @property
@@ -299,7 +301,7 @@ def get_suffix(width, height, mode, quality=None):
     if height is not None:
         suffix += "x%s" % height
     if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.label
+        suffix += "_%s" % mode.value
     if quality is not None:
         suffix += "_q%s" % quality
     return suffix
@@ -557,31 +559,18 @@ def make_image_thumbnail(
     if width is None and height is None:
         raise ValueError("Must specify at least one of width or height.")
 
-    # this part needs to be removed once backward-compatibility period passes
-    if upscale is None and mode == ThumbnailMode.FIT:
-        warnings.warn(
-            "Your images are currently scaled up when the thumbnail requested "
-            "is larger than the source. This default will change in the future. "
-            "If you want to preserve the current behaviour, use `upscale=True`."
-        )
-        upscale = True
-
-    if upscale is None:
-        upscale = {
-            ThumbnailMode.FIT: False,
-            ThumbnailMode.CROP: True,
-            ThumbnailMode.STRETCH: True,
-        }[mode]
-
     # temporarily fallback to "fit" in case of erroneous arguments
     # to preserve backward-compatibility.
     # this needs to change to an exception in the future.
     if mode != ThumbnailMode.FIT and (width is None or height is None):
         warnings.warn(
-            '"%s" mode requires both `width` and `height` to be defined. '
-            'Falling back to "fit" mode.`' % mode.label
+            f'"{mode.value}" mode requires both `width` and `height` '
+            'to be specified. Falling back to "fit" mode.'
         )
         mode = ThumbnailMode.FIT
+
+    if upscale is None and mode in (ThumbnailMode.CROP, ThumbnailMode.STRETCH):
+        upscale = True
 
     with open(source_image, "rb") as f:
         format, source_width, source_height = get_image_info(f)
@@ -595,32 +584,32 @@ def make_image_thumbnail(
     if format == "svg":
         return Thumbnail(source_url_path, width, height)
 
-    if not upscale:
-
-        def _original():
-            return Thumbnail(source_url_path, source_width, source_height)
-
-        if height is None:
-            if source_width < width:
-                return _original()
-        elif width is None:
-            if source_height < height:
-                return _original()
-        else:
-            if source_width < width and source_height < height:
-                return _original()
-
-    suffix = get_suffix(width, height, mode, quality=quality)
-    dst_url_path = get_dependent_url(
-        source_url_path, suffix, ext=get_thumbnail_ext(source_image)
-    )
-
     if mode == ThumbnailMode.FIT:
         computed_width, computed_height = compute_dimensions(
             width, height, source_width, source_height
         )
     else:
         computed_width, computed_height = width, height
+
+    would_upscale = computed_width > source_width or computed_height > source_height
+
+    # this part needs to be removed once backward-compatibility period passes
+    if would_upscale and upscale is None:
+        warnings.warn(
+            "Your image is being scaled up since the requested thumbnail "
+            "size is larger than the source. This default will change "
+            "in the future. If you want to preserve the current behaviour, "
+            "use `upscale=True`."
+        )
+        upscale = True
+
+    if would_upscale and not upscale:
+        return Thumbnail(source_url_path, source_width, source_height)
+
+    suffix = get_suffix(width, height, mode, quality=quality)
+    dst_url_path = get_dependent_url(
+        source_url_path, suffix, ext=get_thumbnail_ext(source_image)
+    )
 
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()

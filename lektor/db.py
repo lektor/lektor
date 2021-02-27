@@ -822,7 +822,7 @@ class Image(Attachment):
         if mode is None:
             mode = ThumbnailMode.DEFAULT
         else:
-            mode = ThumbnailMode.from_label(mode)
+            mode = ThumbnailMode(mode)
 
         if width is not None:
             width = int(width)
@@ -946,7 +946,7 @@ class VideoFrame:
         if mode is None:
             mode = ThumbnailMode.DEFAULT
         else:
-            mode = ThumbnailMode.from_label(mode)
+            mode = ThumbnailMode(mode)
 
         video = self.video
         return make_video_thumbnail(
