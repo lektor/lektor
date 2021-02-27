@@ -38,7 +38,7 @@ export default class SlideDialog extends React.Component<Props> {
     const { children, title, hasCloseButton } = this.props;
     return (
       <div className="sliding-panel container">
-        <div className="col-md-6 col-md-offset-4">
+        <div className="col-md-6 offset-md-3">
           {hasCloseButton && (
             <a href="#" className="close-btn" onClick={this.onCloseClick}>
               {trans("CLOSE")}

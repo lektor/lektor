@@ -54,11 +54,12 @@ class GlobalActions extends Component<RecordProps, unknown> {
   }
 
   render() {
+    const buttonClass = "btn btn-secondary border";
     return (
       <div className="btn-group">
         <button
           type="button"
-          className="btn btn-default"
+          className={buttonClass}
           onClick={showFindFilesDialog}
           title={trans("FIND_FILES")}
         >
@@ -66,7 +67,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
         </button>
         <button
           type="button"
-          className="btn btn-default"
+          className={buttonClass}
           onClick={showPublishDialog}
           title={trans("PUBLISH")}
         >
@@ -74,7 +75,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
         </button>
         <button
           type="button"
-          className="btn btn-default"
+          className={buttonClass}
           onClick={showRefreshDialog}
           title={trans("REFRESH_BUILD")}
         >
@@ -82,7 +83,7 @@ class GlobalActions extends Component<RecordProps, unknown> {
         </button>
         <button
           type="button"
-          className="btn btn-default"
+          className={buttonClass}
           onClick={this.onCloseClick}
           title={trans("RETURN_TO_WEBSITE")}
         >

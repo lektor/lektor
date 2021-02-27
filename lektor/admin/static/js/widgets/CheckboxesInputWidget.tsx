@@ -60,9 +60,10 @@ export class CheckboxesInputWidget extends React.PureComponent<
     };
 
     const choices = type.choices.map((item) => (
-      <div className="checkbox" key={item[0]}>
-        <label>
+      <div className="form-check" key={item[0]}>
+        <label className="form-check-label">
           <input
+            className="form-check-input"
             type="checkbox"
             disabled={disabled}
             checked={checkboxIsActive(item[0], this.props)}

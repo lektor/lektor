@@ -2,6 +2,7 @@ import React from "react";
 import { RecordProps } from "../components/RecordComponent";
 
 import BreadCrumbs from "./BreadCrumbs";
+import GlobalActions from "./GlobalActions";
 
 export default function Header({
   sidebarIsActive,
@@ -17,14 +18,20 @@ export default function Header({
 
   return (
     <header>
-      <BreadCrumbs {...recordProps}>
+      <div className="container">
         <button type="button" className={buttonClass} onClick={toggleSidebar}>
           <span className="sr-only">Toggle navigation</span>
           <span className="icon-list" />
           <span className="icon-list" />
           <span className="icon-list" />
         </button>
-      </BreadCrumbs>
+        <div className="row d-flex justify-content-between">
+          <BreadCrumbs {...recordProps} />
+          <div className="global-actions">
+            <GlobalActions {...recordProps} />
+          </div>
+        </div>
+      </div>
     </header>
   );
 }

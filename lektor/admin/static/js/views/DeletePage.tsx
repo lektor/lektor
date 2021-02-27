@@ -220,7 +220,7 @@ class DeletePage extends Component<RecordProps, State> {
           </button>
           <button
             type="button"
-            className="btn btn-default"
+            className="btn btn-secondary border"
             onClick={this.cancelDelete}
           >
             {trans("NO_CANCEL")}

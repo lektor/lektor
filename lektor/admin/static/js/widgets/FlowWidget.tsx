@@ -265,13 +265,14 @@ export class FlowWidget extends React.PureComponent<
           renderFunc={this.renderFormField.bind(this, blockInfo)}
         />
       );
+      const buttonClass = "btn btn-secondary btn-sm border";
 
       return (
         <div key={blockInfo.localId} className="flow-block">
           <div className="btn-group action-bar">
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className={buttonClass}
               title={blockInfo.collapsed ? trans("Expand") : trans("Collapse")}
               onClick={this.toggleBlock.bind(this, idx)}
             >
@@ -283,7 +284,7 @@ export class FlowWidget extends React.PureComponent<
             </button>
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className={buttonClass}
               title={trans("UP")}
               disabled={idx === 0}
               onClick={this.moveBlock.bind(this, idx, -1)}
@@ -292,7 +293,7 @@ export class FlowWidget extends React.PureComponent<
             </button>
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className={buttonClass}
               title={trans("DOWN")}
               disabled={idx >= flowBlocks.length - 1}
               onClick={this.moveBlock.bind(this, idx, 1)}
@@ -301,7 +302,7 @@ export class FlowWidget extends React.PureComponent<
             </button>
             <button
               type="button"
-              className="btn btn-default btn-xs"
+              className={buttonClass}
               title={trans("REMOVE")}
               onClick={this.removeBlock.bind(this, idx)}
             >
@@ -326,7 +327,7 @@ export class FlowWidget extends React.PureComponent<
       return (
         <button
           type="button"
-          className="btn btn-default"
+          className="btn btn-secondary border"
           onClick={this.addNewBlock.bind(this, key)}
           title={trans_obj(flowBlockModel.name_i18n)}
           key={flowBlockModel.id}

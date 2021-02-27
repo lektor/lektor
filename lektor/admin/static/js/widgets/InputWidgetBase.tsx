@@ -62,7 +62,11 @@ export default function InputWidgetBase(
           onChange={onChangeHandler}
           value={value || ""}
         />
-        {addon ? <span className="input-group-addon">{addon}</span> : null}
+        {addon ? (
+          <div className="input-group-append">
+            <span className="input-group-text">{addon}</span>
+          </div>
+        ) : null}
       </div>
       {help}
     </div>

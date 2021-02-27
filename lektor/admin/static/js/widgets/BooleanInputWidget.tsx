@@ -35,10 +35,11 @@ export class BooleanInputWidget extends React.Component<WidgetProps, unknown> {
     const { type, value, disabled } = this.props;
 
     return (
-      <div className="checkbox">
-        <label>
+      <div className="form-check">
+        <label className="form-check-label">
           <input
             type="checkbox"
+            className="form-check-input"
             disabled={disabled}
             ref={this.checkbox}
             checked={isTrue(value)}
