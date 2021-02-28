@@ -140,43 +140,8 @@ class Command:
         if not self.capture:
             raise RuntimeError("Not capturing")
 
-        # Windows platforms do not have select() for files
-        if os.name == "nt":
-            q = queue.Queue()
-
-            def reader(stream):
-                while 1:
-                    line = stream.readline()
-                    q.put(line)
-                    if not line:
-                        break
-
-            t1 = threading.Thread(target=reader, args=(self._cmd.stdout,))
-            t1.setDaemon(True)
-            t2 = threading.Thread(target=reader, args=(self._cmd.stderr,))
-            t2.setDaemon(True)
-            t1.start()
-            t2.start()
-            outstanding = 2
-            while outstanding:
-                item = q.get()
-                if not item:
-                    outstanding -= 1
-                else:
-                    yield item.rstrip().decode("utf-8", "replace")
-
-        # Otherwise we can go with select()
-        else:
-            streams = [self._cmd.stdout, self._cmd.stderr]
-            while streams:
-                for l in select.select(streams, [], streams):
-                    for stream in l:
-                        line = stream.readline()
-                        if not line:
-                            if stream in streams:
-                                streams.remove(stream)
-                            break
-                        yield line.rstrip().decode("utf-8", "replace")
+        for line in _join_pipes(self._cmd.stdout, self._cmd.stderr):
+            yield line.rstrip().decode("utf-8", "replace")
 
     def safe_iter(self):
         with self:
@@ -186,6 +151,65 @@ class Command:
     @property
     def output(self):
         return self.safe_iter()
+
+
+def _join_pipes_using_threads(*pipes):
+    """Iterate lines from multiple input streams.
+
+    This can be used, e.g., to read the combined output from a subprocesses
+    stdout and stderr without fear of deadlock.
+
+    This implementation uses a separate thread to read from each input
+    stream.  It should work on any platform that supports threading.
+
+    """
+    q = queue.Queue()
+
+    def reader(stream):
+        while 1:
+            line = stream.readline()
+            q.put(line)
+            if not line:
+                break
+
+    for stream in pipes:
+        threading.Thread(target=reader, args=(stream,), daemon=True).start()
+    outstanding = len(pipes)
+    while outstanding:
+        item = q.get()
+        if not item:
+            outstanding -= 1
+        else:
+            yield item
+
+
+def _join_pipes_using_select(*pipes):
+    """Iterate lines from multiple input streams.
+
+    This can be used, e.g., to read the combined output from a subprocesses
+    stdout and stderr without fear of deadlock.
+
+    This implementation uses select() to avoid deadlock.  As such, this
+    implementation will not work on pipes under Windows.
+
+    """
+    streams = set(pipes)
+    while streams:
+        for l in select.select(streams, [], streams):
+            for stream in l:
+                line = stream.readline()  # FIXME: can block?
+                if not line:
+                    streams.discard(stream)
+                    break
+                else:
+                    yield line
+
+
+if os.name == "nt":
+    # Windows platforms do not have select() for files
+    _join_pipes = _join_pipes_using_threads
+else:
+    _join_pipes = _join_pipes_using_select
 
 
 class Publisher:
