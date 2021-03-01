@@ -110,9 +110,8 @@ class Command:
             environ.update(env)
         kwargs = {"cwd": cwd, "env": environ}
         if silent:
-            self.devnull = open(os.devnull, "rb+")
-            kwargs["stdout"] = self.devnull
-            kwargs["stderr"] = self.devnull
+            kwargs["stdout"] = subprocess.DEVNULL
+            kwargs["stderr"] = subprocess.DEVNULL
             capture = False
         if capture:
             kwargs["stdout"] = subprocess.PIPE
@@ -122,8 +121,9 @@ class Command:
 
     def wait(self):
         returncode = self._cmd.wait()
-        if hasattr(self, "devnull"):
-            self.devnull.close()
+        for stream in self._cmd.stdout, self._cmd.stderr:
+            if stream is not None:
+                stream.close()
         return returncode
 
     @property
@@ -134,7 +134,7 @@ class Command:
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        self._cmd.wait()
+        self.wait()
 
     def __iter__(self):
         if not self.capture:
