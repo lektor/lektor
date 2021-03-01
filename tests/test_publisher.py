@@ -67,54 +67,54 @@ def iter_in_thread(it):
         yield item
 
 
-class Test__join_pipes:
-    # pylint: disable=no-self-use
+@pytest.fixture(params=[_join_pipes_using_threads, _join_pipes_using_select])
+def join_pipes(request):
+    if request.param is _join_pipes_using_select and os.name == "nt":
+        pytest.skip("_join_pipes_using_select does not work on Windows")
+    return request.param
 
-    @pytest.fixture(params=[_join_pipes_using_threads, _join_pipes_using_select])
-    def join_pipes(self, request):
-        if request.param is _join_pipes_using_select and os.name == "nt":
-            pytest.skip("_join_pipes_using_select does not work on Windows")
-        return request.param
 
-    @pytest.fixture
-    def pipes(self):
-        class Streams(tuple):
-            def close(self):
-                for stream in self:
-                    if not stream.closed:
-                        stream.close()
+@pytest.fixture
+def pipes():
+    class Streams(tuple):
+        def close(self):
+            for stream in self:
+                if not stream.closed:
+                    stream.close()
 
-        pipes = [os.pipe() for n in range(2)]
-        readers = Streams(open(r, "rb") for r, w in pipes)
-        writers = Streams(open(w, "wb", buffering=0) for r, w in pipes)
-        try:
-            yield readers, writers
-        finally:
-            writers.close()
-            readers.close()
-
-    def test(self, join_pipes, pipes):
-        readers, writers = pipes
-
-        output = iter_in_thread(join_pipes(*readers))
-
-        writers[0].write(b"a\n")
-        writers[1].write(b"b\n")
-        assert {next(output), next(output)} == {b"a\n", b"b\n"}
-
+    pipes = [os.pipe() for n in range(2)]
+    readers = Streams(open(r, "rb") for r, w in pipes)
+    writers = Streams(open(w, "wb", buffering=0) for r, w in pipes)
+    try:
+        yield readers, writers
+    finally:
         writers.close()
-        assert next(output, "EOF") == "EOF"
+        readers.close()
 
-    def test_partial_line_does_not_deadlock(self, join_pipes, pipes):
-        readers, writers = pipes
 
-        output = iter_in_thread(join_pipes(*readers))
+def test_join_pipes_joins_pipes(join_pipes, pipes):
+    readers, writers = pipes
 
-        # exercise bug where we got stuck blocked in .readline() on partial line
-        for line in (b"line1\n", b"line2\n"):
-            writers[0].write(b"x")
-            writers[1].write(line)
-            assert next(output) == line
-        writers.close()
-        assert next(output) == b"xx"
-        assert next(output, "EOF") == "EOF"
+    output = iter_in_thread(join_pipes(*readers))
+
+    writers[0].write(b"a\n")
+    writers[1].write(b"b\n")
+    assert {next(output), next(output)} == {b"a\n", b"b\n"}
+
+    writers.close()
+    assert next(output, "EOF") == "EOF"
+
+
+def test_join_pipes_prevents_partial_line_deadlock(join_pipes, pipes):
+    readers, writers = pipes
+
+    output = iter_in_thread(join_pipes(*readers))
+
+    # exercise bug where we got stuck blocked in .readline() on partial line
+    for line in (b"line1\n", b"line2\n"):
+        writers[0].write(b"x")
+        writers[1].write(line)
+        assert next(output) == line
+    writers.close()
+    assert next(output) == b"xx"
+    assert next(output, "EOF") == "EOF"
