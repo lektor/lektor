@@ -3,12 +3,9 @@ import hashlib
 import io
 import os
 import posixpath
-import queue
-import selectors
 import shutil
 import subprocess
 import tempfile
-import threading
 from contextlib import contextmanager
 from ftplib import Error as FTPError
 
@@ -115,15 +112,16 @@ class Command:
             capture = False
         if capture:
             kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.STDOUT
+            kwargs["encoding"] = "utf-8"
+            kwargs["errors"] = "replace"
         self.capture = capture
         self._cmd = portable_popen(argline, **kwargs)
 
     def wait(self):
         returncode = self._cmd.wait()
-        for stream in self._cmd.stdout, self._cmd.stderr:
-            if stream is not None:
-                stream.close()
+        if self._cmd.stdout is not None:
+            self._cmd.stdout.close()
         return returncode
 
     @property
@@ -140,8 +138,8 @@ class Command:
         if not self.capture:
             raise RuntimeError("Not capturing")
 
-        for line in _join_pipes(self._cmd.stdout, self._cmd.stderr):
-            yield line.rstrip().decode("utf-8", "replace")
+        for line in self._cmd.stdout:
+            yield line.rstrip()
 
     def safe_iter(self):
         with self:
@@ -151,72 +149,6 @@ class Command:
     @property
     def output(self):
         return self.safe_iter()
-
-
-def _join_pipes_using_threads(*pipes):
-    """Iterate lines from multiple input streams.
-
-    This can be used, e.g., to read the combined output from a subprocesses
-    stdout and stderr without fear of deadlock.
-
-    This implementation uses a separate thread to read from each input
-    stream.  It should work on any platform that supports threading.
-
-    """
-    q = queue.Queue()
-
-    def reader(stream):
-        while 1:
-            line = stream.readline()
-            q.put(line)
-            if not line:
-                break
-
-    for stream in pipes:
-        threading.Thread(target=reader, args=(stream,), daemon=True).start()
-    outstanding = len(pipes)
-    while outstanding:
-        item = q.get()
-        if not item:
-            outstanding -= 1
-        else:
-            yield item
-
-
-def _join_pipes_using_select(*pipes):
-    """Iterate lines from multiple input streams.
-
-    This can be used, e.g., to read the combined output from a subprocesses
-    stdout and stderr without fear of deadlock.
-
-    This implementation uses select() to avoid deadlock.  As such, this
-    implementation will not work on pipes under Windows.
-
-    """
-    with selectors.DefaultSelector() as selector:
-        for stream in pipes:
-            selector.register(stream, selectors.EVENT_READ, data={})
-        while selector.get_map():
-            for key, _ in selector.select():
-                # The complication of reading with .read1() and buffering
-                # partial lines is necessary because reading whole lines with
-                # .readline() can block, leading to possible deadlock.
-                inp = key.fileobj.read1(io.DEFAULT_BUFFER_SIZE)
-                buf = key.data.pop("buf", b"") + inp
-                lines = buf.splitlines(keepends=True)
-                if not inp:
-                    selector.unregister(key.fileobj)
-                elif not lines[-1].endswith(b"\n"):
-                    key.data["buf"] = lines.pop()
-                for line in lines:
-                    yield line
-
-
-if os.name == "nt":
-    # Windows platforms do not have select() for files
-    _join_pipes = _join_pipes_using_threads
-else:
-    _join_pipes = _join_pipes_using_select
 
 
 class Publisher:
