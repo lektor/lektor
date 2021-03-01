@@ -1,16 +1,16 @@
 import errno
 import hashlib
+import io
 import os
 import posixpath
 import queue
-import select
+import selectors
 import shutil
 import subprocess
 import tempfile
 import threading
 from contextlib import contextmanager
 from ftplib import Error as FTPError
-from io import BytesIO
 
 from werkzeug import urls
 
@@ -193,15 +193,22 @@ def _join_pipes_using_select(*pipes):
     implementation will not work on pipes under Windows.
 
     """
-    streams = set(pipes)
-    while streams:
-        for l in select.select(streams, [], streams):
-            for stream in l:
-                line = stream.readline()  # FIXME: can block?
-                if not line:
-                    streams.discard(stream)
-                    break
-                else:
+    with selectors.DefaultSelector() as selector:
+        for stream in pipes:
+            selector.register(stream, selectors.EVENT_READ, data={})
+        while selector.get_map():
+            for key, _ in selector.select():
+                # The complication of reading with .read1() and buffering
+                # partial lines is necessary because reading whole lines with
+                # .readline() can block, leading to possible deadlock.
+                inp = key.fileobj.read1(io.DEFAULT_BUFFER_SIZE)
+                buf = key.data.pop("buf", b"") + inp
+                lines = buf.splitlines(keepends=True)
+                if not inp:
+                    selector.unregister(key.fileobj)
+                elif not lines[-1].endswith(b"\n"):
+                    key.data["buf"] = lines.pop()
+                for line in lines:
                     yield line
 
 
@@ -355,7 +362,7 @@ class FtpConnection:
         if not isinstance(filename, str):
             filename = filename.decode("utf-8")
 
-        input = BytesIO(data.encode("utf-8"))
+        input = io.BytesIO(data.encode("utf-8"))
 
         try:
             self.con.storbinary("APPE " + filename, input)
@@ -369,7 +376,7 @@ class FtpConnection:
             filename = filename.decode("utf-8")
         getvalue = False
         if out is None:
-            out = BytesIO()
+            out = io.BytesIO()
             getvalue = True
         try:
             self.con.retrbinary("RETR " + filename, out.write)
@@ -384,7 +391,7 @@ class FtpConnection:
 
     def upload_file(self, filename, src, mkdir=False):
         if isinstance(src, str):
-            src = BytesIO(src.encode("utf-8"))
+            src = io.BytesIO(src.encode("utf-8"))
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
