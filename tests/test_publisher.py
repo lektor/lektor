@@ -1,20 +1,36 @@
+import gc
+import warnings
+import weakref
+
+import pytest
+
 from lektor.publisher import Command
 
 
-def test_Command_triggers_no_warnings(recwarn):
+def test_Command_triggers_no_warnings():
     # This excercises the issue where publishing via rsync resulted
     # in ResourceWarnings about unclosed streams.
 
-    # This is essentially how RsyncPublisher runs rsync.
-    with Command(["echo"]) as client:
-        for _ in client:
-            pass
-    # Delete our reference so that the Command instance gets garbage
-    # collected here. Otherwise, gc will not happen until after the
-    # test completes and warnings emitted during gc will not be captured
-    # by the recwarn fixture.
-    del client
+    with pytest.warns(None) as record:
+        # This is essentially how RsyncPublisher runs rsync.
+        with Command(["echo"]) as client:
+            for _ in client:
+                pass
 
-    for warning in recwarn.list:
+        # The ResourceWarnings regarding unclosed files we are checking for
+        # are issued during finalization.  Without this extra effort,
+        # finalization wouldn't happen until after the test completes.
+        client_is_alive = weakref.ref(client)
+        del client
+        if client_is_alive():
+            gc.collect()
+
+    if client_is_alive():
+        warnings.warn(
+            "Unable to trigger garbage collection of Command instance, "
+            "so unable to check for warnings issued during finalization."
+        )
+
+    for warning in record.list:
         print(warning)
-    assert len(recwarn) == 0
+    assert len(record) == 0
