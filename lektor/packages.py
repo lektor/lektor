@@ -75,34 +75,8 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_package(
-    package_root, package=None, version=None, requirements_file=None
-):
-    """This downloads and installs a specific version of a package."""
-    # XXX: windows
-    env = dict(os.environ)
-
-    args = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--target",
-        package_root,
-    ]
-
-    if package is not None:
-        args.append("%s%s%s" % (package, version and "==" or "", version or ""))
-    if requirements_file is not None:
-        args.extend(("-r", requirements_file))
-
-    rv = portable_popen(args, env=env).wait()
-    if rv != 0:
-        raise RuntimeError("Failed to install dependency package.")
-
-
 def download_and_install_packages(package_root, packages_with_versions):
-    """This downloads and installs a specific version of a package."""
+    """This downloads and installs a specific version of packages."""
     # XXX: windows
     env = dict(os.environ)
 
@@ -352,7 +326,10 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
                     package_root, os.path.join(local_package_path, package[1:])
                 )
             else:
-                download_and_install_package(package_root, package, version)
+                download_and_install_packages(
+                    package_root,
+                    ["%s%s%s" % (package, version and "==" or "", version or "")],
+                )
         write_manifest(manifest_file, all_packages)
 
 
