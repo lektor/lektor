@@ -174,6 +174,9 @@ def requirements_from_unfinished_editable_install_at_path(path):
     finally:
         shutil.rmtree(tmp)
 
+    # no dependencies to install
+    return None
+
 
 def requirements_from_requires_file(requires_path):
     """Create a sanitized copy of `requires.txt`."""
