@@ -188,6 +188,9 @@ def requirements_from_requires_file(requires_path):
         if section_name is None:
             return extracted_requirements
 
+    # no dependencies to install
+    return None
+
 
 def get_package_info(path):
     """Returns the name of a package at a path."""
