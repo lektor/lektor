@@ -144,7 +144,6 @@ def install_local_package(package_root, path):
 
     editable_install_without_dependencies(package_root, path)
 
-    # using a for loop syntax here so the generator can clean up the tempdir after the loop
     requirements = requirements_from_unfinished_editable_install_at_path(path)
     if requirements is not None:
         download_and_install_packages(package_root, requirements)
