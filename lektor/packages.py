@@ -129,6 +129,8 @@ def install_local_package(package_root, path):
     # - setuptools https://github.com/pypa/setuptools/issues/392
     # we cannot just call `pip install --target $folder --editable $package`.
     # Hence the workaround of first installing only the package and then it's dependencies
+    # TODO Once https://github.com/pypa/pip/pull/9636 is released, this can all go away
+    # and the normal install will just work
 
     # Because pip can resolve dependencies differently when it is called with them individually,
     # it is important to call it with all of them together. Also
