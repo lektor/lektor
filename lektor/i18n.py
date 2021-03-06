@@ -1,6 +1,5 @@
+import json
 import os
-
-from flask import json
 
 
 translations_path = os.path.join(
@@ -13,8 +12,6 @@ KNOWN_LANGUAGES = list(
 
 translations = {}
 for _lang in KNOWN_LANGUAGES:
-    # We use flask.json here which can deal with bytes unlike the stdlib
-    # json module which barfs on bytes on 3.x
     with open(os.path.join(translations_path, _lang + ".json"), "rb") as f:
         translations[_lang] = json.load(f)
 

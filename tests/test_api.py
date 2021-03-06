@@ -1,8 +1,8 @@
+import json
 import os
 from operator import itemgetter
 
 import pytest
-from flask import json
 
 from lektor.admin import WebAdmin
 from lektor.admin.utils import eventstream
