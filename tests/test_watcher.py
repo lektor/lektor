@@ -101,17 +101,18 @@ class TestBasicWatcher:
 
     def test_iter(self, tmp_path):
         file1 = tmp_path / "file1"
-        file2 = tmp_path / "file2"
         file1.touch()
         with BasicWatcher([str(tmp_path)]) as watcher:
             it = IterateInThread(watcher)
 
+            file2 = tmp_path / "file2"
             file2.touch()
             assert next(it)[1:] == ("created", str(file2))
             assert next(it)[1:] == ("closed", str(file2))
 
-            file1 = file1.rename(tmp_path / "file1_renamed")
-            assert next(it)[1:] == ("moved", str(file1))
+            file1_renamed = tmp_path / "file1_renamed"
+            file1.rename(file1_renamed)
+            assert next(it)[1:] == ("moved", str(file1_renamed))
 
             assert it.queue.empty()
 
