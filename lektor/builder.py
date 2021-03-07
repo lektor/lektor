@@ -549,7 +549,7 @@ class FileInfo:
             if os.path.isdir(self.filename):
                 h.update(b"DIR\x00")
                 for filename in sorted(os.listdir(self.filename)):
-                    if self.env.is_uninteresting_source_name(filename):
+                    if self.env and self.env.is_uninteresting_source_name(filename):
                         continue
                     if isinstance(filename, str):
                         filename = filename.encode("utf-8")

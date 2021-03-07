@@ -1,8 +1,10 @@
 import errno
+import hashlib
 import os
 import shutil
 import site
 import sys
+from pathlib import Path
 from subprocess import PIPE
 
 import click
@@ -177,6 +179,27 @@ def list_local_packages(path):
     return rv
 
 
+def _update_hash_from_dir(directory: Path, hash_: "hashlib._Hash") -> None:
+    for path in sorted(directory.iterdir()):
+        hash_.update(path.name.encode())
+        if path.is_file():
+            mtime = path.stat().st_mtime_ns
+            hash_.update(mtime.to_bytes(mtime.bit_length(), "big"))
+        elif path.is_dir():
+            _update_hash_from_dir(path, hash_)
+
+
+def hash_directory(directory: os.PathLike) -> str:
+    """Compute a checksum for a directory.
+
+    Recurse into all subfolders and take file names and mtimes into account."""
+    dir_ = Path(directory)
+    assert dir_.is_dir()
+    hash_ = hashlib.sha1()
+    _update_hash_from_dir(dir_, hash_)
+    return hash_.hexdigest()
+
+
 def update_cache(package_root, remote_packages, local_package_path, refresh=False):
     """Updates the package cache at package_root for the given dictionary
     of packages as well as packages in the given local package path.
@@ -207,6 +230,8 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
     for package in local_packages:
         old_manifest.pop(package, False)
         # TODO: only install local package if necessary.
+        # path = os.path.join(local_package_path, package[1:])
+        # checksum = hash_directory(path)
         to_install.append((package, None))
 
     # Bad news, we need to wipe everything
