@@ -182,9 +182,9 @@ def write_manifest(filename, packages):
     with open(filename, "w", encoding="utf-8") as f:
         for package, version in sorted(packages.items()):
             if package[:1] == "@":
-                f.write("%s\n" % package)
+                f.write(f"{package}\n")
             else:
-                f.write("%s=%s\n" % (package, version))
+                f.write(f"{package}={version}\n")
 
 
 def list_local_packages(path):
@@ -240,7 +240,7 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
         to_install = all_packages.items()
 
     if to_install:
-        click.echo("Updating packages in %s for project" % package_root)
+        click.echo(f"Updating packages in {package_root} for project.")
         try:
             os.makedirs(package_root)
         except OSError:
