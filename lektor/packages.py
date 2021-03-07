@@ -75,7 +75,7 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_packages(package_root, packages_with_versions):
+def download_and_install_packages(package_root, requirement_specifiers):
     """This downloads and installs a specific version of packages."""
     # XXX: windows
     env = dict(os.environ)
@@ -89,7 +89,7 @@ def download_and_install_packages(package_root, packages_with_versions):
         package_root,
     ]
 
-    args.extend(packages_with_versions)
+    args.extend(requirement_specifiers)
     rv = portable_popen(args, env=env).wait()
     if rv != 0:
         raise RuntimeError("Failed to install dependency package.")
