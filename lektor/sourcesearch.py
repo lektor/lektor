@@ -58,7 +58,7 @@ def _build_parent_path(path, mapping, alt, lang):
     rv = []
     for parent in _iter_parents(path):
         info = _find_best_info(mapping.get(parent) or [], alt, lang)
-        id = _id_from_path(info["path"])
+        id = _id_from_path(parent)
         if info is None:
             title = id or "(Index)"
         else:
