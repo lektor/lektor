@@ -74,40 +74,18 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_package(package_root, package):
-    """This downloads and installs a specific version of a package."""
+def install_packages(package_root, packages, upgrade=False):
+    """This uses pip to install packages."""
     # XXX: windows
     env = dict(os.environ)
 
-    args = [sys.executable, "-m", "pip", "install", "--target", package_root, package]
+    args = [sys.executable, "-m", "pip", "install", "--target", package_root] + packages
+    if upgrade:
+        args = args + ["--upgrade"]
 
     rv = portable_popen(args, env=env).wait()
     if rv != 0:
-        raise RuntimeError("Failed to install dependency package.")
-
-
-def install_local_package(package_root, path):
-    """This installs a local dependency of a package."""
-    # XXX: windows
-    env = dict(os.environ)
-    env["PYTHONPATH"] = package_root
-
-    # Step 1: generate egg info and link us into the target folder.
-    rv = portable_popen(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--target",
-            package_root,
-            "--upgrade",
-            path,
-        ],
-        env=env,
-    ).wait()
-    if rv != 0:
-        raise RuntimeError("Failed to install local package")
+        raise RuntimeError("Failed to install packages.")
 
 
 def get_package_info(path):
@@ -245,13 +223,17 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
             os.makedirs(package_root)
         except OSError:
             pass
+        remote_specs = []
+        local_specs = []
         for package, version in to_install:
             if package[:1] == "@":
-                requirement_spec = os.path.join(local_package_path, package[1:])
-                install_local_package(package_root, requirement_spec)
+                local_specs.append(os.path.join(local_package_path, package[1:]))
             else:
-                requirement_spec = f"{package}=={version}" if version else package
-                download_and_install_package(package_root, requirement_spec)
+                remote_specs.append(f"{package}=={version}" if version else package)
+        if remote_specs:
+            install_packages(package_root, remote_specs)
+        if local_specs:
+            install_packages(package_root, local_specs, upgrade=True)
         write_manifest(manifest_file, all_packages)
 
 
