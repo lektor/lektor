@@ -45,6 +45,10 @@ class BasicWatcher:
         self.observer = None
 
     def start(self):
+        # Remove duplicates since there is no point in trying a given
+        # observer class more than once. (This also simplifies the logic
+        # for presenting sensible warning messages about broken
+        # observers.)
         observer_classes = list(_unique_everseen(self.observer_classes))
         for observer_class, next_observer_class in zip_longest(
             observer_classes, observer_classes[1:]
