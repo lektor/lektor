@@ -332,10 +332,9 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
                     package_root, os.path.join(local_package_path, package[1:])
                 )
             else:
-                download_and_install_packages(
-                    package_root,
-                    ["%s%s%s" % (package, version and "==" or "", version or "")],
-                )
+                requirement_spec = f"{package}=={version}" if version else package
+                download_and_install_packages(package_root, [requirement_spec])
+
         write_manifest(manifest_file, all_packages)
 
 
