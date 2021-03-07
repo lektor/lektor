@@ -1,4 +1,7 @@
 import functools
+import queue
+import threading
+from itertools import chain
 
 import py
 import pytest
@@ -7,26 +10,50 @@ from watchdog.observers.polling import PollingObserver
 
 from lektor import utils
 from lektor.watcher import BasicWatcher
+from lektor.watcher import watch
 from lektor.watcher import Watcher
 
 
-def test_is_interesting(env):
-    # pylint: disable=no-member
-    cache_dir = py.path.local(utils.get_cache_dir())
-    build_dir = py.path.local("build")
+class IterateInThread(threading.Thread):
+    """Iterate iterable in a separate thread.
 
-    w = Watcher(env, str(build_dir))
+    This is a iterator which yields the results of the iterable.
+    I.e. mostly, it's transparent.
 
-    # This partial makes the testing code shorter
-    is_interesting = functools.partial(w.is_interesting, 0, "generic")
+    The results are passed back to the calling thread via a queue.  If
+    the queue remains empty for a bit of time a `Timeout` exception
+    will be raised.
 
-    assert is_interesting("a.file")
-    assert not is_interesting(".file")
-    assert not is_interesting(str(cache_dir / "another.file"))
-    assert not is_interesting(str(build_dir / "output.file"))
+    The timeout prevents the test from getting hung when expected
+    results are not forthcoming.
 
-    w.output_path = None
-    assert is_interesting(str(build_dir / "output.file"))
+    """
+
+    class Timeout(Exception):
+        """Exception used to signal timeout while waiting for data."""
+
+    _EOF = object()
+
+    def __init__(self, it, timeout=0.1):
+        threading.Thread.__init__(self, daemon=True)
+
+        self.it = it
+        self.timeout = timeout
+        self.queue = queue.Queue()
+        self.start()
+
+    def run(self):
+        for item in chain(self.it, [self._EOF]):
+            self.queue.put(item)
+
+    def __next__(self):
+        try:
+            item = self.queue.get(timeout=self.timeout)
+        except queue.Empty:
+            raise self.Timeout()  # pylint: disable=raise-missing-from
+        if item is self._EOF:
+            raise StopIteration()
+        return item
 
 
 class BrokenObserver(PollingObserver):
@@ -71,3 +98,52 @@ class TestBasicWatcher:
         with BasicWatcher(paths) as watcher:
             with pytest.raises(RuntimeError, match="already started"):
                 watcher.start()
+
+    def test_iter(self, tmp_path):
+        file1 = tmp_path / "file1"
+        file2 = tmp_path / "file2"
+        file1.touch()
+        with BasicWatcher([str(tmp_path)]) as watcher:
+            it = IterateInThread(watcher)
+
+            file2.touch()
+            assert next(it)[1:] == ("created", str(file2))
+            assert next(it)[1:] == ("closed", str(file2))
+
+            file1 = file1.rename(tmp_path / "file1_renamed")
+            assert next(it)[1:] == ("moved", str(file1))
+
+            assert it.queue.empty()
+
+
+def test_is_interesting(env):
+    # pylint: disable=no-member
+    cache_dir = py.path.local(utils.get_cache_dir())
+    build_dir = py.path.local("build")
+
+    w = Watcher(env, str(build_dir))
+
+    # This partial makes the testing code shorter
+    is_interesting = functools.partial(w.is_interesting, 0, "generic")
+
+    assert is_interesting("a.file")
+    assert not is_interesting(".file")
+    assert not is_interesting(str(cache_dir / "another.file"))
+    assert not is_interesting(str(build_dir / "output.file"))
+
+    w.output_path = None
+    assert is_interesting(str(build_dir / "output.file"))
+
+
+def test_watch(env, mocker):
+    Watcher = mocker.patch("lektor.watcher.Watcher")
+    event1 = mocker.sentinel.event1
+
+    def events():
+        yield event1
+        raise KeyboardInterrupt()
+
+    watcher = Watcher.return_value.__enter__.return_value
+    watcher.__iter__.return_value = events()
+
+    assert list(watch(env)) == [event1]
