@@ -16,7 +16,7 @@ export interface WidgetType extends BaseWidgetType {
 
 export interface MultiWidgetType extends BaseWidgetType {
   widget: "checkboxes" | "select";
-  choices: [string, Translatable][];
+  choices?: [string, Translatable][];
 }
 
 export interface Field {
