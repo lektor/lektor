@@ -9,12 +9,17 @@ from lektor.packages import write_manifest
 
 def test_read_write_manifest(tmp_path: Path):
     manifest_path = tmp_path / "manifest"
-    packages = {"@test": None, "pypi-package": "0.2"}
+    packages = {
+        "@test": None,
+        "@test-with-checksum": "asdfasdfasdfadsf",
+        "pypi-package": "0.2",
+    }
     write_manifest(manifest_path, packages)
     contents = manifest_path.read_text()
     assert contents == dedent(
         """\
         @test
+        @test-with-checksum=asdfasdfasdfadsf
         pypi-package=0.2
         """
     )
