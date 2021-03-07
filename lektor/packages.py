@@ -99,9 +99,10 @@ def install_local_package(package_root, path):
             "-m",
             "pip",
             "install",
-            path,
             "--target",
             package_root,
+            "--upgrade",
+            path,
         ],
         env=env,
     ).wait()
@@ -226,8 +227,9 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
 
     # step 2: figure out which local packages to install
     for package in local_packages:
-        if old_manifest.pop(package, False) is False:
-            to_install.append((package, None))
+        old_manifest.pop(package, False)
+        # TODO: only install local package if necessary.
+        to_install.append((package, None))
 
     # Bad news, we need to wipe everything
     if requires_wipe or old_manifest:
@@ -245,9 +247,8 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
             pass
         for package, version in to_install:
             if package[:1] == "@":
-                install_local_package(
-                    package_root, os.path.join(local_package_path, package[1:])
-                )
+                requirement_spec = os.path.join(local_package_path, package[1:])
+                install_local_package(package_root, requirement_spec)
             else:
                 requirement_spec = f"{package}=={version}" if version else package
                 download_and_install_package(package_root, requirement_spec)
