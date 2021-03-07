@@ -74,22 +74,12 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_package(package_root, package=None, version=None):
+def download_and_install_package(package_root, package):
     """This downloads and installs a specific version of a package."""
     # XXX: windows
     env = dict(os.environ)
 
-    args = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--target",
-        package_root,
-    ]
-
-    if package is not None:
-        args.append("%s%s%s" % (package, version and "==" or "", version or ""))
+    args = [sys.executable, "-m", "pip", "install", "--target", package_root, package]
 
     rv = portable_popen(args, env=env).wait()
     if rv != 0:
@@ -259,7 +249,8 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
                     package_root, os.path.join(local_package_path, package[1:])
                 )
             else:
-                download_and_install_package(package_root, package, version)
+                requirement_spec = f"{package}=={version}" if version else package
+                download_and_install_package(package_root, requirement_spec)
         write_manifest(manifest_file, all_packages)
 
 
