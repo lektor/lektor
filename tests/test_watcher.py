@@ -1,7 +1,6 @@
 import functools
 import queue
 import threading
-from itertools import chain
 
 import py
 import pytest
@@ -29,31 +28,21 @@ class IterateInThread(threading.Thread):
 
     """
 
-    class Timeout(Exception):
-        """Exception used to signal timeout while waiting for data."""
-
-    _EOF = object()
-
-    def __init__(self, it, timeout=0.1):
+    def __init__(self, it):
         threading.Thread.__init__(self, daemon=True)
-
         self.it = it
-        self.timeout = timeout
         self.queue = queue.Queue()
         self.start()
 
     def run(self):
-        for item in chain(self.it, [self._EOF]):
+        for item in self.it:
             self.queue.put(item)
 
     def __next__(self):
         try:
-            item = self.queue.get(timeout=self.timeout)
+            return self.queue.get(timeout=0.1)
         except queue.Empty:
-            raise self.Timeout()  # pylint: disable=raise-missing-from
-        if item is self._EOF:
-            raise StopIteration()
-        return item
+            pytest.fail("Timed out waiting for iterator")
 
 
 class BrokenObserver(PollingObserver):
