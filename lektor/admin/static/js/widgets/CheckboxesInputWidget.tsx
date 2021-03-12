@@ -59,7 +59,7 @@ export class CheckboxesInputWidget extends React.PureComponent<
       onChange(newValue);
     };
 
-    const choices = type.choices.map((item) => (
+    const choices = type.choices?.map((item) => (
       <div className="form-check" key={item[0]}>
         <label className="form-check-label">
           <input
