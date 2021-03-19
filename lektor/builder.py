@@ -749,6 +749,7 @@ class Artifact:
 
             seen = set()
             rows = []
+
             for source in chain(self.sources, dependencies or ()):
                 source = self.build_state.to_source_filename(source)
                 if source in seen:
@@ -1014,6 +1015,11 @@ class PathCache:
             filename = filename[len(folder) :].lstrip(os.path.sep)
             if os.path.altsep:
                 filename = filename.lstrip(os.path.altsep)
+        elif self._is_on_python_path(filename):
+            # can't shorten the filename, as it is not below self.env.root_path
+            # but also need to oaccept it, or else all files with dependencies on
+            # this file will be removed by the prune stage of the build
+            pass
         else:
             raise ValueError(
                 "The given value (%r) is not below the "
@@ -1023,6 +1029,12 @@ class PathCache:
         self.source_filename_cache[key] = rv
         return rv
 
+    def _is_on_python_path(self, filename):
+        for path in sys.path:
+            if filename.startswith(path):
+                return True
+        return False
+
     def get_file_info(self, filename):
         """Returns the file info for a given file.  This will be cached
         on the generator for the lifetime of it.  This means that further
@@ -1031,7 +1043,7 @@ class PathCache:
         files have been performed on the outside.
 
         Generally this function can be used to acquire the file info for
-        any file on the file system but it should onl be used for source
+        any file on the file system but it should only be used for source
         files or carefully for other things.
 
         The filename given can be a source filename.

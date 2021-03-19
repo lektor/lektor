@@ -268,3 +268,9 @@ def test_slug_contains_slash(pad, builder):
     prog, _ = builder.build(record)
     (artifact,) = prog.artifacts
     assert artifact.artifact_name == "extra/long/path/index.html"
+
+
+def test_path_cache_allows_paths_on_pythonpath(env):
+    # cache = PathCache(env)
+    # FIXME no idea yet how to test this
+    pass
