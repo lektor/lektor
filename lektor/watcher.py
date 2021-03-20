@@ -93,16 +93,10 @@ class BasicWatcher:
         return True
 
     def __iter__(self):
-        # Alias this since we may need it during interpreter shutdown
-        queue_Empty = queue.Empty
-
         while 1:
-            try:
-                item = self.event_handler.queue.get(timeout=1)
-                if self.is_interesting(*item):
-                    yield item
-            except queue_Empty:
-                pass
+            time_, event_type, path = self.event_handler.queue.get()
+            if self.is_interesting(time_, event_type, path):
+                yield time_, event_type, path
 
 
 class Watcher(BasicWatcher):
