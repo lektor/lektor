@@ -44,7 +44,7 @@ setup(
         "requests[security]",
         "setuptools",
         "watchdog",
-        "Werkzeug<2",
+        "Werkzeug<3",
     ],
     tests_require=tests_require,
     extras_require={
