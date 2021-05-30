@@ -31,7 +31,6 @@ from markupsafe import Markup
 from slugify import slugify as _slugify
 from werkzeug import urls
 from werkzeug.http import http_date
-from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
 
 from lektor._compat import (
@@ -499,7 +498,7 @@ def atomic_open(filename, mode="r"):
     else:
         f.close()
         if tmp_filename is not None:
-            rename(tmp_filename, filename)
+            os.replace(tmp_filename, filename)
 
 
 def portable_popen(cmd, *args, **kwargs):
