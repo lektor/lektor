@@ -42,7 +42,7 @@ class IterateInThread(threading.Thread):
         try:
             return self.queue.get(timeout=0.1)
         except queue.Empty:
-            pytest.fail("Timed out waiting for iterator")
+            return pytest.fail("Timed out waiting for iterator")
 
 
 class BrokenObserver(PollingObserver):
@@ -98,12 +98,12 @@ class TestBasicWatcher:
             file2 = tmp_path / "file2"
             file2.touch()
             # Check that we get notified about file2
-            t, event_type, path = next(it)
+            _, event_type, path = next(it)
             print(event_type, path)
             while path != str(file2):
                 # On MacOS, for whatever reason, we get events about
                 # the creation of tmp_path and file1.  Skip them.
-                t, event_type, path = next(it)
+                _, event_type, path = next(it)
                 print(event_type, path)
 
             file1_renamed = tmp_path / "file1_renamed"
@@ -115,7 +115,7 @@ class TestBasicWatcher:
                 # 'created' and a 'closed' event.)
                 # (Also, on MacOS, for reasons not understood,
                 # we appear to get a 'created' event for file1.)
-                t, event_type, path = next(it)
+                _, event_type, path = next(it)
                 print(event_type, path)
 
             assert it.queue.empty()

@@ -254,6 +254,8 @@ class DummyContext:
 
 
 class Test_make_image_thumbnail:
+    # pylint: disable=no-self-use
+
     @pytest.fixture
     def ctx(self):
         return DummyContext()

@@ -40,4 +40,5 @@ class AdminContext:
 
 @bp.before_app_request
 def find_common_info():
+    # pylint: disable=assigning-non-slot
     g.admin_context = AdminContext()

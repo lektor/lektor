@@ -14,6 +14,7 @@ max-returns=8
 
 [MESSAGES CONTROL]
 disable =
+    no-member,
     missing-docstring,
     unused-argument,
     bad-continuation,

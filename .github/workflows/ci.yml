@@ -307,11 +307,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
-      # ImageMagick is temporarily pinned because of 404 issues while installing
       - name: Install system dependencies
         run: |
-          choco install --timeout 600 imagemagick.tool --version=7.0.10.29
-          choco install --timeout 600 ffmpeg
+          choco install --no-progress --timeout 600 imagemagick.tool
+          choco install --no-progress --timeout 600 ffmpeg
       - name: Install python dependencies
         run: |
           python -m pip install --editable .[test]
