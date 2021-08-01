@@ -32,6 +32,10 @@ div.box {
   margin-top: 20px;
 }
 
+a {
+  text-decoration: none;
+}
+
 a.active {
   font-weight: 500;
 }
@@ -198,9 +202,13 @@ div.application {
 }
 
 .edit-area {
-  dl.system-field dt {
-    color: $toggle-group-color;
-    font-style: italic;
+  .system-fields {
+    dl.field {
+      dt {
+        color: $toggle-group-color;
+        font-style: italic;
+      }
+    }
   }
 
   div.field-row {
@@ -429,8 +437,10 @@ div.dialog-slot {
 }
 
 div.sliding-panel {
+  position: relative;
+  z-index: 5000;
+
   > div {
-    z-index: 5000;
     background: $background-taint;
     padding: 15px 20px;
     box-shadow: $panel-shadow;

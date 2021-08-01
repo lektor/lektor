@@ -70,12 +70,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
   const { field, value, placeholder, disabled } = props;
   const onChange = (value: string, uiChange?: boolean) =>
     props.setFieldValue(field, value, uiChange);
-  const className = "col-md-" + getFieldColumns(field) + " field-box";
-  let innerClassName = "field";
-
-  if (field.name.substr(0, 1) === "_") {
-    innerClassName += " system-field";
-  }
+  const className = `col-md-${getFieldColumns(field)}`;
 
   const Widget = getWidgetComponentWithFallback(field.type);
   if (Widget.isFakeWidget) {
@@ -92,7 +87,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
 
   return (
     <div className={className} key={field.name}>
-      <dl className={innerClassName}>
+      <dl className="field">
         {!field.hide_label ? <dt>{trans_obj(field.label_i18n)}</dt> : null}
         <dd>
           {description}
@@ -199,6 +194,7 @@ export function FieldRows({
           key="sys"
           groupTitle={trans("SYSTEM_FIELDS")}
           defaultVisibility={false}
+          className="system-fields"
         >
           {systemRows.map((row, idx) => (
             <div className="row field-row" key={"system-" + idx}>

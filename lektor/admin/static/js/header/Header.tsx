@@ -25,7 +25,7 @@ export default function Header({
           <span className="icon-list" />
           <span className="icon-list" />
         </button>
-        <div className="row d-flex justify-content-between">
+        <div className="d-flex justify-content-between">
           <BreadCrumbs {...recordProps} />
           <div className="global-actions">
             <GlobalActions {...recordProps} />

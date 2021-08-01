@@ -55,7 +55,7 @@ module.exports = {
       },
       {
         test: /\.(ttf|eot|svg|woff2?)(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "file-loader",
+        type: "asset",
       },
     ],
   },
