@@ -11,7 +11,6 @@ from contextlib import contextmanager
 from itertools import chain
 
 import click
-from werkzeug.posixemulation import rename
 
 from lektor.build_programs import builtin_build_programs
 from lektor.buildfailures import FailureController
@@ -929,7 +928,7 @@ class Artifact:
                 op(con)
 
             if self._new_artifact_file is not None:
-                rename(self._new_artifact_file, self.dst_filename)
+                os.replace(self._new_artifact_file, self.dst_filename)
                 self._new_artifact_file = None
 
             if con is not None:
