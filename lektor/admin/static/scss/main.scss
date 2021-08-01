@@ -202,9 +202,13 @@ div.application {
 }
 
 .edit-area {
-  dl.system-field dt {
-    color: $toggle-group-color;
-    font-style: italic;
+  .system-fields {
+    dl.field {
+      dt {
+        color: $toggle-group-color;
+        font-style: italic;
+      }
+    }
   }
 
   div.field-row {
