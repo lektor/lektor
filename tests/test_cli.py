@@ -90,7 +90,7 @@ def test_deprecated_build_flag(project_cli_runner, mocker):
         result = project_cli_runner.invoke(cli, ["build", "--build-flag", "webpack"])
         assert result.exit_code == 0
         assert mock_builder.call_args[1]["extra_flags"] == ("webpack",)
-        assert len(w) == 1
+        assert w
         assert "use --extra-flag instead of --build-flag" in str(w[0].message)
 
 
