@@ -31,6 +31,7 @@
 }
 
 header {
+  height: 38px;
   margin: 0 auto;
   padding: 0;
   background: $header-taint;
@@ -45,10 +46,8 @@ header {
   }
 
   ul.breadcrumb {
-    background: transparent;
     margin: 0;
-    height: 38px;
-    border-radius: 0;
+    margin-top: 7px;
     z-index: 9000;
 
     li.missing-record-crumb a {
@@ -81,6 +80,6 @@ header {
     }
   }
   .global-actions {
-    margin-top: 2px;
+    margin-top: 3px;
   }
 }

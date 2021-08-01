@@ -70,7 +70,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
   const { field, value, placeholder, disabled } = props;
   const onChange = (value: string, uiChange?: boolean) =>
     props.setFieldValue(field, value, uiChange);
-  const className = "col-md-" + getFieldColumns(field) + " field-box";
+  const className = `col-md-${getFieldColumns(field)}`;
   let innerClassName = "field";
 
   if (field.name.substr(0, 1) === "_") {

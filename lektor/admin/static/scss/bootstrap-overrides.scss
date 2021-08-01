@@ -1,6 +1,6 @@
 // Colors
 $primary: #77304c;
-$theme-colors: (
+$custom-theme-colors: (
   "primary": $primary,
   "secondary": #fff,
 );
@@ -35,24 +35,25 @@ $input-border-focus: #807177;
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
 
-// // Reset and dependencies
-@import "bootstrap/scss/reboot";
-@import "bootstrap/scss/print";
+$theme-colors: map-merge($theme-colors, $custom-theme-colors);
 
-// // Core CSS
+// Reset and dependencies
+@import "bootstrap/scss/reboot";
+
+// Core CSS
 @import "bootstrap/scss/grid";
+@import "bootstrap/scss/containers";
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
 @import "bootstrap/scss/button-group";
 @import "bootstrap/scss/nav";
 @import "bootstrap/scss/navbar";
 
-// // Components
-@import "bootstrap/scss/input-group";
+// Components
+@import "bootstrap/scss/forms/input-group";
 @import "bootstrap/scss/list-group";
 @import "bootstrap/scss/breadcrumb";
 
-// // Utility classes
-@import "bootstrap/scss/utilities/borders";
-@import "bootstrap/scss/utilities/embed";
-@import "bootstrap/scss/utilities/flex";
+// Utility classes
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/utilities/api";

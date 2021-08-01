@@ -56,7 +56,7 @@ function getAvailableModels(newChildInfo: NewRecordInfo) {
 function FieldRow({ children }: { children: ReactNode }) {
   return (
     <div className="row field-row" key="_model">
-      <div className="field-box col-md-12">
+      <div className="col-md-12">
         <dl className="field">{children}</dl>
       </div>
     </div>
