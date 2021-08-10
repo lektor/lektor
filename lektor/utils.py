@@ -694,6 +694,9 @@ def get_app_dir():
 
 
 def get_cache_dir():
+    if "LEKTOR_CACHE" in os.environ:
+        return os.environ.get("LEKTOR_CACHE")
+
     if is_windows:
         folder = os.environ.get("LOCALAPPDATA")
         if folder is None:
