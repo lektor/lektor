@@ -10,6 +10,7 @@ UNRELEASED - in development
 - Fix the toggling of flow widgets in the admin UI to not mark the content as changed.
 - Fix the handling of the URLs when opening the admin UI from the pencil button.
 - Allow rsync deployment to a local path.
+- Allow cache directory to be set using the environment variable LEKTOR_CACHE.
 - Relax the checking of URL fields and allow FTP and mailto URLs.
 - Correctly track the page URL on the admin preview page.
 - Rename a CSS class in the admin UI so that it is not blocked by the EasyList FR adblock list.
