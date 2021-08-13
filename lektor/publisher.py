@@ -5,6 +5,7 @@ import os
 import posixpath
 import shutil
 import subprocess
+import sys
 import tempfile
 from contextlib import contextmanager
 from ftplib import Error as FTPError
@@ -113,7 +114,13 @@ class Command:
         if capture:
             kwargs["stdout"] = subprocess.PIPE
             kwargs["stderr"] = subprocess.STDOUT
-            kwargs["encoding"] = "utf-8"
+            if sys.version_info >= (3, 7):
+                # Python >= 3.7 has sane encoding defaults in the case that the system is
+                # (likely mis-)configured to use ASCII as the default encoding (PEP538).
+                # It also provides a way for the user to force the use of UTF-8 (PEP540).
+                kwargs["text"] = True
+            else:
+                kwargs["encoding"] = "utf-8"
             kwargs["errors"] = "replace"
         self.capture = capture
         self._cmd = portable_popen(argline, **kwargs)
