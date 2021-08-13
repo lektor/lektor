@@ -4,7 +4,7 @@ import sys
 from flask import abort
 from flask import Flask
 from flask import request
-from flask.helpers import safe_join
+from werkzeug.security import safe_join
 from werkzeug.utils import append_slash_redirect
 
 from lektor.admin.modules import register_modules
