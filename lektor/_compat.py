@@ -12,6 +12,11 @@
 # pylint: disable=invalid-name, import-error, unused-import, undefined-variable, reimported
 import sys
 
+try:
+    from jinja2 import pass_context as jinja2_contextfilter  # noqa
+except ImportError:  # jinja2<3
+    from jinja2 import contextfilter as jinja2_contextfilter  # noqa
+
 
 PY2 = sys.version_info[0] == 2
 _identity = lambda x: x
