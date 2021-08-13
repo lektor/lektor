@@ -120,7 +120,7 @@ class Environment:
 
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,
-            extensions=["jinja2.ext.autoescape", "jinja2.ext.with_", "jinja2.ext.do"],
+            extensions=["jinja2.ext.do"],
             loader=jinja2.FileSystemLoader(template_paths),
         )
 
