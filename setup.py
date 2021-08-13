@@ -37,7 +37,7 @@ setup(
         "filetype>=1.0.7",
         "Flask",
         "inifile",
-        "Jinja2>=2.11",
+        "Jinja2>=3.0",
         "mistune>=0.7.0,<2",
         "pip",
         "python-slugify",

@@ -134,11 +134,9 @@ class Environment:
             # By default filters need to be side-effect free.  This is not
             # the case for this one, so we need to make it as a dummy
             # context filter so that jinja2 will not inline it.
-            url=jinja2.contextfilter(lambda ctx, *a, **kw: url_to(*a, **kw)),
-            asseturl=jinja2.contextfilter(
-                lambda ctx, *a, **kw: get_asset_url(*a, **kw)
-            ),
-            markdown=jinja2.contextfilter(lambda ctx, *a, **kw: Markdown(*a, **kw)),
+            url=jinja2.pass_context(lambda ctx, *a, **kw: url_to(*a, **kw)),
+            asseturl=jinja2.pass_context(lambda ctx, *a, **kw: get_asset_url(*a, **kw)),
+            markdown=jinja2.pass_context(lambda ctx, *a, **kw: Markdown(*a, **kw)),
         )
         self.jinja_env.globals.update(
             F=F,
