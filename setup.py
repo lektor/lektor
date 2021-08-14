@@ -12,7 +12,7 @@ tests_require = [
     "pytest",
     "pytest-cov",
     "pytest-mock",
-    "pytest-click",
+    "pytest-click<1",
 ]
 
 setup(
