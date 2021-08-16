@@ -13,7 +13,7 @@ from lektor.utils import merge
 from lektor.utils import resolve_dotted_value
 
 
-# The ordered_load function is imported frmo stack overflow.
+# The ordered_load function is imported from stack overflow.
 # By: https://stackoverflow.com/users/650222/coldfix
 # License: CC-BY-SA 4.0 (https://stackoverflow.com/help/licensing)
 # URL: https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts/
