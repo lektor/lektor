@@ -35,7 +35,7 @@ class Generator:
         )
         self.options = {}
         # term width in [1, 78]
-        self.term_width = min(max(click.get_terminal_size()[0], 1), 78)
+        self.term_width = min(max(shutil.get_terminal_size()[0], 1), 78)
         self.e = click.secho
         self.w = partial(click.wrap_text, width=self.term_width)
 
