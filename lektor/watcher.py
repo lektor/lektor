@@ -16,6 +16,7 @@ from lektor.utils import get_cache_dir
 
 class EventHandler(FileSystemEventHandler):
     def __init__(self):
+        super().__init__()
         self.queue = queue.Queue()
 
     def on_any_event(self, event):
