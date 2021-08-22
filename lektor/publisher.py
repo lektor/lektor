@@ -1,16 +1,14 @@
 import errno
 import hashlib
+import io
 import os
 import posixpath
-import queue
-import select
 import shutil
 import subprocess
+import sys
 import tempfile
-import threading
 from contextlib import contextmanager
 from ftplib import Error as FTPError
-from io import BytesIO
 
 from werkzeug import urls
 
@@ -110,20 +108,27 @@ class Command:
             environ.update(env)
         kwargs = {"cwd": cwd, "env": environ}
         if silent:
-            self.devnull = open(os.devnull, "rb+")
-            kwargs["stdout"] = self.devnull
-            kwargs["stderr"] = self.devnull
+            kwargs["stdout"] = subprocess.DEVNULL
+            kwargs["stderr"] = subprocess.DEVNULL
             capture = False
         if capture:
             kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.STDOUT
+            if sys.version_info >= (3, 7):
+                # Python >= 3.7 has sane encoding defaults in the case that the system is
+                # (likely mis-)configured to use ASCII as the default encoding (PEP538).
+                # It also provides a way for the user to force the use of UTF-8 (PEP540).
+                kwargs["text"] = True
+            else:
+                kwargs["encoding"] = "utf-8"
+            kwargs["errors"] = "replace"
         self.capture = capture
         self._cmd = portable_popen(argline, **kwargs)
 
     def wait(self):
         returncode = self._cmd.wait()
-        if hasattr(self, "devnull"):
-            self.devnull.close()
+        if self._cmd.stdout is not None:
+            self._cmd.stdout.close()
         return returncode
 
     @property
@@ -134,49 +139,14 @@ class Command:
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        self._cmd.wait()
+        self.wait()
 
     def __iter__(self):
         if not self.capture:
             raise RuntimeError("Not capturing")
 
-        # Windows platforms do not have select() for files
-        if os.name == "nt":
-            q = queue.Queue()
-
-            def reader(stream):
-                while 1:
-                    line = stream.readline()
-                    q.put(line)
-                    if not line:
-                        break
-
-            t1 = threading.Thread(target=reader, args=(self._cmd.stdout,))
-            t1.setDaemon(True)
-            t2 = threading.Thread(target=reader, args=(self._cmd.stderr,))
-            t2.setDaemon(True)
-            t1.start()
-            t2.start()
-            outstanding = 2
-            while outstanding:
-                item = q.get()
-                if not item:
-                    outstanding -= 1
-                else:
-                    yield item.rstrip().decode("utf-8", "replace")
-
-        # Otherwise we can go with select()
-        else:
-            streams = [self._cmd.stdout, self._cmd.stderr]
-            while streams:
-                for l in select.select(streams, [], streams):
-                    for stream in l:
-                        line = stream.readline()
-                        if not line:
-                            if stream in streams:
-                                streams.remove(stream)
-                            break
-                        yield line.rstrip().decode("utf-8", "replace")
+        for line in self._cmd.stdout:
+            yield line.rstrip()
 
     def safe_iter(self):
         with self:
@@ -331,7 +301,7 @@ class FtpConnection:
         if not isinstance(filename, str):
             filename = filename.decode("utf-8")
 
-        input = BytesIO(data.encode("utf-8"))
+        input = io.BytesIO(data.encode("utf-8"))
 
         try:
             self.con.storbinary("APPE " + filename, input)
@@ -345,7 +315,7 @@ class FtpConnection:
             filename = filename.decode("utf-8")
         getvalue = False
         if out is None:
-            out = BytesIO()
+            out = io.BytesIO()
             getvalue = True
         try:
             self.con.retrbinary("RETR " + filename, out.write)
@@ -360,7 +330,7 @@ class FtpConnection:
 
     def upload_file(self, filename, src, mkdir=False):
         if isinstance(src, str):
-            src = BytesIO(src.encode("utf-8"))
+            src = io.BytesIO(src.encode("utf-8"))
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
