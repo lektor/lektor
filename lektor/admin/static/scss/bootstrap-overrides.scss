@@ -41,6 +41,7 @@ $theme-colors: map-merge($theme-colors, $custom-theme-colors);
 @import "bootstrap/scss/reboot";
 
 // Core CSS
+@import "bootstrap/scss/root";
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/containers";
 @import "bootstrap/scss/forms";
