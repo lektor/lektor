@@ -21,20 +21,16 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
-      - name: Cache npm
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-14-${{ hashFiles('**/package-lock.json') }}
       - name: Cache pip
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.9-pip-${{ hashFiles('**/setup.py') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install node dependencies
         run: cd lektor/admin && npm ci
       - name: Setup Python
@@ -67,15 +63,11 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
@@ -133,15 +125,11 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
@@ -161,15 +149,11 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
@@ -189,15 +173,11 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
-        with:
-          path: ~\AppData\Roaming\npm-cache
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
