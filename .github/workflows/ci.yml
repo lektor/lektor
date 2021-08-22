@@ -4,10 +4,10 @@ on:
   # This avoids having duplicate builds for a pull request
   push:
     branches:
-    - master
+      - master
   pull_request:
     branches:
-    - master
+      - master
 
 jobs:
   ############################################################################
@@ -27,14 +27,14 @@ jobs:
           key: ${{ runner.os }}-py-3.9-pip-${{ hashFiles('**/setup.py') }}
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          node-version: "14"
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: cd lektor/admin && npm ci
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: "3.9"
       - name: Install python dependencies
         run: python -m pip install --editable .[test]
       - name: Show python environment
@@ -53,14 +53,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['16']
+        NODEJS_VERSION: ["16"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.9']
+        PYTHON_VERSION: ["3.9"]
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
@@ -106,18 +106,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
-        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+        NODEJS_VERSION: ["14"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         include:
-          - NODEJS_VERSION: '12'
-            os: 'ubuntu-latest'
+          - NODEJS_VERSION: "12"
+            os: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
@@ -133,7 +133,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.6', '3.7']
+        PYTHON_VERSION: ["3.6", "3.7"]
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
@@ -157,7 +157,6 @@ jobs:
       - name: Publish coverage
         run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
 
-
   mac-py:
     name: Mac py${{ matrix.PYTHON_VERSION }} tests
     runs-on: macos-latest
@@ -165,7 +164,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.6', '3.9']
+        PYTHON_VERSION: ["3.6", "3.9"]
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
@@ -193,7 +192,6 @@ jobs:
       - name: Publish coverage
         run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
 
-
   win-py:
     name: Win py${{ matrix.PYTHON_VERSION }} tests
     runs-on: windows-latest
@@ -201,7 +199,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.6', '3.9']
+        PYTHON_VERSION: ["3.6", "3.9"]
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
