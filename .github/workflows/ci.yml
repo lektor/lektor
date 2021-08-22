@@ -19,8 +19,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -58,8 +57,7 @@ jobs:
       matrix:
         NODEJS_VERSION: ['14']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
@@ -78,8 +76,7 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.9']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -114,8 +111,7 @@ jobs:
       matrix:
         NODEJS_VERSION: ['12', '16']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
@@ -135,8 +131,7 @@ jobs:
       matrix:
         NODEJS_VERSION: ['14']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
@@ -156,8 +151,7 @@ jobs:
       matrix:
         NODEJS_VERSION: ['14']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.NODEJS_VERSION }}
@@ -180,8 +174,7 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.6', '3.7']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -214,8 +207,7 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.6', '3.9']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -252,8 +244,7 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.6', '3.9']
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
