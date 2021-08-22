@@ -53,9 +53,6 @@ jobs:
   linux-smoke-node:
     name: Linux node${{ matrix.NODEJS_VERSION }} smoke test
     runs-on: ubuntu-latest
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -76,9 +73,6 @@ jobs:
   linux-smoke-py:
     name: Linux py${{ matrix.PYTHON_VERSION }} smoke test
     runs-on: ubuntu-latest
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -115,9 +109,6 @@ jobs:
     name: Linux node${{ matrix.NODEJS_VERSION }} tests
     runs-on: ubuntu-latest
     needs: linux-smoke-node
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -139,9 +130,6 @@ jobs:
     name: Mac node${{ matrix.NODEJS_VERSION }} tests
     runs-on: macos-latest
     needs: linux-smoke-node
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -163,9 +151,6 @@ jobs:
     name: Win node${{ matrix.NODEJS_VERSION }} tests
     runs-on: windows-latest
     needs: linux-smoke-node
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -190,9 +175,6 @@ jobs:
     name: Linux py${{ matrix.PYTHON_VERSION }} tests
     runs-on: ubuntu-latest
     needs: linux-smoke-py
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -227,9 +209,6 @@ jobs:
     name: Mac py${{ matrix.PYTHON_VERSION }} tests
     runs-on: macos-latest
     needs: linux-smoke-py
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -268,9 +247,6 @@ jobs:
     name: Win py${{ matrix.PYTHON_VERSION }} tests
     runs-on: windows-latest
     needs: linux-smoke-py
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
       fail-fast: false
       matrix:
