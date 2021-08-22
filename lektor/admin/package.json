@@ -29,7 +29,7 @@
     "eslint-plugin-react": "^7.22.0",
     "event-source-polyfill": "^1.0.22",
     "font-awesome": "^4.3.0",
-    "jsdom": "^16.4.0",
+    "jsdom": "^17.0.0",
     "json-loader": "^0.5.2",
     "mini-css-extract-plugin": "^2.1.0",
     "mocha": "^9.0.3",
