@@ -4,44 +4,37 @@ on:
   # This avoids having duplicate builds for a pull request
   push:
     branches:
-    - master
+      - master
   pull_request:
     branches:
-    - master
+      - master
 
 jobs:
   ############################################################################
   # Lint jobs
   ############################################################################
   lint:
-    name: Lint
+    name: lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache npm
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-14-${{ hashFiles('**/package-lock.json') }}
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.9-pip-${{ hashFiles('**/setup.py') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: "14"
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: cd lektor/admin && npm ci
-      - name: Setup Python
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
-          architecture: 'x64'
+          python-version: "3.9"
       - name: Install python dependencies
         run: python -m pip install --editable .[test]
       - name: Show python environment
@@ -55,62 +48,45 @@ jobs:
   # Smoke tests
   ############################################################################
   linux-smoke-node:
-    name: Linux node${{ matrix.NODEJS_VERSION }} smoke test
+    name: ubuntu-latest node${{ matrix.node }} smoke test
     runs-on: ubuntu-latest
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
+        node: ["16"]
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.NODEJS_VERSION }}
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
         run: cd lektor/admin && npx tsc && npm test
 
   linux-smoke-py:
-    name: Linux py${{ matrix.PYTHON_VERSION }} smoke test
+    name: ubuntu-latest py${{ matrix.python }} smoke test
     runs-on: ubuntu-latest
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.9']
+        python: ["3.9"]
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
-      - name: Setup python
-        uses: actions/setup-python@v2
+          key: ${{ runner.os }}-py-${{ matrix.python }}-pip-${{ hashFiles('**/setup.py') }}
+      - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.PYTHON_VERSION }}
+          python-version: ${{ matrix.python }}
       - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
+        run: python -m pip install --editable .[test] codecov
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
+        run: python -m pip list
       - name: Run python tests
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
@@ -119,85 +95,25 @@ jobs:
   ############################################################################
   # Node tests
   ############################################################################
-  linux-node:
-    name: Linux node${{ matrix.NODEJS_VERSION }} tests
-    runs-on: ubuntu-latest
+  node:
+    name: ${{ matrix.os}} node${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
     needs: linux-smoke-node
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['10']
+        node: ["14"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        include:
+          - node: "12"
+            os: "ubuntu-latest"
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.NODEJS_VERSION }}
-      - name: Install node dependencies
-        run: cd lektor/admin && npm ci && npm run webpack
-      - name: Typecheck and run frontend tests
-        run: cd lektor/admin && npx tsc && npm test
-
-  mac-node:
-    name: Mac node${{ matrix.NODEJS_VERSION }} tests
-    runs-on: macos-latest
-    needs: linux-smoke-node
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
-    strategy:
-      fail-fast: false
-      matrix:
-        NODEJS_VERSION: ['12']
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.NODEJS_VERSION }}
-      - name: Install node dependencies
-        run: cd lektor/admin && npm ci && npm run webpack
-      - name: Typecheck and run frontend tests
-        run: cd lektor/admin && npx tsc && npm test
-
-  win-node:
-    name: Win node${{ matrix.NODEJS_VERSION }} tests
-    runs-on: windows-latest
-    needs: linux-smoke-node
-    env:
-      CI: True
-      NODEJS_VERSION: ${{ matrix.NODEJS_VERSION }}
-    strategy:
-      fail-fast: false
-      matrix:
-        NODEJS_VERSION: ['12']
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache node
-        uses: actions/cache@v2
-        with:
-          path: ~\AppData\Roaming\npm-cache
-          key: ${{ runner.os }}-node-${{ matrix.NODEJS_VERSION }}-${{ hashFiles('**\package-lock.json') }}
-      - name: Setup node
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.NODEJS_VERSION }}
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: cd lektor/admin && npm ci && npm run webpack
       - name: Typecheck and run frontend tests
@@ -206,119 +122,48 @@ jobs:
   ############################################################################
   # Python tests
   ############################################################################
-  linux-py:
-    name: Linux py${{ matrix.PYTHON_VERSION }} tests
-    runs-on: ubuntu-latest
+  python-tests:
+    name: ${{ matrix.os }} py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
     needs: linux-smoke-py
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.6', '3.7']
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python: ["3.6", "3.9"]
+        include:
+          - os: "ubuntu-latest"
+            path: ~/.cache/pip
+          - os: "macos-latest"
+            path: ~/Library/Caches/pip
+          - os: "windows-latest"
+            path: ~\AppData\Local\pip\Cache
+          - os: "ubuntu-latest"
+            path: ~/.cache/pip
+            python: "3.7"
+        exclude:
+          - os: "ubuntu-latest"
+            python: "3.9"
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
-      - name: Setup python
-        uses: actions/setup-python@v2
+          path: ${{ matrix.path }}
+          key: ${{ runner.os }}-py-${{ matrix.python }}-pip-${{ hashFiles('**/setup.py') }}
+      - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.PYTHON_VERSION }}
+          python-version: ${{ matrix.python }}
+      - name: Install macOS system dependencies
+        if: startsWith(runner.os, 'macos')
+        run: brew install imagemagick ffmpeg
+      - name: Install Windows system dependencies
+        if: startsWith(runner.os, 'windows')
+        run: choco install --no-progress --timeout 600 imagemagick.tool ffmpeg
       - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
+        run: python -m pip install --editable .[test] codecov
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
-      - name: Run python tests
-        run: pytest . --tb=long -svv --cov=lektor
-      - name: Publish coverage
-        run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
-
-
-  mac-py:
-    name: Mac py${{ matrix.PYTHON_VERSION }} tests
-    runs-on: macos-latest
-    needs: linux-smoke-py
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
-    strategy:
-      fail-fast: false
-      matrix:
-        PYTHON_VERSION: ['3.6', '3.9']
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/Library/Caches/pip
-          key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**/setup.py') }}
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.PYTHON_VERSION }}
-      - name: Install system dependencies
-        run: |
-          brew install imagemagick
-          brew install ffmpeg
-      - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
-      - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
-      - name: Run python tests
-        run: pytest . --tb=long -svv --cov=lektor
-      - name: Publish coverage
-        run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
-
-
-  win-py:
-    name: Win py${{ matrix.PYTHON_VERSION }} tests
-    runs-on: windows-latest
-    needs: linux-smoke-py
-    env:
-      CI: True
-      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
-    strategy:
-      fail-fast: false
-      matrix:
-        PYTHON_VERSION: ['3.6', '3.9']
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-py-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('**\setup.py') }}
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.PYTHON_VERSION }}
-      - name: Install system dependencies
-        run: |
-          choco install --no-progress --timeout 600 imagemagick.tool
-          choco install --no-progress --timeout 600 ffmpeg
-      - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
-      - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
+        run: python -m pip list
       - name: Run python tests
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
