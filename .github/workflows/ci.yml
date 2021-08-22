@@ -84,13 +84,9 @@ jobs:
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
+        run: python -m pip install --editable .[test] codecov
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
+        run: python -m pip list
       - name: Run python tests
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
@@ -145,13 +141,9 @@ jobs:
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
+        run: python -m pip install --editable .[test] codecov
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
+        run: python -m pip list
       - name: Run python tests
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
@@ -176,17 +168,11 @@ jobs:
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
-        run: |
-          brew install imagemagick
-          brew install ffmpeg
+        run: brew install imagemagick ffmpeg
       - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
+        run: python -m pip install --editable .[test] codecov
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
+        run: python -m pip list
       - name: Run python tests
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
@@ -211,17 +197,11 @@ jobs:
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install system dependencies
-        run: |
-          choco install --no-progress --timeout 600 imagemagick.tool
-          choco install --no-progress --timeout 600 ffmpeg
+        run: choco install --no-progress --timeout 600 imagemagick.tool ffmpeg
       - name: Install python dependencies
-        run: |
-          python -m pip install --editable .[test]
-          python -m pip install codecov
+        run: python -m pip install --editable .[test] codecov
       - name: Show python environment
-        run: |
-          python --version
-          python -m pip list
+        run: python -m pip list
       - name: Run python tests
         run: pytest . --tb=long -svv --cov=lektor
       - name: Publish coverage
