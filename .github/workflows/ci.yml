@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NODEJS_VERSION: ['14']
+        NODEJS_VERSION: ['16']
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -102,54 +102,18 @@ jobs:
   ############################################################################
   # Node tests
   ############################################################################
-  linux-node:
-    name: Linux node${{ matrix.NODEJS_VERSION }} tests
-    runs-on: ubuntu-latest
-    needs: linux-smoke-node
-    strategy:
-      fail-fast: false
-      matrix:
-        NODEJS_VERSION: ['12', '16']
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.NODEJS_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-      - name: Install node dependencies
-        run: cd lektor/admin && npm ci && npm run webpack
-      - name: Typecheck and run frontend tests
-        run: cd lektor/admin && npx tsc && npm test
-
-  mac-node:
-    name: Mac node${{ matrix.NODEJS_VERSION }} tests
-    runs-on: macos-latest
+  node:
+    name: ${{ matrix.os}} node${{ matrix.NODEJS_VERSION }} tests
+    runs-on: ${{ matrix.os }}
     needs: linux-smoke-node
     strategy:
       fail-fast: false
       matrix:
         NODEJS_VERSION: ['14']
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.NODEJS_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-      - name: Install node dependencies
-        run: cd lektor/admin && npm ci && npm run webpack
-      - name: Typecheck and run frontend tests
-        run: cd lektor/admin && npx tsc && npm test
-
-  win-node:
-    name: Win node${{ matrix.NODEJS_VERSION }} tests
-    runs-on: windows-latest
-    needs: linux-smoke-node
-    strategy:
-      fail-fast: false
-      matrix:
-        NODEJS_VERSION: ['14']
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+        include:
+          - NODEJS_VERSION: '12'
+            os: 'ubuntu-latest'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
