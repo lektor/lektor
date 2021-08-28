@@ -17,7 +17,7 @@ function loadTranslations() {
 const translations: Record<string, Record<string, string>> = loadTranslations();
 
 let currentLanguage = "en";
-let currentTranslations = translations[currentLanguage];
+let currentTranslations = translations?.[currentLanguage] ?? {};
 
 export function setCurrentLanguage(lang: string) {
   currentLanguage = lang;

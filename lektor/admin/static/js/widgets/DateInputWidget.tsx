@@ -3,30 +3,31 @@ import { WidgetProps } from "./types";
 import { trans } from "../i18n";
 import InputWidgetBase from "./InputWidgetBase";
 
-function isValidDate(year: number, month: number, day: number) {
+const parseInteger = (s: string) => Number.parseInt(s, 10);
+
+export function isValidDate(year: number, month: number, day: number) {
   const date = new Date(year, month - 1, day);
-  if (
+  return (
     date.getFullYear() === year &&
     date.getMonth() === month - 1 &&
     date.getDate() === day
-  ) {
-    return true;
-  }
-  return false;
+  );
 }
 
-function validateDate(value: string) {
+const DATE_RE = /^\s*(?<year>\d{4})-(?<month>\d{1,2})-(?<day>\d{1,2})\s*$/;
+
+export function validateDate(value: string): string | null {
   if (!value) {
     return null;
   }
 
-  const match = value.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/);
+  const groups = value.match(DATE_RE)?.groups;
   if (
-    match &&
+    groups &&
     isValidDate(
-      parseInt(match[1], 10),
-      parseInt(match[2], 10),
-      parseInt(match[3], 10)
+      parseInteger(groups.year),
+      parseInteger(groups.month),
+      parseInteger(groups.day)
     )
   ) {
     return null;
@@ -34,24 +35,19 @@ function validateDate(value: string) {
 
   return trans("ERROR_INVALID_DATE");
 }
+const REVERSE_DATE_RE =
+  /^(?<day>\d{1,2})\.(?<month>\d{1,2})\.(?<year>\d{4})\s*$/;
 
-function postprocessDate(value: string) {
+const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+
+export function postprocessDate(value: string) {
   value = value.trim();
-  const match = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/);
-  let day, month, year;
-  if (match) {
-    day = parseInt(match[1], 10);
-    month = parseInt(match[2], 10);
-    year = parseInt(match[3], 10);
-    return (
-      year +
-      "-" +
-      (month < 10 ? "0" : "") +
-      month +
-      "-" +
-      (day < 10 ? "0" : "") +
-      day
-    );
+  const groups = value.match(REVERSE_DATE_RE)?.groups;
+  if (groups) {
+    const day = parseInteger(groups.day);
+    const month = parseInteger(groups.month);
+    const year = parseInteger(groups.year);
+    return `${year}-${pad(month)}-${pad(day)}`;
   }
   return value;
 }
