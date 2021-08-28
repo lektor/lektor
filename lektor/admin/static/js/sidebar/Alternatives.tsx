@@ -1,6 +1,6 @@
 import React, { PureComponent } from "react";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
@@ -31,7 +31,7 @@ export default class Alternatives extends PureComponent<Props, unknown> {
 
       const path = pathToAdminPage(
         this.props.match.params.page,
-        getUrlRecordPathWithAlt(this.props.record.path, item.alt)
+        getUrlRecordPath(this.props.record.path, item.alt)
       );
       return (
         <li key={item.alt} className={className}>

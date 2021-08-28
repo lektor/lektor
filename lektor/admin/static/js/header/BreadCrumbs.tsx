@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
@@ -31,7 +31,7 @@ function Crumbs({
     <>
       {segments.map((item) => {
         const { path, exists } = item;
-        const urlPath = getUrlRecordPathWithAlt(path, alt);
+        const urlPath = getUrlRecordPath(path, alt);
         const label = exists
           ? trans_fallback(item.label_i18n, item.label)
           : item.id;
@@ -58,10 +58,7 @@ function AddNewPage({
   return lastItem?.can_have_children ? (
     <li className="new-record-crumb">
       <Link
-        to={pathToAdminPage(
-          "add-child",
-          getUrlRecordPathWithAlt(lastItem.path, alt)
-        )}
+        to={pathToAdminPage("add-child", getUrlRecordPath(lastItem.path, alt))}
       >
         +
       </Link>

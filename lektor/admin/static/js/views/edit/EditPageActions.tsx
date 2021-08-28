@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordPathDetails,
 } from "../../components/RecordComponent";
@@ -21,10 +21,7 @@ export function EditPageActions({
 
   const deleteRecord = useCallback(() => {
     history.push(
-      pathToAdminPage(
-        "delete",
-        getUrlRecordPathWithAlt(record.path, record.alt)
-      )
+      pathToAdminPage("delete", getUrlRecordPath(record.path, record.alt))
     );
   }, [record, history]);
 

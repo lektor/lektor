@@ -1,8 +1,5 @@
 import React, { memo } from "react";
-import {
-  getUrlRecordPathWithAlt,
-  RecordProps,
-} from "../components/RecordComponent";
+import { getUrlRecordPath, RecordProps } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
@@ -18,7 +15,7 @@ function AttachmentActions({
       <ul className="nav record-attachments">
         {attachments.length > 0 ? (
           attachments.map((atch) => {
-            const urlPath = getUrlRecordPathWithAlt(atch.path, record.alt);
+            const urlPath = getUrlRecordPath(atch.path, record.alt);
             return (
               <li key={atch.id}>
                 <Link to={`${urlPath}/edit`}>

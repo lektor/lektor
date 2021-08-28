@@ -52,10 +52,7 @@ export type RecordProps = {
  * @param path
  * @param alt
  */
-export function getUrlRecordPathWithAlt(
-  path: string | null,
-  alt: string
-): string {
+export function getUrlRecordPath(path: string | null, alt: string): string {
   const urlPath = fsToUrlPath(path || "");
   return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
 }

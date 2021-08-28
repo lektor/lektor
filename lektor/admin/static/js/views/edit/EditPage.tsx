@@ -2,7 +2,7 @@ import React, { Component, createRef, FormEvent, RefObject } from "react";
 import { Prompt } from "react-router-dom";
 
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../../components/RecordComponent";
@@ -230,7 +230,7 @@ class EditPage extends Component<RecordProps, State> {
         this.props.history.push(
           pathToAdminPage(
             "preview",
-            getUrlRecordPathWithAlt(path, this.props.record.alt)
+            getUrlRecordPath(path, this.props.record.alt)
           )
         );
       });

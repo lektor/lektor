@@ -1,7 +1,7 @@
 import React, { ChangeEvent, Component, KeyboardEvent } from "react";
 
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
@@ -103,7 +103,7 @@ class FindFiles extends Component<Props, State> {
     if (item !== undefined) {
       const target =
         this.props.match.params.page === "preview" ? "preview" : "edit";
-      const urlPath = getUrlRecordPathWithAlt(item.path, this.props.record.alt);
+      const urlPath = getUrlRecordPath(item.path, this.props.record.alt);
       this.props.dismiss();
       this.props.history.push(pathToAdminPage(target, urlPath));
     }

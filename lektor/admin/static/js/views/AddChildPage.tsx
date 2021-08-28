@@ -1,6 +1,6 @@
 import React, { ChangeEvent, Component, ReactNode } from "react";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
@@ -152,10 +152,7 @@ class AddChildPage extends Component<RecordProps, State> {
         } else if (!resp.valid_id) {
           errMsg(trans_format("ERROR_INVALID_ID", id));
         } else {
-          const urlPath = getUrlRecordPathWithAlt(
-            resp.path,
-            this.props.record.alt
-          );
+          const urlPath = getUrlRecordPath(resp.path, this.props.record.alt);
           this.props.history.push(pathToAdminPage("edit", urlPath));
         }
       },

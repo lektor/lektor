@@ -1,8 +1,5 @@
 import React, { MouseEvent, memo, useCallback } from "react";
-import {
-  getUrlRecordPathWithAlt,
-  RecordProps,
-} from "../components/RecordComponent";
+import { getUrlRecordPath, RecordProps } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
@@ -51,7 +48,7 @@ function PageActions({
   record,
   recordInfo,
 }: RecordProps & { recordInfo: RecordInfo }) {
-  const urlPath = getUrlRecordPathWithAlt(record.path, record.alt);
+  const urlPath = getUrlRecordPath(record.path, record.alt);
 
   return (
     <div className="section">

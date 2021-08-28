@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../../components/RecordComponent";
@@ -58,7 +58,7 @@ class DeletePage extends Component<RecordProps, State> {
     const targetPath =
       parent === null
         ? "root"
-        : getUrlRecordPathWithAlt(parent, this.props.record.alt);
+        : getUrlRecordPath(parent, this.props.record.alt);
 
     loadData(
       "/deleterecord",
@@ -77,7 +77,7 @@ class DeletePage extends Component<RecordProps, State> {
   }
 
   cancelDelete(): void {
-    const urlPath = getUrlRecordPathWithAlt(
+    const urlPath = getUrlRecordPath(
       this.props.record.path,
       this.props.record.alt
     );

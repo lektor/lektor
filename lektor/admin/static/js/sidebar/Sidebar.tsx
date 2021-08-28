@@ -3,10 +3,7 @@ import { loadData } from "../fetch";
 import { trans, trans_obj } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import {
-  getUrlRecordPathWithAlt,
-  RecordProps,
-} from "../components/RecordComponent";
+import { getUrlRecordPath, RecordProps } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { bringUpDialog } from "../richPromise";
 import { Alternative, RecordInfo } from "../components/types";
@@ -190,7 +187,7 @@ class Sidebar extends Component<RecordProps, State> {
           {this.renderChildPagination()}
           {children.length > 0 ? (
             children.map((child) => {
-              const urlPath = getUrlRecordPathWithAlt(
+              const urlPath = getUrlRecordPath(
                 child.path,
                 this.props.record.alt
               );
