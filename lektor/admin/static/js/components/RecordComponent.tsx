@@ -21,7 +21,7 @@ export function pathToAdminPage(name: string, path: string) {
 }
 
 /** Details about the path to a Lektor record. */
-interface RecordPathDetails {
+export interface RecordPathDetails {
   /** Path of the current record (or null). */
   path: string | null;
   /** The alternative of the record (or '_primary'). */

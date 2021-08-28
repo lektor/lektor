@@ -22,8 +22,7 @@ import {
   WidgetProps,
   WidgetType,
 } from "./widgets/types";
-import ToggleGroup from "./components/ToggleGroup";
-import { trans, trans_obj } from "./i18n";
+import { trans_obj } from "./i18n";
 
 const widgetComponents = {
   "singleline-text": SingleLineTextInputWidget,
@@ -153,9 +152,9 @@ function processFields(fields: Field[]) {
 }
 
 /**
- * Split the fields into normal and system fields and process into rows.
+ * Split the fields into normal and system fields.
  */
-function getFieldRows(fields: Field[]) {
+export function splitFields(fields: Field[]) {
   const normalFields: Field[] = [];
   const systemFields: Field[] = [];
 
@@ -167,7 +166,7 @@ function getFieldRows(fields: Field[]) {
     }
   });
 
-  return [processFields(normalFields), processFields(systemFields)];
+  return [normalFields, systemFields];
 }
 
 /**
@@ -180,29 +179,13 @@ export function FieldRows({
   fields: Field[];
   renderFunc: (field: Field, index: number) => ReactNode;
 }) {
-  const [normalRows, systemRows] = getFieldRows(fields);
-
   return (
     <>
-      {normalRows.map((row, idx) => (
+      {processFields(fields).map((row, idx) => (
         <div className="row field-row" key={"normal-" + idx}>
           {row.map(renderFunc)}
         </div>
       ))}
-      {systemRows.length > 1 ? (
-        <ToggleGroup
-          key="sys"
-          groupTitle={trans("SYSTEM_FIELDS")}
-          defaultVisibility={false}
-          className="system-fields"
-        >
-          {systemRows.map((row, idx) => (
-            <div className="row field-row" key={"system-" + idx}>
-              {row.map(renderFunc)}
-            </div>
-          ))}
-        </ToggleGroup>
-      ) : null}
     </>
   );
 }

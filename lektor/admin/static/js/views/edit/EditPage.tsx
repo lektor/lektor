@@ -5,19 +5,22 @@ import {
   getUrlRecordPathWithAlt,
   pathToAdminPage,
   RecordProps,
-} from "../components/RecordComponent";
-import { keyboardShortcutHandler } from "../utils";
-import { loadData } from "../fetch";
-import { trans, Translatable, trans_fallback, trans_format } from "../i18n";
+} from "../../components/RecordComponent";
+import { keyboardShortcutHandler } from "../../utils";
+import { loadData } from "../../fetch";
+import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
 import {
   getWidgetComponentWithFallback,
   FieldBox,
   FieldRows,
-} from "../widgets";
-import { bringUpDialog } from "../richPromise";
-import { Field, WidgetComponent } from "../widgets/types";
+  splitFields,
+} from "../../widgets";
+import { bringUpDialog } from "../../richPromise";
+import { Field, WidgetComponent } from "../../widgets/types";
+import { EditPageActions } from "./EditPageActions";
+import ToggleGroup from "../../components/ToggleGroup";
 
-type RawRecordInfo = {
+export type RawRecordInfo = {
   alt: string;
   can_be_deleted: boolean;
   default_template: string;
@@ -93,6 +96,48 @@ function getPlaceholderForField(
   return null;
 }
 
+function getValueForField(
+  recordData: Record<string, string>,
+  Widget: WidgetComponent,
+  field: Field
+) {
+  let value = recordData[field.name];
+  if (value === undefined) {
+    value = "";
+    if (Widget.deserializeValue) {
+      value = Widget.deserializeValue(value, field.type);
+    }
+  }
+  return value;
+}
+
+function getValues({
+  recordDataModel,
+  recordInfo,
+  recordData,
+}: State): Record<string, string | null> {
+  const rv: Record<string, string | null> = {};
+  if (!recordDataModel || !recordInfo) {
+    return rv;
+  }
+  legalFields(recordDataModel, recordInfo).forEach((field) => {
+    let value: string | null = recordData[field.name];
+
+    if (value !== undefined) {
+      const Widget = getWidgetComponentWithFallback(field.type);
+      if (Widget.serializeValue) {
+        value = Widget.serializeValue(value, field.type);
+      }
+    } else {
+      value = null;
+    }
+
+    rv[field.name] = value;
+  });
+
+  return rv;
+}
+
 class EditPage extends Component<RecordProps, State> {
   form: RefObject<HTMLFormElement>;
 
@@ -120,7 +165,6 @@ class EditPage extends Component<RecordProps, State> {
     this.setFieldValue = this.setFieldValue.bind(this);
     this.saveChanges = this.saveChanges.bind(this);
     this.renderFormField = this.renderFormField.bind(this);
-    this.deleteRecord = this.deleteRecord.bind(this);
   }
 
   componentDidMount() {
@@ -172,43 +216,14 @@ class EditPage extends Component<RecordProps, State> {
     }));
   }
 
-  getValues() {
-    const rv: Record<string, string | null> = {};
-    const { recordDataModel, recordInfo, recordData } = this.state;
-    if (!recordDataModel || !recordInfo || !recordData) {
-      return rv;
-    }
-    legalFields(recordDataModel, recordInfo).forEach((field) => {
-      let value: string | null = recordData[field.name];
-
-      if (value !== undefined) {
-        const Widget = getWidgetComponentWithFallback(field.type);
-        if (Widget.serializeValue) {
-          value = Widget.serializeValue(value, field.type);
-        }
-      } else {
-        value = null;
-      }
-
-      rv[field.name] = value;
-    });
-
-    return rv;
-  }
-
   saveChanges(event?: FormEvent) {
-    if (event) {
-      event.preventDefault();
-    }
-
-    const path = this.props.record.path;
+    event?.preventDefault();
+    const { alt, path } = this.props.record;
     if (path === null) {
       return;
     }
-    const alt = this.props.record.alt;
-    const newData = this.getValues();
     loadData("/rawrecord", null, {
-      json: { data: newData, path: path, alt: alt },
+      json: { data: getValues(this.state), path, alt },
       method: "PUT",
     }).then(() => {
       this.setState({ hasPendingChanges: false }, () => {
@@ -222,29 +237,9 @@ class EditPage extends Component<RecordProps, State> {
     }, bringUpDialog);
   }
 
-  deleteRecord() {
-    this.props.history.push(
-      pathToAdminPage(
-        "delete",
-        getUrlRecordPathWithAlt(this.props.record.path, this.props.record.alt)
-      )
-    );
-  }
-
-  getValueForField(Widget: WidgetComponent, field: Field) {
-    let value = this.state.recordData[field.name];
-    if (value === undefined) {
-      value = "";
-      if (Widget.deserializeValue) {
-        value = Widget.deserializeValue(value, field.type);
-      }
-    }
-    return value;
-  }
-
   renderFormField(field: Field) {
     const Widget = getWidgetComponentWithFallback(field.type);
-    const { recordInfo } = this.state;
+    const { recordInfo, recordData } = this.state;
     if (!recordInfo) {
       return null;
     }
@@ -257,7 +252,7 @@ class EditPage extends Component<RecordProps, State> {
     return (
       <FieldBox
         key={field.name}
-        value={this.getValueForField(Widget, field)}
+        value={getValueForField(recordData, Widget, field)}
         placeholder={getPlaceholderForField(recordInfo, Widget, field)}
         field={field}
         setFieldValue={this.setFieldValue}
@@ -267,9 +262,9 @@ class EditPage extends Component<RecordProps, State> {
   }
 
   render() {
-    // we have not loaded anything yet.
     const { recordInfo, recordDataModel, hasPendingChanges } = this.state;
-    if (recordInfo === null || recordDataModel === null) {
+    if (!recordInfo || !recordDataModel) {
+      // we have not loaded anything yet.
       return null;
     }
 
@@ -280,33 +275,31 @@ class EditPage extends Component<RecordProps, State> {
       : trans_format("EDIT_PAGE_NAME", label);
 
     const fields = legalFields(recordDataModel, recordInfo);
+    const [normalFields, systemFields] = splitFields(fields);
 
     return (
       <div className="edit-area">
-        {this.state.hasPendingChanges && (
-          <Prompt message={() => trans("UNLOAD_ACTIVE_TAB")} />
-        )}
+        {hasPendingChanges && <Prompt message={trans("UNLOAD_ACTIVE_TAB")} />}
         <h2>{title}</h2>
         <form ref={this.form} onSubmit={this.saveChanges}>
-          <FieldRows fields={fields} renderFunc={this.renderFormField} />
-          <div className="actions">
-            <button
-              type="submit"
-              disabled={!hasPendingChanges}
-              className="btn btn-primary"
+          <FieldRows fields={normalFields} renderFunc={this.renderFormField} />
+          {systemFields.length > 0 && (
+            <ToggleGroup
+              groupTitle={trans("SYSTEM_FIELDS")}
+              defaultVisibility={false}
+              className="system-fields"
             >
-              {trans("SAVE_CHANGES")}
-            </button>
-            {recordInfo.can_be_deleted ? (
-              <button
-                type="button"
-                className="btn btn-secondary border"
-                onClick={this.deleteRecord}
-              >
-                {trans("DELETE")}
-              </button>
-            ) : null}
-          </div>
+              <FieldRows
+                fields={systemFields}
+                renderFunc={this.renderFormField}
+              />
+            </ToggleGroup>
+          )}
+          <EditPageActions
+            record={this.props.record}
+            recordInfo={recordInfo}
+            hasPendingChanges={hasPendingChanges}
+          />
         </form>
       </div>
     );

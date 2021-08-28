@@ -15,7 +15,7 @@ import "event-source-polyfill";
 
 // route targets
 import App from "./views/App";
-import EditPage from "./views/EditPage";
+import EditPage from "./views/edit/EditPage";
 import DeletePage from "./views/delete/DeletePage";
 import PreviewPage from "./views/PreviewPage";
 import AddChildPage from "./views/AddChildPage";
