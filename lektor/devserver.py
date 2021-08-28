@@ -9,6 +9,7 @@ from werkzeug.serving import WSGIRequestHandler
 from lektor.admin import WebAdmin
 from lektor.builder import Builder
 from lektor.db import Database
+from lektor.packages import load_packages
 from lektor.reporter import CliReporter
 from lektor.utils import portable_popen
 from lektor.utils import process_extra_flags
@@ -54,8 +55,11 @@ class BackgroundBuilder(threading.Thread):
     def run(self):
         with CliReporter(self.env, verbosity=self.verbosity):
             self.build(update_source_info_first=True)
+            package_root = os.path.join(self.env.root_path, "packages")
             with Watcher(self.env, self.output_path) as watcher:
-                for ts, _, _ in watcher:
+                for ts, _, path in watcher:
+                    if os.path.commonpath((package_root, path)) == package_root:
+                        load_packages(self.env)
                     if self.last_build is None or ts > self.last_build:
                         self.build()
 
