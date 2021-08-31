@@ -5,14 +5,179 @@ These are all the changes in Lektor since the first public release.
 
 UNRELEASED - in development
 
-- Fix the checkboxes widget in the admin UI.
-- Fix queries with offset but without a limit.
-- Fix the toggling of flow widgets in the admin UI to not mark the content as changed.
-- Fix the handling of the URLs when opening the admin UI from the pencil button.
-- Allow rsync deployment to a local path.
-- Relax the checking of URL fields and allow FTP and mailto URLs.
-- Correctly track the page URL on the admin preview page.
-- Rename a CSS class in the admin UI so that it is not blocked by the EasyList FR adblock list.
+This release drops support for versions of Python before 3.6.
+In particular, Python 2.7 is no longer supported.
+
+Quite a few bugs have been fixed since the previous release.
+
+The Admin UI has seen a major refactor.
+It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS framework.
+
+### Bugs Fixed
+
+- Fix queries with offset but without a limit. [#827][]
+- Allow rsync deployment to a local path. [#830][]
+- Fix circular imports in `lektor.cli` to allow its use as an executable module (`python -m lektor.cli`).
+  [#682][], [#856][]
+- Fix the `Plugin.emit` method so that it works. [#859][]
+- Fix the handling of deferred (descriptor-type) model fields when used in `slug_format`
+  and when used as a sort key. [#789][]
+- The (previously incomprehensible) exception message emitted when
+  attempting to load a plugin from an improperly named distribution
+  has been reworded. [#875][], [#879][]
+- Fix reference cycle in `Environment`. [#882][]
+- Only issue warning about future change in image upscaling behavior when user requests an upscale. [#885][]
+- Fix "unclosed file" `ResourceWarning`s. [#898][]
+- Fix bug in `lektor.sourcesearch.find_files` which was causing intermittent exceptions.
+  [#895][], [#897][]
+- Fix bug with translation fallback of record label. [#897][]
+- Fall back to `watchdog` `PollingObserver` if default `Observer` type fails to start.
+  This fixes "OSError: inotify watch limit reached" and perhaps other similar failures.
+  [#861][], [#886][]
+- Clean up subprocess handling in `lektor.publisher`.  This fixes
+  "ResourceWarning: unclosed file" warnings which were being emitted
+  when using the rsync publisher, as well as possible other
+  buglets. [#896][]
+
+#### Admin UI
+
+- Fix the checkboxes widget.  They were broken so as to be uncheckable.  [#812][], [#817][]
+- Fix page data being incorrectly marked as *changed* when flow block is expanded/collapsed in the edit UI.  [#828][], [#842][]
+- Fix encoding of URLs when opening the admin UI from the pencil button.  [#815][], [#837][]
+- Rename a CSS class in the admin UI to prevent breakage by ad blockers.
+  The class `add-block` was being blocked by the *EasyList FR* ad blocker. [#785][], [#841][]
+- Relax URL checking to allow all valid URLs in URL fields. [#793][], [#840][], [#864][]
+- Preview iframe was not always updating when it should. [#844][], [#846][]
+- Make the "Save" button always visible (without need to scroll on long pages). [#43][], [#870][]
+- Disable the "Save" button unless there are changes. [#872][]
+- Add "&lt;ctl&gt;-e" hotkey shortcut to edit page. [#876][]
+- Update UI to Bootstrap v4. (This fixes a layout issue with the date picker.) [#648][], [#884][]
+- Fix edit page failure for select and checkbox widgets with no choices. [#890][], [#900][]
+- Update UI to Bootstrap v5. [#917][], [#926][]
+
+
+### Internal changes
+
+#### Python code
+
+- Drop python 2 compatibility. [#822][], [#850][], [#871][], [#920][], [#922][]
+- Drop python 3.5 compatibility. [#878][], [#880][]
+- Code beautification/reformatting.  We now use [black][], [reorder-python-imports][], [flake8][].
+  [#823][], [#916][], [#925][]
+- Refactor rsync publisher tests. [#836][]
+- Restructure code to prevent circular imports. [#856][], [#871][], [#873][]
+- Minor docstring fixes. [#874][]
+- Enabled pylint's no-self-use policy. [#887][]
+
+#### JS code
+
+- Update NPM/JS dependencies. Update to webpack v5.
+  [#816][], [#834][], [#848][], [#852][], [#860][], [#905][], [#917][], [#926][]
+- Use [prettier][] and [eslint][] for JS beautification and style enforcement. [#825][]
+- Disuse unmaintained `jsdomify` to prevent hanging tests. [#839][]
+- Disuse jQuery. [#851][]
+- Convert JS code to Typescript. Various other refactoring and cleanups. [#857][], [#869][], [#872][]
+- Refactor code to handle hotkeys. [#876][]
+
+### Dependencies
+
+- Relax `werkzeug<1` to `werkzeug<3`. [#829][], [#833][], [#911][], [#923][]
+- Drop support for Python 2. [#818][], [#819][]
+- We now require `Jinja2>=3.0`. [#921][]
+
+### Testing/CI
+
+- Use `tox` for local testing.  [#824][]
+- Pin version of `pylint` used for tests. [#891][]
+- Complete rewrite of the tests for `lektor.pluginsystem` to increase coverage and reduce running time.
+  [#881][].
+- Test under Python 3.9. [#845][]
+- Test under Node v14 and v16. [#852][], [#927][]
+- Do not run `brew update` in MacOS CI workflow. [#853][]
+- CI workflow simplification. [#927][]
+
+[black]: <https://black.readthedocs.io/en/stable/>
+[reorder-python-imports]: <https://github.com/asottile/reorder_python_imports>
+[flake8]: <https://flake8.pycqa.org/en/latest/>
+[prettier]: <https://prettier.io/>
+[eslint]: <https://eslint.org/>
+[#43]: <https://github.com/lektor/lektor/issues/43>
+[#648]: <https://github.com/lektor/lektor/issues/648>
+[#682]: <https://github.com/lektor/lektor/issues/682>
+[#785]: <https://github.com/lektor/lektor/issues/785>
+[#789]: <https://github.com/lektor/lektor/pull/789>
+[#793]: <https://github.com/lektor/lektor/issues/793>
+[#812]: <https://github.com/lektor/lektor/issues/812>
+[#815]: <https://github.com/lektor/lektor/issues/815>
+[#816]: <https://github.com/lektor/lektor/pull/816>
+[#817]: <https://github.com/lektor/lektor/pull/817>
+[#818]: <https://github.com/lektor/lektor/issues/818>
+[#819]: <https://github.com/lektor/lektor/pull/819>
+[#822]: <https://github.com/lektor/lektor/pull/822>
+[#823]: <https://github.com/lektor/lektor/pull/823>
+[#824]: <https://github.com/lektor/lektor/pull/824>
+[#825]: <https://github.com/lektor/lektor/pull/825>
+[#827]: <https://github.com/lektor/lektor/pull/827>
+[#828]: <https://github.com/lektor/lektor/issues/828>
+[#829]: <https://github.com/lektor/lektor/issues/829>
+[#830]: <https://github.com/lektor/lektor/pull/830>
+[#833]: <https://github.com/lektor/lektor/pull/833>
+[#834]: <https://github.com/lektor/lektor/pull/834>
+[#836]: <https://github.com/lektor/lektor/pull/836>
+[#837]: <https://github.com/lektor/lektor/pull/837>
+[#839]: <https://github.com/lektor/lektor/pull/839>
+[#840]: <https://github.com/lektor/lektor/pull/840>
+[#841]: <https://github.com/lektor/lektor/pull/841>
+[#842]: <https://github.com/lektor/lektor/pull/842>
+[#844]: <https://github.com/lektor/lektor/issues/844>
+[#845]: <https://github.com/lektor/lektor/pull/845>
+[#846]: <https://github.com/lektor/lektor/pull/846>
+[#848]: <https://github.com/lektor/lektor/pull/848>
+[#850]: <https://github.com/lektor/lektor/pull/850>
+[#851]: <https://github.com/lektor/lektor/pull/851>
+[#852]: <https://github.com/lektor/lektor/pull/852>
+[#853]: <https://github.com/lektor/lektor/pull/853>
+[#856]: <https://github.com/lektor/lektor/pull/856>
+[#857]: <https://github.com/lektor/lektor/pull/857>
+[#859]: <https://github.com/lektor/lektor/pull/859>
+[#860]: <https://github.com/lektor/lektor/pull/860>
+[#861]: <https://github.com/lektor/lektor/issues/861>
+[#864]: <https://github.com/lektor/lektor/pull/864>
+[#869]: <https://github.com/lektor/lektor/pull/869>
+[#870]: <https://github.com/lektor/lektor/pull/870>
+[#871]: <https://github.com/lektor/lektor/pull/871>
+[#872]: <https://github.com/lektor/lektor/pull/872>
+[#873]: <https://github.com/lektor/lektor/pull/873>
+[#874]: <https://github.com/lektor/lektor/pull/874>
+[#875]: <https://github.com/lektor/lektor/pull/875>
+[#876]: <https://github.com/lektor/lektor/pull/876>
+[#878]: <https://github.com/lektor/lektor/issues/878>
+[#879]: <https://github.com/lektor/lektor/pull/879>
+[#880]: <https://github.com/lektor/lektor/pull/880>
+[#881]: <https://github.com/lektor/lektor/pull/881>
+[#882]: <https://github.com/lektor/lektor/pull/882>
+[#884]: <https://github.com/lektor/lektor/pull/884>
+[#885]: <https://github.com/lektor/lektor/pull/885>
+[#886]: <https://github.com/lektor/lektor/pull/886>
+[#887]: <https://github.com/lektor/lektor/pull/887>
+[#890]: <https://github.com/lektor/lektor/issues/890>
+[#891]: <https://github.com/lektor/lektor/pull/891>
+[#895]: <https://github.com/lektor/lektor/issues/895>
+[#896]: <https://github.com/lektor/lektor/pull/896>
+[#897]: <https://github.com/lektor/lektor/pull/897>
+[#898]: <https://github.com/lektor/lektor/pull/898>
+[#900]: <https://github.com/lektor/lektor/pull/900>
+[#905]: <https://github.com/lektor/lektor/pull/905>
+[#911]: <https://github.com/lektor/lektor/pull/911>
+[#916]: <https://github.com/lektor/lektor/pull/916>
+[#917]: <https://github.com/lektor/lektor/pull/917>
+[#920]: <https://github.com/lektor/lektor/pull/920>
+[#921]: <https://github.com/lektor/lektor/pull/921>
+[#922]: <https://github.com/lektor/lektor/pull/922>
+[#923]: <https://github.com/lektor/lektor/pull/923>
+[#925]: <https://github.com/lektor/lektor/pull/925>
+[#926]: <https://github.com/lektor/lektor/pull/926>
+[#927]: <https://github.com/lektor/lektor/pull/927>
 
 3.2.0
 -----
