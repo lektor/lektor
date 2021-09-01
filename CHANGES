@@ -22,11 +22,12 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - Fix the `Plugin.emit` method so that it works. [#859][]
 - Fix the handling of deferred (descriptor-type) model fields when used in `slug_format`
   and when used as a sort key. [#789][]
-- The (previously incomprehensible) exception message emitted when
-  attempting to load a plugin from an improperly named distribution
-  has been reworded. [#875][], [#879][]
+- Reword the (previously incomprehensible) exception message emitted
+  when attempting to load a plugin from an improperly named
+  distribution. [#875][], [#879][]
 - Fix reference cycle in `Environment`. [#882][]
-- Only issue warning about future change in image upscaling behavior when user requests an upscale. [#885][]
+- Refrain from issuing warning about future change in implicit image
+  upscaling behavior in cases that do not involve upscaling. [#885][]
 - Fix "unclosed file" `ResourceWarning`s. [#898][]
 - Fix bug in `lektor.sourcesearch.find_files` which was causing intermittent exceptions.
   [#895][], [#897][]
