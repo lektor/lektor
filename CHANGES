@@ -15,30 +15,47 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 ### Bugs Fixed
 
+#### Database
+
 - Fix queries with offset but without a limit. [#827][]
-- Allow rsync deployment to a local path. [#830][]
-- Fix circular imports in `lektor.cli` to allow its use as an executable module (`python -m lektor.cli`).
-  [#682][], [#856][]
-- Fix the `Plugin.emit` method so that it works. [#859][]
 - Fix the handling of deferred (descriptor-type) model fields when used in `slug_format`
   and when used as a sort key. [#789][]
-- Reword the (previously incomprehensible) exception message emitted
-  when attempting to load a plugin from an improperly named
-  distribution. [#875][], [#879][]
-- Fix reference cycle in `Environment`. [#882][]
 - Refrain from issuing warning about future change in implicit image
   upscaling behavior in cases that do not involve upscaling. [#885][]
-- Fix "unclosed file" `ResourceWarning`s. [#898][]
-- Fix bug in `lektor.sourcesearch.find_files` which was causing intermittent exceptions.
-  [#895][], [#897][]
 - Fix bug with translation fallback of record label. [#897][]
-- Fall back to `watchdog` `PollingObserver` if default `Observer` type fails to start.
-  This fixes "OSError: inotify watch limit reached" and perhaps other similar failures.
-  [#861][], [#886][]
+
+#### Publisher
+
+- Allow rsync deployment to a local path. [#830][]
 - Clean up subprocess handling in `lektor.publisher`.  This fixes
   "ResourceWarning: unclosed file" warnings which were being emitted
   when using the rsync publisher, as well as possible other
   buglets. [#896][]
+
+#### Command Line
+
+- Fix circular imports in `lektor.cli` to allow its use as an executable module (`python -m lektor.cli`).
+  [#682][], [#856][]
+- Fall back to `watchdog` `PollingObserver` if default `Observer` type fails to start.
+  This fixes "OSError: inotify watch limit reached" and perhaps other similar failures.
+  [#861][], [#886][]
+
+#### Plugins
+
+- Fix the `Plugin.emit` method so that it works. [#859][]
+- Reword the (previously incomprehensible) exception message emitted
+  when attempting to load a plugin from an improperly named
+  distribution. [#875][], [#879][]
+
+#### Build System
+
+- Fix bug in `lektor.sourcesearch.find_files` which was causing intermittent exceptions.
+  [#895][], [#897][]
+
+#### Miscellaneous
+
+- Fix reference cycle in `Environment`. [#882][]
+- Fix "unclosed file" `ResourceWarning`s. [#898][]
 
 #### Admin UI
 
