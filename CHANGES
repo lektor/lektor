@@ -184,7 +184,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 Release date 20th of August, 2020
 
-- Fix off-by-one error in pagintaion's iter_pages in the interpretation of the right_current argument, and adding an appropriate trailing `None` for some uses.
+- Fix off-by-one error in pagination's iter_pages in the interpretation of the right_current argument, and adding an appropriate trailing `None` for some uses.
 - Add support for setting an output_path in the project file.
 - Replaced the slugify backend to handle unicode more effectively. This may break some slugs built from unicode.
 - Several modernization and performance improvements to the admin UI
