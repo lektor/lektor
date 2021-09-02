@@ -13,8 +13,7 @@ lektor/admin/node_modules: lektor/admin/package-lock.json
 # Run tests on Python files.
 test-python:
 	@echo "---> running python tests"
-	tox -e lint
-	tox -e coverage
+	tox -e py
 
 # Run tests on the Frontend code.
 test-js: lektor/admin/node_modules
