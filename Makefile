@@ -40,3 +40,13 @@ coverage-js: test-js
 test: test-python test-js
 
 coverage: coverage-python coverage-js
+
+# This creates source distribution and a wheel.
+dist: build-js setup.cfg setup.py MANIFEST.in
+	python setup.py sdist bdist_wheel
+
+# Before making a release, CHANGES.md needs to be updated and
+# a tag should be created (and pushed with `git push --tags`).
+.PHONY: upload
+upload: dist
+	twine upload dist/*
