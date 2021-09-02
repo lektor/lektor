@@ -18,6 +18,7 @@ test-python:
 # Run tests on the Frontend code.
 test-js: lektor/admin/node_modules
 	@echo "---> running javascript tests"
+	@cd lektor/admin; npx tsc
 	@cd lektor/admin; npm test
 
 .PHONY: lint
@@ -31,11 +32,9 @@ test: lint test-python test-js
 
 .PHONY: test-all
 # Run tests on all supported Python versions.
-test-all: lint test-js
-	tox -e py36
-	tox -e py37
-	tox -e py38
-	tox -e py39
+test-all: test-js
+	pre-commit run -a
+	tox
 
 # This creates source distribution and a wheel.
 dist: build-js setup.cfg setup.py MANIFEST.in
