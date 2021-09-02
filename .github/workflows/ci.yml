@@ -104,10 +104,10 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos')
+        if: startsWith(runner.os, 'macos') && matrix.python == '3.9'
         run: brew install imagemagick ffmpeg
       - name: Install Windows system dependencies
-        if: startsWith(runner.os, 'windows')
+        if: startsWith(runner.os, 'windows') && matrix.python == '3.9'
         run: choco install --no-progress --timeout 600 imagemagick.tool ffmpeg
       - name: Install python dependencies
         run: python -m pip install codecov tox
