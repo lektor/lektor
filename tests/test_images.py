@@ -4,6 +4,7 @@ from datetime import datetime
 from hashlib import md5
 
 import pytest
+from markers import imagemagick
 
 from lektor._compat import iteritems
 from lektor.imagetools import compute_dimensions
@@ -152,6 +153,7 @@ def test_thumbnail_dimensions_reported(builder):
         assert '<img src="%s" width="%s" height="%s">' % (t, w, h) in html
 
 
+@imagemagick
 def test_thumbnail_dimensions_real(builder):
     builder.build_all()
     for t, dimensions in _THUMBNAILS.items():
@@ -161,6 +163,7 @@ def test_thumbnail_dimensions_real(builder):
             assert (width, height) == dimensions
 
 
+@imagemagick
 def test_thumbnails_similar(builder):
     builder.build_all()
     hashes = []
@@ -172,6 +175,7 @@ def test_thumbnails_similar(builder):
         assert hashes[i] == hashes[0]
 
 
+@imagemagick
 def test_thumbnails_differing(builder):
     builder.build_all()
     hashes = []
@@ -183,6 +187,7 @@ def test_thumbnails_differing(builder):
         assert hashes[i] != hashes[0]
 
 
+@imagemagick
 def test_thumbnail_quality(builder):
     builder.build_all()
     image_file = os.path.join(builder.destination_path, "test@192x256_q20.jpg")
