@@ -10,19 +10,25 @@ lektor/admin/node_modules: lektor/admin/package-lock.json
 	@cd lektor/admin; npm install
 	@touch -m lektor/admin/node_modules
 
-# Lint and run tests on Python files.
+# Run tests on Python files.
 test-python:
 	@echo "---> running python tests"
 	tox -e lint
 	tox -e coverage
 
-# Lint and run tests on the Frontend code.
+# Run tests on the Frontend code.
 test-js: lektor/admin/node_modules
 	@echo "---> running javascript tests"
-	@cd lektor/admin; npm run lint
 	@cd lektor/admin; npm test
 
-test: test-python test-js
+.PHONY: lint
+# Lint code.
+lint:
+	pre-commit run -a
+	tox -e lint
+
+.PHONY: test
+test: lint test-python test-js
 
 # This creates source distribution and a wheel.
 dist: build-js setup.cfg setup.py MANIFEST.in
