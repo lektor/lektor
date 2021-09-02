@@ -1,5 +1,6 @@
 all: build-js
 
+.PHONY: build-js
 build-js: lektor/admin/node_modules
 	@echo "---> building static files"
 	@cd lektor/admin; npm run webpack
@@ -9,34 +10,38 @@ lektor/admin/node_modules: lektor/admin/package-lock.json
 	@cd lektor/admin; npm install
 	@touch -m lektor/admin/node_modules
 
-pex:
-	virtualenv pex-build-cache
-	pex-build-cache/bin/pip install --upgrade pip
-	pex-build-cache/bin/pip install pex requests wheel
-	pex-build-cache/bin/pip wheel -w pex-build-cache/wheelhouse .
-	pex-build-cache/bin/pex \
-		-v -o lektor.pex -e lektor.cli:cli \
-		-f pex-build-cache/wheelhouse \
-		--disable-cache \
-		--not-zip-safe Lektor
-	rm -rf pex-build-cache
-
+# Run tests on Python files.
 test-python:
 	@echo "---> running python tests"
-	pylint lektor
-	pytest . --tb=long -vv --cov=lektor
+	tox -e py
 
-coverage-python: test-python
-	coverage xml
-
-test-js: build-js
+# Run tests on the Frontend code.
+test-js: lektor/admin/node_modules
 	@echo "---> running javascript tests"
-	@cd lektor/admin; npm run lint
+	@cd lektor/admin; npx tsc
 	@cd lektor/admin; npm test
 
-coverage-js: test-js
-	@cd lektor/admin; npm run report-coverage
+.PHONY: lint
+# Lint code.
+lint:
+	pre-commit run -a
+	tox -e lint
 
-test: test-python test-js
+.PHONY: test
+test: lint test-python test-js
 
-coverage: coverage-python coverage-js
+.PHONY: test-all
+# Run tests on all supported Python versions.
+test-all: test-js
+	pre-commit run -a
+	tox
+
+# This creates source distribution and a wheel.
+dist: build-js setup.cfg setup.py MANIFEST.in
+	python setup.py sdist bdist_wheel
+
+# Before making a release, CHANGES.md needs to be updated and
+# a tag should be created (and pushed with `git push --tags`).
+.PHONY: upload
+upload: dist
+	twine upload dist/*
