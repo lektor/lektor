@@ -93,6 +93,9 @@ jobs:
           - os: "ubuntu-latest"
             path: ~/.cache/pip
             python: "3.7"
+          - os: "ubuntu-latest"
+            path: ~/.cache/pip
+            python: "3.8"
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
