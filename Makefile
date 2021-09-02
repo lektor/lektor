@@ -30,6 +30,14 @@ lint:
 .PHONY: test
 test: lint test-python test-js
 
+.PHONY: test-all
+# Run tests on all supported Python versions.
+test-all: lint test-js
+	tox -e py36
+	tox -e py37
+	tox -e py38
+	tox -e py39
+
 # This creates source distribution and a wheel.
 dist: build-js setup.cfg setup.py MANIFEST.in
 	python setup.py sdist bdist_wheel
