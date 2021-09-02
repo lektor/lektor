@@ -17,7 +17,7 @@ tests_require = [
 
 setup(
     name="Lektor",
-    version="4.0.dev",
+    use_scm_version=True,
     url="http://github.com/lektor/lektor/",
     description="A static content management system.",
     long_description=readme,
@@ -30,6 +30,7 @@ setup(
     zip_safe=False,
     platforms="any",
     python_requires=">=3.6",
+    setup_requires=["setuptools_scm"],
     install_requires=[
         "Babel",
         "click>=6.0",
