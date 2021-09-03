@@ -18,7 +18,7 @@ import App from "./views/App";
 import EditPage from "./views/edit/EditPage";
 import DeletePage from "./views/delete/DeletePage";
 import PreviewPage from "./views/PreviewPage";
-import AddChildPage from "./views/AddChildPage";
+import AddChildPage from "./views/add-child-page/AddChildPage";
 import AddAttachmentPage from "./views/AddAttachmentPage";
 import { getRecordDetails } from "./components/RecordComponent";
 
