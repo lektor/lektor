@@ -212,7 +212,7 @@ class EditPage extends Component<RecordProps, State> {
   setFieldValue(field: Field, value: string, uiChange = false) {
     this.setState((state) => ({
       recordData: { ...state.recordData, [field.name]: value || "" },
-      hasPendingChanges: !uiChange,
+      hasPendingChanges: !uiChange || state.hasPendingChanges,
     }));
   }
 
