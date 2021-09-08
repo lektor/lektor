@@ -21,12 +21,12 @@ export function pathToAdminPage(name: string, path: string) {
 }
 
 /** Details about the path to a Lektor record. */
-export interface RecordPathDetails {
+export type RecordPathDetails = {
   /** Path of the current record (filesystem path). */
   path: string;
   /** The alternative of the record. */
   alt: string;
-}
+};
 
 /**
  * Extract a file system path and the alt from an URL path.

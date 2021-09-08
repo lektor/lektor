@@ -138,12 +138,14 @@ function getValues({
   return rv;
 }
 
-class EditPage extends Component<RecordProps, State> {
+type Props = Pick<RecordProps, "record" | "history">;
+
+class EditPage extends Component<Props, State> {
   form: RefObject<HTMLFormElement>;
 
   onKeyPress: (ev: KeyboardEvent) => void;
 
-  constructor(props: RecordProps) {
+  constructor(props: Props) {
     super(props);
 
     this.state = {
@@ -172,7 +174,7 @@ class EditPage extends Component<RecordProps, State> {
     window.addEventListener("keydown", this.onKeyPress);
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.record.path !== this.props.record.path) {
       this.syncEditor();
     }

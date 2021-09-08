@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { RecordProps } from "../components/RecordComponent";
+import { RecordPathDetails } from "../components/RecordComponent";
 import { getCanonicalUrl, keyboardShortcutHandler } from "../utils";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
@@ -26,8 +26,10 @@ const onKeyPress = keyboardShortcutHandler(
   () => dialogSystem.showDialog(FindFiles)
 );
 
-class GlobalActions extends Component<RecordProps, unknown> {
-  constructor(props: RecordProps) {
+type Props = { record: RecordPathDetails };
+
+class GlobalActions extends Component<Props, unknown> {
+  constructor(props: Props) {
     super(props);
     this.onCloseClick = this.onCloseClick.bind(this);
   }

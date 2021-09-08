@@ -63,7 +63,7 @@ interface PublishState {
   currentState: "IDLE" | "BUILDING" | "PUBLISH" | "DONE";
 }
 
-type Props = RecordProps & { dismiss: () => void };
+type Props = Pick<RecordProps, "record"> & { dismiss: () => void };
 
 class Publish extends React.Component<Props, PublishState> {
   buildLog: RefObject<HTMLPreElement>;

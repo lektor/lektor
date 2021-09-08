@@ -22,8 +22,10 @@ type State = {
   deleteMasterRecord: boolean;
 };
 
-class DeletePage extends Component<RecordProps, State> {
-  constructor(props: RecordProps) {
+type Props = Pick<RecordProps, "record" | "history">;
+
+class DeletePage extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = { recordInfo: null, deleteMasterRecord: true };
     this.cancelDelete = this.cancelDelete.bind(this);
@@ -34,7 +36,7 @@ class DeletePage extends Component<RecordProps, State> {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps: RecordProps): void {
+  componentDidUpdate(prevProps: Props): void {
     if (prevProps.record.path !== this.props.record.path) {
       this.syncDialog();
     }

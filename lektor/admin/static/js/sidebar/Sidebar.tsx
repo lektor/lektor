@@ -53,10 +53,12 @@ const initialState: State = {
   childrenPage: 1,
 };
 
-class Sidebar extends Component<RecordProps, State> {
+type Props = Pick<RecordProps, "record" | "page">;
+
+class Sidebar extends Component<Props, State> {
   childPosCache: ChildPosCache;
 
-  constructor(props: RecordProps) {
+  constructor(props: Props) {
     super(props);
 
     this.state = initialState;
@@ -70,7 +72,7 @@ class Sidebar extends Component<RecordProps, State> {
     hub.subscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.record.path !== this.props.record.path) {
       this._updateRecordInfo();
     }
@@ -123,7 +125,11 @@ class Sidebar extends Component<RecordProps, State> {
         {record.path !== null && recordInfo && (
           <PageActions record={record} recordInfo={recordInfo} />
         )}
-        <Alternatives {...this.props} recordAlts={this.state.recordAlts} />
+        <Alternatives
+          record={record}
+          page={page}
+          recordAlts={this.state.recordAlts}
+        />
         {recordInfo?.can_have_children && (
           <ChildActions
             target={page === "preview" ? "preview" : "edit"}

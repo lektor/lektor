@@ -17,7 +17,6 @@ export default function App({
   record: RecordPathDetails;
 }) {
   const history = useHistory();
-  const recordProps = { page, history, record };
 
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
 
@@ -33,13 +32,14 @@ export default function App({
       <Header
         sidebarIsActive={sidebarIsActive}
         toggleSidebar={toggleSidebar}
-        {...recordProps}
+        page={page}
+        record={record}
       />
       <div className="editor container">
-        <DialogSlot {...recordProps} />
+        <DialogSlot page={page} history={history} record={record} />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
-            <Sidebar {...recordProps} />
+            <Sidebar page={page} record={record} />
           </nav>
           <div className="view col-md-10 col-sm-9">{children}</div>
         </div>

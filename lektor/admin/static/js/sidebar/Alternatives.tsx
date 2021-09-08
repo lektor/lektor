@@ -8,7 +8,9 @@ import Link from "../components/Link";
 import { Alternative } from "../components/types";
 import { trans, trans_obj } from "../i18n";
 
-type Props = RecordProps & { recordAlts: Alternative[] };
+type Props = Pick<RecordProps, "record" | "page"> & {
+  recordAlts: Alternative[];
+};
 
 export default class Alternatives extends PureComponent<Props, unknown> {
   render() {

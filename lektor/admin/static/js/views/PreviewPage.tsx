@@ -32,10 +32,12 @@ const initialState = {
   pageUrlFor: null,
 };
 
-export default class PreviewPage extends Component<RecordProps, State> {
+type Props = Pick<RecordProps, "record" | "history">;
+
+export default class PreviewPage extends Component<Props, State> {
   iframe: RefObject<HTMLIFrameElement>;
 
-  constructor(props: RecordProps) {
+  constructor(props: Props) {
     super(props);
     this.state = initialState;
     this.iframe = createRef();
@@ -46,7 +48,7 @@ export default class PreviewPage extends Component<RecordProps, State> {
     this.syncState();
   }
 
-  shouldComponentUpdate(nextProps: RecordProps) {
+  shouldComponentUpdate(nextProps: Props) {
     return (
       getUrlRecordPath(this.props.record.path, this.props.record.alt) !==
         this.state.pageUrlFor ||
@@ -68,7 +70,7 @@ export default class PreviewPage extends Component<RecordProps, State> {
     }
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.record.path !== this.props.record.path) {
       this.syncState();
     }

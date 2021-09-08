@@ -70,7 +70,7 @@ type State = {
   segments: RecordPathInfoSegment[] | null;
 };
 
-type Props = RecordProps;
+type Props = Pick<RecordProps, "record" | "page">;
 
 class BreadCrumbs extends Component<Props, State> {
   constructor(props: Props) {

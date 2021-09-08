@@ -69,7 +69,7 @@ function Main() {
   }
   return (
     <App page={page} record={record}>
-      <Component page={page} history={history} record={record} />
+      <Component history={history} record={record} />
     </App>
   );
 }

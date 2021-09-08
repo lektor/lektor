@@ -30,8 +30,10 @@ const alertErr = (text: string) => {
   alert(trans("ERROR_PREFIX") + text);
 };
 
-class AddChildPage extends Component<RecordProps, State> {
-  constructor(props: RecordProps) {
+type Props = Pick<RecordProps, "record" | "history">;
+
+class AddChildPage extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       newChildInfo: null,
@@ -47,7 +49,7 @@ class AddChildPage extends Component<RecordProps, State> {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.record.path !== this.props.record.path) {
       this.syncDialog();
     }

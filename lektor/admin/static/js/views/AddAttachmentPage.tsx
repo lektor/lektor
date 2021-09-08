@@ -19,10 +19,12 @@ type State = {
   currentProgress: number;
 };
 
-class AddAttachmentPage extends Component<RecordProps, State> {
+type Props = Pick<RecordProps, "record">;
+
+class AddAttachmentPage extends Component<Props, State> {
   fileInput: RefObject<HTMLInputElement>;
 
-  constructor(props: RecordProps) {
+  constructor(props: Props) {
     super(props);
     this.state = {
       newAttachmentInfo: null,
@@ -38,7 +40,7 @@ class AddAttachmentPage extends Component<RecordProps, State> {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.record.path !== this.props.record.path) {
       this.syncDialog();
     }
