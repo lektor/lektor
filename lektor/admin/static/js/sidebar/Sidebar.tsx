@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import { loadData } from "../fetch";
 import { trans_obj } from "../i18n";
-import hub from "../hub";
-import { AttachmentsChangedEvent } from "../events";
 import { RecordProps } from "../components/RecordComponent";
 import { bringUpDialog } from "../richPromise";
 import { Alternative, RecordInfo } from "../components/types";
@@ -11,6 +9,7 @@ import Alternatives from "./Alternatives";
 import AttachmentActions from "./AttachmentActions";
 import { CHILDREN_PER_PAGE } from "./constants";
 import ChildActions from "./ChildActions";
+import { subscribe, unsubscribe } from "../events";
 
 /**
  * Keep a cache of the page number in the list of subpages that we are currently
@@ -69,7 +68,7 @@ class Sidebar extends Component<Props, State> {
 
   componentDidMount() {
     this._updateRecordInfo();
-    hub.subscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
+    subscribe("lektor-attachments-changed", this.onAttachmentsChanged);
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -79,11 +78,11 @@ class Sidebar extends Component<Props, State> {
   }
 
   componentWillUnmount() {
-    hub.unsubscribe(AttachmentsChangedEvent, this.onAttachmentsChanged);
+    unsubscribe("lektor-attachments-changed", this.onAttachmentsChanged);
   }
 
-  onAttachmentsChanged(event: AttachmentsChangedEvent) {
-    if (event.recordPath === this.props.record.path) {
+  onAttachmentsChanged(event: CustomEvent<string>) {
+    if (event.detail === this.props.record.path) {
       this._updateRecordInfo();
     }
   }

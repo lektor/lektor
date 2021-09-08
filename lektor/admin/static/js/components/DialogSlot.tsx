@@ -1,7 +1,6 @@
 import React from "react";
 import dialogSystem, { Dialog, DialogInstance } from "../dialogSystem";
-import { DialogChangedEvent } from "../events";
-import hub from "../hub";
+import { subscribe, unsubscribe } from "../events";
 import { RecordProps } from "./RecordComponent";
 
 type State = {
@@ -21,17 +20,19 @@ class DialogSlot extends React.Component<RecordProps, State> {
   }
 
   componentDidMount() {
-    hub.subscribe(DialogChangedEvent, this.onDialogChanged);
+    subscribe("lektor-dialog-changed", this.onDialogChanged);
   }
 
   componentWillUnmount() {
-    hub.unsubscribe(DialogChangedEvent, this.onDialogChanged);
+    unsubscribe("lektor-dialog-changed", this.onDialogChanged);
   }
 
-  onDialogChanged(event: DialogChangedEvent) {
+  onDialogChanged(
+    event: CustomEvent<{ dialog: Dialog | null; dialogOptions?: unknown }>
+  ) {
     this.setState({
-      currentDialog: event.dialog,
-      currentDialogOptions: event.dialogOptions || {},
+      currentDialog: event.detail.dialog,
+      currentDialogOptions: event.detail.dialogOptions || {},
     });
   }
 

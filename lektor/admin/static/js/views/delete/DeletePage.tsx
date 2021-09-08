@@ -6,8 +6,6 @@ import {
 } from "../../components/RecordComponent";
 import { getParentFsPath } from "../../utils";
 import { loadData } from "../../fetch";
-import hub from "../../hub";
-import { AttachmentsChangedEvent } from "../../events";
 import { bringUpDialog } from "../../richPromise";
 import { RecordInfo } from "../../components/types";
 import { DeletableAttachments } from "./DeletableAttachments";
@@ -16,6 +14,7 @@ import { DeletableAlternatives } from "./DeletableAlternatives";
 import { DeletePageActions } from "./DeletePageActions";
 import { DeleteAllAltsChoice } from "./DeleteAllAltsChoice";
 import { DeletePageHeader } from "./DeletePageHeader";
+import { dispatch } from "../../events";
 
 type State = {
   recordInfo: RecordInfo | null;
@@ -72,7 +71,7 @@ class DeletePage extends Component<Props, State> {
       { method: "POST" }
     ).then(() => {
       if (this.state.recordInfo?.is_attachment) {
-        hub.emit(new AttachmentsChangedEvent(parent));
+        dispatch("lektor-attachments-changed", parent ?? "");
       }
       this.props.history.push(pathToAdminPage("edit", targetPath));
     }, bringUpDialog);

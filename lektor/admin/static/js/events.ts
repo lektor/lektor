@@ -1,34 +1,27 @@
 import { Dialog } from "./dialogSystem";
 
-export class BaseEvent {
-  get type() {
-    return Object.getPrototypeOf(this).constructor.getEventType();
-  }
+type LektorEvents = {
+  "lektor-attachments-changed": string;
+  "lektor-dialog-changed": { dialog: Dialog | null; dialogOptions?: unknown };
+};
 
-  toString() {
-    return "[Event " + this.type + "]";
-  }
-
-  static getEventType() {
-    return this.name;
-  }
+export function dispatch<T extends keyof LektorEvents>(
+  type: T,
+  detail: LektorEvents[T]
+): void {
+  document.dispatchEvent(new CustomEvent(type, { detail }));
 }
 
-export class AttachmentsChangedEvent extends BaseEvent {
-  constructor(readonly recordPath: string | null) {
-    super();
-  }
+export function subscribe<T extends keyof LektorEvents>(
+  type: T,
+  handler: (ev: CustomEvent<LektorEvents[T]>) => void
+): void {
+  document.addEventListener(type, handler as EventListener);
 }
 
-export class DialogChangedEvent extends BaseEvent {
-  constructor(
-    readonly dialog: Dialog | null,
-    readonly dialogOptions?: unknown
-  ) {
-    super();
-  }
+export function unsubscribe<T extends keyof LektorEvents>(
+  type: T,
+  handler: (ev: CustomEvent<LektorEvents[T]>) => void
+): void {
+  document.removeEventListener(type, handler as EventListener);
 }
-
-export type LektorEvent =
-  | typeof AttachmentsChangedEvent
-  | typeof DialogChangedEvent;

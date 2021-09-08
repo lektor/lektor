@@ -1,5 +1,4 @@
-import hub from "./hub";
-import { DialogChangedEvent } from "./events";
+import { dispatch } from "./events";
 import FindFiles from "./dialogs/findFiles";
 import ErrorDialog from "./dialogs/errorDialog";
 import Publish from "./dialogs/publish";
@@ -37,14 +36,14 @@ class DialogSystem {
     // if the current dialog prevents navigation, then we just silently
     // will not show the dialog.
     if (!this.preventNavigation()) {
-      hub.emit(new DialogChangedEvent(dialog, options || {}));
+      dispatch("lektor-dialog-changed", { dialog, dialogOptions: options });
     }
   }
 
   // tells the application to dismiss the current dialog.
   dismissDialog() {
     if (!this.preventNavigation()) {
-      hub.emit(new DialogChangedEvent(null));
+      dispatch("lektor-dialog-changed", { dialog: null });
     }
   }
 

@@ -1,11 +1,10 @@
 import React, { Component, createRef, RefObject } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import hub from "../hub";
-import { AttachmentsChangedEvent } from "../events";
 import { getApiUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans, trans_format } from "../i18n";
 import { bringUpDialog } from "../richPromise";
+import { dispatch } from "../events";
 
 type NewAttachmentInfo = {
   label: string;
@@ -79,7 +78,7 @@ class AddAttachmentPage extends Component<Props, State> {
     };
     xhr.onload = () => {
       this.setState({ isUploading: false, currentProgress: 100 }, () => {
-        hub.emit(new AttachmentsChangedEvent(this.props.record.path));
+        dispatch("lektor-attachments-changed", this.props.record.path);
       });
     };
     xhr.send(formData);
