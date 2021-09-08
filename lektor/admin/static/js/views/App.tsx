@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useReducer } from "react";
 import { useHistory } from "react-router-dom";
 
 import Header from "../header/Header";
@@ -22,11 +22,8 @@ export default function App({
     record: getRecordDetails(params.path),
   };
 
-  const [sidebarIsActive, setSidebarIsActive] = useState(false);
+  const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
 
-  function toggleSidebar() {
-    setSidebarIsActive(!sidebarIsActive);
-  }
   const baseSidebarClasses =
     "sidebar-block block-offcanvas block-offcanvas-left row";
   const sidebarClasses = sidebarIsActive
