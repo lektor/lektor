@@ -30,7 +30,7 @@ export default class Alternatives extends PureComponent<Props, unknown> {
       }
 
       const path = pathToAdminPage(
-        this.props.match.params.page,
+        this.props.page,
         getUrlRecordPath(this.props.record.path, item.alt)
       );
       return (

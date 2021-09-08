@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ReactDOM from "react-dom";
 import {
   BrowserRouter as Router,
@@ -44,24 +44,32 @@ function Main() {
   const fullPath = `${root}/:path/:page`;
   const match = useRouteMatch<{ path: string; page: string }>(fullPath);
   const history = useHistory();
+  // useRouteMatch returns a new object on each render, so we need to get the
+  // primitive string values here to memoize.
+  const urlPath = match?.params.path;
+  const page = match?.params.page;
 
-  if (!match) {
+  const record = useMemo(() => {
+    if (!urlPath) {
+      return null;
+    }
+    const { path, alt } = getRecordDetails(urlPath);
+    if (path === null) {
+      return null;
+    }
+    return { path, alt };
+  }, [page, urlPath]);
+
+  if (!page) {
     return <Redirect to={`${root}/root/edit`} />;
   }
-  const { page, path } = match.params;
   const Component = getMainComponent(page);
-  if (!Component) {
+  if (!Component || record === null) {
     return <Redirect to={`${root}/root/edit`} />;
   }
-
-  const params = { path, page };
   return (
-    <App params={params}>
-      <Component
-        match={{ params }}
-        history={history}
-        record={getRecordDetails(params.path)}
-      />
+    <App page={page} record={record}>
+      <Component page={page} history={history} record={record} />
     </App>
   );
 }

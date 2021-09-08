@@ -71,7 +71,7 @@ class Sidebar extends Component<RecordProps, State> {
   }
 
   componentDidUpdate(prevProps: RecordProps) {
-    if (prevProps.match.params.path !== this.props.match.params.path) {
+    if (prevProps.record.path !== this.props.record.path) {
       this._updateRecordInfo();
     }
   }
@@ -116,7 +116,7 @@ class Sidebar extends Component<RecordProps, State> {
   }
 
   render() {
-    const { record, match } = this.props;
+    const { record, page } = this.props;
     const { recordInfo } = this.state;
     return (
       <div className="sidebar-wrapper">
@@ -126,14 +126,12 @@ class Sidebar extends Component<RecordProps, State> {
         <Alternatives {...this.props} recordAlts={this.state.recordAlts} />
         {recordInfo?.can_have_children && (
           <ChildActions
-            target={match.params.page === "preview" ? "preview" : "edit"}
+            target={page === "preview" ? "preview" : "edit"}
             allChildren={recordInfo.children}
             record={record}
             page={this.state.childrenPage}
             setPage={(page) => {
-              if (record.path) {
-                this.childPosCache.rememberPosition(record.path, page);
-              }
+              this.childPosCache.rememberPosition(record.path, page);
               this.setState({ childrenPage: page });
             }}
           />

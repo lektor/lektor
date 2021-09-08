@@ -13,8 +13,8 @@ export function getRecordPathAndAlt(
 
 /**
  * Helper to generate URL path for an admin page.
- * @param name - Name of the page (or null for the current one)
- * @param path - Record path
+ * @param name - Name of the page (or null for the current one).
+ * @param path - Record (URL) path.
  */
 export function pathToAdminPage(name: string, path: string) {
   return `${$LEKTOR_CONFIG.admin_root}/${path}/${name}`;
@@ -22,9 +22,9 @@ export function pathToAdminPage(name: string, path: string) {
 
 /** Details about the path to a Lektor record. */
 export interface RecordPathDetails {
-  /** Path of the current record (or null). */
-  path: string | null;
-  /** The alternative of the record (or '_primary'). */
+  /** Path of the current record (filesystem path). */
+  path: string;
+  /** The alternative of the record. */
   alt: string;
 }
 
@@ -33,7 +33,10 @@ export interface RecordPathDetails {
  * @param urlPath - A url path, i.e., a path with `:` as a separator and
  *                  potentially an alt appended with `+` at the end.
  */
-export function getRecordDetails(urlPath: string): RecordPathDetails {
+export function getRecordDetails(urlPath: string): {
+  path: string | null;
+  alt: string;
+} {
   const [path, alt] = getRecordPathAndAlt(urlPath);
   return {
     path,
@@ -42,7 +45,7 @@ export function getRecordDetails(urlPath: string): RecordPathDetails {
 }
 
 export type RecordProps = {
-  match: { params: { path: string; page: string } };
+  page: string;
   record: RecordPathDetails;
   history: ReturnType<typeof useHistory>;
 };
@@ -52,7 +55,7 @@ export type RecordProps = {
  * @param path
  * @param alt
  */
-export function getUrlRecordPath(path: string | null, alt: string): string {
-  const urlPath = fsToUrlPath(path || "");
+export function getUrlRecordPath(path: string, alt: string): string {
+  const urlPath = fsToUrlPath(path);
   return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
 }

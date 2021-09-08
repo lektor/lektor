@@ -101,8 +101,7 @@ class FindFiles extends Component<Props, State> {
   onActiveItem(index: number) {
     const item = this.state.results[index];
     if (item !== undefined) {
-      const target =
-        this.props.match.params.page === "preview" ? "preview" : "edit";
+      const target = this.props.page === "preview" ? "preview" : "edit";
       const urlPath = getUrlRecordPath(item.path, this.props.record.alt);
       this.props.dismiss();
       this.props.history.push(pathToAdminPage(target, urlPath));

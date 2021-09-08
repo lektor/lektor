@@ -48,7 +48,7 @@ class AddChildPage extends Component<RecordProps, State> {
   }
 
   componentDidUpdate(prevProps: RecordProps) {
-    if (prevProps.match.params.path !== this.props.match.params.path) {
+    if (prevProps.record.path !== this.props.record.path) {
       this.syncDialog();
     }
   }

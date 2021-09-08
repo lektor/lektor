@@ -89,7 +89,7 @@ class Publish extends React.Component<Props, PublishState> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.match.params.path !== this.props.match.params.path) {
+    if (prevProps.record.path !== this.props.record.path) {
       this.syncDialog();
     }
     const node = this.buildLog.current;

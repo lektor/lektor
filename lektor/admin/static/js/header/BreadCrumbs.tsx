@@ -83,7 +83,7 @@ class BreadCrumbs extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.match.params.path !== this.props.match.params.path) {
+    if (prevProps.record.path !== this.props.record.path) {
       this.updateCrumbs();
     }
   }
@@ -114,8 +114,7 @@ class BreadCrumbs extends Component<Props, State> {
     }
 
     const { alt } = this.props.record;
-    const target =
-      this.props.match.params.page === "preview" ? "preview" : "edit";
+    const target = this.props.page === "preview" ? "preview" : "edit";
     const lastItem = segments[segments.length - 1];
 
     return (

@@ -5,22 +5,19 @@ import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-import { getRecordDetails, RecordProps } from "../components/RecordComponent";
+import { RecordPathDetails } from "../components/RecordComponent";
 
 export default function App({
   children,
-  params,
+  page,
+  record,
 }: {
   children: ReactNode;
-  params: { page: string; path: string };
+  page: string;
+  record: RecordPathDetails;
 }) {
   const history = useHistory();
-  const match = { params };
-  const recordProps: RecordProps = {
-    match,
-    history,
-    record: getRecordDetails(params.path),
-  };
+  const recordProps = { page, history, record };
 
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
 
