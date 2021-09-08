@@ -1,5 +1,8 @@
 import React, { MouseEvent, memo, useCallback } from "react";
-import { getUrlRecordPath, RecordProps } from "../components/RecordComponent";
+import {
+  getUrlRecordPath,
+  RecordPathDetails,
+} from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
@@ -19,7 +22,7 @@ const getBrowseButtonTitle = () => {
   }
 };
 
-function BrowseFSLink({ record }: Pick<RecordProps, "record">) {
+function BrowseFSLink({ record }: { record: RecordPathDetails }) {
   const fsOpen = useCallback(
     (ev: MouseEvent) => {
       ev.preventDefault();
@@ -47,7 +50,10 @@ const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
 function PageActions({
   record,
   recordInfo,
-}: RecordProps & { recordInfo: RecordInfo }) {
+}: {
+  record: RecordPathDetails;
+  recordInfo: RecordInfo;
+}) {
   const urlPath = getUrlRecordPath(record.path, record.alt);
 
   return (

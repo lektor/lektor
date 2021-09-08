@@ -1,5 +1,8 @@
 import React, { memo } from "react";
-import { getUrlRecordPath, RecordProps } from "../components/RecordComponent";
+import {
+  getUrlRecordPath,
+  RecordPathDetails,
+} from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
@@ -7,7 +10,10 @@ import { trans } from "../i18n";
 function AttachmentActions({
   recordInfo,
   record,
-}: RecordProps & { recordInfo: RecordInfo }) {
+}: {
+  record: RecordPathDetails;
+  recordInfo: RecordInfo;
+}) {
   const attachments = recordInfo.attachments;
   return (
     <div className="section">

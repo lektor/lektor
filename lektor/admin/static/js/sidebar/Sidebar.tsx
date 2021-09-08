@@ -1,32 +1,32 @@
-import React, { Component, MouseEvent } from "react";
+import React, { Component } from "react";
 import { loadData } from "../fetch";
-import { trans, trans_obj } from "../i18n";
+import { trans_obj } from "../i18n";
 import hub from "../hub";
 import { AttachmentsChangedEvent } from "../events";
-import { getUrlRecordPath, RecordProps } from "../components/RecordComponent";
-import Link from "../components/Link";
+import { RecordProps } from "../components/RecordComponent";
 import { bringUpDialog } from "../richPromise";
 import { Alternative, RecordInfo } from "../components/types";
 import PageActions from "./PageActions";
 import Alternatives from "./Alternatives";
 import AttachmentActions from "./AttachmentActions";
+import { CHILDREN_PER_PAGE } from "./constants";
+import ChildActions from "./ChildActions";
 
-const CHILDREN_PER_PAGE = 15;
-
-class ChildPosCache {
-  memo: [record: string, page: number][];
+/**
+ * Keep a cache of the page number in the list of subpages that we are currently
+ * on. Only keeps this page number in memory for the last five records.
+ */
+export class ChildPosCache {
+  private memo: [record: string, page: number][];
 
   constructor() {
     this.memo = [];
   }
 
+  /** Remember the page for a record. */
   rememberPosition(record: string, page: number): void {
-    for (let i = 0; i < this.memo.length; i++) {
-      if (this.memo[i][0] === record) {
-        this.memo[i][1] = page;
-        return;
-      }
-    }
+    // remove current value
+    this.memo = this.memo.filter(([r]) => r !== record);
     this.memo.unshift([record, page]);
     if (this.memo.length > 5) {
       this.memo.length = 5;
@@ -34,16 +34,8 @@ class ChildPosCache {
   }
 
   getPosition(record: string, childCount: number): number {
-    for (let i = 0; i < this.memo.length; i++) {
-      if (this.memo[i][0] === record) {
-        let rv = this.memo[i][1];
-        if (childCount !== undefined) {
-          rv = Math.min(rv, Math.ceil(childCount / CHILDREN_PER_PAGE));
-        }
-        return rv;
-      }
-    }
-    return 1;
+    const page = this.memo.find(([r]) => r === record)?.[1];
+    return page ? Math.min(page, Math.ceil(childCount / CHILDREN_PER_PAGE)) : 1;
   }
 }
 
@@ -54,25 +46,23 @@ type State = {
   childrenPage: number;
 };
 
+const initialState: State = {
+  recordInfo: null,
+  recordAlts: [],
+  lastRecordRequest: null,
+  childrenPage: 1,
+};
+
 class Sidebar extends Component<RecordProps, State> {
   childPosCache: ChildPosCache;
 
   constructor(props: RecordProps) {
     super(props);
 
-    this.state = this._getInitialState();
+    this.state = initialState;
     this.childPosCache = new ChildPosCache();
 
     this.onAttachmentsChanged = this.onAttachmentsChanged.bind(this);
-  }
-
-  _getInitialState() {
-    return {
-      recordInfo: null,
-      recordAlts: [],
-      lastRecordRequest: null,
-      childrenPage: 1,
-    };
   }
 
   componentDidMount() {
@@ -99,135 +89,57 @@ class Sidebar extends Component<RecordProps, State> {
   _updateRecordInfo() {
     const path = this.props.record.path;
     if (path === null) {
-      this.setState(this._getInitialState());
+      this.setState(initialState);
       return;
     }
 
-    this.setState(
-      {
-        lastRecordRequest: path,
-      },
-      () => {
-        loadData("/recordinfo", { path: path }).then((resp: RecordInfo) => {
-          // we're already fetching something else.
-          if (path !== this.state.lastRecordRequest) {
-            return;
-          }
-          const alts: Alternative[] = resp.alts;
-          alts.sort((a, b) => {
+    this.setState({ lastRecordRequest: path }, () => {
+      loadData("/recordinfo", { path: path }).then((resp: RecordInfo) => {
+        // we're already fetching something else.
+        if (path !== this.state.lastRecordRequest) {
+          return;
+        }
+        this.setState({
+          recordInfo: resp,
+          recordAlts: resp.alts.sort((a, b) => {
             const nameA = (a.is_primary ? "A" : "B") + trans_obj(a.name_i18n);
             const nameB = (b.is_primary ? "A" : "B") + trans_obj(b.name_i18n);
             return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
-          });
-          this.setState({
-            recordInfo: resp,
-            recordAlts: alts,
-            childrenPage: this.childPosCache.getPosition(
-              path,
-              resp.children.length
-            ),
-          });
-        }, bringUpDialog);
-      }
-    );
-  }
-
-  renderChildPagination() {
-    const children = this.state.recordInfo?.children ?? [];
-    const pages = Math.ceil(children.length / CHILDREN_PER_PAGE);
-    if (pages <= 1) {
-      return null;
-    }
-    const page = this.state.childrenPage;
-    const goToPage = (diff: number, event: MouseEvent) => {
-      event.preventDefault();
-      const newPage = page + diff;
-      const recordPath = this.props.record.path;
-      if (recordPath) {
-        this.childPosCache.rememberPosition(recordPath, newPage);
-      }
-      this.setState({ childrenPage: newPage });
-    };
-
-    return (
-      <li className="pagination">
-        {page > 1 ? (
-          <a href="#" onClick={goToPage.bind(this, -1)}>
-            «
-          </a>
-        ) : (
-          <em>«</em>
-        )}
-        <span className="page">{page + " / " + pages}</span>
-        {page < pages ? (
-          <a href="#" onClick={goToPage.bind(this, +1)}>
-            »
-          </a>
-        ) : (
-          <em>»</em>
-        )}
-      </li>
-    );
-  }
-
-  renderChildActions() {
-    const target =
-      this.props.match.params.page === "preview" ? "preview" : "edit";
-
-    const allChildren = this.state.recordInfo?.children ?? [];
-    const children = allChildren.slice(
-      (this.state.childrenPage - 1) * CHILDREN_PER_PAGE,
-      this.state.childrenPage * CHILDREN_PER_PAGE
-    );
-
-    return (
-      <div key="children" className="section">
-        <h3>{trans("CHILD_PAGES")}</h3>
-        <ul className="nav record-children">
-          {this.renderChildPagination()}
-          {children.length > 0 ? (
-            children.map((child) => {
-              const urlPath = getUrlRecordPath(
-                child.path,
-                this.props.record.alt
-              );
-              return (
-                <li key={child.id}>
-                  <Link to={`${urlPath}/${target}`}>
-                    {trans_obj(child.label_i18n)}
-                  </Link>
-                </li>
-              );
-            })
-          ) : (
-            <li key="_missing">
-              <em>{trans("NO_CHILD_PAGES")}</em>
-            </li>
-          )}
-        </ul>
-      </div>
-    );
+          }),
+          childrenPage: this.childPosCache.getPosition(
+            path,
+            resp.children.length
+          ),
+        });
+      }, bringUpDialog);
+    });
   }
 
   render() {
+    const { record, match } = this.props;
+    const { recordInfo } = this.state;
     return (
       <div className="sidebar-wrapper">
-        {this.props.record.path !== null && this.state.recordInfo && (
-          <PageActions
-            {...this.props}
-            recordInfo={this.state.recordInfo}
-          ></PageActions>
+        {record.path !== null && recordInfo && (
+          <PageActions record={record} recordInfo={recordInfo} />
         )}
-        <Alternatives
-          {...this.props}
-          recordAlts={this.state.recordAlts}
-        ></Alternatives>
-        {this.state.recordInfo?.can_have_children && this.renderChildActions()}
-        {this.state.recordInfo?.can_have_attachments && (
-          <AttachmentActions
-            {...this.props}
-            recordInfo={this.state.recordInfo}
-          ></AttachmentActions>
+        <Alternatives {...this.props} recordAlts={this.state.recordAlts} />
+        {recordInfo?.can_have_children && (
+          <ChildActions
+            target={match.params.page === "preview" ? "preview" : "edit"}
+            allChildren={recordInfo.children}
+            record={record}
+            page={this.state.childrenPage}
+            setPage={(page) => {
+              if (record.path) {
+                this.childPosCache.rememberPosition(record.path, page);
+              }
+              this.setState({ childrenPage: page });
+            }}
+          />
+        )}
+        {recordInfo?.can_have_attachments && (
+          <AttachmentActions record={record} recordInfo={recordInfo} />
         )}
       </div>
     );
