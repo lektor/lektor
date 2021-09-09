@@ -52,7 +52,8 @@ export default class PreviewPage extends Component<Props, State> {
     return (
       getUrlRecordPath(this.props.record.path, this.props.record.alt) !==
         this.state.pageUrlFor ||
-      nextProps.record.path !== this.props.record.path
+      nextProps.record.path !== this.props.record.path ||
+      nextProps.record.alt !== this.props.record.alt
     );
   }
 
@@ -71,7 +72,10 @@ export default class PreviewPage extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.record.path !== this.props.record.path) {
+    if (
+      prevProps.record.path !== this.props.record.path ||
+      prevProps.record.alt !== this.props.record.alt
+    ) {
       this.syncState();
     }
     const frame = this.iframe.current;

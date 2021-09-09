@@ -175,7 +175,10 @@ class EditPage extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.record.path !== this.props.record.path) {
+    if (
+      prevProps.record.path !== this.props.record.path ||
+      prevProps.record.alt !== this.props.record.alt
+    ) {
       this.syncEditor();
     }
   }
