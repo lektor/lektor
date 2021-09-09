@@ -112,6 +112,7 @@ jobs:
       - name: Install Windows system dependencies
         if: startsWith(runner.os, 'windows')
         run: choco install --no-progress --timeout 600 imagemagick.tool ffmpeg
+        continue-on-error: true
       - name: Install python dependencies
         run: python -m pip install codecov tox
       - name: Run python tests
