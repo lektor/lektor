@@ -1131,10 +1131,7 @@ class Builder:
         ):
             if isinstance(source, cls):
                 return builder(source, build_state)
-        # TODO: re-enable pylint when https://github.com/PyCQA/pylint/issues/1782 is fixed.
-        raise RuntimeError(
-            "I do not know how to build %r" % source
-        )  # pylint: disable=inconsistent-return-statements
+        raise RuntimeError("I do not know how to build %r" % source)
 
     def build_artifact(self, artifact, build_func):
         """Various parts of the system once they have an artifact and a
