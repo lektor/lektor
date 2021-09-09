@@ -6,7 +6,7 @@ import {
 } from "../../components/RecordComponent";
 import { getParentFsPath } from "../../utils";
 import { loadData } from "../../fetch";
-import { bringUpDialog } from "../../richPromise";
+import { showErrorDialog } from "../../error-dialog";
 import { RecordInfo } from "../../components/types";
 import { DeletableAttachments } from "./DeletableAttachments";
 import { DeletableChildPages } from "./DeletableChildPages";
@@ -49,7 +49,7 @@ class DeletePage extends Component<Props, State> {
           deleteMasterRecord: this.props.record.alt === "_primary",
         });
       },
-      bringUpDialog
+      showErrorDialog
     );
   }
 
@@ -74,7 +74,7 @@ class DeletePage extends Component<Props, State> {
         dispatch("lektor-attachments-changed", parent ?? "");
       }
       this.props.history.push(pathToAdminPage("edit", targetPath));
-    }, bringUpDialog);
+    }, showErrorDialog);
   }
 
   cancelDelete(): void {

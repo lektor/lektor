@@ -10,7 +10,7 @@ import {
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 
 function getIframePath(iframe: HTMLIFrameElement): string | null {
   const frameLocation = iframe.contentWindow?.location;
@@ -67,7 +67,7 @@ export default class PreviewPage extends Component<Props, State> {
           pageUrl: resp.url,
           pageUrlFor: getUrlRecordPath(path, alt),
         });
-      }, bringUpDialog);
+      }, showErrorDialog);
     }
   }
 
@@ -101,7 +101,7 @@ export default class PreviewPage extends Component<Props, State> {
           const urlPath = getUrlRecordPath(resp.path, resp.alt);
           this.props.history.push(pathToAdminPage("preview", urlPath));
         }
-      }, bringUpDialog);
+      }, showErrorDialog);
     }
   }
 

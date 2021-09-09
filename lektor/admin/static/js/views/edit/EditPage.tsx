@@ -15,7 +15,7 @@ import {
   FieldRows,
   splitFields,
 } from "../../widgets";
-import { bringUpDialog } from "../../richPromise";
+import { showErrorDialog } from "../../error-dialog";
 import { Field, WidgetComponent } from "../../widgets/types";
 import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
@@ -211,7 +211,7 @@ class EditPage extends Component<Props, State> {
         hasPendingChanges: false,
       });
     }),
-      bringUpDialog;
+      showErrorDialog;
   }
 
   setFieldValue(field: Field, value: string, uiChange = false) {
@@ -239,7 +239,7 @@ class EditPage extends Component<Props, State> {
           )
         );
       });
-    }, bringUpDialog);
+    }, showErrorDialog);
   }
 
   renderFormField(field: Field) {

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { loadData } from "../fetch";
 import { trans_obj } from "../i18n";
 import { RecordProps } from "../components/RecordComponent";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 import { Alternative, RecordInfo } from "../components/types";
 import PageActions from "./PageActions";
 import Alternatives from "./Alternatives";
@@ -112,7 +112,7 @@ class Sidebar extends Component<Props, State> {
             resp.children.length
           ),
         });
-      }, bringUpDialog);
+      }, showErrorDialog);
     });
   }
 

@@ -6,6 +6,7 @@ import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
 import { RecordPathDetails } from "../components/RecordComponent";
+import ErrorDialog from "../components/ErrorDialog";
 
 export default function App({
   children,
@@ -37,6 +38,7 @@ export default function App({
       />
       <div className="editor container">
         <DialogSlot page={page} history={history} record={record} />
+        <ErrorDialog />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
             <Sidebar page={page} record={record} />

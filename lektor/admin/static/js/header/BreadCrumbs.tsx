@@ -7,7 +7,7 @@ import {
 import Link from "../components/Link";
 import { loadData } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 
 interface RecordPathInfoSegment {
   id: string;
@@ -95,7 +95,7 @@ class BreadCrumbs extends Component<Props, State> {
     } else {
       loadData("/pathinfo", { path }).then((resp) => {
         this.setState({ segments: resp.segments });
-      }, bringUpDialog);
+      }, showErrorDialog);
     }
   }
 

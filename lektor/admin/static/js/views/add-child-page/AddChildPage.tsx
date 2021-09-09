@@ -7,7 +7,7 @@ import {
 import { trans, trans_format } from "../../i18n";
 import { loadData } from "../../fetch";
 import { slugify } from "../../slugify";
-import { bringUpDialog } from "../../richPromise";
+import { showErrorDialog } from "../../error-dialog";
 import { Field } from "../../widgets/types";
 import { NewRecordInfo, Model } from "./types";
 import AvailableModels from "./AvailableModels";
@@ -67,7 +67,7 @@ class AddChildPage extends Component<Props, State> {
           primary: "",
         });
       },
-      bringUpDialog
+      showErrorDialog
     );
   }
 
@@ -104,7 +104,7 @@ class AddChildPage extends Component<Props, State> {
         const urlPath = getUrlRecordPath(resp.path, this.props.record.alt);
         this.props.history.push(pathToAdminPage("edit", urlPath));
       }
-    }, bringUpDialog);
+    }, showErrorDialog);
   }
 
   render() {

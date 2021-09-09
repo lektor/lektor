@@ -20,10 +20,12 @@ export default function SlideDialog({
       }
     };
     window.addEventListener("keydown", handler);
-    return () => {
-      window.removeEventListener("keydown", handler);
-    };
+    return () => window.removeEventListener("keydown", handler);
   }, [dismiss]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="sliding-panel container">

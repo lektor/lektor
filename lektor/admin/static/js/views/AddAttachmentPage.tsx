@@ -3,7 +3,7 @@ import { RecordProps } from "../components/RecordComponent";
 import { getApiUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans, trans_format } from "../i18n";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 import { dispatch } from "../events";
 
 type NewAttachmentInfo = {
@@ -50,7 +50,7 @@ class AddAttachmentPage extends Component<Props, State> {
       (newAttachmentInfo: NewAttachmentInfo) => {
         this.setState({ newAttachmentInfo });
       },
-      bringUpDialog
+      showErrorDialog
     );
   }
 

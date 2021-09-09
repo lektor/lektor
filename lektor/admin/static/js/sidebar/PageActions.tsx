@@ -8,7 +8,7 @@ import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 import LinkWithHotkey from "../components/LinkWithHotkey";
 
 const getBrowseButtonTitle = () => {
@@ -34,7 +34,7 @@ function BrowseFSLink({ record }: { record: RecordPathDetails }) {
         if (!resp.okay) {
           alert(trans("ERROR_CANNOT_BROWSE_FS"));
         }
-      }, bringUpDialog);
+      }, showErrorDialog);
     },
     [record]
   );
