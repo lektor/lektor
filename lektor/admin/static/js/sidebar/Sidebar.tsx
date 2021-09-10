@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { loadData } from "../fetch";
 import { trans_obj } from "../i18n";
 import { RecordProps } from "../components/RecordComponent";
@@ -38,115 +38,71 @@ export class ChildPosCache {
   }
 }
 
-type State = {
-  recordInfo: RecordInfo | null;
-  recordAlts: Alternative[];
-  lastRecordRequest: string | null;
-  childrenPage: number;
-};
-
-const initialState: State = {
-  recordInfo: null,
-  recordAlts: [],
-  lastRecordRequest: null,
-  childrenPage: 1,
+const compareAlternatives = (a: Alternative, b: Alternative) => {
+  const nameA = (a.is_primary ? "A" : "B") + trans_obj(a.name_i18n);
+  const nameB = (b.is_primary ? "A" : "B") + trans_obj(b.name_i18n);
+  return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 };
 
 type Props = Pick<RecordProps, "record" | "page">;
 
-class Sidebar extends Component<Props, State> {
-  childPosCache: ChildPosCache;
+function Sidebar({ record, page }: Props) {
+  const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
+  const [childrenPage, setChildrenPage] = useState(1);
+  const [childPosCache] = useState(() => new ChildPosCache());
+  const [updateForced, forceUpdate] = useReducer((x) => x + 1, 0);
 
-  constructor(props: Props) {
-    super(props);
+  const { path } = record;
+  useEffect(() => {
+    const handler = ({ detail }: CustomEvent<string>) => {
+      if (detail === path) {
+        forceUpdate();
+      }
+    };
+    subscribe("lektor-attachments-changed", handler);
+    return () => unsubscribe("lektor-attachments-changed", handler);
+  }, [path]);
 
-    this.state = initialState;
-    this.childPosCache = new ChildPosCache();
+  useEffect(() => {
+    let ignore = false;
 
-    this.onAttachmentsChanged = this.onAttachmentsChanged.bind(this);
+    loadData("/recordinfo", { path }).then((resp: RecordInfo) => {
+      if (!ignore) {
+        setRecordInfo({ ...resp, alts: resp.alts.sort(compareAlternatives) });
+        setChildrenPage(childPosCache.getPosition(path, resp.children.length));
+      }
+    }, showErrorDialog);
+
+    return () => {
+      ignore = true;
+    };
+  }, [path, childPosCache, updateForced]);
+
+  if (!recordInfo) {
+    return <div className="sidebar-wrapper" />;
   }
 
-  componentDidMount() {
-    this._updateRecordInfo();
-    subscribe("lektor-attachments-changed", this.onAttachmentsChanged);
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.record.path !== this.props.record.path) {
-      this._updateRecordInfo();
-    }
-  }
-
-  componentWillUnmount() {
-    unsubscribe("lektor-attachments-changed", this.onAttachmentsChanged);
-  }
-
-  onAttachmentsChanged(event: CustomEvent<string>) {
-    if (event.detail === this.props.record.path) {
-      this._updateRecordInfo();
-    }
-  }
-
-  _updateRecordInfo() {
-    const path = this.props.record.path;
-    if (path === null) {
-      this.setState(initialState);
-      return;
-    }
-
-    this.setState({ lastRecordRequest: path }, () => {
-      loadData("/recordinfo", { path: path }).then((resp: RecordInfo) => {
-        // we're already fetching something else.
-        if (path !== this.state.lastRecordRequest) {
-          return;
-        }
-        this.setState({
-          recordInfo: resp,
-          recordAlts: resp.alts.sort((a, b) => {
-            const nameA = (a.is_primary ? "A" : "B") + trans_obj(a.name_i18n);
-            const nameB = (b.is_primary ? "A" : "B") + trans_obj(b.name_i18n);
-            return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
-          }),
-          childrenPage: this.childPosCache.getPosition(
-            path,
-            resp.children.length
-          ),
-        });
-      }, showErrorDialog);
-    });
-  }
-
-  render() {
-    const { record, page } = this.props;
-    const { recordInfo } = this.state;
-    return (
-      <div className="sidebar-wrapper">
-        {record.path !== null && recordInfo && (
-          <PageActions record={record} recordInfo={recordInfo} />
-        )}
-        <Alternatives
+  return (
+    <div className="sidebar-wrapper">
+      <PageActions record={record} recordInfo={recordInfo} />
+      <Alternatives record={record} page={page} alts={recordInfo.alts} />
+      {recordInfo.can_have_children && (
+        <ChildActions
+          target={page === "preview" ? "preview" : "edit"}
+          allChildren={recordInfo.children}
           record={record}
-          page={page}
-          recordAlts={this.state.recordAlts}
+          page={childrenPage}
+          setPage={(page) => {
+            childPosCache.rememberPosition(record.path, page);
+            setChildrenPage(page);
+          }}
         />
-        {recordInfo?.can_have_children && (
-          <ChildActions
-            target={page === "preview" ? "preview" : "edit"}
-            allChildren={recordInfo.children}
-            record={record}
-            page={this.state.childrenPage}
-            setPage={(page) => {
-              this.childPosCache.rememberPosition(record.path, page);
-              this.setState({ childrenPage: page });
-            }}
-          />
-        )}
-        {recordInfo?.can_have_attachments && (
-          <AttachmentActions record={record} recordInfo={recordInfo} />
-        )}
-      </div>
-    );
-  }
+      )}
+      {recordInfo.can_have_attachments && (
+        <AttachmentActions record={record} recordInfo={recordInfo} />
+      )}
+    </div>
+  );
 }
 
 export default Sidebar;
