@@ -2,6 +2,8 @@ import os
 import re
 import warnings
 
+from markers import imagemagick
+
 from lektor.cli import cli
 
 
@@ -14,6 +16,7 @@ def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
     assert result.exit_code == 1
 
 
+@imagemagick
 def test_build_continue_in_existing_nonempty_dir(project_cli_runner):
     os.mkdir("build_dir")
     with open("build_dir/test", "w"):
@@ -55,6 +58,7 @@ def test_build_no_project(isolated_cli_runner):
     assert "Could not automatically discover project." in result.output
 
 
+@imagemagick
 def test_build(project_cli_runner):
     result = project_cli_runner.invoke(cli, ["build"])
     assert (
