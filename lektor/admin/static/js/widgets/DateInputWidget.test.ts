@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 import { strictEqual } from "assert";
+import { translations } from "../i18n";
 import { isValidDate, postprocessDate, validateDate } from "./DateInputWidget";
 
 it("DateInputWidget - date validation", () => {
@@ -12,7 +13,7 @@ it("DateInputWidget - date validation", () => {
 it("DateInputWidget - string date validation", () => {
   strictEqual(validateDate(""), null);
   strictEqual(validateDate("2012-12-12"), null);
-  strictEqual(validateDate("2012-12-1s2"), "ERROR_INVALID_DATE");
+  strictEqual(validateDate("2012-12-1s2"), translations.en.ERROR_INVALID_DATE);
 });
 
 it("DateInputWidget - post process date", () => {

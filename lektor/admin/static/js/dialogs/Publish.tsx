@@ -182,7 +182,7 @@ class Publish extends React.Component<Props, PublishState> {
                 ? trans("CURRENTLY_PUBLISHING")
                 : trans("PUBLISH_DONE")}
             </h3>
-            <pre>{trans("STATE") + ": " + trans("PUBLISH_STATE_" + state)}</pre>
+            <pre>{trans("STATE") + ": " + trans(`PUBLISH_STATE_${state}`)}</pre>
             <BuildLog log={this.state.log} />
           </div>
         ) : null}

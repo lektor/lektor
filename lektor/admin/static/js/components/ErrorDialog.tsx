@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SlideDialog from "./SlideDialog";
-import { trans } from "../i18n";
+import { trans, TranslationEntry } from "../i18n";
 import { LektorEvents, subscribe, unsubscribe } from "../events";
 
 /**
@@ -32,7 +32,7 @@ export default function ErrorDialog() {
         <p>
           {trans("ERROR_OCURRED")}
           {": "}
-          {trans("ERROR_" + error.code)}
+          {trans(("ERROR_" + error.code) as TranslationEntry)}
         </p>
         <p>
           <button type="button" className="btn btn-primary" onClick={dismiss}>
