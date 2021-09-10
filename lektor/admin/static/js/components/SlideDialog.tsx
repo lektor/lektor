@@ -28,23 +28,26 @@ export default function SlideDialog({
   }, []);
 
   return (
-    <div className="sliding-panel container">
-      <div className="col-md-6 offset-md-3">
-        {hasCloseButton && (
-          <a
-            href="#"
-            className="close-btn"
-            onClick={(ev) => {
-              ev.preventDefault();
-              dismiss();
-            }}
-          >
-            {trans("CLOSE")}
-          </a>
-        )}
-        <h3>{title}</h3>
-        {children}
+    <div className="dialog-slot">
+      <div className="sliding-panel container">
+        <div className="col-md-6 offset-md-3">
+          {hasCloseButton && (
+            <a
+              href="#"
+              className="close-btn"
+              onClick={(ev) => {
+                ev.preventDefault();
+                dismiss();
+              }}
+            >
+              {trans("CLOSE")}
+            </a>
+          )}
+          <h3>{title}</h3>
+          {children}
+        </div>
       </div>
+      <div className="interface-protector" />
     </div>
   );
 }

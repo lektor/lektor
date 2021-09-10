@@ -23,24 +23,21 @@ export default function ErrorDialog() {
     return null;
   }
   return (
-    <div className="dialog-slot">
-      <SlideDialog
-        dismiss={dismiss}
-        hasCloseButton={false}
-        title={trans("ERROR")}
-      >
-        <p>
-          {trans("ERROR_OCURRED")}
-          {": "}
-          {trans(("ERROR_" + error.code) as TranslationEntry)}
-        </p>
-        <p>
-          <button type="button" className="btn btn-primary" onClick={dismiss}>
-            {trans("CLOSE")}
-          </button>
-        </p>
-      </SlideDialog>
-      <div className="interface-protector" />
-    </div>
+    <SlideDialog
+      dismiss={dismiss}
+      hasCloseButton={false}
+      title={trans("ERROR")}
+    >
+      <p>
+        {trans("ERROR_OCURRED")}
+        {": "}
+        {trans(("ERROR_" + error.code) as TranslationEntry)}
+      </p>
+      <p>
+        <button type="button" className="btn btn-primary" onClick={dismiss}>
+          {trans("CLOSE")}
+        </button>
+      </p>
+    </SlideDialog>
   );
 }

@@ -33,13 +33,12 @@ export default function DialogSlot(props: RecordProps) {
   if (!dialog) {
     return null;
   }
-  let el: JSX.Element | null = null;
   if (dialog.type === "find-files") {
-    el = <FindFiles {...props} dismiss={dismiss} />;
+    return <FindFiles {...props} dismiss={dismiss} />;
   } else if (dialog.type === "refresh") {
-    el = <Refresh dismiss={dismiss} preventNavigation={prevent} />;
+    return <Refresh dismiss={dismiss} preventNavigation={prevent} />;
   } else if (dialog.type === "publish") {
-    el = (
+    return (
       <Publish
         record={props.record}
         dismiss={dismiss}
@@ -47,10 +46,6 @@ export default function DialogSlot(props: RecordProps) {
       />
     );
   }
-  return (
-    <div className="dialog-slot">
-      {el}
-      <div className="interface-protector" />
-    </div>
-  );
+  const exhaustiveCheck: never = dialog.type;
+  throw new Error(exhaustiveCheck);
 }
