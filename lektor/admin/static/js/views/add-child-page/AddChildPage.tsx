@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   getUrlRecordPath,
   pathToAdminPage,
@@ -8,147 +8,128 @@ import { trans, trans_format } from "../../i18n";
 import { loadData } from "../../fetch";
 import { slugify } from "../../slugify";
 import { showErrorDialog } from "../../error-dialog";
-import { Field } from "../../widgets/types";
-import { NewRecordInfo, Model } from "./types";
+import { NewRecordInfo } from "./types";
 import AvailableModels from "./AvailableModels";
 import PrimaryField from "./PrimaryFieldRow";
 import Slug from "./Slug";
-
-type State = {
-  newChildInfo: NewRecordInfo | null;
-  selectedModel: string;
-  id: string;
-  primary: string;
-};
-
-function getGoodDefaultModel(models: Record<string, Model>): string {
-  return models.page ? "page" : Object.keys(models).sort()[0];
-}
+import { useHistory } from "react-router";
 
 /** Show an alert with the given error message. */
 const alertErr = (text: string) => {
   alert(trans("ERROR_PREFIX") + text);
 };
 
-type Props = Pick<RecordProps, "record" | "history">;
+type Props = Pick<RecordProps, "record">;
 
-class AddChildPage extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      newChildInfo: null,
-      selectedModel: "",
-      id: "",
-      primary: "",
+function AddChildPage({ record }: Props) {
+  const [newChildInfo, setNewChildInfo] = useState<NewRecordInfo | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [id, setId] = useState<string>("");
+  const [primary, setPrimary] = useState<string>("");
+  const { alt, path } = record;
+
+  useEffect(() => {
+    let ignore = false;
+    loadData("/newrecord", { path }).then((resp: NewRecordInfo) => {
+      if (!ignore) {
+        const defaultModel = resp.available_models.page
+          ? "page"
+          : Object.keys(resp.available_models).sort()[0];
+        const selectedModel = resp.implied_model ?? defaultModel;
+        setNewChildInfo(resp);
+        setId("");
+        setPrimary("");
+        setSelectedModel(selectedModel);
+      }
+    }, showErrorDialog);
+
+    return () => {
+      ignore = true;
     };
+  }, [path]);
 
-    this.createRecord = this.createRecord.bind(this);
-  }
+  const primaryField =
+    newChildInfo?.available_models[selectedModel]?.primary_field;
 
-  componentDidMount() {
-    this.syncDialog();
-  }
+  const history = useHistory();
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.record.path !== this.props.record.path) {
-      this.syncDialog();
-    }
-  }
-
-  syncDialog() {
-    loadData("/newrecord", { path: this.props.record.path }).then(
-      (resp: NewRecordInfo) => {
-        const selectedModel =
-          resp.implied_model ?? getGoodDefaultModel(resp.available_models);
-        this.setState({
-          newChildInfo: resp,
-          selectedModel,
-          id: "",
-          primary: "",
-        });
-      },
-      showErrorDialog
-    );
-  }
-
-  getPrimaryField(): Field | undefined {
-    const model = this.state.selectedModel;
-    return this.state.newChildInfo?.available_models[model].primary_field;
-  }
-
-  createRecord() {
-    const id = this.state.id || slugify(this.state.primary).toLowerCase();
-    if (!id) {
+  const createRecord = useCallback(() => {
+    const currentId = id || slugify(primary).toLowerCase();
+    if (!currentId) {
       alertErr(trans("ERROR_NO_ID_PROVIDED"));
       return;
     }
 
     const data: Record<string, string> = {};
-    if (!this.state.newChildInfo?.implied_model) {
-      data._model = this.state.selectedModel;
+    if (!newChildInfo?.implied_model) {
+      data._model = selectedModel;
     }
-    const primaryField = this.getPrimaryField();
     if (primaryField) {
-      data[primaryField.name] = this.state.primary;
+      data[primaryField.name] = primary;
     }
 
     loadData("/newrecord", null, {
-      json: { id, path: this.props.record.path, data },
+      json: { id: currentId, path, data },
       method: "POST",
     }).then((resp) => {
       if (resp.exists) {
-        alertErr(trans_format("ERROR_PAGE_ID_DUPLICATE", id));
+        alertErr(trans_format("ERROR_PAGE_ID_DUPLICATE", currentId));
       } else if (!resp.valid_id) {
-        alertErr(trans_format("ERROR_INVALID_ID", id));
+        alertErr(trans_format("ERROR_INVALID_ID", currentId));
       } else {
-        const urlPath = getUrlRecordPath(resp.path, this.props.record.alt);
-        this.props.history.push(pathToAdminPage("edit", urlPath));
+        const urlPath = getUrlRecordPath(resp.path, alt);
+        history.push(pathToAdminPage("edit", urlPath));
       }
     }, showErrorDialog);
+  }, [
+    alt,
+    history,
+    newChildInfo,
+    id,
+    path,
+    primary,
+    primaryField,
+    selectedModel,
+  ]);
+
+  if (!newChildInfo) {
+    return null;
   }
 
-  render() {
-    const { newChildInfo, id, primary, selectedModel } = this.state;
-    if (!newChildInfo) {
-      return null;
-    }
-    const primaryField = this.getPrimaryField();
-
-    return (
-      <div className="edit-area">
-        <h2>{trans_format("ADD_CHILD_PAGE_TO", newChildInfo.label)}</h2>
-        <p>{trans("ADD_CHILD_PAGE_NOTE")}</p>
-        {!newChildInfo.implied_model && (
-          <AvailableModels
-            newChildInfo={newChildInfo}
-            selected={selectedModel}
-            setSelected={(selectedModel) => this.setState({ selectedModel })}
-          />
-        )}
-        {primaryField && (
-          <PrimaryField
-            primary={primary}
-            setPrimary={(primary) => this.setState({ primary })}
-            field={primaryField}
-          />
-        )}
-        <Slug
-          id={id}
-          placeholder={slugify(primary).toLowerCase()}
-          setId={(id) => this.setState({ id })}
+  return (
+    <div className="edit-area">
+      <h2>{trans_format("ADD_CHILD_PAGE_TO", newChildInfo.label)}</h2>
+      <p>{trans("ADD_CHILD_PAGE_NOTE")}</p>
+      {!newChildInfo.implied_model && (
+        <AvailableModels
+          newChildInfo={newChildInfo}
+          selected={selectedModel}
+          setSelected={setSelectedModel}
         />
-        <div className="actions">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={this.createRecord}
-          >
-            {trans("CREATE_CHILD_PAGE")}
-          </button>
-        </div>
+      )}
+      {primaryField && (
+        <PrimaryField
+          primary={primary}
+          setPrimary={setPrimary}
+          field={primaryField}
+        />
+      )}
+      <Slug
+        id={id}
+        placeholder={slugify(primary).toLowerCase()}
+        setId={setId}
+      />
+      <div className="actions">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={createRecord}
+        >
+          {trans("CREATE_CHILD_PAGE")}
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default AddChildPage;
