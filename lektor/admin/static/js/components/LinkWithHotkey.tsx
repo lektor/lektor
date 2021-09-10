@@ -1,4 +1,10 @@
-import React, { MutableRefObject, ReactNode, useEffect, useRef } from "react";
+import React, {
+  MutableRefObject,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { NavLink } from "react-router-dom";
 import { getKey, KeyboardShortcut, keyboardShortcutHandler } from "../utils";
 
@@ -14,7 +20,7 @@ function useKeyboardShortcut(
     const handler = keyboardShortcutHandler(key, action);
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [key, action]);
 }
 
 /**
@@ -25,9 +31,10 @@ function useKeyboardShortcutRef<T extends HTMLElement>(
   key: KeyboardShortcut
 ): MutableRefObject<T | null> {
   const el = useRef<T | null>(null);
-  useKeyboardShortcut(key, () => {
+  const handler = useCallback(() => {
     el.current?.click();
-  });
+  }, []);
+  useKeyboardShortcut(key, handler);
   return el;
 }
 

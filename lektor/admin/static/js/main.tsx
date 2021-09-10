@@ -58,7 +58,7 @@ function Main() {
       return null;
     }
     return { path, alt };
-  }, [page, urlPath]);
+  }, [urlPath]);
 
   if (!page) {
     return <Redirect to={`${root}/root/edit`} />;
