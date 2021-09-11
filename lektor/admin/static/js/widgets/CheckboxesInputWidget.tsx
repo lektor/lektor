@@ -1,78 +1,65 @@
-import React, { ChangeEvent } from "react";
+import React from "react";
 import { trans_obj } from "../i18n";
 import { MultiWidgetType, WidgetProps } from "./types";
 
-function checkboxIsActive(field: string, props: WidgetProps<string[]>) {
-  let value = props.value;
-  if (value == null) {
-    value = props.placeholder;
-    if (value == null) {
-      return false;
-    }
-  }
-  for (const item of value) {
-    if (item === field) {
-      return true;
-    }
-  }
-  return false;
-}
+const checkboxIsActive = (field: string, value: string[] | null) =>
+  value !== null && value.includes(field);
 
-function flipSetValue(set: string[], value: string, isActive: boolean) {
+const flipSetValue = (set: string[], value: string, isActive: boolean) => {
   if (isActive) {
     return set.includes(value) ? set : [...set, value];
   } else {
     return set.filter((v) => v !== value);
   }
-}
+};
 
-export class CheckboxesInputWidget extends React.PureComponent<
-  WidgetProps<string[], MultiWidgetType>
-> {
-  static serializeValue(value: string[] | null) {
-    return (value || []).join(", ");
+const deserialize = (value?: string): string[] | null => {
+  if (!value) {
+    return null;
   }
-
-  static deserializeValue(value: string): string[] | null {
-    if (value === "") {
-      return null;
-    }
-    let rv = value.split(",").map((x) => x.trim());
-    if (rv.length === 1 && rv[0] === "") {
-      rv = [];
-    }
-    return rv;
+  let rv = value.split(",").map((x) => x.trim());
+  if (rv.length === 1 && rv[0] === "") {
+    rv = [];
   }
+  return rv;
+};
 
-  render() {
-    const { disabled, type, onChange } = this.props;
+export function CheckboxesInputWidget({
+  disabled,
+  type,
+  onChange,
+  value,
+  placeholder,
+}: WidgetProps<string, MultiWidgetType>) {
+  const deserializedValue = deserialize(value);
+  const deserializedPlaceholder = deserialize(placeholder);
 
-    const onChangeHandler = (
-      field: string,
-      event: ChangeEvent<HTMLInputElement>
-    ) => {
-      const newValue = flipSetValue(
-        this.props.value || [],
-        field,
-        event.target.checked
-      );
-      onChange(newValue);
-    };
-
-    const choices = type.choices?.map((item) => (
-      <div className="form-check" key={item[0]}>
-        <label className="form-check-label">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            disabled={disabled}
-            checked={checkboxIsActive(item[0], this.props)}
-            onChange={(e) => onChangeHandler(item[0], e)}
-          />
-          {trans_obj(item[1])}
-        </label>
-      </div>
-    ));
-    return <div className="checkboxes">{choices}</div>;
-  }
+  return (
+    <div className="checkboxes">
+      {type.choices?.map(([key, description]) => (
+        <div className="form-check" key={key}>
+          <label className="form-check-label">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              disabled={disabled}
+              checked={checkboxIsActive(
+                key,
+                deserializedValue ?? deserializedPlaceholder
+              )}
+              onChange={(ev) => {
+                const newValue = flipSetValue(
+                  deserializedValue || [],
+                  key,
+                  ev.target.checked
+                );
+                onChange(newValue.join(", "));
+              }}
+            />
+            {trans_obj(description)}
+          </label>
+        </div>
+      ))}
+    </div>
+  );
 }
