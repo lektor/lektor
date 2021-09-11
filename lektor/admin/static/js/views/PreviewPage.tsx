@@ -1,4 +1,10 @@
-import React, { Component, createRef, RefObject, SyntheticEvent } from "react";
+import React, {
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   fsPathFromAdminObservedPath,
   getCanonicalUrl,
@@ -11,79 +17,42 @@ import {
   RecordProps,
 } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
+import { useHistory } from "react-router";
 
 function getIframePath(iframe: HTMLIFrameElement): string | null {
-  const frameLocation = iframe.contentWindow?.location;
-  if (!frameLocation) {
-    return null;
-  }
-  return frameLocation.href === "about:blank"
-    ? frameLocation.href
-    : fsPathFromAdminObservedPath(frameLocation.pathname);
+  const location = iframe.contentWindow?.location;
+  return !location || location.href === "about:blank"
+    ? null
+    : fsPathFromAdminObservedPath(location.pathname);
 }
 
-type State = {
-  pageUrl: string | null;
-  pageUrlFor: string | null;
-};
+export default function PreviewPage({ record }: Pick<RecordProps, "record">) {
+  const iframe = useRef<HTMLIFrameElement | null>(null);
+  const [pageUrl, setPageUrl] = useState<string | null>(null);
+  const [pageUrlPath, setPageUrlPath] = useState<string | null>(null);
+  const history = useHistory();
 
-const initialState = {
-  pageUrl: null,
-  pageUrlFor: null,
-};
+  const { path, alt } = record;
 
-type Props = Pick<RecordProps, "record" | "history">;
+  useEffect(() => {
+    let ignore = false;
 
-export default class PreviewPage extends Component<Props, State> {
-  iframe: RefObject<HTMLIFrameElement>;
+    loadData("/previewinfo", { path, alt }).then((resp) => {
+      if (!ignore) {
+        setPageUrl(resp.url);
+        setPageUrlPath(getUrlRecordPath(path, alt));
+      }
+    }, showErrorDialog);
 
-  constructor(props: Props) {
-    super(props);
-    this.state = initialState;
-    this.iframe = createRef();
-    this.onFrameNavigated = this.onFrameNavigated.bind(this);
-  }
+    return () => {
+      ignore = true;
+    };
+  }, [alt, path]);
 
-  componentDidMount() {
-    this.syncState();
-  }
-
-  shouldComponentUpdate(nextProps: Props) {
-    return (
-      getUrlRecordPath(this.props.record.path, this.props.record.alt) !==
-        this.state.pageUrlFor ||
-      nextProps.record.path !== this.props.record.path ||
-      nextProps.record.alt !== this.props.record.alt
-    );
-  }
-
-  syncState() {
-    const { alt, path } = this.props.record;
-    if (path === null) {
-      this.setState(initialState);
-    } else {
-      loadData("/previewinfo", { path, alt }).then((resp) => {
-        this.setState({
-          pageUrl: resp.url,
-          pageUrlFor: getUrlRecordPath(path, alt),
-        });
-      }, showErrorDialog);
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (
-      prevProps.record.path !== this.props.record.path ||
-      prevProps.record.alt !== this.props.record.alt
-    ) {
-      this.syncState();
-    }
-    const frame = this.iframe.current;
+  useEffect(() => {
+    const frame = iframe.current;
     const intendedPath =
-      this.state.pageUrlFor ===
-      getUrlRecordPath(this.props.record.path, this.props.record.alt)
-        ? this.state.pageUrl
-        : null;
+      pageUrlPath === getUrlRecordPath(path, alt) ? pageUrl : null;
     if (frame && intendedPath) {
       const framePath = getIframePath(frame);
 
@@ -91,25 +60,26 @@ export default class PreviewPage extends Component<Props, State> {
         frame.src = getCanonicalUrl(intendedPath);
       }
     }
-  }
+  });
 
-  onFrameNavigated(event: SyntheticEvent<HTMLIFrameElement>) {
-    const fsPath = getIframePath(event.currentTarget);
-    if (fsPath !== null) {
-      loadData("/matchurl", { url_path: fsPath }).then((resp) => {
-        if (resp.exists) {
-          const urlPath = getUrlRecordPath(resp.path, resp.alt);
-          this.props.history.push(pathToAdminPage("preview", urlPath));
-        }
-      }, showErrorDialog);
-    }
-  }
+  const onFrameNavigated = useCallback(
+    (event: SyntheticEvent<HTMLIFrameElement>) => {
+      const framePath = getIframePath(event.currentTarget);
+      if (framePath !== null) {
+        loadData("/matchurl", { url_path: framePath }).then((resp) => {
+          if (resp.exists) {
+            const urlPath = getUrlRecordPath(resp.path, resp.alt);
+            history.push(pathToAdminPage("preview", urlPath));
+          }
+        }, showErrorDialog);
+      }
+    },
+    [history]
+  );
 
-  render() {
-    return (
-      <div className="preview">
-        <iframe ref={this.iframe} onLoad={this.onFrameNavigated} />
-      </div>
-    );
-  }
+  return (
+    <div className="preview">
+      <iframe ref={iframe} onLoad={onFrameNavigated} />
+    </div>
+  );
 }
