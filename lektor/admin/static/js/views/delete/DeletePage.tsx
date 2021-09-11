@@ -17,7 +17,7 @@ import DeletePageHeader from "./DeletePageHeader";
 import { dispatch } from "../../events";
 import { useHistory } from "react-router";
 
-type Props = Pick<RecordProps, "record" | "history">;
+type Props = Pick<RecordProps, "record">;
 
 function DeletePage({ record }: Props) {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
