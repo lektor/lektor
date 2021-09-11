@@ -1,5 +1,6 @@
 import React, {
   FormEvent,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
@@ -197,9 +198,12 @@ function EditPage({ record }: Pick<RecordProps, "record">) {
   }, []);
 
   const setFieldValue = useCallback(
-    (field: Field, value: string, uiChange = false) => {
-      setRecordData((r) => ({ ...r, [field.name]: value || "" }));
-      setHasPendingChanges((has) => !uiChange || has);
+    (fieldName: string, value: SetStateAction<string>) => {
+      setRecordData((r) => ({
+        ...r,
+        [fieldName]: typeof value === "function" ? value(r[fieldName]) : value,
+      }));
+      setHasPendingChanges(true);
     },
     []
   );

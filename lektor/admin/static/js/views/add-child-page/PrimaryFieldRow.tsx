@@ -1,4 +1,4 @@
-import React from "react";
+import React, { SetStateAction } from "react";
 import { formatUserLabel } from "../../userLabel";
 import { getWidgetComponentWithFallback } from "../../widgets";
 import { Field } from "../../widgets/types";
@@ -12,7 +12,7 @@ export default function PrimaryField({
   setPrimary,
 }: {
   primary: string;
-  setPrimary: (s: string) => void;
+  setPrimary: (s: SetStateAction<string>) => void;
   field: Field;
 }): JSX.Element {
   const Widget = getWidgetComponentWithFallback(field.type);
