@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## UNRELEASED - in development
+## 4.0 (UNRELEASED - in development)
 
 This release drops support for versions of Python before 3.6.
 In particular, Python 2.7 is no longer supported.
@@ -390,7 +390,7 @@ Released on 11th of April 2016
   work in all situations yet (in particular thumbnailing does not actually
   do anything for those)
 
-  ## 1.2.1
+## 1.2.1
 
 Released on 3rd of February 2016
 
@@ -412,7 +412,7 @@ Released on 1st of February 2016
 - Fixed admin preview of root page in firefox.
 - Changed FTPS data channel to use TLS.
 
-  ## 1.1
+## 1.1
 
 Released on 27th of December 2015
 
