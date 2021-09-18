@@ -1,9 +1,8 @@
-Changelog
-=========
+# Changelog
 
 These are all the changes in Lektor since the first public release.
 
-UNRELEASED - in development
+## UNRELEASED - in development
 
 This release drops support for versions of Python before 3.6.
 In particular, Python 2.7 is no longer supported.
@@ -27,7 +26,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 #### Publisher
 
 - Allow rsync deployment to a local path. [#830][]
-- Clean up subprocess handling in `lektor.publisher`.  This fixes
+- Clean up subprocess handling in `lektor.publisher`. This fixes
   "ResourceWarning: unclosed file" warnings which were being emitted
   when using the rsync publisher, as well as possible other
   buglets. [#896][]
@@ -59,11 +58,11 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 #### Admin UI
 
-- Fix the checkboxes widget.  They were broken so as to be uncheckable.  [#812][], [#817][]
-- Fix page data being incorrectly marked as *changed* when flow block is expanded/collapsed in the edit UI.  [#828][], [#842][]
-- Fix encoding of URLs when opening the admin UI from the pencil button.  [#815][], [#837][]
+- Fix the checkboxes widget. They were broken so as to be uncheckable. [#812][], [#817][]
+- Fix page data being incorrectly marked as _changed_ when flow block is expanded/collapsed in the edit UI. [#828][], [#842][]
+- Fix encoding of URLs when opening the admin UI from the pencil button. [#815][], [#837][]
 - Rename a CSS class in the admin UI to prevent breakage by ad blockers.
-  The class `add-block` was being blocked by the *EasyList FR* ad blocker. [#785][], [#841][]
+  The class `add-block` was being blocked by the _EasyList FR_ ad blocker. [#785][], [#841][]
 - Relax URL checking to allow all valid URLs in URL fields. [#793][], [#840][], [#864][]
 - Preview iframe was not always updating when it should. [#844][], [#846][]
 - Make the "Save" button always visible (without need to scroll on long pages). [#43][], [#870][]
@@ -74,14 +73,13 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - Update UI to Bootstrap v5. [#917][], [#926][]
 - Add missing translation strings, show error dialogs on top of other dialogs [#934][].
 
-
 ### Internal changes
 
 #### Python code
 
 - Drop python 2 compatibility. [#822][], [#850][], [#871][], [#920][], [#922][]
 - Drop python 3.5 compatibility. [#878][], [#880][]
-- Code beautification/reformatting.  We now use [black][], [reorder-python-imports][], [flake8][].
+- Code beautification/reformatting. We now use [black][], [reorder-python-imports][], [flake8][].
   [#823][], [#916][], [#925][]
 - Refactor rsync publisher tests. [#836][]
 - Restructure code to prevent circular imports. [#856][], [#871][], [#873][]
@@ -106,7 +104,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 ### Testing/CI
 
-- Use `tox` for local testing.  [#824][]
+- Use `tox` for local testing. [#824][]
 - Pin version of `pylint` used for tests. [#891][]
 - Complete rewrite of the tests for `lektor.pluginsystem` to increase coverage and reduce running time.
   [#881][].
@@ -115,92 +113,95 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - Do not run `brew update` in MacOS CI workflow. [#853][]
 - CI workflow simplification. [#927][]
 
-[black]: <https://black.readthedocs.io/en/stable/>
-[reorder-python-imports]: <https://github.com/asottile/reorder_python_imports>
-[flake8]: <https://flake8.pycqa.org/en/latest/>
-[prettier]: <https://prettier.io/>
-[eslint]: <https://eslint.org/>
-[#43]: <https://github.com/lektor/lektor/issues/43>
-[#648]: <https://github.com/lektor/lektor/issues/648>
-[#682]: <https://github.com/lektor/lektor/issues/682>
-[#785]: <https://github.com/lektor/lektor/issues/785>
-[#789]: <https://github.com/lektor/lektor/pull/789>
-[#793]: <https://github.com/lektor/lektor/issues/793>
-[#812]: <https://github.com/lektor/lektor/issues/812>
-[#815]: <https://github.com/lektor/lektor/issues/815>
-[#816]: <https://github.com/lektor/lektor/pull/816>
-[#817]: <https://github.com/lektor/lektor/pull/817>
-[#818]: <https://github.com/lektor/lektor/issues/818>
-[#819]: <https://github.com/lektor/lektor/pull/819>
-[#822]: <https://github.com/lektor/lektor/pull/822>
-[#823]: <https://github.com/lektor/lektor/pull/823>
-[#824]: <https://github.com/lektor/lektor/pull/824>
-[#825]: <https://github.com/lektor/lektor/pull/825>
-[#827]: <https://github.com/lektor/lektor/pull/827>
-[#828]: <https://github.com/lektor/lektor/issues/828>
-[#829]: <https://github.com/lektor/lektor/issues/829>
-[#830]: <https://github.com/lektor/lektor/pull/830>
-[#833]: <https://github.com/lektor/lektor/pull/833>
-[#834]: <https://github.com/lektor/lektor/pull/834>
-[#836]: <https://github.com/lektor/lektor/pull/836>
-[#837]: <https://github.com/lektor/lektor/pull/837>
-[#839]: <https://github.com/lektor/lektor/pull/839>
-[#840]: <https://github.com/lektor/lektor/pull/840>
-[#841]: <https://github.com/lektor/lektor/pull/841>
-[#842]: <https://github.com/lektor/lektor/pull/842>
-[#844]: <https://github.com/lektor/lektor/issues/844>
-[#845]: <https://github.com/lektor/lektor/pull/845>
-[#846]: <https://github.com/lektor/lektor/pull/846>
-[#848]: <https://github.com/lektor/lektor/pull/848>
-[#850]: <https://github.com/lektor/lektor/pull/850>
-[#851]: <https://github.com/lektor/lektor/pull/851>
-[#852]: <https://github.com/lektor/lektor/pull/852>
-[#853]: <https://github.com/lektor/lektor/pull/853>
-[#856]: <https://github.com/lektor/lektor/pull/856>
-[#857]: <https://github.com/lektor/lektor/pull/857>
-[#859]: <https://github.com/lektor/lektor/pull/859>
-[#860]: <https://github.com/lektor/lektor/pull/860>
-[#861]: <https://github.com/lektor/lektor/issues/861>
-[#864]: <https://github.com/lektor/lektor/pull/864>
-[#869]: <https://github.com/lektor/lektor/pull/869>
-[#870]: <https://github.com/lektor/lektor/pull/870>
-[#871]: <https://github.com/lektor/lektor/pull/871>
-[#872]: <https://github.com/lektor/lektor/pull/872>
-[#873]: <https://github.com/lektor/lektor/pull/873>
-[#874]: <https://github.com/lektor/lektor/pull/874>
-[#875]: <https://github.com/lektor/lektor/pull/875>
-[#876]: <https://github.com/lektor/lektor/pull/876>
-[#878]: <https://github.com/lektor/lektor/issues/878>
-[#879]: <https://github.com/lektor/lektor/pull/879>
-[#880]: <https://github.com/lektor/lektor/pull/880>
-[#881]: <https://github.com/lektor/lektor/pull/881>
-[#882]: <https://github.com/lektor/lektor/pull/882>
-[#884]: <https://github.com/lektor/lektor/pull/884>
-[#885]: <https://github.com/lektor/lektor/pull/885>
-[#886]: <https://github.com/lektor/lektor/pull/886>
-[#887]: <https://github.com/lektor/lektor/pull/887>
-[#890]: <https://github.com/lektor/lektor/issues/890>
-[#891]: <https://github.com/lektor/lektor/pull/891>
-[#895]: <https://github.com/lektor/lektor/issues/895>
-[#896]: <https://github.com/lektor/lektor/pull/896>
-[#897]: <https://github.com/lektor/lektor/pull/897>
-[#898]: <https://github.com/lektor/lektor/pull/898>
-[#900]: <https://github.com/lektor/lektor/pull/900>
-[#905]: <https://github.com/lektor/lektor/pull/905>
-[#911]: <https://github.com/lektor/lektor/pull/911>
-[#916]: <https://github.com/lektor/lektor/pull/916>
-[#917]: <https://github.com/lektor/lektor/pull/917>
-[#920]: <https://github.com/lektor/lektor/pull/920>
-[#921]: <https://github.com/lektor/lektor/pull/921>
-[#922]: <https://github.com/lektor/lektor/pull/922>
-[#923]: <https://github.com/lektor/lektor/pull/923>
-[#925]: <https://github.com/lektor/lektor/pull/925>
-[#926]: <https://github.com/lektor/lektor/pull/926>
-[#927]: <https://github.com/lektor/lektor/pull/927>
-[#934]: <https://github.com/lektor/lektor/pull/934>
+[black]: https://black.readthedocs.io/en/stable/
+[reorder-python-imports]: https://github.com/asottile/reorder_python_imports
+[flake8]: https://flake8.pycqa.org/en/latest/
+[prettier]: https://prettier.io/
+[eslint]: https://eslint.org/
+[#43]: https://github.com/lektor/lektor/issues/43
+[#648]: https://github.com/lektor/lektor/issues/648
+[#682]: https://github.com/lektor/lektor/issues/682
+[#785]: https://github.com/lektor/lektor/issues/785
+[#789]: https://github.com/lektor/lektor/pull/789
+[#793]: https://github.com/lektor/lektor/issues/793
+[#812]: https://github.com/lektor/lektor/issues/812
+[#815]: https://github.com/lektor/lektor/issues/815
+[#816]: https://github.com/lektor/lektor/pull/816
+[#817]: https://github.com/lektor/lektor/pull/817
+[#818]: https://github.com/lektor/lektor/issues/818
+[#819]: https://github.com/lektor/lektor/pull/819
+[#822]: https://github.com/lektor/lektor/pull/822
+[#823]: https://github.com/lektor/lektor/pull/823
+[#824]: https://github.com/lektor/lektor/pull/824
+[#825]: https://github.com/lektor/lektor/pull/825
+[#827]: https://github.com/lektor/lektor/pull/827
+[#828]: https://github.com/lektor/lektor/issues/828
+[#829]: https://github.com/lektor/lektor/issues/829
+[#830]: https://github.com/lektor/lektor/pull/830
+[#833]: https://github.com/lektor/lektor/pull/833
+[#834]: https://github.com/lektor/lektor/pull/834
+[#836]: https://github.com/lektor/lektor/pull/836
+[#837]: https://github.com/lektor/lektor/pull/837
+[#839]: https://github.com/lektor/lektor/pull/839
+[#840]: https://github.com/lektor/lektor/pull/840
+[#841]: https://github.com/lektor/lektor/pull/841
+[#842]: https://github.com/lektor/lektor/pull/842
+[#844]: https://github.com/lektor/lektor/issues/844
+[#845]: https://github.com/lektor/lektor/pull/845
+[#846]: https://github.com/lektor/lektor/pull/846
+[#848]: https://github.com/lektor/lektor/pull/848
+[#850]: https://github.com/lektor/lektor/pull/850
+[#851]: https://github.com/lektor/lektor/pull/851
+[#852]: https://github.com/lektor/lektor/pull/852
+[#853]: https://github.com/lektor/lektor/pull/853
+[#856]: https://github.com/lektor/lektor/pull/856
+[#857]: https://github.com/lektor/lektor/pull/857
+[#859]: https://github.com/lektor/lektor/pull/859
+[#860]: https://github.com/lektor/lektor/pull/860
+[#861]: https://github.com/lektor/lektor/issues/861
+[#864]: https://github.com/lektor/lektor/pull/864
+[#869]: https://github.com/lektor/lektor/pull/869
+[#870]: https://github.com/lektor/lektor/pull/870
+[#871]: https://github.com/lektor/lektor/pull/871
+[#872]: https://github.com/lektor/lektor/pull/872
+[#873]: https://github.com/lektor/lektor/pull/873
+[#874]: https://github.com/lektor/lektor/pull/874
+[#875]: https://github.com/lektor/lektor/pull/875
+[#876]: https://github.com/lektor/lektor/pull/876
+[#878]: https://github.com/lektor/lektor/issues/878
+[#879]: https://github.com/lektor/lektor/pull/879
+[#880]: https://github.com/lektor/lektor/pull/880
+[#881]: https://github.com/lektor/lektor/pull/881
+[#882]: https://github.com/lektor/lektor/pull/882
+[#884]: https://github.com/lektor/lektor/pull/884
+[#885]: https://github.com/lektor/lektor/pull/885
+[#886]: https://github.com/lektor/lektor/pull/886
+[#887]: https://github.com/lektor/lektor/pull/887
+[#890]: https://github.com/lektor/lektor/issues/890
+[#891]: https://github.com/lektor/lektor/pull/891
+[#895]: https://github.com/lektor/lektor/issues/895
+[#896]: https://github.com/lektor/lektor/pull/896
+[#897]: https://github.com/lektor/lektor/pull/897
+[#898]: https://github.com/lektor/lektor/pull/898
+[#900]: https://github.com/lektor/lektor/pull/900
+[#905]: https://github.com/lektor/lektor/pull/905
+[#911]: https://github.com/lektor/lektor/pull/911
+[#916]: https://github.com/lektor/lektor/pull/916
+[#917]: https://github.com/lektor/lektor/pull/917
+[#920]: https://github.com/lektor/lektor/pull/920
+[#921]: https://github.com/lektor/lektor/pull/921
+[#922]: https://github.com/lektor/lektor/pull/922
+[#923]: https://github.com/lektor/lektor/pull/923
+[#925]: https://github.com/lektor/lektor/pull/925
+[#926]: https://github.com/lektor/lektor/pull/926
+[#927]: https://github.com/lektor/lektor/pull/927
+[#934]: https://github.com/lektor/lektor/pull/934
 
-3.2.0
------
+## 3.2.1 (2021-09-18)
+
+This is a bugfix release that addresses some dependency incompatibilities and some admin UI bugs.
+
+## 3.2.0
 
 Release date 20th of August, 2020
 
@@ -230,15 +231,13 @@ Release date 20th of August, 2020
 - Changed default slug creation to use slugify. This should mean greater language support, but this may produce slightly different results than before for some users
 - Automatically include setup.cfg configured for universal wheels when creating plugins
 
-3.1.3
------
+## 3.1.3
 
 Release date 26th of January, 2019
 
 - Release with universal build.
 
-3.1.2
------
+## 3.1.2
 
 Release date 7th of September 2018
 
@@ -255,8 +254,7 @@ Release date 7th of September 2018
 - Lektor can now be ran with `python -m lektor`
 - New plugins now come with a more full featured setup.py
 
-3.1.1
------
+## 3.1.1
 
 Release date 18th of April 2018
 
@@ -265,8 +263,7 @@ Release date 18th of April 2018
 - Adding safety check when runnning new build in non-empty dir since that could delete data.
 - Adding command aliases.
 
-3.1.0
------
+## 3.1.0
 
 Release date 29th of January 2018.
 
@@ -297,15 +294,13 @@ Release date 29th of January 2018.
 - Added mp4 attachment type.
 - Bugfixes for Python 3.
 
-3.0.1
------
+## 3.0.1
 
 Released on 13th of June 2017.
 
 - Bugfixes and improved Python 2 / 3 compatibility
 
-3.0
----
+## 3.0
 
 Released on 15th of July 2016.
 
@@ -313,44 +308,39 @@ Released on 15th of July 2016.
 - Rename `--build-flags` to `--extra-flags`, allow the deploy command to also
   accept extra flags.
 
-2.4
----
+## 2.4
 
 Released on 7th of July 2016.
 
 - Resolved an issue with unicode errors being caused by the
   quickstart.
 
-2.3
----
+## 2.3
 
 Released on 31st of May 2016
 
 - Fixed an issue with `get_alts` not being available in the
   template environment.
 
-2.2
----
+## 2.2
 
 Released on 12th of April 2016
 
 - Corrected an issue where certain translations would not make the
   admin panel load.
 
-2.1
----
+## 2.1
 
 Released on 12th of April 2016
 
 - Fixed a code signing issue on OS X 10.10.3 and lower.
 
-2.0
----
+## 2.0
 
 Released on 11th of April 2016
 
 - Added `_discoverable` system field which controls if a page should show
-  up in `children`.  The default is that a page is discoverable.  Setting it
+  up in `children`. The default is that a page is discoverable. Setting it
   to `False` means in practical terms that someone needs to know the URL as
   all collection operations will not return it.
 - Added `for_page` function to pagination that returns the pagiantion for a
@@ -361,7 +351,7 @@ Released on 11th of April 2016
 - Added French translations.
 - Unicode filenames as final build artifacts are now explicitly disallowed.
 - Serve up a 404.html as an error page in the dev server.
-- Improvements to the path normalization and alt handling.  This should support
+- Improvements to the path normalization and alt handling. This should support
   URL generation in more complex cases between alts now.
 - Show a clearer error message when URL generation fails because a source
   object is virtual (does not have a path).
@@ -396,19 +386,17 @@ Released on 11th of April 2016
   Attachments will also no longer inherit the hidden flag of the parent
   record as that is not a sensible default.
 - changed internal sqlite consistency mode to improve performance on HDDs.
-- allow SVG files to be treated as images.  This is something that does not
+- allow SVG files to be treated as images. This is something that does not
   work in all situations yet (in particular thumbnailing does not actually
   do anything for those)
 
-1.2.1
------
+  ## 1.2.1
 
 Released on 3rd of February 2016
 
 - Bugfix release primarily for OS X which fixes a code signing issue.
 
-1.2
----
+## 1.2
 
 Released on 1st of February 2016
 
@@ -424,8 +412,7 @@ Released on 1st of February 2016
 - Fixed admin preview of root page in firefox.
 - Changed FTPS data channel to use TLS.
 
-1.1
----
+  ## 1.1
 
 Released on 27th of December 2015
 
@@ -434,14 +421,13 @@ Released on 27th of December 2015
 - verbose mode now correctly displays traceback of build failures.
 - Fixed a bug that caused build failures not to be remembered.
 - Fixed a bad EXIF attribute (longitude was misspelt)
-- Use requests for URL fetching instead of urllib.  This should fix
+- Use requests for URL fetching instead of urllib. This should fix
   some SSL errors on some Python versions.
 - Parent of page now correctly resolves to the right alt.
 - Publish from a temporary folder on the same device which solves
   problems on machines with `/tmp` on a different drive.
 
-1.0
----
+## 1.0
 
 Released on 21st of December 2015
 
@@ -450,7 +436,6 @@ Released on 21st of December 2015
 - All artifacts now depend on the project file.
 - Fixed an issue with renames from tempfile in the quickstart.
 
-0.96
-----
+## 0.96
 
-Initial test release.  Release date 19th of December 2015
+Initial test release. Release date 19th of December 2015
