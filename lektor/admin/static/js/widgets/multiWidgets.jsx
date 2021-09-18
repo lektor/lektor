@@ -38,14 +38,8 @@ export class CheckboxesInputWidget extends React.PureComponent {
   }
 
   render() {
-    let {
-      className,
-      value,
-      placeholder,
-      type,
-      onChange,
-      ...otherProps
-    } = this.props;
+    let { className, value, placeholder, type, onChange, ...otherProps } =
+      this.props;
     className = (className || "") + " checkbox";
 
     const onChangeHandler = (field, event) => {
@@ -57,7 +51,7 @@ export class CheckboxesInputWidget extends React.PureComponent {
       onChange(newValue);
     };
 
-    const choices = type.choices.map((item) => (
+    const choices = type.choices?.map((item) => (
       <div className={className} key={item[0]}>
         <label>
           <input
@@ -76,16 +70,10 @@ export class CheckboxesInputWidget extends React.PureComponent {
 CheckboxesInputWidget.propTypes = widgetPropTypes;
 
 export function SelectInputWidget(props) {
-  const {
-    className,
-    type,
-    value,
-    placeholder,
-    onChange,
-    ...otherProps
-  } = props;
+  const { className, type, value, placeholder, onChange, ...otherProps } =
+    props;
 
-  const choices = type.choices.map((item) => (
+  const choices = type.choices?.map((item) => (
     <option key={item[0]} value={item[0]}>
       {i18n.trans(item[1])}
     </option>
