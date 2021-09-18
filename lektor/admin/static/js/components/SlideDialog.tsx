@@ -1,46 +1,45 @@
-import React, { MouseEvent } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { trans } from "../i18n";
 
-type Props = {
+export default function SlideDialog({
+  title,
+  hasCloseButton,
+  dismiss,
+  children,
+}: {
   title: string;
   hasCloseButton: boolean;
   dismiss: () => void;
-};
+  children: ReactNode;
+}): JSX.Element {
+  useEffect(() => {
+    const handler = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        dismiss();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [dismiss]);
 
-export default class SlideDialog extends React.Component<Props> {
-  constructor(props: Props) {
-    super(props);
-    this.onKeyPress = this.onKeyPress.bind(this);
-    this.onCloseClick = this.onCloseClick.bind(this);
-  }
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
-  componentDidMount() {
-    window.addEventListener("keydown", this.onKeyPress);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this.onKeyPress);
-  }
-
-  onKeyPress(event: KeyboardEvent) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      this.props.dismiss();
-    }
-  }
-
-  onCloseClick(event: MouseEvent) {
-    event.preventDefault();
-    this.props.dismiss();
-  }
-
-  render() {
-    const { children, title, hasCloseButton } = this.props;
-    return (
+  return (
+    <div className="dialog-slot">
       <div className="sliding-panel container">
         <div className="col-md-6 offset-md-3">
           {hasCloseButton && (
-            <a href="#" className="close-btn" onClick={this.onCloseClick}>
+            <a
+              href="#"
+              className="close-btn"
+              onClick={(ev) => {
+                ev.preventDefault();
+                dismiss();
+              }}
+            >
               {trans("CLOSE")}
             </a>
           )}
@@ -48,6 +47,7 @@ export default class SlideDialog extends React.Component<Props> {
           {children}
         </div>
       </div>
-    );
-  }
+      <div className="interface-protector" />
+    </div>
+  );
 }

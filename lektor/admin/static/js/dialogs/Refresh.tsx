@@ -1,75 +1,64 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import SlideDialog from "../components/SlideDialog";
 import { loadData } from "../fetch";
 import { trans } from "../i18n";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 
-type RefreshState = "IDLE" | "DONE" | "CLEANING";
-type Props = { dismiss: () => void };
+export default function Refresh({
+  dismiss,
+  preventNavigation,
+}: {
+  dismiss: () => void;
+  preventNavigation: (v: boolean) => void;
+}) {
+  const [state, setState] = useState<"IDLE" | "DONE" | "CLEANING">("IDLE");
+  const isSafeToNavigate = state === "IDLE" || state === "DONE";
 
-export default class Refresh extends React.Component<
-  Props,
-  { currentState: RefreshState }
-> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { currentState: "IDLE" };
-    this.onRefresh = this.onRefresh.bind(this);
-  }
-
-  preventNavigation() {
-    return !this.isSafeToNavigate();
-  }
-
-  isSafeToNavigate() {
-    return (
-      this.state.currentState === "IDLE" || this.state.currentState === "DONE"
-    );
-  }
-
-  onRefresh() {
-    this.setState({ currentState: "CLEANING" });
+  const refresh = useCallback(() => {
+    setState("CLEANING");
     loadData("/clean", null, { method: "POST" }).then(() => {
-      this.setState({ currentState: "DONE" });
-    }, bringUpDialog);
-  }
+      setState("DONE");
+    }, showErrorDialog);
+  }, []);
+  useEffect(
+    () => preventNavigation(!isSafeToNavigate),
+    [preventNavigation, isSafeToNavigate]
+  );
 
-  render() {
-    return (
-      <SlideDialog
-        dismiss={this.props.dismiss}
-        hasCloseButton={false}
-        title={trans("REFRESH_BUILD")}
-      >
-        <p>{trans("REFRESH_BUILD_NOTE")}</p>
-        {this.state.currentState !== "IDLE" && (
-          <div>
-            <h3>
-              {this.state.currentState !== "DONE"
-                ? trans("CURRENTLY_REFRESHING_BUILD")
-                : trans("REFRESHING_BUILD_DONE")}
-            </h3>
-          </div>
-        )}
-        <p>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={!this.isSafeToNavigate()}
-            onClick={this.onRefresh}
-          >
-            {trans("REFRESH_BUILD")}
-          </button>{" "}
-          <button
-            type="submit"
-            className="btn btn-secondary border"
-            disabled={!this.isSafeToNavigate()}
-            onClick={this.props.dismiss}
-          >
-            {trans(this.state.currentState === "DONE" ? "CLOSE" : "CANCEL")}
-          </button>
-        </p>
-      </SlideDialog>
-    );
-  }
+  return (
+    <SlideDialog
+      dismiss={dismiss}
+      hasCloseButton={false}
+      title={trans("REFRESH_BUILD")}
+    >
+      <p>{trans("REFRESH_BUILD_NOTE")}</p>
+      <p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={!isSafeToNavigate}
+          onClick={refresh}
+        >
+          {trans("REFRESH_BUILD")}
+        </button>{" "}
+        <button
+          type="button"
+          className="btn btn-secondary border"
+          disabled={!isSafeToNavigate}
+          onClick={dismiss}
+        >
+          {trans(state === "DONE" ? "CLOSE" : "CANCEL")}
+        </button>
+      </p>
+      {state !== "IDLE" && (
+        <div>
+          <h3>
+            {state !== "DONE"
+              ? trans("CURRENTLY_REFRESHING_BUILD")
+              : trans("REFRESHING_BUILD_DONE")}
+          </h3>
+        </div>
+      )}
+    </SlideDialog>
+  );
 }

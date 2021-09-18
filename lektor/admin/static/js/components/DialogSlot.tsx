@@ -1,72 +1,51 @@
-import React from "react";
-import dialogSystem, { Dialog, DialogInstance } from "../dialogSystem";
-import { DialogChangedEvent } from "../events";
-import hub from "../hub";
+import React, { useCallback, useEffect, useState } from "react";
+import FindFiles from "../dialogs/find-files/FindFiles";
+import Publish from "../dialogs/Publish";
+import Refresh from "../dialogs/Refresh";
+import { LektorEvents, subscribe, unsubscribe } from "../events";
 import { RecordProps } from "./RecordComponent";
 
-type State = {
-  currentDialog: Dialog | null;
-  currentDialogOptions: unknown;
-};
+type DialogDetails = LektorEvents["lektor-dialog"];
 
-class DialogSlot extends React.Component<RecordProps, State> {
-  constructor(props: RecordProps) {
-    super(props);
-    this.state = {
-      currentDialog: null,
-      currentDialogOptions: null,
+type DialogState = (DialogDetails & { preventNavigation?: boolean }) | null;
+
+export default function DialogSlot(props: RecordProps) {
+  const [dialog, setDialog] = useState<DialogState>(null);
+
+  const dismiss = useCallback(
+    () => setDialog((c) => (c?.preventNavigation ? c : null)),
+    []
+  );
+  const prevent = useCallback(
+    (preventNavigation: boolean) =>
+      setDialog((d) => (d ? { ...d, preventNavigation } : null)),
+    []
+  );
+  useEffect(() => {
+    const handler = ({ detail }: CustomEvent<DialogDetails>) => {
+      // Only change dialog if there is no dialog yet.
+      setDialog((current) => current ?? detail);
     };
-    this.onDialogChanged = this.onDialogChanged.bind(this);
-    this.initDialogInstance = this.initDialogInstance.bind(this);
+    subscribe("lektor-dialog", handler);
+    return () => unsubscribe("lektor-dialog", handler);
+  }, []);
+
+  if (!dialog) {
+    return null;
   }
-
-  componentDidMount() {
-    hub.subscribe(DialogChangedEvent, this.onDialogChanged);
-  }
-
-  componentWillUnmount() {
-    hub.unsubscribe(DialogChangedEvent, this.onDialogChanged);
-  }
-
-  onDialogChanged(event: DialogChangedEvent) {
-    this.setState({
-      currentDialog: event.dialog,
-      currentDialogOptions: event.dialogOptions || {},
-    });
-  }
-
-  initDialogInstance(dialog: DialogInstance | null) {
-    dialogSystem.notifyDialogInstance(dialog);
-    window.scrollTo(0, 0);
-  }
-
-  render() {
-    let dialog = null;
-    if (this.state.currentDialog) {
-      dialog = (
-        // @ts-expect-error This is not sufficiently typed yet
-        <this.state.currentDialog
-          ref={this.initDialogInstance}
-          dismiss={dialogSystem.dismissDialog}
-          {...this.props}
-          {...this.state.currentDialogOptions}
-        />
-      );
-    } else {
-      dialogSystem.notifyDialogInstance(null);
-    }
-
-    if (!dialog) {
-      return null;
-    }
-
+  if (dialog.type === "find-files") {
+    return <FindFiles {...props} dismiss={dismiss} />;
+  } else if (dialog.type === "refresh") {
+    return <Refresh dismiss={dismiss} preventNavigation={prevent} />;
+  } else if (dialog.type === "publish") {
     return (
-      <div className="dialog-slot">
-        {dialog}
-        <div className="interface-protector" />
-      </div>
+      <Publish
+        record={props.record}
+        dismiss={dismiss}
+        preventNavigation={prevent}
+      />
     );
   }
+  const exhaustiveCheck: never = dialog.type;
+  throw new Error(exhaustiveCheck);
 }
-
-export default DialogSlot;

@@ -1,6 +1,6 @@
 import React, { PureComponent } from "react";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
@@ -8,7 +8,9 @@ import Link from "../components/Link";
 import { Alternative } from "../components/types";
 import { trans, trans_obj } from "../i18n";
 
-type Props = RecordProps & { recordAlts: Alternative[] };
+type Props = Pick<RecordProps, "record" | "page"> & {
+  recordAlts: Alternative[];
+};
 
 export default class Alternatives extends PureComponent<Props, unknown> {
   render() {
@@ -30,8 +32,8 @@ export default class Alternatives extends PureComponent<Props, unknown> {
       }
 
       const path = pathToAdminPage(
-        this.props.match.params.page,
-        getUrlRecordPathWithAlt(this.props.record.path, item.alt)
+        this.props.page,
+        getUrlRecordPath(this.props.record.path, item.alt)
       );
       return (
         <li key={item.alt} className={className}>

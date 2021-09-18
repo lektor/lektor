@@ -26,6 +26,7 @@
     "css-loader": "^6.2.0",
     "eslint": "^7.19.0",
     "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "event-source-polyfill": "^1.0.22",
     "font-awesome": "^4.3.0",
     "jsdom": "^17.0.0",

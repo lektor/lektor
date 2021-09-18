@@ -1,18 +1,19 @@
-function lineIsDashes(rawLine: string): boolean {
+/** Check whether the (trimmed) line is at least 3 chars wide and only dashes. */
+export function lineIsDashes(rawLine: string): boolean {
   const line = rawLine.trim();
-  return line.length >= 3 && line === new Array(line.length + 1).join("-");
+  return line.length >= 3 && line.match(/[^-]/) === null;
 }
 
-function processBuf(buf: string[]): string[] {
-  const lines = buf.map((line) => (lineIsDashes(line) ? line.substr(1) : line));
-
-  if (lines.length > 0) {
-    const lastLine = lines[lines.length - 1];
-    if (lastLine.substr(lastLine.length - 1) === "\n") {
-      lines[lines.length - 1] = lastLine.substr(0, lastLine.length - 1);
-    }
+export function processBuf(buf: string[]): string[] {
+  if (buf.length === 0) {
+    return buf;
   }
-
+  const lines = buf.map((line) => (lineIsDashes(line) ? line.substr(1) : line));
+  const lastLine = lines[lines.length - 1];
+  if (lastLine[lastLine.length - 1] === "\n") {
+    // trim newline at the end of the last line.
+    lines[lines.length - 1] = lastLine.substr(0, lastLine.length - 1);
+  }
   return lines;
 }
 

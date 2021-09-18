@@ -6,21 +6,11 @@ import {
 } from "../utils";
 import { loadData } from "../fetch";
 import {
-  getUrlRecordPathWithAlt,
+  getUrlRecordPath,
   pathToAdminPage,
   RecordProps,
 } from "../components/RecordComponent";
-import { bringUpDialog } from "../richPromise";
-
-const initialState = () => ({
-  pageUrl: null,
-  pageUrlFor: null,
-});
-
-type State = {
-  pageUrl: string | null;
-  pageUrlFor: string | null;
-};
+import { showErrorDialog } from "../error-dialog";
 
 function getIframePath(iframe: HTMLIFrameElement): string | null {
   const frameLocation = iframe.contentWindow?.location;
@@ -32,12 +22,24 @@ function getIframePath(iframe: HTMLIFrameElement): string | null {
     : fsPathFromAdminObservedPath(frameLocation.pathname);
 }
 
-export default class PreviewPage extends Component<RecordProps, State> {
+type State = {
+  pageUrl: string | null;
+  pageUrlFor: string | null;
+};
+
+const initialState = {
+  pageUrl: null,
+  pageUrlFor: null,
+};
+
+type Props = Pick<RecordProps, "record" | "history">;
+
+export default class PreviewPage extends Component<Props, State> {
   iframe: RefObject<HTMLIFrameElement>;
 
-  constructor(props: RecordProps) {
+  constructor(props: Props) {
     super(props);
-    this.state = initialState();
+    this.state = initialState;
     this.iframe = createRef();
     this.onFrameNavigated = this.onFrameNavigated.bind(this);
   }
@@ -46,45 +48,43 @@ export default class PreviewPage extends Component<RecordProps, State> {
     this.syncState();
   }
 
-  shouldComponentUpdate(nextProps: RecordProps) {
+  shouldComponentUpdate(nextProps: Props) {
     return (
-      getUrlRecordPathWithAlt(this.props.record.path, this.props.record.alt) !==
+      getUrlRecordPath(this.props.record.path, this.props.record.alt) !==
         this.state.pageUrlFor ||
-      nextProps.match.params.path !== this.props.match.params.path
+      nextProps.record.path !== this.props.record.path ||
+      nextProps.record.alt !== this.props.record.alt
     );
   }
 
   syncState() {
-    const alt = this.props.record.alt;
-    const path = this.props.record.path;
+    const { alt, path } = this.props.record;
     if (path === null) {
       this.setState(initialState);
-      return;
+    } else {
+      loadData("/previewinfo", { path, alt }).then((resp) => {
+        this.setState({
+          pageUrl: resp.url,
+          pageUrlFor: getUrlRecordPath(path, alt),
+        });
+      }, showErrorDialog);
     }
-
-    const recordUrl = getUrlRecordPathWithAlt(
-      this.props.record.path,
-      this.props.record.alt
-    );
-    loadData("/previewinfo", { path: path, alt: alt }).then((resp) => {
-      this.setState({
-        pageUrl: resp.url,
-        pageUrlFor: recordUrl,
-      });
-    }, bringUpDialog);
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
-    if (prevProps.match.params.path !== this.props.match.params.path) {
+  componentDidUpdate(prevProps: Props) {
+    if (
+      prevProps.record.path !== this.props.record.path ||
+      prevProps.record.alt !== this.props.record.alt
+    ) {
       this.syncState();
     }
     const frame = this.iframe.current;
     const intendedPath =
       this.state.pageUrlFor ===
-      getUrlRecordPathWithAlt(this.props.record.path, this.props.record.alt)
+      getUrlRecordPath(this.props.record.path, this.props.record.alt)
         ? this.state.pageUrl
         : null;
-    if (frame && intendedPath !== null) {
+    if (frame && intendedPath) {
       const framePath = getIframePath(frame);
 
       if (!urlPathsConsideredEqual(intendedPath, framePath)) {
@@ -98,10 +98,10 @@ export default class PreviewPage extends Component<RecordProps, State> {
     if (fsPath !== null) {
       loadData("/matchurl", { url_path: fsPath }).then((resp) => {
         if (resp.exists) {
-          const urlPath = getUrlRecordPathWithAlt(resp.path, resp.alt);
+          const urlPath = getUrlRecordPath(resp.path, resp.alt);
           this.props.history.push(pathToAdminPage("preview", urlPath));
         }
-      }, bringUpDialog);
+      }, showErrorDialog);
     }
   }
 

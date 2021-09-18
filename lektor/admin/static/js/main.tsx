@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ReactDOM from "react-dom";
 import {
   BrowserRouter as Router,
@@ -15,10 +15,10 @@ import "event-source-polyfill";
 
 // route targets
 import App from "./views/App";
-import EditPage from "./views/EditPage";
-import DeletePage from "./views/DeletePage";
+import EditPage from "./views/edit/EditPage";
+import DeletePage from "./views/delete/DeletePage";
 import PreviewPage from "./views/PreviewPage";
-import AddChildPage from "./views/AddChildPage";
+import AddChildPage from "./views/add-child-page/AddChildPage";
 import AddAttachmentPage from "./views/AddAttachmentPage";
 import { getRecordDetails } from "./components/RecordComponent";
 
@@ -44,24 +44,32 @@ function Main() {
   const fullPath = `${root}/:path/:page`;
   const match = useRouteMatch<{ path: string; page: string }>(fullPath);
   const history = useHistory();
+  // useRouteMatch returns a new object on each render, so we need to get the
+  // primitive string values here to memoize.
+  const urlPath = match?.params.path;
+  const page = match?.params.page;
 
-  if (!match) {
+  const record = useMemo(() => {
+    if (!urlPath) {
+      return null;
+    }
+    const { path, alt } = getRecordDetails(urlPath);
+    if (path === null) {
+      return null;
+    }
+    return { path, alt };
+  }, [urlPath]);
+
+  if (!page) {
     return <Redirect to={`${root}/root/edit`} />;
   }
-  const { page, path } = match.params;
   const Component = getMainComponent(page);
-  if (!Component) {
+  if (!Component || record === null) {
     return <Redirect to={`${root}/root/edit`} />;
   }
-
-  const params = { path, page };
   return (
-    <App params={params}>
-      <Component
-        match={{ params }}
-        history={history}
-        record={getRecordDetails(params.path)}
-      />
+    <App page={page} record={record}>
+      <Component history={history} record={record} />
     </App>
   );
 }

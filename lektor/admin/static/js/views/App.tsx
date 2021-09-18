@@ -1,32 +1,26 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useReducer } from "react";
 import { useHistory } from "react-router-dom";
 
 import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-import { getRecordDetails, RecordProps } from "../components/RecordComponent";
+import { RecordPathDetails } from "../components/RecordComponent";
+import ErrorDialog from "../components/ErrorDialog";
 
 export default function App({
   children,
-  params,
+  page,
+  record,
 }: {
   children: ReactNode;
-  params: { page: string; path: string };
+  page: string;
+  record: RecordPathDetails;
 }) {
   const history = useHistory();
-  const match = { params };
-  const recordProps: RecordProps = {
-    match,
-    history,
-    record: getRecordDetails(params.path),
-  };
 
-  const [sidebarIsActive, setSidebarIsActive] = useState(false);
+  const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
 
-  function toggleSidebar() {
-    setSidebarIsActive(!sidebarIsActive);
-  }
   const baseSidebarClasses =
     "sidebar-block block-offcanvas block-offcanvas-left row";
   const sidebarClasses = sidebarIsActive
@@ -39,13 +33,15 @@ export default function App({
       <Header
         sidebarIsActive={sidebarIsActive}
         toggleSidebar={toggleSidebar}
-        {...recordProps}
+        page={page}
+        record={record}
       />
       <div className="editor container">
-        <DialogSlot {...recordProps} />
+        <DialogSlot page={page} history={history} record={record} />
+        <ErrorDialog />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
-            <Sidebar {...recordProps} />
+            <Sidebar page={page} record={record} />
           </nav>
           <div className="view col-md-10 col-sm-9">{children}</div>
         </div>

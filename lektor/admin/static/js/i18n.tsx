@@ -1,23 +1,38 @@
-function loadTranslations() {
-  const rv: Record<string, Record<string, string>> = {};
-  try {
-    const ctx = require.context("../../../translations", true, /\.json$/);
-    ctx.keys().forEach((key) => {
-      const langIdMatch = key.match(/([a-z]+)/);
-      if (langIdMatch) {
-        rv[langIdMatch[1]] = ctx(key);
-      }
-    });
-  } catch (err) {
-    // require.context is not available when running tests.
-  }
-  return rv;
-}
+import ca from "../../../translations/ca.json";
+import de from "../../../translations/de.json";
+import en from "../../../translations/en.json";
+import es from "../../../translations/es.json";
+import fr from "../../../translations/fr.json";
+import it from "../../../translations/it.json";
+import ja from "../../../translations/ja.json";
+import ko from "../../../translations/ko.json";
+import nl from "../../../translations/nl.json";
+import pl from "../../../translations/pl.json";
+import pt from "../../../translations/pt.json";
+import ru from "../../../translations/ru.json";
+import zh from "../../../translations/zh.json";
 
-const translations: Record<string, Record<string, string>> = loadTranslations();
+type LektorTranslations = typeof en;
+export type TranslationEntry = keyof LektorTranslations;
+
+export const translations: Record<string, Partial<LektorTranslations>> = {
+  ca,
+  de,
+  en,
+  es,
+  fr,
+  it,
+  ja,
+  ko,
+  nl,
+  pl,
+  pt,
+  ru,
+  zh,
+};
 
 let currentLanguage = "en";
-let currentTranslations = translations[currentLanguage];
+let currentTranslations = translations[currentLanguage] ?? {};
 
 export function setCurrentLanguage(lang: string) {
   currentLanguage = lang;
@@ -34,7 +49,7 @@ export type Translatable = Partial<Record<string, string>>;
  * Get translation for a key.
  * @param key - The translation key.
  */
-export function trans(key: string): string {
+export function trans(key: TranslationEntry): string {
   return currentTranslations[key] ?? key;
 }
 
@@ -66,7 +81,10 @@ export function trans_fallback(
  * @param key - The translation key
  * @param replacement - replacement for `%s`.
  */
-export function trans_format(key: string, replacement: string): string {
+export function trans_format(
+  key: TranslationEntry,
+  replacement: string
+): string {
   const translation = trans(key);
   return translation.replace("%s", replacement);
 }

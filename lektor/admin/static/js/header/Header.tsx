@@ -7,11 +7,12 @@ import GlobalActions from "./GlobalActions";
 export default function Header({
   sidebarIsActive,
   toggleSidebar,
-  ...recordProps
+  page,
+  record,
 }: {
   sidebarIsActive: boolean;
   toggleSidebar: () => void;
-} & RecordProps) {
+} & Pick<RecordProps, "record" | "page">) {
   const buttonClass = sidebarIsActive
     ? "navbar-toggle active"
     : "navbar-toggle";
@@ -26,9 +27,9 @@ export default function Header({
           <span className="icon-list" />
         </button>
         <div className="d-flex justify-content-between">
-          <BreadCrumbs {...recordProps} />
+          <BreadCrumbs page={page} record={record} />
           <div className="global-actions">
-            <GlobalActions {...recordProps} />
+            <GlobalActions record={record} />
           </div>
         </div>
       </div>

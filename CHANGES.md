@@ -10,7 +10,7 @@ In particular, Python 2.7 is no longer supported.
 
 Quite a few bugs have been fixed since the previous release.
 
-The Admin UI has seen a major refactor.
+The Admin UI has seen a major refactor and various performance optimisations.
 It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS framework.
 
 ### Bugs Fixed
@@ -72,6 +72,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - Update UI to Bootstrap v4. (This fixes a layout issue with the date picker.) [#648][], [#884][]
 - Fix edit page failure for select and checkbox widgets with no choices. [#890][], [#900][]
 - Update UI to Bootstrap v5. [#917][], [#926][]
+- Add missing translation strings, show error dialogs on top of other dialogs [#934][].
 
 
 ### Internal changes
@@ -196,6 +197,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#925]: <https://github.com/lektor/lektor/pull/925>
 [#926]: <https://github.com/lektor/lektor/pull/926>
 [#927]: <https://github.com/lektor/lektor/pull/927>
+[#934]: <https://github.com/lektor/lektor/pull/934>
 
 3.2.0
 -----

@@ -1,5 +1,27 @@
-import { deepStrictEqual } from "assert";
-import { serialize, tokenize } from "./metaformat";
+import { deepStrictEqual, ok } from "assert";
+import { lineIsDashes, processBuf, serialize, tokenize } from "./metaformat";
+
+it("metaformat: check whether line just contains of dashes", () => {
+  ok(lineIsDashes("----------------"));
+  ok(lineIsDashes("      ----------------"));
+  ok(lineIsDashes("      ----------------       "));
+  ok(!lineIsDashes("----------- -----"));
+  ok(!lineIsDashes("----------- -----"));
+  ok(!lineIsDashes("-----asdf----"));
+  ok(!lineIsDashes("     -----asdf---- "));
+});
+
+it("metaformat: process buf", () => {
+  deepStrictEqual(processBuf([]), []);
+  deepStrictEqual(processBuf([""]), [""]);
+  deepStrictEqual(processBuf(["--"]), ["--"]);
+  deepStrictEqual(processBuf(["---"]), ["--"]);
+  deepStrictEqual(processBuf(["-----"]), ["----"]);
+  deepStrictEqual(processBuf(["-----\n"]), ["----"]);
+  deepStrictEqual(processBuf(["asdf\n"]), ["asdf"]);
+  deepStrictEqual(processBuf(["asdf", "asdf\n"]), ["asdf", "asdf"]);
+  deepStrictEqual(processBuf(["a", "----", "asdf\n"]), ["a", "---", "asdf"]);
+});
 
 it("metaformat: serialize simple string values", () => {
   deepStrictEqual(serialize([]), []);

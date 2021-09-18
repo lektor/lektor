@@ -273,7 +273,7 @@ export class FlowWidget extends React.PureComponent<
             <button
               type="button"
               className={buttonClass}
-              title={blockInfo.collapsed ? trans("Expand") : trans("Collapse")}
+              title={blockInfo.collapsed ? trans("EXPAND") : trans("COLLAPSE")}
               onClick={this.toggleBlock.bind(this, idx)}
             >
               <i

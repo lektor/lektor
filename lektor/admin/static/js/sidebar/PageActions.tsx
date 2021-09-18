@@ -1,14 +1,14 @@
 import React, { MouseEvent, memo, useCallback } from "react";
 import {
-  getUrlRecordPathWithAlt,
-  RecordProps,
+  getUrlRecordPath,
+  RecordPathDetails,
 } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
 import LinkWithHotkey from "../components/LinkWithHotkey";
 
 const getBrowseButtonTitle = () => {
@@ -22,7 +22,7 @@ const getBrowseButtonTitle = () => {
   }
 };
 
-function BrowseFSLink({ record }: Pick<RecordProps, "record">) {
+function BrowseFSLink({ record }: { record: RecordPathDetails }) {
   const fsOpen = useCallback(
     (ev: MouseEvent) => {
       ev.preventDefault();
@@ -34,7 +34,7 @@ function BrowseFSLink({ record }: Pick<RecordProps, "record">) {
         if (!resp.okay) {
           alert(trans("ERROR_CANNOT_BROWSE_FS"));
         }
-      }, bringUpDialog);
+      }, showErrorDialog);
     },
     [record]
   );
@@ -50,8 +50,11 @@ const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
 function PageActions({
   record,
   recordInfo,
-}: RecordProps & { recordInfo: RecordInfo }) {
-  const urlPath = getUrlRecordPathWithAlt(record.path, record.alt);
+}: {
+  record: RecordPathDetails;
+  recordInfo: RecordInfo;
+}) {
+  const urlPath = getUrlRecordPath(record.path, record.alt);
 
   return (
     <div className="section">

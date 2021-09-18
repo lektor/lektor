@@ -1,11 +1,10 @@
 import React, { Component, createRef, RefObject } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import hub from "../hub";
-import { AttachmentsChangedEvent } from "../events";
 import { getApiUrl } from "../utils";
 import { loadData } from "../fetch";
 import { trans, trans_format } from "../i18n";
-import { bringUpDialog } from "../richPromise";
+import { showErrorDialog } from "../error-dialog";
+import { dispatch } from "../events";
 
 type NewAttachmentInfo = {
   label: string;
@@ -19,10 +18,12 @@ type State = {
   currentProgress: number;
 };
 
-class AddAttachmentPage extends Component<RecordProps, State> {
+type Props = Pick<RecordProps, "record">;
+
+class AddAttachmentPage extends Component<Props, State> {
   fileInput: RefObject<HTMLInputElement>;
 
-  constructor(props: RecordProps) {
+  constructor(props: Props) {
     super(props);
     this.state = {
       newAttachmentInfo: null,
@@ -31,75 +32,60 @@ class AddAttachmentPage extends Component<RecordProps, State> {
       currentProgress: 0,
     };
     this.fileInput = createRef();
-    this.onUploadProgress = this.onUploadProgress.bind(this);
-    this.onUploadComplete = this.onUploadComplete.bind(this);
     this.onFileSelected = this.onFileSelected.bind(this);
-    this.uploadFile = this.uploadFile.bind(this);
   }
 
   componentDidMount() {
     this.syncDialog();
   }
 
-  componentDidUpdate(prevProps: RecordProps) {
-    if (prevProps.match.params.path !== this.props.match.params.path) {
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.record.path !== this.props.record.path) {
       this.syncDialog();
     }
   }
 
   syncDialog() {
     loadData("/newattachment", { path: this.props.record.path }).then(
-      (resp) => {
-        this.setState({ newAttachmentInfo: resp });
+      (newAttachmentInfo: NewAttachmentInfo) => {
+        this.setState({ newAttachmentInfo });
       },
-      bringUpDialog
+      showErrorDialog
     );
   }
 
-  uploadFile() {
-    this.fileInput.current?.click();
-  }
-
-  onUploadProgress(event: ProgressEvent) {
-    const newProgress = Math.round((event.loaded * 100) / event.total);
-    if (newProgress !== this.state.currentProgress) {
-      this.setState({ currentProgress: newProgress });
-    }
-  }
-
-  onUploadComplete() {
-    this.setState({ isUploading: false, currentProgress: 100 }, () => {
-      hub.emit(new AttachmentsChangedEvent(this.props.record.path));
-    });
-  }
-
-  onFileSelected() {
-    if (this.state.isUploading || !this.fileInput.current?.files) {
+  onFileSelected({ target }: { target: HTMLInputElement }) {
+    if (this.state.isUploading || !target.files) {
       return;
     }
 
-    const files: File[] = Array.prototype.slice.call(
-      this.fileInput.current.files,
-      0
-    );
+    const files = Array.prototype.slice.call(target.files, 0);
     this.setState({ currentFiles: files, isUploading: true });
 
     const formData = new FormData();
-    formData.append("path", this.props.record.path || "");
-
+    formData.append("path", this.props.record.path ?? "");
     files.forEach((file) => {
       formData.append("file", file, file.name);
     });
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", getApiUrl("/newattachment"));
-    xhr.onload = this.onUploadComplete;
-    xhr.onprogress = this.onUploadProgress;
+    xhr.onprogress = (event) => {
+      const newProgress = Math.round((event.loaded * 100) / event.total);
+      if (newProgress !== this.state.currentProgress) {
+        this.setState({ currentProgress: newProgress });
+      }
+    };
+    xhr.onload = () => {
+      this.setState({ isUploading: false, currentProgress: 100 }, () => {
+        dispatch("lektor-attachments-changed", this.props.record.path);
+      });
+    };
     xhr.send(formData);
   }
 
   render() {
-    const newAttachmentInfo = this.state.newAttachmentInfo;
+    const { newAttachmentInfo, currentFiles, currentProgress } = this.state;
 
     if (!newAttachmentInfo) {
       return null;
@@ -110,14 +96,14 @@ class AddAttachmentPage extends Component<RecordProps, State> {
         <h2>{trans_format("ADD_ATTACHMENT_TO", newAttachmentInfo.label)}</h2>
         <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
         <ul>
-          {this.state.currentFiles.map((file) => (
+          {currentFiles.map((file) => (
             <li key={file.name}>
               {file.name} ({file.type})
             </li>
           ))}
         </ul>
         <p>
-          {trans("PROGRESS")}: {this.state.currentProgress}%
+          {trans("PROGRESS")}: {currentProgress}%
         </p>
         <input
           type="file"
@@ -130,7 +116,7 @@ class AddAttachmentPage extends Component<RecordProps, State> {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={this.uploadFile}
+            onClick={() => this.fileInput.current?.click()}
           >
             {trans("UPLOAD")}
           </button>
