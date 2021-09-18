@@ -197,6 +197,10 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#927]: https://github.com/lektor/lektor/pull/927
 [#934]: https://github.com/lektor/lektor/pull/934
 
+## 3.2.2 (2021-09-18)
+
+Fix a problem with the uploaded wheel in 3.2.1 and relax some version dependencies.
+
 ## 3.2.1 (2021-09-18)
 
 This is a bugfix release that addresses some dependency incompatibilities and some admin UI bugs.
