@@ -38,6 +38,7 @@ test-all: test-js
 
 # This creates source distribution and a wheel.
 dist: build-js setup.cfg setup.py MANIFEST.in
+	rm -r build dist
 	python setup.py sdist bdist_wheel
 
 # Before making a release, CHANGES.md needs to be updated and
