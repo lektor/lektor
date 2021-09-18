@@ -453,7 +453,7 @@ def get_dependent_url(url_path, suffix, ext=None):
 
 
 @contextmanager
-def atomic_open(filename, mode="r"):
+def atomic_open(filename, mode="r", encoding=None):
     if "r" not in mode:
         fd, tmp_filename = tempfile.mkstemp(
             dir=os.path.dirname(filename), prefix=".__atomic-write"
@@ -461,7 +461,7 @@ def atomic_open(filename, mode="r"):
         os.chmod(tmp_filename, 0o644)
         f = os.fdopen(fd, mode)
     else:
-        f = open(filename, mode)
+        f = open(filename, mode=mode, encoding=encoding)
         tmp_filename = None
     try:
         yield f

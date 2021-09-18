@@ -9,7 +9,7 @@ from lektor.cli import cli
 
 def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
     os.mkdir("build_dir")
-    with open("build_dir/test", "w"):
+    with open("build_dir/test", "w", encoding="utf-8"):
         pass
     result = project_cli_runner.invoke(cli, ["build", "-O", "build_dir"], input="n\n")
     assert "Aborted!" in result.output
@@ -19,7 +19,7 @@ def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
 @imagemagick
 def test_build_continue_in_existing_nonempty_dir(project_cli_runner):
     os.mkdir("build_dir")
-    with open("build_dir/test", "w"):
+    with open("build_dir/test", "w", encoding="utf-8"):
         pass
     result = project_cli_runner.invoke(cli, ["build", "-O", "build_dir"], input="y\n")
     assert "Finished prune" in result.output

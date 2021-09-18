@@ -27,19 +27,25 @@ def children_records_data():
 def prepare_stub_data(scratch_project, children_records_data):
     """Creates folders, models, test object and its children records."""
     tree = scratch_project.tree
-    with open(os.path.join(tree, "models", "mymodel.ini"), "w") as f:
+    with open(os.path.join(tree, "models", "mymodel.ini"), "w", encoding="utf-8") as f:
         f.write("[children]\n" "order_by = -pub_date, title\n")
-    with open(os.path.join(tree, "models", "mychildmodel.ini"), "w") as f:
+    with open(
+        os.path.join(tree, "models", "mychildmodel.ini"), "w", encoding="utf-8"
+    ) as f:
         f.write(
             "[fields.title]\n" "type = string\n" "[fields.pub_date]\n" "type = date"
         )
     os.mkdir(os.path.join(tree, "content", "myobj"))
-    with open(os.path.join(tree, "content", "myobj", "contents.lr"), "w") as f:
+    with open(
+        os.path.join(tree, "content", "myobj", "contents.lr"), "w", encoding="utf-8"
+    ) as f:
         f.write("_model: mymodel\n" "---\n" "title: My Test Object\n")
     for record in children_records_data:
         os.mkdir(os.path.join(tree, "content", "myobj", record["id"]))
         with open(
-            os.path.join(tree, "content", "myobj", record["id"], "contents.lr"), "w"
+            os.path.join(tree, "content", "myobj", record["id"], "contents.lr"),
+            "w",
+            encoding="utf-8",
         ) as f:
             f.write(
                 "_model: mychildmodel\n"

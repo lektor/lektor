@@ -160,15 +160,12 @@ def get_default_author():
 
 def get_default_author_email():
     try:
-        value = (
-            subprocess.Popen(
-                ["git", "config", "user.email"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            .communicate()[0]
-            .strip()
-        )
+        with subprocess.Popen(
+            ["git", "config", "user.email"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as proc:
+            value = proc.communicate()[0].strip()
         return value.decode("utf-8")
     except Exception:
         return None

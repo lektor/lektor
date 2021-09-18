@@ -33,7 +33,7 @@ def test_new_plugin(project_cli_runner):
         *.egg-info
     """
     ).strip()
-    with open(os.path.join(path, ".gitignore")) as f:
+    with open(os.path.join(path, ".gitignore"), encoding="utf-8") as f:
         gitignore_contents = f.read().strip()
     assert gitignore_contents == gitignore_expected
 
@@ -46,7 +46,7 @@ def test_new_plugin(project_cli_runner):
         Provide usage instructions here.
     """
     ).strip()
-    with open(os.path.join(path, "README.md")) as f:
+    with open(os.path.join(path, "README.md"), encoding="utf-8") as f:
         readme_contents = f.read().strip()
     assert readme_contents == readme_expected
 
@@ -94,7 +94,7 @@ def test_new_plugin(project_cli_runner):
     """
     ).strip()
 
-    with open(os.path.join(path, "setup.py")) as f:
+    with open(os.path.join(path, "setup.py"), encoding="utf-8") as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
 
@@ -115,7 +115,7 @@ def test_new_plugin(project_cli_runner):
                 context['test_function'] = test_function
     """
     ).strip()
-    with open(os.path.join(path, "lektor_plugin_name.py")) as f:
+    with open(os.path.join(path, "lektor_plugin_name.py"), encoding="utf-8") as f:
         plugin_contents = f.read().strip()
     assert plugin_contents == plugin_expected
 
@@ -197,7 +197,7 @@ def test_new_plugin_name_only(project_cli_runner):
     """
     ).strip()
     setup_expected = setup_expected.format(author, author_email)
-    with open(os.path.join(path, "plugin-name", "setup.py")) as f:
+    with open(os.path.join(path, "plugin-name", "setup.py"), encoding="utf-8") as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
 
@@ -286,7 +286,7 @@ def test_new_theme(project_cli_runner):
     assert theme_inifile["author.email"] == "author@email.com"
     assert theme_inifile["author.name"] == "Author Name"
 
-    with open(os.path.join(path, "README.md")) as f:
+    with open(os.path.join(path, "README.md"), encoding="utf-8") as f:
         readme_contents = f.read().strip()
     assert "Lektor Theme Name" in readme_contents
 
@@ -340,7 +340,7 @@ def test_new_theme_name_only(project_cli_runner):
     assert theme_inifile["author.email"] == get_default_author_email()
     assert theme_inifile["author.name"] == get_default_author()
 
-    with open(os.path.join(path, "README.md")) as f:
+    with open(os.path.join(path, "README.md"), encoding="utf-8") as f:
         readme_contents = f.read().strip()
     assert "Lektor Name Theme" in readme_contents
 

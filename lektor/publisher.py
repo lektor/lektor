@@ -57,7 +57,7 @@ def _write_ssh_key_file(temp_fn, credentials):
                 kt = "RSA"
             else:
                 kt, key = parts
-            with open(temp_fn, "w") as f:
+            with open(temp_fn, "w", encoding="utf-8") as f:
                 f.write("-----BEGIN %s PRIVATE KEY-----\n" % kt.upper())
                 for x in range(0, len(key), 64):
                     f.write(key[x : x + 64] + "\n")
@@ -543,7 +543,7 @@ class GithubPagesPublisher(Publisher):
             push_url = "https://github.com/%s.git" % path
             cred = self.get_credentials(url, credentials)
 
-        with open(os.path.join(repo, ".git", "config"), "a") as f:
+        with open(os.path.join(repo, ".git", "config"), "a", encoding="utf-8") as f:
             f.write(
                 '[remote "origin"]\nurl = %s\n'
                 "fetch = +refs/heads/%s:refs/remotes/origin/%s\n"
@@ -552,7 +552,7 @@ class GithubPagesPublisher(Publisher):
             if cred:
                 cred_path = os.path.join(repo, ".git", "credentials")
                 f.write('[credential]\nhelper = store --file "%s"\n' % cred_path)
-                with open(cred_path, "w") as cf:
+                with open(cred_path, "w", encoding="utf-8") as cf:
                     cf.write("https://%s@github.com\n" % cred)
 
         return ssh_command
@@ -598,7 +598,7 @@ class GithubPagesPublisher(Publisher):
         params = target_url.decode_query()
         cname = params.get("cname")
         if cname is not None:
-            with open(os.path.join(path, "CNAME"), "w") as f:
+            with open(os.path.join(path, "CNAME"), "w", encoding="utf-8") as f:
                 f.write("%s\n" % cname)
 
     @staticmethod

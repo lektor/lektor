@@ -94,7 +94,8 @@ def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
 
     request.addfinalizer(cleanup)
     os.makedirs(post3_dir)
-    open(os.path.join(post3_dir, "contents.lr"), "w+").close()
+    with open(os.path.join(post3_dir, "contents.lr"), "w+", encoding="utf-8"):
+        pass
 
     reporter.clear()
     builder = Builder(env.new_pad(), builder.destination_path)

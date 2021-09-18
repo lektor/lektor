@@ -87,6 +87,7 @@ def rewrite_html_for_editing(fp, edit_url):
 
 
 def send_file(filename):
+    # pylint: disable=consider-using-with
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is None:
         mimetype = "application/octet-stream"

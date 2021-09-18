@@ -148,7 +148,9 @@ _THUMBNAILS.update(_DIFFERING_THUMBNAILS)
 
 def test_thumbnail_dimensions_reported(builder):
     builder.build_all()
-    with open(os.path.join(builder.destination_path, "index.html")) as f:
+    with open(
+        os.path.join(builder.destination_path, "index.html"), encoding="utf-8"
+    ) as f:
         html = f.read()
 
     for t, (w, h) in _THUMBNAILS.items():
@@ -205,7 +207,9 @@ def test_thumbnail_quality(builder):
 @pytest.mark.skip(reason="future behaviour")
 def test_large_thumbnail_returns_original(builder):
     builder.build_all()
-    with open(os.path.join(builder.destination_path, "index.html")) as f:
+    with open(
+        os.path.join(builder.destination_path, "index.html"), encoding="utf-8"
+    ) as f:
         html = f.read()
 
     assert '<img alt="original" src="./test.jpg" width="384" height="512">' in html

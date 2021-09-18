@@ -52,7 +52,7 @@ class Plugin:
 
     @property
     def path(self):
-        mod = sys.modules[self.__class__.__module__.split(".")[0]]
+        mod = sys.modules[self.__class__.__module__.split(".", maxsplit=1)[0]]
         path = os.path.abspath(os.path.dirname(mod.__file__))
         if not path.startswith(self.env.project.get_package_cache_path()):
             return path
