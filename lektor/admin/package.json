@@ -1,7 +1,10 @@
 {
   "name": "lektor",
-  "version": "0.0.0",
+  "license": "ISC",
   "private": true,
+  "engines": {
+    "node": ">=14"
+  },
   "dependencies": {
     "@openfonts/roboto-slab_all": "^1.0.1"
   },
@@ -93,7 +96,5 @@
     "require": [
       "./babel-require.js"
     ]
-  },
-  "author": "",
-  "license": "ISC"
+  }
 }
