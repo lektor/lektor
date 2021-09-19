@@ -84,7 +84,7 @@ function Publish({
 }: {
   dismiss: () => void;
   preventNavigation: (b: boolean) => void;
-}) {
+}): JSX.Element {
   const [servers, setServers] = useState<Server[]>([]);
   const [activeTarget, setActiveTarget] = useState("");
   const [log, setLog] = useState<string[]>([]);

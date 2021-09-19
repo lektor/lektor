@@ -22,7 +22,7 @@ function FindFiles({
   page,
   record,
   dismiss,
-}: RecordProps & { dismiss: () => void }) {
+}: RecordProps & { dismiss: () => void }): JSX.Element {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [selected, setSelected] = useState(-1);

@@ -1,11 +1,11 @@
-export function isValidUrl(url: string) {
+export function isValidUrl(url: string): boolean {
   return !!url.match(/^([a-z0-9+.-]+):(\/\/)?[^/]\S+$/);
 }
 
 /**
  * Trim leading slashes from a string.
  */
-export function stripLeadingSlashes(string: string) {
+export function stripLeadingSlashes(string: string): string {
   const match = /^\/*(.*?)$/.exec(string);
   return match ? match[1] : "";
 }
@@ -13,7 +13,7 @@ export function stripLeadingSlashes(string: string) {
 /**
  * Trim trailing slashes from a string.
  */
-export function stripTrailingSlashes(string: string) {
+export function stripTrailingSlashes(string: string): string {
   const match = /^(.*?)\/*$/.exec(string);
   return match ? match[1] : "";
 }
@@ -21,7 +21,7 @@ export function stripTrailingSlashes(string: string) {
 /**
  * Trim both leading and trailing slashes from a string.
  */
-export function trimSlashes(string: string) {
+export function trimSlashes(string: string): string {
   const match = /^\/*(.*?)\/*$/.exec(string);
   return match ? match[1] : "";
 }
@@ -29,28 +29,28 @@ export function trimSlashes(string: string) {
 /**
  * Trim both leading and trailing colons from a string.
  */
-export function trimColons(string: string) {
+export function trimColons(string: string): string {
   const match = /^:*(.*?):*$/.exec(string);
   return match ? match[1] : "";
 }
 
-export function getCanonicalUrl(localPath: string) {
+export function getCanonicalUrl(localPath: string): string {
   const base = stripTrailingSlashes($LEKTOR_CONFIG.site_root);
   return `${base}/${stripLeadingSlashes(localPath)}`;
 }
 
-export function urlPathsConsideredEqual(a: string | null, b: string | null) {
+export function urlPathsConsideredEqual(a: string, b: string | null): boolean {
   if (a == null || b == null) {
     return false;
   }
   return stripTrailingSlashes(a) === stripTrailingSlashes(b);
 }
 
-export function getApiUrl(url: string) {
+export function getApiUrl(url: string): string {
   return `${$LEKTOR_CONFIG.admin_root}/api${url}`;
 }
 
-export function getPlatform() {
+export function getPlatform(): "windows" | "mac" | "linux" | "other" {
   if (navigator.appVersion.indexOf("Win") !== -1) {
     return "windows";
   } else if (navigator.appVersion.indexOf("Mac") !== -1) {
@@ -99,12 +99,12 @@ export function keyboardShortcutHandler(
   };
 }
 
-export function getParentFsPath(fsPath: string) {
+export function getParentFsPath(fsPath: string): string | null {
   const match = /^(.*?)\/([^/]*)$/.exec(fsPath);
   return match ? match[1] : null;
 }
 
-export function fsToUrlPath(fsPath: string) {
+export function fsToUrlPath(fsPath: string): string {
   let segments = trimSlashes(fsPath).split("/");
   if (segments.length === 1 && segments[0] === "") {
     segments = [];
@@ -113,7 +113,7 @@ export function fsToUrlPath(fsPath: string) {
   return segments.join(":");
 }
 
-export function urlToFsPath(urlPath: string) {
+export function urlToFsPath(urlPath: string): string | null {
   const segments = trimColons(urlPath).split(":");
   if (segments.length < 1 || segments[0] !== "root") {
     return null;
@@ -122,7 +122,7 @@ export function urlToFsPath(urlPath: string) {
   return segments.join("/");
 }
 
-export function fsPathFromAdminObservedPath(adminPath: string) {
+export function fsPathFromAdminObservedPath(adminPath: string): string | null {
   const base = stripTrailingSlashes($LEKTOR_CONFIG.site_root);
   if (adminPath.substr(0, base.length) !== base) {
     return null;

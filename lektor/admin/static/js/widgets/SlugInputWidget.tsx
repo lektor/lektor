@@ -6,7 +6,7 @@ function postprocessSlug(value: string) {
   return value.replace(/\s+/g, "-");
 }
 
-export function SlugInputWidget(props: WidgetProps) {
+export function SlugInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"

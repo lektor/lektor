@@ -42,7 +42,7 @@ export default function LinkWithHotkey(props: {
   to: string;
   children: ReactNode;
   shortcut: KeyboardShortcut;
-}) {
+}): JSX.Element {
   let path = props.to;
   if (path.substr(0, 1) !== "/") {
     path = `${$LEKTOR_CONFIG.admin_root}/${path}`;

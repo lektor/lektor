@@ -2,17 +2,17 @@ import { Field } from "./types";
 import React from "react";
 import { trans_obj } from "../i18n";
 
-export function LineWidget() {
+export function LineWidget(): JSX.Element {
   return <hr />;
 }
 LineWidget.isFakeWidget = true;
 
-export function SpacingWidget() {
+export function SpacingWidget(): JSX.Element {
   return <div className="spacing" />;
 }
 SpacingWidget.isFakeWidget = true;
 
-export function InfoWidget(props: { field: Field }) {
+export function InfoWidget(props: { field: Field }): JSX.Element {
   const label = trans_obj(props.field.label_i18n);
   return (
     <div className="info">
@@ -25,7 +25,7 @@ export function InfoWidget(props: { field: Field }) {
 }
 InfoWidget.isFakeWidget = true;
 
-export function HeadingWidget(props: { field: Field }) {
+export function HeadingWidget(props: { field: Field }): JSX.Element {
   return <h3>{trans_obj(props.field.type.heading_i18n ?? {})}</h3>;
 }
 HeadingWidget.isFakeWidget = true;

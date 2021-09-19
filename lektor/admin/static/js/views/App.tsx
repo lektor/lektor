@@ -16,7 +16,7 @@ export default function App({
   children: ReactNode;
   page: string;
   record: RecordPathDetails;
-}) {
+}): JSX.Element {
   const history = useHistory();
 
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);

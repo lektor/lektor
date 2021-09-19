@@ -17,25 +17,25 @@ export class MultiLineTextInputWidget extends Component<WidgetProps> {
     this.recalculateSize = this.recalculateSize.bind(this);
   }
 
-  onChange(event: ChangeEvent<HTMLTextAreaElement>) {
+  onChange(event: ChangeEvent<HTMLTextAreaElement>): void {
     this.recalculateSize();
     this.props.onChange(event.target.value);
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     this.recalculateSize();
     window.addEventListener("resize", this.recalculateSize);
   }
 
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     window.removeEventListener("resize", this.recalculateSize);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(): void {
     this.recalculateSize();
   }
 
-  recalculateSize() {
+  recalculateSize(): void {
     const node = this.textarea.current;
     if (!node) {
       return;
@@ -66,7 +66,7 @@ export class MultiLineTextInputWidget extends Component<WidgetProps> {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     const { type, value, placeholder, disabled } = this.props;
 
     return (

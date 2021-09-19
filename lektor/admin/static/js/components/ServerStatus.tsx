@@ -6,7 +6,7 @@ type State = { serverIsUp: boolean; projectId: string | null };
 
 type Response = { project_id: string };
 
-export default function ServerStatus() {
+export default function ServerStatus(): JSX.Element | null {
   const [state, setState] = useState<State>({
     serverIsUp: true,
     projectId: null,

@@ -9,7 +9,7 @@ type DialogDetails = LektorEvents["lektor-dialog"];
 
 type DialogState = (DialogDetails & { preventNavigation?: boolean }) | null;
 
-export default function DialogSlot(props: RecordProps) {
+export default function DialogSlot(props: RecordProps): JSX.Element | null {
   const [dialog, setDialog] = useState<DialogState>(null);
 
   const dismiss = useCallback(

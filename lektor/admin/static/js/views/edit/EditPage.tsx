@@ -141,7 +141,7 @@ function getValues({
   return rv;
 }
 
-function EditPage({ record }: Pick<RecordProps, "record">) {
+function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
   const form = useRef<HTMLFormElement | null>(null);
   // The deserialised record data.
   const [recordData, setRecordData] = useState<Record<string, string>>({});

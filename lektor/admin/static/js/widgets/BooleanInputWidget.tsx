@@ -11,7 +11,7 @@ export function BooleanInputWidget({
   disabled,
   placeholder,
   onChange,
-}: WidgetProps) {
+}: WidgetProps): JSX.Element {
   return (
     <div className="form-check">
       <label className="form-check-label">

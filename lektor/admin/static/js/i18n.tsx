@@ -34,12 +34,12 @@ export const translations: Record<string, Partial<LektorTranslations>> = {
 let currentLanguage = "en";
 let currentTranslations = translations[currentLanguage] ?? {};
 
-export function setCurrentLanguage(lang: string) {
+export function setCurrentLanguage(lang: string): void {
   currentLanguage = lang;
   currentTranslations = translations[currentLanguage];
 }
 
-export function getCurrentLanguge() {
+export function getCurrentLanguge(): string {
   return currentLanguage;
 }
 

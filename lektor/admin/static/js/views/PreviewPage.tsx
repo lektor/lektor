@@ -26,7 +26,9 @@ function getIframePath(iframe: HTMLIFrameElement): string | null {
     : fsPathFromAdminObservedPath(location.pathname);
 }
 
-export default function PreviewPage({ record }: Pick<RecordProps, "record">) {
+export default function PreviewPage({
+  record,
+}: Pick<RecordProps, "record">): JSX.Element {
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const [pageUrl, setPageUrl] = useState<string | null>(null);
   const [pageUrlPath, setPageUrlPath] = useState<string | null>(null);

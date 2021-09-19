@@ -150,7 +150,7 @@ function serializeFlowBlock(
 
 export function FlowWidget(
   props: WidgetProps<readonly FlowBlockData[], FlowBlockWidgetType>
-) {
+): JSX.Element {
   const { value, onChange } = props;
 
   const moveBlock = useCallback(

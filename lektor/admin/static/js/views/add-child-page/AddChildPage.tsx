@@ -21,7 +21,7 @@ const alertErr = (text: string) => {
 
 type Props = Pick<RecordProps, "record">;
 
-function AddChildPage({ record }: Props) {
+function AddChildPage({ record }: Props): JSX.Element | null {
   const [newChildInfo, setNewChildInfo] = useState<NewRecordInfo | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [id, setId] = useState<string>("");

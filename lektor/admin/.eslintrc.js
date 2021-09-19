@@ -17,12 +17,8 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "react"],
   rules: {
-    "no-undef": 0,
-    "no-unused-vars": 0,
     "react/prop-types": 0,
-    "react/no-access-state-in-setstate": "error",
     "react/button-has-type": "error",
-    "@typescript-eslint/explicit-module-boundary-types": 0,
     "@typescript-eslint/no-explicit-any": 0,
   },
 };

@@ -12,7 +12,7 @@ export default function Header({
 }: {
   sidebarIsActive: boolean;
   toggleSidebar: () => void;
-} & Pick<RecordProps, "record" | "page">) {
+} & Pick<RecordProps, "record" | "page">): JSX.Element {
   const buttonClass = sidebarIsActive
     ? "navbar-toggle active"
     : "navbar-toggle";

@@ -121,7 +121,9 @@ export function getWidgetComponentWithFallback(
 /**
  * Get the width of a field in columns.
  */
-export function getFieldColumns(field: { type: Pick<WidgetType, "width"> }) {
+export function getFieldColumns(field: {
+  type: Pick<WidgetType, "width">;
+}): number {
   const widthSpec = (field.type.width || "1/1").split("/");
   const fraction = (12 * +widthSpec[0]) / +widthSpec[1];
   return Number.isNaN(fraction)
@@ -157,7 +159,7 @@ function processFields(fields: Field[]): Field[][] {
 /**
  * Split the fields into normal and system fields.
  */
-export function splitFields(fields: Field[]) {
+export function splitFields(fields: Field[]): [Field[], Field[]] {
   const normalFields: Field[] = [];
   const systemFields: Field[] = [];
 
@@ -181,7 +183,7 @@ export function FieldRows({
 }: {
   fields: Field[];
   renderFunc: (field: Field) => ReactNode;
-}) {
+}): JSX.Element {
   const rows = useMemo(() => processFields(fields), [fields]);
   return (
     <>

@@ -373,7 +373,7 @@ const pretty: SlugifyOptions = {
   multicharmap,
 };
 
-export function slugify(rawString: string) {
+export function slugify(rawString: string): string {
   const string = rawString.toString();
   const opts = pretty;
   const lengths: number[] = [];

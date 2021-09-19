@@ -19,7 +19,7 @@ import { useHistory } from "react-router";
 
 type Props = Pick<RecordProps, "record">;
 
-function DeletePage({ record }: Props) {
+function DeletePage({ record }: Props): JSX.Element | null {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [deleteMasterRecord, setDeleteMasterRecord] = useState(true);
 

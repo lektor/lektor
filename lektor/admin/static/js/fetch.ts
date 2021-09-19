@@ -33,8 +33,8 @@ function paramsToQueryString(params: Record<string, string | null>) {
 export function loadData(
   url: string,
   params: Record<string, string | null> | null,
-  options?: any
-) {
+  options?: RequestInit & { json?: unknown }
+): Promise<any> {
   const apiUrl = `${$LEKTOR_CONFIG.admin_root}/api${url}`;
   const fetchUrl = params ? `${apiUrl}?${paramsToQueryString(params)}` : apiUrl;
 

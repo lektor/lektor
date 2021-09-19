@@ -16,7 +16,7 @@ export function getRecordPathAndAlt(
  * @param name - Name of the page (or null for the current one).
  * @param path - Record (URL) path.
  */
-export function pathToAdminPage(name: string, path: string) {
+export function pathToAdminPage(name: string, path: string): string {
   return `${$LEKTOR_CONFIG.admin_root}/${path}/${name}`;
 }
 

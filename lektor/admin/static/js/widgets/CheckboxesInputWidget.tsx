@@ -30,7 +30,7 @@ export function CheckboxesInputWidget({
   onChange,
   value,
   placeholder,
-}: WidgetProps<string, MultiWidgetType>) {
+}: WidgetProps<string, MultiWidgetType>): JSX.Element {
   const deserializedValue = deserialize(value);
   const deserializedPlaceholder = deserialize(placeholder);
 

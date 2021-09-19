@@ -17,7 +17,9 @@ type NewAttachmentInfo = {
   can_upload: boolean;
 };
 
-function AddAttachmentPage({ record }: Pick<RecordProps, "record">) {
+function AddAttachmentPage({
+  record,
+}: Pick<RecordProps, "record">): JSX.Element | null {
   const [newAttachmentInfo, setNewAttachmentInfo] =
     useState<NewAttachmentInfo | null>(null);
   const fileInput = useRef<HTMLInputElement | null>(null);
