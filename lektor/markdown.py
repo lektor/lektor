@@ -11,9 +11,18 @@ from lektor.context import get_ctx
 
 _markdown_cache = threading.local()
 
+_old_mistune = int(mistune.__version__.split('.')[0]) < 2
 
-class ImprovedRenderer(mistune.Renderer):
-    def link(self, link, title, text):
+if _old_mistune:
+    from mistune import Renderer as BaseRenderer
+else:
+    from mistune import HTMLRenderer as BaseRenderer
+
+
+class ImprovedRenderer(BaseRenderer):
+    def link(self, link, text=None, title=None):
+        if _old_mistune:
+            (title, text) = (text, title)
         if self.record is not None:
             url = url_parse(link)
             if not url.scheme:
@@ -24,17 +33,19 @@ class ImprovedRenderer(mistune.Renderer):
         title = escape(title)
         return '<a href="%s" title="%s">%s</a>' % (link, title, text)
 
-    def image(self, src, title, text):
+    def image(self, src, alt="", title=None):
+        if _old_mistune:
+            (title, alt) = (alt, title)
         if self.record is not None:
             url = url_parse(src)
             if not url.scheme:
                 src = self.record.url_to("!" + src, base_url=get_ctx().base_url)
         src = escape(src)
-        text = escape(text)
+        alt = escape(alt)
         if title:
             title = escape(title)
-            return '<img src="%s" alt="%s" title="%s">' % (src, text, title)
-        return '<img src="%s" alt="%s">' % (src, text)
+            return '<img src="%s" alt="%s" title="%s">' % (src, alt, title)
+        return '<img src="%s" alt="%s">' % (src, alt)
 
 
 class MarkdownConfig:
@@ -56,7 +67,9 @@ def make_markdown(env):
     env.plugin_controller.emit("markdown-config", config=cfg)
     renderer = cfg.make_renderer()
     env.plugin_controller.emit("markdown-lexer-config", config=cfg, renderer=renderer)
-    return mistune.Markdown(renderer, **cfg.options)
+    if _old_mistune:
+        return mistune.Markdown(renderer, **cfg.options)
+    return mistune.Markdown(renderer)
 
 
 def markdown_to_html(text, record=None):
