@@ -37,9 +37,9 @@ test-all: test-js
 	tox
 
 # This creates source distribution and a wheel.
-dist: build-js setup.cfg setup.py MANIFEST.in
+dist: build-js setup.cfg MANIFEST.in
 	rm -r build dist
-	python setup.py sdist bdist_wheel
+	python -m build
 
 # Before making a release, CHANGES.md needs to be updated and
 # a tag should be created (and pushed with `git push --tags`).
