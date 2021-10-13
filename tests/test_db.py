@@ -199,7 +199,7 @@ def test_distinct(pad):
 
 def test_root_pagination(scratch_project, scratch_env):
     base = scratch_project.tree
-    with open(os.path.join(base, "models", "page.ini"), "w") as f:
+    with open(os.path.join(base, "models", "page.ini"), "w", encoding="utf-8") as f:
         f.write(
             "[model]\n"
             "label = {{ this.title }}\n\n"
@@ -216,7 +216,9 @@ def test_root_pagination(scratch_project, scratch_env):
 
     for name in "a", "b", "c":
         os.mkdir(os.path.join(base, "content", name))
-        with open(os.path.join(base, "content", name, "contents.lr"), "w") as f:
+        with open(
+            os.path.join(base, "content", name, "contents.lr"), "w", encoding="utf-8"
+        ) as f:
             f.write(
                 "_model: page\n"
                 "---\n"
@@ -286,7 +288,7 @@ def test_hidden_flag(pad):
 
 def test_default_order_by(scratch_project, scratch_env):
     tree = scratch_project.tree
-    with open(os.path.join(tree, "models", "mymodel.ini"), "w") as f:
+    with open(os.path.join(tree, "models", "mymodel.ini"), "w", encoding="utf-8") as f:
         f.write(
             "[children]\n"
             "order_by = title\n"
@@ -294,7 +296,9 @@ def test_default_order_by(scratch_project, scratch_env):
             "order_by = attachment_filename\n"
         )
     os.mkdir(os.path.join(tree, "content", "myobj"))
-    with open(os.path.join(tree, "content", "myobj", "contents.lr"), "w") as f:
+    with open(
+        os.path.join(tree, "content", "myobj", "contents.lr"), "w", encoding="utf-8"
+    ) as f:
         f.write("_model: mymodel\n" "---\n" "title: My Test Object\n")
 
     pad = Database(scratch_env).new_pad()

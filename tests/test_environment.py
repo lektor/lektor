@@ -8,7 +8,9 @@ import pytest
 @pytest.fixture
 def compile_template(scratch_env):
     def compile_template(source, name="tmpl.html"):
-        Path(scratch_env.root_path, "templates", name).write_text(source)
+        Path(scratch_env.root_path, "templates", name).write_text(
+            source, encoding="utf-8"
+        )
         return scratch_env.jinja_env.get_template(name)
 
     return compile_template

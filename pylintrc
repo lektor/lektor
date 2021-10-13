@@ -14,6 +14,8 @@ max-returns=8
 
 [MESSAGES CONTROL]
 disable =
+    redundant-u-string-prefix,
+    consider-using-f-string,
     no-member,
     missing-docstring,
     unused-argument,

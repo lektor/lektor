@@ -686,7 +686,7 @@ class Artifact:
         except OSError:
             pass
 
-    def open(self, mode="rb", ensure_dir=None):
+    def open(self, mode="rb", encoding=None, ensure_dir=None):
         """Opens the artifact for reading or writing.  This is transaction
         safe by writing into a temporary file and by moving it over the
         actual source in commit.
@@ -697,7 +697,7 @@ class Artifact:
             self.ensure_dir()
         if "r" in mode:
             fn = self._new_artifact_file or self.dst_filename
-            return open(fn, mode)
+            return open(fn, mode=mode, encoding=encoding)
         if self._new_artifact_file is None:
             fd, tmp_filename = tempfile.mkstemp(
                 dir=os.path.dirname(self.dst_filename), prefix=".__trans"
@@ -705,7 +705,7 @@ class Artifact:
             os.chmod(tmp_filename, 0o644)
             self._new_artifact_file = tmp_filename
             return os.fdopen(fd, mode)
-        return open(self._new_artifact_file, mode)
+        return open(self._new_artifact_file, mode=mode, encoding=encoding)
 
     def replace_with_file(self, filename, ensure_dir=True, copy=False):
         """This is similar to open but it will move over a given named
@@ -1131,10 +1131,7 @@ class Builder:
         ):
             if isinstance(source, cls):
                 return builder(source, build_state)
-        # TODO: re-enable pylint when https://github.com/PyCQA/pylint/issues/1782 is fixed.
-        raise RuntimeError(
-            "I do not know how to build %r" % source
-        )  # pylint: disable=inconsistent-return-statements
+        raise RuntimeError("I do not know how to build %r" % source)
 
     def build_artifact(self, artifact, build_func):
         """Various parts of the system once they have an artifact and a

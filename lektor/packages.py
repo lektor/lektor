@@ -204,7 +204,7 @@ def publish_package(path):
 def load_manifest(filename):
     rv = {}
     try:
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             for line in f:
                 if line[:1] == "@":
                     rv[line.strip()] = None
@@ -221,7 +221,7 @@ def load_manifest(filename):
 
 
 def write_manifest(filename, packages):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         for package, version in sorted(packages.items()):
             if package[:1] == "@":
                 f.write("%s\n" % package)

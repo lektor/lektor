@@ -143,7 +143,9 @@ def test_metadata(pad):
 @require_ffmpeg
 def test_thumbnail_height(builder):
     builder.build_all()
-    with open(os.path.join(builder.destination_path, "index.html")) as f:
+    with open(
+        os.path.join(builder.destination_path, "index.html"), encoding="utf-8"
+    ) as f:
         html = f.read()
 
     # The first thumbnail has the same dimensions as the source video,
