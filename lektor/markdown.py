@@ -16,11 +16,11 @@ _old_mistune = int(mistune.__version__.split('.')[0]) < 2
 if _old_mistune:
     from mistune import Renderer as BaseRenderer
 else:
-    from mistune import HTMLRenderer as BaseRenderer
+    from mistune import HTMLRenderer as BaseRenderer  # pylint: disable=no-name-in-module
 
 
 class ImprovedRenderer(BaseRenderer):
-    def link(self, link, text=None, title=None):
+    def link(self, link, text=None, title=None):  # pylint: disable=arguments-differ
         if _old_mistune:
             (title, text) = (text, title)
         if self.record is not None:
@@ -33,7 +33,7 @@ class ImprovedRenderer(BaseRenderer):
         title = escape(title)
         return '<a href="%s" title="%s">%s</a>' % (link, title, text)
 
-    def image(self, src, alt="", title=None):
+    def image(self, src, alt="", title=None):  # pylint: disable=arguments-differ
         if _old_mistune:
             (title, alt) = (alt, title)
         if self.record is not None:
