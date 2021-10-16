@@ -80,7 +80,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python: ["3.6", "3.9"]
+        python: ["3.6", "3.10"]
         include:
           - os: "ubuntu-latest"
             path: ~/.cache/pip
@@ -94,6 +94,9 @@ jobs:
           - os: "ubuntu-latest"
             path: ~/.cache/pip
             python: "3.8"
+          - os: "ubuntu-latest"
+            path: ~/.cache/pip
+            python: "3.9"
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
@@ -105,10 +108,10 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos') && matrix.python == '3.9'
+        if: startsWith(runner.os, 'macos') && matrix.python == '3.10'
         run: brew install imagemagick ffmpeg
       - name: Install Windows system dependencies
-        if: startsWith(runner.os, 'windows') && matrix.python == '3.9'
+        if: startsWith(runner.os, 'windows') && matrix.python == '3.10'
         run: choco install --no-progress --timeout 600 imagemagick.tool ffmpeg
         continue-on-error: true
       - name: Workaround for UnicodeDecodeError from tox on Windows
