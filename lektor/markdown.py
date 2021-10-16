@@ -11,7 +11,7 @@ from lektor.context import get_ctx
 
 _markdown_cache = threading.local()
 
-_old_mistune = int(mistune.__version__.split('.')[0]) < 2
+_old_mistune = int(mistune.__version__.split('.', maxsplit=1)[0]) < 2
 
 if _old_mistune:
     from mistune import Renderer as BaseRenderer
@@ -20,7 +20,7 @@ else:
 
 
 class ImprovedRenderer(BaseRenderer):
-    def link(self, link, text=None, title=None):  # pylint: disable=arguments-differ
+    def link(self, link, text=None, title=None):  # pylint: disable=arguments-differ, arguments-renamed
         if _old_mistune:
             (title, text) = (text, title)
         if self.record is not None:
@@ -33,7 +33,7 @@ class ImprovedRenderer(BaseRenderer):
         title = escape(title)
         return '<a href="%s" title="%s">%s</a>' % (link, title, text)
 
-    def image(self, src, alt="", title=None):  # pylint: disable=arguments-differ
+    def image(self, src, alt="", title=None):  # pylint: disable=arguments-differ, arguments-renamed
         if _old_mistune:
             (title, alt) = (alt, title)
         if self.record is not None:
