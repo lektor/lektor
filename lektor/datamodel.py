@@ -54,6 +54,11 @@ class PaginationConfig:
         self.enabled = enabled
         if per_page is None:
             per_page = 20
+        elif not isinstance(per_page, int):
+            raise TypeError(f"per_page must be an int or None, not {per_page!r}")
+        if per_page <= 0:
+            raise ValueError("per_page must be positive, not {per_page}")
+
         self.per_page = per_page
         if url_suffix is None:
             url_suffix = "page"
