@@ -14,6 +14,7 @@ from itertools import chain
 import click
 
 from lektor._compat import iteritems
+from lektor._compat import os_replace
 from lektor._compat import PY2
 from lektor._compat import text_type
 from lektor.build_programs import builtin_build_programs
@@ -928,7 +929,7 @@ class Artifact(object):
                 op(con)
 
             if self._new_artifact_file is not None:
-                os.replace(self._new_artifact_file, self.dst_filename)
+                os_replace(self._new_artifact_file, self.dst_filename)
                 self._new_artifact_file = None
 
             if con is not None:

@@ -37,6 +37,8 @@ if PY2:
         "def reraise(tp, value, tb=None):\n raise tp, value, tb"
     )
 
+    from werkzeug.posixemulation import rename as os_replace  # noqa
+
 
 else:
     unichr = chr
@@ -58,6 +60,8 @@ else:
         if value.__traceback__ is not tb:
             raise value.with_traceback(tb)
         raise value
+
+    from os import replace as os_replace  # noqa
 
 
 def python_2_unicode_compatible(klass):
