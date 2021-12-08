@@ -1,6 +1,3 @@
-from math import ceil
-
-
 class Pagination:
     def __init__(self, record, pagination_config):
         #: the pagination config
@@ -22,11 +19,13 @@ class Pagination:
     @property
     def pages(self):
         """The total number of pages."""
-        if self.per_page == 0:
+        if self.per_page <= 0:
+            # XXX: What does per_page = 0 mean? Should this trigger an error?
             pages = 0
         else:
-            pages = int(ceil(self.total / float(self.per_page)))
-        return pages
+            pages = (self.total + self.per_page - 1) // self.per_page
+        # Even when there are no children, we want at least one page
+        return max(pages, 1)
 
     @property
     def prev_num(self):

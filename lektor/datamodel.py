@@ -1,5 +1,4 @@
 import errno
-import math
 import os
 
 from inifile import IniFile
@@ -69,7 +68,9 @@ class PaginationConfig:
     def count_pages(self, record):
         """Returns the total number of pages for the children of a record."""
         total = self.count_total_items(record)
-        return int(math.ceil(total / float(self.per_page)))
+        npages = (total + self.per_page - 1) // self.per_page
+        # Even when there are no children, we want at least one page
+        return max(npages, 1)
 
     def slice_query_for_page(self, record, page):
         """Slices the query so it returns the children for a given page."""
