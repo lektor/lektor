@@ -41,6 +41,7 @@ from lektor._compat import (
     string_types,
     text_type,
     range_type,
+    os_replace,
 )
 from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
 
@@ -498,7 +499,7 @@ def atomic_open(filename, mode="r"):
     else:
         f.close()
         if tmp_filename is not None:
-            os.replace(tmp_filename, filename)
+            os_replace(tmp_filename, filename)
 
 
 def portable_popen(cmd, *args, **kwargs):
