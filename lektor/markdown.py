@@ -19,8 +19,9 @@ class ImprovedRenderer(mistune.Renderer):
             url = url_parse(link)
             if not url.scheme:
                 # PRIMARY_ALT is used because images aren't generated for each alt
-                link = self.record.url_to("!" + link, alt=PRIMARY_ALT,
-                                          base_url=get_ctx().base_url)
+                link = self.record.url_to(
+                    "!" + link, alt=PRIMARY_ALT, base_url=get_ctx().base_url
+                )
         link = escape(link)
         if not title:
             return '<a href="%s">%s</a>' % (link, text)
@@ -32,8 +33,9 @@ class ImprovedRenderer(mistune.Renderer):
             url = url_parse(src)
             if not url.scheme:
                 # PRIMARY_ALT is used because images aren't generated for each alt
-                src = self.record.url_to("!" + src, alt=PRIMARY_ALT,
-                                         base_url=get_ctx().base_url)
+                src = self.record.url_to(
+                    "!" + src, alt=PRIMARY_ALT, base_url=get_ctx().base_url
+                )
         src = escape(src)
         text = escape(text)
         if title:
