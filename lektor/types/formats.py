@@ -25,7 +25,7 @@ class MarkdownType(Type):
 
 
 # Wrapper with an __html__ method prevents Lektor from escaping HTML tags.
-class HTML(object):
+class HTML:
     def __init__(self, html):
         self.html = html
 
@@ -33,7 +33,7 @@ class HTML(object):
         return self.html
 
 
-class HTMLDescriptor(object):
+class HTMLDescriptor:
 
     def __init__(self, source):
         self.source = source
@@ -46,6 +46,7 @@ class HTMLDescriptor(object):
 
         soup = BeautifulSoup(self.source, features="html.parser")
         # We import here to avoid circular dependicies
+        # pylint: disable=import-outside-toplevel
         from lektor.environment import PRIMARY_ALT
         for img in soup.find_all('img'):
             src = img['src']

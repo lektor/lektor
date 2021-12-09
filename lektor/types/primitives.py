@@ -2,7 +2,6 @@ from datetime import date
 from datetime import datetime
 
 from babel.dates import get_timezone
-from markupsafe import Markup
 from pytz import FixedOffset
 
 from lektor.constants import PRIMARY_ALT

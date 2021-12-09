@@ -18,6 +18,7 @@ class ImprovedRenderer(mistune.Renderer):
             url = url_parse(link)
             if not url.scheme:
                 # We import here to avoid circular dependicies
+                # pylint: disable=import-outside-toplevel
                 from lektor.environment import PRIMARY_ALT
                 # PRIMARY_ALT is used because images aren't generated for  each alt
                 link = self.record.url_to("!" + link, alt=PRIMARY_ALT,
@@ -33,6 +34,7 @@ class ImprovedRenderer(mistune.Renderer):
             url = url_parse(src)
             if not url.scheme:
                 # We import here to avoid circular dependicies
+                # pylint: disable=import-outside-toplevel
                 from lektor.environment import PRIMARY_ALT
                 # PRIMARY_ALT is used because images aren't generated for  each alt
                 src = self.record.url_to("!" + src, alt=PRIMARY_ALT,
