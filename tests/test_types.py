@@ -363,9 +363,10 @@ def test_html_links(env, pad):
         return str(rv.__get__(source)).strip()
 
     with Context(pad=pad):
-        assert md("[foo](http://example.com/)") == (
-            '<p><a href="http://example.com/">foo</a></p>'
-        )
-        assert md("[foo](javascript:foo)") == (
-            '<p><a href="javascript:foo">foo</a></p>'
+        assert md('<p><a href="http://example.com/">foo</a></p>') == (
+            """<p>
+ <a href="http://example.com/">
+  foo
+ </a>
+</p>"""
         )

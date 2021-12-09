@@ -7,9 +7,6 @@
 #*
 build
 dist
-bin
-lib
-pyvenv.cfg
 venv
 lektor/admin/static/gen
 example-project
