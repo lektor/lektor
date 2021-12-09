@@ -8,7 +8,7 @@ from lektor.context import Context
 from lektor.datamodel import Field
 from lektor.types.base import BadValue
 from lektor.types.base import Undefined
-from lektor.types.formats import MarkdownDescriptor
+from lektor.types.formats import HTMLDescriptor, MarkdownDescriptor
 
 
 class DummySource:
@@ -350,3 +350,20 @@ def test_datetime_timezone_name(env, pad):
         assert rv.minute == 2
         assert rv.second == 3
         assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+
+def test_html_links(env, pad):
+    field = make_field(env, "html")
+    source = DummySource()
+
+    def md(s):
+        rv = field.deserialize_value(s, pad=pad)
+        assert isinstance(rv, HTMLDescriptor)
+        return str(rv.__get__(source)).strip()
+
+    with Context(pad=pad):
+        assert md("[foo](http://example.com/)") == (
+            '<p><a href="http://example.com/">foo</a></p>'
+        )
+        assert md("[foo](javascript:foo)") == (
+            '<p><a href="javascript:foo">foo</a></p>'
+        )

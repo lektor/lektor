@@ -55,6 +55,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 - Fix reference cycle in `Environment`. [#882][]
 - Fix "unclosed file" `ResourceWarning`s. [#898][]
+- Fix attachment URL for alternatives [#685][]
 
 #### Admin UI
 
