@@ -3,6 +3,7 @@ import os
 import sys
 import warnings
 import weakref
+from shutil import which
 
 import pytest
 
@@ -37,6 +38,9 @@ def test_Command_triggers_no_warnings():
         )
 
 
+@pytest.mark.skipif(
+    which("rsync") is None, reason="rsync is not available on this system"
+)
 @pytest.mark.parametrize("delete", ["yes", "no"])
 def test_RsyncPublisher_integration(env, tmp_path, delete):
     # Integration test of local rsync deployment
