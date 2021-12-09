@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from markupsafe import Markup
 from werkzeug.urls import url_parse
 
+from lektor.constants import PRIMARY_ALT
 from lektor.context import get_ctx
 from lektor.markdown import Markdown
 from lektor.types.base import Type
@@ -45,9 +46,6 @@ class HTMLDescriptor:
         base_url = get_ctx().base_url
 
         soup = BeautifulSoup(self.source, features="html.parser")
-        # We import here to avoid circular dependicies
-        # pylint: disable=import-outside-toplevel
-        from lektor.environment import PRIMARY_ALT
         for img in soup.find_all('img'):
             src = img['src']
             url = url_parse(src)

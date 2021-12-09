@@ -34,7 +34,7 @@ installed):
 ```
 $ git clone https://github.com/lektor/lektor
 $ cd lektor
-$ virtualenv venv
+$ python -m venv venv
 $ . venv/bin/activate
 $ pip install --editable .
 $ make build-js
