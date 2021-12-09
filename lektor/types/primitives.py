@@ -46,15 +46,6 @@ class TextType(Type):
         return raw.value
 
 
-class HtmlType(Type):
-    widget = "multiline-text"
-
-    def value_from_raw(self, raw):
-        if raw.value is None:
-            return raw.missing_value("Missing HTML")
-        return Markup(raw.value)
-
-
 class IntegerType(SingleInputType):
     widget = "integer"
 

@@ -7,6 +7,7 @@ from lektor.types.fake import InfoType
 from lektor.types.fake import LineType
 from lektor.types.fake import SpacingType
 from lektor.types.flow import FlowType
+from lektor.types.formats import HtmlType
 from lektor.types.formats import MarkdownType
 from lektor.types.multi import CheckboxesType
 from lektor.types.multi import SelectType
@@ -14,7 +15,6 @@ from lektor.types.primitives import BooleanType
 from lektor.types.primitives import DateTimeType
 from lektor.types.primitives import DateType
 from lektor.types.primitives import FloatType
-from lektor.types.primitives import HtmlType
 from lektor.types.primitives import IntegerType
 from lektor.types.primitives import StringsType
 from lektor.types.primitives import StringType
