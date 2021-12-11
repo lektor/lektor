@@ -79,8 +79,10 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 - Drop python 2 compatibility. [#822][], [#850][], [#871][], [#920][], [#922][]
 - Drop python 3.5 compatibility. [#878][], [#880][]
-- Code beautification/reformatting. We now use [black][], [reorder-python-imports][], [flake8][].
-  [#823][], [#916][], [#925][]
+- Support python 3.10. [#938][]
+- Switch to [PEP-518][]-compatible (pyproject.toml) build process. [#933][], [#942][]
+- Code beautification/reformatting. We now use [black][], [reorder-python-imports][], [flake8][], _and_ [pylint][].
+  [#823][], [#916][], [#925][], [#936][]
 - Refactor rsync publisher tests. [#836][]
 - Restructure code to prevent circular imports. [#856][], [#871][], [#873][]
 - Minor docstring fixes. [#874][]
@@ -88,9 +90,11 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 #### JS code
 
-- Update NPM/JS dependencies. Update to webpack v5.
-  [#816][], [#834][], [#848][], [#852][], [#860][], [#905][], [#917][], [#926][]
-- Use [prettier][] and [eslint][] for JS beautification and style enforcement. [#825][]
+- We now require node >= 14. [#940][]
+- Update NPM/JS dependencies. Update to webpack v5. [#816][],
+  [#834][], [#848][], [#852][], [#860][], [#905][], [#917][],
+  [#926][], [#945][]
+- Use [prettier][] and [eslint][] for JS (and YAML) beautification and style enforcement. [#825][], [#936][]
 - Disuse unmaintained `jsdomify` to prevent hanging tests. [#839][]
 - Disuse jQuery. [#851][]
 - Convert JS code to Typescript. Various other refactoring and cleanups. [#857][], [#869][], [#872][]
@@ -114,10 +118,12 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - CI workflow simplification. [#927][]
 
 [black]: https://black.readthedocs.io/en/stable/
+[pylint]: https://pylint.org/
 [reorder-python-imports]: https://github.com/asottile/reorder_python_imports
 [flake8]: https://flake8.pycqa.org/en/latest/
 [prettier]: https://prettier.io/
 [eslint]: https://eslint.org/
+[pep-518]: https://www.python.org/dev/peps/pep-0518/
 [#43]: https://github.com/lektor/lektor/issues/43
 [#648]: https://github.com/lektor/lektor/issues/648
 [#682]: https://github.com/lektor/lektor/issues/682
@@ -195,7 +201,13 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#925]: https://github.com/lektor/lektor/pull/925
 [#926]: https://github.com/lektor/lektor/pull/926
 [#927]: https://github.com/lektor/lektor/pull/927
+[#933]: https://github.com/lektor/lektor/pull/933
 [#934]: https://github.com/lektor/lektor/pull/934
+[#936]: https://github.com/lektor/lektor/pull/936
+[#938]: https://github.com/lektor/lektor/pull/938
+[#940]: https://github.com/lektor/lektor/pull/940
+[#942]: https://github.com/lektor/lektor/pull/942
+[#945]: https://github.com/lektor/lektor/pull/945
 
 ## 3.2.2 (2021-09-18)
 
