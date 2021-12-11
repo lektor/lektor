@@ -14,6 +14,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
 from lektor._compat import iteritems
+from lektor._compat import jinja2_contextfilter
 from lektor._compat import PY2
 from lektor._compat import string_types
 from lektor.context import config_proxy
@@ -438,7 +439,7 @@ class Environment(object):
 
         self.jinja_env = CustomJinjaEnvironment(
             autoescape=self.select_jinja_autoescape,
-            extensions=["jinja2.ext.autoescape", "jinja2.ext.with_", "jinja2.ext.do"],
+            extensions=["jinja2.ext.do"],
             loader=jinja2.FileSystemLoader(template_paths),
         )
 
@@ -452,11 +453,11 @@ class Environment(object):
             # By default filters need to be side-effect free.  This is not
             # the case for this one, so we need to make it as a dummy
             # context filter so that jinja2 will not inline it.
-            url=jinja2.contextfilter(lambda ctx, *a, **kw: url_to(*a, **kw)),
-            asseturl=jinja2.contextfilter(
+            url=jinja2_contextfilter(lambda ctx, *a, **kw: url_to(*a, **kw)),
+            asseturl=jinja2_contextfilter(
                 lambda ctx, *a, **kw: get_asset_url(*a, **kw)
             ),
-            markdown=jinja2.contextfilter(lambda ctx, *a, **kw: Markdown(*a, **kw)),
+            markdown=jinja2_contextfilter(lambda ctx, *a, **kw: Markdown(*a, **kw)),
         )
         self.jinja_env.globals.update(
             F=F,
@@ -585,7 +586,8 @@ class Environment(object):
         )
         return values
 
-    def select_jinja_autoescape(self, filename):
+    @staticmethod
+    def select_jinja_autoescape(filename):
         if filename is None:
             return False
         return filename.endswith((".html", ".htm", ".xml", ".xhtml"))

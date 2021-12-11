@@ -11,6 +11,16 @@ Compatibility
 - Restore python 2.7 compatibility. It was broken in lektor==3.2.2. (#951)
 - Pin inifile>=0.4.1 to support python 3.10 (#943, #953)
 
+Address Deprecations
+
+- Use jinja2.pass_context rather than jinja2.contextfilter for jinja2>=3. (#921 #955)
+- Do not configure the autoescape and with jinja extensions.
+  They are now enabled by default. (#921, #955)
+
+Buglets
+
+- Fix reference cycle in Environment (#882, #955)
+
 3.2.2 (2021-09-18)
 ------------------
 
