@@ -84,8 +84,10 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 - Drop python 2 compatibility. [#822][], [#850][], [#871][], [#920][], [#922][]
 - Drop python 3.5 compatibility. [#878][], [#880][]
-- Code beautification/reformatting. We now use [black][], [reorder-python-imports][], [flake8][].
-  [#823][], [#916][], [#925][]
+- Support python 3.10. [#938][]
+- Switch to [PEP-518][]-compatible (pyproject.toml) build process. [#933][], [#942][]
+- Code beautification/reformatting. We now use [black][], [reorder-python-imports][], [flake8][], _and_ [pylint][].
+  [#823][], [#916][], [#925][], [#936][]
 - Refactor rsync publisher tests. [#836][]
 - Restructure code to prevent circular imports. [#856][], [#871][], [#873][]
 - Minor docstring fixes. [#874][]
@@ -93,9 +95,11 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 #### JS code
 
-- Update NPM/JS dependencies. Update to webpack v5.
-  [#816][], [#834][], [#848][], [#852][], [#860][], [#905][], [#917][], [#926][]
-- Use [prettier][] and [eslint][] for JS beautification and style enforcement. [#825][]
+- We now require node >= 14. [#940][]
+- Update NPM/JS dependencies. Update to webpack v5. [#816][],
+  [#834][], [#848][], [#852][], [#860][], [#905][], [#917][],
+  [#926][], [#945][]
+- Use [prettier][] and [eslint][] for JS (and YAML) beautification and style enforcement. [#825][], [#936][]
 - Disuse unmaintained `jsdomify` to prevent hanging tests. [#839][]
 - Disuse jQuery. [#851][]
 - Convert JS code to Typescript. Various other refactoring and cleanups. [#857][], [#869][], [#872][]
@@ -119,10 +123,12 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - CI workflow simplification. [#927][]
 
 [black]: https://black.readthedocs.io/en/stable/
+[pylint]: https://pylint.org/
 [reorder-python-imports]: https://github.com/asottile/reorder_python_imports
 [flake8]: https://flake8.pycqa.org/en/latest/
 [prettier]: https://prettier.io/
 [eslint]: https://eslint.org/
+[pep-518]: https://www.python.org/dev/peps/pep-0518/
 [#43]: https://github.com/lektor/lektor/issues/43
 [#648]: https://github.com/lektor/lektor/issues/648
 [#682]: https://github.com/lektor/lektor/issues/682
@@ -200,16 +206,75 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#925]: https://github.com/lektor/lektor/pull/925
 [#926]: https://github.com/lektor/lektor/pull/926
 [#927]: https://github.com/lektor/lektor/pull/927
+[#933]: https://github.com/lektor/lektor/pull/933
 [#934]: https://github.com/lektor/lektor/pull/934
+[#936]: https://github.com/lektor/lektor/pull/936
+[#938]: https://github.com/lektor/lektor/pull/938
+[#940]: https://github.com/lektor/lektor/pull/940
+[#942]: https://github.com/lektor/lektor/pull/942
+[#945]: https://github.com/lektor/lektor/pull/945
 [#952]: https://github.com/lektor/lektor/pull/952
+
+## 3.2.3 (2021-12-11)
+
+### Compatibility
+
+- Restore python 2.7 compatibility. It was broken in leketor 3.2.2. [#951][]
+- Pin inifile>=0.4.1 to support python 3.10 [#943][], [#953][]
+
+[#943]: https://github.com/lektor/lektor/issues/943
+[#951]: https://github.com/lektor/lektor/pull/951
+[#953]: https://github.com/lektor/lektor/pull/953
 
 ## 3.2.2 (2021-09-18)
 
-Fix a problem with the uploaded wheel in 3.2.1 and relax some version dependencies.
+### Packaging
+
+- Fixes a problem with the uploaded wheel in 3.2.1.
+
+### Compatibility
+
+- Fixes to support werkzeug 2.x. [#911][]
 
 ## 3.2.1 (2021-09-18)
 
-This is a bugfix release that addresses some dependency incompatibilities and some admin UI bugs.
+### Compatibility
+
+- Pin `pytest-click<1` for python 2.7. [#924][]
+- Fixes to support werkzeug 1.x. [#833][]
+
+### Bugs
+
+- Allow rsync deployment to a local path. [#830][], [#836][]
+- Fix queries with offset but without a limit. [#827][]
+
+### Admin UI
+
+- Fix select and checkboxes widgets when choices is empty. [#900][]
+- Update npm packages. [#848][], [#834][], [#816][]
+- Fix updating of the preview iframe. [#846][]
+- Allow `ftps:` and `mailto:` URLs in url fields. [#840][]
+- Fix the toggling of flow widgets in the admin UI to not mark the content as changed. [#842][]
+- Rename CSS class to prevent conflict with EasyList FR adblock list. [#841][]
+- Fix the handling of the URLs when opening the admin UI from the pencil button. [#837][]
+- Fix the checkboxes widget in the admin UI. [#817][]
+
+### Testing / CI
+
+- Test under python 3.9. [#845][]
+- Various CI test fixes. [#932][], [#839][], [#832][], [#826][]
+- Added a `tox.ini`. [#824][]
+
+Code Reformatting
+
+- Blackify, reorder-python-imports, flake8. [#823][]
+- Reformatted js code with prettier. [#825][]
+- Update pylint config. [#822][]
+
+[#826]: https://github.com/lektor/lektor/pull/826
+[#832]: https://github.com/lektor/lektor/pull/832
+[#924]: https://github.com/lektor/lektor/pull/924
+[#932]: https://github.com/lektor/lektor/pull/932
 
 ## 3.2.0
 
