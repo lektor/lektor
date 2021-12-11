@@ -209,6 +209,17 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#942]: https://github.com/lektor/lektor/pull/942
 [#945]: https://github.com/lektor/lektor/pull/945
 
+## 3.2.3 (2021-12-11)
+
+### Compatibility
+
+- Restore python 2.7 compatibility. It was broken in leketor 3.2.2. [#951][]
+- Pin inifile>=0.4.1 to support python 3.10 [#943][], [#953][]
+
+[#943]: https://github.com/lektor/lektor/issues/943
+[#951]: https://github.com/lektor/lektor/pull/951
+[#953]: https://github.com/lektor/lektor/pull/953
+
 ## 3.2.2 (2021-09-18)
 
 ### Packaging
