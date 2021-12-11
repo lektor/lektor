@@ -3,13 +3,8 @@ Changelog
 
 These are all the changes in Lektor since the first public release.
 
-3.2.3 (unreleased)
+3.2.4 (unreleased)
 ------------------
-
-Compatibility
-
-- Restore python 2.7 compatibility. It was broken in lektor==3.2.2. (#951)
-- Pin inifile>=0.4.1 to support python 3.10 (#943, #953)
 
 Address Deprecations
 
@@ -20,6 +15,14 @@ Address Deprecations
 Buglets
 
 - Fix reference cycle in Environment (#882, #955)
+
+3.2.3 (2021-12-11)
+------------------
+
+Compatibility
+
+- Restore python 2.7 compatibility. It was broken in lektor==3.2.2. (#951)
+- Pin inifile>=0.4.1 to support python 3.10 (#943, #953)
 
 3.2.2 (2021-09-18)
 ------------------
