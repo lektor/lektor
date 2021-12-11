@@ -5,6 +5,7 @@ import pytest
 
 from lektor.datamodel import ChildConfig
 from lektor.datamodel import DataModel
+from lektor.datamodel import PaginationConfig
 from lektor.reporter import BufferReporter
 
 
@@ -19,6 +20,19 @@ def datamodel(env, slug_format):
     name_i18n = {"en": "test"}
     child_config = ChildConfig(slug_format=slug_format)
     return DataModel(env, id_, name_i18n, child_config=child_config)
+
+
+@pytest.mark.parametrize(
+    "per_page, expected",
+    [
+        (-1, ValueError),
+        (-1.5, TypeError),
+        ("5", TypeError),
+    ],
+)
+def test_PaginationConfig_init_raises_on_invalid_per_page(env, per_page, expected):
+    with pytest.raises(expected):
+        PaginationConfig(env, per_page=per_page)
 
 
 @pytest.mark.parametrize(

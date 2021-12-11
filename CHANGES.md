@@ -23,6 +23,11 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
   upscaling behavior in cases that do not involve upscaling. [#885][]
 - Fix bug with translation fallback of record label. [#897][]
 
+#### Data Modelling
+
+- Fixed pagination issue which caused child-less paginated pages to
+  not be built. [#952][]
+
 #### Publisher
 
 - Allow rsync deployment to a local path. [#830][]
@@ -208,6 +213,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#940]: https://github.com/lektor/lektor/pull/940
 [#942]: https://github.com/lektor/lektor/pull/942
 [#945]: https://github.com/lektor/lektor/pull/945
+[#952]: https://github.com/lektor/lektor/pull/952
 
 ## 3.2.3 (2021-12-11)
 
