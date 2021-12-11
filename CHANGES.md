@@ -211,11 +211,53 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 ## 3.2.2 (2021-09-18)
 
-Fix a problem with the uploaded wheel in 3.2.1 and relax some version dependencies.
+### Packaging
+
+- Fixes a problem with the uploaded wheel in 3.2.1.
+
+### Compatibility
+
+- Fixes to support werkzeug 2.x. [#911][]
 
 ## 3.2.1 (2021-09-18)
 
-This is a bugfix release that addresses some dependency incompatibilities and some admin UI bugs.
+### Compatibility
+
+- Pin `pytest-click<1` for python 2.7. [#924][]
+- Fixes to support werkzeug 1.x. [#833][]
+
+### Bugs
+
+- Allow rsync deployment to a local path. [#830][], [#836][]
+- Fix queries with offset but without a limit. [#827][]
+
+### Admin UI
+
+- Fix select and checkboxes widgets when choices is empty. [#900][]
+- Update npm packages. [#848][], [#834][], [#816][]
+- Fix updating of the preview iframe. [#846][]
+- Allow `ftps:` and `mailto:` URLs in url fields. [#840][]
+- Fix the toggling of flow widgets in the admin UI to not mark the content as changed. [#842][]
+- Rename CSS class to prevent conflict with EasyList FR adblock list. [#841][]
+- Fix the handling of the URLs when opening the admin UI from the pencil button. [#837][]
+- Fix the checkboxes widget in the admin UI. [#817][]
+
+### Testing / CI
+
+- Test under python 3.9. [#845][]
+- Various CI test fixes. [#932][], [#839][], [#832][], [#826][]
+- Added a `tox.ini`. [#824][]
+
+Code Reformatting
+
+- Blackify, reorder-python-imports, flake8. [#823][]
+- Reformatted js code with prettier. [#825][]
+- Update pylint config. [#822][]
+
+[#826]: https://github.com/lektor/lektor/pull/826
+[#832]: https://github.com/lektor/lektor/pull/832
+[#924]: https://github.com/lektor/lektor/pull/924
+[#932]: https://github.com/lektor/lektor/pull/932
 
 ## 3.2.0
 
