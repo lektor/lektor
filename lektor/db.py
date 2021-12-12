@@ -77,17 +77,6 @@ def get_alts(source=None, fallback=False):
     return rv
 
 
-def _process_slug(slug, last_segment=False):
-    if last_segment:
-        return slug
-    segments = slug.split("/")
-    if "." not in segments[-1]:
-        return slug
-    if len(segments) == 1:
-        return "_" + segments[0]
-    return segments[0] + "/_" + segments[1]
-
-
 def _require_ctx(record):
     ctx = get_ctx()
     if ctx is None:
@@ -420,23 +409,47 @@ class Record(SourceObject):
 
     @property
     def url_path(self):
-        """The target path where the record should end up."""
-        prefix, suffix = self.pad.db.config.get_alternative_url_span(self.alt)
-        bits = []
-        node = self
-        while node is not None:
-            bits.append(_process_slug(node["_slug"], node is self))
-            node = node.parent
-        bits.reverse()
+        # This is redundant (it's the same as the inherited
+        # SourceObject.url_path) but is here to silence
+        # pylint ("W0223: Method 'url_path' is abstract in class
+        # 'SourceObject' but is not overridden (abstract-method)"),
+        # as well as to document that Record is an abstract class.
+        raise NotImplementedError()
 
-        clean_path = "/".join(bits).strip("/")
-        if prefix:
-            clean_path = prefix + clean_path
-        if suffix:
+    def _get_clean_url_path(self):
+        """The "clean" URL path, before modification to account for alt and
+        page_num and without any leading '/'
+        """
+        bits = [self["_slug"]]
+        parent = self.parent
+        while parent is not None:
+            slug = parent["_slug"]
+            head, sep, tail = slug.rpartition("/")
+            if "." in tail:
+                # https://www.getlektor.com/docs/content/urls/#content-below-dotted-slugs
+                slug = head + sep + f"_{tail}"
+            bits.append(slug)
+            parent = parent.parent
+        return "/".join(reversed(bits)).strip("/")
+
+    def _get_url_path(self, alt=None):
+        """The target path where the record should end up, after adding prefix/suffix
+        for the specified alt (but before accounting for any page_num).
+
+        Note that some types of records (Attachments), are only
+        created for the primary alternative.
+        """
+        clean_path = self._get_clean_url_path()
+        config = self.pad.config
+        if config.primary_alternative:
+            # alternatives are configured
+            if alt is None:
+                alt = config.primary_alternative
+            prefix, suffix = config.get_alternative_url_span(alt)
             # XXX: 404.html with suffix -de becomes 404.html-de but should
             # actually become 404-de.html
-            clean_path += suffix
-        return "/" + clean_path.strip("/")
+            clean_path = prefix.lstrip("/") + clean_path + suffix.rstrip("/")
+        return "/" + clean_path.rstrip("/")
 
     @property
     def path(self):
@@ -578,22 +591,21 @@ class Page(Record):
 
     @property
     def url_path(self):
-        # pylint: disable=no-value-for-parameter
-        rv = Record.url_path.__get__(self).rstrip("/")
-        last_part = rv.rsplit("/")[-1]
-        if "." not in last_part:
-            rv += "/"
-        if self.page_num in (1, None):
-            return rv
+        pg = self.datamodel.pagination_config
+        path = self._get_url_path(self.alt)
+        _, _, last_part = path.rpartition("/")
+        if not pg.enabled:
+            if "." in last_part:
+                return path
+            return path.rstrip("/") + "/"
         if "." in last_part:
             raise RuntimeError(
-                "When file extensions is provided pagination " "cannot be used."
+                "When file extension is provided pagination cannot be used."
             )
-        return "%s%s/%d/" % (
-            rv,
-            self.datamodel.pagination_config.url_suffix.strip("/"),
-            self.page_num,
-        )
+        # pagination is enabled
+        if self.page_num in (1, None):
+            return path.rstrip("/") + "/"
+        return f"{path.rstrip('/')}/{pg.url_suffix.strip('/')}/{self.page_num:d}/"
 
     def resolve_url_path(self, url_path):
         pg = self.datamodel.pagination_config
@@ -756,6 +768,12 @@ class Attachment(Record):
     def iter_source_filenames(self):
         yield self.source_filename
         yield self.attachment_filename
+
+    @property
+    def url_path(self):
+        # Attachments are only emitted for the primary alternative.
+        primary_alt = self.pad.config.primary_alternative or PRIMARY_ALT
+        return self._get_url_path(alt=primary_alt)
 
 
 class Image(Attachment):
@@ -993,7 +1011,7 @@ class Query:
         h.update(str(self.alt))
         h.update(str(self._include_pages))
         h.update(str(self._include_attachments))
-        h.update("(%s)" % u"|".join(self._order_by or ()).encode("utf-8"))
+        h.update("(%s)" % "|".join(self._order_by or ()).encode("utf-8"))
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
@@ -1347,7 +1365,7 @@ class Database:
                         rv_type = is_attachment
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
-                            rv[key] = u"".join(lines)
+                            rv[key] = "".join(lines)
             except IOError as e:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
