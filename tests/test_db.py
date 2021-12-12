@@ -1,6 +1,8 @@
 import os
 from datetime import date
 
+import pytest
+
 from lektor.context import Context
 from lektor.db import Database
 from lektor.db import F
@@ -172,6 +174,16 @@ def test_attachment_api(pad):
     assert video["_attachment_type"] == "video"
     assert isinstance(video, Video)
     assert video.url_path == "/test.mp4"
+
+
+@pytest.mark.parametrize("alt", ["_primary", "en", "de"])
+def test_attachment_url_path_with_alt(pad, alt):
+    # Attachments do not vary with alt. There is only one copy of each
+    # attachment, with URL corresponding to the PRIMARY_ALT, emitted.
+    # Check that the .url_path for an attachment points to the correct
+    # URL regardless of alt.
+    img = pad.get("test.jpg", alt=alt)
+    assert img.url_path == "/test.jpg"
 
 
 def test_query_normalization(pad):
