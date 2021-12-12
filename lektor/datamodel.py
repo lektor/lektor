@@ -704,7 +704,12 @@ add_system_field("_gid", type="string")
 # The alt key that identifies this record
 add_system_field("_alt", type="string")
 
+# The alt keys for the .lr files that were actually referenced.
+add_system_field("_source_alts", type="strings")
+
 # The alt key for the file that was actually referenced.
+# Deprecated: This is equal to the first string in the _source_alts field,
+# or `None` if _source_alts is empty.
 add_system_field("_source_alt", type="string")
 
 # the model that defines the data of the record

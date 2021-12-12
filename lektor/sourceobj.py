@@ -23,7 +23,17 @@ class SourceObject:
 
     @property
     def source_filename(self):
-        """The primary source filename of this source object."""
+        """The primary source filename of this source object.
+
+        XXX: This is here for backword compatibility.  The default implementation
+        returns the first value returned by ``iter_source_filenames``.
+
+        (In most/all cases where one is concerned about the source files,
+        one should be interested in all the source files, not just one.)
+
+        """
+        source_filenames = self.iter_source_filenames()
+        return next(iter(source_filenames), None)
 
     is_hidden = False
     is_discoverable = True
@@ -39,9 +49,12 @@ class SourceObject:
         return not self.is_discoverable
 
     def iter_source_filenames(self):
-        fn = self.source_filename
-        if fn is not None:
-            yield self.source_filename
+        """An iterable of the source filenames for this source object.
+
+        The first returned filename should be the "primary" one.
+        """
+        # pylint: disable=no-self-use
+        return []
 
     def iter_virtual_sources(self):
         # pylint: disable=no-self-use
@@ -162,6 +175,9 @@ class VirtualSourceObject(SourceObject):
     @property
     def source_filename(self):
         return self.record.source_filename
+
+    def iter_source_filenames(self):
+        return self.record.iter_source_filenames()
 
     def iter_virtual_sources(self):
         yield self

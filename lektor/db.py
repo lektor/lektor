@@ -518,15 +518,19 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
     def next_page(self):
         return self._next_page
 
-    def iter_source_filenames(self):
+    def _pages(self):
         for page in self._prev_page, self._next_page:
             if page:
-                yield page.source_filename
+                yield page
+
+    def iter_source_filenames(self):
+        return chain.from_iterable(
+            page.iter_source_filenames() for page in self._pages()
+        )
 
     def _file_infos(self, path_cache):
-        for page in self._prev_page, self._next_page:
-            if page:
-                yield path_cache.get_file_info(page.source_filename)
+        for source_filename in self.iter_source_filenames():
+            yield path_cache.get_file_info(source_filename)
 
     def get_mtime(self, path_cache):
         mtimes = [i.mtime for i in self._file_infos(path_cache)]
@@ -534,7 +538,6 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
 
     def get_checksum(self, path_cache):
         sums = "|".join(i.filename_and_checksum for i in self._file_infos(path_cache))
-
         return sums or None
 
 
@@ -563,18 +566,14 @@ class Page(Record):
             self["_path"], persist=self.pad.cache.is_persistent(self), alt=self.alt
         )
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            return os.path.join(
-                self.pad.db.to_fs_path(self["_path"]), "contents+%s.lr" % self.alt
-            )
-        return os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
-
     def iter_source_filenames(self):
-        yield self.source_filename
-        if self.alt != PRIMARY_ALT:
-            yield os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
+        fs_base = self.pad.db.to_fs_path(self["_path"])
+        for alt in self["_source_alts"]:
+            if alt != PRIMARY_ALT:
+                contents_lr = f"contents+{alt}.lr"
+            else:
+                contents_lr = "contents.lr"
+            yield os.path.join(fs_base, contents_lr)
 
     @property
     def url_path(self):
@@ -714,14 +713,6 @@ class Attachment(Record):
 
     is_attachment = True
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            suffix = "+%s.lr" % self.alt
-        else:
-            suffix = ".lr"
-        return self.pad.db.to_fs_path(self["_path"]) + suffix
-
     def _is_considered_hidden(self):
         # Attachments are only considered hidden if they have been
         # configured as such.  This means that even if a record itself is
@@ -754,8 +745,14 @@ class Attachment(Record):
         return self["_id"]
 
     def iter_source_filenames(self):
-        yield self.source_filename
-        yield self.attachment_filename
+        attachment_fn = self.attachment_filename
+        for alt in self["_source_alts"]:
+            if alt != PRIMARY_ALT:
+                suffix = f"+{alt}.lr"
+            else:
+                suffix = ".lr"
+            yield attachment_fn + suffix
+        yield attachment_fn
 
 
 class Image(Attachment):
@@ -993,7 +990,7 @@ class Query:
         h.update(str(self.alt))
         h.update(str(self._include_pages))
         h.update(str(self._include_attachments))
-        h.update("(%s)" % u"|".join(self._order_by or ()).encode("utf-8"))
+        h.update("(%s)" % "|".join(self._order_by or ()).encode("utf-8"))
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
@@ -1330,6 +1327,7 @@ class Database:
 
         rv = cls()
         rv_type = None
+        source_alts = []
 
         choiceiter = _iter_filename_choices(
             fn_base, [alt], self.config, fallback=fallback
@@ -1345,30 +1343,31 @@ class Database:
                 with open(fs_path, "rb") as f:
                     if rv_type is None:
                         rv_type = is_attachment
+                    source_alts.append(source_alt)
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
-                            rv[key] = u"".join(lines)
+                            rv[key] = "".join(lines)
             except IOError as e:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
-                if not is_attachment or not os.path.isfile(fs_path[:-3]):
-                    continue
-                # Special case: we are loading an attachment but the meta
-                # data file does not exist.  In that case we still want to
-                # record that we're loading an attachment.
-                if is_attachment:
-                    rv_type = True
-
-            if "_source_alt" not in rv:
-                rv["_source_alt"] = source_alt
 
         if rv_type is None:
-            return None
+            if os.path.isfile(fn_base):
+                # Special case: we are loading an attachment
+                # but the meta data file does not exist.  In
+                # that case we still want to record that we're
+                # loading an attachment.
+                rv_type = True
+            else:
+                return None
 
         rv["_path"] = path
         rv["_id"] = posixpath.basename(path)
         rv["_gid"] = hashlib.md5(path.encode("utf-8")).hexdigest()
         rv["_alt"] = alt
+        rv["_source_alts"] = "\n".join(source_alts)  # FIXME: hackish
+        if source_alts:
+            rv["_source_alt"] = source_alts[0]  # b/c
         if rv_type:
             rv["_attachment_for"] = posixpath.dirname(path)
 

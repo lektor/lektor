@@ -11,7 +11,9 @@ from lektor.utils import is_valid_id
 from lektor.utils import secure_filename
 
 
-implied_keys = set(["_id", "_path", "_gid", "_alt", "_source_alt", "_attachment_for"])
+implied_keys = set(
+    ["_id", "_path", "_gid", "_alt", "_source_alt", "_source_alts", "_attachment_for"]
+)
 possibly_implied_keys = set(["_model", "_template", "_attachment_type"])
 
 
