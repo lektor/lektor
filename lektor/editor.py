@@ -12,7 +12,15 @@ from lektor.utils import secure_filename
 
 
 implied_keys = set(
-    ["_id", "_path", "_gid", "_alt", "_source_alt", "_source_alts", "_attachment_for"]
+    [
+        "_id",
+        "_path",
+        "_gid",
+        "_alt",
+        "_source_alt",
+        "_source_filenames",
+        "_attachment_for",
+    ]
 )
 possibly_implied_keys = set(["_model", "_template", "_attachment_type"])
 

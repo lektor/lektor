@@ -559,13 +559,7 @@ class Page(Record):
         )
 
     def iter_source_filenames(self):
-        fs_base = self.pad.db.to_fs_path(self["_path"])
-        for alt in self["_source_alts"]:
-            if alt != PRIMARY_ALT:
-                contents_lr = f"contents+{alt}.lr"
-            else:
-                contents_lr = "contents.lr"
-            yield os.path.join(fs_base, contents_lr)
+        return iter(self["_source_filenames"])
 
     @property
     def url_path(self):
@@ -737,14 +731,9 @@ class Attachment(Record):
         return self["_id"]
 
     def iter_source_filenames(self):
-        attachment_fn = self.attachment_filename
-        for alt in self["_source_alts"]:
-            if alt != PRIMARY_ALT:
-                suffix = f"+{alt}.lr"
-            else:
-                suffix = ".lr"
-            yield attachment_fn + suffix
-        yield attachment_fn
+        for fn in super().iter_source_filenames():
+            yield fn
+        yield self.attachment_filename
 
 
 class Image(Attachment):
@@ -1318,24 +1307,25 @@ class Database:
         fn_base = self.to_fs_path(path)
 
         rv = cls()
-        rv_type = None
-        source_alts = []
+        is_attachment = None
+        source_filenames = []
 
         choiceiter = _iter_filename_choices(
             fn_base, [alt], self.config, fallback=fallback
         )
-        for fs_path, source_alt, is_attachment in choiceiter:
+        for fs_path, source_alt, for_attachment in choiceiter:
             # If we already determined what our return value is but the
             # type mismatches what we try now, we have to abort.  Eg:
             # a page can not become an attachment or the other way round.
-            if rv_type is not None and rv_type != is_attachment:
+            if len(source_filenames) > 0 and for_attachment != is_attachment:
                 break
 
             try:
                 with open(fs_path, "rb") as f:
-                    if rv_type is None:
-                        rv_type = is_attachment
-                    source_alts.append(source_alt)
+                    if len(source_filenames) == 0:
+                        is_attachment = for_attachment
+                    source_filenames.append(fs_path)
+                    rv.setdefault("_source_alt", source_alt)
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
                             rv[key] = "".join(lines)
@@ -1343,13 +1333,14 @@ class Database:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
 
-        if rv_type is None:
+        if len(source_filenames) == 0:
+            # No data found
             if os.path.isfile(fn_base):
                 # Special case: we are loading an attachment
                 # but the meta data file does not exist.  In
                 # that case we still want to record that we're
                 # loading an attachment.
-                rv_type = True
+                is_attachment = True
             else:
                 return None
 
@@ -1357,10 +1348,8 @@ class Database:
         rv["_id"] = posixpath.basename(path)
         rv["_gid"] = hashlib.md5(path.encode("utf-8")).hexdigest()
         rv["_alt"] = alt
-        rv["_source_alts"] = "\n".join(source_alts)  # FIXME: hackish
-        if source_alts:
-            rv["_source_alt"] = source_alts[0]  # b/c
-        if rv_type:
+        rv["_source_filenames"] = "\n".join(source_filenames)  # FIXME: hackish
+        if is_attachment:
             rv["_attachment_for"] = posixpath.dirname(path)
 
         return rv
