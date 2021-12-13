@@ -25,12 +25,9 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 ##### Dependency Tracking
 
-- Add new `_source_alts` system field. This contains a `stringlist` of
-  all alts for which there is an actually existing `.lr`
-  file. [#959][]
-- Deprecate the `_source_alt` system field. (Use `_source_alts`
-  instead — the value of `_source_alt` should always be equal to the
-  first entry in `_source_alts`.) [#959][]
+- Add new `_source_filenames` system field. This contains a `stringlist` of
+  the filesystem paths to all of the `.lr` files which are contributing to this
+  data record. (This only lists existing files.) [#959][]
 - Fix `Page.source_filename` so
   that it always returns the name of an actually existing source
   file. Previously, for a page with an _alt_ set, `source_filename`
