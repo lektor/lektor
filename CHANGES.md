@@ -23,6 +23,31 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
   upscaling behavior in cases that do not involve upscaling. [#885][]
 - Fix bug with translation fallback of record label. [#897][]
 
+##### Dependency Tracking
+
+- Add new `_source_alts` system field. This contains a `stringlist` of
+  all alts for which there is an actually existing `.lr`
+  file. [#959][]
+- Deprecate the `_source_alt` system field. (Use `_source_alts`
+  instead — the value of `_source_alt` should always be equal to the
+  first entry in `_source_alts`.) [#959][]
+- Fix `Page.source_filename` so
+  that it always returns the name of an actually existing source
+  file. Previously, for a page with an _alt_ set, `source_filename`
+  was returning the name corresponding to the alt-specific `.lr` file
+  (e.g. `contents+de.lr`) even if no such file existed. [#959][]
+- Fix `Page.iter_source_filenames` so
+  that it only returns the names of actually existing source
+  files. [#959][]
+- Similarly, fix `Attachment.source_filename` and
+  `Attachment.iter_source_filenames` to only return the names of
+  existing source files. [#959][]
+- Fix `Siblings.iter_source_filenames` so that it returns all
+  sources of the previous and next pages, not just the primary sources
+  of those pages. [#959][]
+- Fix `VirtualSourceObject.iter_source_filenames`
+  to return the source filenames of the underlying record. [#959][]
+
 #### Data Modelling
 
 - Fixed pagination issue which caused child-less paginated pages to
@@ -214,6 +239,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#942]: https://github.com/lektor/lektor/pull/942
 [#945]: https://github.com/lektor/lektor/pull/945
 [#952]: https://github.com/lektor/lektor/pull/952
+[#959]: https://github.com/lektor/lektor/pull/959
 
 ## 3.2.3 (2021-12-11)
 
