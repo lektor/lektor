@@ -44,6 +44,10 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
   of those pages. [#959][]
 - Fix `VirtualSourceObject.iter_source_filenames`
   to return the source filenames of the underlying record. [#959][]
+- Change `VirtualSourceObject.get_checksum` return value. It used to
+  return a concatenation of all the source filenames and their
+  checksums. Now we return the SHA1 hash of that
+  concatenation. [#959][]
 
 #### Data Modelling
 
