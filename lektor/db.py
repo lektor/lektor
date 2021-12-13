@@ -101,14 +101,6 @@ def _require_ctx(record):
     return ctx
 
 
-def _is_content_file(filename, alt=PRIMARY_ALT):
-    if filename == "contents.lr":
-        return True
-    if alt != PRIMARY_ALT and filename == "contents+%s.lr" % alt:
-        return True
-    return False
-
-
 class _CmpHelper:
     def __init__(self, value, reverse):
         self.value = value
