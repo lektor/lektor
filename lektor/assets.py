@@ -42,6 +42,9 @@ class Asset(SourceObject):
         self.name = name
         self.parent = parent
 
+    def iter_source_filenames(self):
+        yield self.source_filename
+
     @property
     def url_name(self):
         name = self.name
