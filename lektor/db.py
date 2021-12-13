@@ -521,16 +521,14 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
         )
 
     def _file_infos(self, path_cache):
-        for source_filename in self.iter_source_filenames():
-            yield path_cache.get_file_info(source_filename)
+        return map(path_cache.get_file_info, self.iter_source_filenames())
 
     def get_mtime(self, path_cache):
-        mtimes = [i.mtime for i in self._file_infos(path_cache)]
-        return max(mtimes) if mtimes else None
+        return max((i.mtime for i in self._file_infos(path_cache)), default=None)
 
     def get_checksum(self, path_cache):
         sums = "|".join(i.filename_and_checksum for i in self._file_infos(path_cache))
-        return sums or None
+        return hashlib.sha1(sums.encode("utf-8")).hexdigest() if sums else None
 
 
 def siblings_resolver(node, url_path):
