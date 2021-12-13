@@ -1912,7 +1912,7 @@ class Alt:
     def __init__(self, id, record):
         self.id = id
         self.record = record
-        self.exists = record is not None and os.path.isfile(record.source_filename)
+        self.exists = record is not None and record["_source_alt"] == record.alt
 
     def __repr__(self):
         return "<Alt %r%s>" % (self.id, self.exists and "*" or "")
