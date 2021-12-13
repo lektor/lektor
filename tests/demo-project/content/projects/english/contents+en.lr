@@ -1,0 +1,7 @@
+name: English
+---
+website: http://en.example.org/
+---
+description: A page that only exists in English
+---
+seq: 10

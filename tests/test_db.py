@@ -1,6 +1,8 @@
 import os
 from datetime import date
 
+import pytest
+
 from lektor.context import Context
 from lektor.db import Database
 from lektor.db import F
@@ -37,21 +39,103 @@ def test_child_query_visibility_setting(pad):
     assert not project_query._include_undiscoverable
 
 
-def test_alt_fallback(pad):
-    # page that is missing a german tranlation
-    wolf_page = pad.get("/projects/wolf", alt="de")
+@pytest.mark.parametrize(
+    "path, alt, expect",
+    [
+        (
+            "/projects/bagpipe",
+            "_primary",
+            {
+                "name": "Bagpipe",
+                "source_alt": "_primary",
+                "source_basenames": ["contents.lr"],
+                "alts": ["en", "de"],
+                "alts_fb": ["en", "de"],
+            },
+        ),
+        (
+            "/projects/bagpipe",
+            "en",
+            {
+                "name": "Bagpipe",
+                "source_alt": "_primary",
+                "source_basenames": ["contents.lr"],
+                "alts": ["en", "de"],
+                "alts_fb": ["en", "de"],
+            },
+        ),
+        (
+            "/projects/bagpipe",
+            "de",
+            {
+                "name": "Dudelsack",
+                "source_alt": "de",
+                "source_basenames": ["contents+de.lr", "contents.lr"],
+                "alts": ["en", "de"],
+                "alts_fb": ["en", "de"],
+            },
+        ),
+        (
+            "/projects/wolf",
+            "de",
+            {
+                "name": "Wolf",
+                "source_alt": "_primary",
+                "source_basenames": ["contents.lr"],
+                "alts": ["en"],
+                "alts_fb": ["en", "de"],
+            },
+        ),
+        (
+            "/projects/zaun",
+            "de",
+            {
+                "name": "Zaun",
+                "source_alt": "de",
+                "source_basenames": ["contents+de.lr"],
+                "alts": ["de"],
+                "alts_fb": ["de"],
+            },
+        ),
+        (
+            "/projects/english",
+            "en",
+            {
+                "name": "English",
+                "source_alt": "en",
+                "source_basenames": ["contents+en.lr"],
+                "alts": ["en"],
+                "alts_fb": ["en"],
+            },
+        ),
+    ],
+)
+def test_alt_fallback(pad, path, alt, expect):
+    page = pad.get(path, alt=alt)
 
-    # Falls back to primary
-    assert wolf_page.alt == "de"
-    assert wolf_page["_source_alt"] == "_primary"
-    assert wolf_page["name"] == "Wolf"
+    assert page.alt == alt
+    assert page["_source_alt"] == expect["source_alt"]
+    assert page["name"] == expect["name"]
 
-    # If we ask for the alts of that page, we will only get english
-    assert get_alts(wolf_page) == ["en"]
+    sources = expect["source_basenames"]
+    assert list(map(os.path.basename, page.iter_source_filenames())) == sources
+    assert os.path.basename(page.source_filename) == sources[0]
 
-    # Unless we include fallbacks in which case we will also see german
-    # show up in the list.
-    assert get_alts(wolf_page, fallback=True) == ["en", "de"]
+    assert get_alts(page) == expect["alts"]
+    assert get_alts(page, fallback=True) == expect.get("alts_fb", expect["alts"])
+
+
+@pytest.mark.parametrize(
+    "path, alt",
+    [
+        ("/projects/zaun", "en"),
+        ("/projects/english", "de"),
+    ],
+)
+def test_alt_missing(pad, path, alt):
+    assert pad.get(path, alt=alt) is None
+    # alt=PRIMARY_ALT does not exist in these cases, either
+    assert pad.get(path) is None
 
 
 def test_alt_parent(pad):
