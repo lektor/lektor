@@ -28,6 +28,8 @@ class IterateInThread(threading.Thread):
 
     """
 
+    timeout = 2.0
+
     def __init__(self, it):
         threading.Thread.__init__(self, daemon=True)
         self.it = it
@@ -40,7 +42,7 @@ class IterateInThread(threading.Thread):
 
     def __next__(self):
         try:
-            return self.queue.get(timeout=0.1)
+            return self.queue.get(timeout=self.timeout)
         except queue.Empty:
             return pytest.fail("Timed out waiting for iterator")
 

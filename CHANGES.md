@@ -2,6 +2,15 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.1 (unreleased)
+
+### Bugs Fixed
+
+#### CI Tests
+
+- Increased timeout in `test_watcher.IterateInThread` to prevent
+  random spurious failures during CI testing.
+
 ## 3.3.0 (2021-12-14)
 
 This release drops support for versions of Python before 3.6.
