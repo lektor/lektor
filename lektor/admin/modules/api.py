@@ -58,7 +58,6 @@ def get_record_info():
     children = []
     attachments = []
     alts = []
-
     for child in tree_item.iter_children():
         if child.is_attachment:
             attachments.append(child)
@@ -67,6 +66,7 @@ def get_record_info():
 
     primary_alt = pad.db.config.primary_alternative
     if primary_alt is not None:
+        search_alts = [primary_alt]
         for alt in tree_item.alts.values():
             alt_cfg = pad.db.config.get_alternative(alt.id)
             alts.append(
@@ -78,8 +78,40 @@ def get_record_info():
                     "exists": alt.exists,
                 }
             )
+            if alt.id != primary_alt:
+                search_alts.append(alt.id)
+
+        def get_record(path):
+            # Get record for ``path``
+            #
+            # When alternatives are configured, it is possible for a
+            # page to only exists for a subset of alts.  So, we may
+            # have to try all of them in order to find existing page
+            # data.
+            #
+            # We try the ``primary_alt`` first.  If there is no page
+            # data for that alt, then we try the rest of the configure
+            # alts in quasi-random order until we find an existing
+            # alternative.
+            for alt in search_alts:
+                record = pad.get(path, alt=alt)
+                if record is not None:
+                    return record
+            # shouldn't happen
+            raise KeyError(f"Can not find record for path {path!r}")
+
+    else:
+
+        def get_record(path):
+            # Get record for path.
+            #
+            # Alternatives are not enabled, so just look for page at alt=PRIMARY_ALT.
+            return pad.get(path)
 
     child_order_by = pad.query(request_path).get_order_by() or []
+
+    def sort_key(child):
+        return get_record(child.path).get_sort_key(child_order_by)
 
     return jsonify(
         id=tree_item.id,
@@ -103,9 +135,7 @@ def get_record_info():
                 "label_i18n": x.label_i18n,
                 "visible": x.is_visible,
             }
-            for x in sorted(
-                children, key=lambda c: pad.get(c.path).get_sort_key(child_order_by)
-            )
+            for x in sorted(children, key=sort_key)
         ],
         alts=alts,
         can_have_children=tree_item.can_have_children,
