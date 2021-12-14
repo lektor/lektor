@@ -1,3 +1,44 @@
+import pytest
+
+from lektor.editor import BadEdit
+from lektor.editor import make_editor_session
+
+
+@pytest.mark.parametrize(
+    "path, kwargs, expect",
+    [
+        ("new", {}, {"exists": False, "datamodel": "page"}),
+        ("new", {"alt": "en"}, {"exists": False, "datamodel": "page"}),
+        ("projects/new", {}, {"exists": False, "datamodel": "project"}),
+        ("projects/new", {"datamodel": "page"}, {"exists": False, "datamodel": "page"}),
+        ("projects/zaun", {"alt": "de"}, {"exists": True, "datamodel": "project"}),
+        ("projects/zaun", {"alt": "en"}, {"exists": False}),
+        ("projects/zaun", {}, {"exists": False}),
+        ("projects/zaun", {"alt": "_primary"}, {"exists": False}),
+    ],
+)
+def test_make_editor_session(pad, path, kwargs, expect):
+    sess = make_editor_session(pad, path, **kwargs)
+    if "exists" in expect:
+        assert sess.exists == expect["exists"]
+    if "datamodel" in expect:
+        assert sess.datamodel.id == expect["datamodel"]
+
+
+@pytest.mark.parametrize(
+    "path, kwargs",
+    [
+        ("projects/zaun", {"alt": "xx"}),  # invalid alt
+        ("projects/.zaun", {}),  # invalid id
+        ("projects", {"is_attachment": True}),  # not an attachment
+        ("projects", {"datamodel": "page"}),  # attempt to change model
+    ],
+)
+def test_make_editor_session_raises_bad_edit(pad, path, kwargs):
+    with pytest.raises(BadEdit):
+        make_editor_session(pad, path, **kwargs)
+
+
 def test_basic_editor(scratch_tree):
     sess = scratch_tree.edit("/")
 
