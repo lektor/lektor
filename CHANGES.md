@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 4.0 (UNRELEASED - in development)
+## 3.3.0 (2021-12-14)
 
 This release drops support for versions of Python before 3.6.
 In particular, Python 2.7 is no longer supported.
