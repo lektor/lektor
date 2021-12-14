@@ -9,6 +9,12 @@ These are all the changes in Lektor since the first public release.
 - Fixed an import cycle which caused in `ImportError` if
   `lektor.types` was imported before `lektor.environemnt`. [#974][]
 
+#### Admin API
+
+- Fix a bug in `make_editor_session` which was incorrectly causing
+  `EditorSession.exists` to be set to `True` in the case that the
+  neither data for the specified alt nor the fallback data exist. [#964]
+
 #### CI Tests
 
 - Increased timeout in `test_watcher.IterateInThread` to prevent
@@ -16,6 +22,7 @@ These are all the changes in Lektor since the first public release.
 - Fix `tests/test_prev_next_sibling.py` so as to allow running
   multiple test runs in parallel.
 
+[#964]: https://github.com/lektor/lektor/pull/964
 [#974]: https://github.com/lektor/lektor/pull/974
 
 ## 3.3.0 (2021-12-14)
