@@ -98,7 +98,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - We now require node >= 14. [#940][]
 - Update NPM/JS dependencies. Update to webpack v5. [#816][],
   [#834][], [#848][], [#852][], [#860][], [#905][], [#917][],
-  [#926][], [#945][]
+  [#926][], [#945][], [#957][]
 - Use [prettier][] and [eslint][] for JS (and YAML) beautification and style enforcement. [#825][], [#936][]
 - Disuse unmaintained `jsdomify` to prevent hanging tests. [#839][]
 - Disuse jQuery. [#851][]
@@ -214,6 +214,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#942]: https://github.com/lektor/lektor/pull/942
 [#945]: https://github.com/lektor/lektor/pull/945
 [#952]: https://github.com/lektor/lektor/pull/952
+[#957]: https://github.com/lektor/lektor/pull/957
 
 ## 3.2.3 (2021-12-11)
 
