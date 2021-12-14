@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -13,19 +14,20 @@ from lektor.reporter import Reporter
 
 
 @pytest.fixture(scope="function")
-def pntest_project(request):
-    return Project.from_path(
-        os.path.join(os.path.dirname(__file__), "dependency-test-project")
-    )
+def pntest_project(tmp_path):
+    src = Path(__file__).parent / "dependency-test-project"
+    tmp_project = tmp_path / "project"
+    shutil.copytree(src, tmp_project)
+    return Project.from_path(tmp_project)
 
 
-@pytest.fixture(scope="function")
-def pntest_env(request, pntest_project):
+@pytest.fixture
+def pntest_env(pntest_project):
     return Environment(pntest_project)
 
 
-@pytest.fixture(scope="function")
-def pntest_pad(request, pntest_env):
+@pytest.fixture
+def pntest_pad(pntest_env):
     return Database(pntest_env).new_pad()
 
 
@@ -56,17 +58,19 @@ class DependencyReporter(Reporter):
         self.deps = {}
 
 
-@pytest.fixture(scope="function")
-def pntest_reporter(request, pntest_env):
+@pytest.fixture
+def pntest_reporter(pntest_env):
     reporter = DependencyReporter(pntest_env)
     reporter.push()
-    request.addfinalizer(reporter.pop)
-    return reporter
+    try:
+        yield reporter
+    finally:
+        reporter.pop()
 
 
-def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
+def test_prev_next_dependencies(tmp_path, pntest_env, pntest_reporter):
     env, reporter = pntest_env, pntest_reporter
-    builder = Builder(env.new_pad(), str(tmpdir.mkdir("output")))
+    builder = Builder(env.new_pad(), tmp_path / "output")
     builder.build_all()
 
     # We start with posts 1, 2, and 4. Posts 1 and 2 depend on each other,
@@ -86,13 +90,6 @@ def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
     # Create post3, check that post2 and post4's dependencies are updated.
     post3_dir = os.path.join(env.project.tree, "content", "post3")
 
-    def cleanup():
-        try:
-            shutil.rmtree(post3_dir)
-        except (OSError, IOError):
-            pass
-
-    request.addfinalizer(cleanup)
     os.makedirs(post3_dir)
     with open(os.path.join(post3_dir, "contents.lr"), "w+", encoding="utf-8"):
         pass

@@ -10,6 +10,8 @@ These are all the changes in Lektor since the first public release.
 
 - Increased timeout in `test_watcher.IterateInThread` to prevent
   random spurious failures during CI testing.
+- Fix `tests/test_prev_next_sibling.py` so as to allow running
+  multiple test runs in parallel.
 
 ## 3.3.0 (2021-12-14)
 
