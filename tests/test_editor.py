@@ -1,6 +1,6 @@
 import pytest
 
-from lektor.editor import EditorSession
+from lektor.editor import MutableEditorData
 
 
 def test_basic_editor(scratch_tree):
@@ -10,11 +10,11 @@ def test_basic_editor(scratch_tree):
     assert sess.path == "/"
     assert sess.record is not None
 
-    assert sess["_model"] == "page"
-    assert sess["title"] == "Index"
-    assert sess["body"] == "*Hello World!*"
+    assert sess.data["_model"] == "page"
+    assert sess.data["title"] == "Index"
+    assert sess.data["body"] == "*Hello World!*"
 
-    sess["body"] = "A new body"
+    sess.data["body"] = "A new body"
     sess.commit()
 
     assert sess.closed
@@ -36,11 +36,11 @@ def test_create_alt(scratch_tree, scratch_pad):
     assert sess.path == "/"
     assert sess.record is not None
 
-    assert sess["_model"] == "page"
-    assert sess["title"] == "Index"
-    assert sess["body"] == "*Hello World!*"
+    assert sess.data["_model"] == "page"
+    assert sess.data["title"] == "Index"
+    assert sess.data["body"] == "*Hello World!*"
 
-    sess["body"] = "Hallo Welt!"
+    sess.data["body"] = "Hallo Welt!"
     sess.commit()
 
     assert sess.closed
@@ -69,20 +69,18 @@ def fallback_data():
 
 
 @pytest.fixture
-def editor_data(pad, original_data, fallback_data):
-    return EditorSession(
-        pad,
-        "id",
-        "path",
-        original_data,
-        fallback_data,
-        "datamodel",
-        "record",
-    )
+def editor_data(original_data, fallback_data):
+    return MutableEditorData(original_data, fallback_data)
 
 
-def ischanged(editor_data):
-    return len(editor_data._changed) > 0
+def test_editor_data_ischanged(editor_data):
+    assert not editor_data.ischanged()
+    editor_data["item2"] = "fallback2"
+    assert not editor_data.ischanged()
+    editor_data["item2"] = "new2"
+    assert editor_data.ischanged()
+    editor_data["item2"] = "fallback2"
+    assert not editor_data.ischanged()
 
 
 def test_editor_data_getitem(editor_data):
@@ -96,35 +94,35 @@ def test_editor_data_getitem(editor_data):
 def test_editor_data_setitem(editor_data):
     with pytest.raises(KeyError):
         editor_data["_path"] = "newpath"
-    assert not ischanged(editor_data)
+    assert not editor_data.ischanged()
 
     editor_data["item1"] = "newval"
     assert editor_data["item1"] == "newval"
-    assert ischanged(editor_data)
+    assert editor_data.ischanged()
 
     editor_data["item1"] = "value1"
     assert editor_data["item1"] == "value1"
-    assert not ischanged(editor_data)
+    assert not editor_data.ischanged()
 
 
 def test_editor_data_setitem_possibly_implied_key(editor_data, original_data):
     original_data["_model"] = "mymodel"
-    assert not ischanged(editor_data)
+    assert not editor_data.ischanged()
     editor_data["_model"] = "mymodel"
-    assert ischanged(editor_data)
+    assert editor_data.ischanged()
 
 
 def test_editor_data_delitem(editor_data):
     del editor_data["item1"]
-    assert ischanged(editor_data)
+    assert editor_data.ischanged()
     assert "item1" not in editor_data
 
     editor_data["item1"] = "newval"
-    assert ischanged(editor_data)
+    assert editor_data.ischanged()
     assert "item1" in editor_data
 
     editor_data["item1"] = "value1"
-    assert not ischanged(editor_data)
+    assert not editor_data.ischanged()
     assert "item1" in editor_data
 
 
@@ -137,9 +135,9 @@ def test_editor_data_delitem_raises_keyerror(editor_data):
 
 def test_revert_key(editor_data):
     editor_data["item2"] = "xx"
-    assert ischanged(editor_data)
+    assert editor_data.ischanged()
     editor_data.revert_key("item2")
-    assert not ischanged(editor_data)
+    assert not editor_data.ischanged()
     assert editor_data["item2"] == "fallback2"
 
 

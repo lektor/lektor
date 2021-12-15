@@ -259,7 +259,7 @@ def add_new_record():
         if ts.exists:
             exists = True
         else:
-            ts.update(values.get("data") or {})
+            ts.data.update(values.get("data") or {})
 
     return jsonify({"valid_id": True, "exists": exists, "path": path})
 
@@ -282,7 +282,7 @@ def update_raw_record():
     alt = values.get("alt") or PRIMARY_ALT
     ts = g.admin_context.tree.edit(values["path"], alt=alt)
     with ts:
-        ts.update(data)
+        ts.data.update(data)
     return jsonify(path=ts.path)
 
 

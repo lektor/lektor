@@ -5,6 +5,7 @@ from collections import ChainMap
 from collections import OrderedDict
 from collections.abc import ItemsView
 from collections.abc import KeysView
+from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import ValuesView
 from itertools import chain
@@ -99,7 +100,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     )
 
 
-class EditorSession(MutableMapping):
+class EditorSession:
     def __init__(
         self,
         pad,
@@ -118,8 +119,6 @@ class EditorSession(MutableMapping):
         self.path = path
         self.record = record
         self.exists = exists
-        self.original_data = original_data
-        self.fallback_data = fallback_data
         self.datamodel = datamodel
         self.is_root = path.strip("/") == ""
         self.alt = alt
@@ -138,8 +137,8 @@ class EditorSession(MutableMapping):
         if is_attachment:
             self.implied_attachment_type = pad.db.get_attachment_type(path)
 
-        self._data = {}
-        self._changed = set()
+        self.data = MutableEditorData(original_data, fallback_data)
+
         self._delete_this = False
         self._recursive_delete = False
         self._master_delete = False
@@ -158,7 +157,7 @@ class EditorSession(MutableMapping):
             label = self.id
         can_be_deleted = not self.datamodel.protected and not self.is_root
         return {
-            "data": dict(self.items()),
+            "data": dict(self.data.items()),
             "record_info": {
                 "id": self.id,
                 "path": self.path,
@@ -175,87 +174,6 @@ class EditorSession(MutableMapping):
             },
             "datamodel": self.datamodel.to_json(self.pad, self.record, self.alt),
         }
-
-    def __getitem__(self, key):
-        data = ChainMap(self._data, self.original_data)
-        if self.fallback_data:
-            data.maps.append(self.fallback_data)
-        rv = data.get(key)
-        if rv is None:
-            raise KeyError(key)
-        return rv
-
-    def __setitem__(self, key, value):
-        if key in implied_keys:
-            raise KeyError(f"Can not set implied key {key!r}")
-
-        if self.fallback_data:
-            orig_data = ChainMap(self.original_data, self.fallback_data)
-        else:
-            orig_data = self.original_data
-        old_value = orig_data.get(key)
-
-        if old_value != value:
-            self._changed.add(key)
-        elif key in possibly_implied_keys:
-            # If the key is in the possibly implied key set and set to
-            # that value, we will set it to changed anyways.  This allows
-            # overriding of such special keys.
-            self._changed.add(key)
-        else:
-            self._changed.discard(key)
-        self._data[key] = value
-
-    def __delitem__(self, key):
-        if key in implied_keys:
-            raise KeyError(key)  # can not delete implied keys
-        if key in self._changed and self._data[key] is None:
-            raise KeyError(key)  # can not delete deleted key
-        if key not in self.original_data and key not in self._data:
-            if not self.fallback_data or key not in self.fallback_data:
-                raise KeyError(key)  # can not delete unknown key
-        self[key] = None
-
-    def __iter__(self):
-        if self.fallback_data:
-            keys = chain(self.original_data, self.fallback_data, sorted(self._data))
-            data = ChainMap(self._data, self.original_data, self.fallback_data)
-        else:
-            keys = chain(self.original_data, sorted(self._data))
-            data = ChainMap(self._data, self.original_data)
-        done = set(implied_keys)
-
-        for key in keys:
-            if key not in done:
-                done.add(key)
-                if data.get(key) is not None:
-                    yield key
-
-    def __len__(self):
-        data = ChainMap(
-            dict.fromkeys(implied_keys, None), self._data, self.original_data
-        )
-        if self.fallback_data:
-            data.maps.append(self.fallback_data)
-        return sum(1 for value in data.values() if value is not None)
-
-    def keys(self, fallback=True):  # pylint: disable=arguments-differ
-        return KeysView(self if fallback else self._without_fallback())
-
-    def items(self, fallback=True):  # pylint: disable=arguments-differ
-        return ItemsView(self if fallback else self._without_fallback())
-
-    def values(self, fallback=True):  # pylint: disable=arguments-differ
-        return ValuesView(self if fallback else self._without_fallback())
-
-    def _without_fallback(self):
-        """Return a clone of self, with fallback_data set to None."""
-        if not self.fallback_data:
-            return self
-        copy = self.__class__.__new__(self.__class__)
-        copy.__dict__ = self.__dict__.copy()
-        copy.fallback_data = None
-        return copy
 
     def __enter__(self):
         return self
@@ -287,12 +205,6 @@ class EditorSession(MutableMapping):
         if self.is_attachment:
             return self.pad.db.to_fs_path(self.path)
         return None
-
-    def revert_key(self, key):
-        """Reverts a key to the implied value."""
-        if key in self._data:
-            self._changed.discard(key)
-        self._data.pop(key, None)
 
     def rollback(self):
         """Ignores all changes and rejects them."""
@@ -407,7 +319,7 @@ class EditorSession(MutableMapping):
         # When creating a new alt from a primary self.exists is True but
         # the file does not exist yet.  In this case we want to explicitly
         # create it anyways instead of bailing.
-        if not self._changed and self.exists and os.path.exists(self.fs_path):
+        if not self.data.ischanged() and self.exists and os.path.exists(self.fs_path):
             return
 
         try:
@@ -416,7 +328,7 @@ class EditorSession(MutableMapping):
             pass
 
         with atomic_open(self.fs_path, "wb") as f:
-            for chunk in serialize(self.items(fallback=False), encoding="utf-8"):
+            for chunk in serialize(self.data.items(fallback=False), encoding="utf-8"):
                 f.write(chunk)
 
     def __repr__(self):
@@ -426,3 +338,112 @@ class EditorSession(MutableMapping):
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
             not self.exists and " new" or "",
         )
+
+
+class EditorData(Mapping):
+    """A read-only view of edited data.
+
+    This is a chained dict with (possibly) mutated data overlayed on
+    the original data for the record.
+    """
+
+    def __init__(self, original_data, fallback_data=None, _changed_data=None):
+        if _changed_data is None:
+            _changed_data = {}
+        self.fallback_data = fallback_data
+        if fallback_data:
+            self._orig_data = ChainMap(original_data, fallback_data)
+            self._data = ChainMap(_changed_data, original_data, fallback_data)
+        else:
+            self._orig_data = original_data
+            self._data = ChainMap(_changed_data, original_data)
+
+    @property
+    def _changed_data(self):
+        return self._data.maps[0]
+
+    @property
+    def original_data(self):
+        return self._data.maps[1]
+
+    def ischanged(self):
+        return len(self._changed_data) > 0
+
+    def __getitem__(self, key):
+        rv = self._data.get(key)
+        if rv is None:
+            raise KeyError(key)
+        return rv
+
+    def __iter__(self):
+        data = self._data
+        fallback_data = self.fallback_data or {}
+
+        for key in _uniq(chain(self.original_data, fallback_data, sorted(data))):
+            if key not in implied_keys:
+                if data[key] is not None:
+                    yield key
+
+    def __len__(self):
+        data = self._data
+        return sum(
+            1 for key in data if key not in implied_keys and data[key] is not None
+        )
+
+    def keys(self, fallback=True):  # pylint: disable=arguments-differ
+        return KeysView(self if fallback else self._without_fallback())
+
+    def items(self, fallback=True):  # pylint: disable=arguments-differ
+        return ItemsView(self if fallback else self._without_fallback())
+
+    def values(self, fallback=True):  # pylint: disable=arguments-differ
+        return ValuesView(self if fallback else self._without_fallback())
+
+    def _without_fallback(self):
+        """Return a copy of self, with fallback_data set to None."""
+        if not self.fallback_data:
+            return self
+        return EditorData(self.original_data, _changed_data=self._changed_data)
+
+
+class MutableEditorData(EditorData, MutableMapping):
+    """A mutable view of edited data.
+
+    This is a chained dict with (possibly) mutated data overlayed on
+    the original data for the record.
+    """
+
+    def __setitem__(self, key, value):
+        if key in implied_keys:
+            raise KeyError(f"Can not set implied key {key!r}")
+        orig_value = self._orig_data.get(key)
+        if value != orig_value:
+            self._data[key] = value
+        elif key in possibly_implied_keys:
+            # If the key is in the possibly implied key set and set to
+            # that value, we will set it to changed anyways.  This allows
+            # overriding of such special keys.
+            self._data[key] = value
+        else:
+            self._data.pop(key, None)
+
+    def __delitem__(self, key):
+        if key in implied_keys or self._data.get(key) is None:
+            raise KeyError(key)
+        self[key] = None
+
+    def revert_key(self, key):
+        """Reverts a key to the implied value."""
+        self._data.pop(key, None)
+
+
+def _uniq(seq):
+    """Return items from iterable in order, skipping items that have already been seen.
+
+    The items in ``seq`` must be hashable.
+    """
+    seen = set()
+    for item in seq:
+        if item not in seen:
+            seen.add(item)
+            yield item
