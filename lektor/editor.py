@@ -1,7 +1,13 @@
 import os
 import posixpath
 import shutil
+from collections import ChainMap
 from collections import OrderedDict
+from collections.abc import ItemsView
+from collections.abc import KeysView
+from collections.abc import MutableMapping
+from collections.abc import ValuesView
+from itertools import chain
 
 from lektor.constants import PRIMARY_ALT
 from lektor.metaformat import serialize
@@ -93,7 +99,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     )
 
 
-class EditorSession:
+class EditorSession(MutableMapping):
     def __init__(
         self,
         pad,
@@ -125,7 +131,7 @@ class EditorSession:
             if parent is not None:
                 slug_format = parent.datamodel.child_config.slug_format
         if slug_format is None:
-            slug_format = u"{{ this._id }}"
+            slug_format = "{{ this._id }}"
         self.slug_format = slug_format
         self.implied_attachment_type = None
 
@@ -152,7 +158,7 @@ class EditorSession:
             label = self.id
         can_be_deleted = not self.datamodel.protected and not self.is_root
         return {
-            "data": dict(self.iteritems()),
+            "data": dict(self.items()),
             "record_info": {
                 "id": self.id,
                 "path": self.path,
@@ -170,45 +176,34 @@ class EditorSession:
             "datamodel": self.datamodel.to_json(self.pad, self.record, self.alt),
         }
 
-    def __contains__(self, key):
-        try:
-            self[key]  # pylint: disable=pointless-statement
-            return True
-        except KeyError:
-            return False
-
     def __getitem__(self, key):
-        if key in self._data:
-            rv = self._data[key]
-            if rv is None:
-                raise KeyError(key)
-            return rv
-        if key in self.original_data:
-            return self.original_data[key]
-        if self.fallback_data and key in self.fallback_data:
-            return self.fallback_data[key]
-        raise KeyError(key)
+        data = ChainMap(self._data, self.original_data)
+        if self.fallback_data:
+            data.maps.append(self.fallback_data)
+        rv = data.get(key)
+        if rv is None:
+            raise KeyError(key)
+        return rv
 
     def __setitem__(self, key, value):
         if key in implied_keys:
-            raise KeyError(key)
-        if key in self.original_data:
-            old_value = self.original_data[key]
-        elif self.fallback_data and key in self.fallback_data:
-            old_value = self.fallback_data[key]
+            raise KeyError(f"Can not set implied key {key!r}")
+
+        if self.fallback_data:
+            orig_data = ChainMap(self.original_data, self.fallback_data)
         else:
-            old_value = None
+            orig_data = self.original_data
+        old_value = orig_data.get(key)
 
         if old_value != value:
             self._changed.add(key)
-        else:
+        elif key in possibly_implied_keys:
             # If the key is in the possibly implied key set and set to
             # that value, we will set it to changed anyways.  This allows
             # overriding of such special keys.
-            if key in possibly_implied_keys:
-                self._changed.add(key)
-            else:
-                self._changed.discard(key)
+            self._changed.add(key)
+        else:
+            self._changed.discard(key)
         self._data[key] = value
 
     def __delitem__(self, key):
@@ -221,6 +216,47 @@ class EditorSession:
                 raise KeyError(key)  # can not delete unknown key
         self[key] = None
 
+    def __iter__(self):
+        if self.fallback_data:
+            keys = chain(self.original_data, self.fallback_data, sorted(self._data))
+            data = ChainMap(self._data, self.original_data, self.fallback_data)
+        else:
+            keys = chain(self.original_data, sorted(self._data))
+            data = ChainMap(self._data, self.original_data)
+        done = set(implied_keys)
+
+        for key in keys:
+            if key not in done:
+                done.add(key)
+                if data.get(key) is not None:
+                    yield key
+
+    def __len__(self):
+        data = ChainMap(
+            dict.fromkeys(implied_keys, None), self._data, self.original_data
+        )
+        if self.fallback_data:
+            data.maps.append(self.fallback_data)
+        return sum(1 for value in data.values() if value is not None)
+
+    def keys(self, fallback=True):  # pylint: disable=arguments-differ
+        return KeysView(self if fallback else self._without_fallback())
+
+    def items(self, fallback=True):  # pylint: disable=arguments-differ
+        return ItemsView(self if fallback else self._without_fallback())
+
+    def values(self, fallback=True):  # pylint: disable=arguments-differ
+        return ValuesView(self if fallback else self._without_fallback())
+
+    def _without_fallback(self):
+        """Return a clone of self, with fallback_data set to None."""
+        if not self.fallback_data:
+            return self
+        copy = self.__class__.__new__(self.__class__)
+        copy.__dict__ = self.__dict__.copy()
+        copy.fallback_data = None
+        return copy
+
     def __enter__(self):
         return self
 
@@ -229,61 +265,6 @@ class EditorSession:
             self.rollback()
         else:
             self.commit()
-
-    def update(self, *args, **kwargs):
-        for key, value in dict(*args, **kwargs).items():
-            self[key] = value
-
-    def iteritems(self, fallback=True):
-        done = set()
-
-        for key, value in self.original_data.items():
-            done.add(key)
-            if key in implied_keys:
-                continue
-            if key in self._changed:
-                value = self._data[key]
-            if value is not None:
-                yield key, value
-
-        if fallback and self.fallback_data:
-            for key, value in self.fallback_data.items():
-                if key in implied_keys or key in done:
-                    continue
-                done.add(key)
-                if key in self._changed:
-                    value = self._data[key]
-                if value is not None:
-                    yield key, value
-
-        for key in sorted(self._data):
-            if key in done:
-                continue
-            value = self._data.get(key)
-            if value is not None:
-                yield key, value
-
-    def iterkeys(self, fallback=True):
-        for key, _ in self.iteritems(fallback=fallback):
-            yield key
-
-    def itervalues(self, fallback=True):
-        for _, value in self.iteritems(fallback=fallback):
-            yield value
-
-    def items(self, fallback=True):
-        return list(self.iteritems(fallback=fallback))
-
-    def keys(self, fallback=True):
-        return list(self.iterkeys(fallback=fallback))
-
-    def values(self, fallback=True):
-        return list(self.itervalues(fallback=fallback))
-
-    __iter__ = iterkeys
-
-    def __len__(self):
-        return len(self.items())
 
     def get_fs_path(self, alt=PRIMARY_ALT):
         """The path to the record file on the file system."""
@@ -435,7 +416,7 @@ class EditorSession:
             pass
 
         with atomic_open(self.fs_path, "wb") as f:
-            for chunk in serialize(self.iteritems(fallback=False), encoding="utf-8"):
+            for chunk in serialize(self.items(fallback=False), encoding="utf-8"):
                 f.write(chunk)
 
     def __repr__(self):
