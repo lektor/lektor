@@ -190,6 +190,8 @@ class EditorSession:
         raise KeyError(key)
 
     def __setitem__(self, key, value):
+        if key in implied_keys:
+            raise KeyError(key)
         if key in self.original_data:
             old_value = self.original_data[key]
         elif self.fallback_data and key in self.fallback_data:
@@ -204,12 +206,19 @@ class EditorSession:
             # that value, we will set it to changed anyways.  This allows
             # overriding of such special keys.
             if key in possibly_implied_keys:
-                self._changed.add(value)
+                self._changed.add(key)
             else:
-                self._changed.discard(value)
+                self._changed.discard(key)
         self._data[key] = value
 
     def __delitem__(self, key):
+        if key in implied_keys:
+            raise KeyError(key)  # can not delete implied keys
+        if key in self._changed and self._data[key] is None:
+            raise KeyError(key)  # can not delete deleted key
+        if key not in self.original_data and key not in self._data:
+            if not self.fallback_data or key not in self.fallback_data:
+                raise KeyError(key)  # can not delete unknown key
         self[key] = None
 
     def __enter__(self):
