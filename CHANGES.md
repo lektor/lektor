@@ -4,6 +4,11 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.3.1 (unreleased)
 
+#### License
+
+- The wording in the LICENSE file was standardized to that of the
+  current [BSD 3-Clause License][bsd]. [#972][]
+
 ### Bugs Fixed
 
 - Fixed an import cycle which caused in `ImportError` if
@@ -16,6 +21,8 @@ These are all the changes in Lektor since the first public release.
 - Fix `tests/test_prev_next_sibling.py` so as to allow running
   multiple test runs in parallel.
 
+[bsd]: https://opensource.org/licenses/BSD-3-Clause
+[#972]: https://github.com/lektor/lektor/pull/972
 [#974]: https://github.com/lektor/lektor/pull/974
 
 ## 3.3.0 (2021-12-14)
