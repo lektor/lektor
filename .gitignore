@@ -13,6 +13,7 @@ example-project
 
 coverage/
 .coverage
+.coverage.*
 coverage.xml
 coverage.lcov
 .nyc_output
