@@ -11,41 +11,50 @@ from lektor.context import get_ctx
 
 _markdown_cache = threading.local()
 
-_old_mistune = int(mistune.__version__.split('.', maxsplit=1)[0]) < 2
+_old_mistune = int(mistune.__version__.split(".", maxsplit=1)[0]) < 2
 
 if _old_mistune:
-    from mistune import Renderer as BaseRenderer
+
+    class ImprovedRenderer(mistune.Renderer):
+        def link(self, link, title, text):
+            return _render_link(link, text, title, record=self.record)
+
+        def image(self, src, title, text):
+            return _render_image(src, text, title, record=self.record)
+
 else:
-    from mistune import HTMLRenderer as BaseRenderer  # pylint: disable=no-name-in-module
+
+    class ImprovedRenderer(mistune.HTMLRenderer):
+        def link(self, link, text=None, title=None):
+            return _render_link(link, text, title, record=self.record)
+
+        def image(self, src, alt=None, title=None):
+            return _render_image(src, alt, title, record=self.record)
 
 
-class ImprovedRenderer(BaseRenderer):
-    def link(self, link, text=None, title=None):  # pylint: disable=arguments-differ, arguments-renamed
-        if _old_mistune:
-            (title, text) = (text, title)
-        if self.record is not None:
-            url = url_parse(link)
-            if not url.scheme:
-                link = self.record.url_to("!" + link, base_url=get_ctx().base_url)
-        link = escape(link)
-        if not title:
-            return '<a href="%s">%s</a>' % (link, text)
+def _render_link(link, text=None, title=None, record=None):
+    if record is not None:
+        url = url_parse(link)
+        if not url.scheme:
+            link = record.url_to("!" + link, base_url=get_ctx().base_url)
+    link = escape(link)
+    if not title:
+        return '<a href="%s">%s</a>' % (link, text)
+    title = escape(title)
+    return '<a href="%s" title="%s">%s</a>' % (link, title, text)
+
+
+def _render_image(src, alt="", title=None, record=None):
+    if record is not None:
+        url = url_parse(src)
+        if not url.scheme:
+            src = record.url_to("!" + src, base_url=get_ctx().base_url)
+    src = escape(src)
+    alt = escape(alt)
+    if title:
         title = escape(title)
-        return '<a href="%s" title="%s">%s</a>' % (link, title, text)
-
-    def image(self, src, alt="", title=None):  # pylint: disable=arguments-differ, arguments-renamed
-        if _old_mistune:
-            (title, alt) = (alt, title)
-        if self.record is not None:
-            url = url_parse(src)
-            if not url.scheme:
-                src = self.record.url_to("!" + src, base_url=get_ctx().base_url)
-        src = escape(src)
-        alt = escape(alt)
-        if title:
-            title = escape(title)
-            return '<img src="%s" alt="%s" title="%s">' % (src, alt, title)
-        return '<img src="%s" alt="%s">' % (src, alt)
+        return '<img src="%s" alt="%s" title="%s">' % (src, alt, title)
+    return '<img src="%s" alt="%s">' % (src, alt)
 
 
 class MarkdownConfig:
@@ -69,7 +78,7 @@ def make_markdown(env):
     env.plugin_controller.emit("markdown-lexer-config", config=cfg, renderer=renderer)
     if _old_mistune:
         return mistune.Markdown(renderer, **cfg.options)
-    return mistune.Markdown(renderer)
+    return mistune.create_markdown(renderer=renderer, **cfg.options)
 
 
 def markdown_to_html(text, record=None):
