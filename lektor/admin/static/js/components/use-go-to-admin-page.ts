@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
-import { fsToUrlPath } from "../utils";
+import { trimSlashes } from "../utils";
 
 /**
  * Compute an admin path.
@@ -10,9 +10,8 @@ import { fsToUrlPath } from "../utils";
  * @returns
  */
 export function adminPath(page: string, path: string, alt: string): string {
-  const urlPath = fsToUrlPath(path);
-  const urlPathWithAlt = alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
-  return `${$LEKTOR_CONFIG.admin_root}/${urlPathWithAlt}/${page}`;
+  const query = alt !== "_primary" ? `?alt=${encodeURIComponent(alt)}` : "";
+  return `${$LEKTOR_CONFIG.admin_root}/${page}/${trimSlashes(path)}${query}`;
 }
 
 /**

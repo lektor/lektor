@@ -1,5 +1,6 @@
 import React, { memo, ReactNode } from "react";
 import { NavLink } from "react-router-dom";
+import { useRecordAlt } from "./RecordComponent";
 import { adminPath } from "./use-go-to-admin-page";
 
 function AdminLink({
@@ -13,8 +14,14 @@ function AdminLink({
   alt: string;
   children: ReactNode;
 }): JSX.Element {
+  const activeAlt = useRecordAlt();
+
   return (
-    <NavLink to={adminPath(page, path, alt)} activeClassName="active">
+    <NavLink
+      to={adminPath(page, path, alt)}
+      activeClassName="active"
+      isActive={(match) => !!(match && alt === activeAlt)}
+    >
       {children}
     </NavLink>
   );

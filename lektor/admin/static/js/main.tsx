@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter, Redirect, useRouteMatch } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
+import { useRecordAlt } from "./components/RecordComponent";
 
 import "font-awesome/css/font-awesome.css";
 
@@ -12,52 +13,45 @@ import DeletePage from "./views/delete/DeletePage";
 import PreviewPage from "./views/PreviewPage";
 import AddChildPage from "./views/add-child-page/AddChildPage";
 import AddAttachmentPage from "./views/AddAttachmentPage";
-import { getRecordDetails } from "./components/RecordComponent";
 import { adminPath } from "./components/use-go-to-admin-page";
+import { trimSlashes } from "./utils";
 
 setCurrentLanguage($LEKTOR_CONFIG.lang);
 
-function getMainComponent(page: string) {
-  if (page === "edit") {
-    return EditPage;
-  } else if (page === "delete") {
-    return DeletePage;
-  } else if (page === "preview") {
-    return PreviewPage;
-  } else if (page === "add-child") {
-    return AddChildPage;
-  } else if (page === "upload") {
-    return AddAttachmentPage;
-  }
-  return null;
+const componentForPage = new Map([
+  ["edit", EditPage],
+  ["delete", DeletePage],
+  ["preview", PreviewPage],
+  ["add-child", AddChildPage],
+  ["upload", AddAttachmentPage],
+]);
+
+function NotFound() {
+  return <Redirect to={adminPath("edit", "/", "_primary")} />;
 }
 
 function Main() {
   const match = useRouteMatch<{ path: string; page: string }>(
-    `${$LEKTOR_CONFIG.admin_root}/:path/:page`
+    `${$LEKTOR_CONFIG.admin_root}/:page/:path*`
   );
-  // useRouteMatch returns a new object on each render, so we need to get the
-  // primitive string values here to memoize.
-  const urlPath = match?.params.path;
-  const page = match?.params.page;
+  const alt = useRecordAlt();
 
-  const record = useMemo(() => {
-    if (!urlPath) {
-      return null;
-    }
-    return getRecordDetails(urlPath);
-  }, [urlPath]);
+  if (!match) {
+    return <NotFound />;
+  }
 
-  if (!page) {
-    return <Redirect to={adminPath("edit", "/", "_primary")} />;
+  const page = decodeURIComponent(match.params.page);
+  const PageComponent = componentForPage.get(page);
+  if (!PageComponent) {
+    return <NotFound />;
   }
-  const Component = getMainComponent(page);
-  if (!Component || record === null) {
-    return <Redirect to={adminPath("edit", "/", "_primary")} />;
-  }
+
+  const path = `/${trimSlashes(decodeURIComponent(match.params.path ?? ""))}`;
+  const record = { path, alt };
+
   return (
     <App page={page} record={record}>
-      <Component record={record} />
+      <PageComponent record={record} />
     </App>
   );
 }

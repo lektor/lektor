@@ -15,7 +15,7 @@ bp = Blueprint("common", __name__)
 
 class AdminContext:
     def __init__(self):
-        self.admin_root = url_for("dash.index").rstrip("/")
+        self.admin_root = url_for("dash.app").rstrip("/")
         self.site_root = request.script_root
         self.info = current_app.lektor_info
 

@@ -1,4 +1,5 @@
-import { urlToFsPath } from "../utils";
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
 
 /** Details about the path to a Lektor record. */
 export type RecordPathDetails = {
@@ -8,18 +9,16 @@ export type RecordPathDetails = {
   alt: string;
 };
 
-/**
- * Extract a file system path and the alt from an URL path.
- * @param urlPath - A url path, i.e., a path with `:` as a separator and
- *                  potentially an alt appended with `+` at the end.
- */
-export function getRecordDetails(urlPath: string): RecordPathDetails | null {
-  if (!urlPath) {
-    return null;
-  }
-  const [p, a] = urlPath.split(/\+/, 2);
-  const [path, alt] = [urlToFsPath(p), a];
-  return path !== null ? { path, alt: alt || "_primary" } : null;
+export type RecordProps = { page: string; record: RecordPathDetails };
+
+// Fake useSearchParams from react-router-dom v6
+function useSearchParams() {
+  const { search } = useLocation();
+  const params = useMemo(() => new URLSearchParams(search), [search]);
+  return [params];
 }
 
-export type RecordProps = { page: string; record: RecordPathDetails };
+export function useRecordAlt() {
+  const [searchParams] = useSearchParams();
+  return searchParams.get("alt") ?? "_primary";
+}

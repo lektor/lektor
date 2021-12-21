@@ -92,21 +92,3 @@ export function getParentFsPath(fsPath: string): string | null {
   const match = /^(.*?)\/([^/]*)$/.exec(fsPath);
   return match ? match[1] : null;
 }
-
-export function fsToUrlPath(fsPath: string): string {
-  let segments = trimSlashes(fsPath).split("/");
-  if (segments.length === 1 && segments[0] === "") {
-    segments = [];
-  }
-  segments.unshift("root");
-  return segments.join(":");
-}
-
-export function urlToFsPath(urlPath: string): string | null {
-  const segments = trimColons(urlPath).split(":");
-  if (segments.length < 1 || segments[0] !== "root") {
-    return null;
-  }
-  segments[0] = "";
-  return segments.join("/");
-}

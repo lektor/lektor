@@ -7,22 +7,10 @@ from flask import request
 from flask import url_for
 from werkzeug.wsgi import extract_path_info
 
-from lektor.admin.utils import fs_path_to_url_path
 from lektor.constants import PRIMARY_ALT
 
 
 bp = Blueprint("dash", __name__, url_prefix="/admin")
-
-
-endpoints = [
-    ("/", "index"),
-    ("/publish", "publish"),
-    ("/<path>/edit", "edit"),
-    ("/<path>/delete", "delete"),
-    ("/<path>/preview", "preview"),
-    ("/<path>/add-child", "add_child"),
-    ("/<path>/upload", "add_attachment"),
-]
 
 
 @bp.route("/edit")
@@ -39,16 +27,20 @@ def edit_redirect():
         record = g.admin_context.pad.resolve_url_path(path, alt_fallback=False)
     if record is None:
         abort(404)
-    path = fs_path_to_url_path(record.path.split("@")[0])
-    if record.alt != PRIMARY_ALT:
-        path += "+" + record.alt
-    return redirect(url_for("dash.edit", path=path))
+    path, _, _ = record.path.lstrip("/").partition("@")
+    alt = record.alt
+    if alt == PRIMARY_ALT:
+        alt = None
+
+    return redirect(url_for("dash.app", path=path, alt=alt, view="edit"))
 
 
-def generic_endpoint(**kwargs):
-    """This function is invoked by all dash endpoints."""
+# This first path is only use to construct the AdminContext.admin_root.
+# If one actually visits the URL, the React app immediately redirects to
+# one of the subsequent two paths.
+@bp.route("/", endpoint="app", defaults={"path": "/", "view": "edit"})
+@bp.route("/<view>/", endpoint="app", defaults={"path": ""})
+@bp.route("/<view>/<path:path>", endpoint="app")
+def app_view(**kwargs):
+    """Render the React admin GUI app."""
     return render_template("dash.html")
-
-
-for path, endpoint in endpoints:
-    bp.add_url_rule(path, endpoint, generic_endpoint)
