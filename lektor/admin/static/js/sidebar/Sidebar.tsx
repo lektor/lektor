@@ -44,9 +44,7 @@ const compareAlternatives = (a: Alternative, b: Alternative) => {
   return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 };
 
-type Props = Pick<RecordProps, "record" | "page">;
-
-function Sidebar({ record, page }: Props): JSX.Element {
+function Sidebar({ record, page }: RecordProps): JSX.Element {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [childrenPage, setChildrenPage] = useState(1);
   const [childPosCache] = useState(() => new ChildPosCache());

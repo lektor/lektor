@@ -8,7 +8,7 @@ import Link from "../components/Link";
 import { Alternative } from "../components/types";
 import { trans, trans_obj } from "../i18n";
 
-type Props = Pick<RecordProps, "record" | "page"> & { alts: Alternative[] };
+type Props = RecordProps & { alts: Alternative[] };
 
 function Alternatives({ alts, page, record }: Props) {
   if (alts.length < 2) {

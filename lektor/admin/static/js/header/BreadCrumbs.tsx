@@ -56,9 +56,7 @@ function AddNewPage({
   ) : null;
 }
 
-type Props = Pick<RecordProps, "record" | "page">;
-
-function BreadCrumbs({ record, page }: Props): JSX.Element {
+function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
   const [segments, setSegments] = useState<RecordPathInfoSegment[] | null>(
     null
   );

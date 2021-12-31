@@ -1,4 +1,3 @@
-import { useHistory } from "react-router";
 import { urlToFsPath, fsToUrlPath } from "../utils";
 
 export function getRecordPathAndAlt(
@@ -44,11 +43,7 @@ export function getRecordDetails(urlPath: string): {
   };
 }
 
-export type RecordProps = {
-  page: string;
-  record: RecordPathDetails;
-  history: ReturnType<typeof useHistory>;
-};
+export type RecordProps = { page: string; record: RecordPathDetails };
 
 /**
  * Get the URL record path for a given record fs path.
