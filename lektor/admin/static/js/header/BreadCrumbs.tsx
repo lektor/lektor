@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import Link from "../components/Link";
 import { loadData } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
-import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLink from "../components/AdminLink";
 
 interface RecordPathInfoSegment {
   id: string;
@@ -31,7 +30,9 @@ function Crumb({
     : "breadcrumb-item record-crumb missing-record-crumb";
   return (
     <li className={className}>
-      <Link to={adminPath(target, path, alt)}>{label}</Link>
+      <AdminLink page={target} path={path} alt={alt}>
+        {label}
+      </AdminLink>
     </li>
   );
 }
@@ -45,7 +46,9 @@ function AddNewPage({
 }) {
   return item.can_have_children ? (
     <li className="new-record-crumb">
-      <Link to={adminPath("add-child", item.path, alt)}>+</Link>
+      <AdminLink page={"add-child"} path={item.path} alt={alt}>
+        +
+      </AdminLink>
     </li>
   ) : null;
 }
@@ -77,9 +80,9 @@ function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
     return (
       <ul className="breadcrumb">
         <li>
-          <Link to={adminPath("edit", "/", "_primary")}>
+          <AdminLink page="edit" path="/" alt="_primary">
             {trans("BACK_TO_OVERVIEW")}
-          </Link>
+          </AdminLink>
         </li>
       </ul>
     );

@@ -1,11 +1,10 @@
 import React from "react";
 import { trans, trans_obj } from "../i18n";
 import { RecordPathDetails } from "../components/RecordComponent";
-import Link from "../components/Link";
 import { RecordChild } from "../components/types";
 import ChildPagination from "./ChildPagination";
 import { CHILDREN_PER_PAGE } from "./constants";
-import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLink from "../components/AdminLink";
 
 export default function ChildActions({
   target,
@@ -38,9 +37,9 @@ export default function ChildActions({
         {shownChildren.length > 0 ? (
           shownChildren.map((child) => (
             <li key={child.id}>
-              <Link to={adminPath(target, child.path, alt)}>
+              <AdminLink page={target} path={child.path} alt={alt}>
                 {trans_obj(child.label_i18n)}
-              </Link>
+              </AdminLink>
             </li>
           ))
         ) : (

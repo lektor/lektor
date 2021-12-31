@@ -1,9 +1,8 @@
 import React, { memo } from "react";
+import AdminLink from "../components/AdminLink";
 import { RecordPathDetails } from "../components/RecordComponent";
-import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
-import { adminPath } from "../components/use-go-to-admin-page";
 
 function AttachmentActions({
   recordInfo,
@@ -21,9 +20,9 @@ function AttachmentActions({
           attachments.map((atch) => {
             return (
               <li key={atch.id}>
-                <Link to={adminPath("edit", atch.path, record.alt)}>
+                <AdminLink page="edit" path={atch.path} alt={record.alt}>
                   {atch.id} ({atch.type})
-                </Link>
+                </AdminLink>
               </li>
             );
           })

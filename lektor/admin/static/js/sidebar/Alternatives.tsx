@@ -1,9 +1,8 @@
 import React, { memo } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import Link from "../components/Link";
 import { Alternative } from "../components/types";
 import { trans, trans_obj } from "../i18n";
-import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLink from "../components/AdminLink";
 
 type Props = RecordProps & { alts: Alternative[] };
 
@@ -23,7 +22,9 @@ function Alternatives({ alts, page, record }: Props) {
 
     return (
       <li key={item.alt} className={className}>
-        <Link to={adminPath(page, record.path, item.alt)}>{title}</Link>
+        <AdminLink page={page as "edit"} path={record.path} alt={item.alt}>
+          {title}
+        </AdminLink>
       </li>
     );
   });

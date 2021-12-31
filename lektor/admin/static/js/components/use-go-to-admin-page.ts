@@ -4,15 +4,15 @@ import { fsToUrlPath } from "../utils";
 
 /**
  * Compute an admin path.
- * @param name - e.g. edit or preview
+ * @param page - e.g. edit or preview
  * @param path - fs path to the record
  * @param alt - the alternative to use.
  * @returns
  */
-export function adminPath(name: string, path: string, alt: string): string {
+export function adminPath(page: string, path: string, alt: string): string {
   const urlPath = fsToUrlPath(path);
   const urlPathWithAlt = alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
-  return `${$LEKTOR_CONFIG.admin_root}/${urlPathWithAlt}/${name}`;
+  return `${$LEKTOR_CONFIG.admin_root}/${urlPathWithAlt}/${page}`;
 }
 
 /**

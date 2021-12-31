@@ -1,6 +1,5 @@
 import React, { MouseEvent, memo, useCallback } from "react";
 import { RecordPathDetails } from "../components/RecordComponent";
-import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
@@ -8,6 +7,7 @@ import { loadData } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
 import LinkWithHotkey from "../components/LinkWithHotkey";
 import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLink from "../components/AdminLink";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -69,11 +69,15 @@ function PageActions({
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">
-            <Link to={adminPath("delete", path, alt)}>{trans("DELETE")}</Link>
+            <AdminLink page="delete" path={path} alt={alt}>
+              {trans("DELETE")}
+            </AdminLink>
           </li>
         )}
         <li key="preview">
-          <Link to={adminPath("preview", path, alt)}>{trans("PREVIEW")}</Link>
+          <AdminLink page="preview" path={path} alt={alt}>
+            {trans("PREVIEW")}
+          </AdminLink>
         </li>
         {recordInfo.exists && (
           <li key="fs-open">
@@ -82,16 +86,16 @@ function PageActions({
         )}
         {recordInfo.can_have_children && (
           <li key="add-child">
-            <Link to={adminPath("add-child", path, alt)}>
+            <AdminLink page="add-child" path={path} alt={alt}>
               {trans("ADD_CHILD_PAGE")}
-            </Link>
+            </AdminLink>
           </li>
         )}
         {recordInfo.can_have_attachments && (
           <li key="add-attachment">
-            <Link to={adminPath("upload", path, alt)}>
+            <AdminLink page="upload" path={path} alt={alt}>
               {trans("ADD_ATTACHMENT")}
-            </Link>
+            </AdminLink>
           </li>
         )}
       </ul>
