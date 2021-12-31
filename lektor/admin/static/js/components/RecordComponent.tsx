@@ -1,4 +1,4 @@
-import { urlToFsPath, fsToUrlPath } from "../utils";
+import { urlToFsPath } from "../utils";
 
 export function getRecordPathAndAlt(
   path: string
@@ -8,15 +8,6 @@ export function getRecordPathAndAlt(
   }
   const [p, a] = path.split(/\+/, 2);
   return [urlToFsPath(p), a];
-}
-
-/**
- * Helper to generate URL path for an admin page.
- * @param name - Name of the page (or null for the current one).
- * @param path - Record (URL) path.
- */
-export function pathToAdminPage(name: string, path: string): string {
-  return `${$LEKTOR_CONFIG.admin_root}/${path}/${name}`;
 }
 
 /** Details about the path to a Lektor record. */
@@ -44,13 +35,3 @@ export function getRecordDetails(urlPath: string): {
 }
 
 export type RecordProps = { page: string; record: RecordPathDetails };
-
-/**
- * Get the URL record path for a given record fs path.
- * @param path
- * @param alt
- */
-export function getUrlRecordPath(path: string, alt: string): string {
-  const urlPath = fsToUrlPath(path);
-  return alt === "_primary" ? urlPath : `${urlPath}+${alt}`;
-}

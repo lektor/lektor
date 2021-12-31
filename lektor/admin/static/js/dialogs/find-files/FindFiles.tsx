@@ -1,16 +1,12 @@
 import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
 
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import { RecordProps } from "../../components/RecordComponent";
 import SlideDialog from "../../components/SlideDialog";
 import { loadData } from "../../fetch";
 import { getCurrentLanguge, trans } from "../../i18n";
 import { showErrorDialog } from "../../error-dialog";
 import ResultRow from "./ResultRow";
-import { useHistory } from "react-router";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 export type Result = {
   parents: { title: string }[];
@@ -27,7 +23,7 @@ function FindFiles({
   const [results, setResults] = useState<Result[]>([]);
   const [selected, setSelected] = useState(-1);
 
-  const history = useHistory();
+  const goToAdminPage = useGoToAdminPage();
 
   const { alt } = record;
 
@@ -57,11 +53,10 @@ function FindFiles({
   const goto = useCallback(
     (item: Result) => {
       const target = page === "preview" ? "preview" : "edit";
-      const urlPath = getUrlRecordPath(item.path, alt);
       dismiss();
-      history.push(pathToAdminPage(target, urlPath));
+      goToAdminPage(target, item.path, alt);
     },
-    [alt, dismiss, history, page]
+    [alt, dismiss, goToAdminPage, page]
   );
 
   const onInputKey = useCallback(

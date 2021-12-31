@@ -1,9 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import { RecordProps } from "../../components/RecordComponent";
 import { getParentFsPath } from "../../utils";
 import { loadData } from "../../fetch";
 import { showErrorDialog } from "../../error-dialog";
@@ -15,7 +11,7 @@ import DeletePageActions from "./DeletePageActions";
 import DeleteAllAltsChoice from "./DeleteAllAltsChoice";
 import DeletePageHeader from "./DeletePageHeader";
 import { dispatch } from "../../events";
-import { useHistory } from "react-router";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 type Props = Pick<RecordProps, "record">;
 
@@ -23,7 +19,7 @@ function DeletePage({ record }: Props): JSX.Element | null {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [deleteMasterRecord, setDeleteMasterRecord] = useState(true);
 
-  const history = useHistory();
+  const goToAdminPage = useGoToAdminPage();
   const { alt, path } = record;
 
   useEffect(() => {
@@ -46,7 +42,7 @@ function DeletePage({ record }: Props): JSX.Element | null {
 
   const deleteRecord = useCallback(() => {
     const parent = getParentFsPath(path || "");
-    const targetPath = parent === null ? "root" : getUrlRecordPath(parent, alt);
+    const targetPath = parent === null ? "/" : parent;
 
     loadData(
       "/deleterecord",
@@ -56,14 +52,13 @@ function DeletePage({ record }: Props): JSX.Element | null {
       if (recordInfo?.is_attachment) {
         dispatch("lektor-attachments-changed", parent ?? "");
       }
-      history.push(pathToAdminPage("edit", targetPath));
+      goToAdminPage("edit", targetPath, alt);
     }, showErrorDialog);
-  }, [alt, path, deleteMasterRecord, history, recordInfo]);
+  }, [alt, path, deleteMasterRecord, goToAdminPage, recordInfo]);
 
   const cancelDelete = useCallback(() => {
-    const urlPath = getUrlRecordPath(record.path, record.alt);
-    history.push(pathToAdminPage("edit", urlPath));
-  }, [history, record]);
+    goToAdminPage("edit", record.path, record.alt);
+  }, [goToAdminPage, record]);
 
   if (!recordInfo || !recordInfo.can_be_deleted) {
     return null;

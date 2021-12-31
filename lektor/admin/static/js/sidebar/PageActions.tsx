@@ -1,8 +1,5 @@
 import React, { MouseEvent, memo, useCallback } from "react";
-import {
-  getUrlRecordPath,
-  RecordPathDetails,
-} from "../components/RecordComponent";
+import { RecordPathDetails } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
@@ -10,6 +7,7 @@ import { getPlatform } from "../utils";
 import { loadData } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
 import LinkWithHotkey from "../components/LinkWithHotkey";
+import { adminPath } from "../components/use-go-to-admin-page";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -54,7 +52,7 @@ function PageActions({
   record: RecordPathDetails;
   recordInfo: RecordInfo;
 }) {
-  const urlPath = getUrlRecordPath(record.path, record.alt);
+  const { path, alt } = record;
 
   return (
     <div className="section">
@@ -65,17 +63,17 @@ function PageActions({
       </h3>
       <ul className="nav">
         <li key="edit">
-          <LinkWithHotkey to={`${urlPath}/edit`} shortcut={editKey}>
+          <LinkWithHotkey to={adminPath("edit", path, alt)} shortcut={editKey}>
             {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
           </LinkWithHotkey>
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">
-            <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
+            <Link to={adminPath("delete", path, alt)}>{trans("DELETE")}</Link>
           </li>
         )}
         <li key="preview">
-          <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
+          <Link to={adminPath("preview", path, alt)}>{trans("PREVIEW")}</Link>
         </li>
         {recordInfo.exists && (
           <li key="fs-open">
@@ -84,12 +82,16 @@ function PageActions({
         )}
         {recordInfo.can_have_children && (
           <li key="add-child">
-            <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
+            <Link to={adminPath("add-child", path, alt)}>
+              {trans("ADD_CHILD_PAGE")}
+            </Link>
           </li>
         )}
         {recordInfo.can_have_attachments && (
           <li key="add-attachment">
-            <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
+            <Link to={adminPath("upload", path, alt)}>
+              {trans("ADD_ATTACHMENT")}
+            </Link>
           </li>
         )}
       </ul>

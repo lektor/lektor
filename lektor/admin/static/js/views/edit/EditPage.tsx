@@ -6,13 +6,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Prompt, useHistory } from "react-router-dom";
+import { Prompt } from "react-router-dom";
 
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import { RecordProps } from "../../components/RecordComponent";
 import { keyboardShortcutHandler } from "../../utils";
 import { loadData } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
@@ -26,6 +22,7 @@ import { showErrorDialog } from "../../error-dialog";
 import { Field, WidgetComponent } from "../../widgets/types";
 import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 export type RawRecordInfo = {
   alt: string;
@@ -150,7 +147,7 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
   const [recordInfo, setRecordnfo] = useState<RawRecordInfo | null>(null);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
-  const history = useHistory();
+  const goToAdminPage = useGoToAdminPage();
 
   const { path, alt } = record;
 
@@ -217,10 +214,10 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
         method: "PUT",
       }).then(() => {
         setHasPendingChanges(false);
-        history.push(pathToAdminPage("preview", getUrlRecordPath(path, alt)));
+        goToAdminPage("preview", path, alt);
       }, showErrorDialog);
     },
-    [alt, history, path, recordData, recordDataModel, recordInfo]
+    [alt, goToAdminPage, path, recordData, recordDataModel, recordInfo]
   );
 
   const renderFormField = useCallback(

@@ -1,9 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import { RecordProps } from "../../components/RecordComponent";
 import { trans, trans_format } from "../../i18n";
 import { loadData } from "../../fetch";
 import { slugify } from "../../slugify";
@@ -12,7 +8,7 @@ import { NewRecordInfo } from "./types";
 import AvailableModels from "./AvailableModels";
 import PrimaryField from "./PrimaryFieldRow";
 import Slug from "./Slug";
-import { useHistory } from "react-router";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 /** Show an alert with the given error message. */
 const alertErr = (text: string) => {
@@ -51,7 +47,7 @@ function AddChildPage({ record }: Props): JSX.Element | null {
   const primaryField =
     newChildInfo?.available_models[selectedModel]?.primary_field;
 
-  const history = useHistory();
+  const goToAdminPage = useGoToAdminPage();
 
   const createRecord = useCallback(() => {
     const currentId = id || slugify(primary).toLowerCase();
@@ -77,13 +73,12 @@ function AddChildPage({ record }: Props): JSX.Element | null {
       } else if (!resp.valid_id) {
         alertErr(trans_format("ERROR_INVALID_ID", currentId));
       } else {
-        const urlPath = getUrlRecordPath(resp.path, alt);
-        history.push(pathToAdminPage("edit", urlPath));
+        goToAdminPage("edit", resp.path, alt);
       }
     }, showErrorDialog);
   }, [
     alt,
-    history,
+    goToAdminPage,
     newChildInfo,
     id,
     path,

@@ -11,13 +11,9 @@ import {
   urlPathsConsideredEqual,
 } from "../utils";
 import { loadData } from "../fetch";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../components/RecordComponent";
+import { RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
-import { useHistory } from "react-router";
+import { useGoToAdminPage } from "../components/use-go-to-admin-page";
 
 function getIframePath(iframe: HTMLIFrameElement): string | null {
   const location = iframe.contentWindow?.location;
@@ -31,8 +27,10 @@ export default function PreviewPage({
 }: Pick<RecordProps, "record">): JSX.Element {
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const [pageUrl, setPageUrl] = useState<string | null>(null);
+  // This contains the path and alt of the page that we fetched the preview info for.
+  // It's used to check whether we need to update the iframe src attribute.
   const [pageUrlPath, setPageUrlPath] = useState<string | null>(null);
-  const history = useHistory();
+  const goToAdminPage = useGoToAdminPage();
 
   const { path, alt } = record;
 
@@ -42,7 +40,7 @@ export default function PreviewPage({
     loadData("/previewinfo", { path, alt }).then((resp) => {
       if (!ignore) {
         setPageUrl(resp.url);
-        setPageUrlPath(getUrlRecordPath(path, alt));
+        setPageUrlPath(`${path}${alt}`);
       }
     }, showErrorDialog);
 
@@ -53,8 +51,7 @@ export default function PreviewPage({
 
   useEffect(() => {
     const frame = iframe.current;
-    const intendedPath =
-      pageUrlPath === getUrlRecordPath(path, alt) ? pageUrl : null;
+    const intendedPath = pageUrlPath === `${path}${alt}` ? pageUrl : null;
     if (frame && intendedPath) {
       const framePath = getIframePath(frame);
 
@@ -70,13 +67,12 @@ export default function PreviewPage({
       if (framePath !== null) {
         loadData("/matchurl", { url_path: framePath }).then((resp) => {
           if (resp.exists) {
-            const urlPath = getUrlRecordPath(resp.path, resp.alt);
-            history.push(pathToAdminPage("preview", urlPath));
+            goToAdminPage("preview", resp.path, resp.alt);
           }
         }, showErrorDialog);
       }
     },
-    [history]
+    [goToAdminPage]
   );
 
   return (

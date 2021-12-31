@@ -1,11 +1,9 @@
 import React, { memo } from "react";
-import {
-  getUrlRecordPath,
-  RecordPathDetails,
-} from "../components/RecordComponent";
+import { RecordPathDetails } from "../components/RecordComponent";
 import Link from "../components/Link";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
+import { adminPath } from "../components/use-go-to-admin-page";
 
 function AttachmentActions({
   recordInfo,
@@ -21,10 +19,9 @@ function AttachmentActions({
       <ul className="nav record-attachments">
         {attachments.length > 0 ? (
           attachments.map((atch) => {
-            const urlPath = getUrlRecordPath(atch.path, record.alt);
             return (
               <li key={atch.id}>
-                <Link to={`${urlPath}/edit`}>
+                <Link to={adminPath("edit", atch.path, record.alt)}>
                   {atch.id} ({atch.type})
                 </Link>
               </li>
