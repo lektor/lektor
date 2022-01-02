@@ -5,15 +5,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  fsPathFromAdminObservedPath,
-  getCanonicalUrl,
-  urlPathsConsideredEqual,
-} from "../utils";
+import { getCanonicalUrl, trimSlashes, trimTrailingSlashes } from "../utils";
 import { loadData } from "../fetch";
 import { RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
 import { useGoToAdminPage } from "../components/use-go-to-admin-page";
+
+function fsPathFromAdminObservedPath(adminPath: string): string | null {
+  const base = trimTrailingSlashes($LEKTOR_CONFIG.site_root);
+  return adminPath.startsWith(base)
+    ? `/${trimSlashes(adminPath.substr(base.length))}`
+    : null;
+}
 
 function getIframePath(iframe: HTMLIFrameElement): string | null {
   const location = iframe.contentWindow?.location;
@@ -55,7 +58,10 @@ export default function PreviewPage({
     if (frame && intendedPath) {
       const framePath = getIframePath(frame);
 
-      if (!urlPathsConsideredEqual(intendedPath, framePath)) {
+      if (
+        !framePath ||
+        trimTrailingSlashes(intendedPath) !== trimTrailingSlashes(framePath)
+      ) {
         frame.src = getCanonicalUrl(intendedPath);
       }
     }
