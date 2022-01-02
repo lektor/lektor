@@ -1,5 +1,5 @@
 import React from "react";
-import { Result } from "./FindFiles";
+import { SearchResult } from "./FindFiles";
 
 /**
  * A page in the result list in the find files dialog.
@@ -10,7 +10,7 @@ export default function ResultRow({
   onClick,
   onMouseEnter,
 }: {
-  result: Result;
+  result: SearchResult;
   isActive: boolean;
   onClick: () => void;
   onMouseEnter: () => void;

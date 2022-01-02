@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { loadData } from "../fetch";
+import { get } from "../fetch";
 import { trans } from "../i18n";
 
 type State = { serverIsUp: boolean; projectId: string | null };
-
-type Response = { project_id: string };
 
 export default function ServerStatus(): JSX.Element | null {
   const [state, setState] = useState<State>({
@@ -14,8 +12,8 @@ export default function ServerStatus(): JSX.Element | null {
 
   useEffect(() => {
     const onInterval = () => {
-      loadData("/ping", {}).then(
-        ({ project_id }: Response) => {
+      get("/ping", null).then(
+        ({ project_id }) => {
           setState(({ projectId }) =>
             projectId === null
               ? { projectId: project_id, serverIsUp: true }

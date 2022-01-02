@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { RecordPathDetails } from "../components/RecordComponent";
 import { getCanonicalUrl, keyboardShortcutHandler } from "../utils";
-import { loadData } from "../fetch";
+import { get } from "../fetch";
 import { trans } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import { dispatch } from "../events";
@@ -24,12 +24,9 @@ export default function GlobalActions(props: {
   }, []);
 
   const returnToWebsite = () => {
-    loadData("/previewinfo", {
-      path: props.record.path,
-      alt: props.record.alt,
-    }).then((resp) => {
+    get("/previewinfo", props.record).then(({ url }) => {
       window.location.href =
-        resp.url === null ? getCanonicalUrl("/") : getCanonicalUrl(resp.url);
+        url === null ? getCanonicalUrl("/") : getCanonicalUrl(url);
     }, showErrorDialog);
   };
 

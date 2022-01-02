@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import { loadData } from "../fetch";
+import { get } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import AdminLink from "../components/AdminLink";
 
-interface RecordPathInfoSegment {
+export interface RecordPathInfoSegment {
   id: string;
   path: string;
   label: string;
@@ -62,14 +62,11 @@ function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
   useEffect(() => {
     let ignore = false;
 
-    loadData("/pathinfo", { path }).then(
-      (resp: { segments: RecordPathInfoSegment[] }) => {
-        if (!ignore) {
-          setSegments(resp.segments);
-        }
-      },
-      showErrorDialog
-    );
+    get("/pathinfo", { path }).then((resp) => {
+      if (!ignore) {
+        setSegments(resp.segments);
+      }
+    }, showErrorDialog);
 
     return () => {
       ignore = true;

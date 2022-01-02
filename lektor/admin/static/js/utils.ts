@@ -39,10 +39,6 @@ export function getCanonicalUrl(localPath: string): string {
   return `${base}/${trimLeadingSlashes(localPath)}`;
 }
 
-export function getApiUrl(url: string): string {
-  return `${$LEKTOR_CONFIG.admin_root}/api${url}`;
-}
-
 export function getPlatform(): "windows" | "mac" | "linux" | "other" {
   if (navigator.appVersion.indexOf("Win") !== -1) {
     return "windows";

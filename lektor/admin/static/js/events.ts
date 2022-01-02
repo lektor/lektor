@@ -1,7 +1,7 @@
 export type LektorEvents = {
   "lektor-attachments-changed": string;
   "lektor-dialog": { type: "find-files" | "refresh" | "publish" };
-  "lektor-error": unknown;
+  "lektor-error": { code: string };
 };
 
 /** Dispatch one of the custom events. */

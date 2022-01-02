@@ -3,7 +3,7 @@ import { RecordPathDetails } from "../components/RecordComponent";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
-import { loadData } from "../fetch";
+import { post } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
 import LinkWithHotkey from "../components/LinkWithHotkey";
 import { adminPath } from "../components/use-go-to-admin-page";
@@ -24,15 +24,14 @@ function BrowseFSLink({ record }: { record: RecordPathDetails }) {
   const fsOpen = useCallback(
     (ev: MouseEvent) => {
       ev.preventDefault();
-      loadData(
-        "/browsefs",
-        { path: record.path, alt: record.alt },
-        { method: "POST" }
-      ).then((resp) => {
-        if (!resp.okay) {
-          alert(trans("ERROR_CANNOT_BROWSE_FS"));
-        }
-      }, showErrorDialog);
+      post("/browsefs", { path: record.path, alt: record.alt }).then(
+        ({ okay }) => {
+          if (!okay) {
+            alert(trans("ERROR_CANNOT_BROWSE_FS"));
+          }
+        },
+        showErrorDialog
+      );
     },
     [record]
   );

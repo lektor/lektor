@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { RecordProps } from "../../components/RecordComponent";
 import { getParentFsPath } from "../../utils";
-import { loadData } from "../../fetch";
+import { get, post } from "../../fetch";
 import { showErrorDialog } from "../../error-dialog";
 import { RecordInfo } from "../../components/types";
 import DeletableAttachments from "./DeletableAttachments";
@@ -25,7 +25,7 @@ function DeletePage({ record }: Props): JSX.Element | null {
   useEffect(() => {
     let ignore = false;
 
-    loadData("/recordinfo", { path }).then((resp: RecordInfo) => {
+    get("/recordinfo", { path }).then((resp) => {
       if (!ignore) {
         setRecordInfo(resp);
       }
@@ -44,11 +44,11 @@ function DeletePage({ record }: Props): JSX.Element | null {
     const parent = getParentFsPath(path || "");
     const targetPath = parent === null ? "/" : parent;
 
-    loadData(
-      "/deleterecord",
-      { path, alt, delete_master: deleteMasterRecord ? "1" : "0" },
-      { method: "POST" }
-    ).then(() => {
+    post("/deleterecord", {
+      path,
+      alt,
+      delete_master: deleteMasterRecord ? "1" : "0",
+    }).then(() => {
       if (recordInfo?.is_attachment) {
         dispatch("lektor-attachments-changed", parent ?? "");
       }

@@ -10,7 +10,7 @@ import { Prompt } from "react-router-dom";
 
 import { RecordProps } from "../../components/RecordComponent";
 import { keyboardShortcutHandler } from "../../utils";
-import { loadData } from "../../fetch";
+import { get, put } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
 import {
   getWidgetComponentWithFallback,
@@ -44,7 +44,7 @@ type RecordDataModel = {
   fields: Field[];
 };
 
-type RawRecord = {
+export type RawRecord = {
   datamodel: RecordDataModel;
   record_info: RawRecordInfo;
   data: Record<string, string>;
@@ -153,26 +153,29 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
 
   useEffect(() => {
     let ignore = false;
-    loadData("/rawrecord", { path, alt }).then((resp: RawRecord) => {
-      if (!ignore) {
-        // transform resp.data into actual data
-        const recordData: Record<string, string> = {};
-        legalFields(resp.datamodel, resp.record_info).forEach((field) => {
-          const Widget = getWidgetComponentWithFallback(field.type);
-          let value = resp.data[field.name];
-          if (value !== undefined) {
-            if (Widget.deserializeValue) {
-              value = Widget.deserializeValue(value, field.type);
+    get("/rawrecord", { path, alt }).then(
+      ({ datamodel, data, record_info }) => {
+        if (!ignore) {
+          // transform response data into actual data
+          const recordData: Record<string, string> = {};
+          legalFields(datamodel, record_info).forEach((field) => {
+            const Widget = getWidgetComponentWithFallback(field.type);
+            let value = data[field.name];
+            if (value !== undefined) {
+              if (Widget.deserializeValue) {
+                value = Widget.deserializeValue(value, field.type);
+              }
+              recordData[field.name] = value;
             }
-            recordData[field.name] = value;
-          }
-        });
-        setRecordData(recordData);
-        setRecordDataModel(resp.datamodel);
-        setRecordnfo(resp.record_info);
-        setHasPendingChanges(false);
-      }
-    }, showErrorDialog);
+          });
+          setRecordData(recordData);
+          setRecordDataModel(datamodel);
+          setRecordnfo(record_info);
+          setHasPendingChanges(false);
+        }
+      },
+      showErrorDialog
+    );
 
     return () => {
       ignore = true;
@@ -209,10 +212,7 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
     (ev: FormEvent) => {
       ev.preventDefault();
       const data = getValues({ recordDataModel, recordInfo, recordData });
-      loadData("/rawrecord", null, {
-        json: { data, path, alt },
-        method: "PUT",
-      }).then(() => {
+      put("/rawrecord", { data, path, alt }).then(() => {
         setHasPendingChanges(false);
         goToAdminPage("preview", path, alt);
       }, showErrorDialog);

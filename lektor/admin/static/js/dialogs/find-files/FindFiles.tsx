@@ -2,13 +2,13 @@ import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
 
 import { RecordProps } from "../../components/RecordComponent";
 import SlideDialog from "../../components/SlideDialog";
-import { loadData } from "../../fetch";
+import { post } from "../../fetch";
 import { getCurrentLanguge, trans } from "../../i18n";
 import { showErrorDialog } from "../../error-dialog";
 import ResultRow from "./ResultRow";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
-export type Result = {
+export type SearchResult = {
   parents: { title: string }[];
   path: string;
   title: string;
@@ -20,7 +20,7 @@ function FindFiles({
   dismiss,
 }: RecordProps & { dismiss: () => void }): JSX.Element {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Result[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(-1);
 
   const goToAdminPage = useGoToAdminPage();
@@ -35,23 +35,22 @@ function FindFiles({
     }
     let ignore = false;
 
-    loadData(
-      "/find",
-      { q: query, alt, lang: getCurrentLanguge() },
-      { method: "POST" }
-    ).then(({ results }) => {
-      if (!ignore) {
-        setResults(results);
-        setSelected((selected) => Math.min(selected, results.length - 1));
-      }
-    }, showErrorDialog);
+    post("/find", { q: query, alt, lang: getCurrentLanguge() }).then(
+      ({ results }) => {
+        if (!ignore) {
+          setResults(results);
+          setSelected((selected) => Math.min(selected, results.length - 1));
+        }
+      },
+      showErrorDialog
+    );
     return () => {
       ignore = true;
     };
   }, [alt, query]);
 
   const goto = useCallback(
-    (item: Result) => {
+    (item: SearchResult) => {
       const target = page === "preview" ? "preview" : "edit";
       dismiss();
       goToAdminPage(target, item.path, alt);

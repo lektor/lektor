@@ -8,7 +8,7 @@ import { LektorEvents, subscribe, unsubscribe } from "../events";
  * dialog).
  */
 export default function ErrorDialog(): JSX.Element | null {
-  const [error, setError] = useState<any | null>(null);
+  const [error, setError] = useState<{ code: string } | null>(null);
 
   const dismiss = useCallback(() => setError(null), []);
 

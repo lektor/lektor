@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { RecordProps } from "../../components/RecordComponent";
 import { trans, trans_format } from "../../i18n";
-import { loadData } from "../../fetch";
+import { get, post } from "../../fetch";
 import { slugify } from "../../slugify";
 import { showErrorDialog } from "../../error-dialog";
 import { NewRecordInfo } from "./types";
@@ -26,7 +26,7 @@ function AddChildPage({ record }: Props): JSX.Element | null {
 
   useEffect(() => {
     let ignore = false;
-    loadData("/newrecord", { path }).then((resp: NewRecordInfo) => {
+    get("/newrecord", { path }).then((resp) => {
       if (!ignore) {
         const defaultModel = resp.available_models.page
           ? "page"
@@ -64,18 +64,18 @@ function AddChildPage({ record }: Props): JSX.Element | null {
       data[primaryField.name] = primary;
     }
 
-    loadData("/newrecord", null, {
-      json: { id: currentId, path, data },
-      method: "POST",
-    }).then((resp) => {
-      if (resp.exists) {
-        alertErr(trans_format("ERROR_PAGE_ID_DUPLICATE", currentId));
-      } else if (!resp.valid_id) {
-        alertErr(trans_format("ERROR_INVALID_ID", currentId));
-      } else {
-        goToAdminPage("edit", resp.path, alt);
-      }
-    }, showErrorDialog);
+    post("/newrecord", null, { id: currentId, path, data }).then(
+      ({ exists, valid_id, path }) => {
+        if (exists) {
+          alertErr(trans_format("ERROR_PAGE_ID_DUPLICATE", currentId));
+        } else if (!valid_id) {
+          alertErr(trans_format("ERROR_INVALID_ID", currentId));
+        } else {
+          goToAdminPage("edit", path, alt);
+        }
+      },
+      showErrorDialog
+    );
   }, [
     alt,
     goToAdminPage,

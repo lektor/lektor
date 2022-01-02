@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { getCanonicalUrl, trimSlashes, trimTrailingSlashes } from "../utils";
-import { loadData } from "../fetch";
+import { get } from "../fetch";
 import { RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
 import { useGoToAdminPage } from "../components/use-go-to-admin-page";
@@ -40,9 +40,9 @@ export default function PreviewPage({
   useEffect(() => {
     let ignore = false;
 
-    loadData("/previewinfo", { path, alt }).then((resp) => {
+    get("/previewinfo", { path, alt }).then(({ url }) => {
       if (!ignore) {
-        setPageUrl(resp.url);
+        setPageUrl(url);
         setPageUrlPath(`${path}${alt}`);
       }
     }, showErrorDialog);
@@ -71,11 +71,14 @@ export default function PreviewPage({
     (event: SyntheticEvent<HTMLIFrameElement>) => {
       const framePath = getIframePath(event.currentTarget);
       if (framePath !== null) {
-        loadData("/matchurl", { url_path: framePath }).then((resp) => {
-          if (resp.exists) {
-            goToAdminPage("preview", resp.path, resp.alt);
-          }
-        }, showErrorDialog);
+        get("/matchurl", { url_path: framePath }).then(
+          ({ exists, alt, path }) => {
+            if (exists) {
+              goToAdminPage("preview", path, alt);
+            }
+          },
+          showErrorDialog
+        );
       }
     },
     [goToAdminPage]

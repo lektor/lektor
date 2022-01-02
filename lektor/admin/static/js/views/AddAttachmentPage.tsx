@@ -6,8 +6,7 @@ import React, {
   useState,
 } from "react";
 import { RecordProps } from "../components/RecordComponent";
-import { getApiUrl } from "../utils";
-import { loadData } from "../fetch";
+import { apiUrl, get } from "../fetch";
 import { trans, trans_format } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import { dispatch } from "../events";
@@ -31,7 +30,7 @@ function AddAttachmentPage({
   useEffect(() => {
     let ignore = false;
 
-    loadData("/newattachment", { path }).then((resp: NewAttachmentInfo) => {
+    get("/newattachment", { path }).then((resp) => {
       if (!ignore) {
         setNewAttachmentInfo(resp);
       }
@@ -58,7 +57,7 @@ function AddAttachmentPage({
       });
 
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", getApiUrl("/newattachment"));
+      xhr.open("POST", apiUrl("/newattachment"));
       xhr.onprogress = (event) => {
         setCurrentProgress(Math.round((event.loaded * 100) / event.total));
       };

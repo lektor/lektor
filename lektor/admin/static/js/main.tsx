@@ -47,11 +47,7 @@ function Main() {
     if (!urlPath) {
       return null;
     }
-    const { path, alt } = getRecordDetails(urlPath);
-    if (path === null) {
-      return null;
-    }
-    return { path, alt };
+    return getRecordDetails(urlPath);
   }, [urlPath]);
 
   if (!page) {
