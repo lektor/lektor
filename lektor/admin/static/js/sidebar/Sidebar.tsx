@@ -44,7 +44,7 @@ const compareAlternatives = (a: Alternative, b: Alternative) => {
   return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 };
 
-function Sidebar({ record, page }: RecordProps): JSX.Element {
+function Sidebar({ record, page }: RecordProps): JSX.Element | null {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [childrenPage, setChildrenPage] = useState(1);
   const [childPosCache] = useState(() => new ChildPosCache());
@@ -77,11 +77,11 @@ function Sidebar({ record, page }: RecordProps): JSX.Element {
   }, [path, childPosCache, updateForced]);
 
   if (!recordInfo) {
-    return <div className="sidebar-wrapper" />;
+    return null;
   }
 
   return (
-    <div className="sidebar-wrapper">
+    <>
       <PageActions record={record} recordInfo={recordInfo} />
       <Alternatives record={record} page={page} alts={recordInfo.alts} />
       {recordInfo.can_have_children && (
@@ -99,7 +99,7 @@ function Sidebar({ record, page }: RecordProps): JSX.Element {
       {recordInfo.can_have_attachments && (
         <AttachmentActions record={record} recordInfo={recordInfo} />
       )}
-    </div>
+    </>
   );
 }
 

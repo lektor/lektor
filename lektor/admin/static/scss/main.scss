@@ -47,12 +47,9 @@ div.editor {
     padding: 0;
     height: 100%;
 
-    .sidebar-wrapper {
-      padding: 10px 0 40px 0;
-    }
-
     h3 {
       margin: 0;
+      margin-top: 10px;
       font-weight: bold;
       font-size: 15px;
       background: $block-header-background;
@@ -62,10 +59,6 @@ div.editor {
     }
 
     ul.nav {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-
       li {
         margin: 2px 2px 0 20px;
         width: 100%;
@@ -118,10 +111,6 @@ div.editor {
           float: right;
         }
       }
-    }
-
-    .section + .section {
-      margin-top: 15px;
     }
   }
 
