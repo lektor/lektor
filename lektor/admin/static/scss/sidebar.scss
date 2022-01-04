@@ -9,8 +9,6 @@
 
   .block-offcanvas,
   .sidebar-offcanvas {
-    -webkit-transition: all 0.25s ease-out;
-    -moz-transition: all 0.25s ease-out;
     transition: all 0.25s ease-out;
     left: 0;
   }
@@ -22,18 +20,11 @@
     left: 45%;
   }
 
-  /* this really should not go here, it's the wrong place but oh well */
-  .block-offcanvas div.view {
-    padding-left: 0 !important;
-  }
-  .block-offcanvas.active div.view {
-    padding-left: 10px !important;
-  }
   .block-offcanvas nav {
-    opacity: 0 !important;
+    opacity: 0;
   }
   .block-offcanvas.active nav {
-    opacity: 1 !important;
+    opacity: 1;
   }
 
   .sidebar-offcanvas {
