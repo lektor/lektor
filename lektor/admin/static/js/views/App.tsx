@@ -18,11 +18,9 @@ export default function App({
 }): JSX.Element {
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
 
-  const baseSidebarClasses =
-    "sidebar-block block-offcanvas block-offcanvas-left row";
   const sidebarClasses = sidebarIsActive
-    ? baseSidebarClasses + " active"
-    : baseSidebarClasses;
+    ? "sidebar-block block-offcanvas block-offcanvas-left row active"
+    : "sidebar-block block-offcanvas block-offcanvas-left row";
 
   return (
     <>
@@ -32,13 +30,13 @@ export default function App({
         page={page}
         record={record}
       />
-      <div className="editor container">
+      <div className="main-container container">
         <ErrorDialog />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
             <Sidebar page={page} record={record} />
           </nav>
-          <div className="view col-md-10 col-sm-9">{children}</div>
+          <div className="main col-md-10 col-sm-9">{children}</div>
         </div>
       </div>
       <DialogSlot page={page} record={record} />

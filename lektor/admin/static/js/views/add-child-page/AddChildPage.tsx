@@ -92,7 +92,7 @@ function AddChildPage({ record }: Props): JSX.Element | null {
   }
 
   return (
-    <div className="edit-area">
+    <>
       <h2>{trans_format("ADD_CHILD_PAGE_TO", newChildInfo.label)}</h2>
       <p>{trans("ADD_CHILD_PAGE_NOTE")}</p>
       {!newChildInfo.implied_model && (
@@ -123,7 +123,7 @@ function AddChildPage({ record }: Props): JSX.Element | null {
           {trans("CREATE_CHILD_PAGE")}
         </button>
       </div>
-    </div>
+    </>
   );
 }
 
