@@ -18,10 +18,6 @@ html {
   overflow-y: scroll;
 }
 
-#dash {
-  height: 100%;
-}
-
 a {
   text-decoration: none;
 }
@@ -30,18 +26,6 @@ dl {
   .form-group {
     margin: 0;
   }
-}
-
-.sidebar-block {
-  height: 100%;
-}
-
-div.main-container {
-  position: absolute;
-  top: 38px;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 nav.sidebar {
@@ -245,20 +229,11 @@ div.main {
   }
 }
 
-div.preview {
-  position: absolute;
-  height: 100%;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-
-  iframe {
-    display: block;
-    border: 0;
-    width: 100%;
-    height: 100%;
-  }
+iframe.preview {
+  display: block;
+  border: 0;
+  width: 100%;
+  height: calc(100vh - 38px);
 }
 
 // form specifics

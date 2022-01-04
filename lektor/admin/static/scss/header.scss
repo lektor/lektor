@@ -32,7 +32,7 @@
 }
 
 header {
-  height: 38px;
+  min-height: 38px;
   background: $header-taint;
 
   a {
@@ -80,5 +80,5 @@ header {
   }
 }
 .global-actions {
-  margin-top: 3px;
+  margin-top: 2px;
 }

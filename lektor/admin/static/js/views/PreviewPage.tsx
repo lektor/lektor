@@ -84,9 +84,5 @@ export default function PreviewPage({
     [goToAdminPage]
   );
 
-  return (
-    <div className="preview">
-      <iframe ref={iframe} onLoad={onFrameNavigated} />
-    </div>
-  );
+  return <iframe className="preview" ref={iframe} onLoad={onFrameNavigated} />;
 }
