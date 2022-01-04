@@ -1,11 +1,6 @@
 import React, { useMemo } from "react";
 import ReactDOM from "react-dom";
-import {
-  BrowserRouter as Router,
-  Redirect,
-  useHistory,
-  useRouteMatch,
-} from "react-router-dom";
+import { BrowserRouter, Redirect, useRouteMatch } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
 
 import "font-awesome/css/font-awesome.css";
@@ -43,7 +38,6 @@ function Main() {
   const root = $LEKTOR_CONFIG.admin_root;
   const fullPath = `${root}/:path/:page`;
   const match = useRouteMatch<{ path: string; page: string }>(fullPath);
-  const history = useHistory();
   // useRouteMatch returns a new object on each render, so we need to get the
   // primitive string values here to memoize.
   const urlPath = match?.params.path;
@@ -69,7 +63,7 @@ function Main() {
   }
   return (
     <App page={page} record={record}>
-      <Component history={history} record={record} />
+      <Component record={record} />
     </App>
   );
 }
@@ -78,9 +72,9 @@ const dash = document.getElementById("dash");
 
 if (dash) {
   ReactDOM.render(
-    <Router>
+    <BrowserRouter>
       <Main />
-    </Router>,
+    </BrowserRouter>,
     dash
   );
 }

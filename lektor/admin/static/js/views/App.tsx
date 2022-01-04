@@ -1,5 +1,4 @@
 import React, { ReactNode, useReducer } from "react";
-import { useHistory } from "react-router-dom";
 
 import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
@@ -16,9 +15,7 @@ export default function App({
   children: ReactNode;
   page: string;
   record: RecordPathDetails;
-}) {
-  const history = useHistory();
-
+}): JSX.Element {
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
 
   const baseSidebarClasses =
@@ -37,7 +34,7 @@ export default function App({
         record={record}
       />
       <div className="editor container">
-        <DialogSlot page={page} history={history} record={record} />
+        <DialogSlot page={page} record={record} />
         <ErrorDialog />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">

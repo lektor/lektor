@@ -10,7 +10,7 @@ export default function Refresh({
 }: {
   dismiss: () => void;
   preventNavigation: (v: boolean) => void;
-}) {
+}): JSX.Element {
   const [state, setState] = useState<"IDLE" | "DONE" | "CLEANING">("IDLE");
   const isSafeToNavigate = state === "IDLE" || state === "DONE";
 

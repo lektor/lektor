@@ -1,4 +1,4 @@
-import React from "react";
+import React, { SetStateAction } from "react";
 import { trans } from "../../i18n";
 import { formatUserLabel } from "../../userLabel";
 import { SlugInputWidget } from "../../widgets/SlugInputWidget";
@@ -13,7 +13,7 @@ export default function Slug({
 }: {
   id: string;
   placeholder: string;
-  setId: (s: string) => void;
+  setId: (s: SetStateAction<string>) => void;
 }): JSX.Element {
   return (
     <div className="row field-row">

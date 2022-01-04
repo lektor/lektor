@@ -10,7 +10,7 @@ export default function InputWidgetBase(
     inputType: string;
     validate?: (val: string) => string | null;
   }
-) {
+): JSX.Element {
   const {
     type,
     value,

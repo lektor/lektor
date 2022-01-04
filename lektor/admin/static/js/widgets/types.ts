@@ -1,4 +1,4 @@
-import { ComponentType } from "react";
+import { ComponentType, SetStateAction } from "react";
 import { Translatable } from "../i18n";
 
 export interface BaseWidgetType {
@@ -30,16 +30,16 @@ export interface Field {
 }
 
 export type WidgetProps<V = string, W = WidgetType> = {
-  value?: V;
+  value: V;
   type: W;
   placeholder?: V;
-  onChange: (value: V, uiChange?: boolean) => void;
+  onChange: (value: SetStateAction<V>) => void;
   disabled?: boolean;
 };
 
 interface SerializableWidget {
-  deserializeValue: (value: string | undefined, type: WidgetType) => string;
-  serializeValue: (value: string | undefined, type: WidgetType) => string;
+  deserializeValue?: (value: string, type: WidgetType) => string;
+  serializeValue?: (value: string, type: WidgetType) => string;
 }
 
 type FakeWidget = ComponentType<{ field: Field }> &
@@ -52,7 +52,7 @@ type RealWidget = ComponentType<WidgetProps> &
   };
 export type WidgetComponent = FakeWidget | RealWidget;
 
-export function getInputClass(type: WidgetType) {
+export function getInputClass(type: WidgetType): string {
   let rv = "form-control";
   if (type.size === "small") {
     rv = "input-sm " + rv;

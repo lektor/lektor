@@ -18,12 +18,12 @@ export default class ToggleGroup extends React.Component<Props, State> {
     this.toggle = this.toggle.bind(this);
   }
 
-  toggle(event: MouseEvent) {
+  toggle(event: MouseEvent): void {
     event.preventDefault();
     this.setState((state) => ({ isVisible: !state.isVisible }));
   }
 
-  render() {
+  render(): JSX.Element {
     const { groupTitle, children } = this.props;
     let className = (this.props.className || "") + " toggle-group";
     if (this.state.isVisible) {

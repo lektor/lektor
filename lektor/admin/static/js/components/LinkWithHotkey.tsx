@@ -38,25 +38,20 @@ function useKeyboardShortcutRef<T extends HTMLElement>(
   return el;
 }
 
-export default function LinkWithHotkey(props: {
+export default function LinkWithHotkey({
+  to,
+  children,
+  shortcut,
+}: {
   to: string;
   children: ReactNode;
   shortcut: KeyboardShortcut;
-}) {
-  let path = props.to;
-  if (path.substr(0, 1) !== "/") {
-    path = `${$LEKTOR_CONFIG.admin_root}/${path}`;
-  }
-  const el = useKeyboardShortcutRef<HTMLAnchorElement>(props.shortcut);
+}): JSX.Element {
+  const el = useKeyboardShortcutRef<HTMLAnchorElement>(shortcut);
 
   return (
-    <NavLink
-      to={path}
-      activeClassName="active"
-      title={getKey(props.shortcut)}
-      ref={el}
-    >
-      {props.children}
+    <NavLink to={to} activeClassName="active" title={getKey(shortcut)} ref={el}>
+      {children}
     </NavLink>
   );
 }

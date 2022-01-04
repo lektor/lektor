@@ -15,7 +15,9 @@ const onKeyPress = keyboardShortcutHandler(
   findFiles
 );
 
-export default function GlobalActions(props: { record: RecordPathDetails }) {
+export default function GlobalActions(props: {
+  record: RecordPathDetails;
+}): JSX.Element {
   useEffect(() => {
     window.addEventListener("keydown", onKeyPress);
     return () => window.removeEventListener("keydown", onKeyPress);

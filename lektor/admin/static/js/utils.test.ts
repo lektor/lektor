@@ -44,7 +44,7 @@ describe("Utils", () => {
   });
 
   it("urlPathsConsideredEqual", () => {
-    strictEqual(urlPathsConsideredEqual(null, null), false);
+    strictEqual(urlPathsConsideredEqual("null", null), false);
     strictEqual(urlPathsConsideredEqual("asdfs/", null), false);
     strictEqual(urlPathsConsideredEqual("asdfs/", "asdf"), false);
     strictEqual(urlPathsConsideredEqual("asdf/", "asdf"), true);

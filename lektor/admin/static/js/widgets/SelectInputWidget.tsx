@@ -2,7 +2,9 @@ import React from "react";
 import { trans_obj } from "../i18n";
 import { getInputClass, MultiWidgetType, WidgetProps } from "./types";
 
-export function SelectInputWidget(props: WidgetProps<string, MultiWidgetType>) {
+export function SelectInputWidget(
+  props: WidgetProps<string, MultiWidgetType>
+): JSX.Element {
   const { type, value, placeholder, onChange, disabled } = props;
 
   const choices = type.choices?.map((item) => (

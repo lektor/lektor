@@ -2,7 +2,7 @@ import React from "react";
 import { trans, trans_obj } from "../../i18n";
 import { RecordInfo } from "../../components/types";
 
-export function DeletableChildPages({
+export default function DeletableChildPages({
   recordInfo,
 }: {
   recordInfo: RecordInfo;

@@ -1,11 +1,14 @@
-import React, { Component, createRef, FormEvent, RefObject } from "react";
+import React, {
+  FormEvent,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Prompt } from "react-router-dom";
 
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import { RecordProps } from "../../components/RecordComponent";
 import { keyboardShortcutHandler } from "../../utils";
 import { loadData } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
@@ -19,6 +22,7 @@ import { showErrorDialog } from "../../error-dialog";
 import { Field, WidgetComponent } from "../../widgets/types";
 import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 export type RawRecordInfo = {
   alt: string;
@@ -38,14 +42,6 @@ export type RawRecordInfo = {
 type RecordDataModel = {
   alt: string;
   fields: Field[];
-};
-
-type State = {
-  // The deserialised record data.
-  recordData: Record<string, string>;
-  recordDataModel: RecordDataModel | null;
-  recordInfo: RawRecordInfo | null;
-  hasPendingChanges: boolean;
 };
 
 type RawRecord = {
@@ -115,7 +111,11 @@ function getValues({
   recordDataModel,
   recordInfo,
   recordData,
-}: State): Record<string, string | null> {
+}: {
+  recordData: Record<string, string>;
+  recordDataModel: RecordDataModel | null;
+  recordInfo: RawRecordInfo | null;
+}): Record<string, string | null> {
   const rv: Record<string, string | null> = {};
   if (!recordDataModel || !recordInfo) {
     return rv;
@@ -138,177 +138,151 @@ function getValues({
   return rv;
 }
 
-type Props = Pick<RecordProps, "record" | "history">;
+function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
+  const form = useRef<HTMLFormElement | null>(null);
+  // The deserialised record data.
+  const [recordData, setRecordData] = useState<Record<string, string>>({});
+  const [recordDataModel, setRecordDataModel] =
+    useState<RecordDataModel | null>(null);
+  const [recordInfo, setRecordnfo] = useState<RawRecordInfo | null>(null);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
-class EditPage extends Component<Props, State> {
-  form: RefObject<HTMLFormElement>;
+  const goToAdminPage = useGoToAdminPage();
 
-  onKeyPress: (ev: KeyboardEvent) => void;
+  const { path, alt } = record;
 
-  constructor(props: Props) {
-    super(props);
+  useEffect(() => {
+    let ignore = false;
+    loadData("/rawrecord", { path, alt }).then((resp: RawRecord) => {
+      if (!ignore) {
+        // transform resp.data into actual data
+        const recordData: Record<string, string> = {};
+        legalFields(resp.datamodel, resp.record_info).forEach((field) => {
+          const Widget = getWidgetComponentWithFallback(field.type);
+          let value = resp.data[field.name];
+          if (value !== undefined) {
+            if (Widget.deserializeValue) {
+              value = Widget.deserializeValue(value, field.type);
+            }
+            recordData[field.name] = value;
+          }
+        });
+        setRecordData(recordData);
+        setRecordDataModel(resp.datamodel);
+        setRecordnfo(resp.record_info);
+        setHasPendingChanges(false);
+      }
+    }, showErrorDialog);
 
-    this.state = {
-      recordData: {},
-      recordDataModel: null,
-      recordInfo: null,
-      hasPendingChanges: false,
+    return () => {
+      ignore = true;
     };
-    this.form = createRef();
-    this.onKeyPress = keyboardShortcutHandler(
+  }, [alt, path]);
+
+  useEffect(() => {
+    const onKeyPress = keyboardShortcutHandler(
       { key: "Control+s", mac: "Meta+s", preventDefault: true },
       () => {
-        if (this.form.current?.reportValidity()) {
-          this.saveChanges();
+        if (form.current?.reportValidity()) {
+          form.current
+            .querySelector<HTMLButtonElement>("button[type='submit']")
+            ?.click();
         }
       }
     );
+    window.addEventListener("keydown", onKeyPress);
+    return () => window.removeEventListener("keydown", onKeyPress);
+  }, []);
 
-    this.setFieldValue = this.setFieldValue.bind(this);
-    this.saveChanges = this.saveChanges.bind(this);
-    this.renderFormField = this.renderFormField.bind(this);
+  const setFieldValue = useCallback(
+    (fieldName: string, value: SetStateAction<string>) => {
+      setRecordData((r) => ({
+        ...r,
+        [fieldName]: typeof value === "function" ? value(r[fieldName]) : value,
+      }));
+      setHasPendingChanges(true);
+    },
+    []
+  );
+
+  const saveChanges = useCallback(
+    (ev: FormEvent) => {
+      ev.preventDefault();
+      const data = getValues({ recordDataModel, recordInfo, recordData });
+      loadData("/rawrecord", null, {
+        json: { data, path, alt },
+        method: "PUT",
+      }).then(() => {
+        setHasPendingChanges(false);
+        goToAdminPage("preview", path, alt);
+      }, showErrorDialog);
+    },
+    [alt, goToAdminPage, path, recordData, recordDataModel, recordInfo]
+  );
+
+  const renderFormField = useCallback(
+    (field: Field) => {
+      const Widget = getWidgetComponentWithFallback(field.type);
+      if (!recordInfo) {
+        return null;
+      }
+      // If alts_enabled is set, only show allow editing on alts (if true)
+      // or on the primary (if false)
+      const disabled = !(
+        field.alts_enabled === null ||
+        field.alts_enabled !== (recordInfo.alt === "_primary")
+      );
+      return (
+        <FieldBox
+          key={field.name}
+          value={getValueForField(recordData, Widget, field)}
+          placeholder={getPlaceholderForField(recordInfo, Widget, field)}
+          field={field}
+          setFieldValue={setFieldValue}
+          disabled={disabled}
+        />
+      );
+    },
+    [recordData, recordInfo, setFieldValue]
+  );
+
+  if (!recordInfo || !recordDataModel) {
+    // we have not loaded anything yet.
+    return null;
   }
 
-  componentDidMount() {
-    this.syncEditor();
-    window.addEventListener("keydown", this.onKeyPress);
-  }
+  const label = trans_fallback(recordInfo.label_i18n, recordInfo.label);
 
-  componentDidUpdate(prevProps: Props) {
-    if (
-      prevProps.record.path !== this.props.record.path ||
-      prevProps.record.alt !== this.props.record.alt
-    ) {
-      this.syncEditor();
-    }
-  }
+  const title = recordInfo.is_attachment
+    ? trans_format("EDIT_ATTACHMENT_METADATA_OF", label)
+    : trans_format("EDIT_PAGE_NAME", label);
 
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this.onKeyPress);
-  }
+  const fields = legalFields(recordDataModel, recordInfo);
+  const [normalFields, systemFields] = splitFields(fields);
 
-  syncEditor() {
-    loadData("/rawrecord", {
-      path: this.props.record.path,
-      alt: this.props.record.alt,
-    }).then((resp: RawRecord) => {
-      // transform resp.data into actual data
-      const recordData: Record<string, string> = {};
-      legalFields(resp.datamodel, resp.record_info).forEach((field) => {
-        const Widget = getWidgetComponentWithFallback(field.type);
-        let value = resp.data[field.name];
-        if (value !== undefined) {
-          if (Widget.deserializeValue) {
-            value = Widget.deserializeValue(value, field.type);
-          }
-          recordData[field.name] = value;
-        }
-      });
-      this.setState({
-        recordData,
-        recordDataModel: resp.datamodel,
-        recordInfo: resp.record_info,
-        hasPendingChanges: false,
-      });
-    }),
-      showErrorDialog;
-  }
-
-  setFieldValue(field: Field, value: string, uiChange = false) {
-    this.setState((state) => ({
-      recordData: { ...state.recordData, [field.name]: value || "" },
-      hasPendingChanges: !uiChange || state.hasPendingChanges,
-    }));
-  }
-
-  saveChanges(event?: FormEvent) {
-    event?.preventDefault();
-    const { alt, path } = this.props.record;
-    if (path === null) {
-      return;
-    }
-    loadData("/rawrecord", null, {
-      json: { data: getValues(this.state), path, alt },
-      method: "PUT",
-    }).then(() => {
-      this.setState({ hasPendingChanges: false }, () => {
-        this.props.history.push(
-          pathToAdminPage(
-            "preview",
-            getUrlRecordPath(path, this.props.record.alt)
-          )
-        );
-      });
-    }, showErrorDialog);
-  }
-
-  renderFormField(field: Field) {
-    const Widget = getWidgetComponentWithFallback(field.type);
-    const { recordInfo, recordData } = this.state;
-    if (!recordInfo) {
-      return null;
-    }
-    // If alts_enabled is set, only show allow editing on alts (if true)
-    // or on the primary (if false)
-    const disabled = !(
-      field.alts_enabled === null ||
-      field.alts_enabled !== (recordInfo.alt === "_primary")
-    );
-    return (
-      <FieldBox
-        key={field.name}
-        value={getValueForField(recordData, Widget, field)}
-        placeholder={getPlaceholderForField(recordInfo, Widget, field)}
-        field={field}
-        setFieldValue={this.setFieldValue}
-        disabled={disabled}
-      />
-    );
-  }
-
-  render() {
-    const { recordInfo, recordDataModel, hasPendingChanges } = this.state;
-    if (!recordInfo || !recordDataModel) {
-      // we have not loaded anything yet.
-      return null;
-    }
-
-    const label = trans_fallback(recordInfo.label_i18n, recordInfo.label);
-
-    const title = recordInfo.is_attachment
-      ? trans_format("EDIT_ATTACHMENT_METADATA_OF", label)
-      : trans_format("EDIT_PAGE_NAME", label);
-
-    const fields = legalFields(recordDataModel, recordInfo);
-    const [normalFields, systemFields] = splitFields(fields);
-
-    return (
-      <div className="edit-area">
-        {hasPendingChanges && <Prompt message={trans("UNLOAD_ACTIVE_TAB")} />}
-        <h2>{title}</h2>
-        <form ref={this.form} onSubmit={this.saveChanges}>
-          <FieldRows fields={normalFields} renderFunc={this.renderFormField} />
-          {systemFields.length > 0 && (
-            <ToggleGroup
-              groupTitle={trans("SYSTEM_FIELDS")}
-              defaultVisibility={false}
-              className="system-fields"
-            >
-              <FieldRows
-                fields={systemFields}
-                renderFunc={this.renderFormField}
-              />
-            </ToggleGroup>
-          )}
-          <EditPageActions
-            record={this.props.record}
-            recordInfo={recordInfo}
-            hasPendingChanges={hasPendingChanges}
-          />
-        </form>
-      </div>
-    );
-  }
+  return (
+    <div className="edit-area">
+      {hasPendingChanges && <Prompt message={trans("UNLOAD_ACTIVE_TAB")} />}
+      <h2>{title}</h2>
+      <form ref={form} onSubmit={saveChanges}>
+        <FieldRows fields={normalFields} renderFunc={renderFormField} />
+        {systemFields.length > 0 && (
+          <ToggleGroup
+            groupTitle={trans("SYSTEM_FIELDS")}
+            defaultVisibility={false}
+            className="system-fields"
+          >
+            <FieldRows fields={systemFields} renderFunc={renderFormField} />
+          </ToggleGroup>
+        )}
+        <EditPageActions
+          record={record}
+          recordInfo={recordInfo}
+          hasPendingChanges={hasPendingChanges}
+        />
+      </form>
+    </div>
+  );
 }
 
 export default EditPage;

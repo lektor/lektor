@@ -1,133 +1,100 @@
-import React, { Component } from "react";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import React, { useCallback, useEffect, useState } from "react";
+import { RecordProps } from "../../components/RecordComponent";
 import { getParentFsPath } from "../../utils";
 import { loadData } from "../../fetch";
 import { showErrorDialog } from "../../error-dialog";
 import { RecordInfo } from "../../components/types";
-import { DeletableAttachments } from "./DeletableAttachments";
-import { DeletableChildPages } from "./DeletableChildPages";
-import { DeletableAlternatives } from "./DeletableAlternatives";
-import { DeletePageActions } from "./DeletePageActions";
-import { DeleteAllAltsChoice } from "./DeleteAllAltsChoice";
-import { DeletePageHeader } from "./DeletePageHeader";
+import DeletableAttachments from "./DeletableAttachments";
+import DeletableChildPages from "./DeletableChildPages";
+import DeletableAlternatives from "./DeletableAlternatives";
+import DeletePageActions from "./DeletePageActions";
+import DeleteAllAltsChoice from "./DeleteAllAltsChoice";
+import DeletePageHeader from "./DeletePageHeader";
 import { dispatch } from "../../events";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
-type State = {
-  recordInfo: RecordInfo | null;
-  deleteMasterRecord: boolean;
-};
+type Props = Pick<RecordProps, "record">;
 
-type Props = Pick<RecordProps, "record" | "history">;
+function DeletePage({ record }: Props): JSX.Element | null {
+  const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
+  const [deleteMasterRecord, setDeleteMasterRecord] = useState(true);
 
-class DeletePage extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { recordInfo: null, deleteMasterRecord: true };
-    this.cancelDelete = this.cancelDelete.bind(this);
-    this.deleteRecord = this.deleteRecord.bind(this);
-  }
+  const goToAdminPage = useGoToAdminPage();
+  const { alt, path } = record;
 
-  componentDidMount(): void {
-    this.syncDialog();
-  }
+  useEffect(() => {
+    let ignore = false;
 
-  componentDidUpdate(prevProps: Props): void {
-    if (prevProps.record.path !== this.props.record.path) {
-      this.syncDialog();
-    }
-  }
+    loadData("/recordinfo", { path }).then((resp: RecordInfo) => {
+      if (!ignore) {
+        setRecordInfo(resp);
+      }
+    }, showErrorDialog);
 
-  syncDialog(): void {
-    loadData("/recordinfo", { path: this.props.record.path }).then(
-      (recordInfo) => {
-        this.setState({
-          recordInfo,
-          deleteMasterRecord: this.props.record.alt === "_primary",
-        });
-      },
-      showErrorDialog
-    );
-  }
+    return () => {
+      ignore = true;
+    };
+  }, [path]);
 
-  deleteRecord(): void {
-    const path = this.props.record.path;
+  useEffect(() => {
+    setDeleteMasterRecord(alt === "_primary");
+  }, [alt]);
+
+  const deleteRecord = useCallback(() => {
     const parent = getParentFsPath(path || "");
-    const targetPath =
-      parent === null
-        ? "root"
-        : getUrlRecordPath(parent, this.props.record.alt);
+    const targetPath = parent === null ? "/" : parent;
 
     loadData(
       "/deleterecord",
-      {
-        path: path,
-        alt: this.props.record.alt,
-        delete_master: this.state.deleteMasterRecord ? "1" : "0",
-      },
+      { path, alt, delete_master: deleteMasterRecord ? "1" : "0" },
       { method: "POST" }
     ).then(() => {
-      if (this.state.recordInfo?.is_attachment) {
+      if (recordInfo?.is_attachment) {
         dispatch("lektor-attachments-changed", parent ?? "");
       }
-      this.props.history.push(pathToAdminPage("edit", targetPath));
+      goToAdminPage("edit", targetPath, alt);
     }, showErrorDialog);
+  }, [alt, path, deleteMasterRecord, goToAdminPage, recordInfo]);
+
+  const cancelDelete = useCallback(() => {
+    goToAdminPage("edit", record.path, record.alt);
+  }, [goToAdminPage, record]);
+
+  if (!recordInfo || !recordInfo.can_be_deleted) {
+    return null;
   }
 
-  cancelDelete(): void {
-    const urlPath = getUrlRecordPath(
-      this.props.record.path,
-      this.props.record.alt
-    );
-    this.props.history.push(pathToAdminPage("edit", urlPath));
-  }
+  const hasAlts = recordInfo.alts.filter((a) => a.exists).length > 1;
 
-  render(): JSX.Element | null {
-    const { deleteMasterRecord, recordInfo } = this.state;
-
-    if (!recordInfo || !recordInfo.can_be_deleted) {
-      return null;
-    }
-
-    const currentAlt = this.props.record.alt;
-    const hasAlts = recordInfo.alts.filter((a) => a.exists).length > 1;
-
-    return (
-      <div>
-        <DeletePageHeader recordInfo={recordInfo} currentAlt={currentAlt} />
-        {hasAlts && currentAlt === "_primary" && (
-          <DeleteAllAltsChoice
-            deleteMasterRecord={deleteMasterRecord}
-            setDeleteMasterRecord={(deleteMasterRecord) => {
-              this.setState({ deleteMasterRecord });
-            }}
-            isAttachment={recordInfo.is_attachment}
-          />
-        )}
-        {deleteMasterRecord && (
-          <>
-            {hasAlts && currentAlt === "_primary" && (
-              <DeletableAlternatives recordInfo={recordInfo} />
-            )}
-            {recordInfo.children.length > 0 && (
-              <DeletableChildPages recordInfo={recordInfo} />
-            )}
-            {recordInfo.attachments.length > 0 && (
-              <DeletableAttachments recordInfo={recordInfo} />
-            )}
-          </>
-        )}
-
-        <DeletePageActions
-          deleteRecord={this.deleteRecord}
-          cancelDelete={this.cancelDelete}
+  return (
+    <div>
+      <DeletePageHeader recordInfo={recordInfo} currentAlt={alt} />
+      {hasAlts && alt === "_primary" && (
+        <DeleteAllAltsChoice
+          deleteMasterRecord={deleteMasterRecord}
+          setDeleteMasterRecord={setDeleteMasterRecord}
+          isAttachment={recordInfo.is_attachment}
         />
-      </div>
-    );
-  }
+      )}
+      {deleteMasterRecord && (
+        <>
+          {hasAlts && alt === "_primary" && (
+            <DeletableAlternatives recordInfo={recordInfo} />
+          )}
+          {recordInfo.children.length > 0 && (
+            <DeletableChildPages recordInfo={recordInfo} />
+          )}
+          {recordInfo.attachments.length > 0 && (
+            <DeletableAttachments recordInfo={recordInfo} />
+          )}
+        </>
+      )}
+      <DeletePageActions
+        deleteRecord={deleteRecord}
+        cancelDelete={cancelDelete}
+      />
+    </div>
+  );
 }
 
 export default DeletePage;

@@ -1,13 +1,9 @@
-import React, { Component } from "react";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../components/RecordComponent";
-import Link from "../components/Link";
+import React, { useEffect, useState } from "react";
+import { RecordProps } from "../components/RecordComponent";
 import { loadData } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
+import AdminLink from "../components/AdminLink";
 
 interface RecordPathInfoSegment {
   id: string;
@@ -18,112 +14,91 @@ interface RecordPathInfoSegment {
   can_have_children: boolean;
 }
 
-function Crumbs({
+function Crumb({
   alt,
-  segments,
+  item,
   target,
 }: {
   alt: string;
-  segments: RecordPathInfoSegment[];
+  item: RecordPathInfoSegment;
   target: "preview" | "edit";
 }) {
+  const { path, exists } = item;
+  const label = exists ? trans_fallback(item.label_i18n, item.label) : item.id;
+  const className = exists
+    ? "breadcrumb-item record-crumb"
+    : "breadcrumb-item record-crumb missing-record-crumb";
   return (
-    <>
-      {segments.map((item) => {
-        const { path, exists } = item;
-        const urlPath = getUrlRecordPath(path, alt);
-        const label = exists
-          ? trans_fallback(item.label_i18n, item.label)
-          : item.id;
-        const className = exists
-          ? "breadcrumb-item record-crumb"
-          : "breadcrumb-item record-crumb missing-record-crumb";
-        return (
-          <li key={path} className={className}>
-            <Link to={pathToAdminPage(target, urlPath)}>{label}</Link>
-          </li>
-        );
-      })}
-    </>
+    <li className={className}>
+      <AdminLink page={target} path={path} alt={alt}>
+        {label}
+      </AdminLink>
+    </li>
   );
 }
 
 function AddNewPage({
   alt,
-  lastItem,
+  item,
 }: {
   alt: string;
-  lastItem: RecordPathInfoSegment;
+  item: RecordPathInfoSegment;
 }) {
-  return lastItem?.can_have_children ? (
+  return item.can_have_children ? (
     <li className="new-record-crumb">
-      <Link
-        to={pathToAdminPage("add-child", getUrlRecordPath(lastItem.path, alt))}
-      >
+      <AdminLink page={"add-child"} path={item.path} alt={alt}>
         +
-      </Link>
+      </AdminLink>
     </li>
   ) : null;
 }
 
-type State = {
-  segments: RecordPathInfoSegment[] | null;
-};
+function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
+  const [segments, setSegments] = useState<RecordPathInfoSegment[] | null>(
+    null
+  );
+  const { alt, path } = record;
 
-type Props = Pick<RecordProps, "record" | "page">;
+  useEffect(() => {
+    let ignore = false;
 
-class BreadCrumbs extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { segments: null };
-  }
+    loadData("/pathinfo", { path }).then(
+      (resp: { segments: RecordPathInfoSegment[] }) => {
+        if (!ignore) {
+          setSegments(resp.segments);
+        }
+      },
+      showErrorDialog
+    );
 
-  componentDidMount() {
-    this.updateCrumbs();
-  }
+    return () => {
+      ignore = true;
+    };
+  }, [path]);
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.record.path !== this.props.record.path) {
-      this.updateCrumbs();
-    }
-  }
-
-  updateCrumbs() {
-    const path = this.props.record.path;
-    if (path === null) {
-      this.setState({ segments: null });
-    } else {
-      loadData("/pathinfo", { path }).then((resp) => {
-        this.setState({ segments: resp.segments });
-      }, showErrorDialog);
-    }
-  }
-
-  render() {
-    const { segments } = this.state;
-    if (!segments) {
-      return (
-        <ul className="breadcrumb">
-          <li>
-            <Link to={pathToAdminPage("edit", "root")}>
-              {trans("BACK_TO_OVERVIEW")}
-            </Link>
-          </li>
-        </ul>
-      );
-    }
-
-    const { alt } = this.props.record;
-    const target = this.props.page === "preview" ? "preview" : "edit";
-    const lastItem = segments[segments.length - 1];
-
+  if (!segments) {
     return (
       <ul className="breadcrumb">
-        <Crumbs segments={segments} alt={alt} target={target} />
-        <AddNewPage lastItem={lastItem} alt={alt} />
+        <li>
+          <AdminLink page="edit" path="/" alt="_primary">
+            {trans("BACK_TO_OVERVIEW")}
+          </AdminLink>
+        </li>
       </ul>
     );
   }
+
+  const target = page === "preview" ? "preview" : "edit";
+  const lastItem = segments[segments.length - 1];
+
+  return (
+    <ul className="breadcrumb">
+      {segments.map((item) => (
+        <Crumb key={item.path} item={item} alt={alt} target={target} />
+      ))}
+      <AddNewPage item={lastItem} alt={alt} />
+    </ul>
+  );
 }
 
 export default BreadCrumbs;

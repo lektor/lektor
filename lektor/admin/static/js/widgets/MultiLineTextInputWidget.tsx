@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Component, createRef, RefObject } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useRef } from "react";
 import { getInputClass, WidgetProps } from "./types";
 
 const style = {
@@ -7,80 +7,52 @@ const style = {
   resize: "none",
 } as const;
 
-export class MultiLineTextInputWidget extends Component<WidgetProps> {
-  textarea: RefObject<HTMLTextAreaElement>;
+export function MultiLineTextInputWidget({
+  type,
+  value,
+  placeholder,
+  disabled,
+  onChange: onChangeProp,
+}: WidgetProps) {
+  const textarea = useRef<HTMLTextAreaElement | null>(null);
 
-  constructor(props: WidgetProps) {
-    super(props);
-    this.textarea = createRef();
-    this.onChange = this.onChange.bind(this);
-    this.recalculateSize = this.recalculateSize.bind(this);
-  }
-
-  onChange(event: ChangeEvent<HTMLTextAreaElement>) {
-    this.recalculateSize();
-    this.props.onChange(event.target.value);
-  }
-
-  componentDidMount() {
-    this.recalculateSize();
-    window.addEventListener("resize", this.recalculateSize);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("resize", this.recalculateSize);
-  }
-
-  componentDidUpdate() {
-    this.recalculateSize();
-  }
-
-  recalculateSize() {
-    const node = this.textarea.current;
-    if (!node) {
-      return;
+  const recalculateSize = useCallback(() => {
+    const node = textarea.current;
+    if (node) {
+      node.style.height = "auto";
+      node.style.height = node.scrollHeight + "px";
     }
+  }, []);
 
-    const style = window.getComputedStyle(node);
-    const diff =
-      style.getPropertyValue("box-sizing") === "border-box"
-        ? 0
-        : parseInt(style.getPropertyValue("padding-bottom") || "0", 10) +
-          parseInt(style.getPropertyValue("padding-top") || "0", 10);
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>) => {
+      onChangeProp(event.target.value);
+    },
+    [onChangeProp]
+  );
 
-    const updateScrollPosition = node === document.activeElement;
-    // Cross-browser compatibility for scroll position
-    const oldScrollTop =
-      document.documentElement.scrollTop || document.body.scrollTop;
-    const oldHeight = node.offsetHeight;
+  useEffect(() => {
+    recalculateSize();
+  }, [recalculateSize, value]);
 
-    node.style.height = "auto";
-    const newHeight = node.scrollHeight - diff;
-    node.style.height = newHeight + "px";
+  useEffect(() => {
+    window.addEventListener("resize", recalculateSize);
+    return () => {
+      window.removeEventListener("resize", recalculateSize);
+    };
+  }, [recalculateSize]);
 
-    if (updateScrollPosition) {
-      window.scrollTo(
-        document.body.scrollLeft,
-        oldScrollTop + (newHeight - oldHeight)
-      );
-    }
-  }
-
-  render() {
-    const { type, value, placeholder, disabled } = this.props;
-
-    return (
-      <div>
-        <textarea
-          ref={this.textarea}
-          className={getInputClass(type)}
-          onChange={this.onChange}
-          style={style}
-          value={value}
-          disabled={disabled}
-          placeholder={placeholder}
-        />
-      </div>
-    );
-  }
+  return (
+    <div>
+      <textarea
+        ref={textarea}
+        className={getInputClass(type)}
+        onChange={onChange}
+        style={style}
+        value={value}
+        disabled={disabled}
+        placeholder={placeholder}
+      />
+    </div>
+  );
 }

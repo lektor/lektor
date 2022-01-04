@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from "assert";
+import { deepStrictEqual } from "assert";
 import { parseFlowFormat, serializeFlowFormat } from "./FlowWidget";
 
 const rawFlowBlock = `#### text ####
@@ -6,12 +6,20 @@ text: Text from text only flow block.
 #### text_and_html ####
 text: Text from text_and_html flow block.`;
 
+const parsed = [
+  ["text", ["text: Text from text only flow block."]],
+  ["text_and_html", ["text: Text from text_and_html flow block."]],
+];
+
 it("flow format: parses flow format", () => {
-  deepStrictEqual(parseFlowFormat(rawFlowBlock), [
-    ["text", ["text: Text from text only flow block."]],
-    ["text_and_html", ["text: Text from text_and_html flow block."]],
+  deepStrictEqual(parseFlowFormat(undefined), []);
+  deepStrictEqual(parseFlowFormat(`asdfasdf`), []);
+  deepStrictEqual(parseFlowFormat(rawFlowBlock), parsed);
+  deepStrictEqual(parseFlowFormat("           \n" + rawFlowBlock), parsed);
+  deepStrictEqual(parseFlowFormat("# BADFORMA#"), []);
+  deepStrictEqual(parseFlowFormat(`#### test ####\n#####test#####`), [
+    ["test", ["####test####"]],
   ]);
-  strictEqual(parseFlowFormat("# BADFORMA#"), null);
 });
 
 it("flow format: serialises flow format", () => {

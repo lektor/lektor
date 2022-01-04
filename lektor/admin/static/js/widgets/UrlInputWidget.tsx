@@ -11,7 +11,7 @@ function validateUrl(value: string) {
   return null;
 }
 
-export function UrlInputWidget(props: WidgetProps) {
+export function UrlInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"

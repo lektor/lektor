@@ -1,10 +1,6 @@
 import React, { useCallback } from "react";
-import { useHistory } from "react-router-dom";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordPathDetails,
-} from "../../components/RecordComponent";
+import { RecordPathDetails } from "../../components/RecordComponent";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { trans } from "../../i18n";
 import { RawRecordInfo } from "./EditPage";
 
@@ -17,13 +13,11 @@ export function EditPageActions({
   hasPendingChanges: boolean;
   record: RecordPathDetails;
 }): JSX.Element {
-  const history = useHistory();
+  const goToAdminPage = useGoToAdminPage();
 
   const deleteRecord = useCallback(() => {
-    history.push(
-      pathToAdminPage("delete", getUrlRecordPath(record.path, record.alt))
-    );
-  }, [record, history]);
+    goToAdminPage("delete", record.path, record.alt);
+  }, [record, goToAdminPage]);
 
   return (
     <div className="actions">
