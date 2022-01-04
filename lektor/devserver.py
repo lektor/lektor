@@ -99,7 +99,7 @@ def browse_to_address(addr):
         webbrowser.open("http://%s:%s" % addr)
 
     t = threading.Thread(target=browse)
-    t.setDaemon(True)
+    t.daemon = True
     t.start()
 
 
@@ -129,7 +129,7 @@ def run_server(
             verbosity=verbosity,
             extra_flags=extra_flags,
         )
-        background_builder.setDaemon(True)
+        background_builder.daemon = True
         background_builder.start()
         env.plugin_controller.emit(
             "server-spawn", bindaddr=bindaddr, extra_flags=extra_flags
