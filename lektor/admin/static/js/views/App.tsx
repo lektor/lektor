@@ -25,8 +25,7 @@ export default function App({
     : baseSidebarClasses;
 
   return (
-    <div className="application">
-      <ServerStatus />
+    <>
       <Header
         sidebarIsActive={sidebarIsActive}
         toggleSidebar={toggleSidebar}
@@ -34,7 +33,6 @@ export default function App({
         record={record}
       />
       <div className="editor container">
-        <DialogSlot page={page} record={record} />
         <ErrorDialog />
         <div className={sidebarClasses}>
           <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
@@ -43,6 +41,8 @@ export default function App({
           <div className="view col-md-10 col-sm-9">{children}</div>
         </div>
       </div>
-    </div>
+      <DialogSlot page={page} record={record} />
+      <ServerStatus />
+    </>
   );
 }

@@ -14,12 +14,6 @@ body {
   font-size: 14px;
 }
 
-div.loadbox {
-  font-size: 24px;
-  text-align: center;
-  margin-top: 60px;
-}
-
 html {
   overflow-y: scroll;
 }
@@ -28,158 +22,134 @@ html {
   height: 100%;
 }
 
-div.box {
-  margin-top: 20px;
-}
-
 a {
   text-decoration: none;
 }
 
-a.active {
-  font-weight: 500;
-}
-
-.interface-protector {
-  position: fixed;
-  top: 0;
+div.editor {
+  position: absolute;
+  top: 38px;
   left: 0;
   right: 0;
   bottom: 0;
-  background: $protector-background;
-  z-index: 1000;
-}
 
-div.application {
-  height: 100%;
-  position: relative;
-  margin: 0 auto;
-
-  div.editor {
-    position: absolute;
-    top: 38px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    dl {
-      .form-group {
-        margin: 0;
-      }
-    }
-
-    .sidebar-block {
-      height: 100%;
-    }
-
-    nav.sidebar {
-      padding: 0;
-      height: 100%;
-
-      .sidebar-wrapper {
-        padding: 10px 0 40px 0;
-      }
-
-      h3 {
-        margin: 0;
-        font-weight: bold;
-        font-size: 15px;
-        background: $block-header-background;
-        color: white;
-        padding: 3px 7px;
-        display: inline-block;
-      }
-
-      ul.nav {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-
-        li {
-          margin: 2px 2px 0 20px;
-          width: 100%;
-          padding: 0;
-
-          a:hover {
-            background: $block-item-hover-background;
-            color: $block-item-hover-color;
-          }
-
-          a,
-          > em {
-            display: inline-block;
-            padding: 5px 10px;
-            background: $block-item-background;
-            color: $block-item-color;
-            &.active {
-              font-weight: 500;
-              background: $block-item-active-background;
-              color: $block-item-active-color;
-              outline: none;
-            }
-          }
-        }
-
-        li.alt-missing a {
-          color: $block-item-missing-color;
-        }
-        li.current-alt a {
-          font-weight: bold;
-        }
-
-        li.pagination {
-          > * {
-            display: inline-block;
-            text-align: center;
-            font-style: normal;
-            width: 20%;
-            font-weight: bold;
-          }
-          span.page {
-            width: 60%;
-            font-weight: normal;
-          }
-          em {
-            color: $gray-700;
-            background: transparent;
-          }
-          *:last-child {
-            float: right;
-          }
-        }
-      }
-
-      .section + .section {
-        margin-top: 15px;
-      }
-    }
-
-    div.view {
-      position: relative;
-      height: 100%;
-      padding: 10px 0 20px 10px;
-
-      h2 {
-        margin: 0;
-        font-weight: 400;
-      }
+  dl {
+    .form-group {
+      margin: 0;
     }
   }
 
-  div.preview {
-    position: absolute;
+  .sidebar-block {
     height: 100%;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+  }
 
-    iframe {
-      display: block;
-      border: 0;
-      width: 100%;
-      height: 100%;
+  nav.sidebar {
+    padding: 0;
+    height: 100%;
+
+    .sidebar-wrapper {
+      padding: 10px 0 40px 0;
     }
+
+    h3 {
+      margin: 0;
+      font-weight: bold;
+      font-size: 15px;
+      background: $block-header-background;
+      color: white;
+      padding: 3px 7px;
+      display: inline-block;
+    }
+
+    ul.nav {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      li {
+        margin: 2px 2px 0 20px;
+        width: 100%;
+        padding: 0;
+
+        a:hover {
+          background: $block-item-hover-background;
+          color: $block-item-hover-color;
+        }
+
+        a,
+        > em {
+          display: inline-block;
+          padding: 5px 10px;
+          background: $block-item-background;
+          color: $block-item-color;
+          &.active {
+            font-weight: 500;
+            background: $block-item-active-background;
+            color: $block-item-active-color;
+            outline: none;
+          }
+        }
+      }
+
+      li.alt-missing a {
+        color: $block-item-missing-color;
+      }
+      li.current-alt a {
+        font-weight: bold;
+      }
+
+      li.pagination {
+        > * {
+          display: inline-block;
+          text-align: center;
+          font-style: normal;
+          width: 20%;
+          font-weight: bold;
+        }
+        span.page {
+          width: 60%;
+          font-weight: normal;
+        }
+        em {
+          color: $gray-700;
+          background: transparent;
+        }
+        *:last-child {
+          float: right;
+        }
+      }
+    }
+
+    .section + .section {
+      margin-top: 15px;
+    }
+  }
+
+  div.view {
+    position: relative;
+    height: 100%;
+    padding: 10px 0 20px 10px;
+
+    h2 {
+      margin: 0;
+      font-weight: 400;
+    }
+  }
+}
+
+div.preview {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  iframe {
+    display: block;
+    border: 0;
+    width: 100%;
+    height: 100%;
   }
 }
 
@@ -405,89 +375,5 @@ div.actions {
   }
 }
 
-div.server-down-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 10000;
-  background: $protector-background;
-  padding: 15px 20px;
-
-  div.server-down-dialog {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 370px;
-    height: 170px;
-    margin-left: -200px;
-    margin-top: -75px;
-    vertical-align: middle;
-    padding: 15px;
-    text-align: center;
-    background: $background-taint;
-    box-shadow: $panel-shadow;
-  }
-}
-
-div.dialog-slot {
-  position: absolute;
-  width: 100%;
-}
-
-div.sliding-panel {
-  position: relative;
-  z-index: 5000;
-
-  > div {
-    background: $background-taint;
-    padding: 15px 20px;
-    box-shadow: $panel-shadow;
-
-    a.close-btn {
-      float: right;
-    }
-
-    h3 {
-      margin: 0;
-    }
-
-    div.form-group {
-      margin: 15px 0;
-    }
-
-    ul.search-results {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-
-      li {
-        margin: 2px 0;
-        padding: 3px 10px;
-        cursor: pointer;
-
-        span.parent {
-          &:after {
-            content: " / ";
-          }
-        }
-      }
-
-      li.active {
-        background: white;
-      }
-    }
-  }
-}
-
-pre.build-log {
-  overflow: auto;
-  max-height: 200px;
-}
-
-pre.traceback {
-  background: $header-taint;
-  color: white;
-  padding: 10px 15px;
-}
+@import "./dialog.scss";
+@import "./static-pages.scss";

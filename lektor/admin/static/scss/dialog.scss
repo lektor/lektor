@@ -1,0 +1,92 @@
+/* Modal dialogs */
+
+.dialog-slot {
+  position: absolute;
+  width: 100%;
+}
+
+.interface-protector {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $protector-background;
+  z-index: 1000;
+}
+
+.sliding-panel {
+  position: relative;
+  z-index: 5000;
+
+  > div {
+    background: $background-taint;
+    padding: 15px 20px;
+    box-shadow: $panel-shadow;
+  }
+
+  a.close-btn {
+    float: right;
+  }
+
+  h3 {
+    margin: 0;
+  }
+
+  div.form-group {
+    margin: 15px 0;
+  }
+
+  ul.search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      margin: 2px 0;
+      padding: 3px 10px;
+      cursor: pointer;
+
+      span.parent {
+        &:after {
+          content: " / ";
+        }
+      }
+    }
+
+    li.active {
+      background: white;
+    }
+  }
+}
+
+.build-log {
+  overflow: auto;
+  max-height: 200px;
+}
+
+.server-down-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: $protector-background;
+  padding: 15px 20px;
+}
+
+.server-down-dialog {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 370px;
+  height: 170px;
+  margin-left: -200px;
+  margin-top: -75px;
+  vertical-align: middle;
+  padding: 15px;
+  text-align: center;
+  background: $background-taint;
+  box-shadow: $panel-shadow;
+}
