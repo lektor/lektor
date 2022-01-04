@@ -15,11 +15,6 @@ from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
 
 
-_os_alt_seps = list(
-    sep for sep in [os.path.sep, os.path.altsep] if sep not in (None, "/")
-)
-
-
 class SilentWSGIRequestHandler(WSGIRequestHandler):
     def log(self, type, message, *args):
         pass
@@ -160,9 +155,9 @@ def run_server(
             use_debugger=True,
             threaded=True,
             use_reloader=lektor_dev,
-            request_handler=not lektor_dev
-            and SilentWSGIRequestHandler
-            or WSGIRequestHandler,
+            request_handler=WSGIRequestHandler
+            if lektor_dev
+            else SilentWSGIRequestHandler,
         )
     finally:
         if dt is not None:
