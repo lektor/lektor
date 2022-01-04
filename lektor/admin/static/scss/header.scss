@@ -48,7 +48,6 @@ header {
 .breadcrumb {
   margin: 0;
   margin-top: 7px;
-  z-index: 9000;
 
   li::before {
     color: $header-sep-color;
@@ -59,6 +58,7 @@ header {
   }
 
   li.new-record-crumb {
+    margin-bottom: 0.25rem;
     margin-left: 0.5rem;
 
     a {

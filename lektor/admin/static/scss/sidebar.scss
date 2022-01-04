@@ -4,31 +4,17 @@
     display: initial;
   }
 
-  .block-offcanvas,
-  .sidebar {
-    transition: all 0.25s ease-out;
-  }
   .block-offcanvas {
     position: relative;
+    transition: all 0.25s ease-out;
     left: 0;
   }
-  .block-offcanvas.active {
-    left: 45%;
-  }
-  .block-offcanvas .sidebar {
-    left: -45%;
-  }
-
-  .block-offcanvas nav {
-    opacity: 0;
-  }
-  .block-offcanvas.active nav {
-    opacity: 1;
-  }
-
   .sidebar {
     position: absolute;
-    top: 0;
-    width: 45%;
+    width: 40vw;
+    left: -40vw;
+  }
+  .block-offcanvas.active {
+    left: 40vw;
   }
 }
