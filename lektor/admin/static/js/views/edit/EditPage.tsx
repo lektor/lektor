@@ -269,7 +269,6 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
         {systemFields.length > 0 && (
           <ToggleGroup
             groupTitle={trans("SYSTEM_FIELDS")}
-            defaultVisibility={false}
             className="system-fields"
           >
             <FieldRows fields={systemFields} renderFunc={renderFormField} />
