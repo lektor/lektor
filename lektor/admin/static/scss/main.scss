@@ -22,6 +22,11 @@ a {
   text-decoration: none;
 }
 
+h2 {
+  margin-top: 0.5rem;
+  font-weight: 400;
+}
+
 dl {
   .form-group {
     margin: 0;
@@ -103,130 +108,125 @@ div.main {
   position: relative;
   height: 100%;
 
-  h2 {
-    margin-top: 0.5rem;
-    font-weight: 400;
-  }
-
-  div.field-row {
-    margin-top: 15px;
-    margin-bottom: 15px;
-  }
-
-  dl.field {
-    margin: 0;
-
-    dt {
-      font-weight: bold;
-      font-size: 13px;
-      display: inline-block;
-      background: $tab-header-background;
-      color: $tab-header-color;
-      padding: 2px 8px;
-    }
-
-    dd {
-      margin-left: 0;
-    }
-  }
-
-  div.flow {
-    padding: 0;
-    background: $flow-panel-background;
-    border: 1px solid $panel-border-color;
-    border-radius: $panel-radius;
-
-    div.add-flow-block {
-      background: $background-taint;
-      border: 1px solid $panel-border-color;
-      margin: 10px 10px 10px 10px;
-      padding: 5px 10px;
-      border-radius: $panel-radius;
-
-      label {
-        padding-right: 10px;
-      }
-    }
-  }
-
-  div.flow-block {
-    background: $flow-block-panel-background;
-    margin: 0;
-    padding: 0 10px;
-    border-radius: $panel-radius;
-
-    & + div.flow-block {
-      border-top: 1px solid $panel-border-color;
-    }
-
-    div.field-row {
-      margin: 0 -10px;
-
-      [class*="col-"] {
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-      }
-    }
-
-    h4 {
-      font-size: 14px;
-      margin: 0 -10px 0 -10px;
-      padding: 5px 10px 0 10px;
-    }
-
-    h4.block-name {
-      line-height: 2;
-    }
-
-    dl {
-      margin: 10px 0;
-    }
-
-    .action-bar {
-      margin-top: 5px;
-      float: right;
-    }
-  }
-
-  .help-text {
-    background: $flow-panel-background;
-    border: 1px solid $input-group-addon-border-color;
-    border-radius: $border-radius;
-    padding: 5px 10px;
-    border-bottom: none;
-    font-size: 13px;
-  }
-
-  div.checkboxes {
-    border: 1px solid $input-group-addon-border-color;
-    border-radius: $border-radius;
-    padding: 5px 10px;
-
-    .checkbox {
-      margin: 0;
-    }
-  }
-
-  /* fake types */
-  div.info {
-    border: 1px solid $panel-border-color;
-    color: $header-taint;
-    margin: 0;
-    padding: 5px 10px;
-
-    p {
-      margin: 0;
-    }
-  }
-
-  div.spacing {
-    height: 30px;
-  }
-
   h3 {
     font-size: 20px;
     margin: 15px 0 0 0;
   }
+}
+
+div.field-row {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+dl.field {
+  margin: 0;
+
+  dt {
+    font-weight: bold;
+    font-size: 13px;
+    display: inline-block;
+    background: $tab-header-background;
+    color: $tab-header-color;
+    padding: 2px 8px;
+  }
+
+  dd {
+    margin-left: 0;
+  }
+}
+
+div.flow {
+  padding: 0;
+  background: $flow-panel-background;
+  border: 1px solid $panel-border-color;
+  border-radius: $panel-radius;
+
+  div.add-flow-block {
+    background: $background-taint;
+    border: 1px solid $panel-border-color;
+    margin: 10px 10px 10px 10px;
+    padding: 5px 10px;
+    border-radius: $panel-radius;
+
+    label {
+      padding-right: 10px;
+    }
+  }
+}
+
+div.flow-block {
+  background: $flow-block-panel-background;
+  margin: 0;
+  padding: 0 10px;
+  border-radius: $panel-radius;
+
+  & + div.flow-block {
+    border-top: 1px solid $panel-border-color;
+  }
+
+  div.field-row {
+    margin: 0 -10px;
+
+    [class*="col-"] {
+      padding-left: 10px !important;
+      padding-right: 10px !important;
+    }
+  }
+
+  h4 {
+    font-size: 14px;
+    margin: 0 -10px 0 -10px;
+    padding: 5px 10px 0 10px;
+  }
+
+  h4.block-name {
+    line-height: 2;
+  }
+
+  dl {
+    margin: 10px 0;
+  }
+
+  .action-bar {
+    margin-top: 5px;
+    float: right;
+  }
+}
+
+.help-text {
+  background: $flow-panel-background;
+  border: 1px solid $input-group-addon-border-color;
+  border-radius: $border-radius;
+  padding: 5px 10px;
+  border-bottom: none;
+  font-size: 13px;
+}
+
+div.checkboxes {
+  border: 1px solid $input-group-addon-border-color;
+  border-radius: $border-radius;
+  padding: 5px 10px;
+
+  .checkbox {
+    margin: 0;
+  }
+}
+
+/* fake types */
+div.info {
+  border: 1px solid $panel-border-color;
+  color: $header-taint;
+  margin: 0;
+  padding: 5px 10px;
+
+  p {
+    margin: 0;
+  }
+}
+
+div.spacing {
+  height: 30px;
 }
 
 iframe.preview {
