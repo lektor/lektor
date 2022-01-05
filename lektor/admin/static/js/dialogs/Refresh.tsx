@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SlideDialog from "../components/SlideDialog";
-import { loadData } from "../fetch";
+import { post } from "../fetch";
 import { trans } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 
@@ -16,7 +16,7 @@ export default function Refresh({
 
   const refresh = useCallback(() => {
     setState("CLEANING");
-    loadData("/clean", null, { method: "POST" }).then(() => {
+    post("/clean", null).then(() => {
       setState("DONE");
     }, showErrorDialog);
   }, []);

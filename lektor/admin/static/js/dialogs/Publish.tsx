@@ -7,12 +7,11 @@ import React, {
 } from "react";
 
 import SlideDialog from "../components/SlideDialog";
-import { getApiUrl } from "../utils";
-import { loadData } from "../fetch";
+import { apiUrl, get, post } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 
-interface Server {
+export interface Server {
   id: string;
   short_target: string;
   name: string;
@@ -91,7 +90,7 @@ function Publish({
   const [state, setState] = useState<PublishState>("IDLE");
 
   useEffect(() => {
-    loadData("/servers", null).then(({ servers }: { servers: Server[] }) => {
+    get("/servers", null).then(({ servers }) => {
       setServers(servers);
       setActiveTarget(servers.length ? servers[0].id : "");
     }, showErrorDialog);
@@ -101,11 +100,11 @@ function Publish({
     setLog([]);
     setState("BUILDING");
     preventNavigation(true);
-    loadData("/build", null, { method: "POST" }).then(() => {
+    post("/build", null).then(() => {
       setState("PUBLISH");
 
       const eventSource = new EventSource(
-        `${getApiUrl("/publish")}?server=${encodeURIComponent(activeTarget)}`
+        apiUrl("/publish", { server: activeTarget })
       );
       eventSource.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);

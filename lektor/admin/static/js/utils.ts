@@ -5,7 +5,7 @@ export function isValidUrl(url: string): boolean {
 /**
  * Trim leading slashes from a string.
  */
-export function stripLeadingSlashes(string: string): string {
+export function trimLeadingSlashes(string: string): string {
   const match = /^\/*(.*?)$/.exec(string);
   return match ? match[1] : "";
 }
@@ -13,7 +13,7 @@ export function stripLeadingSlashes(string: string): string {
 /**
  * Trim trailing slashes from a string.
  */
-export function stripTrailingSlashes(string: string): string {
+export function trimTrailingSlashes(string: string): string {
   const match = /^(.*?)\/*$/.exec(string);
   return match ? match[1] : "";
 }
@@ -35,19 +35,8 @@ export function trimColons(string: string): string {
 }
 
 export function getCanonicalUrl(localPath: string): string {
-  const base = stripTrailingSlashes($LEKTOR_CONFIG.site_root);
-  return `${base}/${stripLeadingSlashes(localPath)}`;
-}
-
-export function urlPathsConsideredEqual(a: string, b: string | null): boolean {
-  if (a == null || b == null) {
-    return false;
-  }
-  return stripTrailingSlashes(a) === stripTrailingSlashes(b);
-}
-
-export function getApiUrl(url: string): string {
-  return `${$LEKTOR_CONFIG.admin_root}/api${url}`;
+  const base = trimTrailingSlashes($LEKTOR_CONFIG.site_root);
+  return `${base}/${trimLeadingSlashes(localPath)}`;
 }
 
 export function getPlatform(): "windows" | "mac" | "linux" | "other" {
@@ -120,12 +109,4 @@ export function urlToFsPath(urlPath: string): string | null {
   }
   segments[0] = "";
   return segments.join("/");
-}
-
-export function fsPathFromAdminObservedPath(adminPath: string): string | null {
-  const base = stripTrailingSlashes($LEKTOR_CONFIG.site_root);
-  if (adminPath.substr(0, base.length) !== base) {
-    return null;
-  }
-  return "/" + trimSlashes(adminPath.substr(base.length));
 }

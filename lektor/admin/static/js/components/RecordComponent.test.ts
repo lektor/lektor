@@ -1,12 +1,21 @@
 /* eslint-env mocha */
 import { deepStrictEqual } from "assert";
-import { getRecordPathAndAlt } from "./RecordComponent";
+import { getRecordDetails } from "./RecordComponent";
 
-describe("Get Record paths", () => {
-  it("Get Record path and alt", () => {
-    deepStrictEqual(getRecordPathAndAlt(""), [null, null]);
-    deepStrictEqual(getRecordPathAndAlt("root:about"), ["/about", undefined]);
-    deepStrictEqual(getRecordPathAndAlt("root+fr"), ["", "fr"]);
-    deepStrictEqual(getRecordPathAndAlt("root:blog+fr"), ["/blog", "fr"]);
+it("Get Record path and alt", () => {
+  deepStrictEqual(getRecordDetails(""), null);
+  deepStrictEqual(getRecordDetails("root:about"), {
+    path: "/about",
+    alt: "_primary",
+  });
+  deepStrictEqual(getRecordDetails("root+fr"), {
+    path: "",
+    alt: "fr",
+  });
+  deepStrictEqual(getRecordDetails("testroot"), null);
+  deepStrictEqual(getRecordDetails("testroot+fr"), null);
+  deepStrictEqual(getRecordDetails("root:blog+fr"), {
+    path: "/blog",
+    alt: "fr",
   });
 });

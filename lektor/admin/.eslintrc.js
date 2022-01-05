@@ -17,8 +17,6 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "react"],
   rules: {
-    "react/prop-types": 0,
     "react/button-has-type": "error",
-    "@typescript-eslint/no-explicit-any": 0,
   },
 };

@@ -1,15 +1,5 @@
 import { urlToFsPath } from "../utils";
 
-export function getRecordPathAndAlt(
-  path: string
-): [string | null, string | null] {
-  if (!path) {
-    return [null, null];
-  }
-  const [p, a] = path.split(/\+/, 2);
-  return [urlToFsPath(p), a];
-}
-
 /** Details about the path to a Lektor record. */
 export type RecordPathDetails = {
   /** Path of the current record (filesystem path). */
@@ -23,15 +13,13 @@ export type RecordPathDetails = {
  * @param urlPath - A url path, i.e., a path with `:` as a separator and
  *                  potentially an alt appended with `+` at the end.
  */
-export function getRecordDetails(urlPath: string): {
-  path: string | null;
-  alt: string;
-} {
-  const [path, alt] = getRecordPathAndAlt(urlPath);
-  return {
-    path,
-    alt: !alt ? "_primary" : alt,
-  };
+export function getRecordDetails(urlPath: string): RecordPathDetails | null {
+  if (!urlPath) {
+    return null;
+  }
+  const [p, a] = urlPath.split(/\+/, 2);
+  const [path, alt] = [urlToFsPath(p), a];
+  return path !== null ? { path, alt: alt || "_primary" } : null;
 }
 
 export type RecordProps = { page: string; record: RecordPathDetails };

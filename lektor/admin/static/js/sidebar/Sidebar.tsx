@@ -1,5 +1,5 @@
 import React, { useEffect, useReducer, useState } from "react";
-import { loadData } from "../fetch";
+import { get } from "../fetch";
 import { trans_obj } from "../i18n";
 import { RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
@@ -64,7 +64,7 @@ function Sidebar({ record, page }: RecordProps): JSX.Element {
   useEffect(() => {
     let ignore = false;
 
-    loadData("/recordinfo", { path }).then((resp: RecordInfo) => {
+    get("/recordinfo", { path }).then((resp) => {
       if (!ignore) {
         setRecordInfo({ ...resp, alts: resp.alts.sort(compareAlternatives) });
         setChildrenPage(childPosCache.getPosition(path, resp.children.length));
