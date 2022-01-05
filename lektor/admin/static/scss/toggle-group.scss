@@ -1,0 +1,46 @@
+div.toggle-group {
+  padding: 10px;
+  margin: 15px 0;
+  background: $background-taint;
+  border: 1px solid $panel-border-color;
+  border-radius: $panel-radius;
+
+  h4 {
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    line-height: 20px;
+    font-size: 15px;
+
+    &:before {
+      content: "";
+      display: block;
+      float: left;
+      width: 16px;
+      font-size: 12px !important;
+      text-align: left;
+      text-decoration: none !important;
+      color: $toggle-group-color !important;
+    }
+  }
+
+  &.toggle-group-open {
+    h4:before {
+      content: "▼";
+    }
+  }
+
+  &.toggle-group-closed {
+    h4:before {
+      content: "▶";
+    }
+
+    .children {
+      display: none;
+    }
+  }
+
+  div.header {
+    height: 20px;
+  }
+}

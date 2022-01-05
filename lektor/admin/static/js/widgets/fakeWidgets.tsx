@@ -8,14 +8,14 @@ export function LineWidget(): JSX.Element {
 LineWidget.isFakeWidget = true;
 
 export function SpacingWidget(): JSX.Element {
-  return <div className="spacing" />;
+  return <div className="spacing-widget" />;
 }
 SpacingWidget.isFakeWidget = true;
 
 export function InfoWidget(props: { field: Field }): JSX.Element {
   const label = trans_obj(props.field.label_i18n);
   return (
-    <div className="info">
+    <div className="info-widget">
       <p>
         {label ? <strong>{label + ": "}</strong> : null}
         {trans_obj(props.field.description_i18n)}

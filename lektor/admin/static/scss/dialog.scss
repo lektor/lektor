@@ -18,45 +18,34 @@
 .sliding-panel {
   position: relative;
   z-index: 5000;
-
-  > div {
-    background: $background-taint;
-    padding: 15px 20px;
-    box-shadow: $panel-shadow;
-  }
+  background: $background-taint;
+  padding: 15px 20px;
+  box-shadow: $panel-shadow;
 
   a.close-btn {
     float: right;
   }
+}
 
-  h3 {
-    margin: 0;
-  }
+ul.search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 
-  div.form-group {
-    margin: 15px 0;
-  }
+  li {
+    margin: 2px 0;
+    padding: 3px 10px;
+    cursor: pointer;
 
-  ul.search-results {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-
-    li {
-      margin: 2px 0;
-      padding: 3px 10px;
-      cursor: pointer;
-
-      span.parent {
-        &:after {
-          content: " / ";
-        }
+    span.parent {
+      &:after {
+        content: " / ";
       }
     }
+  }
 
-    li.active {
-      background: white;
-    }
+  li.active {
+    background: white;
   }
 }
 

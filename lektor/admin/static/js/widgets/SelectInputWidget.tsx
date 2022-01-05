@@ -14,20 +14,18 @@ export function SelectInputWidget(
   ));
 
   return (
-    <div className="form-group">
-      <div>
-        <select
-          className={getInputClass(type)}
-          value={value || placeholder || ""}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-        >
-          <option key="" value="">
-            ----
-          </option>
-          {choices}
-        </select>
-      </div>
+    <div>
+      <select
+        className={getInputClass(type)}
+        value={value || placeholder || ""}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+      >
+        <option key="" value="">
+          ----
+        </option>
+        {choices}
+      </select>
     </div>
   );
 }

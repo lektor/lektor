@@ -29,8 +29,8 @@ export default function SlideDialog({
 
   return (
     <div className="dialog-slot">
-      <div className="sliding-panel container">
-        <div className="col-md-6 offset-md-3">
+      <div className="container">
+        <div className="sliding-panel col-md-6 offset-md-3">
           {hasCloseButton && (
             <a
               href="#"

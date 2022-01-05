@@ -51,7 +51,7 @@ export default function InputWidgetBase(
   }
 
   return (
-    <div className="form-group">
+    <div>
       <div className={className}>
         <input
           ref={setValidity}

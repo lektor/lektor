@@ -1,12 +1,6 @@
 @import "./fonts.css";
 @import "./bootstrap-overrides.scss";
 @import "./variables.scss";
-@import "./sidebar.scss";
-@import "./header.scss";
-
-// Font awesome
-// TODO: use it here or in main.tsx?
-// @import "font-awesome/scss/font-awesome";
 
 html,
 body {
@@ -27,83 +21,6 @@ h2 {
   font-weight: 400;
 }
 
-dl {
-  .form-group {
-    margin: 0;
-  }
-}
-
-nav.sidebar {
-  padding: 0;
-  height: 100%;
-
-  h3 {
-    margin: 0;
-    margin-top: 10px;
-    font-weight: bold;
-    font-size: 15px;
-    background: $block-header-background;
-    color: white;
-    padding: 3px 7px;
-    display: inline-block;
-  }
-
-  ul.nav {
-    li {
-      margin: 2px 2px 0 20px;
-      width: 100%;
-      padding: 0;
-
-      a:hover {
-        background: $block-item-hover-background;
-        color: $block-item-hover-color;
-      }
-
-      a,
-      > em {
-        display: inline-block;
-        padding: 5px 10px;
-        background: $block-item-background;
-        color: $block-item-color;
-        &.active {
-          font-weight: 500;
-          background: $block-item-active-background;
-          color: $block-item-active-color;
-          outline: none;
-        }
-      }
-    }
-
-    li.alt-missing a {
-      color: $block-item-missing-color;
-    }
-    li.current-alt a {
-      font-weight: bold;
-    }
-
-    li.pagination {
-      > * {
-        display: inline-block;
-        text-align: center;
-        font-style: normal;
-        width: 20%;
-        font-weight: bold;
-      }
-      span.page {
-        width: 60%;
-        font-weight: normal;
-      }
-      em {
-        color: $gray-700;
-        background: transparent;
-      }
-      *:last-child {
-        float: right;
-      }
-    }
-  }
-}
-
 div.main {
   position: relative;
   height: 100%;
@@ -114,196 +31,11 @@ div.main {
   }
 }
 
-div.field-row {
-  margin-top: 15px;
-  margin-bottom: 15px;
-}
-
-dl.field {
-  margin: 0;
-
-  dt {
-    font-weight: bold;
-    font-size: 13px;
-    display: inline-block;
-    background: $tab-header-background;
-    color: $tab-header-color;
-    padding: 2px 8px;
-  }
-
-  dd {
-    margin-left: 0;
-  }
-}
-
-div.flow {
-  padding: 0;
-  background: $flow-panel-background;
-  border: 1px solid $panel-border-color;
-  border-radius: $panel-radius;
-
-  div.add-flow-block {
-    background: $background-taint;
-    border: 1px solid $panel-border-color;
-    margin: 10px 10px 10px 10px;
-    padding: 5px 10px;
-    border-radius: $panel-radius;
-
-    label {
-      padding-right: 10px;
-    }
-  }
-}
-
-div.flow-block {
-  background: $flow-block-panel-background;
-  margin: 0;
-  padding: 0 10px;
-  border-radius: $panel-radius;
-
-  & + div.flow-block {
-    border-top: 1px solid $panel-border-color;
-  }
-
-  div.field-row {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-
-  h4 {
-    font-size: 14px;
-    margin: 0 -10px 0 -10px;
-    padding: 5px 10px 0 10px;
-  }
-
-  h4.block-name {
-    line-height: 2;
-  }
-
-  dl {
-    margin: 10px 0;
-  }
-
-  .action-bar {
-    margin-top: 5px;
-    float: right;
-  }
-}
-
-.help-text {
-  background: $flow-panel-background;
-  border: 1px solid $input-group-addon-border-color;
-  border-radius: $border-radius;
-  padding: 5px 10px;
-  border-bottom: none;
-  font-size: 13px;
-}
-
-div.checkboxes {
-  border: 1px solid $input-group-addon-border-color;
-  border-radius: $border-radius;
-  padding: 5px 10px;
-
-  .checkbox {
-    margin: 0;
-  }
-}
-
-/* fake types */
-div.info {
-  border: 1px solid $panel-border-color;
-  color: $header-taint;
-  margin: 0;
-  padding: 5px 10px;
-
-  p {
-    margin: 0;
-  }
-}
-
-div.spacing {
-  height: 30px;
-}
-
 iframe.preview {
   display: block;
   border: 0;
   width: 100%;
   height: calc(100vh - 38px);
-}
-
-// form specifics
-.form-group {
-  div.validation-block {
-    margin-top: 5px;
-    padding: 5px 10px;
-    font-size: 13px;
-    font-weight: bold;
-  }
-
-  div.validation-block-error {
-    color: $danger;
-  }
-
-  div.validation-block-warning {
-    color: $warning;
-  }
-}
-
-.system-fields {
-  dl.field {
-    dt {
-      color: $toggle-group-color;
-      font-style: italic;
-    }
-  }
-}
-
-div.toggle-group {
-  padding: 10px;
-  margin: 15px 0;
-  background: $background-taint;
-  border: 1px solid $panel-border-color;
-  border-radius: $panel-radius;
-
-  h4 {
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-    line-height: 20px;
-    font-size: 15px;
-
-    &:before {
-      content: "";
-      display: block;
-      float: left;
-      width: 16px;
-      font-size: 12px !important;
-      text-align: left;
-      text-decoration: none !important;
-      color: $toggle-group-color !important;
-    }
-  }
-
-  &.toggle-group-open {
-    h4:before {
-      content: "▼";
-    }
-  }
-
-  &.toggle-group-closed {
-    h4:before {
-      content: "▶";
-    }
-
-    .children {
-      display: none;
-    }
-  }
-
-  div.header {
-    height: 20px;
-  }
 }
 
 div.actions {
@@ -320,5 +52,9 @@ div.actions {
   }
 }
 
+@import "./sidebar.scss";
+@import "./header.scss";
 @import "./dialog.scss";
+@import "./forms.scss";
+@import "./toggle-group.scss";
 @import "./static-pages.scss";

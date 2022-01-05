@@ -80,7 +80,7 @@ function FindFiles({
 
   return (
     <SlideDialog dismiss={dismiss} hasCloseButton title={trans("FIND_FILES")}>
-      <div className="form-group">
+      <p>
         <input
           type="text"
           autoFocus
@@ -90,7 +90,7 @@ function FindFiles({
           onKeyDown={onInputKey}
           placeholder={trans("FIND_FILES_PLACEHOLDER")}
         />
-      </div>
+      </p>
       <ul className="search-results">
         {results.map((result, idx) => (
           <ResultRow

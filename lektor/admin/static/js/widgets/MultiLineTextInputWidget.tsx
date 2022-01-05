@@ -1,12 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect, useRef } from "react";
 import { getInputClass, WidgetProps } from "./types";
 
-const style = {
-  display: "block",
-  overflow: "hidden",
-  resize: "none",
-} as const;
-
 export function MultiLineTextInputWidget({
   type,
   value,
@@ -48,7 +42,6 @@ export function MultiLineTextInputWidget({
         ref={textarea}
         className={getInputClass(type)}
         onChange={onChange}
-        style={style}
         value={value}
         disabled={disabled}
         placeholder={placeholder}
