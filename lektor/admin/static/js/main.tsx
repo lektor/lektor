@@ -13,6 +13,7 @@ import PreviewPage from "./views/PreviewPage";
 import AddChildPage from "./views/add-child-page/AddChildPage";
 import AddAttachmentPage from "./views/AddAttachmentPage";
 import { getRecordDetails } from "./components/RecordComponent";
+import { adminPath } from "./components/use-go-to-admin-page";
 
 setCurrentLanguage($LEKTOR_CONFIG.lang);
 
@@ -32,9 +33,9 @@ function getMainComponent(page: string) {
 }
 
 function Main() {
-  const root = $LEKTOR_CONFIG.admin_root;
-  const fullPath = `${root}/:path/:page`;
-  const match = useRouteMatch<{ path: string; page: string }>(fullPath);
+  const match = useRouteMatch<{ path: string; page: string }>(
+    `${$LEKTOR_CONFIG.admin_root}/:path/:page`
+  );
   // useRouteMatch returns a new object on each render, so we need to get the
   // primitive string values here to memoize.
   const urlPath = match?.params.path;
@@ -48,11 +49,11 @@ function Main() {
   }, [urlPath]);
 
   if (!page) {
-    return <Redirect to={`${root}/root/edit`} />;
+    return <Redirect to={adminPath("edit", "/", "_primary")} />;
   }
   const Component = getMainComponent(page);
   if (!Component || record === null) {
-    return <Redirect to={`${root}/root/edit`} />;
+    return <Redirect to={adminPath("edit", "/", "_primary")} />;
   }
   return (
     <App page={page} record={record}>
