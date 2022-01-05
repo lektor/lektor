@@ -5,9 +5,6 @@ import { setCurrentLanguage } from "./i18n";
 
 import "font-awesome/css/font-awesome.css";
 
-// polyfill for internet explorer
-import "event-source-polyfill";
-
 // route targets
 import App from "./views/App";
 import EditPage from "./views/edit/EditPage";
