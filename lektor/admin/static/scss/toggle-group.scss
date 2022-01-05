@@ -3,7 +3,6 @@ div.toggle-group {
   margin: 15px 0;
   background: $background-taint;
   border: 1px solid $panel-border-color;
-  border-radius: $panel-radius;
 
   h4 {
     margin: 0;
@@ -17,10 +16,10 @@ div.toggle-group {
       display: block;
       float: left;
       width: 16px;
-      font-size: 12px !important;
+      font-size: 12px;
       text-align: left;
-      text-decoration: none !important;
-      color: $toggle-group-color !important;
+      text-decoration: none;
+      color: $toggle-group-color;
     }
   }
 

@@ -33,14 +33,12 @@ dl.field {
 div.flow {
   background: $flow-panel-background;
   border: 1px solid $panel-border-color;
-  border-radius: $panel-radius;
   padding: 10px;
 
   div.add-flow-block {
     background: $background-taint;
     border: 1px solid $panel-border-color;
     padding: 5px 10px;
-    border-radius: $panel-radius;
 
     label {
       padding-right: 10px;
@@ -50,7 +48,6 @@ div.flow {
 
 div.flow-block {
   background: $flow-block-panel-background;
-  border-radius: $panel-radius;
 
   & + div.flow-block {
     border-top: 1px solid $panel-border-color;
@@ -89,7 +86,6 @@ div.flow-block {
 .help-text {
   background: $flow-panel-background;
   border: 1px solid $input-group-addon-border-color;
-  border-radius: $border-radius;
   padding: 5px 10px;
   border-bottom: none;
   font-size: 13px;
@@ -97,7 +93,6 @@ div.flow-block {
 
 .checkboxes {
   border: 1px solid $input-group-addon-border-color;
-  border-radius: $border-radius;
   padding: 5px 10px;
 }
 
