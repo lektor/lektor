@@ -19,11 +19,15 @@
   position: relative;
   z-index: 5000;
   background: $background-taint;
-  padding: 15px 20px;
+  padding: 1rem 1.5rem;
   box-shadow: $panel-shadow;
 
   a.close-btn {
     float: right;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
   }
 }
 
@@ -37,14 +41,17 @@ ul.search-results {
     padding: 3px 10px;
     cursor: pointer;
 
-    span.parent {
-      &:after {
-        content: " / ";
-      }
+    span:after {
+      content: " / ";
     }
   }
 
-  li.active {
+  a {
+    color: unset;
+  }
+
+  li.active,
+  li:hover {
     background: white;
   }
 }
@@ -54,27 +61,17 @@ ul.search-results {
   max-height: 200px;
 }
 
-.server-down-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
+.interface-protector.server-down-panel {
   z-index: 10000;
-  background: $protector-background;
-  padding: 15px 20px;
 }
 
 .server-down-dialog {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 370px;
-  height: 170px;
-  margin-left: -200px;
-  margin-top: -75px;
-  vertical-align: middle;
-  padding: 15px;
+  width: 360px;
+  transform: translate(-50%, -50%);
+  padding: 1rem;
   text-align: center;
   background: $background-taint;
   box-shadow: $panel-shadow;

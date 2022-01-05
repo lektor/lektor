@@ -23,6 +23,7 @@
 header {
   min-height: 38px;
   background: $header-taint;
+  padding-top: 2px;
 
   a {
     color: $header-link-color;
@@ -36,7 +37,7 @@ header {
 
 .breadcrumb {
   margin: 0;
-  margin-top: 7px;
+  margin-top: 5px;
 
   li::before {
     color: $header-sep-color;
@@ -66,7 +67,4 @@ header {
       }
     }
   }
-}
-.global-actions {
-  margin-top: 2px;
 }

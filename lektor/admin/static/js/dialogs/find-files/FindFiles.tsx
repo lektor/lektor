@@ -26,6 +26,7 @@ function FindFiles({
   const goToAdminPage = useGoToAdminPage();
 
   const { alt } = record;
+  const target = page === "preview" ? "preview" : "edit";
 
   useEffect(() => {
     if (!query) {
@@ -49,15 +50,6 @@ function FindFiles({
     };
   }, [alt, query]);
 
-  const goto = useCallback(
-    (item: SearchResult) => {
-      const target = page === "preview" ? "preview" : "edit";
-      dismiss();
-      goToAdminPage(target, item.path, alt);
-    },
-    [alt, dismiss, goToAdminPage, page]
-  );
-
   const onInputKey = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === "ArrowDown") {
@@ -71,34 +63,34 @@ function FindFiles({
       } else if (event.key === "Enter") {
         const item = results[selected];
         if (item) {
-          goto(item);
+          dismiss();
+          goToAdminPage(target, item.path, alt);
         }
       }
     },
-    [goto, results, selected]
+    [alt, dismiss, goToAdminPage, results, selected, target]
   );
 
   return (
     <SlideDialog dismiss={dismiss} hasCloseButton title={trans("FIND_FILES")}>
-      <p>
-        <input
-          type="text"
-          autoFocus
-          className="form-control"
-          value={query}
-          onChange={(ev) => setQuery(ev.target.value)}
-          onKeyDown={onInputKey}
-          placeholder={trans("FIND_FILES_PLACEHOLDER")}
-        />
-      </p>
+      <input
+        type="text"
+        autoFocus
+        className="form-control"
+        value={query}
+        onChange={(ev) => setQuery(ev.target.value)}
+        onKeyDown={onInputKey}
+        placeholder={trans("FIND_FILES_PLACEHOLDER")}
+      />
       <ul className="search-results">
         {results.map((result, idx) => (
           <ResultRow
             key={result.path}
             result={result}
             isActive={idx === selected}
-            onClick={() => goto(result)}
-            onMouseEnter={() => setSelected(idx)}
+            dismiss={dismiss}
+            alt={record.alt}
+            target={target}
           />
         ))}
       </ul>

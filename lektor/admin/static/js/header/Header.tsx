@@ -28,7 +28,7 @@ export default function Header({
         />
         <div className="d-flex justify-content-between">
           <BreadCrumbs page={page} record={record} />
-          <div className="global-actions">
+          <div>
             <GlobalActions record={record} />
           </div>
         </div>

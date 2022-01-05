@@ -151,7 +151,7 @@ function Publish({
         </button>
       </p>
       {state !== "IDLE" ? (
-        <div>
+        <>
           <h3>
             {state !== "DONE"
               ? trans("CURRENTLY_PUBLISHING")
@@ -159,7 +159,7 @@ function Publish({
           </h3>
           <pre>{trans("STATE") + ": " + trans(`PUBLISH_STATE_${state}`)}</pre>
           <BuildLog log={log} />
-        </div>
+        </>
       ) : null}
     </SlideDialog>
   );
