@@ -11,11 +11,13 @@ function validateUrl(value: string) {
   return null;
 }
 
+const inputAddon = <i className="fa fa-external-link" />;
+
 export function UrlInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"
-      inputAddon={<i className="fa fa-external-link" />}
+      inputAddon={inputAddon}
       validate={validateUrl}
       {...props}
     />
