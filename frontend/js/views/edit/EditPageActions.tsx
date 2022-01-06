@@ -7,9 +7,11 @@ import { RawRecordInfo } from "./EditPage";
 export function EditPageActions({
   recordInfo,
   hasPendingChanges,
+  saveChangesAndPreview,
 }: {
   recordInfo: RawRecordInfo;
   hasPendingChanges: boolean;
+  saveChangesAndPreview: () => void;
 }): JSX.Element {
   const { path, alt } = useRecord();
   const goToAdminPage = useGoToAdminPage();
@@ -26,6 +28,14 @@ export function EditPageActions({
         className="btn btn-primary"
       >
         {trans("SAVE_CHANGES")}
+      </button>
+      <button
+        type="button"
+        disabled={!hasPendingChanges}
+        onClick={saveChangesAndPreview}
+        className="btn btn-secondary"
+      >
+        {trans("SAVE_CHANGES_AND_PREVIEW")}
       </button>
       {recordInfo.can_be_deleted ? (
         <button

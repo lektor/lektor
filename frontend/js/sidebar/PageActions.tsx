@@ -40,6 +40,7 @@ function BrowseFSLink() {
 }
 
 const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
+const previewKey = { key: "Control+p", mac: "Meta+p", preventDefault: true };
 
 function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
   const { path, alt } = useRecord();
@@ -70,9 +71,14 @@ function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
           </li>
         )}
         <li key="preview">
-          <AdminLink page="preview" path={path} alt={alt}>
+          <AdminLinkWithHotkey
+            page="preview"
+            path={path}
+            alt={alt}
+            shortcut={previewKey}
+          >
             {trans("PREVIEW")}
-          </AdminLink>
+          </AdminLinkWithHotkey>
         </li>
         {recordInfo.exists && (
           <li key="fs-open">

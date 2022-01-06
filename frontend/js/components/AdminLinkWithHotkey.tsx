@@ -1,7 +1,7 @@
 import React, { MutableRefObject, useCallback, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { useRecord } from "../context/record-context";
-import { KeyboardShortcut, keyboardShortcutHandler } from "../utils";
+import { getKey, KeyboardShortcut, keyboardShortcutHandler } from "../utils";
 import { AdminLinkProps } from "./AdminLink";
 import { adminPath } from "./use-go-to-admin-page";
 
@@ -61,6 +61,7 @@ export default function AdminLinkWithHotkey({
         isActive && recordMatches ? "active" : undefined
       }
       ref={el}
+      title={getKey(shortcut)}
       {...otherProps}
     >
       {children}

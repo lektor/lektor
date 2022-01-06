@@ -27,6 +27,7 @@ import { useRecord } from "../../context/record-context";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 
 import type { History } from "history";
+import { dispatch } from "../../events";
 
 export type RawRecordInfo = {
   alt: string;
@@ -254,24 +255,28 @@ function EditPage(): JSX.Element | null {
   );
 
   const saveChanges = useCallback(
-    (ev: FormEvent) => {
-      ev.preventDefault();
+    (ev?: FormEvent) => {
+      ev?.preventDefault();
       const data = getValues({ recordDataModel, recordInfo, recordData });
-      put("/rawrecord", { data, path, alt }).then(() => {
+      return put("/rawrecord", { data, path, alt });
+    },
+    [alt, path, recordData, recordDataModel, recordInfo]
+  );
+  const saveChangesAndNotify = useCallback(
+    (ev: FormEvent) => {
+      saveChanges(ev).then(() => {
         setHasPendingChanges(false);
-        goToAdminPage("preview", path, alt);
+        dispatch("lektor-notification", { message: trans("SAVE_SUCCESS") });
       }, showErrorDialog);
     },
-    [
-      alt,
-      goToAdminPage,
-      path,
-      recordData,
-      recordDataModel,
-      recordInfo,
-      setHasPendingChanges,
-    ]
+    [saveChanges, setHasPendingChanges]
   );
+  const saveChangesAndPreview = useCallback(() => {
+    saveChanges().then(() => {
+      setHasPendingChanges(false);
+      goToAdminPage("preview", path, alt);
+    }, showErrorDialog);
+  }, [alt, goToAdminPage, path, saveChanges, setHasPendingChanges]);
 
   const renderFormField = useCallback(
     (field: Field) => {
@@ -316,7 +321,7 @@ function EditPage(): JSX.Element | null {
   return (
     <>
       <h2>{title}</h2>
-      <form ref={form} onSubmit={saveChanges}>
+      <form ref={form} onSubmit={saveChangesAndNotify}>
         <FieldRows fields={normalFields} renderFunc={renderFormField} />
         {systemFields.length > 0 && (
           <ToggleGroup
@@ -329,6 +334,7 @@ function EditPage(): JSX.Element | null {
         <EditPageActions
           recordInfo={recordInfo}
           hasPendingChanges={hasPendingChanges}
+          saveChangesAndPreview={saveChangesAndPreview}
         />
       </form>
     </>
