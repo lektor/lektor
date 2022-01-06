@@ -4,10 +4,11 @@ import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
 import { PAGE_NAMES, PageName, useRecord } from "./components/RecordComponent";
 
-import "font-awesome/css/font-awesome.css";
-
 import App from "./views/App";
 import { adminPath } from "./components/use-go-to-admin-page";
+
+import "font-awesome/css/font-awesome.css";
+import "../scss/main.scss";
 
 function Page({ page }: { page: PageName }) {
   const record = useRecord();
