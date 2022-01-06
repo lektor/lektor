@@ -13,7 +13,6 @@ export default function InputWidgetBase({
   disabled,
   placeholder,
 }: WidgetProps & {
-  onChange: (val: string) => void;
   postprocessValue?: (val: string) => string;
   inputAddon: JSX.Element | string;
   inputType: string;

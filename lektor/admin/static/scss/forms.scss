@@ -30,7 +30,7 @@ dl.field {
   }
 }
 
-div.flow {
+.flow-widget {
   background: $flow-panel-background;
   border: 1px solid $panel-border-color;
   padding: 10px;
@@ -79,10 +79,6 @@ div.flow-block {
   color: $danger;
 }
 
-.validation-block-warning {
-  color: $warning;
-}
-
 .help-text {
   background: $flow-panel-background;
   border: 1px solid $input-group-addon-border-color;
@@ -91,7 +87,7 @@ div.flow-block {
   font-size: 13px;
 }
 
-.checkboxes {
+.checkboxes-widget {
   border: 1px solid $input-group-addon-border-color;
   padding: 5px 10px;
 }
