@@ -1,7 +1,10 @@
+import { useEffect } from "react";
+
 export type LektorEvents = {
   "lektor-attachments-changed": string;
   "lektor-dialog": { type: "find-files" | "refresh" | "publish" };
   "lektor-error": { code: string };
+  "lektor-notification": { message: string };
 };
 
 /** Dispatch one of the custom events. */
@@ -26,4 +29,20 @@ export function unsubscribe<T extends keyof LektorEvents>(
   handler: (ev: CustomEvent<LektorEvents[T]>) => void
 ): void {
   document.removeEventListener(type, handler as EventListener);
+}
+
+/**
+ * Use a subscription to one of the Lektor's events.
+ *
+ * The handler should be wrapped in a use callback to avoid frequent
+ * re-attaching of the event handler.
+ */
+export function useLektorEvent<T extends keyof LektorEvents>(
+  type: T,
+  handler: (ev: CustomEvent<LektorEvents[T]>) => void
+) {
+  useEffect(() => {
+    subscribe(type, handler);
+    return () => unsubscribe(type, handler);
+  }, [type, handler]);
 }

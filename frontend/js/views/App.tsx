@@ -5,6 +5,7 @@ import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
 import ErrorDialog from "../components/ErrorDialog";
+import Notifications from "./Notifications";
 
 import EditPage from "./edit/EditPage";
 import DeletePage from "./delete/DeletePage";
@@ -28,6 +29,7 @@ export default function App() {
   const MainComponent = mainComponentForPage[page];
   return (
     <>
+      <Notifications />
       <Header sidebarIsActive={sidebarIsActive} toggleSidebar={toggleSidebar} />
       <ErrorDialog />
       <DialogSlot />
