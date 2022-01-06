@@ -155,6 +155,7 @@ class TestPlugin:
     def test_path(self, dummy_plugin):
         assert dummy_plugin.path == str(Path(__file__).parent)
 
+    @pytest.mark.requiresinternet
     @pytest.mark.usefixtures("save_sys_path")
     def test_path_installed_plugin_is_none(self, scratch_project):
         # XXX: this test is slow and fragile. (It won't run

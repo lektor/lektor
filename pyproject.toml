@@ -3,3 +3,10 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+
+[tool.pytest.ini_options]
+norecursedirs = ["venv", ".tox", ".git", "node_modules"]
+addopts = "--strict-markers"
+markers = [
+    "requiresinternet: marks tests requiring an internet connection",
+]
