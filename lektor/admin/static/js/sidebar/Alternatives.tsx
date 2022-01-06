@@ -30,10 +30,10 @@ function Alternatives({ alts, page, record }: Props) {
   });
 
   return (
-    <div className="section">
+    <>
       <h3>{trans("ALTS")}</h3>
       <ul className="nav">{items}</ul>
-    </div>
+    </>
   );
 }
 

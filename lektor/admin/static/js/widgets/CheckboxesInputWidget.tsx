@@ -35,7 +35,7 @@ export function CheckboxesInputWidget({
   const deserializedPlaceholder = deserialize(placeholder);
 
   return (
-    <div className="checkboxes">
+    <div className="checkboxes-widget">
       {type.choices?.map(([key, description]) => (
         <div className="form-check" key={key}>
           <label className="form-check-label">

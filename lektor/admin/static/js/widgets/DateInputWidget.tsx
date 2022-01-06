@@ -52,11 +52,13 @@ export function postprocessDate(value: string): string {
   return value;
 }
 
+const inputAddon = <i className="fa fa-calendar" />;
+
 export function DateInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="date"
-      inputAddon={<i className="fa fa-calendar" />}
+      inputAddon={inputAddon}
       postprocessValue={postprocessDate}
       validate={validateDate}
       {...props}

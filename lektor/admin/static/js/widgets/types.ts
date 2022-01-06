@@ -53,11 +53,10 @@ type RealWidget = ComponentType<WidgetProps> &
 export type WidgetComponent = FakeWidget | RealWidget;
 
 export function getInputClass(type: WidgetType): string {
-  let rv = "form-control";
   if (type.size === "small") {
-    rv = "input-sm " + rv;
+    return "form-control input-sm";
   } else if (type.size === "large") {
-    rv = "input-lg " + rv;
+    return "form-control input-lg";
   }
-  return rv;
+  return "form-control";
 }

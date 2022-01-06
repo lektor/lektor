@@ -18,16 +18,14 @@ export default function ToggleGroup({
 
   return (
     <div
-      className={`${className} toggle-group ${
-        open ? "toggle-group-open" : "toggle-group-closed"
-      }`}
+      className={
+        open ? `${className} toggle-group` : `${className} toggle-group closed`
+      }
     >
-      <div className="header">
-        <h4 className="toggle" onClick={toggle}>
-          {groupTitle}
-        </h4>
-      </div>
-      <div className="children">{children}</div>
+      <h4 className="toggle-group-header" onClick={toggle}>
+        {groupTitle}
+      </h4>
+      <div className="toggle-group-content">{children}</div>
     </div>
   );
 }

@@ -26,9 +26,9 @@ export default function ChildActions({
   const { alt } = record;
 
   return (
-    <div key="children" className="section">
+    <>
       <h3>{trans("CHILD_PAGES")}</h3>
-      <ul className="nav record-children">
+      <ul className="nav">
         <ChildPagination
           numberOfChildren={allChildren.length}
           page={page}
@@ -48,6 +48,6 @@ export default function ChildActions({
           </li>
         )}
       </ul>
-    </div>
+    </>
   );
 }

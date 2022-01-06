@@ -54,7 +54,7 @@ function PageActions({
   const { path, alt } = record;
 
   return (
-    <div className="section">
+    <>
       <h3>
         {recordInfo.is_attachment
           ? trans("ATTACHMENT_ACTIONS")
@@ -98,7 +98,7 @@ function PageActions({
           </li>
         )}
       </ul>
-    </div>
+    </>
   );
 }
 

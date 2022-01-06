@@ -33,7 +33,7 @@ export default function ServerStatus(): JSX.Element | null {
     return null;
   }
   return (
-    <div className="server-down-panel">
+    <div className="interface-protector server-down-panel">
       <div className="server-down-dialog">
         <h3>{trans("ERROR_SERVER_UNAVAILABLE")}</h3>
         <p>{trans("ERROR_SERVER_UNAVAILABLE_MESSAGE")}</p>

@@ -13,9 +13,9 @@ function AttachmentActions({
 }) {
   const attachments = recordInfo.attachments;
   return (
-    <div className="section">
+    <>
       <h3>{trans("ATTACHMENTS")}</h3>
-      <ul className="nav record-attachments">
+      <ul className="nav">
         {attachments.length > 0 ? (
           attachments.map((atch) => {
             return (
@@ -32,7 +32,7 @@ function AttachmentActions({
           </li>
         )}
       </ul>
-    </div>
+    </>
   );
 }
 

@@ -76,7 +76,7 @@ function AddAttachmentPage({
   }
 
   return (
-    <div>
+    <>
       <h2>{trans_format("ADD_ATTACHMENT_TO", newAttachmentInfo.label)}</h2>
       <p>{trans("ADD_ATTACHMENT_NOTE")}</p>
       <ul>
@@ -105,7 +105,7 @@ function AddAttachmentPage({
           {trans("UPLOAD")}
         </button>
       </div>
-    </div>
+    </>
   );
 }
 

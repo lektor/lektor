@@ -1,4 +1,5 @@
 import React from "react";
+import { adminPath } from "../../components/use-go-to-admin-page";
 import { SearchResult } from "./FindFiles";
 
 /**
@@ -7,26 +8,24 @@ import { SearchResult } from "./FindFiles";
 export default function ResultRow({
   result,
   isActive,
-  onClick,
-  onMouseEnter,
+  dismiss,
+  alt,
+  target,
 }: {
   result: SearchResult;
   isActive: boolean;
-  onClick: () => void;
-  onMouseEnter: () => void;
+  dismiss: () => void;
+  alt: string;
+  target: string;
 }): JSX.Element {
   return (
-    <li
-      className={isActive ? "active" : ""}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-    >
-      {result.parents.map((item, idx) => (
-        <span className="parent" key={idx}>
-          {item.title}
-        </span>
-      ))}
-      <strong>{result.title}</strong>
+    <li className={isActive ? "active" : ""}>
+      <a href={adminPath(target, result.path, alt)} onClick={dismiss}>
+        {result.parents.map((item, idx) => (
+          <span key={idx}>{item.title}</span>
+        ))}
+        <strong>{result.title}</strong>
+      </a>
     </li>
   );
 }

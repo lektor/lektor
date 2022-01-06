@@ -26,8 +26,8 @@ function Crumb({
   const { path, exists } = item;
   const label = exists ? trans_fallback(item.label_i18n, item.label) : item.id;
   const className = exists
-    ? "breadcrumb-item record-crumb"
-    : "breadcrumb-item record-crumb missing-record-crumb";
+    ? "breadcrumb-item"
+    : "breadcrumb-item missing-record-crumb";
   return (
     <li className={className}>
       <AdminLink page={target} path={path} alt={alt}>

@@ -6,11 +6,13 @@ function postprocessSlug(value: string) {
   return value.replace(/\s+/g, "-");
 }
 
+const inputAddon = <i className="fa fa-link" />;
+
 export function SlugInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"
-      inputAddon={<i className="fa fa-link" />}
+      inputAddon={inputAddon}
       postprocessValue={postprocessSlug}
       {...props}
     />

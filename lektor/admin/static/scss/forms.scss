@@ -1,0 +1,109 @@
+div.field-row {
+  margin-bottom: 1rem;
+}
+
+dl.field {
+  margin: 0;
+
+  dt {
+    font-weight: bold;
+    font-size: 13px;
+    display: inline-block;
+    background: $tab-header-background;
+    color: $tab-header-color;
+    padding: 2px 8px;
+  }
+
+  textarea {
+    display: block;
+    overflow: hidden;
+    resize: none;
+  }
+}
+
+.system-fields {
+  dl.field {
+    dt {
+      color: $toggle-group-color;
+      font-style: italic;
+    }
+  }
+}
+
+.flow-widget {
+  background: $flow-panel-background;
+  border: 1px solid $panel-border-color;
+  padding: 10px;
+
+  div.add-flow-block {
+    background: $background-taint;
+    border: 1px solid $panel-border-color;
+    padding: 5px 10px;
+
+    label {
+      padding-right: 10px;
+    }
+  }
+}
+
+div.flow-block {
+  background: $flow-block-panel-background;
+
+  & + div.flow-block {
+    border-top: 1px solid $panel-border-color;
+    padding-top: 10px;
+  }
+
+  div.field-row {
+    margin-bottom: 0;
+  }
+
+  h4.block-name {
+    font-size: 14px;
+    padding-top: 3px;
+  }
+
+  dl {
+    margin: 10px 0;
+  }
+}
+
+.validation-block {
+  margin-top: 5px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.validation-block-error {
+  color: $danger;
+}
+
+.help-text {
+  background: $flow-panel-background;
+  border: 1px solid $input-group-addon-border-color;
+  padding: 5px 10px;
+  border-bottom: none;
+  font-size: 13px;
+}
+
+.checkboxes-widget {
+  border: 1px solid $input-group-addon-border-color;
+  padding: 5px 10px;
+}
+
+/* fake types */
+.info-widget {
+  border: 1px solid $panel-border-color;
+  color: $header-taint;
+  margin: 0;
+  padding: 5px 10px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.spacing-widget {
+  height: 30px;
+}

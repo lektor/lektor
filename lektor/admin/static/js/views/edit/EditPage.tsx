@@ -261,7 +261,7 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
   const [normalFields, systemFields] = splitFields(fields);
 
   return (
-    <div className="edit-area">
+    <>
       {hasPendingChanges && <Prompt message={trans("UNLOAD_ACTIVE_TAB")} />}
       <h2>{title}</h2>
       <form ref={form} onSubmit={saveChanges}>
@@ -280,7 +280,7 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
           hasPendingChanges={hasPendingChanges}
         />
       </form>
-    </div>
+    </>
   );
 }
 

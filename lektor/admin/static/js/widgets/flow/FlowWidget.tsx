@@ -230,7 +230,7 @@ export function FlowWidget(
 
   const { flowblock_order, flowblocks } = props.type;
   return (
-    <div className="flow">
+    <div className="flow-widget">
       {value.map((block, idx) => (
         <FlowBlock
           key={block.localId}

@@ -26,13 +26,13 @@ const renderToggle = () => {
 describe("ToggleGroup", () => {
   it("renders a closed toggle group", () => {
     const container = renderToggle();
-    ok(container.innerHTML.includes("toggle-group-closed"));
+    ok(container.innerHTML.includes("closed"));
   });
 
   it("renders an open toggle group when toggled", () => {
     const container = renderToggle();
-    const el = document.querySelector(".toggle");
+    const el = document.querySelector(".toggle-group h4");
     el && ReactTestUtils.Simulate.click(el);
-    ok(container.innerHTML.includes("toggle-group-open"));
+    ok(!container.innerHTML.includes("closed"));
   });
 });
