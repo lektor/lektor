@@ -9,14 +9,41 @@ These are all the changes in Lektor since the first public release.
 - Fixed an import cycle which caused in `ImportError` if
   `lektor.types` was imported before `lektor.environemnt`. [#974][]
 
-#### CI Tests
+#### Deprecations
+
+- Disuse deprecated `Thread.setDaemon()`. [#979][]
+
+#### Admin UI
+
+- Fix spastic scroll behavior when editing flow elements. [#640][]
+- Fix admin GUI when page contains an unknown flowblock type. [#968][]
+- Fix admin GUI layout on mobile devices. [#981][]
+
+#### Tests
 
 - Increased timeout in `test_watcher.IterateInThread` to prevent
   random spurious failures during CI testing.
 - Fix `tests/test_prev_next_sibling.py` so as to allow running
   multiple test runs in parallel.
+- Use per-testenv coverage files to prevent contention when running `tox --parallel`.
+- Mark tests that require a working internet connections with pytest mark `requiresinternet`. [#983][]
 
+### Refactors
+
+#### Admin UI
+
+- Finish rewriting React class-based components to function-based components. [#977][]
+- Finish adding types for all API endpoints. [#980][]
+- Remove disused event-source polyfill.
+
+[#640]: https://github.com/lektor/lektor/issues/640
+[#968]: https://github.com/lektor/lektor/issues/968
 [#974]: https://github.com/lektor/lektor/pull/974
+[#977]: https://github.com/lektor/lektor/pull/977
+[#979]: https://github.com/lektor/lektor/pull/979
+[#980]: https://github.com/lektor/lektor/pull/980
+[#981]: https://github.com/lektor/lektor/pull/981
+[#983]: https://github.com/lektor/lektor/pull/983
 
 ## 3.3.0 (2021-12-14)
 
