@@ -1,6 +1,7 @@
+import json
 import mimetypes
 import os
-import posixpath
+import string
 from io import BytesIO
 from zlib import adler32
 
@@ -10,151 +11,133 @@ from flask import current_app
 from flask import render_template
 from flask import request
 from flask import Response
-from werkzeug.datastructures import Headers
+from flask import url_for
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import wrap_file
 
+from lektor.constants import PRIMARY_ALT
 
 bp = Blueprint("serve", __name__)
 
 
-def rewrite_html_for_editing(fp, edit_url):
-    contents = fp.read()
-
-    button_style = u"""
-    <style type="text/css">
-      #lektor-edit-link {
-        position: fixed;
-        z-index: 9999999;
-        right: 10px;
-        top: 10px;
-        position: fixed;
-        margin: 0;
-        font-family: 'Verdana', sans-serif;
-        background: #eee;
-        color: #77304c;
-        font-weight: normal;
-        font-size: 32px;
-        padding: 0;
-        text-decoration: none!important;
-        border: 1px solid #ccc!important;
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        text-align: center;
-        opacity: 0.7;
-      }
-
-      #lektor-edit-link:hover {
-        background: white!important;
-        opacity: 1.0;
-        border: 1px solid #aaa!important;
-      }
-    </style>
-    """
-    button_script = u"""
-    <script type="text/javascript">
-      (function() {
-        if (window != window.top) {
-          return;
-        }
-        var link = document.createElement('a');
-        link.setAttribute('href', '%(edit_url)s?path=' +
-            encodeURIComponent(document.location.pathname));
-        link.setAttribute('id', 'lektor-edit-link');
-        link.innerHTML = '\u270E';
-        document.body.appendChild(link);
-      })();
-    </script>
-    """ % {
-        "edit_url": edit_url,
+_EDIT_BUTTON_STYLE = """
+  <style type="text/css">
+    #lektor-edit-link {
+      position: fixed;
+      z-index: 9999999;
+      right: 10px;
+      top: 10px;
+      position: fixed;
+      margin: 0;
+      font-family: 'Verdana', sans-serif;
+      background: #eee;
+      color: #77304c;
+      font-weight: normal;
+      font-size: 32px;
+      padding: 0;
+      text-decoration: none!important;
+      border: 1px solid #ccc!important;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      opacity: 0.7;
     }
 
+    #lektor-edit-link:hover {
+      background: white!important;
+      opacity: 1.0;
+      border: 1px solid #aaa!important;
+    }
+  </style>
+"""
+
+
+_EDIT_BUTTON_SCRIPT_TMPL = string.Template(
+    """
+  <script type="text/javascript">
+    (function() {
+      if (window != window.top) {
+        return;
+      }
+      var link = document.createElement('a');
+      link.setAttribute('href', ${edit_url});
+      link.setAttribute('id', 'lektor-edit-link');
+      link.innerHTML = '\u270E';
+      document.body.appendChild(link);
+    })();
+  </script>
+"""
+)
+
+
+def rewrite_html_for_editing(fp, edit_url):
+    contents = fp.read()
+    fp.close()
     head_endpos = contents.find(b"</head>")
     body_endpos = contents.find(b"</body>")
-    if head_endpos >= 0 and body_endpos >= 0:
-        return BytesIO(
-            contents[:head_endpos]
-            + button_style.encode("utf-8")
-            + contents[head_endpos:body_endpos]
-            + button_script.encode("utf-8")
-            + contents[body_endpos:]
-        )
+    if head_endpos < 0:
+        # If </head> not found, inject both <style> and <script> at end
+        head_endpos = body_endpos = len(contents)
+    elif body_endpos < 0:
+        # If </body> not found, inject <script> at end
+        body_endpos = len(contents)
+
+    button_script = _EDIT_BUTTON_SCRIPT_TMPL.substitute(
+        edit_url=json.dumps(edit_url)
+    ).encode("utf-8")
 
     return BytesIO(
-        contents + button_style.encode("utf-8") + button_script.encode("utf-8")
+        contents[:head_endpos]
+        + _EDIT_BUTTON_STYLE.encode("utf-8")
+        + contents[head_endpos:body_endpos]
+        + button_script
+        + contents[body_endpos:]
     )
 
 
-def send_file(filename):
-    # pylint: disable=consider-using-with
-    mimetype = mimetypes.guess_type(filename)[0]
-    if mimetype is None:
-        mimetype = "application/octet-stream"
-
-    headers = Headers()
-
+def send_file(fp, mimetype):
     try:
-        file = open(filename, "rb")
-        mtime = os.path.getmtime(filename)
-        headers["Content-Length"] = os.path.getsize(filename)
-    except (IOError, OSError):
-        abort(404)
+        fileno = fp.fileno()
+        stat = os.stat(fileno)
+    except OSError:
+        stat = None
 
-    rewritten = False
-    if mimetype == "text/html":
-        rewritten = True
-        new_file = rewrite_html_for_editing(
-            file, edit_url=posixpath.join("/", request.script_root, "admin/edit")
-        )
-        file.close()
-        file = new_file
-        del headers["Content-Length"]
-
-    headers["Cache-Control"] = "no-cache, no-store"
-
-    data = wrap_file(request.environ, file)
-
-    rv = Response(data, mimetype=mimetype, headers=headers, direct_passthrough=True)
-
-    if not rewritten:
-        # if we know the file modification date, we can store it as
-        # the time of the last modification.
-        if mtime is not None:
-            rv.last_modified = int(mtime)
-        rv.cache_control.public = True
-        try:
-            rv.set_etag(
-                "lektor-%s-%s-%s"
-                % (
-                    os.path.getmtime(filename),
-                    os.path.getsize(filename),
-                    adler32(
-                        filename.encode("utf-8")
-                        if isinstance(filename, str)
-                        else filename
-                    )
-                    & 0xFFFFFFFF,
-                )
-            )
-        except OSError:
-            pass
-
-    return rv
+    resp = Response(
+        wrap_file(request.environ, fp),
+        mimetype=mimetype,
+        direct_passthrough=True,
+    )
+    resp.cache_control.no_store = True
+    if stat is not None:
+        resp.cache_control.public = True
+        resp.content_length = stat.st_size
+        check = adler32(f"{stat.st_dev}:{stat.st_ino}".encode("ascii")) & 0xFFFFFFFF
+        resp.set_etag(f"lektor-{stat.st_mtime}-{stat.st_size}-{check}")
+    return resp
 
 
 def handle_build_failure(failure):
     return render_template("build-failure.html", **failure.data)
 
 
+def get_edit_url(pad, path, alt=PRIMARY_ALT):
+    """Get URL to the UI to edit the record at record_path"""
+    query = {}
+    if alt and alt not in (PRIMARY_ALT, pad.db.config.primary_alternative):
+        query["alt"] = alt
+    return url_for("dash.app", view="edit", path=path.lstrip("/"), **query)
+
+
 def serve_up_artifact(path):
     li = current_app.lektor_info
     pad = li.get_pad()
 
-    artifact_name, filename = li.resolve_artifact("/" + path, pad)
-    if filename is None:
+    resolved = li.resolve_artifact("/" + path, pad)
+    if resolved.filename is None:
         abort(404)
 
+    artifact_name = resolved.artifact_name
     if artifact_name is None:
         artifact_name = path.strip("/")
 
@@ -166,7 +149,22 @@ def serve_up_artifact(path):
     if failure is not None:
         return handle_build_failure(failure)
 
-    return send_file(filename)
+    mimetype = mimetypes.guess_type(resolved.filename)[0]
+    if mimetype is None:
+        mimetype = "application/octet-stream"
+
+    try:
+        # pylint: disable=consider-using-with
+        fp = open(resolved.filename, "rb")
+    except OSError:
+        abort(404)
+
+    if mimetype == "text/html" and resolved.record_path is not None:
+        assert "@" not in resolved.record_path
+        edit_url = get_edit_url(pad, resolved.record_path, resolved.alt)
+        fp = rewrite_html_for_editing(fp, edit_url)
+
+    return send_file(fp, mimetype)
 
 
 @bp.route("/", defaults={"path": ""})
