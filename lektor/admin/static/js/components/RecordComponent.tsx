@@ -9,7 +9,16 @@ export type RecordPathDetails = {
   alt: string;
 };
 
-export type RecordProps = { page: string; record: RecordPathDetails };
+export const PAGE_NAMES = [
+  "edit",
+  "delete",
+  "preview",
+  "add-child",
+  "upload",
+] as const;
+export type PageName = typeof PAGE_NAMES[number];
+
+export type RecordProps = { page: PageName; record: RecordPathDetails };
 
 // Fake useSearchParams from react-router-dom v6
 function useSearchParams() {

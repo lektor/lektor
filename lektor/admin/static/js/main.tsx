@@ -1,68 +1,63 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter, Redirect, useRouteMatch } from "react-router-dom";
+import { ExtractRouteParams, RouteComponentProps } from "react-router";
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
-import { useRecordAlt } from "./components/RecordComponent";
+import {
+  PAGE_NAMES,
+  PageName,
+  useRecordAlt,
+} from "./components/RecordComponent";
 
 import "font-awesome/css/font-awesome.css";
 
-// route targets
 import App from "./views/App";
-import EditPage from "./views/edit/EditPage";
-import DeletePage from "./views/delete/DeletePage";
-import PreviewPage from "./views/PreviewPage";
-import AddChildPage from "./views/add-child-page/AddChildPage";
-import AddAttachmentPage from "./views/AddAttachmentPage";
 import { adminPath } from "./components/use-go-to-admin-page";
 import { trimSlashes } from "./utils";
 
-setCurrentLanguage($LEKTOR_CONFIG.lang);
+type PagePath = `${string}/:recordPath*`;
 
-const componentForPage = new Map([
-  ["edit", EditPage],
-  ["delete", DeletePage],
-  ["preview", PreviewPage],
-  ["add-child", AddChildPage],
-  ["upload", AddAttachmentPage],
-]);
+interface PageProps
+  extends RouteComponentProps<ExtractRouteParams<PagePath, string>> {
+  page: PageName;
+}
 
-function NotFound() {
-  return <Redirect to={adminPath("edit", "/", "_primary")} />;
+function pagePath(page: PageName): PagePath {
+  const admin_root = $LEKTOR_CONFIG.admin_root;
+  return `${admin_root}/${page}/:recordPath*`;
+}
+
+function Page({ match, page }: PageProps) {
+  const { recordPath } = match.params;
+  const record = {
+    path: `/${trimSlashes(decodeURIComponent(recordPath ?? ""))}`,
+    alt: useRecordAlt(),
+  };
+
+  return <App page={page} record={record} />;
 }
 
 function Main() {
-  const match = useRouteMatch<{ path: string; page: string }>(
-    `${$LEKTOR_CONFIG.admin_root}/:page/:path*`
-  );
-  const alt = useRecordAlt();
-
-  if (!match) {
-    return <NotFound />;
-  }
-
-  const page = decodeURIComponent(match.params.page);
-  const PageComponent = componentForPage.get(page);
-  if (!PageComponent) {
-    return <NotFound />;
-  }
-
-  const path = `/${trimSlashes(decodeURIComponent(match.params.path ?? ""))}`;
-  const record = { path, alt };
-
   return (
-    <App page={page} record={record}>
-      <PageComponent record={record} />
-    </App>
+    <BrowserRouter>
+      <Switch>
+        {PAGE_NAMES.map((page) => (
+          <Route
+            path={pagePath(page)}
+            key={page}
+            render={(props) => <Page {...props} page={page} />}
+          />
+        ))}
+        <Route>
+          <Redirect to={adminPath("edit", "/", "_primary")} />
+        </Route>
+      </Switch>
+    </BrowserRouter>
   );
 }
 
 const dash = document.getElementById("dash");
-
 if (dash) {
-  ReactDOM.render(
-    <BrowserRouter>
-      <Main />
-    </BrowserRouter>,
-    dash
-  );
+  setCurrentLanguage($LEKTOR_CONFIG.lang);
+  ReactDOM.render(<Main />, dash);
 }
