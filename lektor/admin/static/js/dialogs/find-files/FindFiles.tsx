@@ -10,7 +10,7 @@ import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 export type SearchResult = {
   parents: { title: string }[];
-  path: string;
+  path: RecordProps["record"]["path"];
   title: string;
 };
 

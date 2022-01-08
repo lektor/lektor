@@ -1,6 +1,9 @@
 import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
-import { trimSlashes } from "../utils";
+import { PageName, RecordPathDetails } from "./RecordComponent";
+
+type Path = RecordPathDetails["path"];
+type Alt = RecordPathDetails["alt"];
 
 /**
  * Compute an admin path.
@@ -9,9 +12,12 @@ import { trimSlashes } from "../utils";
  * @param alt - the alternative to use.
  * @returns
  */
-export function adminPath(page: string, path: string, alt: string): string {
-  const query = alt !== "_primary" ? `?alt=${encodeURIComponent(alt)}` : "";
-  return `${$LEKTOR_CONFIG.admin_root}/${page}/${trimSlashes(path)}${query}`;
+export function adminPath(page: PageName, path: Path, alt: Alt): string {
+  const params = new URLSearchParams({ path });
+  if (alt !== "_primary") {
+    params.set("alt", alt);
+  }
+  return `${$LEKTOR_CONFIG.admin_root}/${page}?${params}`;
 }
 
 /**
@@ -23,7 +29,7 @@ export function useGoToAdminPage() {
   const history = useHistory();
 
   return useCallback(
-    (name: string, path: string, alt: string) => {
+    (name: PageName, path: Path, alt: Alt) => {
       history.push(adminPath(name, path, alt));
     },
     [history]

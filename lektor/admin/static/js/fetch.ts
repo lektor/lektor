@@ -1,9 +1,13 @@
 import { RecordInfo } from "./components/types";
+import { RecordPathDetails } from "./components/RecordComponent";
 import { SearchResult } from "./dialogs/find-files/FindFiles";
 import { Server } from "./dialogs/Publish";
 import { RecordPathInfoSegment } from "./header/BreadCrumbs";
 import { NewRecordInfo } from "./views/add-child-page/types";
 import { RawRecord } from "./views/edit/EditPage";
+
+type Path = RecordPathDetails["path"];
+type Alt = RecordPathDetails["alt"];
 
 export class FetchError extends Error {
   constructor(readonly code: string) {
@@ -42,19 +46,19 @@ function fetchJSON(
 /** Required URL parameters for GET API endpoints. */
 type GetAPIParams = {
   "/matchurl": { url_path: string };
-  "/newattachment": { path: string };
-  "/newrecord": { path: string };
-  "/pathinfo": { path: string };
+  "/newattachment": { path: Path };
+  "/newrecord": { path: Path; alt?: Alt };
+  "/pathinfo": { path: Path };
   "/ping": null;
-  "/previewinfo": { path: string; alt: string };
-  "/rawrecord": { path: string; alt: string };
-  "/recordinfo": { path: string };
+  "/previewinfo": RecordPathDetails;
+  "/rawrecord": RecordPathDetails;
+  "/recordinfo": { path: Path };
   "/servers": null;
 };
 
 /** Type of the returned JSON for GET API endpoints. */
 type GetAPIReturns = {
-  "/matchurl": { exists: boolean; path: string; alt: string };
+  "/matchurl": RecordPathDetails & { exists: boolean };
   "/newattachment": { label: string; can_upload: boolean };
   "/newrecord": NewRecordInfo;
   "/pathinfo": { segments: RecordPathInfoSegment[] };
@@ -70,11 +74,11 @@ type GetAPIReturns = {
  * Currently one endpoint (newrecord) has the data sent as JSON which isn't typed yet.
  */
 type PostAPIParams = {
-  "/browsefs": { path: string; alt: string };
+  "/browsefs": RecordPathDetails;
   "/build": null;
   "/clean": null;
-  "/deleterecord": { path: string; alt: string; delete_master: "1" | "0" };
-  "/find": { q: string; alt: string; lang: string };
+  "/deleterecord": RecordPathDetails & { delete_master: "1" | "0" };
+  "/find": { q: string; alt: Alt; lang: string };
   "/newrecord": null; // it's all in the JSON request.
 };
 
@@ -85,18 +89,14 @@ type PostAPIReturns = {
   "/clean": unknown;
   "/deleterecord": unknown;
   "/find": { results: SearchResult[] };
-  "/newrecord": { valid_id: boolean; exists: boolean; path: string };
+  "/newrecord": { valid_id: boolean; exists: boolean; path: Path };
 };
 
 /**
  * Required JSON data for PUT API endpoints.
  */
 type PutAPIData = {
-  "/rawrecord": {
-    data: Record<string, string | null>;
-    path: string;
-    alt: string;
-  };
+  "/rawrecord": RecordPathDetails & { data: Record<string, string | null> };
 };
 
 /** Type of the returned JSON for PUT API endpoints. `unknown` in case that it isn't used */

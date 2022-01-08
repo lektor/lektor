@@ -121,14 +121,6 @@ def handle_build_failure(failure):
     return render_template("build-failure.html", **failure.data)
 
 
-def get_edit_url(pad, path, alt=PRIMARY_ALT):
-    """Get URL to the UI to edit the record at record_path"""
-    query = {}
-    if alt and alt not in (PRIMARY_ALT, pad.db.config.primary_alternative):
-        query["alt"] = alt
-    return url_for("dash.app", view="edit", path=path.lstrip("/"), **query)
-
-
 def serve_up_artifact(path):
     li = current_app.lektor_info
     pad = li.get_pad()
@@ -161,7 +153,10 @@ def serve_up_artifact(path):
 
     if mimetype == "text/html" and resolved.record_path is not None:
         assert "@" not in resolved.record_path
-        edit_url = get_edit_url(pad, resolved.record_path, resolved.alt)
+        alt = resolved.alt
+        if not alt or alt in (PRIMARY_ALT, pad.db.config.primary_alternative):
+            alt = None
+        edit_url = url_for("dash.app", view="edit", path=resolved.record_path, alt=alt)
         fp = rewrite_html_for_editing(fp, edit_url)
 
     return send_file(fp, mimetype)

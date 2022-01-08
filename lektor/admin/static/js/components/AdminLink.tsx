@@ -1,6 +1,6 @@
 import React, { memo, ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { useRecordAlt } from "./RecordComponent";
+import { PageName, RecordPathDetails, useRecord } from "./RecordComponent";
 import { adminPath } from "./use-go-to-admin-page";
 
 function AdminLink({
@@ -8,19 +8,18 @@ function AdminLink({
   path,
   alt,
   children,
-}: {
-  page: "edit" | "preview" | "delete" | "add-child" | "upload";
-  path: string;
-  alt: string;
+}: RecordPathDetails & {
+  page: PageName;
   children: ReactNode;
 }): JSX.Element {
-  const activeAlt = useRecordAlt();
+  const current = useRecord();
+  const recordMatches = path === current.path && alt === current.alt;
 
   return (
     <NavLink
       to={adminPath(page, path, alt)}
       activeClassName="active"
-      isActive={(match) => !!(match && alt === activeAlt)}
+      isActive={(match) => !!(recordMatches && match)}
     >
       {children}
     </NavLink>

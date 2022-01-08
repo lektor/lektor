@@ -1,5 +1,6 @@
 import React from "react";
 import { adminPath } from "../../components/use-go-to-admin-page";
+import { PageName, RecordPathDetails } from "../../components/RecordComponent";
 import { SearchResult } from "./FindFiles";
 
 /**
@@ -15,8 +16,8 @@ export default function ResultRow({
   result: SearchResult;
   isActive: boolean;
   dismiss: () => void;
-  alt: string;
-  target: string;
+  alt: RecordPathDetails["alt"];
+  target: PageName;
 }): JSX.Element {
   return (
     <li className={isActive ? "active" : ""}>

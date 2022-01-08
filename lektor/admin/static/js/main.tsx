@@ -1,53 +1,37 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { ExtractRouteParams, RouteComponentProps } from "react-router";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
-import {
-  PAGE_NAMES,
-  PageName,
-  useRecordAlt,
-} from "./components/RecordComponent";
+import { PAGE_NAMES, PageName, useRecord } from "./components/RecordComponent";
 
 import "font-awesome/css/font-awesome.css";
 
 import App from "./views/App";
 import { adminPath } from "./components/use-go-to-admin-page";
-import { trimSlashes } from "./utils";
 
-type PagePath = `${string}/:recordPath*`;
-
-interface PageProps
-  extends RouteComponentProps<ExtractRouteParams<PagePath, string>> {
-  page: PageName;
-}
-
-function pagePath(page: PageName): PagePath {
-  const admin_root = $LEKTOR_CONFIG.admin_root;
-  return `${admin_root}/${page}/:recordPath*`;
-}
-
-function Page({ match, page }: PageProps) {
-  const { recordPath } = match.params;
-  const record = {
-    path: `/${trimSlashes(decodeURIComponent(recordPath ?? ""))}`,
-    alt: useRecordAlt(),
-  };
-
+function Page({ page }: { page: PageName }) {
+  const record = useRecord();
   return <App page={page} record={record} />;
 }
 
 function Main() {
+  const root = $LEKTOR_CONFIG.admin_root;
+
   return (
     <BrowserRouter>
       <Switch>
-        {PAGE_NAMES.map((page) => (
-          <Route
-            path={pagePath(page)}
-            key={page}
-            render={(props) => <Page {...props} page={page} />}
-          />
-        ))}
+        {PAGE_NAMES.map((page) => {
+          // XXX: When Path is not explicitly specified, it seems currently
+          // to be inferred as the too-narrow type `${string}/edit`.
+          // Maybe a @types/react bug?
+          type Path = `${string}/${PageName}`;
+          return (
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            <Route<{}, Path> path={`${root}/${page}`} key={page}>
+              <Page page={page} />
+            </Route>
+          );
+        })}
         <Route>
           <Redirect to={adminPath("edit", "/", "_primary")} />
         </Route>

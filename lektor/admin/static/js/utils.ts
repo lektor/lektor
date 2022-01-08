@@ -1,3 +1,5 @@
+import { RecordPathDetails } from "./components/RecordComponent";
+
 export function isValidUrl(url: string): boolean {
   return !!url.match(/^([a-z0-9+.-]+):(\/\/)?[^/]\S+$/);
 }
@@ -88,7 +90,10 @@ export function keyboardShortcutHandler(
   };
 }
 
-export function getParentFsPath(fsPath: string): string | null {
-  const match = /^(.*?)\/([^/]*)$/.exec(fsPath);
-  return match ? match[1] : null;
+type Path = RecordPathDetails["path"];
+
+// XXX: This is misnamed. It is used to get the parent of a Lektor db-path.
+export function getParentFsPath(fsPath: Path): Path | null {
+  const match = /^(\/.*)\/[^/]*$/.exec(fsPath);
+  return match ? (match[1] as Path) : null;
 }
