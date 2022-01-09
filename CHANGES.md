@@ -2,7 +2,9 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.3.1 (unreleased)
+## 3.3.2 (unreleased)
+
+## 3.3.1 (2022-01-09)
 
 ### Bugs Fixed
 
