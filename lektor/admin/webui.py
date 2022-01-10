@@ -1,6 +1,7 @@
 import os
 import sys
-from collections import namedtuple
+from typing import NamedTuple
+from typing import Optional
 
 from flask import abort
 from flask import Flask
@@ -16,9 +17,11 @@ from lektor.db import Record
 from lektor.reporter import CliReporter
 
 
-ResolveResult = namedtuple(
-    "ResolveResult", ["artifact_name", "filename", "record_path", "alt"]
-)
+class ResolveResult(NamedTuple):
+    artifact_name: Optional[str]
+    filename: Optional[str]
+    record_path: Optional[str]
+    alt: Optional[str]
 
 
 class LektorInfo:
