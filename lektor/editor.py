@@ -1,6 +1,7 @@
 import os
 import posixpath
 import shutil
+import warnings
 from collections import ChainMap
 from collections import OrderedDict
 from collections.abc import ItemsView
@@ -8,6 +9,7 @@ from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import ValuesView
+from functools import wraps
 from itertools import chain
 
 from lektor.constants import PRIMARY_ALT
@@ -98,6 +100,26 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
         is_attachment,
         alt,
     )
+
+
+def _deprecated_data_proxy(wrapped):
+    """Issue warning when deprecated mapping methods are used directly on
+    EditorSession.
+    """
+
+    name = wrapped.__name__
+    newname = name[4:] if name.startswith("iter") else name
+
+    @wraps(wrapped)
+    def wrapper(self, *args, **kwargs):
+        warnings.warn(
+            f"EditorSession.{name} has been deprecated as of Lektor 3.3.2. "
+            f"Please use EditorSession.data.{newname} instead.",
+            DeprecationWarning,
+        )
+        return wrapped(self, *args, **kwargs)
+
+    return wrapper
 
 
 class EditorSession:
@@ -338,6 +360,66 @@ class EditorSession:
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
             not self.exists and " new" or "",
         )
+
+    # The mapping methods used to access the page data have been moved
+    # to EditorSession.data.
+    #
+    # We have left behind these proxy methods so as not to break any existing
+    # external code.
+    @_deprecated_data_proxy
+    def revert_key(self, key):
+        self.data.revert_key(key)
+
+    @_deprecated_data_proxy
+    def __contains__(self, key):
+        return key in self.data
+
+    @_deprecated_data_proxy
+    def __getitem__(self, key):
+        return self.data[key]
+
+    @_deprecated_data_proxy
+    def __len__(self):
+        return len(self.data)
+
+    @_deprecated_data_proxy
+    def __iter__(self):
+        return iter(self.data)
+
+    @_deprecated_data_proxy
+    def items(self, fallback=True):
+        return self.data.items(fallback)
+
+    @_deprecated_data_proxy
+    def keys(self, fallback=True):
+        return self.data.keys(fallback)
+
+    @_deprecated_data_proxy
+    def values(self, fallback=True):
+        return self.data.values(fallback)
+
+    @_deprecated_data_proxy
+    def iteritems(self, fallback=True):
+        return self.data.items(fallback)
+
+    @_deprecated_data_proxy
+    def iterkeys(self, fallback=True):
+        return self.data.keys(fallback)
+
+    @_deprecated_data_proxy
+    def itervalues(self, fallback=True):
+        return self.data.values(fallback)
+
+    @_deprecated_data_proxy
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    @_deprecated_data_proxy
+    def update(self, *args, **kwargs):
+        self.data.update(*args, **kwargs)
+
+
+del _deprecated_data_proxy
 
 
 class EditorData(Mapping):

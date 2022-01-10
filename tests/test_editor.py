@@ -1,5 +1,6 @@
 import pytest
 
+from lektor.editor import make_editor_session
 from lektor.editor import MutableEditorData
 
 
@@ -194,3 +195,43 @@ def test_editor_data_values(editor_data):
     assert list(editor_data.values(fallback=False)) == []
     assert "fallback2" not in editor_data.values(fallback=False)
     assert len(editor_data.values(fallback=False)) == 0
+
+
+def test_deprecated_data_proxy_methods(pad):
+    editor = make_editor_session(pad, "/")
+
+    with pytest.deprecated_call(match=r"EditorSession\.__contains__ .* deprecated"):
+        assert "arbitrary" not in editor
+
+    with pytest.deprecated_call(match=r"EditorSession\.__setitem__ .* deprecated"):
+        editor["test"] = "value"
+    assert editor.data["test"] == "value"
+    with pytest.deprecated_call(match=r"EditorSession\.__getitem__ .* deprecated"):
+        assert editor["test"] == "value"
+
+    with pytest.deprecated_call(match=r"EditorSession\.update .* deprecated"):
+        editor.update({"test": "another"})
+    assert editor.data["test"] == "another"
+
+    items = set(editor.data.items())
+    with pytest.deprecated_call(match=r"EditorSession\.__len__ .* deprecated"):
+        assert len(editor) == len(items)
+    with pytest.deprecated_call(match=r"EditorSession\.items .* deprecated"):
+        assert set(editor.items()) == items
+    with pytest.deprecated_call(match=r"EditorSession\.__iter__ .* deprecated"):
+        assert set(editor) == set(key for key, val in items)
+    with pytest.deprecated_call(match=r"EditorSession\.keys .* deprecated"):
+        assert set(editor.keys()) == set(key for key, val in items)
+    with pytest.deprecated_call(match=r"EditorSession\.values .* deprecated"):
+        assert set(editor.values()) == set(val for key, val in items)
+
+    with pytest.deprecated_call(match=r"EditorSession\.iteritems .*\.data\.items "):
+        assert set(editor.iteritems()) == items
+    with pytest.deprecated_call(match=r"EditorSession\.iterkeys .*\.data\.keys "):
+        assert set(editor.iterkeys()) == set(key for key, val in items)
+    with pytest.deprecated_call(match=r"EditorSession\.itervalues .*\.data\.values "):
+        assert set(editor.itervalues()) == set(val for key, val in items)
+
+    with pytest.deprecated_call(match=r"EditorSession\.revert_key .* deprecated"):
+        editor.revert_key("test")
+    assert "test" not in editor.data
