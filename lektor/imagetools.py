@@ -9,8 +9,8 @@ from datetime import datetime
 from enum import Enum
 from xml.etree import ElementTree as etree
 
-import exifread
-import filetype
+import exifread  # type: ignore[import]
+import filetype  # type: ignore[import]
 
 from lektor.reporter import reporter
 from lektor.utils import get_dependent_url

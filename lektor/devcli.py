@@ -12,8 +12,8 @@ from lektor.packages import publish_package
 from lektor.packages import register_package
 
 try:
-    from IPython import embed
-    from traitlets.config.loader import Config
+    from IPython import embed  # type: ignore[import]
+    from traitlets.config.loader import Config  # type: ignore[import]
 except ImportError:
     pass  # fallback to normal Python InteractiveConsole
 

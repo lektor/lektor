@@ -10,3 +10,30 @@ addopts = "--strict-markers"
 markers = [
     "requiresinternet: marks tests requiring an internet connection",
 ]
+
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
+files = "$MYPY_CONFIG_FILE_DIR/lektor"
+
+show_error_codes = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+strict = true
+no_implicit_optional = true
+
+# For now, disable most checks
+check_untyped_defs = false
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = [
+    'lektor.lektor',
+    'lektor.admin',
+    'lektor.constants',
+    'lektor.types',
+]
+check_untyped_defs = true

@@ -873,7 +873,7 @@ class Video(Attachment):
                 self._video_info = False
         return self._video_info
 
-    @property
+    @property  # type: ignore[misc]
     @require_ffmpeg
     def width(self):
         """Returns the width of the video if possible to determine."""
@@ -882,7 +882,7 @@ class Video(Attachment):
             return rv["width"]
         return Undefined("The width of the video could not be determined.")
 
-    @property
+    @property  # type: ignore[misc]
     @require_ffmpeg
     def height(self):
         """Returns the height of the video if possible to determine."""
@@ -891,7 +891,7 @@ class Video(Attachment):
             return rv["height"]
         return Undefined("The height of the video could not be determined.")
 
-    @property
+    @property  # type: ignore[misc]
     @require_ffmpeg
     def duration(self):
         """Returns the duration of the video if possible to determine."""

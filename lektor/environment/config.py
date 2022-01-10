@@ -2,6 +2,8 @@ import copy
 import os
 import re
 from collections import OrderedDict
+from typing import Any
+from typing import Dict
 
 from inifile import IniFile
 from werkzeug.urls import url_parse
@@ -13,7 +15,7 @@ from lektor.utils import bool_from_string
 from lektor.utils import secure_url
 
 
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: Dict[str, Any] = {
     "IMAGEMAGICK_EXECUTABLE": None,
     "EPHEMERAL_RECORD_CACHE_SIZE": 500,
     "ATTACHMENT_TYPES": {

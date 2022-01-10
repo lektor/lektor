@@ -2,6 +2,7 @@ import fnmatch
 import os
 import uuid
 from functools import update_wrapper
+from typing import List
 
 import jinja2
 from babel import dates
@@ -49,7 +50,7 @@ SPECIAL_ARTIFACTS = [".htaccess", ".htpasswd"]
 EXCLUDED_ASSETS = ["_*", ".*"]
 
 # Default glob pattern of included files (higher-priority than EXCLUDED_ASSETS).
-INCLUDED_ASSETS = []
+INCLUDED_ASSETS: List[str] = []
 
 
 def any_fnmatch(filename, patterns):
