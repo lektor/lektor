@@ -1,7 +1,9 @@
 import os
 import sys
+from typing import cast
 from typing import NamedTuple
 from typing import Optional
+from typing import Sequence
 
 from flask import abort
 from flask import Flask
@@ -13,7 +15,9 @@ from lektor.admin.modules import register_modules
 from lektor.builder import Builder
 from lektor.buildfailures import FailureController
 from lektor.db import Database
+from lektor.db import Pad
 from lektor.db import Record
+from lektor.environment import Environment
 from lektor.reporter import CliReporter
 
 
@@ -25,27 +29,36 @@ class ResolveResult(NamedTuple):
 
 
 class LektorInfo:
-    def __init__(self, env, output_path, ui_lang="en", extra_flags=None, verbosity=0):
+    def __init__(
+        self,
+        env: Environment,
+        output_path: str,
+        ui_lang: str = "en",
+        extra_flags: Optional[Sequence[str]] = None,
+        verbosity: int = 0,
+    ) -> None:
         self.env = env
         self.ui_lang = ui_lang
         self.output_path = output_path
         self.extra_flags = extra_flags
         self.verbosity = verbosity
 
-    def get_pad(self):
+    def get_pad(self) -> Pad:
         return Database(self.env).new_pad()
 
-    def get_builder(self, pad=None):
+    def get_builder(self, pad: Optional[Pad] = None) -> Builder:
         if pad is None:
             pad = self.get_pad()
         return Builder(pad, self.output_path, extra_flags=self.extra_flags)
 
-    def get_failure_controller(self, pad=None):
+    def get_failure_controller(self, pad: Optional[Pad] = None) -> FailureController:
         if pad is None:
             pad = self.get_pad()
         return FailureController(pad, self.output_path)
 
-    def resolve_artifact(self, url_path, pad=None, redirect_slash=True):
+    def resolve_artifact(
+        self, url_path: str, pad: Optional[Pad] = None, redirect_slash: bool = True
+    ) -> ResolveResult:
         """Resolves an artifact and also triggers a build if necessary.
         Returns a tuple in the form ``(artifact_name, filename)`` where
         `artifact_name` can be `None` in case a file was targeted explicitly.
@@ -53,7 +66,7 @@ class LektorInfo:
         if pad is None:
             pad = self.get_pad()
 
-        artifact_name = filename = record_path = alt = None
+        artifact_name = filename = record_path = alt = cast(Optional[str], None)
 
         # We start with trying to resolve a source and then use the
         # primary
@@ -95,13 +108,15 @@ class LektorInfo:
 class WebUI(Flask):
     def __init__(
         self,
-        env,
-        debug=False,
-        output_path=None,
-        ui_lang="en",
-        verbosity=0,
-        extra_flags=None,
-    ):
+        env: Environment,
+        debug: bool = False,
+        output_path: Optional[str] = None,
+        ui_lang: str = "en",
+        verbosity: int = 0,
+        extra_flags: Optional[Sequence[str]] = None,
+    ) -> None:
+        if output_path is None:
+            raise TypeError("output_path must be a string")
         Flask.__init__(self, "lektor.admin", static_url_path="/admin/static")
         self.lektor_info = LektorInfo(
             env, output_path, ui_lang, extra_flags=extra_flags, verbosity=verbosity

@@ -10,6 +10,15 @@ import warnings
 from datetime import timedelta
 from itertools import chain
 from itertools import islice
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import MutableMapping
+from typing import Optional
+from typing import overload
+from typing import Tuple
+from typing import TypeVar
+from typing import Union
 
 from jinja2 import is_undefined
 from jinja2 import Undefined
@@ -34,6 +43,7 @@ from lektor.imagetools import read_exif
 from lektor.imagetools import ThumbnailMode
 from lektor.sourceobj import SourceObject
 from lektor.sourceobj import VirtualSourceObject
+from lektor.typing import Literal
 from lektor.utils import cleanup_path
 from lektor.utils import fs_enc
 from lektor.utils import locate_executable
@@ -442,24 +452,25 @@ class Record(SourceObject):
     def path(self):
         return self["_path"]
 
-    def get_sort_key(self, fields):
+    def get_sort_key(self, fields: Iterable[str]) -> List[_CmpHelper]:
         """Returns a sort key for the given field specifications specific
         for the data in the record.
         """
-        rv = [None] * len(fields)
-        for idx, field in enumerate(fields):
-            if field[:1] == "-":
-                field = field[1:]
+
+        def compile_field(spec: str) -> _CmpHelper:
+            if spec[:1] == "-":
+                field = spec[1:]
                 reverse = True
             else:
-                field = field.lstrip("+")
+                field = spec.lstrip("+")
                 reverse = False
             try:
                 value = self[field]
             except KeyError:
                 value = None
-            rv[idx] = _CmpHelper(value, reverse)
-        return rv
+            return _CmpHelper(value, reverse)
+
+        return [compile_field(spec) for spec in fields]
 
     def __contains__(self, name):
         return name in self._data and not is_undefined(self._data[name])
@@ -1510,15 +1521,18 @@ class Database:
         """Gets the attachment type for a path."""
         return self.config["ATTACHMENT_TYPES"].get(posixpath.splitext(path)[1].lower())
 
-    def track_record_dependency(self, record):
+    SO = TypeVar("SO", bound=Union[Record, VirtualSourceObject])
+
+    def track_record_dependency(self, record: SO) -> SO:
         ctx = get_ctx()
         if ctx is not None:
             for filename in record.iter_source_filenames():
                 ctx.record_dependency(filename)
             for virtual_source in record.iter_virtual_sources():
                 ctx.record_virtual_dependency(virtual_source)
-            if getattr(record, "datamodel", None) and record.datamodel.filename:
-                ctx.record_dependency(record.datamodel.filename)
+            if isinstance(record, Record) and record.datamodel:
+                if record.datamodel.filename:
+                    ctx.record_dependency(record.datamodel.filename)
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:
                         ctx.record_dependency(dep_model.filename)
@@ -1549,7 +1563,7 @@ class Database:
         attachment_type = raw_data["_attachment_type"]
         return attachment_classes.get(attachment_type, Attachment)
 
-    def new_pad(self):
+    def new_pad(self) -> "Pad":
         """Creates a new pad object for this database."""
         return Pad(self)
 
@@ -1583,7 +1597,7 @@ def _split_alt_from_url(config, clean_path):
 
 
 class Pad:
-    def __init__(self, db):
+    def __init__(self, db: Database) -> None:
         self.db = db
         self.cache = RecordCache(db.config["EPHEMERAL_RECORD_CACHE_SIZE"])
         self.databags = Databags(db.env)
@@ -1711,7 +1725,9 @@ class Pad:
         rv.extend(self.theme_asset_roots)
         return rv
 
-    def get_virtual(self, record, virtual_path):
+    def get_virtual(
+        self, record: Record, virtual_path: str
+    ) -> Union[Record, VirtualSourceObject, None]:
         """Resolves a virtual path below a record."""
         pieces = virtual_path.strip("/").split("/")
         if not pieces or pieces == [""]:
@@ -1728,11 +1744,38 @@ class Pad:
         if resolver is None:
             return None
 
-        return resolver(record, pieces[1:])
+        return resolver(record, pieces[1:])  # type: ignore[no-any-return]  # FIXME:
+
+    @overload
+    def get(
+        self,
+        path: str,
+        alt: str = ...,
+        page_num: None = ...,
+        persist: bool = ...,
+        allow_virtual: Literal[False] = ...,
+    ) -> Union[Record, None]:
+        ...
+
+    @overload
+    def get(
+        self,
+        path: str,
+        alt: str = ...,
+        page_num: Optional[int] = ...,
+        persist: bool = ...,
+        allow_virtual: bool = ...,
+    ) -> Union[Record, VirtualSourceObject, None]:
+        ...
 
     def get(
-        self, path, alt=PRIMARY_ALT, page_num=None, persist=True, allow_virtual=True
-    ):
+        self,
+        path: str,
+        alt: str = PRIMARY_ALT,
+        page_num: Optional[int] = None,
+        persist: bool = True,
+        allow_virtual: bool = True,
+    ) -> Union[Record, VirtualSourceObject, None]:
         """Loads a record by path."""
         virt_markers = path.count("@")
 
@@ -1749,32 +1792,34 @@ class Pad:
             if not allow_virtual:
                 return None
             path, virtual_path = path.split("@", 1)
-            rv = self.get(path, alt=alt, page_num=page_num, persist=persist)
-            if rv is None:
+            record = self.get(
+                path, alt=alt, page_num=page_num, persist=persist, allow_virtual=False
+            )
+            if record is None:
                 return None
-            return self.get_virtual(rv, virtual_path)
+            return self.get_virtual(record, virtual_path)
 
         # Sanity check: there must only be one or things will get weird.
         if virt_markers > 1:
             return None
 
         path = cleanup_path(path)
-        virtual_path = None
-        if page_num is not None:
-            virtual_path = str(page_num)
+        page_num_vpath = None if page_num is None else str(page_num)
 
-        rv = self.cache.get(path, alt, virtual_path)
-        if rv is not Ellipsis:
-            if rv is not None:
-                self.db.track_record_dependency(rv)
-            return rv
+        cached = self.cache.get(path, alt, page_num_vpath)
+        # FIXME: my does not like using Ellipsis as sentinel
+        if cached is not Ellipsis:  # type: ignore[comparison-overlap]
+            if cached is not None:
+                self.db.track_record_dependency(cached)
+            return cached
 
         raw_data = self.db.load_raw_data(path, alt=alt)
         if raw_data is None:
-            self.cache.remember_as_missing(path, alt, virtual_path)
+            self.cache.remember_as_missing(path, alt, page_num_vpath)
             return None
 
-        rv = self.instance_from_data(raw_data, page_num=page_num)
+        # FIXME: type: remove cast
+        rv: Record = self.instance_from_data(raw_data, page_num=page_num)
 
         if persist:
             self.cache.persist(rv)
@@ -1785,6 +1830,8 @@ class Pad:
 
     def alt_exists(self, path, alt=PRIMARY_ALT, fallback=False):
         """Checks if an alt exists."""
+        # pylint: disable=unsubscriptable-object
+        # https://github.com/PyCQA/pylint/issues/1498
         path = cleanup_path(path)
         if "@" in path:
             return False
@@ -2049,20 +2096,31 @@ class RecordCache:
     section which helps the pad not load records it already saw.
     """
 
+    KeyType = Tuple[str, str, Optional[str]]
+    ValueType = Union[Record, VirtualSourceObject, None]
+
+    persistent: Dict[KeyType, ValueType]
+    ephemeral: MutableMapping[KeyType, ValueType]
+
     def __init__(self, ephemeral_cache_size=1000):
         self.persistent = {}
         self.ephemeral = LRUCache(ephemeral_cache_size)
 
     @staticmethod
-    def _get_cache_key(record_or_path, alt=PRIMARY_ALT, virtual_path=None):
-        if isinstance(record_or_path, str):
-            path = record_or_path.strip("/")
-        else:
-            path, virtual_path = split_virtual_path(record_or_path.path)
-            path = path.strip("/")
-            virtual_path = virtual_path or None
-            alt = record_or_path.alt
-        return (path, alt, virtual_path)
+    def _get_cache_key(
+        path: str, alt: str = PRIMARY_ALT, virtual_path: Optional[str] = None
+    ) -> KeyType:
+        return (path.strip("/"), alt, virtual_path)
+
+    # NB: mypy doesn't like overloaded staticmethods
+    # https://github.com/python/mypy/issues/7781
+
+    @staticmethod
+    def _get_cache_key_for_source(
+        source: Union[Record, VirtualSourceObject],
+    ) -> KeyType:
+        path, virtual_path = split_virtual_path(source.path)
+        return RecordCache._get_cache_key(path, source.alt, virtual_path or None)
 
     def flush(self):
         """Flushes the cache"""
@@ -2071,18 +2129,18 @@ class RecordCache:
 
     def is_persistent(self, record):
         """Indicates if a record is in the persistent record cache."""
-        cache_key = self._get_cache_key(record)
+        cache_key = self._get_cache_key_for_source(record)
         return cache_key in self.persistent
 
     def remember(self, record):
         """Remembers the record in the record cache."""
-        cache_key = self._get_cache_key(record)
+        cache_key = self._get_cache_key_for_source(record)
         if cache_key not in self.persistent and cache_key not in self.ephemeral:
             self.ephemeral[cache_key] = record
 
     def persist(self, record):
         """Persists a record.  This will put it into the persistent cache."""
-        cache_key = self._get_cache_key(record)
+        cache_key = self._get_cache_key_for_source(record)
         self.persistent[cache_key] = record
         try:
             del self.ephemeral[cache_key]
@@ -2093,20 +2151,26 @@ class RecordCache:
         """If the record is already ephemerally cached, this promotes it to
         the persistent cache section.
         """
-        cache_key = self._get_cache_key(record)
+        cache_key = self._get_cache_key_for_source(record)
         if cache_key in self.ephemeral:
             self.persist(record)
 
-    def get(self, path, alt=PRIMARY_ALT, virtual_path=None):
+    def get(
+        self,
+        path: str,
+        alt: str = PRIMARY_ALT,
+        virtual_path: Optional[str] = None,
+    ) -> ValueType:
         """Looks up a record from the cache."""
         cache_key = self._get_cache_key(path, alt, virtual_path)
-        rv = self.persistent.get(cache_key, Ellipsis)
-        if rv is not Ellipsis:
-            return rv
-        rv = self.ephemeral.get(cache_key, Ellipsis)
-        if rv is not Ellipsis:
-            return rv
-        return Ellipsis
+        for cache in self.persistent, self.ephemeral:
+            try:
+                return cache[cache_key]
+            except KeyError:
+                pass
+        # FIXME: using Ellipsis as a sentinel is bogus.  At least,
+        # mypy does not like it.
+        return Ellipsis  # type: ignore[return-value]
 
     def remember_as_missing(self, path, alt=PRIMARY_ALT, virtual_path=None):
         cache_key = self._get_cache_key(path, alt, virtual_path)
