@@ -31,9 +31,21 @@ disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = [
+    'lektor.db',
+]
+check_untyped_defs = true
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = [
     'lektor.lektor',
     'lektor.admin',
     'lektor.constants',
     'lektor.types',
 ]
 check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+
+

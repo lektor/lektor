@@ -440,7 +440,7 @@ def prune_file_and_folder(name, base):
     return True
 
 
-def sort_normalize_string(s):
+def sort_normalize_string(s: str) -> str:
     return unicodedata.normalize("NFD", str(s).lower().strip())
 
 

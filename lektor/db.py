@@ -7,16 +7,27 @@ import operator
 import os
 import posixpath
 import warnings
+from collections import ChainMap
 from datetime import timedelta
 from itertools import chain
 from itertools import islice
+from operator import methodcaller
+from typing import Any
+from typing import Callable
+from typing import cast
 from typing import Dict
+from typing import Generic
 from typing import Iterable
+from typing import Iterator
 from typing import List
 from typing import MutableMapping
+from typing import no_type_check
 from typing import Optional
 from typing import overload
+from typing import Sequence
+from typing import Set
 from typing import Tuple
+from typing import Type
 from typing import TypeVar
 from typing import Union
 
@@ -33,6 +44,7 @@ from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.context import get_ctx
 from lektor.databags import Databags
+from lektor.datamodel import DataModel
 from lektor.datamodel import load_datamodels
 from lektor.datamodel import load_flowblocks
 from lektor.editor import make_editor_session
@@ -43,7 +55,15 @@ from lektor.imagetools import read_exif
 from lektor.imagetools import ThumbnailMode
 from lektor.sourceobj import SourceObject
 from lektor.sourceobj import VirtualSourceObject
-from lektor.typing import Literal
+from lektor.typing.compat import Literal
+from lektor.typing.compat import Protocol
+from lektor.typing.db import Alt
+from lektor.typing.db import DbPath
+from lektor.typing.db import ExtraPath
+from lektor.typing.db import NormalizedPath
+from lektor.typing.db import PageNumberPath
+from lektor.typing.db import RecordPath
+from lektor.typing.db import VirtualPath
 from lektor.utils import cleanup_path
 from lektor.utils import fs_enc
 from lektor.utils import locate_executable
@@ -55,6 +75,12 @@ from lektor.videotools import get_video_info
 from lektor.videotools import make_video_thumbnail
 
 # pylint: disable=no-member
+
+ROOT_PATH = NormalizedPath("/")  # type: ignore[arg-type]
+
+
+def _normalize_record_path(path: RecordPath) -> NormalizedPath:
+    return cast(NormalizedPath, "/" + path.strip("/"))
 
 
 def get_alts(source=None, fallback=False):
@@ -177,83 +203,84 @@ class _CmpHelper:
         return not self.__lt__(other)
 
 
-def _auto_wrap_expr(value):
+def _auto_wrap_expr(value: Any) -> "Expression":
     if isinstance(value, Expression):
         return value
     return _Literal(value)
 
 
-def save_eval(filter, record):
+def save_eval(filter: "Expression", record: "Record") -> Union[bool, Undefined]:
     try:
-        return filter.__eval__(record)
+        return bool(filter.__eval__(record))
     except UndefinedError as e:
         return Undefined(e.message)
 
 
 class Expression:
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> Any:
         # pylint: disable=no-self-use
         return record
 
-    def __eq__(self, other):
+    # https://github.com/python/mypy/issues/2783
+    def __eq__(self, other: object) -> "Expression":  # type: ignore[override]
         return _BinExpr(self, _auto_wrap_expr(other), operator.eq)
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> "Expression":  # type: ignore[override]
         return _BinExpr(self, _auto_wrap_expr(other), operator.ne)
 
-    def __and__(self, other):
+    def __and__(self, other: object) -> "Expression":
         return _BinExpr(self, _auto_wrap_expr(other), operator.and_)
 
-    def __or__(self, other):
+    def __or__(self, other: object) -> "Expression":
         return _BinExpr(self, _auto_wrap_expr(other), operator.or_)
 
-    def __gt__(self, other):
+    def __gt__(self, other: object) -> "Expression":
         return _BinExpr(self, _auto_wrap_expr(other), operator.gt)
 
-    def __ge__(self, other):
+    def __ge__(self, other: object) -> "Expression":
         return _BinExpr(self, _auto_wrap_expr(other), operator.ge)
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> "Expression":
         return _BinExpr(self, _auto_wrap_expr(other), operator.lt)
 
-    def __le__(self, other):
+    def __le__(self, other: object) -> "Expression":
         return _BinExpr(self, _auto_wrap_expr(other), operator.le)
 
-    def contains(self, item):
+    def contains(self, item: object) -> "Expression":
         return _ContainmentExpr(self, _auto_wrap_expr(item))
 
-    def startswith(self, other):
+    def startswith(self, other: object) -> "Expression":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).lower().startswith(str(b).lower()),
         )
 
-    def endswith(self, other):
+    def endswith(self, other: object) -> "Expression":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).lower().endswith(str(b).lower()),
         )
 
-    def startswith_cs(self, other):
+    def startswith_cs(self, other: object) -> "Expression":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).startswith(str(b)),
         )
 
-    def endswith_cs(self, other):
+    def endswith_cs(self, other: object) -> "Expression":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).endswith(str(b)),
         )
 
-    def false(self):
+    def false(self) -> "Expression":
         return _IsBoolExpr(self, False)
 
-    def true(self):
+    def true(self) -> "Expression":
         return _IsBoolExpr(self, True)
 
 
@@ -263,49 +290,54 @@ setattr(Expression, "or", lambda x, o: x | o)
 
 
 class _CallbackExpr(Expression):
-    def __init__(self, func):
+    def __init__(self, func: Callable[["Record"], object]):
         self.func = func
 
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> Any:
         return self.func(record)
 
 
 class _IsBoolExpr(Expression):
-    def __init__(self, expr, true):
+    def __init__(self, expr: Expression, true: bool):
         self.__expr = expr
         self.__true = true
 
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> bool:
         val = self.__expr.__eval__(record)
         return (
             not is_undefined(val) and val not in (None, 0, False, "")
         ) == self.__true
 
 
-class _Literal(Expression):
-    def __init__(self, value):
+_T = TypeVar("_T")
+
+
+class _Literal(Expression, Generic[_T]):
+    def __init__(self, value: _T):
         self.__value = value
 
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> _T:
         return self.__value
 
 
 class _BinExpr(Expression):
-    def __init__(self, left, right, op):
+    def __init__(
+        self, left: Expression, right: Expression, op: Callable[[Any, Any], Any]
+    ):
         self.__left = left
         self.__right = right
         self.__op = op
 
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> Any:
         return self.__op(self.__left.__eval__(record), self.__right.__eval__(record))
 
 
 class _ContainmentExpr(Expression):
-    def __init__(self, seq, item):
+    def __init__(self, seq: Expression, item: Expression):
         self.__seq = seq
         self.__item = item
 
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> bool:
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
@@ -314,10 +346,10 @@ class _ContainmentExpr(Expression):
 
 
 class _RecordQueryField(Expression):
-    def __init__(self, field):
+    def __init__(self, field: str):
         self.__field = field
 
-    def __eval__(self, record):
+    def __eval__(self, record: "Record") -> Union[Undefined, Any]:
         try:
             return record[self.__field]
         except KeyError:
@@ -325,12 +357,12 @@ class _RecordQueryField(Expression):
 
 
 class _RecordQueryProxy:
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Expression:
         if name[:2] != "__":
             return _RecordQueryField(name)
         raise AttributeError(name)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Expression:
         try:
             return self.__getattr__(name)
         except AttributeError as error:
@@ -353,6 +385,17 @@ class Record(SourceObject):
                 "%s does not support pagination" % self.__class__.__name__
             )
         self.page_num = page_num
+
+    @cached_property
+    def parent(self):
+        """The parent of the record."""
+        this_path = self._data["_path"]
+        parent_path = posixpath.dirname(this_path)
+        if parent_path != this_path:
+            return self.pad.get(
+                parent_path, persist=self.pad.cache.is_persistent(self), alt=self.alt
+            )
+        return None
 
     @property
     def record(self):
@@ -590,7 +633,7 @@ class Page(Record):
     @property
     def url_path(self):
         # pylint: disable=no-value-for-parameter
-        rv = Record.url_path.__get__(self).rstrip("/")
+        rv = super().url_path.rstrip("/")
         last_part = rv.rsplit("/")[-1]
         if "." not in last_part:
             rv += "/"
@@ -646,17 +689,6 @@ class Page(Record):
             rv = node.resolve_url_path(url_path[idx + 1 :])
             if rv is not None:
                 return rv
-        return None
-
-    @cached_property
-    def parent(self):
-        """The parent of the record."""
-        this_path = self._data["_path"]
-        parent_path = posixpath.dirname(this_path)
-        if parent_path != this_path:
-            return self.pad.get(
-                parent_path, persist=self.pad.cache.is_persistent(self), alt=self.alt
-            )
         return None
 
     @property
@@ -979,32 +1011,43 @@ attachment_classes = {
 }
 
 
+_Query = TypeVar("_Query", bound="Query")
+
+
 class Query:
     """Object that helps finding records.  The default configuration
     only finds pages.
     """
 
-    def __init__(self, path, pad, alt=PRIMARY_ALT):
+    def __init__(self, path: RecordPath, pad: "Pad", alt: Alt = PRIMARY_ALT) -> None:
+        # Query does not work with virtual paths (yet).
         self.path = path
         self.pad = pad
         self.alt = alt
         self._include_pages = True
         self._include_attachments = False
-        self._order_by = None
-        self._filters = None
+        self._order_by: Optional[Sequence[str]] = None
+        self._filters: Optional[List[Expression]] = None
         self._pristine = True
-        self._limit = None
-        self._offset = None
-        self._include_hidden = None
+        self._limit: Optional[int] = None
+        self._offset = 0
+        self._include_hidden: Optional[bool] = None
         self._include_undiscoverable = False
-        self._page_num = None
+        self._page_num: Optional[int] = None
         self._filter_func = None
 
-    def __get_lektor_param_hash__(self, h):
+    # FIXME: move this?
+    class _Hasher(Protocol):
+        def update(self, data: bytes) -> None:
+            ...
+
+    @no_type_check  # FIXME: totally broken under py3k.  (hash.update takes bytes.)
+    def __get_lektor_param_hash__(self, h: _Hasher) -> None:
+        # XXX: This also appears unused
         h.update(str(self.alt))
         h.update(str(self._include_pages))
         h.update(str(self._include_attachments))
-        h.update("(%s)" % u"|".join(self._order_by or ()).encode("utf-8"))
+        h.update("(%s)" % "|".join(self._order_by or ()).encode("utf-8"))
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
@@ -1012,11 +1055,11 @@ class Query:
         h.update(str(self._page_num))
 
     @property
-    def self(self):
+    def self(self) -> Optional[Record]:
         """Returns the object this query starts out from."""
         return self.pad.get(self.path, alt=self.alt)
 
-    def _clone(self, mark_dirty=False):
+    def _clone(self: _Query, mark_dirty: bool = False) -> _Query:
         """Makes a flat copy but keeps the other data on it shared."""
         rv = object.__new__(self.__class__)
         rv.__dict__.update(self.__dict__)
@@ -1024,15 +1067,21 @@ class Query:
             rv._pristine = False
         return rv
 
-    def _get(self, id, persist=True, page_num=Ellipsis):
+    def _get(
+        self,
+        id: str,  # FIXME: id should be a NewType. (PathComponent?)
+        persist: bool = True,
+        page_num: Optional[int] = Ellipsis,  # type: ignore # FIXME:
+    ) -> Record:
         """Low level record access."""
-        if page_num is Ellipsis:
+        if page_num is Ellipsis:  # type: ignore # FIXME:
             page_num = self._page_num
-        return self.pad.get(
-            "%s/%s" % (self.path, id), persist=persist, alt=self.alt, page_num=page_num
-        )
+        path = cast(RecordPath, f"{self.path}/{id}")
+        rv = self.pad.get(path, self.alt, page_num=page_num, persist=persist)
+        assert rv is not None  # type-narrowing
+        return rv
 
-    def _matches(self, record):
+    def _matches(self, record: Record) -> bool:
         include_hidden = self._include_hidden
         if include_hidden is not None:
             if not self._include_hidden and record.is_hidden:
@@ -1044,7 +1093,7 @@ class Query:
                 return False
         return True
 
-    def _iterate(self):
+    def _iterate(self) -> Iterator[Record]:
         """Low level record iteration."""
         # If we iterate over children we also need to track those
         # dependencies.  There are two ways in which we track them.  The
@@ -1071,13 +1120,14 @@ class Query:
             if self._matches(record):
                 yield record
 
-    def filter(self, expr):
+    def filter(
+        self: _Query, expr: Union[Callable[[Record], bool], Expression]
+    ) -> _Query:
         """Filters records by an expression."""
         rv = self._clone(mark_dirty=True)
-        rv._filters = list(self._filters or ())
-        if callable(expr):
-            expr = _CallbackExpr(expr)
-        rv._filters.append(expr)
+        if rv._filters is None:
+            rv._filters = []
+        rv._filters.append(_CallbackExpr(expr) if callable(expr) else expr)
         return rv
 
     def get_order_by(self):
@@ -1097,7 +1147,7 @@ class Query:
             return None
         return None
 
-    def include_hidden(self, value):
+    def include_hidden(self: _Query, value: bool) -> _Query:
         """Controls if hidden records should be included which will not
         happen by default for queries to children.
         """
@@ -1105,7 +1155,7 @@ class Query:
         rv._include_hidden = value
         return rv
 
-    def include_undiscoverable(self, value):
+    def include_undiscoverable(self: _Query, value: bool) -> _Query:
         """Controls if undiscoverable records should be included as well."""
         rv = self._clone(mark_dirty=True)
         rv._include_undiscoverable = value
@@ -1118,46 +1168,46 @@ class Query:
 
         return rv
 
-    def request_page(self, page_num):
+    def request_page(self: _Query, page_num: Optional[int]) -> _Query:
         """Requests a specific page number instead of the first."""
         rv = self._clone(mark_dirty=True)
         rv._page_num = page_num
         return rv
 
-    def first(self):
+    def first(self) -> Optional[Record]:
         """Return the first matching record."""
         return next(iter(self), None)
 
-    def all(self):
+    def all(self) -> List[Record]:
         """Loads all matching records as list."""
         return list(self)
 
-    def order_by(self, *fields):
+    def order_by(self: _Query, *fields: str) -> _Query:
         """Sets the ordering of the query."""
         rv = self._clone()
         rv._order_by = fields or None
         return rv
 
-    def offset(self, offset):
+    def offset(self: _Query, offset: int) -> _Query:
         """Sets the ordering of the query."""
         rv = self._clone(mark_dirty=True)
         rv._offset = offset
         return rv
 
-    def limit(self, limit):
+    def limit(self: _Query, limit: Optional[int]) -> _Query:
         """Sets the ordering of the query."""
         rv = self._clone(mark_dirty=True)
         rv._limit = limit
         return rv
 
-    def count(self):
+    def count(self) -> int:
         """Counts all matched objects."""
         rv = 0
         for _ in self:
             rv += 1
         return rv
 
-    def distinct(self, fieldname):
+    def distinct(self, fieldname: str) -> Set[Any]:
         """Set of unique values for the given field."""
         rv = set()
 
@@ -1171,29 +1221,35 @@ class Query:
 
         return rv
 
-    def get(self, id, page_num=Ellipsis):
+    def get(
+        self,
+        id: str,  # FIXME: type PathComponent?
+        page_num: Optional[int] = Ellipsis,  # type: ignore[assignment] # FIXME:
+    ) -> Record:
         """Gets something by the local path."""
         # If we're not pristine, we need to query here
         if not self._pristine:
             q = self.filter(F._id == id)
-            if page_num is not Ellipsis:
+            if page_num is not Ellipsis:  # type: ignore[comparison-overlap] # FIXME:
                 q = q.request_page(page_num)
-            return q.first()
+            record = q.first()
+            assert record is not None  # narrow type
+            return record
         # otherwise we can load it directly.
         return self._get(id, page_num=page_num)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.first() is not None
 
     __nonzero__ = __bool__
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Record]:
         """Iterates over all records matched."""
-        iterable = self._iterate()
+        iterable: Iterable[Record] = self._iterate()
 
         order_by = self.get_order_by()
         if order_by:
-            iterable = sorted(iterable, key=lambda x: x.get_sort_key(order_by))
+            iterable = sorted(iterable, key=methodcaller("get_sort_key", order_by))
 
         if self._offset is not None or self._limit is not None:
             iterable = islice(
@@ -1205,7 +1261,7 @@ class Query:
         for item in iterable:
             yield item
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s %r%s>" % (
             self.__class__.__name__,
             self.path,
@@ -1217,7 +1273,7 @@ class EmptyQuery(Query):
     def _get(self, id, persist=True, page_num=Ellipsis):
         pass
 
-    def _iterate(self):
+    def _iterate(self) -> Iterator[Record]:
         """Low level record iteration."""
         return iter(())
 
@@ -1225,33 +1281,33 @@ class EmptyQuery(Query):
 class AttachmentsQuery(Query):
     """Specialized query class that only finds attachments."""
 
-    def __init__(self, path, pad, alt=PRIMARY_ALT):
+    def __init__(self, path: RecordPath, pad: "Pad", alt: Alt = PRIMARY_ALT):
         Query.__init__(self, path, pad, alt=PRIMARY_ALT)
         self._include_pages = False
         self._include_attachments = True
 
     @property
-    def images(self):
+    def images(self: _Query) -> _Query:
         """Filters to images."""
         return self.filter(F._attachment_type == "image")
 
     @property
-    def videos(self):
+    def videos(self: _Query) -> _Query:
         """Filters to videos."""
         return self.filter(F._attachment_type == "video")
 
     @property
-    def audio(self):
+    def audio(self: _Query) -> _Query:
         """Filters to audio."""
         return self.filter(F._attachment_type == "audio")
 
     @property
-    def documents(self):
+    def documents(self: _Query) -> _Query:
         """Filters to documents."""
         return self.filter(F._attachment_type == "document")
 
     @property
-    def text(self):
+    def text(self: _Query) -> _Query:
         """Filters to plain text data."""
         return self.filter(F._attachment_type == "text")
 
@@ -1317,6 +1373,9 @@ default_slug_descriptor = property(get_default_slug)
 
 
 class Database:
+    # This is the type of record stored in the Database
+    RecordType = Union[Record, VirtualSourceObject]
+
     def __init__(self, env, config=None):
         self.env = env
         if config is None:
@@ -1358,7 +1417,7 @@ class Database:
                         rv_type = is_attachment
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
-                            rv[key] = u"".join(lines)
+                            rv[key] = "".join(lines)
             except IOError as e:
                 if e.errno not in (errno.ENOTDIR, errno.ENOENT):
                     raise
@@ -1521,9 +1580,9 @@ class Database:
         """Gets the attachment type for a path."""
         return self.config["ATTACHMENT_TYPES"].get(posixpath.splitext(path)[1].lower())
 
-    SO = TypeVar("SO", bound=Union[Record, VirtualSourceObject])
-
-    def track_record_dependency(self, record: SO) -> SO:
+    def track_record_dependency(
+        self, record: Union[Record, VirtualSourceObject]
+    ) -> None:
         ctx = get_ctx()
         if ctx is not None:
             for filename in record.iter_source_filenames():
@@ -1536,7 +1595,10 @@ class Database:
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:
                         ctx.record_dependency(dep_model.filename)
-        return record
+        # We return the record here for backward compatibility,
+        # because that's what we use to do.  You shouldn't use the return
+        # value, however.
+        return record  # type: ignore[return-value]
 
     def process_data(self, data, datamodel, pad):
         # Automatically fill in slugs
@@ -1555,7 +1617,9 @@ class Database:
             data["_template"] = datamodel.get_default_template_name()
 
     @staticmethod
-    def get_record_class(datamodel, raw_data):
+    def get_record_class(
+        datamodel: DataModel, raw_data: Dict[str, str]
+    ) -> Type[Record]:
         """Returns the appropriate record class for a datamodel and raw data."""
         is_attachment = bool(raw_data.get("_attachment_for"))
         if not is_attachment:
@@ -1689,7 +1753,7 @@ class Pad:
 
     def get_root(self, alt=PRIMARY_ALT):
         """The root page of the database."""
-        return self.get("/", alt=alt, persist=True)
+        return self.get(ROOT_PATH, alt=alt, persist=True)
 
     root = property(get_root)
 
@@ -1735,9 +1799,8 @@ class Pad:
 
         if pieces[0].isdigit():
             if len(pieces) == 1:
-                return self.get(
-                    record["_path"], alt=record.alt, page_num=int(pieces[0])
-                )
+                path = cast(RecordPath, record["_path"])
+                return self.get(path, alt=record.alt, page_num=int(pieces[0]))
             return None
 
         resolver = self.env.virtual_sources.get(pieces[0])
@@ -1749,8 +1812,19 @@ class Pad:
     @overload
     def get(
         self,
-        path: str,
-        alt: str = ...,
+        path: RecordPath,
+        alt: Alt = ...,
+        page_num: Optional[int] = ...,
+        persist: bool = ...,
+        allow_virtual: bool = ...,
+    ) -> Union[Record, None]:
+        ...
+
+    @overload
+    def get(
+        self,
+        path: DbPath,
+        alt: Alt = ...,
         page_num: None = ...,
         persist: bool = ...,
         allow_virtual: Literal[False] = ...,
@@ -1760,8 +1834,8 @@ class Pad:
     @overload
     def get(
         self,
-        path: str,
-        alt: str = ...,
+        path: DbPath,
+        alt: Alt = ...,
         page_num: Optional[int] = ...,
         persist: bool = ...,
         allow_virtual: bool = ...,
@@ -1770,63 +1844,62 @@ class Pad:
 
     def get(
         self,
-        path: str,
-        alt: str = PRIMARY_ALT,
+        path: DbPath,
+        alt: Alt = PRIMARY_ALT,
         page_num: Optional[int] = None,
         persist: bool = True,
         allow_virtual: bool = True,
     ) -> Union[Record, VirtualSourceObject, None]:
         """Loads a record by path."""
-        virt_markers = path.count("@")
+        path_, at_sign, virtual_path = path.partition("@")
+        norm_path = cleanup_path(path_)
 
-        # If the virtual marker is included, we also want to look up the
-        # virtual path below an item.  Special case: if virtual paths are
-        # not allowed but one was passed, we just return `None`.
-        if virt_markers == 1:
-            if page_num is not None:
-                raise RuntimeError(
-                    "Cannot use both virtual paths and "
-                    "explicit page number lookups.  You "
-                    "need to one or the other."
-                )
-            if not allow_virtual:
-                return None
-            path, virtual_path = path.split("@", 1)
-            record = self.get(
-                path, alt=alt, page_num=page_num, persist=persist, allow_virtual=False
+        if at_sign == "":  # pylint: disable=no-else-return
+            # no "@" in path
+            return self._get_record(norm_path, alt, page_num=page_num, persist=persist)
+        elif page_num is not None:
+            raise RuntimeError(
+                "Cannot use both virtual paths and "
+                "explicit page number lookups.  You "
+                "need to use one or the other."
             )
-            if record is None:
+        elif "@" in virtual_path:
+            # Sanity check: there must only be one @ or things will get weird.
+            # XXX: raise error?
+            return None
+        elif not allow_virtual:
+            return None
+
+        record = self._get_record(norm_path, alt=alt, persist=persist)
+        if record is None:
+            return None
+        return self.get_virtual(record, virtual_path)
+
+    def _get_record(
+        self,
+        norm_path: NormalizedPath,
+        alt: Alt = PRIMARY_ALT,
+        page_num: Optional[int] = None,
+        persist: bool = True,
+    ) -> Union[Record, None]:
+        extra_path = None if page_num is None else PageNumberPath(str(page_num))
+        try:
+            record = self.cache[norm_path, alt, extra_path]
+        except KeyError:
+            raw_data = self.db.load_raw_data(norm_path, alt=alt)
+            if raw_data is None:
+                self.cache.remember_as_missing(norm_path, alt, extra_path)
                 return None
-            return self.get_virtual(record, virtual_path)
 
-        # Sanity check: there must only be one or things will get weird.
-        if virt_markers > 1:
-            return None
+            record = self.instance_from_data(raw_data, page_num=page_num)
+            if persist:
+                self.cache.persist(record)
+            else:
+                self.cache.remember(record)
 
-        path = cleanup_path(path)
-        page_num_vpath = None if page_num is None else str(page_num)
-
-        cached = self.cache.get(path, alt, page_num_vpath)
-        # FIXME: my does not like using Ellipsis as sentinel
-        if cached is not Ellipsis:  # type: ignore[comparison-overlap]
-            if cached is not None:
-                self.db.track_record_dependency(cached)
-            return cached
-
-        raw_data = self.db.load_raw_data(path, alt=alt)
-        if raw_data is None:
-            self.cache.remember_as_missing(path, alt, page_num_vpath)
-            return None
-
-        # FIXME: type: remove cast
-        rv: Record = self.instance_from_data(raw_data, page_num=page_num)
-
-        if persist:
-            self.cache.persist(rv)
-        else:
-            self.cache.remember(rv)
-
-        return self.db.track_record_dependency(rv)
+        if record is not None:
+            self.db.track_record_dependency(record)
+        return record
 
     def alt_exists(self, path, alt=PRIMARY_ALT, fallback=False):
         """Checks if an alt exists."""
@@ -1864,7 +1937,12 @@ class Pad:
                 return node
         return None
 
-    def instance_from_data(self, raw_data, datamodel=None, page_num=None):
+    def instance_from_data(
+        self,
+        raw_data: Dict[str, str],
+        datamodel: Optional[DataModel] = None,
+        page_num: Optional[int] = None,
+    ) -> Record:
         """This creates an instance from the given raw data."""
         if datamodel is None:
             datamodel = self.db.get_datamodel_for_raw_data(raw_data, self)
@@ -1873,18 +1951,16 @@ class Pad:
         cls = self.db.get_record_class(datamodel, data)
         return cls(self, data, page_num=page_num)
 
-    def query(self, path=None, alt=PRIMARY_ALT):
+    def query(
+        self, path: Optional[RecordPath] = None, alt: Optional[Alt] = None
+    ) -> Query:
         """Queries the database either at root level or below a certain
         path.  This is the recommended way to interact with toplevel data.
         The alternative is to work with the :attr:`root` document.
         """
-        # Don't accidentally pass `None` down to the query as this might
-        # do some unexpected things.
         if alt is None:
             alt = PRIMARY_ALT
-        return Query(
-            path="/" + (path or "").strip("/"), pad=self, alt=alt
-        ).include_hidden(True)
+        return Query(path or ROOT_PATH, pad=self, alt=alt).include_hidden(True)
 
 
 class TreeItem:
@@ -1956,14 +2032,14 @@ class TreeItem:
         )
 
 
-class Alt:
+class AltInfo:
     def __init__(self, id, record):
         self.id = id
         self.record = record
         self.exists = record is not None and os.path.isfile(record.source_filename)
 
     def __repr__(self):
-        return "<Alt %r%s>" % (self.id, self.exists and "*" or "")
+        return "<AltInfo %r%s>" % (self.id, self.exists and "*" or "")
 
 
 class Tree:
@@ -1995,7 +2071,7 @@ class Tree:
                 first_record = record
             if record is not None:
                 exists = True
-            alts[alt] = Alt(alt, record)
+            alts[alt] = AltInfo(alt, record)
 
         # These flags only really make sense if we found an existing
         # record, otherwise we fall back to some sort of sane default.
@@ -2052,7 +2128,7 @@ class Tree:
                 not is_attachment and include_pages
             ):
                 names.add(name)
-        return sorted(names, key=lambda x: x.lower())
+        return sorted(names, key=methodcaller("lower"))
 
     def iter_children(self, path=None, include_attachments=True, include_pages=True):
         """Iterates over all children below a path."""
@@ -2092,87 +2168,111 @@ class Tree:
 
 
 class RecordCache:
-    """The record cache holds records eitehr in an persistent or ephemeral
+    """The record cache holds records either in an persistent or ephemeral
     section which helps the pad not load records it already saw.
     """
 
-    KeyType = Tuple[str, str, Optional[str]]
-    ValueType = Union[Record, VirtualSourceObject, None]
+    KeyType = Tuple[NormalizedPath, Alt, Optional[ExtraPath]]
+    ValueType = Optional[Database.RecordType]
 
+    # XXX: These are deprecated, but here for b/c
     persistent: Dict[KeyType, ValueType]
     ephemeral: MutableMapping[KeyType, ValueType]
 
-    def __init__(self, ephemeral_cache_size=1000):
+    def __init__(self, ephemeral_cache_size: int = 1000) -> None:
         self.persistent = {}
-        self.ephemeral = LRUCache(ephemeral_cache_size)
-
-    @staticmethod
-    def _get_cache_key(
-        path: str, alt: str = PRIMARY_ALT, virtual_path: Optional[str] = None
-    ) -> KeyType:
-        return (path.strip("/"), alt, virtual_path)
+        self.ephemeral = LRUCache(ephemeral_cache_size)  # type: ignore[assignment]
+        self._cache = ChainMap(self.ephemeral, self.persistent)
 
     # NB: mypy doesn't like overloaded staticmethods
     # https://github.com/python/mypy/issues/7781
 
     @staticmethod
-    def _get_cache_key_for_source(
-        source: Union[Record, VirtualSourceObject],
-    ) -> KeyType:
+    def _get_cache_key(source: Database.RecordType) -> KeyType:
         path, virtual_path = split_virtual_path(source.path)
-        return RecordCache._get_cache_key(path, source.alt, virtual_path or None)
+        return (path, source.alt, virtual_path or None)
 
-    def flush(self):
+    def flush(self) -> None:
         """Flushes the cache"""
-        self.persistent.clear()
-        self.ephemeral.clear()
+        for map in self._cache.maps:
+            map.clear()
 
-    def is_persistent(self, record):
+    def is_persistent(self, record: Database.RecordType) -> bool:
         """Indicates if a record is in the persistent record cache."""
-        cache_key = self._get_cache_key_for_source(record)
-        return cache_key in self.persistent
+        cache_key = self._get_cache_key(record)
+        return cache_key in self._cache.maps[0]
 
-    def remember(self, record):
-        """Remembers the record in the record cache."""
-        cache_key = self._get_cache_key_for_source(record)
-        if cache_key not in self.persistent and cache_key not in self.ephemeral:
-            self.ephemeral[cache_key] = record
+    def remember(self, record: Database.RecordType) -> None:
+        """Remembers the record in the (ephemeral) record cache."""
+        cache_key = self._get_cache_key(record)
+        self._cache[cache_key] = record
 
-    def persist(self, record):
+    def persist(self, record: Database.RecordType) -> None:
         """Persists a record.  This will put it into the persistent cache."""
-        cache_key = self._get_cache_key_for_source(record)
-        self.persistent[cache_key] = record
+        cache_key = self._get_cache_key(record)
+        # pylint: disable=unbalanced-tuple-unpacking
+        ephemeral, persistent = self._cache.maps
+        persistent[cache_key] = record
         try:
-            del self.ephemeral[cache_key]
+            del ephemeral[cache_key]
         except KeyError:
             pass
 
-    def persist_if_cached(self, record):
+    def persist_if_cached(self, record: Database.RecordType) -> None:
         """If the record is already ephemerally cached, this promotes it to
         the persistent cache section.
         """
-        cache_key = self._get_cache_key_for_source(record)
-        if cache_key in self.ephemeral:
+        # XXX: unused?
+        cache_key = self._get_cache_key(record)
+        if cache_key in self._cache.maps[0]:
             self.persist(record)
+
+    _EP = TypeVar("_EP", bound=Optional[Union[PageNumberPath, VirtualPath]])
+    _Key = Tuple[NormalizedPath, Alt, _EP]
+
+    @overload
+    def __getitem__(self, key: _Key[VirtualPath]) -> Optional[VirtualSourceObject]:
+        ...
+
+    @overload
+    def __getitem__(self, key: _Key[Optional[PageNumberPath]]) -> Optional[Record]:
+        ...
+
+    def __getitem__(self, key: _Key[_EP]) -> ValueType:
+        """Looks up a record from the cache."""
+        path, alt, vpath = key
+        path = _normalize_record_path(path)  # paranoia, just in case
+        return self._cache[path, alt, vpath]
+
+    def remember_as_missing(
+        self,
+        path: NormalizedPath,
+        alt: Alt = PRIMARY_ALT,
+        virtual_path: Optional[ExtraPath] = None,
+    ) -> None:
+        path = _normalize_record_path(path)  # paranoia, just in case
+        cache_key = path, alt, virtual_path
+        self._cache.maps[1].pop(cache_key, None)
+        self._cache[cache_key] = None
+
+    def __contains__(self, key: KeyType) -> bool:
+        path, alt, vpath = key
+        path = _normalize_record_path(path)  # paranoia, just in case
+        return (path, alt, vpath) in self._cache
 
     def get(
         self,
-        path: str,
-        alt: str = PRIMARY_ALT,
-        virtual_path: Optional[str] = None,
+        path: NormalizedPath,
+        alt: Alt = PRIMARY_ALT,
+        virtual_path: Optional[ExtraPath] = None,
     ) -> ValueType:
-        """Looks up a record from the cache."""
-        cache_key = self._get_cache_key(path, alt, virtual_path)
-        for cache in self.persistent, self.ephemeral:
-            try:
-                return cache[cache_key]
-            except KeyError:
-                pass
-        # FIXME: using Ellipsis as a sentinel is bogus.  At least,
-        # mypy does not like it.
-        return Ellipsis  # type: ignore[return-value]
+        """Looks up a record from the cache.
 
-    def remember_as_missing(self, path, alt=PRIMARY_ALT, virtual_path=None):
-        cache_key = self._get_cache_key(path, alt, virtual_path)
-        self.persistent.pop(cache_key, None)
-        self.ephemeral[cache_key] = None
+        Do not use this.  It's here for b/c.
+        """
+        try:
+            return self._cache[path, alt, virtual_path]
+        except KeyError:
+            # FIXME: using Ellipsis as a sentinel is bogus.  At least,
+            # mypy does not like it.
+            return Ellipsis  # type: ignore[return-value]
