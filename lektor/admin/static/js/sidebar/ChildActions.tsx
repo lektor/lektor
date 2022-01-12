@@ -1,6 +1,6 @@
 import React from "react";
 import { trans, trans_obj } from "../i18n";
-import { RecordPathDetails } from "../components/RecordComponent";
+import { PageName, RecordPathDetails } from "../components/RecordComponent";
 import { RecordChild } from "../components/types";
 import ChildPagination from "./ChildPagination";
 import { CHILDREN_PER_PAGE } from "./constants";
@@ -13,7 +13,7 @@ export default function ChildActions({
   page,
   setPage,
 }: {
-  target: "preview" | "edit";
+  target: PageName & ("preview" | "edit");
   allChildren: RecordChild[];
   record: RecordPathDetails;
   page: number;

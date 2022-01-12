@@ -4,10 +4,11 @@ import { get } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import AdminLink from "../components/AdminLink";
+import { PageName, RecordPathDetails } from "../components/RecordComponent";
 
 export interface RecordPathInfoSegment {
   id: string;
-  path: string;
+  path: RecordPathDetails["path"];
   label: string;
   label_i18n?: Record<string, string>;
   exists: boolean;
@@ -19,9 +20,9 @@ function Crumb({
   item,
   target,
 }: {
-  alt: string;
+  alt: RecordPathDetails["alt"];
   item: RecordPathInfoSegment;
-  target: "preview" | "edit";
+  target: PageName & ("preview" | "edit");
 }) {
   const { path, exists } = item;
   const label = exists ? trans_fallback(item.label_i18n, item.label) : item.id;

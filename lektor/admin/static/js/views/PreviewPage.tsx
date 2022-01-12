@@ -2,86 +2,74 @@ import React, {
   SyntheticEvent,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import { getCanonicalUrl, trimSlashes, trimTrailingSlashes } from "../utils";
+import { trimLeadingSlashes, trimTrailingSlashes } from "../utils";
 import { get } from "../fetch";
-import { RecordProps } from "../components/RecordComponent";
+import { RecordPathDetails, RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
 import { useGoToAdminPage } from "../components/use-go-to-admin-page";
 
-function fsPathFromAdminObservedPath(adminPath: string): string | null {
-  const base = trimTrailingSlashes($LEKTOR_CONFIG.site_root);
-  return adminPath.startsWith(base)
-    ? `/${trimSlashes(adminPath.substr(base.length))}`
-    : null;
+function getSiteRootUrl() {
+  const site_root = `/${trimLeadingSlashes($LEKTOR_CONFIG.site_root)}`;
+  const absRootUrl = new URL(site_root, document.baseURI).href;
+  return trimTrailingSlashes(absRootUrl);
 }
 
-function getIframePath(iframe: HTMLIFrameElement): string | null {
-  const location = iframe.contentWindow?.location;
-  return !location || location.href === "about:blank"
-    ? null
-    : fsPathFromAdminObservedPath(location.pathname);
-}
-
-export default function PreviewPage({
-  record,
-}: Pick<RecordProps, "record">): JSX.Element {
-  const iframe = useRef<HTMLIFrameElement | null>(null);
-  const [pageUrl, setPageUrl] = useState<string | null>(null);
-  // This contains the path and alt of the page that we fetched the preview info for.
-  // It's used to check whether we need to update the iframe src attribute.
-  const [pageUrlPath, setPageUrlPath] = useState<string | null>(null);
-  const goToAdminPage = useGoToAdminPage();
-
-  const { path, alt } = record;
+function usePreviewUrl(
+  { path, alt }: RecordPathDetails,
+  siteRootUrl: string
+): string {
+  const [previewUrl, setPreviewUrl] = useState<string>("about:blank");
 
   useEffect(() => {
     let ignore = false;
-
     get("/previewinfo", { path, alt }).then(({ url }) => {
       if (!ignore) {
-        setPageUrl(url);
-        setPageUrlPath(`${path}${alt}`);
+        setPreviewUrl(url ? siteRootUrl + url : "about:blank");
       }
     }, showErrorDialog);
 
     return () => {
       ignore = true;
     };
-  }, [alt, path]);
+  }, [path, alt, siteRootUrl]);
+
+  return previewUrl;
+}
+
+export default function PreviewPage({
+  record,
+}: Pick<RecordProps, "record">): JSX.Element {
+  const siteRootUrl = useMemo(getSiteRootUrl, []);
+  const previewUrl = usePreviewUrl(record, siteRootUrl);
+  const iframe = useRef<HTMLIFrameElement | null>(null);
+  const goToAdminPage = useGoToAdminPage();
 
   useEffect(() => {
-    const frame = iframe.current;
-    const intendedPath = pageUrlPath === `${path}${alt}` ? pageUrl : null;
-    if (frame && intendedPath) {
-      const framePath = getIframePath(frame);
-
-      if (
-        !framePath ||
-        trimTrailingSlashes(intendedPath) !== trimTrailingSlashes(framePath)
-      ) {
-        frame.src = getCanonicalUrl(intendedPath);
-      }
+    const location = iframe.current?.contentWindow?.location;
+    if (location && location.href !== previewUrl) {
+      location.replace(previewUrl);
     }
-  });
+  }, [previewUrl]);
 
   const onFrameNavigated = useCallback(
     (event: SyntheticEvent<HTMLIFrameElement>) => {
-      const framePath = getIframePath(event.currentTarget);
-      if (framePath !== null) {
-        get("/matchurl", { url_path: framePath }).then(
-          ({ exists, alt, path }) => {
+      const location = event.currentTarget.contentWindow?.location;
+      if (location && location.href !== previewUrl) {
+        if (location.href.startsWith(`${siteRootUrl}/`)) {
+          const url_path = location.href.substr(siteRootUrl.length);
+          get("/matchurl", { url_path }).then(({ exists, alt, path }) => {
             if (exists) {
               goToAdminPage("preview", path, alt);
             }
-          },
-          showErrorDialog
-        );
+          }, showErrorDialog);
+        }
       }
     },
-    [goToAdminPage]
+    [goToAdminPage, previewUrl, siteRootUrl]
   );
 
   return <iframe className="preview" ref={iframe} onLoad={onFrameNavigated} />;

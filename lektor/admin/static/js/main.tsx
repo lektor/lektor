@@ -1,74 +1,47 @@
-import React, { useMemo } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter, Redirect, useRouteMatch } from "react-router-dom";
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
+import { PAGE_NAMES, PageName, useRecord } from "./components/RecordComponent";
 
 import "font-awesome/css/font-awesome.css";
 
-// route targets
 import App from "./views/App";
-import EditPage from "./views/edit/EditPage";
-import DeletePage from "./views/delete/DeletePage";
-import PreviewPage from "./views/PreviewPage";
-import AddChildPage from "./views/add-child-page/AddChildPage";
-import AddAttachmentPage from "./views/AddAttachmentPage";
-import { getRecordDetails } from "./components/RecordComponent";
 import { adminPath } from "./components/use-go-to-admin-page";
 
-setCurrentLanguage($LEKTOR_CONFIG.lang);
-
-function getMainComponent(page: string) {
-  if (page === "edit") {
-    return EditPage;
-  } else if (page === "delete") {
-    return DeletePage;
-  } else if (page === "preview") {
-    return PreviewPage;
-  } else if (page === "add-child") {
-    return AddChildPage;
-  } else if (page === "upload") {
-    return AddAttachmentPage;
-  }
-  return null;
+function Page({ page }: { page: PageName }) {
+  const record = useRecord();
+  return <App page={page} record={record} />;
 }
 
 function Main() {
-  const match = useRouteMatch<{ path: string; page: string }>(
-    `${$LEKTOR_CONFIG.admin_root}/:path/:page`
-  );
-  // useRouteMatch returns a new object on each render, so we need to get the
-  // primitive string values here to memoize.
-  const urlPath = match?.params.path;
-  const page = match?.params.page;
+  const root = $LEKTOR_CONFIG.admin_root;
 
-  const record = useMemo(() => {
-    if (!urlPath) {
-      return null;
-    }
-    return getRecordDetails(urlPath);
-  }, [urlPath]);
-
-  if (!page) {
-    return <Redirect to={adminPath("edit", "/", "_primary")} />;
-  }
-  const Component = getMainComponent(page);
-  if (!Component || record === null) {
-    return <Redirect to={adminPath("edit", "/", "_primary")} />;
-  }
   return (
-    <App page={page} record={record}>
-      <Component record={record} />
-    </App>
+    <BrowserRouter>
+      <Switch>
+        {PAGE_NAMES.map((page) => {
+          // XXX: When Path is not explicitly specified, it seems currently
+          // to be inferred as the too-narrow type `${string}/edit`.
+          // Maybe a @types/react bug?
+          type Path = `${string}/${PageName}`;
+          return (
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            <Route<{}, Path> path={`${root}/${page}`} key={page}>
+              <Page page={page} />
+            </Route>
+          );
+        })}
+        <Route>
+          <Redirect to={adminPath("edit", "/", "_primary")} />
+        </Route>
+      </Switch>
+    </BrowserRouter>
   );
 }
 
 const dash = document.getElementById("dash");
-
 if (dash) {
-  ReactDOM.render(
-    <BrowserRouter>
-      <Main />
-    </BrowserRouter>,
-    dash
-  );
+  setCurrentLanguage($LEKTOR_CONFIG.lang);
+  ReactDOM.render(<Main />, dash);
 }
