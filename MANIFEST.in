@@ -1,8 +1,7 @@
-recursive-include lektor/quickstart-templates *
-recursive-include lektor/translations *
-recursive-include lektor/admin *
-recursive-exclude lektor/admin/node_modules *
-global-exclude *.py[cdo] __pycache__ *.so *.pyd .DS_Store
-include LICENSE
-include README.md
-include CHANGES.md
+include LICENSE README.md CHANGES.md
+recursive-include lektor/quickstart-templates *.in .*.in *.png
+include lektor/translations/*.json
+include lektor/admin/templates/*.html
+graft lektor/admin/static
+recursive-exclude lektor/admin/static .*
+global-exclude *.py[cdo] __pycache__ *.so *.pyd .DS_Store .gitkeep *~
