@@ -1,6 +1,7 @@
 import os
 import posixpath
 import stat
+from typing import cast
 from typing import ClassVar
 from typing import Iterator
 from typing import Optional
@@ -9,6 +10,9 @@ from typing import Sequence
 from typing import TYPE_CHECKING
 
 from lektor.sourceobj import SourceObject
+from lektor.typing.db import ArtifactName
+from lektor.typing.db import SourceFilename
+from lektor.typing.db import UrlPath
 
 if TYPE_CHECKING:
     from lektor.db import Pad
@@ -46,13 +50,14 @@ class Asset(SourceObject):
         self.name = name
         self.parent = parent
         if parent:
-            self._source_filename = os.path.join(parent.source_filename, name)
+            src_fn = os.path.join(parent.source_filename, name)
         else:
             assert path
-            self._source_filename = path
+            src_fn = path
+        self._source_filename = cast(SourceFilename, src_fn)
 
     @property
-    def source_filename(self) -> str:
+    def source_filename(self) -> SourceFilename:
         return self._source_filename
 
     @property
@@ -68,16 +73,19 @@ class Asset(SourceObject):
         return base + ext + self.artifact_extension
 
     @property
-    def url_path(self) -> str:
+    def url_path(self) -> UrlPath:
         if self.parent is None:
-            return "/" + self.name
-        return posixpath.join(self.parent.url_path, self.url_name)
+            return UrlPath("/" + self.name)
+        return UrlPath(posixpath.join(self.parent.url_path, self.url_name))
 
     @property
-    def artifact_name(self) -> str:
+    def artifact_name(self) -> ArtifactName:
         if self.parent is not None:
-            return self.parent.artifact_name.rstrip("/") + "/" + self.url_name
-        return self.url_path
+            return cast(
+                ArtifactName,
+                self.parent.artifact_name.rstrip("/") + "/" + self.url_name,
+            )
+        return cast(ArtifactName, self.url_path)
 
     def build_asset(self, f):  # type: ignore
         # XXX: Unused?

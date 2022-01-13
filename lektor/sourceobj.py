@@ -5,7 +5,6 @@ from typing import cast
 from typing import ClassVar
 from typing import Iterator
 from typing import Optional
-from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import Union
 from weakref import ref as weakref
@@ -13,6 +12,11 @@ from weakref import ref as weakref
 from lektor.constants import PRIMARY_ALT
 from lektor.typing.db import Alt
 from lektor.typing.db import DbPath
+from lektor.typing.db import DbSourcePath
+from lektor.typing.db import PaginatedPath
+from lektor.typing.db import SourceFilename
+from lektor.typing.db import UrlParts
+from lektor.typing.db import UrlPath
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
@@ -38,7 +42,7 @@ class SourceObject(ABC):
         return PRIMARY_ALT
 
     @property
-    def source_filename(self) -> str:
+    def source_filename(self) -> SourceFilename:
         """The primary source filename of this source object."""
 
     is_hidden = False
@@ -54,13 +58,13 @@ class SourceObject(ABC):
         """The negated version of :attr:`is_discoverable`."""
         return not self.is_discoverable
 
-    def iter_source_filenames(self) -> Iterator[str]:
+    def iter_source_filenames(self) -> Iterator[SourceFilename]:
         fn = self.source_filename
         if fn is not None:
             yield self.source_filename
 
     @property
-    def url_path(self) -> str:
+    def url_path(self) -> UrlPath:
         """The URL path of this source object if available."""
         raise NotImplementedError
 
@@ -72,7 +76,7 @@ class SourceObject(ABC):
             return rv
         raise AttributeError("The pad went away")
 
-    def resolve_url_path(self, url_path: Sequence[str]) -> Optional["SourceObject"]:
+    def resolve_url_path(self, url_path: UrlParts) -> Optional["SourceObject"]:
         """Given a URL path as list this resolves the most appropriate
         direct child and returns the list of remaining items.  If no
         match can be found, the result is `None`.
@@ -90,7 +94,7 @@ class DbSourceObject(SourceObject):
 
     @property
     @abstractmethod
-    def path(self) -> DbPath:
+    def path(self) -> Union[DbSourcePath, PaginatedPath]:
         """Return the full path to the source object.  Not every source
         object actually has a path but source objects without paths need
         to subclass `VirtualSourceObject`.
@@ -124,7 +128,7 @@ class DbSourceObject(SourceObject):
             # API: Used to re-resolve path to source to path. Unnecessary?
             url_path = path.url_path
         elif isinstance(path, str) and path[:1] == "!":
-            url_path = posixpath.join(self.url_path, path[1:])
+            url_path = cast(UrlPath, posixpath.join(self.url_path, path[1:]))
         else:
             # Attempt to use path as a relative db-path and resolve
             # to url_path
@@ -142,9 +146,11 @@ class DbSourceObject(SourceObject):
             else:
                 # Failed to resolve db-path to url-path (as requested)
                 # FIXME: should issue a warning here?
-                url_path = posixpath.join(self.url_path, str_path)
+                url_path = cast(UrlPath, posixpath.join(self.url_path, str_path))
 
         if absolute:
+            # FIXME: bug? We should be joining this to the project's base_path.
+            # (Pad.make_url does that.)
             return url_path
         if base_url is None:
             base_url = self.url_path
@@ -159,10 +165,12 @@ class DbSourceObject(SourceObject):
         if isinstance(path, SourceObject):
             path_ = path.path
         else:
+            # FIXME: need to normalize path to DbSourcePath. (It is user provided.)
             path_ = path
 
         if self.path is None or path_ is None:
             return False
+        # FIXME: need to check that self is not paginated
         return is_path_child_of(self.path, path_, strict=strict)
 
 
@@ -174,6 +182,11 @@ class VirtualSourceObject(DbSourceObject):
     def __init__(self, record: "Record"):
         super().__init__(record.pad)
         self.record = record
+
+    @property
+    @abstractmethod
+    def path(self) -> DbSourcePath:
+        ...
 
     def get_mtime(self, path_cache: "PathCache") -> Optional[float]:
         # pylint: disable=no-self-use
@@ -192,7 +205,7 @@ class VirtualSourceObject(DbSourceObject):
         return self.record.alt
 
     @property
-    def source_filename(self) -> str:  # FIXME: narrower type (builder.SourceFilename?)
+    def source_filename(self) -> SourceFilename:
         return self.record.source_filename
 
     def iter_virtual_sources(self) -> Iterator["VirtualSourceObject"]:

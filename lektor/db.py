@@ -28,6 +28,7 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 from typing import Type
+from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import Union
 
@@ -36,7 +37,6 @@ from jinja2 import Undefined
 from jinja2.exceptions import UndefinedError
 from jinja2.utils import LRUCache
 from werkzeug.urls import url_join
-from werkzeug.utils import cached_property
 
 from lektor import metaformat
 from lektor.assets import Directory
@@ -53,16 +53,23 @@ from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import read_exif
 from lektor.imagetools import ThumbnailMode
-from lektor.sourceobj import SourceObject
+from lektor.sourceobj import DbSourceObject
 from lektor.sourceobj import VirtualSourceObject
 from lektor.typing.compat import Literal
 from lektor.typing.compat import Protocol
+from lektor.typing.compat import TypeAlias
+from lektor.typing.compat import TypedDict
 from lektor.typing.db import Alt
 from lektor.typing.db import DbPath
+from lektor.typing.db import DbPathComp
+from lektor.typing.db import DbSourcePath
 from lektor.typing.db import ExtraPath
 from lektor.typing.db import NormalizedPath
 from lektor.typing.db import PageNumberPath
+from lektor.typing.db import PaginatedPath
 from lektor.typing.db import RecordPath
+from lektor.typing.db import UrlParts
+from lektor.typing.db import UrlPath
 from lektor.typing.db import VirtualPath
 from lektor.utils import cleanup_path
 from lektor.utils import fs_enc
@@ -74,7 +81,20 @@ from lektor.utils import untrusted_to_os_path
 from lektor.videotools import get_video_info
 from lektor.videotools import make_video_thumbnail
 
+if TYPE_CHECKING:
+    from lektor.environment import Environment
+    from lektor.environment.config import Config
+
+    # FIXME: cached_property does not seem to be correctly type-aware?
+    cached_property = property
+else:
+    from werkzeug.utils import cached_property
+
 # pylint: disable=no-member
+
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
+U = TypeVar("U")
 
 ROOT_PATH = NormalizedPath("/")  # type: ignore[arg-type]
 
@@ -203,84 +223,76 @@ class _CmpHelper:
         return not self.__lt__(other)
 
 
-def _auto_wrap_expr(value: Any) -> "Expression":
-    if isinstance(value, Expression):
-        return value
-    return _Literal(value)
+Expr: TypeAlias = Union["Expression[T]", T]
 
 
-def save_eval(filter: "Expression", record: "Record") -> Union[bool, Undefined]:
-    try:
-        return bool(filter.__eval__(record))
-    except UndefinedError as e:
-        return Undefined(e.message)
-
-
-class Expression:
-    def __eval__(self, record: "Record") -> Any:
+class Expression(Generic[T]):
+    def __eval__(self, record: "Record") -> T:
         # pylint: disable=no-self-use
-        return record
+        raise NotImplementedError()
 
     # https://github.com/python/mypy/issues/2783
-    def __eq__(self, other: object) -> "Expression":  # type: ignore[override]
+    def __eq__(self, other: Expr[U]) -> "Expression[bool]":  # type: ignore[override]
         return _BinExpr(self, _auto_wrap_expr(other), operator.eq)
 
-    def __ne__(self, other: object) -> "Expression":  # type: ignore[override]
+    def __ne__(self, other: Expr[U]) -> "Expression[bool]":  # type: ignore[override]
         return _BinExpr(self, _auto_wrap_expr(other), operator.ne)
 
-    def __and__(self, other: object) -> "Expression":
+    def __and__(self, other: Expr[T]) -> "Expression[T]":
         return _BinExpr(self, _auto_wrap_expr(other), operator.and_)
 
-    def __or__(self, other: object) -> "Expression":
+    def __or__(self, other: Expr[T]) -> "Expression[T]":
         return _BinExpr(self, _auto_wrap_expr(other), operator.or_)
 
-    def __gt__(self, other: object) -> "Expression":
+    def __gt__(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(self, _auto_wrap_expr(other), operator.gt)
 
-    def __ge__(self, other: object) -> "Expression":
+    def __ge__(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(self, _auto_wrap_expr(other), operator.ge)
 
-    def __lt__(self, other: object) -> "Expression":
+    def __lt__(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(self, _auto_wrap_expr(other), operator.lt)
 
-    def __le__(self, other: object) -> "Expression":
+    def __le__(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(self, _auto_wrap_expr(other), operator.le)
 
-    def contains(self, item: object) -> "Expression":
+    def contains(
+        self: "Expression[Sequence[Any]]", item: Expr[U]
+    ) -> "Expression[bool]":
         return _ContainmentExpr(self, _auto_wrap_expr(item))
 
-    def startswith(self, other: object) -> "Expression":
+    def startswith(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).lower().startswith(str(b).lower()),
         )
 
-    def endswith(self, other: object) -> "Expression":
+    def endswith(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).lower().endswith(str(b).lower()),
         )
 
-    def startswith_cs(self, other: object) -> "Expression":
+    def startswith_cs(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).startswith(str(b)),
         )
 
-    def endswith_cs(self, other: object) -> "Expression":
+    def endswith_cs(self, other: Expr[U]) -> "Expression[bool]":
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
             lambda a, b: str(a).endswith(str(b)),
         )
 
-    def false(self) -> "Expression":
+    def false(self) -> "Expression[bool]":
         return _IsBoolExpr(self, False)
 
-    def true(self) -> "Expression":
+    def true(self) -> "Expression[bool]":
         return _IsBoolExpr(self, True)
 
 
@@ -289,16 +301,29 @@ setattr(Expression, "and", lambda x, o: x & o)
 setattr(Expression, "or", lambda x, o: x | o)
 
 
-class _CallbackExpr(Expression):
-    def __init__(self, func: Callable[["Record"], object]):
+def _auto_wrap_expr(value: T) -> Expression[T]:
+    if isinstance(value, Expression):
+        return value
+    return _Literal(value)
+
+
+def save_eval(filter: Expression[T], record: "Record") -> Union[bool, Undefined]:
+    try:
+        return bool(filter.__eval__(record))
+    except UndefinedError as e:
+        return Undefined(e.message)
+
+
+class _CallbackExpr(Expression[T_co]):
+    def __init__(self, func: Callable[["Record"], T_co]):
         self.func = func
 
-    def __eval__(self, record: "Record") -> Any:
+    def __eval__(self, record: "Record") -> T_co:
         return self.func(record)
 
 
-class _IsBoolExpr(Expression):
-    def __init__(self, expr: Expression, true: bool):
+class _IsBoolExpr(Expression[bool]):
+    def __init__(self, expr: Expression[T], true: bool):
         self.__expr = expr
         self.__true = true
 
@@ -309,31 +334,28 @@ class _IsBoolExpr(Expression):
         ) == self.__true
 
 
-_T = TypeVar("_T")
-
-
-class _Literal(Expression, Generic[_T]):
-    def __init__(self, value: _T):
+class _Literal(Expression[T_co]):
+    def __init__(self, value: T_co):
         self.__value = value
 
-    def __eval__(self, record: "Record") -> _T:
+    def __eval__(self, record: "Record") -> T_co:
         return self.__value
 
 
-class _BinExpr(Expression):
+class _BinExpr(Expression[T]):
     def __init__(
-        self, left: Expression, right: Expression, op: Callable[[Any, Any], Any]
+        self, left: Expression[Any], right: Expression[Any], op: Callable[..., T]
     ):
         self.__left = left
         self.__right = right
         self.__op = op
 
-    def __eval__(self, record: "Record") -> Any:
+    def __eval__(self, record: "Record") -> T:
         return self.__op(self.__left.__eval__(record), self.__right.__eval__(record))
 
 
-class _ContainmentExpr(Expression):
-    def __init__(self, seq: Expression, item: Expression):
+class _ContainmentExpr(Expression[bool]):
+    def __init__(self, seq: Expression[Sequence[T]], item: Expression[Any]):
         self.__seq = seq
         self.__item = item
 
@@ -345,11 +367,11 @@ class _ContainmentExpr(Expression):
         return item in seq
 
 
-class _RecordQueryField(Expression):
+class _RecordQueryField(Expression[object]):
     def __init__(self, field: str):
         self.__field = field
 
-    def __eval__(self, record: "Record") -> Union[Undefined, Any]:
+    def __eval__(self, record: "Record") -> Union[Undefined, object]:
         try:
             return record[self.__field]
         except KeyError:
@@ -357,12 +379,12 @@ class _RecordQueryField(Expression):
 
 
 class _RecordQueryProxy:
-    def __getattr__(self, name: str) -> Expression:
+    def __getattr__(self, name: str) -> _RecordQueryField:
         if name[:2] != "__":
             return _RecordQueryField(name)
         raise AttributeError(name)
 
-    def __getitem__(self, name: str) -> Expression:
+    def __getitem__(self, name: str) -> _RecordQueryField:
         try:
             return self.__getattr__(name)
         except AttributeError as error:
@@ -372,14 +394,44 @@ class _RecordQueryProxy:
 F = _RecordQueryProxy()
 
 
-class Record(SourceObject):
+class DataDescriptor(Protocol, Generic[T_co]):
+    # pylint: disable=unexpected-special-method-signature
+    def __get__(self, record: "Record") -> T_co:
+        ...
+
+
+class RecordData(TypedDict):
+    _id: DbPathComp
+    _gid: str
+    _path: NormalizedPath
+    _alt: Alt
+    _source_alt: Alt
+    _model: Optional[str]  # FIXME: narrower type?
+    _template: str  # FIXME: narrow type?
+    _slug: str  # FIXME: narrow?
+    _hidden: Union[bool, Undefined]
+    _discoverable: Union[bool, Undefined]
+    _attachment_for: Optional[RecordPath]
+    _attachment_type: Optional[str]  # FIXME: narrow?
+
+
+class BoundData(TypedDict, total=False):
+    # FIXME: Not sure how to DRY this
+    _id: str
+    _path: RecordPath
+    _alt: Alt
+
+
+class Record(DbSourceObject):
     source_classification = "record"
     supports_pagination = False
 
-    def __init__(self, pad, data, page_num=None):
-        SourceObject.__init__(self, pad)
+    def __init__(
+        self, pad: "Pad", data: RecordData, page_num: Optional[int] = None
+    ) -> None:
+        super().__init__(pad)
         self._data = data
-        self._bound_data = {}
+        self._bound_data: BoundData = {}
         if page_num is not None and not self.supports_pagination:
             raise RuntimeError(
                 "%s does not support pagination" % self.__class__.__name__
@@ -387,10 +439,10 @@ class Record(SourceObject):
         self.page_num = page_num
 
     @cached_property
-    def parent(self):
+    def parent(self) -> Optional["Record"]:
         """The parent of the record."""
         this_path = self._data["_path"]
-        parent_path = posixpath.dirname(this_path)
+        parent_path = cast(NormalizedPath, posixpath.dirname(this_path))
         if parent_path != this_path:
             return self.pad.get(
                 parent_path, persist=self.pad.cache.is_persistent(self), alt=self.alt
@@ -398,7 +450,7 @@ class Record(SourceObject):
         return None
 
     @property
-    def record(self):
+    def record(self) -> "Record":
         return self
 
     @property
@@ -411,9 +463,10 @@ class Record(SourceObject):
             return self.pad.db.default_model
 
     @property
-    def alt(self):
+    def alt(self) -> Alt:
         """Returns the alt of this source object."""
-        return self["_alt"]
+        # API: used to return self["alt"] - I think this is the same, and passes typing
+        return self._data["_alt"]
 
     @property
     def is_hidden(self):
@@ -472,11 +525,11 @@ class Record(SourceObject):
         return (self.get_record_label_i18n() or {}).get("en")
 
     @property
-    def url_path(self):
+    def url_path(self) -> UrlPath:
         """The target path where the record should end up."""
         prefix, suffix = self.pad.db.config.get_alternative_url_span(self.alt)
         bits = []
-        node = self
+        node: Optional[Record] = self
         while node is not None:
             bits.append(_process_slug(node["_slug"], node is self))
             node = node.parent
@@ -489,11 +542,11 @@ class Record(SourceObject):
             # XXX: 404.html with suffix -de becomes 404.html-de but should
             # actually become 404-de.html
             clean_path += suffix
-        return "/" + clean_path.strip("/")
+        return UrlPath("/" + clean_path.strip("/"))
 
     @property
-    def path(self):
-        return self["_path"]
+    def path(self) -> Union[DbSourcePath, PaginatedPath]:
+        return self._data["_path"]
 
     def get_sort_key(self, fields: Iterable[str]) -> List[_CmpHelper]:
         """Returns a sort key for the given field specifications specific
@@ -518,7 +571,7 @@ class Record(SourceObject):
     def __contains__(self, name):
         return name in self._data and not is_undefined(self._data[name])
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> object:
         rv = self._bound_data.get(name, Ellipsis)
         if rv is not Ellipsis:
             return rv
@@ -603,10 +656,10 @@ class Page(Record):
     supports_pagination = True
 
     @cached_property
-    def path(self):
-        rv = self["_path"]
+    def path(self) -> Union[NormalizedPath, PaginatedPath]:
+        rv = self._data["_path"]
         if self.page_num is not None:
-            rv = "%s@%s" % (rv, self.page_num)
+            return cast(PaginatedPath, "%s@%s" % (rv, self.page_num))
         return rv
 
     @cached_property
@@ -631,25 +684,22 @@ class Page(Record):
             yield os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
 
     @property
-    def url_path(self):
+    def url_path(self) -> UrlPath:
         # pylint: disable=no-value-for-parameter
         rv = super().url_path.rstrip("/")
         last_part = rv.rsplit("/")[-1]
         if "." not in last_part:
             rv += "/"
-        if self.page_num in (1, None):
-            return rv
-        if "." in last_part:
-            raise RuntimeError(
-                "When file extensions is provided pagination " "cannot be used."
-            )
-        return "%s%s/%d/" % (
-            rv,
-            self.datamodel.pagination_config.url_suffix.strip("/"),
-            self.page_num,
-        )
+        if self.page_num not in (1, None):
+            if "." in last_part:
+                raise RuntimeError(
+                    "When file extensions is provided pagination " "cannot be used."
+                )
+            pag_sfx = self.datamodel.pagination_config.url_suffix.strip("/")
+            rv = f"{rv}{pag_sfx}/{self.page_num}/"
+        return UrlPath(rv)
 
-    def resolve_url_path(self, url_path):
+    def resolve_url_path(self, url_path: UrlParts) -> Optional[DbSourceObject]:
         pg = self.datamodel.pagination_config
 
         # If we hit the end of the url path, then we found our target.
@@ -1027,7 +1077,7 @@ class Query:
         self._include_pages = True
         self._include_attachments = False
         self._order_by: Optional[Sequence[str]] = None
-        self._filters: Optional[List[Expression]] = None
+        self._filters: Optional[List[Expression[object]]] = None
         self._pristine = True
         self._limit: Optional[int] = None
         self._offset = 0
@@ -1121,7 +1171,7 @@ class Query:
                 yield record
 
     def filter(
-        self: _Query, expr: Union[Callable[[Record], bool], Expression]
+        self: _Query, expr: Union[Callable[[Record], bool], Expression[object]]
     ) -> _Query:
         """Filters records by an expression."""
         rv = self._clone(mark_dirty=True)
@@ -1373,10 +1423,7 @@ default_slug_descriptor = property(get_default_slug)
 
 
 class Database:
-    # This is the type of record stored in the Database
-    RecordType = Union[Record, VirtualSourceObject]
-
-    def __init__(self, env, config=None):
+    def __init__(self, env: "Environment", config: Optional["Config"] = None) -> None:
         self.env = env
         if config is None:
             config = env.load_config()
@@ -1686,7 +1733,13 @@ class Pad:
             )
         return url_join(base_url.rstrip("/") + "/", url.lstrip("/"))
 
-    def make_url(self, url, base_url=None, absolute=None, external=None):
+    def make_url(
+        self,
+        url: str,
+        base_url: Optional[str] = None,
+        absolute: Optional[bool] = None,
+        external: Optional[bool] = None,
+    ) -> str:
         """Helper method that creates a finalized URL based on the parameters
         provided and the config.
         """
@@ -1851,10 +1904,10 @@ class Pad:
         allow_virtual: bool = True,
     ) -> Union[Record, VirtualSourceObject, None]:
         """Loads a record by path."""
-        path_, at_sign, virtual_path = path.partition("@")
+        path_, virtual_path = split_virtual_path(path)
         norm_path = cleanup_path(path_)
 
-        if at_sign == "":  # pylint: disable=no-else-return
+        if not virtual_path:  # pylint: disable=no-else-return
             # no "@" in path
             return self._get_record(norm_path, alt, page_num=page_num, persist=persist)
         elif page_num is not None:
@@ -1866,6 +1919,7 @@ class Pad:
         elif "@" in virtual_path:
             # Sanity check: there must only be one @ or things will get weird.
             # XXX: raise error?
+            # FIXME: move this to split_virtual_path?
             return None
         elif not allow_virtual:
             return None
@@ -2173,7 +2227,7 @@ class RecordCache:
     """
 
     KeyType = Tuple[NormalizedPath, Alt, Optional[ExtraPath]]
-    ValueType = Optional[Database.RecordType]
+    ValueType = Optional[DbSourceObject]
 
     # XXX: These are deprecated, but here for b/c
     persistent: Dict[KeyType, ValueType]
@@ -2188,7 +2242,7 @@ class RecordCache:
     # https://github.com/python/mypy/issues/7781
 
     @staticmethod
-    def _get_cache_key(source: Database.RecordType) -> KeyType:
+    def _get_cache_key(source: DbSourceObject) -> KeyType:
         path, virtual_path = split_virtual_path(source.path)
         return (path, source.alt, virtual_path or None)
 
@@ -2197,17 +2251,17 @@ class RecordCache:
         for map in self._cache.maps:
             map.clear()
 
-    def is_persistent(self, record: Database.RecordType) -> bool:
+    def is_persistent(self, record: DbSourceObject) -> bool:
         """Indicates if a record is in the persistent record cache."""
         cache_key = self._get_cache_key(record)
         return cache_key in self._cache.maps[0]
 
-    def remember(self, record: Database.RecordType) -> None:
+    def remember(self, record: DbSourceObject) -> None:
         """Remembers the record in the (ephemeral) record cache."""
         cache_key = self._get_cache_key(record)
         self._cache[cache_key] = record
 
-    def persist(self, record: Database.RecordType) -> None:
+    def persist(self, record: DbSourceObject) -> None:
         """Persists a record.  This will put it into the persistent cache."""
         cache_key = self._get_cache_key(record)
         # pylint: disable=unbalanced-tuple-unpacking
@@ -2218,7 +2272,7 @@ class RecordCache:
         except KeyError:
             pass
 
-    def persist_if_cached(self, record: Database.RecordType) -> None:
+    def persist_if_cached(self, record: DbSourceObject) -> None:
         """If the record is already ephemerally cached, this promotes it to
         the persistent cache section.
         """

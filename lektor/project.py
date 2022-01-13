@@ -1,6 +1,7 @@
 import hashlib
 import os
 import sys
+from typing import Sequence
 
 from inifile import IniFile
 from werkzeug.utils import cached_property
@@ -143,7 +144,7 @@ class Project:
         return Environment(self, load_plugins=load_plugins)
 
     @cached_property
-    def excluded_assets(self):
+    def excluded_assets(self) -> Sequence[str]:
         """List of glob patterns matching filenames of excluded assets.
 
         Combines with default EXCLUDED_ASSETS.
@@ -152,7 +153,7 @@ class Project:
         return list(comma_delimited(config.get("project.excluded_assets", "")))
 
     @cached_property
-    def included_assets(self):
+    def included_assets(self) -> Sequence[str]:
         """List of glob patterns matching filenames of included assets.
 
         Overrides both excluded_assets and the default excluded patterns.

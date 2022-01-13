@@ -2,7 +2,17 @@ import fnmatch
 import os
 import uuid
 from functools import update_wrapper
+from itertools import chain
+from typing import Callable
+from typing import Dict
+from typing import Iterable
 from typing import List
+from typing import no_type_check
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import Type
+from typing import TYPE_CHECKING
 
 import jinja2
 from babel import dates
@@ -26,8 +36,25 @@ from lektor.packages import load_packages
 from lektor.pluginsystem import initialize_plugins
 from lektor.pluginsystem import PluginController
 from lektor.publisher import builtin_publishers
+from lektor.typing.compat import TypeAlias
+from lektor.typing.db import UrlParts
+from lektor.typing.db import VPathParts
 from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
+
+if TYPE_CHECKING:
+    from lektor.assets import Asset
+    from lektor.build_programs import BuildProgram
+    from lektor.db import Page
+    from lektor.db import Record
+    from lektor.pluginsystem import Plugin
+    from lektor.project import Project
+    from lektor.sourceobj import DbSourceObject
+    from lektor.sourceobj import VirtualSourceObject
+
+UrlResolver: TypeAlias = Callable[["Page", UrlParts], Optional["DbSourceObject"]]
+Generator: TypeAlias = Callable[["DbSourceObject"], Iterable["VirtualSourceObject"]]
+VirtualPathResolver: TypeAlias = Callable[["Record", VPathParts], "VirtualSourceObject"]
 
 
 def _pass_locale(func):
@@ -53,12 +80,8 @@ EXCLUDED_ASSETS = ["_*", ".*"]
 INCLUDED_ASSETS: List[str] = []
 
 
-def any_fnmatch(filename, patterns):
-    for pat in patterns:
-        if fnmatch.fnmatch(filename, pat):
-            return True
-
-    return False
+def any_fnmatch(filename: str, patterns: Iterable[str]) -> bool:
+    return any(fnmatch.fnmatch(filename, pat) for pat in patterns)
 
 
 class CustomJinjaEnvironment(jinja2.Environment):
@@ -94,8 +117,13 @@ def lookup_from_bag(*args):
 
 
 class Environment:
-    def __init__(self, project, load_plugins=True, extra_flags=None):
-        self.project = project
+    def __init__(
+        self,
+        project: "Project",
+        load_plugins: bool = True,
+        extra_flags: Optional[Sequence[str]] = None,
+    ) -> None:
+        self.project: "Project" = project
         self.root_path = os.path.abspath(project.tree)
 
         self.theme_paths = [
@@ -130,7 +158,9 @@ class Environment:
             tojson=tojson_filter,
             latformat=lambda x, secs=True: format_lat_long(lat=x, secs=secs),
             longformat=lambda x, secs=True: format_lat_long(long=x, secs=secs),
-            latlongformat=lambda x, secs=True: format_lat_long(secs=secs, *x),
+            latlongformat=(  # FIXME:
+                lambda x, secs=True: format_lat_long(secs=secs, *x)  # type: ignore[misc]
+            ),
             # By default filters need to be side-effect free.  This is not
             # the case for this one, so we need to make it as a dummy
             # context filter so that jinja2 will not inline it.
@@ -164,14 +194,16 @@ class Environment:
         # modified by the plugin controller and registry methods on the
         # environment.
         self.plugin_controller = PluginController(self, extra_flags)
-        self.plugins = {}
-        self.plugin_ids_by_class = {}
-        self.build_programs = []
-        self.special_file_assets = {}
-        self.special_file_suffixes = {}
-        self.custom_url_resolvers = []
-        self.custom_generators = []
-        self.virtual_sources = {}
+        self.plugins: Dict[str, "Plugin"] = {}
+        self.plugin_ids_by_class: Dict[Type["Plugin"], str] = {}
+        self.build_programs: List[
+            Tuple[Type["DbSourceObject"], Type["BuildProgram"]]
+        ] = []
+        self.special_file_assets: Dict[str, Type["Asset"]] = {}
+        self.special_file_suffixes: Dict[str, str] = {}
+        self.custom_url_resolvers: List[UrlResolver] = []
+        self.custom_generators: List[Generator] = []
+        self.virtual_sources: Dict[str, VirtualPathResolver] = {}
 
         if load_plugins:
             self.load_plugins()
@@ -203,17 +235,17 @@ class Environment:
 
         return Database(self).new_pad()
 
-    def is_uninteresting_source_name(self, filename):
+    def is_uninteresting_source_name(self, filename: str) -> bool:
         """These files are ignored when sources are built into artifacts."""
         fn = filename.lower()
         if fn in SPECIAL_ARTIFACTS:
             return False
 
         proj = self.project
-        if any_fnmatch(filename, INCLUDED_ASSETS + proj.included_assets):
+        if any_fnmatch(filename, chain(INCLUDED_ASSETS, proj.included_assets)):
             # Included by the user's project config, thus not uninteresting.
             return False
-        return any_fnmatch(filename, EXCLUDED_ASSETS + proj.excluded_assets)
+        return any_fnmatch(filename, chain(EXCLUDED_ASSETS, proj.excluded_assets))
 
     @staticmethod
     def is_ignored_artifact(asset_name):
@@ -268,7 +300,9 @@ class Environment:
             return False
         return filename.endswith((".html", ".htm", ".xml", ".xhtml"))
 
-    def resolve_custom_url_path(self, obj, url_path):
+    def resolve_custom_url_path(
+        self, obj: "Page", url_path: UrlParts
+    ) -> Optional["DbSourceObject"]:
         for resolver in self.custom_url_resolvers:
             rv = resolver(obj, url_path)
             if rv is not None:
@@ -280,7 +314,17 @@ class Environment:
     def add_build_program(self, cls, program):
         self.build_programs.append((cls, program))
 
-    def add_asset_type(self, asset_cls, build_program):
+    @no_type_check  # currently broken and unused
+    def add_asset_type(
+        self, asset_cls: Type["Asset"], build_program: Type["BuildProgram"]
+    ) -> None:
+        # XXX: unused
+        #
+        # This method appears unused.
+        #
+        # As of now, BuildPrograms are only used for db.Records and
+        # VirtualSourceObjects — the types that are returned by
+        # Pad.get().  Do we want to support BuildPrograms for Assets?
         self.build_programs.append((asset_cls, build_program))
         self.special_file_assets[asset_cls.source_extension] = asset_cls
         if asset_cls.artifact_extension:
@@ -307,7 +351,7 @@ class Environment:
 
         return decorator
 
-    def urlresolver(self, func):
+    def urlresolver(self, func: UrlResolver) -> UrlResolver:
         self.custom_url_resolvers.append(func)
         return func
 
