@@ -32,10 +32,14 @@ disallow_untyped_calls = false
 [[tool.mypy.overrides]]
 module = [
     'lektor.db',
+    'lektor.sourceobj',
 ]
 check_untyped_defs = false
 disallow_untyped_defs = false
 disallow_untyped_calls = false
+# FIXME:
+warn_return_any = false
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -50,7 +54,6 @@ disallow_untyped_calls = false
 module = [
     'lektor.assets',
     'lektor.constants',
-    'lektor.sourceobj',
     'lektor.types',
     'lektor.typing.*',
 ]
