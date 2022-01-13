@@ -12,9 +12,9 @@ from weakref import ref as weakref
 from lektor.constants import PRIMARY_ALT
 from lektor.typing.db import Alt
 from lektor.typing.db import DbPath
-from lektor.typing.db import DbSourcePath
 from lektor.typing.db import PaginatedPath
 from lektor.typing.db import SourceFilename
+from lektor.typing.db import UnsafeDbPath
 from lektor.typing.db import UrlParts
 from lektor.typing.db import UrlPath
 from lektor.utils import is_path_child_of
@@ -94,7 +94,7 @@ class DbSourceObject(SourceObject):
 
     @property
     @abstractmethod
-    def path(self) -> Union[DbSourcePath, PaginatedPath]:
+    def path(self) -> Union[DbPath, PaginatedPath]:
         """Return the full path to the source object.  Not every source
         object actually has a path but source objects without paths need
         to subclass `VirtualSourceObject`.
@@ -137,7 +137,7 @@ class DbSourceObject(SourceObject):
             # That should probably be typed more explicit.
             str_path = str(path)
             if str_path.startswith("/"):
-                dbpath = cast(DbPath, str_path)
+                dbpath = cast(UnsafeDbPath, str_path)
             else:
                 dbpath = join_path(self.path, str_path)  # absolute db-path
             source = self.pad.get(dbpath, alt=alt or self.alt)
@@ -157,7 +157,7 @@ class DbSourceObject(SourceObject):
         return self.pad.make_url(url_path, base_url, absolute, external)
 
     def is_child_of(
-        self, path: Union[DbPath, "DbSourceObject"], strict: bool = False
+        self, path: Union[UnsafeDbPath, "DbSourceObject"], strict: bool = False
     ) -> bool:
         """Checks if the current object is a child of the passed object
         or path.
@@ -165,7 +165,8 @@ class DbSourceObject(SourceObject):
         if isinstance(path, SourceObject):
             path_ = path.path
         else:
-            # FIXME: need to normalize path to DbSourcePath. (It is user provided.)
+            # FIXME: need to normalize path to DbPath. (It is user provided.)
+            # Maybe is_path_child_of does the normalization?
             path_ = path
 
         if self.path is None or path_ is None:
@@ -185,7 +186,7 @@ class VirtualSourceObject(DbSourceObject):
 
     @property
     @abstractmethod
-    def path(self) -> DbSourcePath:
+    def path(self) -> DbPath:
         ...
 
     def get_mtime(self, path_cache: "PathCache") -> Optional[float]:

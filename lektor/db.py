@@ -61,13 +61,13 @@ from lektor.typing.compat import TypeAlias
 from lektor.typing.compat import TypedDict
 from lektor.typing.db import Alt
 from lektor.typing.db import DbPath
-from lektor.typing.db import DbPathComp
-from lektor.typing.db import DbSourcePath
 from lektor.typing.db import ExtraPath
-from lektor.typing.db import NormalizedPath
 from lektor.typing.db import PageNumberPath
 from lektor.typing.db import PaginatedPath
 from lektor.typing.db import RecordPath
+from lektor.typing.db import RecordPathPart
+from lektor.typing.db import UnsafeDbPath
+from lektor.typing.db import UnsafeRecordPath
 from lektor.typing.db import UrlParts
 from lektor.typing.db import UrlPath
 from lektor.typing.db import VirtualPath
@@ -96,11 +96,11 @@ T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 U = TypeVar("U")
 
-ROOT_PATH = NormalizedPath("/")  # type: ignore[arg-type]
+ROOT_PATH = RecordPath("/")  # type: ignore[arg-type]
 
 
-def _normalize_record_path(path: RecordPath) -> NormalizedPath:
-    return cast(NormalizedPath, "/" + path.strip("/"))
+def _normalize_record_path(path: UnsafeRecordPath) -> RecordPath:
+    return cast(RecordPath, "/" + path.strip("/"))
 
 
 def get_alts(source=None, fallback=False):
@@ -401,9 +401,9 @@ class DataDescriptor(Protocol, Generic[T_co]):
 
 
 class RecordData(TypedDict):
-    _id: DbPathComp
+    _id: RecordPathPart
     _gid: str
-    _path: NormalizedPath
+    _path: RecordPath
     _alt: Alt
     _source_alt: Alt
     _model: Optional[str]  # FIXME: narrower type?
@@ -411,14 +411,14 @@ class RecordData(TypedDict):
     _slug: str  # FIXME: narrow?
     _hidden: Union[bool, Undefined]
     _discoverable: Union[bool, Undefined]
-    _attachment_for: Optional[RecordPath]
+    _attachment_for: Optional[UnsafeRecordPath]  # FIXME: should this be RecordPath?
     _attachment_type: Optional[str]  # FIXME: narrow?
 
 
 class BoundData(TypedDict, total=False):
     # FIXME: Not sure how to DRY this
     _id: str
-    _path: RecordPath
+    _path: UnsafeRecordPath
     _alt: Alt
 
 
@@ -442,7 +442,7 @@ class Record(DbSourceObject):
     def parent(self) -> Optional["Record"]:
         """The parent of the record."""
         this_path = self._data["_path"]
-        parent_path = cast(NormalizedPath, posixpath.dirname(this_path))
+        parent_path = cast(RecordPath, posixpath.dirname(this_path))
         if parent_path != this_path:
             return self.pad.get(
                 parent_path, persist=self.pad.cache.is_persistent(self), alt=self.alt
@@ -545,7 +545,7 @@ class Record(DbSourceObject):
         return UrlPath("/" + clean_path.strip("/"))
 
     @property
-    def path(self) -> Union[DbSourcePath, PaginatedPath]:
+    def path(self) -> Union[DbPath, PaginatedPath]:
         return self._data["_path"]
 
     def get_sort_key(self, fields: Iterable[str]) -> List[_CmpHelper]:
@@ -656,7 +656,7 @@ class Page(Record):
     supports_pagination = True
 
     @cached_property
-    def path(self) -> Union[NormalizedPath, PaginatedPath]:
+    def path(self) -> Union[RecordPath, PaginatedPath]:
         rv = self._data["_path"]
         if self.page_num is not None:
             return cast(PaginatedPath, "%s@%s" % (rv, self.page_num))
@@ -1069,7 +1069,9 @@ class Query:
     only finds pages.
     """
 
-    def __init__(self, path: RecordPath, pad: "Pad", alt: Alt = PRIMARY_ALT) -> None:
+    def __init__(
+        self, path: UnsafeRecordPath, pad: "Pad", alt: Alt = PRIMARY_ALT
+    ) -> None:
         # Query does not work with virtual paths (yet).
         self.path = path
         self.pad = pad
@@ -1126,7 +1128,9 @@ class Query:
         """Low level record access."""
         if page_num is Ellipsis:  # type: ignore # FIXME:
             page_num = self._page_num
-        path = cast(RecordPath, f"{self.path}/{id}")
+        path = cast(
+            UnsafeRecordPath, f"{self.path}/{id}"
+        )  # FIXME: should be RecordPath?
         rv = self.pad.get(path, self.alt, page_num=page_num, persist=persist)
         assert rv is not None  # type-narrowing
         return rv
@@ -1331,7 +1335,7 @@ class EmptyQuery(Query):
 class AttachmentsQuery(Query):
     """Specialized query class that only finds attachments."""
 
-    def __init__(self, path: RecordPath, pad: "Pad", alt: Alt = PRIMARY_ALT):
+    def __init__(self, path: UnsafeRecordPath, pad: "Pad", alt: Alt = PRIMARY_ALT):
         Query.__init__(self, path, pad, alt=PRIMARY_ALT)
         self._include_pages = False
         self._include_attachments = True
@@ -1852,7 +1856,7 @@ class Pad:
 
         if pieces[0].isdigit():
             if len(pieces) == 1:
-                path = cast(RecordPath, record["_path"])
+                path = cast(UnsafeRecordPath, record["_path"])  # Should be RecordPath?
                 return self.get(path, alt=record.alt, page_num=int(pieces[0]))
             return None
 
@@ -1865,7 +1869,7 @@ class Pad:
     @overload
     def get(
         self,
-        path: RecordPath,
+        path: UnsafeRecordPath,
         alt: Alt = ...,
         page_num: Optional[int] = ...,
         persist: bool = ...,
@@ -1876,7 +1880,7 @@ class Pad:
     @overload
     def get(
         self,
-        path: DbPath,
+        path: UnsafeDbPath,
         alt: Alt = ...,
         page_num: None = ...,
         persist: bool = ...,
@@ -1887,7 +1891,7 @@ class Pad:
     @overload
     def get(
         self,
-        path: DbPath,
+        path: UnsafeDbPath,
         alt: Alt = ...,
         page_num: Optional[int] = ...,
         persist: bool = ...,
@@ -1897,7 +1901,7 @@ class Pad:
 
     def get(
         self,
-        path: DbPath,
+        path: UnsafeDbPath,
         alt: Alt = PRIMARY_ALT,
         page_num: Optional[int] = None,
         persist: bool = True,
@@ -1931,7 +1935,7 @@ class Pad:
 
     def _get_record(
         self,
-        norm_path: NormalizedPath,
+        norm_path: RecordPath,
         alt: Alt = PRIMARY_ALT,
         page_num: Optional[int] = None,
         persist: bool = True,
@@ -2006,7 +2010,7 @@ class Pad:
         return cls(self, data, page_num=page_num)
 
     def query(
-        self, path: Optional[RecordPath] = None, alt: Optional[Alt] = None
+        self, path: Optional[UnsafeRecordPath] = None, alt: Optional[Alt] = None
     ) -> Query:
         """Queries the database either at root level or below a certain
         path.  This is the recommended way to interact with toplevel data.
@@ -2226,7 +2230,7 @@ class RecordCache:
     section which helps the pad not load records it already saw.
     """
 
-    KeyType = Tuple[NormalizedPath, Alt, Optional[ExtraPath]]
+    KeyType = Tuple[RecordPath, Alt, Optional[ExtraPath]]
     ValueType = Optional[DbSourceObject]
 
     # XXX: These are deprecated, but here for b/c
@@ -2282,7 +2286,7 @@ class RecordCache:
             self.persist(record)
 
     _EP = TypeVar("_EP", bound=Optional[Union[PageNumberPath, VirtualPath]])
-    _Key = Tuple[NormalizedPath, Alt, _EP]
+    _Key = Tuple[RecordPath, Alt, _EP]
 
     @overload
     def __getitem__(self, key: _Key[VirtualPath]) -> Optional[VirtualSourceObject]:
@@ -2300,7 +2304,7 @@ class RecordCache:
 
     def remember_as_missing(
         self,
-        path: NormalizedPath,
+        path: RecordPath,
         alt: Alt = PRIMARY_ALT,
         virtual_path: Optional[ExtraPath] = None,
     ) -> None:
@@ -2316,7 +2320,7 @@ class RecordCache:
 
     def get(
         self,
-        path: NormalizedPath,
+        path: RecordPath,
         alt: Alt = PRIMARY_ALT,
         virtual_path: Optional[ExtraPath] = None,
     ) -> ValueType:

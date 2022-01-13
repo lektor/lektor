@@ -1,22 +1,24 @@
-"""
-****************************************
+"""****************************************
 The various kinds of DB paths and pieces
 ****************************************
 
-DbPathComp
-==========
+RecordPathPart
+==============
 
-An allowed component of a NormalizedPath to a db record.
+An allowed component of a RecordPath to a db record.
 
 
-VirtualPathComp
+VirtualPathPart
 ===============
 
-An allowed component of a NormalizedPath to a db record.
+An allowed component of a RecordPath to a db record.
 
 
-DbPath
-======
+UnsafeDbPath
+============
+
+FIXME: UnsafeDbPath and UnsafeRecordPath should probably be gotten rid
+of.  Just use str for unparsed values.
 
 This is a valid first argument to Pad.get().
 
@@ -25,44 +27,45 @@ a leading "/", but one will be assumed if it is omitted.
 
 Roughly the valid forms are:
 
-    RecordPath
-    RecordPath "@" NonNormalizedVirtualPath
+    UnsafeRecordPath
+    UnsafeRecordPath "@" NonNormalizedVirtualPath
 
-Note that page numbers are never included in a DbPath.
+Note that page numbers are never included in a UnsafeDbPath.
 
 
-RecordPath
-==========
+UnsafeRecordPath
+================
 
-This is a DbPath that does not include an "@".  That means there is no virtual path.
+
+This is a UnsafeDbPath that does not include an "@".  That means there is no virtual path.
 
 Note that this may include "." and ".." in its path segments.
 E.g. "/path/../whoops" is an allowed value and is equivalenet to
 "/whoops".
 
-NormalizedPath
-==============
+RecordPath
+==========
 
-This is the normalized version of a RecordPath.  It always starts with
+This is the normalized version of a UnsafeRecordPath.  It always starts with
 a "/" and does not contain any "." or ".." path segments.
 
 This is the type of Attachment.path (since attachments do not have page numbers.)
 
-    "/" [ DbPathComp [ "/" DbPathComp ]* ]
+    "/" [ RecordPathPart [ "/" RecordPathPart ]* ]
 
 VirtualPath
 ===========
 
 The normalized virtual path.
 
-    VPathComp [ "/" VPathComp ]*
+    VirtualPathPart [ "/" VirtualPathPart ]*
 
-DbSourcePath
-============
+DbPath
+======
 
-Very much like a DbPath, expect, fully normalized.
+Very much like a UnsafeDbPath, expect, fully normalized.
 
-    NormalizedPath [ "@" VirtualPath ]
+    RecordPath [ "@" VirtualPath ]
 
 Never includes a page number
 
@@ -72,18 +75,19 @@ PaginatedPath
 Encodes the page number (if non-None) after an "@", e.g. "/blog@2" for
 the second page of the blog.  Note that the page number is not a
 VirtualPath, and a PaginatedPath, therefore, is not a
-DbPath. (Pad.get("/blog@2") does not work.  Rather, you must use
+UnsafeDbPath. (Pad.get("/blog@2") does not work.  Rather, you must use
 Pad.get("/blog", page_num=2) for that.)
 
-    NormalizedPath "@" <page_num>
+    RecordPath "@" <page_num>
 
-RelativeDbPath
-==============
+UnsafeRelativeDbPath
+====================
 
-A relative version of DbPath.  The rules for joining a RelativeDbPath
-to an (absolute) DbPath are a bit strange, owing to the possibility of
+FIXME: just use str
+
+A relative version of UnsafeDbPath.  The rules for joining an UnsafeRelativeDbPath
+to an (absolute) UnsafeDbPath are a bit strange, owing to the possibility of
 virtual paths, etc.  See lektor.utils.join_path.
-
 
 """
 from typing import NewType
@@ -92,24 +96,25 @@ from typing import Union
 
 from lektor.typing.compat import TypeAlias
 
-DbPathComp = NewType("DbPathComp", str)
-VPathComp = NewType("VPathComp", str)
+RecordPathPart = NewType("RecordPathPart", str)
+VirtualPathPart = NewType("VirtualPathPart", str)
 
-VPathParts: TypeAlias = Sequence[VPathComp]
+VPathParts: TypeAlias = Sequence[VirtualPathPart]
 
-DbPath = NewType("DbPath", str)
+UnsafeDbPath = NewType("UnsafeDbPath", str)
 
 # A path to a record.  This does not include a virtual path.
-RecordPath = NewType("RecordPath", DbPath)
+UnsafeRecordPath = NewType("UnsafeRecordPath", UnsafeDbPath)
 
-DbSourcePath = NewType("DbSourcePath", DbPath)
+DbPath = NewType("DbPath", UnsafeDbPath)
 
 # A normalized path to a record.
-# FIXME: a NormalizedPath is also a RecordPath
-NormalizedPath = NewType("NormalizedPath", DbSourcePath)
+# FIXME: a RecordPath is also a UnsafeRecordPath
+RecordPath = NewType("RecordPath", DbPath)
 
 PaginatedPath = NewType("PaginatedPath", str)
 
+# FIXME: this needs refactored. Do away with ExtraPath
 # When a Path contains an '@', the trailing part is the ExtraPath.
 # This can be a VirtualPath (path to a VirtualSourceObject)
 VirtualPath = NewType("VirtualPath", str)

@@ -33,10 +33,10 @@ from werkzeug import urls
 from werkzeug.http import http_date
 from werkzeug.urls import url_parse
 
-from lektor.typing.db import DbPath
 from lektor.typing.db import ExtraPath
-from lektor.typing.db import NormalizedPath
 from lektor.typing.db import RecordPath
+from lektor.typing.db import UnsafeDbPath
+from lektor.typing.db import UnsafeRecordPath
 from lektor.typing.db import VirtualPath
 
 
@@ -58,13 +58,15 @@ except LookupError:
     pass
 
 
-# I think we need types for both absolute DbPaths and relative ones.
+# I think we need types for both absolute UnsafeDbPaths and relative ones.
 #
 # FIXME: These strs should be change to RelativeRecordPath or similar.
 #
 # This function works on and returns (potentially) relative db paths
 @overload
-def split_virtual_path(path: DbPath) -> Tuple[RecordPath, Optional[VirtualPath]]:
+def split_virtual_path(
+    path: UnsafeDbPath,
+) -> Tuple[UnsafeRecordPath, Optional[VirtualPath]]:
     ...
 
 
@@ -83,13 +85,13 @@ def _norm_join(a: str, b: str) -> str:
     return posixpath.normpath(posixpath.join(a, b))
 
 
-# I think we need types for both absolute DbPaths and relative ones.
+# I think we need types for both absolute UnsafeDbPaths and relative ones.
 #
 # FIXME: These strs should be change to RelativeRecordPath or similar.
 #
 # This function works on and returns (potentially) relative db paths
 @overload
-def join_path(a: DbPath, b: str) -> DbPath:
+def join_path(a: UnsafeDbPath, b: str) -> UnsafeDbPath:
     ...
 
 
@@ -124,7 +126,7 @@ def join_path(a: str, b: str) -> str:
 
 
 @overload
-def cleanup_path(path: RecordPath) -> NormalizedPath:
+def cleanup_path(path: UnsafeRecordPath) -> RecordPath:
     ...
 
 
@@ -138,14 +140,14 @@ def cleanup_path(path):
     return "/" + _slashes_re.sub("/", path).strip("/")
 
 
-def parse_path(path: Union[RecordPath, VirtualPath]) -> Sequence[str]:
+def parse_path(path: Union[UnsafeRecordPath, VirtualPath]) -> Sequence[str]:
     x = cleanup_path(path).strip("/").split("/")
     if x == [""]:
         return []
     return x
 
 
-def is_path_child_of(a: DbPath, b: DbPath, strict: bool = True) -> bool:
+def is_path_child_of(a: UnsafeDbPath, b: UnsafeDbPath, strict: bool = True) -> bool:
     """Determine whether whether a is a descendant path of b.
 
     If strict is True, then a must be a descendant, else b may be "descendant or self".
