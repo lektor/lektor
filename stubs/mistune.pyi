@@ -1,4 +1,5 @@
 # Subminimal stubs for mistune==0.8.4
+import sys
 from typing import Any
 from typing import Dict
 from typing import List
@@ -6,8 +7,12 @@ from typing import Match
 from typing import Optional
 from typing import Pattern
 from typing import Type
-from typing import TypedDict
 from typing import Union
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 def escape(text: str, quote: bool = ..., smart_amp: bool = ...) -> str: ...
 def escape_link(url: str) -> str: ...

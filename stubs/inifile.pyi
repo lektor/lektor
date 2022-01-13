@@ -1,10 +1,10 @@
+import sys
 from typing import overload
 from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import Iterable
 from typing import List
-from typing import Literal
 from typing import MutableMapping
 from typing import Optional
 from typing import Sequence
@@ -12,6 +12,11 @@ from typing import Tuple
 from typing import Union
 from pathlib import Path
 from uuid import UUID
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 def get_app_dir(app_name: str, roaming: bool = ..., force_posix: bool = ...) -> str: ...
 

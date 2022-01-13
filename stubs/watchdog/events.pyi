@@ -1,15 +1,21 @@
+import sys
 from logging import Logger
 from typing import Any
-from typing import Final
 from typing import Iterable
 from typing import Iterator
 from typing import List
-from typing import Literal
 from typing import Optional
 from typing import Pattern
 from typing import Sequence
 from typing import Tuple
 from typing import Union
+
+if sys.version_info >= (3, 8):
+    from typing import Final
+    from typing import Literal
+else:
+    from typing_extensions import Final
+    from typing_extensions import Literal
 
 _EventType = Literal["moved", "deleted", "created", "modified", "closed"]
 

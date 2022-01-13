@@ -1,8 +1,13 @@
+import sys
 from numbers import Real
-from typing import Final
 from typing import Set
 from typing import Tuple
 from typing import Type
+
+if sys.version_info >= (3, 8):
+    from typing import Final
+else:
+    from typing_extensions import Final
 
 from watchdog.events import FileSystemEvent
 from watchdog.events import FileSystemEventHandler
