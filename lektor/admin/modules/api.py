@@ -1,12 +1,21 @@
 import os
 import posixpath
+from dataclasses import dataclass
+from dataclasses import field
+from functools import wraps
+from typing import Dict
+from typing import Optional
 
 import click
+import marshmallow
+import marshmallow_dataclass
 from flask import Blueprint
 from flask import current_app
 from flask import g
 from flask import jsonify
+from flask import make_response
 from flask import request
+from marshmallow import validate
 
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
@@ -18,11 +27,57 @@ from lektor.utils import is_valid_id
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 
+def _with_validated(param_type, from_json=False):
+    """Flask view decorator to validate parameters.
+
+    The validated parameters are placed into the ``validated`` keyword
+    arg of the decorated view.
+
+    If from_json is true, parameters are taken from
+    ``request.get_json()``, otherwise from ``request.values``.
+
+    :param param_type: A dataclass which specifies the parameters.
+    :param from_json: Whether to extract parameters from JSON request body.
+    """
+    schema_class = marshmallow_dataclass.class_schema(param_type)
+    schema = schema_class(unknown=marshmallow.EXCLUDE)
+
+    def wrap(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            data = request.get_json() if from_json else request.values
+            try:
+                kwargs["validated"] = schema.load(data)
+            except marshmallow.ValidationError as exc:
+                error = {
+                    "title": "Invalid parameters",
+                    "messages": exc.messages,
+                }
+                return make_response(jsonify(error=error), 400)
+            return f(*args, **kwargs)
+
+        return wrapper
+
+    return wrap
+
+
+def _validate(validate):
+    """Specify marshmallow validator for dataclass field."""
+    return field(metadata={"validate": validate})
+
+
+@dataclass
+class _PathAndAlt:
+    path: str
+    alt: str = PRIMARY_ALT
+
+
 @bp.route("/pathinfo")
-def get_path_info():
+@_with_validated(_PathAndAlt)
+def get_path_info(validated):
     """Returns the path segment information for a record."""
-    alt = request.args.get("alt") or PRIMARY_ALT
-    tree_item = g.admin_context.tree.get(request.args["path"])
+    alt = validated.alt
+    tree_item = g.admin_context.tree.get(validated.path)
     segments = []
 
     while tree_item is not None:
@@ -42,10 +97,10 @@ def get_path_info():
 
 
 @bp.route("/recordinfo")
-def get_record_info():
-    request_path = request.args["path"]
-    alt = request.args.get("alt") or PRIMARY_ALT
-    tree_item = g.admin_context.tree.get(request_path)
+@_with_validated(_PathAndAlt)
+def get_record_info(validated):
+    alt = validated.alt
+    tree_item = g.admin_context.tree.get(validated.path)
 
     return jsonify(
         id=tree_item.id,
@@ -88,27 +143,35 @@ def get_record_info():
 
 
 @bp.route("/previewinfo")
-def get_preview_info():
-    alt = request.args.get("alt") or PRIMARY_ALT
-    record = g.admin_context.pad.get(request.args["path"], alt=alt)
+@_with_validated(_PathAndAlt)
+def get_preview_info(validated):
+    record = g.admin_context.pad.get(validated.path, alt=validated.alt)
     if record is None:
         return jsonify(exists=False, url=None, is_hidden=True)
     return jsonify(exists=True, url=record.url_path, is_hidden=record.is_hidden)
 
 
+@dataclass
+class _FindParams:
+    q: str
+    alt: str = PRIMARY_ALT
+    lang: Optional[str] = None
+
+
 @bp.route("/find", methods=["POST"])
-def find():
-    alt = request.values.get("alt") or PRIMARY_ALT
-    lang = request.values.get("lang") or g.admin_context.info.ui_lang
-    q = request.values.get("q")
+@_with_validated(_FindParams)
+def find(validated):
+    lang = validated.lang or g.admin_context.info.ui_lang
     builder = current_app.lektor_info.get_builder()
-    return jsonify(results=builder.find_files(q, alt=alt, lang=lang))
+    return jsonify(
+        results=builder.find_files(validated.q, alt=validated.alt, lang=lang)
+    )
 
 
 @bp.route("/browsefs", methods=["POST"])
-def browsefs():
-    alt = request.values.get("alt") or PRIMARY_ALT
-    record = g.admin_context.pad.get(request.values["path"], alt=alt)
+@_with_validated(_PathAndAlt)
+def browsefs(validated):
+    record = g.admin_context.pad.get(validated.path, alt=validated.alt)
     okay = False
     if record is not None:
         if record.is_attachment:
@@ -121,10 +184,16 @@ def browsefs():
     return jsonify(okay=okay)
 
 
+@dataclass
+class _UrlPath:
+    url_path: str
+
+
 @bp.route("/matchurl")
-def match_url():
+@_with_validated(_UrlPath)
+def match_url(validated):
     record = g.admin_context.pad.resolve_url_path(
-        request.args["url_path"], alt_fallback=False
+        validated.url_path, alt_fallback=False
     )
     if record is None:
         return jsonify(exists=False, path=None, alt=None)
@@ -132,17 +201,18 @@ def match_url():
 
 
 @bp.route("/rawrecord")
-def get_raw_record():
-    alt = request.args.get("alt") or PRIMARY_ALT
-    ts = g.admin_context.tree.edit(request.args["path"], alt=alt)
+@_with_validated(_PathAndAlt)
+def get_raw_record(validated):
+    ts = g.admin_context.tree.edit(validated.path, alt=validated.alt)
     return jsonify(ts.to_json())
 
 
 @bp.route("/newrecord")
-def get_new_record_info():
+@_with_validated(_PathAndAlt)
+def get_new_record_info(validated):
     pad = g.admin_context.pad
-    alt = request.args.get("alt") or PRIMARY_ALT
-    tree_item = g.admin_context.tree.get(request.args["path"])
+    alt = validated.alt
+    tree_item = g.admin_context.tree.get(validated.path)
 
     def describe_model(model):
         primary_field = None
@@ -175,10 +245,10 @@ def get_new_record_info():
 
 
 @bp.route("/newattachment")
-def get_new_attachment_info():
-    alt = request.args.get("alt") or PRIMARY_ALT
-    tree_item = g.admin_context.tree.get(request.args["path"])
-    label_i18n = tree_item.get_record_label_i18n(alt)
+@_with_validated(_PathAndAlt)
+def get_new_attachment_info(validated):
+    tree_item = g.admin_context.tree.get(validated.path)
+    label_i18n = tree_item.get_record_label_i18n(validated.alt)
     return jsonify(
         {
             "can_upload": tree_item.can_have_attachments,
@@ -189,9 +259,9 @@ def get_new_attachment_info():
 
 
 @bp.route("/newattachment", methods=["POST"])
-def upload_new_attachments():
-    alt = request.values.get("alt") or PRIMARY_ALT
-    ts = g.admin_context.tree.edit(request.values["path"], alt=alt)
+@_with_validated(_PathAndAlt)
+def upload_new_attachments(validated):
+    ts = g.admin_context.tree.edit(validated.path, alt=validated.alt)
     if not ts.exists or ts.is_attachment:
         return jsonify({"bad_upload": True})
 
@@ -208,52 +278,73 @@ def upload_new_attachments():
     return jsonify(
         {
             "bad_upload": False,
-            "path": request.form["path"],
+            "path": validated.path,
             "buckets": buckets,
         }
     )
 
 
+@dataclass
+class _NewRecordParams:
+    id: str
+    model: Optional[str]
+    data: Dict[str, str]
+    path: str
+    alt: str = PRIMARY_ALT
+
+
 @bp.route("/newrecord", methods=["POST"])
-def add_new_record():
-    values = request.get_json()
-    alt = values.get("alt") or PRIMARY_ALT
+@_with_validated(_NewRecordParams, from_json=True)
+def add_new_record(validated):
     exists = False
 
-    if not is_valid_id(values["id"]):
+    if not is_valid_id(validated.id):
         return jsonify(valid_id=False, exists=False, path=None)
 
-    path = posixpath.join(values["path"], values["id"])
+    path = posixpath.join(validated.path, validated.id)
 
-    ts = g.admin_context.tree.edit(path, datamodel=values.get("model"), alt=alt)
+    ts = g.admin_context.tree.edit(path, datamodel=validated.model, alt=validated.alt)
     with ts:
         if ts.exists:
             exists = True
         else:
-            ts.data.update(values.get("data") or {})
+            ts.data.update(validated.data)
 
     return jsonify({"valid_id": True, "exists": exists, "path": path})
 
 
+@dataclass
+class _DeleteRecordParams:
+    # Could use typing.Literal but requires recent python or typing-extensions
+    delete_master: str = _validate(validate.OneOf(["0", "1"]))
+    path: str
+    alt: str = PRIMARY_ALT
+
+
 @bp.route("/deleterecord", methods=["POST"])
-def delete_record():
-    alt = request.values.get("alt") or PRIMARY_ALT
-    delete_master = request.values.get("delete_master") == "1"
-    if request.values["path"] != "/":
-        ts = g.admin_context.tree.edit(request.values["path"], alt=alt)
+@_with_validated(_DeleteRecordParams)
+def delete_record(validated):
+    delete_master = validated.delete_master == "1"
+    if validated.path != "/":
+        ts = g.admin_context.tree.edit(validated.path, alt=validated.alt)
         with ts:
             ts.delete(delete_master=delete_master)
     return jsonify(okay=True)
 
 
+@dataclass
+class _UpdateRawRecordParams:
+    data: Dict[str, str]
+    path: str
+    alt: str = PRIMARY_ALT
+
+
 @bp.route("/rawrecord", methods=["PUT"])
-def update_raw_record():
-    values = request.get_json()
-    data = values["data"]
-    alt = values.get("alt") or PRIMARY_ALT
-    ts = g.admin_context.tree.edit(values["path"], alt=alt)
+@_with_validated(_UpdateRawRecordParams, from_json=True)
+def update_raw_record(validated):
+    ts = g.admin_context.tree.edit(validated.path, alt=validated.alt)
     with ts:
-        ts.data.update(data)
+        ts.data.update(validated.data)
     return jsonify(path=ts.path)
 
 
@@ -285,12 +376,17 @@ def trigger_clean():
     return jsonify(okay=True)
 
 
+@dataclass
+class _PublishBuildParams:
+    server: str = _validate(validate.Length(min=1))
+
+
 @bp.route("/publish")
-def publish_build():
+@_with_validated(_PublishBuildParams)
+def publish_build(validated):
     db = g.admin_context.pad.db
-    server = request.values["server"]
     config = db.env.load_config()
-    server_info = config.get_server(server)
+    server_info = config.get_server(validated.server)
     info = current_app.lektor_info
 
     @eventstream
