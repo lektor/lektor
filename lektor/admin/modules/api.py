@@ -288,7 +288,7 @@ def upload_new_attachments(validated):
 class _NewRecordParams:
     id: str
     model: Optional[str]
-    data: Dict[str, str]
+    data: Dict[str, Optional[str]]
     path: str
     alt: str = PRIMARY_ALT
 
@@ -334,7 +334,7 @@ def delete_record(validated):
 
 @dataclass
 class _UpdateRawRecordParams:
-    data: Dict[str, str]
+    data: Dict[str, Optional[str]]
     path: str
     alt: str = PRIMARY_ALT
 
