@@ -6,6 +6,11 @@ These are all the changes in Lektor since the first public release.
 
 ### Bugs
 
+#### Admin API
+
+- Fix a bug in `make_editor_session` when editing non-existant pages
+  with a non-primary alt. [#964]
+
 #### Admin UI
 
 - Changed the structure of the URLs used by the GUI single-page app ([#976][]).
@@ -13,6 +18,7 @@ These are all the changes in Lektor since the first public release.
   and issues when page ids include colons ([#610][]).
 
 [#610]: https://github.com/lektor/lektor/issues/610
+[#964]: https://github.com/lektor/lektor/pull/964
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 

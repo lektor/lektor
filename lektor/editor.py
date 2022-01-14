@@ -43,7 +43,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
         raise BadEdit("Invalid ID")
 
     record = None
-    exists = all_data is not None
+    exists = raw_data is not None or raw_data_fallback is not None
     if raw_data is None:
         raw_data = OrderedDict()
 
