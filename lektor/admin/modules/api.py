@@ -18,16 +18,6 @@ from lektor.utils import is_valid_id
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 
-def get_record_and_parent(path):
-    pad = g.admin_context.pad
-    record = pad.get(path)
-    if record is None:
-        parent = pad.get(posixpath.dirname(path))
-    else:
-        parent = record.parent
-    return record, parent
-
-
 @bp.route("/pathinfo")
 def get_path_info():
     """Returns the path segment information for a record."""
