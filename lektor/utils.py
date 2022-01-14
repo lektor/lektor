@@ -18,6 +18,12 @@ from functools import lru_cache
 from pathlib import PurePosixPath
 from queue import Queue
 from threading import Thread
+from typing import cast
+from typing import Optional
+from typing import overload
+from typing import Sequence
+from typing import Tuple
+from typing import Union
 
 import click
 from jinja2 import is_undefined
@@ -26,6 +32,12 @@ from slugify import slugify as _slugify
 from werkzeug import urls
 from werkzeug.http import http_date
 from werkzeug.urls import url_parse
+
+from lektor.typing.db import ExtraPath
+from lektor.typing.db import RecordPath
+from lektor.typing.db import UnsafeDbPath
+from lektor.typing.db import UnsafeRecordPath
+from lektor.typing.db import VirtualPath
 
 
 is_windows = os.name == "nt"
@@ -46,17 +58,51 @@ except LookupError:
     pass
 
 
-def split_virtual_path(path):
-    if "@" in path:
-        return path.split("@", 1)
-    return path, None
+# I think we need types for both absolute UnsafeDbPaths and relative ones.
+#
+# FIXME: These strs should be change to RelativeRecordPath or similar.
+#
+# This function works on and returns (potentially) relative db paths
+@overload
+def split_virtual_path(
+    path: UnsafeDbPath,
+) -> Tuple[UnsafeRecordPath, Optional[VirtualPath]]:
+    ...
 
 
-def _norm_join(a, b):
+@overload
+def split_virtual_path(path: str) -> Tuple[str, Optional[ExtraPath]]:
+    ...
+
+
+def split_virtual_path(path: str) -> Tuple[str, Optional[ExtraPath]]:
+    record_path, sep, vpath = path.partition("@")
+    extra_path = cast(ExtraPath, vpath) if sep else None
+    return record_path, extra_path
+
+
+def _norm_join(a: str, b: str) -> str:
     return posixpath.normpath(posixpath.join(a, b))
 
 
-def join_path(a, b):
+# I think we need types for both absolute UnsafeDbPaths and relative ones.
+#
+# FIXME: These strs should be change to RelativeRecordPath or similar.
+#
+# This function works on and returns (potentially) relative db paths
+@overload
+def join_path(a: UnsafeDbPath, b: str) -> UnsafeDbPath:
+    ...
+
+
+@overload
+def join_path(a: str, b: str) -> str:
+    # FIXME: this form, where the first argument is a non-absolute path
+    # appears not to be used, other than in tests. Can we get rid of it?
+    ...
+
+
+def join_path(a: str, b: str) -> str:
     a_p, a_v = split_virtual_path(a)
     b_p, b_v = split_virtual_path(b)
 
@@ -79,24 +125,39 @@ def join_path(a, b):
     return rv
 
 
+@overload
+def cleanup_path(path: UnsafeRecordPath) -> RecordPath:
+    ...
+
+
+@overload
+# FIXME: not the same normalization as used in db
+def cleanup_path(path: VirtualPath) -> str:
+    ...
+
+
 def cleanup_path(path):
     return "/" + _slashes_re.sub("/", path).strip("/")
 
 
-def parse_path(path):
+def parse_path(path: Union[UnsafeRecordPath, VirtualPath]) -> Sequence[str]:
     x = cleanup_path(path).strip("/").split("/")
     if x == [""]:
         return []
     return x
 
 
-def is_path_child_of(a, b, strict=True):
-    a_p, a_v = split_virtual_path(a)
-    b_p, b_v = split_virtual_path(b)
-    a_p = parse_path(a_p)
-    b_p = parse_path(b_p)
-    a_v = parse_path(a_v or "")
-    b_v = parse_path(b_v or "")
+def is_path_child_of(a: UnsafeDbPath, b: UnsafeDbPath, strict: bool = True) -> bool:
+    """Determine whether whether a is a descendant path of b.
+
+    If strict is True, then a must be a descendant, else b may be "descendant or self".
+    """
+    a_rp, a_vp = split_virtual_path(a)
+    b_rp, b_vp = split_virtual_path(b)
+    a_p = parse_path(a_rp)
+    b_p = parse_path(b_rp)
+    a_v = parse_path(a_vp) if a_vp else []
+    b_v = parse_path(b_vp) if b_vp else []
 
     if not strict and a_p == b_p and a_v == b_v:
         return True
@@ -440,7 +501,7 @@ def prune_file_and_folder(name, base):
     return True
 
 
-def sort_normalize_string(s):
+def sort_normalize_string(s: str) -> str:
     return unicodedata.normalize("NFD", str(s).lower().strip())
 
 

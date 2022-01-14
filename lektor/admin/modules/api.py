@@ -1,5 +1,13 @@
 import os
 import posixpath
+from typing import Any
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 import click
 from flask import Blueprint
@@ -7,9 +15,13 @@ from flask import current_app
 from flask import g
 from flask import jsonify
 from flask import request
+from flask import Response
 
 from lektor.admin.utils import eventstream
+from lektor.admin.webui import WebUI
 from lektor.constants import PRIMARY_ALT
+from lektor.datamodel import DataModel
+from lektor.db import Record
 from lektor.publisher import publish
 from lektor.publisher import PublishError
 from lektor.utils import is_valid_id
@@ -18,7 +30,8 @@ from lektor.utils import is_valid_id
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 
-def get_record_and_parent(path):
+def get_record_and_parent(path: str) -> Tuple[Optional[Record], Optional[Record]]:
+    # XXX: unused?
     pad = g.admin_context.pad
     record = pad.get(path)
     if record is None:
@@ -29,7 +42,7 @@ def get_record_and_parent(path):
 
 
 @bp.route("/pathinfo")
-def get_path_info():
+def get_path_info() -> Response:
     """Returns the path segment information for a record."""
     tree_item = g.admin_context.tree.get(request.args["path"])
     segments = []
@@ -51,7 +64,7 @@ def get_path_info():
 
 
 @bp.route("/recordinfo")
-def get_record_info():
+def get_record_info() -> Response:
     pad = g.admin_context.pad
     request_path = request.args["path"]
     tree_item = g.admin_context.tree.get(request_path)
@@ -81,6 +94,11 @@ def get_record_info():
 
     child_order_by = pad.query(request_path).get_order_by() or []
 
+    def child_sortkey(child: Record) -> List[Any]:
+        record = pad.get(child.path)
+        assert isinstance(record, Record)
+        return record.get_sort_key(child_order_by)
+
     return jsonify(
         id=tree_item.id,
         path=tree_item.path,
@@ -103,9 +121,7 @@ def get_record_info():
                 "label_i18n": x.label_i18n,
                 "visible": x.is_visible,
             }
-            for x in sorted(
-                children, key=lambda c: pad.get(c.path).get_sort_key(child_order_by)
-            )
+            for x in sorted(children, key=child_sortkey)
         ],
         alts=alts,
         can_have_children=tree_item.can_have_children,
@@ -115,7 +131,7 @@ def get_record_info():
 
 
 @bp.route("/previewinfo")
-def get_preview_info():
+def get_preview_info() -> Response:
     alt = request.args.get("alt") or PRIMARY_ALT
     record = g.admin_context.pad.get(request.args["path"], alt=alt)
     if record is None:
@@ -124,7 +140,8 @@ def get_preview_info():
 
 
 @bp.route("/find", methods=["POST"])
-def find():
+def find() -> Response:
+    assert isinstance(current_app, WebUI)
     alt = request.values.get("alt") or PRIMARY_ALT
     lang = request.values.get("lang") or g.admin_context.info.ui_lang
     q = request.values.get("q")
@@ -133,7 +150,7 @@ def find():
 
 
 @bp.route("/browsefs", methods=["POST"])
-def browsefs():
+def browsefs() -> Response:
     alt = request.values.get("alt") or PRIMARY_ALT
     record = g.admin_context.pad.get(request.values["path"], alt=alt)
     okay = False
@@ -149,7 +166,7 @@ def browsefs():
 
 
 @bp.route("/matchurl")
-def match_url():
+def match_url() -> Response:
     record = g.admin_context.pad.resolve_url_path(
         request.args["url_path"], alt_fallback=False
     )
@@ -159,14 +176,14 @@ def match_url():
 
 
 @bp.route("/rawrecord")
-def get_raw_record():
+def get_raw_record() -> Response:
     alt = request.args.get("alt") or PRIMARY_ALT
     ts = g.admin_context.tree.edit(request.args["path"], alt=alt)
     return jsonify(ts.to_json())
 
 
 @bp.route("/newrecord")
-def get_new_record_info():
+def get_new_record_info() -> Response:
     # XXX: convert to tree usage
     pad = g.admin_context.pad
     alt = request.args.get("alt") or PRIMARY_ALT
@@ -179,8 +196,8 @@ def get_new_record_info():
         can_have_children = True
     implied = ts.datamodel.child_config.model
 
-    def describe_model(model):
-        primary_field = None
+    def describe_model(model: DataModel) -> Dict[str, Union[str, Dict[str, str], None]]:
+        primary_field: Optional[str] = None
         if model.primary_field is not None:
             f = model.field_map.get(model.primary_field)
             if f is not None:
@@ -207,7 +224,7 @@ def get_new_record_info():
 
 
 @bp.route("/newattachment")
-def get_new_attachment_info():
+def get_new_attachment_info() -> Response:
     ts = g.admin_context.tree.edit(request.args["path"])
     return jsonify(
         {
@@ -218,7 +235,7 @@ def get_new_attachment_info():
 
 
 @bp.route("/newattachment", methods=["POST"])
-def upload_new_attachments():
+def upload_new_attachments() -> Response:
     alt = request.values.get("alt") or PRIMARY_ALT
     ts = g.admin_context.tree.edit(request.values["path"], alt=alt)
     if not ts.exists or ts.is_attachment:
@@ -243,17 +260,35 @@ def upload_new_attachments():
     )
 
 
+# FIXME: Need better input validation here (on all the POST and PUT views).
+# Note that request.get_json() need not even return a dict.  It can return a
+# scalar, too.
+#
+# Perhaps marshmallow_dataclass can help here?
+# https://pypi.org/project/marshmallow-dataclass/
+#
+# For now, punt by adding a bunch of type-narrowing asserts.
+#
+
+
 @bp.route("/newrecord", methods=["POST"])
-def add_new_record():
+def add_new_record() -> Response:
     values = request.get_json()
+    assert isinstance(values, Mapping)
+    assert "alt" not in values or isinstance(values["alt"], str)
     alt = values.get("alt") or PRIMARY_ALT
     exists = False
+
+    assert isinstance(values["id"], str)
+    assert isinstance(values["path"], str)
 
     if not is_valid_id(values["id"]):
         return jsonify(valid_id=False, exists=False, path=None)
 
     path = posixpath.join(values["path"], values["id"])
 
+    assert "model" not in values or isinstance(values["model"], str)
+    assert "data" not in values or isinstance(values["data"], dict)
     ts = g.admin_context.tree.edit(path, datamodel=values.get("model"), alt=alt)
     with ts:
         if ts.exists:
@@ -265,7 +300,7 @@ def add_new_record():
 
 
 @bp.route("/deleterecord", methods=["POST"])
-def delete_record():
+def delete_record() -> Response:
     alt = request.values.get("alt") or PRIMARY_ALT
     delete_master = request.values.get("delete_master") == "1"
     if request.values["path"] != "/":
@@ -276,8 +311,9 @@ def delete_record():
 
 
 @bp.route("/rawrecord", methods=["PUT"])
-def update_raw_record():
+def update_raw_record() -> Response:
     values = request.get_json()
+    assert isinstance(values, dict)
     data = values["data"]
     alt = values.get("alt") or PRIMARY_ALT
     ts = g.admin_context.tree.edit(values["path"], alt=alt)
@@ -287,19 +323,20 @@ def update_raw_record():
 
 
 @bp.route("/servers")
-def get_servers():
+def get_servers() -> Response:
     db = g.admin_context.pad.db
     config = db.env.load_config()
     servers = config.get_servers(public=True)
-    return jsonify(
-        servers=sorted(
-            [x.to_json() for x in servers.values()], key=lambda x: x["name"].lower()
-        )
-    )
+
+    def orderby(server_json: Dict[str, str]) -> str:
+        return server_json["name"].lower()
+
+    return jsonify(servers=sorted([x.to_json() for x in servers.values()], key=orderby))
 
 
 @bp.route("/build", methods=["POST"])
-def trigger_build():
+def trigger_build() -> Response:
+    assert isinstance(current_app, WebUI)
     builder = current_app.lektor_info.get_builder()
     builder.build_all()
     builder.prune()
@@ -307,7 +344,8 @@ def trigger_build():
 
 
 @bp.route("/clean", methods=["POST"])
-def trigger_clean():
+def trigger_clean() -> Response:
+    assert isinstance(current_app, WebUI)
     builder = current_app.lektor_info.get_builder()
     builder.prune(all=True)
     builder.touch_site_config()
@@ -315,7 +353,8 @@ def trigger_clean():
 
 
 @bp.route("/publish")
-def publish_build():
+def publish_build() -> Response:
+    assert isinstance(current_app, WebUI)
     db = g.admin_context.pad.db
     server = request.values["server"]
     config = db.env.load_config()
@@ -323,18 +362,15 @@ def publish_build():
     info = current_app.lektor_info
 
     @eventstream
-    def generator():
+    def generator() -> Iterator[Dict[str, str]]:
         try:
-            event_iter = (
-                publish(
-                    info.env,
-                    server_info.target,
-                    info.output_path,
-                    server_info=server_info,
-                )
-                or ()
+            events = publish(
+                info.env,
+                server_info.target,
+                info.output_path,
+                server_info=server_info,
             )
-            for event in event_iter:
+            for event in events:
                 yield {"msg": event}
         except PublishError as e:
             yield {"msg": "Error: %s" % e}
@@ -343,5 +379,6 @@ def publish_build():
 
 
 @bp.route("/ping")
-def ping():
+def ping() -> Response:
+    assert isinstance(current_app, WebUI)
     return jsonify(project_id=current_app.lektor_info.env.project.id, okay=True)

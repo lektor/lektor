@@ -9,6 +9,9 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from ftplib import Error as FTPError
+from typing import Iterator
+from typing import Mapping
+from typing import Optional
 
 from werkzeug import urls
 
@@ -167,7 +170,12 @@ class Publisher:
         # pylint: disable=no-self-use
         raise PublishError(message)
 
-    def publish(self, target_url, credentials=None, **extra):
+    def publish(
+        self,
+        target_url: str,
+        credentials: Optional[Mapping[str, str]] = None,
+        **extra: str
+    ) -> Iterator[str]:
         raise NotImplementedError()
 
 

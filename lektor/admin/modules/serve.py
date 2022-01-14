@@ -3,6 +3,9 @@ import mimetypes
 import os
 import string
 from io import BytesIO
+from typing import BinaryIO
+from typing import Type
+from typing import Union
 from zlib import adler32
 
 from flask import abort
@@ -12,9 +15,12 @@ from flask import render_template
 from flask import request
 from flask import Response
 from flask import url_for
+from flask.typing import GenericException
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import wrap_file
 
+from lektor.admin.webui import WebUI
+from lektor.buildfailures import BuildFailure
 from lektor.constants import PRIMARY_ALT
 
 bp = Blueprint("serve", __name__)
@@ -71,7 +77,7 @@ _EDIT_BUTTON_SCRIPT_TMPL = string.Template(
 )
 
 
-def rewrite_html_for_editing(fp, edit_url):
+def rewrite_html_for_editing(fp: BinaryIO, edit_url: str) -> BinaryIO:
     contents = fp.read()
     fp.close()
     head_endpos = contents.find(b"</head>")
@@ -96,7 +102,7 @@ def rewrite_html_for_editing(fp, edit_url):
     )
 
 
-def send_file(fp, mimetype):
+def send_file(fp: BinaryIO, mimetype: str) -> Response:
     try:
         fileno = fp.fileno()
         stat = os.stat(fileno)
@@ -117,11 +123,12 @@ def send_file(fp, mimetype):
     return resp
 
 
-def handle_build_failure(failure):
+def handle_build_failure(failure: BuildFailure) -> Response:
     return render_template("build-failure.html", **failure.data)
 
 
-def serve_up_artifact(path):
+def serve_up_artifact(path: str) -> Response:
+    assert isinstance(current_app, WebUI)
     li = current_app.lektor_info
     pad = li.get_pad()
 
@@ -164,12 +171,12 @@ def serve_up_artifact(path):
 
 @bp.route("/", defaults={"path": ""})
 @bp.route("/<path:path>")
-def serve_artifact(path):
+def serve_artifact(path: str) -> Response:
     return serve_up_artifact(path)
 
 
 @bp.errorhandler(404)
-def serve_error_page(error):
+def serve_error_page(error: Union[Type[GenericException], int]) -> Response:
     try:
         return serve_up_artifact("404.html")
     except NotFound as e:
