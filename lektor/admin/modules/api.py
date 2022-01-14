@@ -19,12 +19,29 @@ from marshmallow import validate
 
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
+from lektor.environment import ServerInfo
 from lektor.publisher import publish
 from lektor.publisher import PublishError
 from lektor.utils import is_valid_id
 
 
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
+
+
+class _ServerInfoField(marshmallow.fields.String):
+    def _deserialize(self, value, attr, data, **kwargs):
+        server_id = super()._deserialize(value, attr, data, **kwargs)
+
+        db = g.admin_context.pad.db
+        config = db.env.load_config()
+        server_info = config.get_server(server_id)
+        if server_info is None:
+            raise marshmallow.ValidationError("Invalid server id.")
+        return server_info
+
+
+class _BaseSchema(marshmallow.Schema):
+    TYPE_MAPPING = {ServerInfo: _ServerInfoField}
 
 
 def _with_validated(param_type, from_json=False):
@@ -39,7 +56,9 @@ def _with_validated(param_type, from_json=False):
     :param param_type: A dataclass which specifies the parameters.
     :param from_json: Whether to extract parameters from JSON request body.
     """
-    schema_class = marshmallow_dataclass.class_schema(param_type)
+    schema_class = marshmallow_dataclass.class_schema(
+        param_type, base_schema=_BaseSchema
+    )
     schema = schema_class(unknown=marshmallow.EXCLUDE)
 
     def wrap(f):
@@ -378,15 +397,13 @@ def trigger_clean():
 
 @dataclass
 class _PublishBuildParams:
-    server: str = _validate(validate.Length(min=1))
+    server: ServerInfo
 
 
 @bp.route("/publish")
 @_with_validated(_PublishBuildParams)
 def publish_build(validated):
-    db = g.admin_context.pad.db
-    config = db.env.load_config()
-    server_info = config.get_server(validated.server)
+    server_info = validated.server
     info = current_app.lektor_info
 
     @eventstream
