@@ -115,6 +115,8 @@ def run_server(
     wz_as_main = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
     in_main_process = not lektor_dev or wz_as_main
     extra_flags = process_extra_flags(extra_flags)
+    if lektor_dev:
+        env.jinja_env.add_extension("jinja2.ext.debug")
 
     if in_main_process:
         background_builder = BackgroundBuilder(

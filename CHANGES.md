@@ -17,10 +17,15 @@ These are all the changes in Lektor since the first public release.
   This fixes problems with the "edit" pencil when using alternatives ([#975][]),
   and issues when page ids include colons ([#610][]).
 
+### Command Line
+
+- Enabled the [Jinja debug extension](https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension) when the `LEKTOR_DEV` env var is set to 1 and `lektor server` is used. [#984][]
+
 [#610]: https://github.com/lektor/lektor/issues/610
 [#964]: https://github.com/lektor/lektor/pull/964
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
+[#984]: https://github.com/lektor/lektor/pull/984
 
 ## 3.3.1 (2022-01-09)
 
