@@ -1,115 +1,76 @@
-import React, { Component, createRef, RefObject, SyntheticEvent } from "react";
-import {
-  fsPathFromAdminObservedPath,
-  getCanonicalUrl,
-  urlPathsConsideredEqual,
-} from "../utils";
-import { loadData } from "../fetch";
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../components/RecordComponent";
+import React, {
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { trimLeadingSlashes, trimTrailingSlashes } from "../utils";
+import { get } from "../fetch";
+import { RecordPathDetails, RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
+import { useGoToAdminPage } from "../components/use-go-to-admin-page";
 
-function getIframePath(iframe: HTMLIFrameElement): string | null {
-  const frameLocation = iframe.contentWindow?.location;
-  if (!frameLocation) {
-    return null;
-  }
-  return frameLocation.href === "about:blank"
-    ? frameLocation.href
-    : fsPathFromAdminObservedPath(frameLocation.pathname);
+function getSiteRootUrl() {
+  const site_root = `/${trimLeadingSlashes($LEKTOR_CONFIG.site_root)}`;
+  const absRootUrl = new URL(site_root, document.baseURI).href;
+  return trimTrailingSlashes(absRootUrl);
 }
 
-type State = {
-  pageUrl: string | null;
-  pageUrlFor: string | null;
-};
+function usePreviewUrl(
+  { path, alt }: RecordPathDetails,
+  siteRootUrl: string
+): string {
+  const [previewUrl, setPreviewUrl] = useState<string>("about:blank");
 
-const initialState = {
-  pageUrl: null,
-  pageUrlFor: null,
-};
-
-type Props = Pick<RecordProps, "record" | "history">;
-
-export default class PreviewPage extends Component<Props, State> {
-  iframe: RefObject<HTMLIFrameElement>;
-
-  constructor(props: Props) {
-    super(props);
-    this.state = initialState;
-    this.iframe = createRef();
-    this.onFrameNavigated = this.onFrameNavigated.bind(this);
-  }
-
-  componentDidMount() {
-    this.syncState();
-  }
-
-  shouldComponentUpdate(nextProps: Props) {
-    return (
-      getUrlRecordPath(this.props.record.path, this.props.record.alt) !==
-        this.state.pageUrlFor ||
-      nextProps.record.path !== this.props.record.path ||
-      nextProps.record.alt !== this.props.record.alt
-    );
-  }
-
-  syncState() {
-    const { alt, path } = this.props.record;
-    if (path === null) {
-      this.setState(initialState);
-    } else {
-      loadData("/previewinfo", { path, alt }).then((resp) => {
-        this.setState({
-          pageUrl: resp.url,
-          pageUrlFor: getUrlRecordPath(path, alt),
-        });
-      }, showErrorDialog);
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (
-      prevProps.record.path !== this.props.record.path ||
-      prevProps.record.alt !== this.props.record.alt
-    ) {
-      this.syncState();
-    }
-    const frame = this.iframe.current;
-    const intendedPath =
-      this.state.pageUrlFor ===
-      getUrlRecordPath(this.props.record.path, this.props.record.alt)
-        ? this.state.pageUrl
-        : null;
-    if (frame && intendedPath) {
-      const framePath = getIframePath(frame);
-
-      if (!urlPathsConsideredEqual(intendedPath, framePath)) {
-        frame.src = getCanonicalUrl(intendedPath);
+  useEffect(() => {
+    let ignore = false;
+    get("/previewinfo", { path, alt }).then(({ url }) => {
+      if (!ignore) {
+        setPreviewUrl(url ? siteRootUrl + url : "about:blank");
       }
-    }
-  }
+    }, showErrorDialog);
 
-  onFrameNavigated(event: SyntheticEvent<HTMLIFrameElement>) {
-    const fsPath = getIframePath(event.currentTarget);
-    if (fsPath !== null) {
-      loadData("/matchurl", { url_path: fsPath }).then((resp) => {
-        if (resp.exists) {
-          const urlPath = getUrlRecordPath(resp.path, resp.alt);
-          this.props.history.push(pathToAdminPage("preview", urlPath));
+    return () => {
+      ignore = true;
+    };
+  }, [path, alt, siteRootUrl]);
+
+  return previewUrl;
+}
+
+export default function PreviewPage({
+  record,
+}: Pick<RecordProps, "record">): JSX.Element {
+  const siteRootUrl = useMemo(getSiteRootUrl, []);
+  const previewUrl = usePreviewUrl(record, siteRootUrl);
+  const iframe = useRef<HTMLIFrameElement | null>(null);
+  const goToAdminPage = useGoToAdminPage();
+
+  useEffect(() => {
+    const location = iframe.current?.contentWindow?.location;
+    if (location && location.href !== previewUrl) {
+      location.replace(previewUrl);
+    }
+  }, [previewUrl]);
+
+  const onFrameNavigated = useCallback(
+    (event: SyntheticEvent<HTMLIFrameElement>) => {
+      const location = event.currentTarget.contentWindow?.location;
+      if (location && location.href !== previewUrl) {
+        if (location.href.startsWith(`${siteRootUrl}/`)) {
+          const url_path = location.href.substr(siteRootUrl.length);
+          get("/matchurl", { url_path }).then(({ exists, alt, path }) => {
+            if (exists) {
+              goToAdminPage("preview", path, alt);
+            }
+          }, showErrorDialog);
         }
-      }, showErrorDialog);
-    }
-  }
+      }
+    },
+    [goToAdminPage, previewUrl, siteRootUrl]
+  );
 
-  render() {
-    return (
-      <div className="preview">
-        <iframe ref={this.iframe} onLoad={this.onFrameNavigated} />
-      </div>
-    );
-  }
+  return <iframe className="preview" ref={iframe} onLoad={onFrameNavigated} />;
 }

@@ -14,7 +14,7 @@ function validateFloat(value: string) {
   return null;
 }
 
-export function FloatInputWidget(props: WidgetProps) {
+export function FloatInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"

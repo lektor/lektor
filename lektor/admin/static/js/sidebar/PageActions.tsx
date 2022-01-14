@@ -1,15 +1,13 @@
 import React, { MouseEvent, memo, useCallback } from "react";
-import {
-  getUrlRecordPath,
-  RecordPathDetails,
-} from "../components/RecordComponent";
-import Link from "../components/Link";
+import { RecordPathDetails } from "../components/RecordComponent";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
-import { loadData } from "../fetch";
+import { post } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
 import LinkWithHotkey from "../components/LinkWithHotkey";
+import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLink from "../components/AdminLink";
 
 const getBrowseButtonTitle = () => {
   const platform = getPlatform();
@@ -26,15 +24,14 @@ function BrowseFSLink({ record }: { record: RecordPathDetails }) {
   const fsOpen = useCallback(
     (ev: MouseEvent) => {
       ev.preventDefault();
-      loadData(
-        "/browsefs",
-        { path: record.path, alt: record.alt },
-        { method: "POST" }
-      ).then((resp) => {
-        if (!resp.okay) {
-          alert(trans("ERROR_CANNOT_BROWSE_FS"));
-        }
-      }, showErrorDialog);
+      post("/browsefs", { path: record.path, alt: record.alt }).then(
+        ({ okay }) => {
+          if (!okay) {
+            alert(trans("ERROR_CANNOT_BROWSE_FS"));
+          }
+        },
+        showErrorDialog
+      );
     },
     [record]
   );
@@ -54,10 +51,10 @@ function PageActions({
   record: RecordPathDetails;
   recordInfo: RecordInfo;
 }) {
-  const urlPath = getUrlRecordPath(record.path, record.alt);
+  const { path, alt } = record;
 
   return (
-    <div className="section">
+    <>
       <h3>
         {recordInfo.is_attachment
           ? trans("ATTACHMENT_ACTIONS")
@@ -65,17 +62,21 @@ function PageActions({
       </h3>
       <ul className="nav">
         <li key="edit">
-          <LinkWithHotkey to={`${urlPath}/edit`} shortcut={editKey}>
+          <LinkWithHotkey to={adminPath("edit", path, alt)} shortcut={editKey}>
             {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
           </LinkWithHotkey>
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">
-            <Link to={`${urlPath}/delete`}>{trans("DELETE")}</Link>
+            <AdminLink page="delete" path={path} alt={alt}>
+              {trans("DELETE")}
+            </AdminLink>
           </li>
         )}
         <li key="preview">
-          <Link to={`${urlPath}/preview`}>{trans("PREVIEW")}</Link>
+          <AdminLink page="preview" path={path} alt={alt}>
+            {trans("PREVIEW")}
+          </AdminLink>
         </li>
         {recordInfo.exists && (
           <li key="fs-open">
@@ -84,16 +85,20 @@ function PageActions({
         )}
         {recordInfo.can_have_children && (
           <li key="add-child">
-            <Link to={`${urlPath}/add-child`}>{trans("ADD_CHILD_PAGE")}</Link>
+            <AdminLink page="add-child" path={path} alt={alt}>
+              {trans("ADD_CHILD_PAGE")}
+            </AdminLink>
           </li>
         )}
         {recordInfo.can_have_attachments && (
           <li key="add-attachment">
-            <Link to={`${urlPath}/upload`}>{trans("ADD_ATTACHMENT")}</Link>
+            <AdminLink page="upload" path={path} alt={alt}>
+              {trans("ADD_ATTACHMENT")}
+            </AdminLink>
           </li>
         )}
       </ul>
-    </div>
+    </>
   );
 }
 

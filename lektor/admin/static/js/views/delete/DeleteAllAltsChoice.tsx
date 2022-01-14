@@ -1,7 +1,7 @@
 import React from "react";
 import { trans } from "../../i18n";
 
-export function DeleteAllAltsChoice({
+export default function DeleteAllAltsChoice({
   deleteMasterRecord,
   setDeleteMasterRecord,
   isAttachment,

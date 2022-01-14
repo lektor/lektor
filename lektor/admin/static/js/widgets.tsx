@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, SetStateAction, useCallback, useMemo } from "react";
 import { IntegerInputWidget } from "./widgets/IntegerInputWidget";
 import { MultiLineTextInputWidget } from "./widgets/MultiLineTextInputWidget";
 import { BooleanInputWidget } from "./widgets/BooleanInputWidget";
@@ -9,7 +9,7 @@ import { SlugInputWidget } from "./widgets/SlugInputWidget";
 import { SingleLineTextInputWidget } from "./widgets/SingleLineTextInputWidget";
 import { CheckboxesInputWidget } from "./widgets/CheckboxesInputWidget";
 import { SelectInputWidget } from "./widgets/SelectInputWidget";
-import { FlowWidget } from "./widgets/FlowWidget";
+import { FlowWidget } from "./widgets/flow/FlowWidget";
 import {
   LineWidget,
   SpacingWidget,
@@ -64,11 +64,14 @@ export const FieldBox = React.memo(function FieldBox(props: {
   value: string;
   placeholder: string | null;
   disabled?: boolean;
-  setFieldValue: (field: Field, value: string, uiChange?: boolean) => void;
+  setFieldValue: (fieldName: string, value: SetStateAction<string>) => void;
 }) {
-  const { field, value, placeholder, disabled } = props;
-  const onChange = (value: string, uiChange?: boolean) =>
-    props.setFieldValue(field, value, uiChange);
+  const { field, value, placeholder, disabled, setFieldValue } = props;
+
+  const onChange = useCallback(
+    (value: SetStateAction<string>) => setFieldValue(field.name, value),
+    [field, setFieldValue]
+  );
   const className = `col-md-${getFieldColumns(field)}`;
 
   const Widget = getWidgetComponentWithFallback(field.type);
@@ -118,7 +121,9 @@ export function getWidgetComponentWithFallback(
 /**
  * Get the width of a field in columns.
  */
-export function getFieldColumns(field: { type: Pick<WidgetType, "width"> }) {
+export function getFieldColumns(field: {
+  type: Pick<WidgetType, "width">;
+}): number {
   const widthSpec = (field.type.width || "1/1").split("/");
   const fraction = (12 * +widthSpec[0]) / +widthSpec[1];
   return Number.isNaN(fraction)
@@ -129,8 +134,8 @@ export function getFieldColumns(field: { type: Pick<WidgetType, "width"> }) {
 /**
  * Process fields into rows.
  */
-function processFields(fields: Field[]) {
-  const rows = [];
+function processFields(fields: Field[]): Field[][] {
+  const rows: Field[][] = [];
   let currentColumns = 0;
   let row: Field[] = [];
 
@@ -154,7 +159,7 @@ function processFields(fields: Field[]) {
 /**
  * Split the fields into normal and system fields.
  */
-export function splitFields(fields: Field[]) {
+export function splitFields(fields: Field[]): [Field[], Field[]] {
   const normalFields: Field[] = [];
   const systemFields: Field[] = [];
 
@@ -177,12 +182,13 @@ export function FieldRows({
   renderFunc,
 }: {
   fields: Field[];
-  renderFunc: (field: Field, index: number) => ReactNode;
-}) {
+  renderFunc: (field: Field) => ReactNode;
+}): JSX.Element {
+  const rows = useMemo(() => processFields(fields), [fields]);
   return (
     <>
-      {processFields(fields).map((row, idx) => (
-        <div className="row field-row" key={"normal-" + idx}>
+      {rows.map((row, idx) => (
+        <div key={idx} className="row field-row">
           {row.map(renderFunc)}
         </div>
       ))}

@@ -9,7 +9,7 @@ type DialogDetails = LektorEvents["lektor-dialog"];
 
 type DialogState = (DialogDetails & { preventNavigation?: boolean }) | null;
 
-export default function DialogSlot(props: RecordProps) {
+export default function DialogSlot(props: RecordProps): JSX.Element | null {
   const [dialog, setDialog] = useState<DialogState>(null);
 
   const dismiss = useCallback(
@@ -38,13 +38,7 @@ export default function DialogSlot(props: RecordProps) {
   } else if (dialog.type === "refresh") {
     return <Refresh dismiss={dismiss} preventNavigation={prevent} />;
   } else if (dialog.type === "publish") {
-    return (
-      <Publish
-        record={props.record}
-        dismiss={dismiss}
-        preventNavigation={prevent}
-      />
-    );
+    return <Publish dismiss={dismiss} preventNavigation={prevent} />;
   }
   const exhaustiveCheck: never = dialog.type;
   throw new Error(exhaustiveCheck);

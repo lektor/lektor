@@ -1,51 +1,56 @@
-import React, { ReactNode, useReducer } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useReducer } from "react";
 
 import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-import { RecordPathDetails } from "../components/RecordComponent";
+import { RecordProps } from "../components/RecordComponent";
 import ErrorDialog from "../components/ErrorDialog";
 
-export default function App({
-  children,
-  page,
-  record,
-}: {
-  children: ReactNode;
-  page: string;
-  record: RecordPathDetails;
-}) {
-  const history = useHistory();
+import EditPage from "./edit/EditPage";
+import DeletePage from "./delete/DeletePage";
+import PreviewPage from "./PreviewPage";
+import AddChildPage from "./add-child-page/AddChildPage";
+import AddAttachmentPage from "./AddAttachmentPage";
 
+const mainComponentForPage = {
+  edit: EditPage,
+  delete: DeletePage,
+  preview: PreviewPage,
+  "add-child": AddChildPage,
+  upload: AddAttachmentPage,
+} as const;
+
+export default function App({ page, record }: RecordProps) {
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
-
-  const baseSidebarClasses =
-    "sidebar-block block-offcanvas block-offcanvas-left row";
-  const sidebarClasses = sidebarIsActive
-    ? baseSidebarClasses + " active"
-    : baseSidebarClasses;
-
+  const MainComponent = mainComponentForPage[page];
   return (
-    <div className="application">
-      <ServerStatus />
+    <>
       <Header
         sidebarIsActive={sidebarIsActive}
         toggleSidebar={toggleSidebar}
         page={page}
         record={record}
       />
-      <div className="editor container">
-        <DialogSlot page={page} history={history} record={record} />
-        <ErrorDialog />
-        <div className={sidebarClasses}>
-          <nav className="sidebar col-md-2 col-sm-3 sidebar-offcanvas">
+      <ErrorDialog />
+      <DialogSlot page={page} record={record} />
+      <div className="container">
+        <div
+          className={
+            sidebarIsActive
+              ? "block-offcanvas row active"
+              : "block-offcanvas row"
+          }
+        >
+          <nav className="sidebar col-md-2 col-sm-3">
             <Sidebar page={page} record={record} />
           </nav>
-          <div className="view col-md-10 col-sm-9">{children}</div>
+          <div className="main col-md-10 col-sm-9">
+            <MainComponent record={record} />
+          </div>
         </div>
       </div>
-    </div>
+      <ServerStatus />
+    </>
   );
 }

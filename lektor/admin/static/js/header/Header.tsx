@@ -12,23 +12,23 @@ export default function Header({
 }: {
   sidebarIsActive: boolean;
   toggleSidebar: () => void;
-} & Pick<RecordProps, "record" | "page">) {
-  const buttonClass = sidebarIsActive
-    ? "navbar-toggle active"
-    : "navbar-toggle";
-
+} & RecordProps): JSX.Element {
   return (
     <header>
       <div className="container">
-        <button type="button" className={buttonClass} onClick={toggleSidebar}>
-          <span className="sr-only">Toggle navigation</span>
-          <span className="icon-list" />
-          <span className="icon-list" />
-          <span className="icon-list" />
-        </button>
+        <button
+          type="button"
+          className={
+            sidebarIsActive
+              ? "fa fa-bars navbar-toggle active"
+              : "fa fa-bars navbar-toggle"
+          }
+          onClick={toggleSidebar}
+          aria-label="Toggle navigation"
+        />
         <div className="d-flex justify-content-between">
           <BreadCrumbs page={page} record={record} />
-          <div className="global-actions">
+          <div>
             <GlobalActions record={record} />
           </div>
         </div>

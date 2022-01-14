@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { RecordPathDetails } from "../components/RecordComponent";
 import { getCanonicalUrl, keyboardShortcutHandler } from "../utils";
-import { loadData } from "../fetch";
+import { get } from "../fetch";
 import { trans } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import { dispatch } from "../events";
@@ -15,19 +15,18 @@ const onKeyPress = keyboardShortcutHandler(
   findFiles
 );
 
-export default function GlobalActions(props: { record: RecordPathDetails }) {
+export default function GlobalActions(props: {
+  record: RecordPathDetails;
+}): JSX.Element {
   useEffect(() => {
     window.addEventListener("keydown", onKeyPress);
     return () => window.removeEventListener("keydown", onKeyPress);
   }, []);
 
   const returnToWebsite = () => {
-    loadData("/previewinfo", {
-      path: props.record.path,
-      alt: props.record.alt,
-    }).then((resp) => {
+    get("/previewinfo", props.record).then(({ url }) => {
       window.location.href =
-        resp.url === null ? getCanonicalUrl("/") : getCanonicalUrl(resp.url);
+        url === null ? getCanonicalUrl("/") : getCanonicalUrl(url);
     }, showErrorDialog);
   };
 

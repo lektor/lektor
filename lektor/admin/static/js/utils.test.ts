@@ -1,9 +1,8 @@
 import { ok, strictEqual } from "assert";
 import {
   isValidUrl,
-  stripLeadingSlashes,
-  stripTrailingSlashes,
-  urlPathsConsideredEqual,
+  trimLeadingSlashes,
+  trimTrailingSlashes,
   trimSlashes,
   trimColons,
 } from "./utils";
@@ -29,24 +28,17 @@ describe("Utils", () => {
   });
 
   it("trim strings of slashes and colons", () => {
-    strictEqual(stripLeadingSlashes("///asdf"), "asdf");
-    strictEqual(stripLeadingSlashes("asdf///"), "asdf///");
-    strictEqual(stripLeadingSlashes(""), "");
-    strictEqual(stripTrailingSlashes("///asdf"), "///asdf");
-    strictEqual(stripTrailingSlashes("asdf///"), "asdf");
-    strictEqual(stripTrailingSlashes(""), "");
+    strictEqual(trimLeadingSlashes("///asdf"), "asdf");
+    strictEqual(trimLeadingSlashes("asdf///"), "asdf///");
+    strictEqual(trimLeadingSlashes(""), "");
+    strictEqual(trimTrailingSlashes("///asdf"), "///asdf");
+    strictEqual(trimTrailingSlashes("asdf///"), "asdf");
+    strictEqual(trimTrailingSlashes(""), "");
     strictEqual(trimSlashes("///asdf///"), "asdf");
     strictEqual(trimSlashes("asdf///"), "asdf");
     strictEqual(trimSlashes("///asdf"), "asdf");
     strictEqual(trimSlashes(""), "");
     strictEqual(trimColons(":asdf:"), "asdf");
     strictEqual(trimColons(":asdf:asdf:"), "asdf:asdf");
-  });
-
-  it("urlPathsConsideredEqual", () => {
-    strictEqual(urlPathsConsideredEqual(null, null), false);
-    strictEqual(urlPathsConsideredEqual("asdfs/", null), false);
-    strictEqual(urlPathsConsideredEqual("asdfs/", "asdf"), false);
-    strictEqual(urlPathsConsideredEqual("asdf/", "asdf"), true);
   });
 });

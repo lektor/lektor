@@ -2,7 +2,7 @@ import React from "react";
 import { trans, trans_fallback, trans_format, trans_obj } from "../../i18n";
 import { RecordInfo } from "../../components/types";
 
-export function DeletePageHeader({
+export default function DeletePageHeader({
   recordInfo,
   currentAlt,
 }: {

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SlideDialog from "../components/SlideDialog";
-import { loadData } from "../fetch";
+import { post } from "../fetch";
 import { trans } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 
@@ -10,13 +10,13 @@ export default function Refresh({
 }: {
   dismiss: () => void;
   preventNavigation: (v: boolean) => void;
-}) {
+}): JSX.Element {
   const [state, setState] = useState<"IDLE" | "DONE" | "CLEANING">("IDLE");
   const isSafeToNavigate = state === "IDLE" || state === "DONE";
 
   const refresh = useCallback(() => {
     setState("CLEANING");
-    loadData("/clean", null, { method: "POST" }).then(() => {
+    post("/clean", null).then(() => {
       setState("DONE");
     }, showErrorDialog);
   }, []);

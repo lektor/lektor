@@ -5,7 +5,7 @@ import InputWidgetBase from "./InputWidgetBase";
 
 const parseInteger = (s: string) => Number.parseInt(s, 10);
 
-export function isValidDate(year: number, month: number, day: number) {
+export function isValidDate(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
   return (
     date.getFullYear() === year &&
@@ -40,7 +40,7 @@ const REVERSE_DATE_RE =
 
 const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 
-export function postprocessDate(value: string) {
+export function postprocessDate(value: string): string {
   value = value.trim();
   const groups = value.match(REVERSE_DATE_RE)?.groups;
   if (groups) {
@@ -52,11 +52,13 @@ export function postprocessDate(value: string) {
   return value;
 }
 
-export function DateInputWidget(props: WidgetProps) {
+const inputAddon = <i className="fa fa-calendar" />;
+
+export function DateInputWidget(props: WidgetProps): JSX.Element {
   return (
     <InputWidgetBase
       inputType="date"
-      inputAddon={<i className="fa fa-calendar" />}
+      inputAddon={inputAddon}
       postprocessValue={postprocessDate}
       validate={validateDate}
       {...props}

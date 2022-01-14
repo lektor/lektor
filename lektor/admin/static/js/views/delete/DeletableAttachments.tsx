@@ -2,7 +2,7 @@ import React from "react";
 import { trans } from "../../i18n";
 import { RecordInfo } from "../../components/types";
 
-export function DeletableAttachments({
+export default function DeletableAttachments({
   recordInfo,
 }: {
   recordInfo: RecordInfo;
