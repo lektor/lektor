@@ -50,11 +50,10 @@ def _with_validated(param_type, from_json=False):
     The validated parameters are placed into the ``validated`` keyword
     arg of the decorated view.
 
-    If from_json is true, parameters are taken from
-    ``request.get_json()``, otherwise from ``request.values``.
+    If the request has a JSON body, the parameters are parsed from that.
+    Otherwise, the parameters are parsed from ``request.values``.
 
     :param param_type: A dataclass which specifies the parameters.
-    :param from_json: Whether to extract parameters from JSON request body.
     """
     schema_class = marshmallow_dataclass.class_schema(
         param_type, base_schema=_BaseSchema
@@ -64,7 +63,13 @@ def _with_validated(param_type, from_json=False):
     def wrap(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            data = request.get_json() if from_json else request.values
+            if (
+                request.method in ("POST", "PUT")
+                and request.mimetype == "application/json"
+            ):
+                data = request.get_json()
+            else:
+                data = request.values
             try:
                 kwargs["validated"] = schema.load(data)
             except marshmallow.ValidationError as exc:
@@ -313,7 +318,7 @@ class _NewRecordParams:
 
 
 @bp.route("/newrecord", methods=["POST"])
-@_with_validated(_NewRecordParams, from_json=True)
+@_with_validated(_NewRecordParams)
 def add_new_record(validated):
     exists = False
 
@@ -359,7 +364,7 @@ class _UpdateRawRecordParams:
 
 
 @bp.route("/rawrecord", methods=["PUT"])
-@_with_validated(_UpdateRawRecordParams, from_json=True)
+@_with_validated(_UpdateRawRecordParams)
 def update_raw_record(validated):
     ts = g.admin_context.tree.edit(validated.path, alt=validated.alt)
     with ts:
