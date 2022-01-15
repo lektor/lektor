@@ -1897,15 +1897,15 @@ class TreeItem:
             return None
         return self._primary_record.datamodel
 
-    @property
-    def label_i18n(self):
-        """Translations for the item's label."""
-        if self._primary_record is None:
+    def get_record_label_i18n(self, alt=PRIMARY_ALT):
+        """Get record label translations for specific alt."""
+        record = self.alts[alt].record
+        if record is None:
             # generate a reasonable fallback
             # ("en" is the magical fallback lang)
             label = self.id.replace("-", " ").replace("_", " ").title()
             return {"en": label or "(Index)"}
-        return self._primary_record.get_record_label_i18n()
+        return record.get_record_label_i18n()
 
     @property
     def can_have_children(self):
@@ -1913,6 +1913,12 @@ class TreeItem:
         if self._primary_record is None or self.is_attachment:
             return False
         return self._datamodel.has_own_children
+
+    @property
+    def implied_child_datamodel(self):
+        """The name of the default datamodel for children of this page, if any."""
+        datamodel = self._datamodel
+        return datamodel.child_config.model if datamodel else None
 
     @property
     def can_have_attachments(self):

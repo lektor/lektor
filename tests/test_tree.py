@@ -97,17 +97,30 @@ def test_tree_item_can_have_children(tree, path, expect):
 
 
 @pytest.mark.parametrize(
-    "path, expect",
+    "path, alt, expect",
     [
-        ("/", {"en": "Welcome"}),
-        ("/test.jpg", {"en": "test.jpg"}),
-        ("/missing/gone", {"en": "Gone"}),
-        ("/projects/bagpipe", {"en": "Bagpipe"}),
+        ("/", PRIMARY_ALT, {"en": "Welcome"}),
+        ("/test.jpg", PRIMARY_ALT, {"en": "test.jpg"}),
+        ("/missing/gone", PRIMARY_ALT, {"en": "Gone"}),
+        ("/projects/bagpipe", PRIMARY_ALT, {"en": "Bagpipe"}),
+        ("/projects/bagpipe", "de", {"en": "Dudelsack"}),
     ],
 )
-def test_tree_item_label_i18n(tree, path, expect):
+def test_tree_item_get_record_label_i18n(tree, path, alt, expect):
     item = tree.get(path)
-    assert item.label_i18n == expect
+    assert item.get_record_label_i18n(alt) == expect
+
+
+@pytest.mark.parametrize(
+    "path, expect",
+    [
+        ("/", None),
+        ("/blog", "blog-post"),
+    ],
+)
+def test_tree_implied_child_datamodel(tree, path, expect):
+    item = tree.get(path)
+    assert item.implied_child_datamodel == expect
 
 
 @pytest.mark.parametrize(
