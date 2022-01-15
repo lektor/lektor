@@ -149,6 +149,14 @@ def test_recordinfo(test_client):
     assert any(alt["alt"] == "de" for alt in data["alts"])
 
 
+def test_recordinfo_invalid_params(test_client):
+    resp = test_client.get("/admin/api/recordinfo?notpath=%2Fmyobj")
+    assert resp.status_code == 400
+    rv = resp.get_json()
+    assert rv["error"]["title"] == "Invalid parameters"
+    assert "path" in rv["error"]["messages"]
+
+
 def test_delete_field(scratch_client, scratch_content_path):
     # None in page data means to delete the field
     # Test that that works
@@ -431,6 +439,20 @@ def test_publish(test_client, mocker):
         b'data: {"msg": "Error: wups"}\n\n',
         b"data: null\n\n",
     ]
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"server": "bogus"},
+        {},
+    ],
+)
+def test_publish_bad_params(test_client, params):
+    # FIXME: should require POST
+    resp = test_client.get(f"/admin/api/publish?{urlencode(params)}")
+    assert resp.status_code == 400
+    assert "server" in resp.get_json()["error"]["messages"]
 
 
 def test_ping(test_client):
