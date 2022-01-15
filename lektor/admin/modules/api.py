@@ -1,21 +1,19 @@
 import os
 import posixpath
 from dataclasses import dataclass
-from dataclasses import field
 from functools import wraps
 from typing import Dict
 from typing import Optional
 
 import click
 import marshmallow
-import marshmallow_dataclass
+import marshmallow_dataclass as mdcls
 from flask import Blueprint
 from flask import current_app
 from flask import g
 from flask import jsonify
 from flask import make_response
 from flask import request
-from marshmallow import validate
 
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
@@ -28,20 +26,31 @@ from lektor.utils import is_valid_id
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 
+def _load_config():
+    """Get the lektor project configuration."""
+    return g.admin_context.pad.db.env.load_config()
+
+
 class _ServerInfoField(marshmallow.fields.String):
     def _deserialize(self, value, attr, data, **kwargs):
         server_id = super()._deserialize(value, attr, data, **kwargs)
-
-        db = g.admin_context.pad.db
-        config = db.env.load_config()
+        config = _load_config()
         server_info = config.get_server(server_id)
         if server_info is None:
             raise marshmallow.ValidationError("Invalid server id.")
         return server_info
 
 
-class _BaseSchema(marshmallow.Schema):
-    TYPE_MAPPING = {ServerInfo: _ServerInfoField}
+def _is_valid_alt(value):
+    config = _load_config()
+    return bool(config.is_valid_alternative(value))
+
+
+# Mark types for special validation
+_PathType = mdcls.NewType("_PathType", str)
+_AltType = mdcls.NewType("_AltType", str, validate=_is_valid_alt)
+_BoolType = mdcls.NewType("_BoolType", bool, truthy={1, "1"}, falsy={0, "0"})
+_ServerType = mdcls.NewType("_ServerType", ServerInfo, field=_ServerInfoField)
 
 
 def _with_validated(param_type, from_json=False):
@@ -55,9 +64,7 @@ def _with_validated(param_type, from_json=False):
 
     :param param_type: A dataclass which specifies the parameters.
     """
-    schema_class = marshmallow_dataclass.class_schema(
-        param_type, base_schema=_BaseSchema
-    )
+    schema_class = mdcls.class_schema(param_type)
     schema = schema_class(unknown=marshmallow.EXCLUDE)
 
     def wrap(f):
@@ -85,15 +92,10 @@ def _with_validated(param_type, from_json=False):
     return wrap
 
 
-def _validate(validate):
-    """Specify marshmallow validator for dataclass field."""
-    return field(metadata={"validate": validate})
-
-
 @dataclass
 class _PathAndAlt:
-    path: str
-    alt: str = PRIMARY_ALT
+    path: _PathType
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/pathinfo")
@@ -178,7 +180,7 @@ def get_preview_info(validated):
 @dataclass
 class _FindParams:
     q: str
-    alt: str = PRIMARY_ALT
+    alt: _AltType = PRIMARY_ALT
     lang: Optional[str] = None
 
 
@@ -313,8 +315,8 @@ class _NewRecordParams:
     id: str
     model: Optional[str]
     data: Dict[str, Optional[str]]
-    path: str
-    alt: str = PRIMARY_ALT
+    path: _PathType
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/newrecord", methods=["POST"])
@@ -339,28 +341,26 @@ def add_new_record(validated):
 
 @dataclass
 class _DeleteRecordParams:
-    # Could use typing.Literal but requires recent python or typing-extensions
-    delete_master: str = _validate(validate.OneOf(["0", "1"]))
-    path: str
-    alt: str = PRIMARY_ALT
+    delete_master: _BoolType
+    path: _PathType
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/deleterecord", methods=["POST"])
 @_with_validated(_DeleteRecordParams)
 def delete_record(validated):
-    delete_master = validated.delete_master == "1"
     if validated.path != "/":
         ts = g.admin_context.tree.edit(validated.path, alt=validated.alt)
         with ts:
-            ts.delete(delete_master=delete_master)
+            ts.delete(delete_master=validated.delete_master)
     return jsonify(okay=True)
 
 
 @dataclass
 class _UpdateRawRecordParams:
     data: Dict[str, Optional[str]]
-    path: str
-    alt: str = PRIMARY_ALT
+    path: _PathType
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/rawrecord", methods=["PUT"])
@@ -374,8 +374,7 @@ def update_raw_record(validated):
 
 @bp.route("/servers")
 def get_servers():
-    db = g.admin_context.pad.db
-    config = db.env.load_config()
+    config = _load_config()
     servers = config.get_servers(public=True)
     return jsonify(
         servers=sorted(
@@ -402,7 +401,7 @@ def trigger_clean():
 
 @dataclass
 class _PublishBuildParams:
-    server: ServerInfo
+    server: _ServerType
 
 
 @bp.route("/publish")

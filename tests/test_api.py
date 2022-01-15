@@ -11,6 +11,7 @@ import pytest
 from lektor.admin import WebAdmin
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
+from lektor.editor import EditorSession
 from lektor.environment import Environment
 from lektor.project import Project
 from lektor.publisher import PublishError
@@ -140,6 +141,21 @@ def test_eventstream_yield_bytes():
     assert count >= 2
 
 
+@pytest.mark.parametrize(
+    "endpoint, params, invalid",
+    [
+        ("recordinfo", {}, {"path"}),
+        ("previewinfo", {"path": "/", "alt": "BAD"}, {"alt"}),
+    ],
+)
+def test_invalid_params(test_client, endpoint, params, invalid):
+    resp = test_client.get(f"/admin/api/{endpoint}?{urlencode(params)}")
+    assert resp.status_code == 400
+    error = resp.get_json()["error"]
+    assert error["title"] == "Invalid parameters"
+    assert set(error["messages"].keys()) == invalid
+
+
 def test_recordinfo(test_client):
     resp = test_client.get("/admin/api/recordinfo?path=%2F")
     assert resp.status_code == 200
@@ -147,14 +163,6 @@ def test_recordinfo(test_client):
     assert any(att["id"] == "hello.txt" for att in data["attachments"])
     assert any(page["id"] == "blog" for page in data["children"])
     assert any(alt["alt"] == "de" for alt in data["alts"])
-
-
-def test_recordinfo_invalid_params(test_client):
-    resp = test_client.get("/admin/api/recordinfo?notpath=%2Fmyobj")
-    assert resp.status_code == 400
-    rv = resp.get_json()
-    assert rv["error"]["title"] == "Invalid parameters"
-    assert "path" in rv["error"]["messages"]
 
 
 def test_delete_field(scratch_client, scratch_content_path):
@@ -355,14 +363,17 @@ def test_add_new_record(
         assert dstpath.exists()
 
 
-def test_delete_record(scratch_client, scratch_content_path):
-    dstfile = scratch_content_path / "myobj/contents.lr"
-    assert dstfile.exists()
-    params = {"path": "/myobj", "delete_master": "1"}
+@pytest.mark.parametrize(
+    "delete_master, expect", [("1", True), (True, True), ("0", False), (False, False)]
+)
+def test_delete_record(scratch_client, mocker, delete_master, expect):
+    mocker.patch.object(EditorSession, "delete")
+    params = {"path": "/myobj", "delete_master": delete_master}
     resp = scratch_client.post("/admin/api/deleterecord", json=params)
     assert resp.status_code == 200
-    assert resp.get_json()["okay"]
-    assert not dstfile.exists()
+    assert EditorSession.delete.mock_calls == [
+        mocker.call(delete_master=expect),
+    ]
 
 
 @pytest.mark.parametrize(
