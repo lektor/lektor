@@ -69,7 +69,7 @@ def get_record_info():
                 "path": x.path,
                 "type": x.attachment_type,
             }
-            for x in tree_item.iter_attachments(alt)
+            for x in tree_item.iter_attachments()
         ],
         children=[
             {
