@@ -1,7 +1,16 @@
 import os
 import posixpath
 import shutil
+import warnings
+from collections import ChainMap
 from collections import OrderedDict
+from collections.abc import ItemsView
+from collections.abc import KeysView
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import ValuesView
+from functools import wraps
+from itertools import chain
 
 from lektor.constants import PRIMARY_ALT
 from lektor.metaformat import serialize
@@ -93,6 +102,26 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     )
 
 
+def _deprecated_data_proxy(wrapped):
+    """Issue warning when deprecated mapping methods are used directly on
+    EditorSession.
+    """
+
+    name = wrapped.__name__
+    newname = name[4:] if name.startswith("iter") else name
+
+    @wraps(wrapped)
+    def wrapper(self, *args, **kwargs):
+        warnings.warn(
+            f"EditorSession.{name} has been deprecated as of Lektor 3.3.2. "
+            f"Please use EditorSession.data.{newname} instead.",
+            DeprecationWarning,
+        )
+        return wrapped(self, *args, **kwargs)
+
+    return wrapper
+
+
 class EditorSession:
     def __init__(
         self,
@@ -112,8 +141,6 @@ class EditorSession:
         self.path = path
         self.record = record
         self.exists = exists
-        self.original_data = original_data
-        self.fallback_data = fallback_data
         self.datamodel = datamodel
         self.is_root = path.strip("/") == ""
         self.alt = alt
@@ -125,15 +152,15 @@ class EditorSession:
             if parent is not None:
                 slug_format = parent.datamodel.child_config.slug_format
         if slug_format is None:
-            slug_format = u"{{ this._id }}"
+            slug_format = "{{ this._id }}"
         self.slug_format = slug_format
         self.implied_attachment_type = None
 
         if is_attachment:
             self.implied_attachment_type = pad.db.get_attachment_type(path)
 
-        self._data = {}
-        self._changed = set()
+        self.data = MutableEditorData(original_data, fallback_data)
+
         self._delete_this = False
         self._recursive_delete = False
         self._master_delete = False
@@ -152,7 +179,7 @@ class EditorSession:
             label = self.id
         can_be_deleted = not self.datamodel.protected and not self.is_root
         return {
-            "data": dict(self.iteritems()),
+            "data": dict(self.data.items()),
             "record_info": {
                 "id": self.id,
                 "path": self.path,
@@ -170,48 +197,6 @@ class EditorSession:
             "datamodel": self.datamodel.to_json(self.pad, self.record, self.alt),
         }
 
-    def __contains__(self, key):
-        try:
-            self[key]  # pylint: disable=pointless-statement
-            return True
-        except KeyError:
-            return False
-
-    def __getitem__(self, key):
-        if key in self._data:
-            rv = self._data[key]
-            if rv is None:
-                raise KeyError(key)
-            return rv
-        if key in self.original_data:
-            return self.original_data[key]
-        if self.fallback_data and key in self.fallback_data:
-            return self.fallback_data[key]
-        raise KeyError(key)
-
-    def __setitem__(self, key, value):
-        if key in self.original_data:
-            old_value = self.original_data[key]
-        elif self.fallback_data and key in self.fallback_data:
-            old_value = self.fallback_data[key]
-        else:
-            old_value = None
-
-        if old_value != value:
-            self._changed.add(key)
-        else:
-            # If the key is in the possibly implied key set and set to
-            # that value, we will set it to changed anyways.  This allows
-            # overriding of such special keys.
-            if key in possibly_implied_keys:
-                self._changed.add(value)
-            else:
-                self._changed.discard(value)
-        self._data[key] = value
-
-    def __delitem__(self, key):
-        self[key] = None
-
     def __enter__(self):
         return self
 
@@ -220,61 +205,6 @@ class EditorSession:
             self.rollback()
         else:
             self.commit()
-
-    def update(self, *args, **kwargs):
-        for key, value in dict(*args, **kwargs).items():
-            self[key] = value
-
-    def iteritems(self, fallback=True):
-        done = set()
-
-        for key, value in self.original_data.items():
-            done.add(key)
-            if key in implied_keys:
-                continue
-            if key in self._changed:
-                value = self._data[key]
-            if value is not None:
-                yield key, value
-
-        if fallback and self.fallback_data:
-            for key, value in self.fallback_data.items():
-                if key in implied_keys or key in done:
-                    continue
-                done.add(key)
-                if key in self._changed:
-                    value = self._data[key]
-                if value is not None:
-                    yield key, value
-
-        for key in sorted(self._data):
-            if key in done:
-                continue
-            value = self._data.get(key)
-            if value is not None:
-                yield key, value
-
-    def iterkeys(self, fallback=True):
-        for key, _ in self.iteritems(fallback=fallback):
-            yield key
-
-    def itervalues(self, fallback=True):
-        for _, value in self.iteritems(fallback=fallback):
-            yield value
-
-    def items(self, fallback=True):
-        return list(self.iteritems(fallback=fallback))
-
-    def keys(self, fallback=True):
-        return list(self.iterkeys(fallback=fallback))
-
-    def values(self, fallback=True):
-        return list(self.itervalues(fallback=fallback))
-
-    __iter__ = iterkeys
-
-    def __len__(self):
-        return len(self.items())
 
     def get_fs_path(self, alt=PRIMARY_ALT):
         """The path to the record file on the file system."""
@@ -297,12 +227,6 @@ class EditorSession:
         if self.is_attachment:
             return self.pad.db.to_fs_path(self.path)
         return None
-
-    def revert_key(self, key):
-        """Reverts a key to the implied value."""
-        if key in self._data:
-            self._changed.discard(key)
-        self._data.pop(key, None)
 
     def rollback(self):
         """Ignores all changes and rejects them."""
@@ -419,7 +343,7 @@ class EditorSession:
         # When creating a new alt from a primary self.exists is True but
         # the file does not exist yet.  In this case we want to explicitly
         # create it anyways instead of bailing.
-        if not self._changed and self.exists and os.path.exists(self.fs_path):
+        if not self.data.ischanged() and self.exists and os.path.exists(self.fs_path):
             return
 
         try:
@@ -428,7 +352,7 @@ class EditorSession:
             pass
 
         with atomic_open(self.fs_path, "wb") as f:
-            for chunk in serialize(self.iteritems(fallback=False), encoding="utf-8"):
+            for chunk in serialize(self.data.items(fallback=False), encoding="utf-8"):
                 f.write(chunk)
 
     def __repr__(self):
@@ -438,3 +362,172 @@ class EditorSession:
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
             not self.exists and " new" or "",
         )
+
+    # The mapping methods used to access the page data have been moved
+    # to EditorSession.data.
+    #
+    # We have left behind these proxy methods so as not to break any existing
+    # external code.
+    @_deprecated_data_proxy
+    def revert_key(self, key):
+        self.data.revert_key(key)
+
+    @_deprecated_data_proxy
+    def __contains__(self, key):
+        return key in self.data
+
+    @_deprecated_data_proxy
+    def __getitem__(self, key):
+        return self.data[key]
+
+    @_deprecated_data_proxy
+    def __len__(self):
+        return len(self.data)
+
+    @_deprecated_data_proxy
+    def __iter__(self):
+        return iter(self.data)
+
+    @_deprecated_data_proxy
+    def items(self, fallback=True):
+        return self.data.items(fallback)
+
+    @_deprecated_data_proxy
+    def keys(self, fallback=True):
+        return self.data.keys(fallback)
+
+    @_deprecated_data_proxy
+    def values(self, fallback=True):
+        return self.data.values(fallback)
+
+    @_deprecated_data_proxy
+    def iteritems(self, fallback=True):
+        return self.data.items(fallback)
+
+    @_deprecated_data_proxy
+    def iterkeys(self, fallback=True):
+        return self.data.keys(fallback)
+
+    @_deprecated_data_proxy
+    def itervalues(self, fallback=True):
+        return self.data.values(fallback)
+
+    @_deprecated_data_proxy
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    @_deprecated_data_proxy
+    def update(self, *args, **kwargs):
+        self.data.update(*args, **kwargs)
+
+
+del _deprecated_data_proxy
+
+
+class EditorData(Mapping):
+    """A read-only view of edited data.
+
+    This is a chained dict with (possibly) mutated data overlayed on
+    the original data for the record.
+    """
+
+    def __init__(self, original_data, fallback_data=None, _changed_data=None):
+        if _changed_data is None:
+            _changed_data = {}
+        self.fallback_data = fallback_data
+        if fallback_data:
+            self._orig_data = ChainMap(original_data, fallback_data)
+            self._data = ChainMap(_changed_data, original_data, fallback_data)
+        else:
+            self._orig_data = original_data
+            self._data = ChainMap(_changed_data, original_data)
+
+    @property
+    def _changed_data(self):
+        return self._data.maps[0]
+
+    @property
+    def original_data(self):
+        return self._data.maps[1]
+
+    def ischanged(self):
+        return len(self._changed_data) > 0
+
+    def __getitem__(self, key):
+        rv = self._data.get(key)
+        if rv is None:
+            raise KeyError(key)
+        return rv
+
+    def __iter__(self):
+        data = self._data
+        fallback_data = self.fallback_data or {}
+
+        for key in _uniq(chain(self.original_data, fallback_data, sorted(data))):
+            if key not in implied_keys:
+                if data[key] is not None:
+                    yield key
+
+    def __len__(self):
+        data = self._data
+        return sum(
+            1 for key in data if key not in implied_keys and data[key] is not None
+        )
+
+    def keys(self, fallback=True):  # pylint: disable=arguments-differ
+        return KeysView(self if fallback else self._without_fallback())
+
+    def items(self, fallback=True):  # pylint: disable=arguments-differ
+        return ItemsView(self if fallback else self._without_fallback())
+
+    def values(self, fallback=True):  # pylint: disable=arguments-differ
+        return ValuesView(self if fallback else self._without_fallback())
+
+    def _without_fallback(self):
+        """Return a copy of self, with fallback_data set to None."""
+        if not self.fallback_data:
+            return self
+        return EditorData(self.original_data, _changed_data=self._changed_data)
+
+
+class MutableEditorData(EditorData, MutableMapping):
+    """A mutable view of edited data.
+
+    This is a chained dict with (possibly) mutated data overlayed on
+    the original data for the record.
+    """
+
+    def __setitem__(self, key, value):
+        if key in implied_keys:
+            raise KeyError(f"Can not set implied key {key!r}")
+        orig_value = self._orig_data.get(key)
+        if value != orig_value:
+            self._data[key] = value
+        elif key in possibly_implied_keys:
+            # If the key is in the possibly implied key set and set to
+            # that value, we will set it to changed anyways.  This allows
+            # overriding of such special keys.
+            self._data[key] = value
+        else:
+            self._data.pop(key, None)
+
+    def __delitem__(self, key):
+        if key in implied_keys or self._data.get(key) is None:
+            raise KeyError(key)
+        self[key] = None
+
+    def revert_key(self, key):
+        """Reverts a key to the implied value."""
+        self._data.pop(key, None)
+
+
+def _uniq(seq):
+    """Return items from iterable in order, skipping items that have already been seen.
+
+    The items in ``seq`` must be hashable.
+    """
+    seen = set()
+    for item in seq:
+        if item not in seen:
+            seen.add(item)
+            yield item
