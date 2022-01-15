@@ -1,58 +1,94 @@
-import os
-
 import flask
 import pytest
 from werkzeug.exceptions import HTTPException
 
 from lektor.admin.webui import WebAdmin
+from lektor.constants import PRIMARY_ALT
+
 
 app = flask.Flask(__name__)
 
 
-def test_index_html(tmpdir, env):
-    webadmin = WebAdmin(env, output_path=str(tmpdir.mkdir("webadmin")))
-    info = webadmin.lektor_info
+@pytest.fixture
+def output_path(tmp_path):
+    output_path = tmp_path / "webadmin"
+    output_path.mkdir()
+    return output_path
 
-    def resolve(to_resolve):
-        with app.test_request_context(to_resolve):
-            return info.resolve_artifact(to_resolve)
 
-    # /dir_with_index_html adds slash, then returns contents of index.html.
+@pytest.fixture
+def lektor_info(env, output_path):
+    webadmin = WebAdmin(env, output_path=output_path.__fspath__())
+    return webadmin.lektor_info
+
+
+@pytest.fixture
+def resolve_artifact(lektor_info):
+    def resolve(url_path):
+        with app.test_request_context(url_path):
+            return lektor_info.resolve_artifact(url_path)
+
+    return resolve
+
+
+@pytest.mark.parametrize(
+    "url_path, expected",
+    [
+        (
+            "/dir_with_index_html/",
+            (
+                "dir_with_index_html/index.html",
+                "dir_with_index_html/index.html",
+                None,
+                PRIMARY_ALT,
+            ),
+        ),
+        (
+            "/dir_with_index_htm/",
+            (
+                "dir_with_index_htm/index.htm",
+                "dir_with_index_htm/index.htm",
+                None,
+                PRIMARY_ALT,
+            ),
+        ),
+        (
+            "/empty",
+            # Resolves to Directory, so has alt
+            (None, "empty", None, PRIMARY_ALT),
+        ),
+        ("/missing", (None, "missing", None, None)),  # Does not resolve, no alt
+        ("/extra/", ("extra/index.html", "extra/index.html", "/extra", "en")),
+        (
+            "/de/extra/long/path/",
+            (
+                "de/extra/long/path/index.html",
+                "de/extra/long/path/index.html",
+                "/extra/slash-slug",
+                "de",
+            ),
+        ),
+    ],
+)
+def test_resolve_artifact(resolve_artifact, url_path, expected, output_path):
+    def massage_expected(expected):
+        artifact_name, filename, record_path, alt = expected
+        # NB: this converts filename to native (e.g. pathsep=='\\' on windows) path
+        filename = output_path.joinpath(filename).__fspath__()
+        return artifact_name, filename, record_path, alt
+
+    assert resolve_artifact(url_path) == massage_expected(expected)
+
+
+@pytest.mark.parametrize(
+    "url_path, location",
+    [
+        ("/dir_with_index_html", "dir_with_index_html/"),
+        ("/dir_with_index_htm", "dir_with_index_htm/"),
+    ],
+)
+def test_resolve_artifact_redirects(resolve_artifact, url_path, location):
     with pytest.raises(HTTPException) as exc:
-        resolve("/dir_with_index_html")
-
+        resolve_artifact(url_path)
     assert exc.value.response.status_code == 301
-    assert exc.value.response.headers["Location"] == "dir_with_index_html/"
-
-    artifact_folder = "dir_with_index_html"
-    artifact_item = "index.html"
-    artifact = "{}/{}".format(artifact_folder, artifact_item)
-    artifact_path = os.path.join(
-        info.output_path,
-        artifact_folder,
-        artifact_item,
-    )
-    assert resolve("/dir_with_index_html/") == (artifact, artifact_path)
-
-    # Same for index.htm as for index.html.
-    with pytest.raises(HTTPException) as exc:
-        resolve("/dir_with_index_htm")
-
-    assert exc.value.response.status_code == 301
-    assert exc.value.response.headers["Location"] == "dir_with_index_htm/"
-
-    artifact_folder = "dir_with_index_htm"
-    artifact_item = "index.htm"
-    artifact = "{}/{}".format(artifact_folder, artifact_item)
-    artifact_path = os.path.join(
-        info.output_path,
-        artifact_folder,
-        artifact_item,
-    )
-    assert resolve("/dir_with_index_htm/") == (artifact, artifact_path)
-
-    # Empty or absent directory has default resolution behavior.
-    artifact_path = os.path.join(info.output_path, "empty")
-    assert resolve("/empty") == (None, artifact_path)
-    artifact_path = os.path.join(info.output_path, "doesnt_exist")
-    assert resolve("/doesnt_exist") == (None, artifact_path)
+    assert exc.value.response.headers["Location"] == location

@@ -1,124 +1,101 @@
-import React, { ChangeEvent, Component, KeyboardEvent } from "react";
+import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
 
-import {
-  getUrlRecordPath,
-  pathToAdminPage,
-  RecordProps,
-} from "../../components/RecordComponent";
+import { RecordProps } from "../../components/RecordComponent";
 import SlideDialog from "../../components/SlideDialog";
-import { loadData } from "../../fetch";
+import { post } from "../../fetch";
 import { getCurrentLanguge, trans } from "../../i18n";
 import { showErrorDialog } from "../../error-dialog";
 import ResultRow from "./ResultRow";
+import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
-export type Result = {
+export type SearchResult = {
   parents: { title: string }[];
-  path: string;
+  path: RecordProps["record"]["path"];
   title: string;
 };
 
-type State = {
-  query: string;
-  selected: number;
-  results: Result[];
-};
+function FindFiles({
+  page,
+  record,
+  dismiss,
+}: RecordProps & { dismiss: () => void }): JSX.Element {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [selected, setSelected] = useState(-1);
 
-type Props = RecordProps & { dismiss: () => void };
+  const goToAdminPage = useGoToAdminPage();
 
-class FindFiles extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { query: "", results: [], selected: -1 };
+  const { alt } = record;
+  const target = page === "preview" ? "preview" : "edit";
 
-    this.onInputChange = this.onInputChange.bind(this);
-    this.onInputKey = this.onInputKey.bind(this);
-  }
-
-  onInputChange(event: ChangeEvent<HTMLInputElement>) {
-    const query = event.target.value;
-
-    if (query === "") {
-      this.setState({ query, results: [], selected: -1 });
-    } else {
-      this.setState({ query });
-
-      loadData(
-        "/find",
-        { q: query, alt: this.props.record.alt, lang: getCurrentLanguge() },
-        { method: "POST" }
-      ).then(({ results }) => {
-        this.setState(({ selected }) => ({
-          results,
-          selected: Math.min(selected, results.length - 1),
-        }));
-      }, showErrorDialog);
+  useEffect(() => {
+    if (!query) {
+      setResults([]);
+      setSelected(-1);
+      return;
     }
-  }
+    let ignore = false;
 
-  onInputKey(event: KeyboardEvent) {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      this.setState(({ selected, results }) => ({
-        selected: (selected + 1) % results.length,
-      }));
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      this.setState(({ selected, results }) => ({
-        selected: (selected - 1 + results.length) % results.length,
-      }));
-    } else if (event.key === "Enter") {
-      const item = this.state.results[this.state.selected];
-      if (item) {
-        this.goto(item);
-      }
-    }
-  }
-
-  goto(item: Result) {
-    const target = this.props.page === "preview" ? "preview" : "edit";
-    const urlPath = getUrlRecordPath(item.path, this.props.record.alt);
-    this.props.dismiss();
-    this.props.history.push(pathToAdminPage(target, urlPath));
-  }
-
-  select(index: number) {
-    this.setState((state) => ({
-      selected: Math.min(index, state.results.length - 1),
-    }));
-  }
-
-  render() {
-    return (
-      <SlideDialog
-        dismiss={this.props.dismiss}
-        hasCloseButton
-        title={trans("FIND_FILES")}
-      >
-        <div className="form-group">
-          <input
-            type="text"
-            autoFocus
-            className="form-control"
-            value={this.state.query}
-            onChange={this.onInputChange}
-            onKeyDown={this.onInputKey}
-            placeholder={trans("FIND_FILES_PLACEHOLDER")}
-          />
-        </div>
-        <ul className="search-results">
-          {this.state.results.map((result, idx) => (
-            <ResultRow
-              key={idx}
-              result={result}
-              isActive={idx === this.state.selected}
-              onClick={this.goto.bind(this, result)}
-              onMouseEnter={this.select.bind(this, idx)}
-            />
-          ))}
-        </ul>
-      </SlideDialog>
+    post("/find", { q: query, alt, lang: getCurrentLanguge() }).then(
+      ({ results }) => {
+        if (!ignore) {
+          setResults(results);
+          setSelected((selected) => Math.min(selected, results.length - 1));
+        }
+      },
+      showErrorDialog
     );
-  }
+    return () => {
+      ignore = true;
+    };
+  }, [alt, query]);
+
+  const onInputKey = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setSelected((selected) => (selected + 1) % results.length);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setSelected(
+          (selected) => (selected - 1 + results.length) % results.length
+        );
+      } else if (event.key === "Enter") {
+        const item = results[selected];
+        if (item) {
+          dismiss();
+          goToAdminPage(target, item.path, alt);
+        }
+      }
+    },
+    [alt, dismiss, goToAdminPage, results, selected, target]
+  );
+
+  return (
+    <SlideDialog dismiss={dismiss} hasCloseButton title={trans("FIND_FILES")}>
+      <input
+        type="text"
+        autoFocus
+        className="form-control"
+        value={query}
+        onChange={(ev) => setQuery(ev.target.value)}
+        onKeyDown={onInputKey}
+        placeholder={trans("FIND_FILES_PLACEHOLDER")}
+      />
+      <ul className="search-results">
+        {results.map((result, idx) => (
+          <ResultRow
+            key={result.path}
+            result={result}
+            isActive={idx === selected}
+            dismiss={dismiss}
+            alt={record.alt}
+            target={target}
+          />
+        ))}
+      </ul>
+    </SlideDialog>
+  );
 }
 
 export default FindFiles;

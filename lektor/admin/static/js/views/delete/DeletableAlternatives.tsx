@@ -2,7 +2,7 @@ import React from "react";
 import { trans, trans_obj } from "../../i18n";
 import { RecordInfo } from "../../components/types";
 
-export function DeletableAlternatives({
+export default function DeletableAlternatives({
   recordInfo,
 }: {
   recordInfo: RecordInfo;

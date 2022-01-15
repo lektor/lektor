@@ -1,0 +1,19 @@
+/*
+The following styles are relevant for the static admin pages:
+before JS has loaded / in cases of build errors
+*/
+div.loadbox {
+  font-size: 24px;
+  text-align: center;
+  margin-top: 60px;
+}
+
+div.box {
+  margin-top: 20px;
+}
+
+pre.traceback {
+  background: $header-taint;
+  color: white;
+  padding: 10px 15px;
+}

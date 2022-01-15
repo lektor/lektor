@@ -2,16 +2,81 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.3.1 (unreleased)
+## 3.3.2 (unreleased)
+
+### Bugs
+
+#### Admin API
+
+- Fix a bug in `make_editor_session` when editing non-existant pages
+  with a non-primary alt. ([#964][])
+- Fix the ability to add an initial flowblock to a page. (Broken in 3.3.1.)
+- Refactor API views to move business logic back into the `Tree`
+  adapter ([#967][]). This fixes [#962][].
+
+#### Admin UI
+
+- Changed the structure of the URLs used by the GUI single-page app ([#976][]).
+  This fixes problems with the "edit" pencil when using alternatives ([#975][]),
+  and issues when page ids include colons ([#610][]).
+
+### Command Line
+
+- Enabled the [Jinja debug extension][jinja-dbg-ext] when the
+  `LEKTOR_DEV` env var is set to 1 and `lektor server` is
+  used. ([#984][])
+
+[#610]: https://github.com/lektor/lektor/issues/610
+[#962]: https://github.com/lektor/lektor/issues/962
+[#964]: https://github.com/lektor/lektor/pull/964
+[#967]: https://github.com/lektor/lektor/pull/967
+[#975]: https://github.com/lektor/lektor/issues/975
+[#976]: https://github.com/lektor/lektor/pull/976
+[#984]: https://github.com/lektor/lektor/pull/984
+[jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
+
+## 3.3.1 (2022-01-09)
 
 ### Bugs Fixed
 
-#### CI Tests
+- Fixed an import cycle which caused in `ImportError` if
+  `lektor.types` was imported before `lektor.environemnt`. [#974][]
+
+#### Deprecations
+
+- Disuse deprecated `Thread.setDaemon()`. [#979][]
+
+#### Admin UI
+
+- Fix spastic scroll behavior when editing flow elements. [#640][]
+- Fix admin GUI when page contains an unknown flowblock type. [#968][]
+- Fix admin GUI layout on mobile devices. [#981][]
+
+#### Tests
 
 - Increased timeout in `test_watcher.IterateInThread` to prevent
   random spurious failures during CI testing.
 - Fix `tests/test_prev_next_sibling.py` so as to allow running
   multiple test runs in parallel.
+- Use per-testenv coverage files to prevent contention when running `tox --parallel`.
+- Mark tests that require a working internet connections with pytest mark `requiresinternet`. [#983][]
+
+### Refactors
+
+#### Admin UI
+
+- Finish rewriting React class-based components to function-based components. [#977][]
+- Finish adding types for all API endpoints. [#980][]
+- Remove disused event-source polyfill.
+
+[#640]: https://github.com/lektor/lektor/issues/640
+[#968]: https://github.com/lektor/lektor/issues/968
+[#974]: https://github.com/lektor/lektor/pull/974
+[#977]: https://github.com/lektor/lektor/pull/977
+[#979]: https://github.com/lektor/lektor/pull/979
+[#980]: https://github.com/lektor/lektor/pull/980
+[#981]: https://github.com/lektor/lektor/pull/981
+[#983]: https://github.com/lektor/lektor/pull/983
 
 ## 3.3.0 (2021-12-14)
 

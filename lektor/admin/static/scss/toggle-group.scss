@@ -1,0 +1,39 @@
+div.toggle-group {
+  padding: 10px;
+  margin: 15px 0;
+  background: $background-taint;
+  border: 1px solid $panel-border-color;
+
+  .toggle-group-header {
+    margin: 0;
+    cursor: pointer;
+    line-height: 20px;
+    font-size: 15px;
+    height: 20px;
+
+    &::before {
+      content: "▼";
+      display: block;
+      float: left;
+      width: 16px;
+      font-size: 12px;
+      text-align: left;
+      text-decoration: none;
+      color: $toggle-group-color;
+    }
+  }
+
+  .toggle-group-content {
+    margin-top: 0.5rem;
+  }
+
+  &.closed {
+    .toggle-group-header::before {
+      content: "▶";
+    }
+
+    .toggle-group-content {
+      display: none;
+    }
+  }
+}

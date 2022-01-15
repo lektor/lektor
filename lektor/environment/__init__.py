@@ -25,7 +25,6 @@ from lektor.packages import load_packages
 from lektor.pluginsystem import initialize_plugins
 from lektor.pluginsystem import PluginController
 from lektor.publisher import builtin_publishers
-from lektor.types import builtin_types
 from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
@@ -152,6 +151,9 @@ class Environment:
             dateformat=_pass_locale(dates.format_date),
             timeformat=_pass_locale(dates.format_time),
         )
+
+        # pylint: disable=import-outside-toplevel
+        from lektor.types import builtin_types
 
         self.types = builtin_types.copy()
 

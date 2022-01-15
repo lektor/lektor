@@ -31,6 +31,7 @@ def get_record_and_parent(path):
 @bp.route("/pathinfo")
 def get_path_info():
     """Returns the path segment information for a record."""
+    alt = request.args.get("alt") or PRIMARY_ALT
     tree_item = g.admin_context.tree.get(request.args["path"])
     segments = []
 
@@ -39,7 +40,7 @@ def get_path_info():
             {
                 "id": tree_item.id,
                 "path": tree_item.path,
-                "label_i18n": tree_item.label_i18n,
+                "label_i18n": tree_item.get_record_label_i18n(alt),
                 "exists": tree_item.exists,
                 "can_have_children": tree_item.can_have_children,
             }
@@ -52,39 +53,14 @@ def get_path_info():
 
 @bp.route("/recordinfo")
 def get_record_info():
-    pad = g.admin_context.pad
     request_path = request.args["path"]
+    alt = request.args.get("alt") or PRIMARY_ALT
     tree_item = g.admin_context.tree.get(request_path)
-    children = []
-    attachments = []
-    alts = []
-
-    for child in tree_item.iter_children():
-        if child.is_attachment:
-            attachments.append(child)
-        else:
-            children.append(child)
-
-    primary_alt = pad.db.config.primary_alternative
-    if primary_alt is not None:
-        for alt in tree_item.alts.values():
-            alt_cfg = pad.db.config.get_alternative(alt.id)
-            alts.append(
-                {
-                    "alt": alt.id,
-                    "is_primary": alt.id == PRIMARY_ALT,
-                    "primary_overlay": alt.id == primary_alt,
-                    "name_i18n": alt_cfg["name"],
-                    "exists": alt.exists,
-                }
-            )
-
-    child_order_by = pad.query(request_path).get_order_by() or []
 
     return jsonify(
         id=tree_item.id,
         path=tree_item.path,
-        label_i18n=tree_item.label_i18n,
+        label_i18n=tree_item.get_record_label_i18n(alt),
         exists=tree_item.exists,
         is_attachment=tree_item.is_attachment,
         attachments=[
@@ -93,21 +69,28 @@ def get_record_info():
                 "path": x.path,
                 "type": x.attachment_type,
             }
-            for x in attachments
+            for x in tree_item.iter_attachments(alt)
         ],
         children=[
             {
                 "id": x.id,
                 "path": x.path,
                 "label": x.id,
-                "label_i18n": x.label_i18n,
+                "label_i18n": x.get_record_label_i18n(alt),
                 "visible": x.is_visible,
             }
-            for x in sorted(
-                children, key=lambda c: pad.get(c.path).get_sort_key(child_order_by)
-            )
+            for x in tree_item.iter_subpages()
         ],
-        alts=alts,
+        alts=[
+            {
+                "alt": _.id,
+                "is_primary": _.id == PRIMARY_ALT,
+                "primary_overlay": _.is_primary_overlay,
+                "name_i18n": _.name_i18n,
+                "exists": _.exists,
+            }
+            for _ in tree_item.alts.values()
+        ],
         can_have_children=tree_item.can_have_children,
         can_have_attachments=tree_item.can_have_attachments,
         can_be_deleted=tree_item.can_be_deleted,
@@ -167,17 +150,9 @@ def get_raw_record():
 
 @bp.route("/newrecord")
 def get_new_record_info():
-    # XXX: convert to tree usage
     pad = g.admin_context.pad
     alt = request.args.get("alt") or PRIMARY_ALT
-    ts = g.admin_context.tree.edit(request.args["path"], alt=alt)
-    if ts.is_attachment:
-        can_have_children = False
-    elif ts.datamodel.child_config.replaced_with is not None:
-        can_have_children = False
-    else:
-        can_have_children = True
-    implied = ts.datamodel.child_config.model
+    tree_item = g.admin_context.tree.get(request.args["path"])
 
     def describe_model(model):
         primary_field = None
@@ -192,15 +167,18 @@ def get_new_record_info():
             "primary_field": primary_field,
         }
 
+    implied_model = tree_item.implied_child_datamodel
+    label_i18n = tree_item.get_record_label_i18n(alt)
     return jsonify(
         {
-            "label": ts.record and ts.record.record_label or ts.id,
-            "can_have_children": can_have_children,
-            "implied_model": implied,
+            "label_i18n": label_i18n,
+            "label": label_i18n["en"],
+            "can_have_children": tree_item.can_have_children,
+            "implied_model": implied_model,
             "available_models": dict(
                 (k, describe_model(v))
                 for k, v in pad.db.datamodels.items()
-                if not v.hidden or k == implied
+                if not v.hidden or k == implied_model
             ),
         }
     )
@@ -208,11 +186,14 @@ def get_new_record_info():
 
 @bp.route("/newattachment")
 def get_new_attachment_info():
-    ts = g.admin_context.tree.edit(request.args["path"])
+    alt = request.args.get("alt") or PRIMARY_ALT
+    tree_item = g.admin_context.tree.get(request.args["path"])
+    label_i18n = tree_item.get_record_label_i18n(alt)
     return jsonify(
         {
-            "can_upload": ts.exists and not ts.is_attachment,
-            "label": ts.record and ts.record.record_label or ts.id,
+            "can_upload": tree_item.can_have_attachments,
+            "label_i18n": label_i18n,
+            "label": label_i18n["en"],
         }
     )
 
