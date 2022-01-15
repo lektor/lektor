@@ -348,6 +348,8 @@ class EditorSession:
             raise BadEdit("Record does not exist.")
         if self.is_attachment:
             raise BadEdit("Cannot attach something to an attachment.")
+        if not self.datamodel.has_own_attachments:
+            raise BadEdit("Attachments are disabled for this page.")
         directory = self.pad.db.to_fs_path(self.path)
 
         safe_filename = secure_filename(filename)

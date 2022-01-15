@@ -74,6 +74,18 @@ def test_children_sorting_via_api(scratch_project, scratch_env, children_records
     )
 
 
+def test_recordinfo_children_sort_limited_alts(project, env):
+    # This excercises the bug described in #962, namely that
+    # if a page has a child that only has content in a subset of the
+    # configured alts, get_record_info throws an exception.
+    webadmin = WebAdmin(env, output_path=project.tree)
+    data = json.loads(
+        webadmin.test_client().get("/admin/api/recordinfo?path=/projects").data
+    )
+    child_data = data["children"]
+    assert list(sorted(child_data, key=itemgetter("label"))) == child_data
+
+
 def test_eventstream_yield_bytes():
     count = 0
 
