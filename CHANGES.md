@@ -10,6 +10,7 @@ These are all the changes in Lektor since the first public release.
 
 - Fix a bug in `make_editor_session` when editing non-existant pages
   with a non-primary alt. [#964]
+- Fix the ability to add an initial flowblock to a page. (Broken in 3.3.1.)
 
 #### Admin UI
 

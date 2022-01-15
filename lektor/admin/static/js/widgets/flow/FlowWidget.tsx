@@ -183,6 +183,7 @@ export function FlowWidget(
     (flowBlockModel: FlowBlockModel) => {
       onChange((prevValue) => {
         // find the first available id for this new block - use findMax + 1
+        prevValue ??= [];
         const newBlockId =
           Math.max(0, ...prevValue.map(({ localId }) => localId)) + 1;
         // this is a rather ugly way to do this, but hey, it works.
