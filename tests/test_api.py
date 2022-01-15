@@ -234,10 +234,14 @@ def test_previewinfo(test_client, path, expect):
     assert resp.get_json() == expect
 
 
-def test_find(test_client):
+@pytest.mark.parametrize("use_json", [True, False])
+def test_find(test_client, use_json):
     # Test that we can pass params in JSON body, rather than in the query
     params = {"q": "hello", "alt": "_primary", "lang": "en"}
-    resp = test_client.post(f"/admin/api/find?{urlencode(params)}")
+    if use_json:
+        resp = test_client.post("/admin/api/find", json=params)
+    else:
+        resp = test_client.post(f"/admin/api/find?{urlencode(params)}")
     assert resp.status_code == 200
     results = resp.get_json()["results"]
     assert any(result["title"] == "Hello" for result in results)
@@ -254,7 +258,7 @@ def test_find(test_client):
 def test_browsefs(test_client, mocker, project_path, path, alt, srcfile):
     mocker.patch("click.launch")
     params = {"path": path, "alt": alt}
-    resp = test_client.post(f"/admin/api/browsefs?{urlencode(params)}")
+    resp = test_client.post("/admin/api/browsefs", json=params)
     assert resp.status_code == 200
     assert resp.get_json()["okay"]
     assert click.launch.mock_calls == [
@@ -355,7 +359,7 @@ def test_delete_record(scratch_client, scratch_content_path):
     dstfile = scratch_content_path / "myobj/contents.lr"
     assert dstfile.exists()
     params = {"path": "/myobj", "delete_master": "1"}
-    resp = scratch_client.post(f"/admin/api/deleterecord?{urlencode(params)}")
+    resp = scratch_client.post("/admin/api/deleterecord", json=params)
     assert resp.status_code == 200
     assert resp.get_json()["okay"]
     assert not dstfile.exists()
