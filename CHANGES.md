@@ -9,8 +9,10 @@ These are all the changes in Lektor since the first public release.
 #### Admin API
 
 - Fix a bug in `make_editor_session` when editing non-existant pages
-  with a non-primary alt. [#964]
+  with a non-primary alt. ([#964][])
 - Fix the ability to add an initial flowblock to a page. (Broken in 3.3.1.)
+- Refactor API views to move business logic back into the `Tree`
+  adapter ([#967][]). This fixes [#962][].
 
 #### Admin UI
 
@@ -20,13 +22,18 @@ These are all the changes in Lektor since the first public release.
 
 ### Command Line
 
-- Enabled the [Jinja debug extension](https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension) when the `LEKTOR_DEV` env var is set to 1 and `lektor server` is used. [#984][]
+- Enabled the [Jinja debug extension][jinja-dbg-ext] when the
+  `LEKTOR_DEV` env var is set to 1 and `lektor server` is
+  used. ([#984][])
 
 [#610]: https://github.com/lektor/lektor/issues/610
+[#962]: https://github.com/lektor/lektor/issues/962
 [#964]: https://github.com/lektor/lektor/pull/964
+[#967]: https://github.com/lektor/lektor/pull/967
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 [#984]: https://github.com/lektor/lektor/pull/984
+[jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
 
 ## 3.3.1 (2022-01-09)
 
