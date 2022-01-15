@@ -4,6 +4,14 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.3.2 (unreleased)
 
+### Features
+
+#### Command Line
+
+- Enabled the [Jinja debug extension][jinja-dbg-ext] when the
+  `LEKTOR_DEV` env var is set to 1 and `lektor server` is
+  used. ([#984][])
+
 ### Bugs
 
 #### Admin API
@@ -20,16 +28,17 @@ These are all the changes in Lektor since the first public release.
   This fixes problems with the "edit" pencil when using alternatives ([#975][]),
   and issues when page ids include colons ([#610][]).
 
-### Command Line
+### Refactorings
 
-- Enabled the [Jinja debug extension][jinja-dbg-ext] when the
-  `LEKTOR_DEV` env var is set to 1 and `lektor server` is
-  used. ([#984][])
+- Cleaned up `EditorSession` to split mapping methods (for access to
+  record data) to a separate class, now available as
+  `EditorSession.data`. ([#969][])
 
 [#610]: https://github.com/lektor/lektor/issues/610
 [#962]: https://github.com/lektor/lektor/issues/962
 [#964]: https://github.com/lektor/lektor/pull/964
 [#967]: https://github.com/lektor/lektor/pull/967
+[#969]: https://github.com/lektor/lektor/pull/969
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 [#984]: https://github.com/lektor/lektor/pull/984
