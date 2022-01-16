@@ -8,11 +8,7 @@
     </div>
   </div>
   <script type=text/javascript>
-    var $LEKTOR_CONFIG = {
-      admin_root: {{ g.admin_context.admin_root|tojson }},
-      site_root: {{ g.admin_context.site_root|tojson }},
-      lang: {{ g.admin_context.info.ui_lang|tojson }}
-    };
+    var $LEKTOR_CONFIG = {{ lektor_config|tojson }};
   </script>
 {% endblock %}
 {% block scripts %}

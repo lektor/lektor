@@ -123,14 +123,12 @@ class Directory(Asset):
             return get_asset(self.pad, name[: -len(prod_suffix)] + ext, parent=self)
         return None
 
-    def resolve_url_path(self, url_path):
-        # Resolve "/path/" to "/path/index.html", as production servers do.
-        if not url_path:
-            index = self.get_child("index.html") or self.get_child("index.htm")
-            if index is not None:
-                return index
-
-        return Asset.resolve_url_path(self, url_path)
+    @property
+    def url_path(self):
+        path = super().url_path
+        if not path.endswith("/"):
+            path += "/"
+        return path
 
 
 class File(Asset):

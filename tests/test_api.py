@@ -9,7 +9,10 @@ import pytest
 
 from lektor.admin import WebAdmin
 from lektor.admin.utils import eventstream
+from lektor.admin.webui import LektorContext
+from lektor.builder import Builder
 from lektor.constants import PRIMARY_ALT
+from lektor.db import Database
 from lektor.editor import EditorSession
 from lektor.environment import Environment
 from lektor.project import Project
@@ -57,9 +60,13 @@ def project_path():
 def webadmin(tmp_path_factory, project_path):
     project = Project.from_path(project_path)
     env = Environment(project, load_plugins=False)
-    app = WebAdmin(env, output_path=tmp_path_factory.mktemp("webadmin-output"))
-    builder = app.lektor_info.get_builder()
+    output_path = tmp_path_factory.mktemp("webadmin-output")
+
+    pad = Database(env).new_pad()
+    builder = Builder(pad, output_path)
     builder.update_all_source_infos()
+
+    app = WebAdmin(env, output_path=output_path)
     return app
 
 
@@ -194,9 +201,10 @@ def test_previewinfo(test_client, path, expect):
 
 
 @pytest.mark.parametrize("use_json", [True, False])
-def test_find(test_client, use_json):
+@pytest.mark.parametrize("lang", ["en", None])
+def test_find(test_client, use_json, lang):
     # Test that we can pass params in JSON body, rather than in the query
-    params = {"q": "hello", "alt": "_primary", "lang": "en"}
+    params = {"q": "hello", "alt": "_primary", "lang": lang}
     if use_json:
         resp = test_client.post("/admin/api/find", json=params)
     else:
@@ -370,7 +378,7 @@ def test_servers(test_client):
 
 
 def test_build(test_client, webadmin, mocker):
-    builder = mocker.patch.object(webadmin.lektor_info, "get_builder").return_value
+    builder = mocker.patch.object(LektorContext, "builder")
     resp = test_client.post("/admin/api/build")
     assert resp.status_code == 200
     data = resp.get_json()
@@ -382,7 +390,7 @@ def test_build(test_client, webadmin, mocker):
 
 
 def test_clean(test_client, webadmin, mocker):
-    builder = mocker.patch.object(webadmin.lektor_info, "get_builder").return_value
+    builder = mocker.patch.object(LektorContext, "builder")
     resp = test_client.post("/admin/api/clean")
     assert resp.status_code == 200
     data = resp.get_json()
