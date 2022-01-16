@@ -3,9 +3,8 @@ import ReactDOM from "react-dom";
 import {
   BrowserRouter,
   Redirect,
-  Route,
-  Switch,
   useLocation,
+  useRouteMatch,
 } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
 import { RecordContext, RecordPathDetails } from "./context/record-context";
@@ -15,7 +14,7 @@ import { adminPath } from "./components/use-go-to-admin-page";
 
 import "font-awesome/css/font-awesome.css";
 import "../scss/main.scss";
-import { PageContext, PageName, PAGE_NAMES } from "./context/page-context";
+import { PageContext, PageName, isPageName } from "./context/page-context";
 import { trimSlashes } from "./utils";
 
 function Page({ page }: { page: PageName }) {
@@ -39,25 +38,20 @@ function Page({ page }: { page: PageName }) {
 
 function Main() {
   const root = $LEKTOR_CONFIG.admin_root;
-
-  return (
-    <BrowserRouter>
-      <Switch>
-        {PAGE_NAMES.map((page) => (
-          <Route path={`${root}/${page}` as string} key={page}>
-            <Page page={page} />
-          </Route>
-        ))}
-        <Route>
-          <Redirect to={adminPath("edit", "/", "_primary")} />
-        </Route>
-      </Switch>
-    </BrowserRouter>
-  );
+  const page = useRouteMatch<{ page: string }>(`${root}/:page`)?.params.page;
+  if (!isPageName(page)) {
+    return <Redirect to={adminPath("edit", "/", "_primary")} />;
+  }
+  return <Page page={page} />;
 }
 
 const dash = document.getElementById("dash");
 if (dash) {
   setCurrentLanguage($LEKTOR_CONFIG.lang);
-  ReactDOM.render(<Main />, dash);
+  ReactDOM.render(
+    <BrowserRouter>
+      <Main />
+    </BrowserRouter>,
+    dash
+  );
 }
