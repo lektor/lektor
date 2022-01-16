@@ -1,4 +1,10 @@
-import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
+import React, {
+  KeyboardEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { RecordProps } from "../../components/RecordComponent";
 import SlideDialog from "../../components/SlideDialog";
@@ -7,6 +13,7 @@ import { getCurrentLanguge, trans } from "../../i18n";
 import { showErrorDialog } from "../../error-dialog";
 import ResultRow from "./ResultRow";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
+import { PageContext } from "../../context/page-context";
 
 export type SearchResult = {
   parents: { title: string }[];
@@ -15,10 +22,11 @@ export type SearchResult = {
 };
 
 function FindFiles({
-  page,
   record,
   dismiss,
 }: RecordProps & { dismiss: () => void }): JSX.Element {
+  const page = useContext(PageContext);
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(-1);

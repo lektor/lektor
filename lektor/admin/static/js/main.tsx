@@ -9,10 +9,15 @@ import { adminPath } from "./components/use-go-to-admin-page";
 
 import "font-awesome/css/font-awesome.css";
 import "../scss/main.scss";
+import { PageContext } from "./context/page-context";
 
 function Page({ page }: { page: PageName }) {
   const record = useRecord();
-  return <App page={page} record={record} />;
+  return (
+    <PageContext.Provider value={page}>
+      <App record={record} />
+    </PageContext.Provider>
+  );
 }
 
 function Main() {

@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useContext, useEffect, useReducer, useState } from "react";
 import { get } from "../fetch";
 import { trans_obj } from "../i18n";
 import { RecordProps } from "../components/RecordComponent";
@@ -10,6 +10,7 @@ import AttachmentActions from "./AttachmentActions";
 import { CHILDREN_PER_PAGE } from "./constants";
 import ChildActions from "./ChildActions";
 import { subscribe, unsubscribe } from "../events";
+import { PageContext } from "../context/page-context";
 
 /**
  * Keep a cache of the page number in the list of subpages that we are currently
@@ -44,7 +45,9 @@ const compareAlternatives = (a: Alternative, b: Alternative) => {
   return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 };
 
-function Sidebar({ record, page }: RecordProps): JSX.Element | null {
+function Sidebar({ record }: RecordProps): JSX.Element | null {
+  const page = useContext(PageContext);
+
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [childrenPage, setChildrenPage] = useState(1);
   const [childPosCache] = useState(() => new ChildPosCache());
@@ -83,7 +86,7 @@ function Sidebar({ record, page }: RecordProps): JSX.Element | null {
   return (
     <>
       <PageActions record={record} recordInfo={recordInfo} />
-      <Alternatives record={record} page={page} alts={recordInfo.alts} />
+      <Alternatives record={record} alts={recordInfo.alts} />
       {recordInfo.can_have_children && (
         <ChildActions
           target={page === "preview" ? "preview" : "edit"}

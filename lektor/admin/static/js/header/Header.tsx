@@ -7,7 +7,6 @@ import GlobalActions from "./GlobalActions";
 export default function Header({
   sidebarIsActive,
   toggleSidebar,
-  page,
   record,
 }: {
   sidebarIsActive: boolean;
@@ -27,7 +26,7 @@ export default function Header({
           aria-label="Toggle navigation"
         />
         <div className="d-flex justify-content-between">
-          <BreadCrumbs page={page} record={record} />
+          <BreadCrumbs record={record} />
           <div>
             <GlobalActions record={record} />
           </div>

@@ -20,7 +20,7 @@ export const PAGE_NAMES = [
 ] as const;
 export type PageName = typeof PAGE_NAMES[number];
 
-export type RecordProps = { page: PageName; record: RecordPathDetails };
+export type RecordProps = { record: RecordPathDetails };
 
 // Fake useSearchParams from react-router-dom v6
 // FIXME: move this

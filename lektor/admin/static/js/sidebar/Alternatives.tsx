@@ -1,12 +1,15 @@
-import React, { memo } from "react";
+import React, { memo, useContext } from "react";
 import { RecordProps } from "../components/RecordComponent";
 import { Alternative } from "../components/types";
 import { trans, trans_obj } from "../i18n";
 import AdminLink from "../components/AdminLink";
+import { PageContext } from "../context/page-context";
 
 type Props = RecordProps & { alts: Alternative[] };
 
-function Alternatives({ alts, page, record }: Props) {
+function Alternatives({ alts, record }: Props) {
+  const page = useContext(PageContext);
+
   if (alts.length < 2) {
     return null;
   }

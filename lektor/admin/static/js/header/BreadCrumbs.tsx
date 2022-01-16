@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { RecordProps } from "../components/RecordComponent";
 import { get } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import AdminLink from "../components/AdminLink";
 import { PageName, RecordPathDetails } from "../components/RecordComponent";
+import { PageContext } from "../context/page-context";
 
 export interface RecordPathInfoSegment {
   id: string;
@@ -54,7 +55,9 @@ function AddNewPage({
   ) : null;
 }
 
-function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
+function BreadCrumbs({ record }: RecordProps): JSX.Element {
+  const page = useContext(PageContext);
+
   const [segments, setSegments] = useState<RecordPathInfoSegment[] | null>(
     null
   );
