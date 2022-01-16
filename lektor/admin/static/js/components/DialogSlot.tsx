@@ -3,13 +3,12 @@ import FindFiles from "../dialogs/find-files/FindFiles";
 import Publish from "../dialogs/Publish";
 import Refresh from "../dialogs/Refresh";
 import { LektorEvents, subscribe, unsubscribe } from "../events";
-import { RecordProps } from "./RecordComponent";
 
 type DialogDetails = LektorEvents["lektor-dialog"];
 
 type DialogState = (DialogDetails & { preventNavigation?: boolean }) | null;
 
-export default function DialogSlot(props: RecordProps): JSX.Element | null {
+export default function DialogSlot(): JSX.Element | null {
   const [dialog, setDialog] = useState<DialogState>(null);
 
   const dismiss = useCallback(
@@ -34,7 +33,7 @@ export default function DialogSlot(props: RecordProps): JSX.Element | null {
     return null;
   }
   if (dialog.type === "find-files") {
-    return <FindFiles {...props} dismiss={dismiss} />;
+    return <FindFiles dismiss={dismiss} />;
   } else if (dialog.type === "refresh") {
     return <Refresh dismiss={dismiss} preventNavigation={prevent} />;
   } else if (dialog.type === "publish") {

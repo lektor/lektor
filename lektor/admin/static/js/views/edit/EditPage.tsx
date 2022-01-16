@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { Prompt } from "react-router-dom";
 
-import { RecordProps } from "../../components/RecordComponent";
 import { keyboardShortcutHandler } from "../../utils";
 import { get, put } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
@@ -23,6 +22,7 @@ import { Field, WidgetComponent } from "../../widgets/types";
 import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
+import { useRecord } from "../../context/record-context";
 
 export type RawRecordInfo = {
   alt: string;
@@ -138,7 +138,10 @@ function getValues({
   return rv;
 }
 
-function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
+function EditPage(): JSX.Element | null {
+  const record = useRecord();
+  const { path, alt } = record;
+
   const form = useRef<HTMLFormElement | null>(null);
   // The deserialised record data.
   const [recordData, setRecordData] = useState<Record<string, string>>({});
@@ -148,8 +151,6 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   const goToAdminPage = useGoToAdminPage();
-
-  const { path, alt } = record;
 
   useEffect(() => {
     let ignore = false;
@@ -275,7 +276,6 @@ function EditPage({ record }: Pick<RecordProps, "record">): JSX.Element | null {
           </ToggleGroup>
         )}
         <EditPageActions
-          record={record}
           recordInfo={recordInfo}
           hasPendingChanges={hasPendingChanges}
         />

@@ -1,5 +1,5 @@
 import React, { MouseEvent, memo, useCallback } from "react";
-import { RecordPathDetails } from "../components/RecordComponent";
+import { useRecord } from "../context/record-context";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
@@ -20,18 +20,16 @@ const getBrowseButtonTitle = () => {
   }
 };
 
-function BrowseFSLink({ record }: { record: RecordPathDetails }) {
+function BrowseFSLink() {
+  const record = useRecord();
   const fsOpen = useCallback(
     (ev: MouseEvent) => {
       ev.preventDefault();
-      post("/browsefs", { path: record.path, alt: record.alt }).then(
-        ({ okay }) => {
-          if (!okay) {
-            alert(trans("ERROR_CANNOT_BROWSE_FS"));
-          }
-        },
-        showErrorDialog
-      );
+      post("/browsefs", record).then(({ okay }) => {
+        if (!okay) {
+          alert(trans("ERROR_CANNOT_BROWSE_FS"));
+        }
+      }, showErrorDialog);
     },
     [record]
   );
@@ -44,13 +42,8 @@ function BrowseFSLink({ record }: { record: RecordPathDetails }) {
 
 const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
 
-function PageActions({
-  record,
-  recordInfo,
-}: {
-  record: RecordPathDetails;
-  recordInfo: RecordInfo;
-}) {
+function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
+  const record = useRecord();
   const { path, alt } = record;
 
   return (
@@ -80,7 +73,7 @@ function PageActions({
         </li>
         {recordInfo.exists && (
           <li key="fs-open">
-            <BrowseFSLink record={record} />
+            <BrowseFSLink />
           </li>
         )}
         {recordInfo.can_have_children && (

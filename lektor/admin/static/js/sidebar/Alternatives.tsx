@@ -1,14 +1,13 @@
 import React, { memo, useContext } from "react";
-import { RecordProps } from "../components/RecordComponent";
 import { Alternative } from "../components/types";
 import { trans, trans_obj } from "../i18n";
 import AdminLink from "../components/AdminLink";
 import { PageContext } from "../context/page-context";
+import { useRecordPath } from "../context/record-context";
 
-type Props = RecordProps & { alts: Alternative[] };
-
-function Alternatives({ alts, record }: Props) {
+function Alternatives({ alts }: { alts: Alternative[] }) {
   const page = useContext(PageContext);
+  const path = useRecordPath();
 
   if (alts.length < 2) {
     return null;
@@ -25,7 +24,7 @@ function Alternatives({ alts, record }: Props) {
 
     return (
       <li key={item.alt} className={className}>
-        <AdminLink page={page as "edit"} path={record.path} alt={item.alt}>
+        <AdminLink page={page as "edit"} path={path} alt={item.alt}>
           {title}
         </AdminLink>
       </li>

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { RecordProps } from "../../components/RecordComponent";
-import { getParentFsPath } from "../../utils";
+import { useRecord } from "../../context/record-context";
+import { getParentPath } from "../../utils";
 import { get, post } from "../../fetch";
 import { showErrorDialog } from "../../error-dialog";
 import { RecordInfo } from "../../components/types";
@@ -13,9 +13,9 @@ import DeletePageHeader from "./DeletePageHeader";
 import { dispatch } from "../../events";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
-type Props = Pick<RecordProps, "record">;
+function DeletePage(): JSX.Element | null {
+  const record = useRecord();
 
-function DeletePage({ record }: Props): JSX.Element | null {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [deleteMasterRecord, setDeleteMasterRecord] = useState(true);
 
@@ -41,7 +41,7 @@ function DeletePage({ record }: Props): JSX.Element | null {
   }, [alt]);
 
   const deleteRecord = useCallback(() => {
-    const parent = getParentFsPath(path || "");
+    const parent = getParentPath(path);
     const targetPath = parent === null ? "/" : parent;
 
     post("/deleterecord", {

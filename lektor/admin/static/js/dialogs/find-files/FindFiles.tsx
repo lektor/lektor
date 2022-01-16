@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 
-import { RecordProps } from "../../components/RecordComponent";
+import { RecordPath, useRecordAlt } from "../../context/record-context";
 import SlideDialog from "../../components/SlideDialog";
 import { post } from "../../fetch";
 import { getCurrentLanguge, trans } from "../../i18n";
@@ -17,14 +17,12 @@ import { PageContext } from "../../context/page-context";
 
 export type SearchResult = {
   parents: { title: string }[];
-  path: RecordProps["record"]["path"];
+  path: RecordPath;
   title: string;
 };
 
-function FindFiles({
-  record,
-  dismiss,
-}: RecordProps & { dismiss: () => void }): JSX.Element {
+function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
+  const alt = useRecordAlt();
   const page = useContext(PageContext);
 
   const [query, setQuery] = useState("");
@@ -33,7 +31,6 @@ function FindFiles({
 
   const goToAdminPage = useGoToAdminPage();
 
-  const { alt } = record;
   const target = page === "preview" ? "preview" : "edit";
 
   useEffect(() => {
@@ -97,7 +94,7 @@ function FindFiles({
             result={result}
             isActive={idx === selected}
             dismiss={dismiss}
-            alt={record.alt}
+            alt={alt}
             target={target}
           />
         ))}

@@ -1,16 +1,11 @@
 import React, { memo } from "react";
 import AdminLink from "../components/AdminLink";
-import { RecordPathDetails } from "../components/RecordComponent";
+import { useRecordAlt } from "../context/record-context";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 
-function AttachmentActions({
-  recordInfo,
-  record,
-}: {
-  record: RecordPathDetails;
-  recordInfo: RecordInfo;
-}) {
+function AttachmentActions({ recordInfo }: { recordInfo: RecordInfo }) {
+  const alt = useRecordAlt();
   const attachments = recordInfo.attachments;
   return (
     <>
@@ -20,7 +15,7 @@ function AttachmentActions({
           attachments.map((atch) => {
             return (
               <li key={atch.id}>
-                <AdminLink page="edit" path={atch.path} alt={record.alt}>
+                <AdminLink page="edit" path={atch.path} alt={alt}>
                   {atch.id} ({atch.type})
                 </AdminLink>
               </li>

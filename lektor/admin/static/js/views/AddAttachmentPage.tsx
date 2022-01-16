@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { RecordProps } from "../components/RecordComponent";
+import { useRecordPath } from "../context/record-context";
 import { apiUrl, get } from "../fetch";
 import { trans, trans_format } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
@@ -16,16 +16,14 @@ type NewAttachmentInfo = {
   can_upload: boolean;
 };
 
-function AddAttachmentPage({
-  record,
-}: Pick<RecordProps, "record">): JSX.Element | null {
+function AddAttachmentPage(): JSX.Element | null {
+  const path = useRecordPath();
   const [newAttachmentInfo, setNewAttachmentInfo] =
     useState<NewAttachmentInfo | null>(null);
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [currentFiles, setCurrentFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(0);
-  const path = record.path;
 
   useEffect(() => {
     let ignore = false;

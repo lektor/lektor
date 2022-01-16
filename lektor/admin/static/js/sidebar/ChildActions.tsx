@@ -1,24 +1,24 @@
 import React from "react";
 import { trans, trans_obj } from "../i18n";
-import { PageName, RecordPathDetails } from "../components/RecordComponent";
+import { useRecord } from "../context/record-context";
 import { RecordChild } from "../components/types";
 import ChildPagination from "./ChildPagination";
 import { CHILDREN_PER_PAGE } from "./constants";
 import AdminLink from "../components/AdminLink";
 
 export default function ChildActions({
-  target,
+  targetPage,
   allChildren,
-  record,
   page,
   setPage,
 }: {
-  target: PageName & ("preview" | "edit");
+  targetPage: "preview" | "edit";
   allChildren: RecordChild[];
-  record: RecordPathDetails;
   page: number;
   setPage: (n: number) => void;
 }): JSX.Element {
+  const record = useRecord();
+
   const shownChildren = allChildren.slice(
     (page - 1) * CHILDREN_PER_PAGE,
     page * CHILDREN_PER_PAGE
@@ -37,7 +37,7 @@ export default function ChildActions({
         {shownChildren.length > 0 ? (
           shownChildren.map((child) => (
             <li key={child.id}>
-              <AdminLink page={target} path={child.path} alt={alt}>
+              <AdminLink page={targetPage} path={child.path} alt={alt}>
                 {trans_obj(child.label_i18n)}
               </AdminLink>
             </li>

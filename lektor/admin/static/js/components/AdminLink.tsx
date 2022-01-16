@@ -1,6 +1,7 @@
 import React, { memo, ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { PageName, RecordPathDetails, useRecord } from "./RecordComponent";
+import { PageName } from "../context/page-context";
+import { RecordPathDetails, useRecord } from "../context/record-context";
 import { adminPath } from "./use-go-to-admin-page";
 
 function AdminLink({

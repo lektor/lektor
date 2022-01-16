@@ -4,7 +4,6 @@ import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-import { RecordProps } from "../components/RecordComponent";
 import ErrorDialog from "../components/ErrorDialog";
 
 import EditPage from "./edit/EditPage";
@@ -22,20 +21,16 @@ const mainComponentForPage = {
   upload: AddAttachmentPage,
 } as const;
 
-export default function App({ record }: RecordProps) {
+export default function App() {
   const page = useContext(PageContext);
 
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
   const MainComponent = mainComponentForPage[page];
   return (
     <>
-      <Header
-        sidebarIsActive={sidebarIsActive}
-        toggleSidebar={toggleSidebar}
-        record={record}
-      />
+      <Header sidebarIsActive={sidebarIsActive} toggleSidebar={toggleSidebar} />
       <ErrorDialog />
-      <DialogSlot record={record} />
+      <DialogSlot />
       <div className="container">
         <div
           className={
@@ -45,10 +40,10 @@ export default function App({ record }: RecordProps) {
           }
         >
           <nav className="sidebar col-md-2 col-sm-3">
-            <Sidebar record={record} />
+            <Sidebar />
           </nav>
           <div className="main col-md-10 col-sm-9">
-            <MainComponent record={record} />
+            <MainComponent />
           </div>
         </div>
       </div>

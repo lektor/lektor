@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useReducer, useState } from "react";
 import { get } from "../fetch";
 import { trans_obj } from "../i18n";
-import { RecordProps } from "../components/RecordComponent";
 import { showErrorDialog } from "../error-dialog";
 import { Alternative, RecordInfo } from "../components/types";
 import PageActions from "./PageActions";
@@ -11,6 +10,7 @@ import { CHILDREN_PER_PAGE } from "./constants";
 import ChildActions from "./ChildActions";
 import { subscribe, unsubscribe } from "../events";
 import { PageContext } from "../context/page-context";
+import { useRecordPath } from "../context/record-context";
 
 /**
  * Keep a cache of the page number in the list of subpages that we are currently
@@ -45,15 +45,15 @@ const compareAlternatives = (a: Alternative, b: Alternative) => {
   return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 };
 
-function Sidebar({ record }: RecordProps): JSX.Element | null {
+function Sidebar(): JSX.Element | null {
   const page = useContext(PageContext);
+  const path = useRecordPath();
 
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [childrenPage, setChildrenPage] = useState(1);
   const [childPosCache] = useState(() => new ChildPosCache());
   const [updateForced, forceUpdate] = useReducer((x) => x + 1, 0);
 
-  const { path } = record;
   useEffect(() => {
     const handler = ({ detail }: CustomEvent<string>) => {
       if (detail === path) {
@@ -85,22 +85,21 @@ function Sidebar({ record }: RecordProps): JSX.Element | null {
 
   return (
     <>
-      <PageActions record={record} recordInfo={recordInfo} />
-      <Alternatives record={record} alts={recordInfo.alts} />
+      <PageActions recordInfo={recordInfo} />
+      <Alternatives alts={recordInfo.alts} />
       {recordInfo.can_have_children && (
         <ChildActions
-          target={page === "preview" ? "preview" : "edit"}
+          targetPage={page === "preview" ? "preview" : "edit"}
           allChildren={recordInfo.children}
-          record={record}
           page={childrenPage}
           setPage={(page) => {
-            childPosCache.rememberPosition(record.path, page);
+            childPosCache.rememberPosition(path, page);
             setChildrenPage(page);
           }}
         />
       )}
       {recordInfo.can_have_attachments && (
-        <AttachmentActions record={record} recordInfo={recordInfo} />
+        <AttachmentActions recordInfo={recordInfo} />
       )}
     </>
   );

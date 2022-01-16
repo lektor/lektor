@@ -1,9 +1,7 @@
 import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
-import { PageName, RecordPathDetails } from "./RecordComponent";
-
-type Path = RecordPathDetails["path"];
-type Alt = RecordPathDetails["alt"];
+import { PageName } from "../context/page-context";
+import { RecordAlternative, RecordPath } from "../context/record-context";
 
 /**
  * Compute an admin path.
@@ -12,7 +10,11 @@ type Alt = RecordPathDetails["alt"];
  * @param alt - the alternative to use.
  * @returns
  */
-export function adminPath(page: PageName, path: Path, alt: Alt): string {
+export function adminPath(
+  page: PageName,
+  path: RecordPath,
+  alt: RecordAlternative
+): string {
   const params = new URLSearchParams({ path });
   if (alt !== "_primary") {
     params.set("alt", alt);
@@ -29,7 +31,7 @@ export function useGoToAdminPage() {
   const history = useHistory();
 
   return useCallback(
-    (name: PageName, path: Path, alt: Alt) => {
+    (name: PageName, path: RecordPath, alt: RecordAlternative) => {
       history.push(adminPath(name, path, alt));
     },
     [history]

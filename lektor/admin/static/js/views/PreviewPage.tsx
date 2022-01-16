@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { trimLeadingSlashes, trimTrailingSlashes } from "../utils";
 import { get } from "../fetch";
-import { RecordPathDetails, RecordProps } from "../components/RecordComponent";
+import { RecordPathDetails, useRecord } from "../context/record-context";
 import { showErrorDialog } from "../error-dialog";
 import { useGoToAdminPage } from "../components/use-go-to-admin-page";
 
@@ -40,9 +40,8 @@ function usePreviewUrl(
   return previewUrl;
 }
 
-export default function PreviewPage({
-  record,
-}: Pick<RecordProps, "record">): JSX.Element {
+export default function PreviewPage(): JSX.Element {
+  const record = useRecord();
   const siteRootUrl = useMemo(getSiteRootUrl, []);
   const previewUrl = usePreviewUrl(record, siteRootUrl);
   const iframe = useRef<HTMLIFrameElement | null>(null);
