@@ -1,5 +1,4 @@
-import json
-import os
+from inspect import cleandoc
 from io import BytesIO
 from operator import itemgetter
 from pathlib import Path
@@ -17,54 +16,24 @@ from lektor.project import Project
 from lektor.publisher import PublishError
 
 
-# FIXME: move this sorting test to test_editor
-# See #969
+def write_text(path, text):
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(cleandoc(text))
+
+
 @pytest.fixture
-def children_records_data():
-    """Returns test values for children records' `id`, `title`, and `pub_date` fields."""
-    return (
-        {"id": "1", "title": "1 is the first number", "pub_date": "2016-07-11"},
-        {
-            "id": "2",
-            "title": "Must be the Second item in a row",
-            "pub_date": "2017-05-03",
-        },
-        {"id": "3", "title": "Z is the last letter", "pub_date": "2017-05-03"},
-        {"id": "4", "title": "Some random string", "pub_date": "2018-05-21"},
+def scratch_project_data(scratch_project_data):
+    content = Path(scratch_project_data) / "content"
+    write_text(
+        content / "page/contents.lr",
+        """
+        _model: page
+        ---
+        title: A Page
+        """,
     )
 
-
-@pytest.fixture(scope="function", autouse=True)
-def prepare_stub_data(scratch_project, children_records_data):
-    """Creates folders, models, test object and its children records."""
-    tree = scratch_project.tree
-    with open(os.path.join(tree, "models", "mymodel.ini"), "w", encoding="utf-8") as f:
-        f.write("[children]\n" "order_by = -pub_date, title\n")
-    with open(
-        os.path.join(tree, "models", "mychildmodel.ini"), "w", encoding="utf-8"
-    ) as f:
-        f.write(
-            "[fields.title]\n" "type = string\n" "[fields.pub_date]\n" "type = date"
-        )
-    os.mkdir(os.path.join(tree, "content", "myobj"))
-    with open(
-        os.path.join(tree, "content", "myobj", "contents.lr"), "w", encoding="utf-8"
-    ) as f:
-        f.write("_model: mymodel\n" "---\n" "title: My Test Object\n")
-    for record in children_records_data:
-        os.mkdir(os.path.join(tree, "content", "myobj", record["id"]))
-        with open(
-            os.path.join(tree, "content", "myobj", record["id"], "contents.lr"),
-            "w",
-            encoding="utf-8",
-        ) as f:
-            f.write(
-                "_model: mychildmodel\n"
-                "---\n"
-                "title: %s\n"
-                "---\n"
-                "pub_date: %s" % (record["title"], record["pub_date"])
-            )
+    return scratch_project_data
 
 
 @pytest.fixture
@@ -100,29 +69,11 @@ def test_client(webadmin):
         yield client
 
 
-def test_children_sorting_via_api(scratch_client, children_records_data):
-    data = json.loads(scratch_client.get("/admin/api/recordinfo?path=/myobj").data)
-    children_records_ids_provided_by_api = list(map(itemgetter("id"), data["children"]))
-
-    records_ordered_by_title = sorted(children_records_data, key=itemgetter("title"))
-    ordered_records = sorted(
-        records_ordered_by_title, key=itemgetter("pub_date"), reverse=True
-    )
-
-    assert (
-        list(map(itemgetter("id"), ordered_records))
-        == children_records_ids_provided_by_api
-    )
-
-
-def test_recordinfo_children_sort_limited_alts(project, env):
+def test_recordinfo_children_sort_limited_alts(test_client):
     # This excercises the bug described in #962, namely that
     # if a page has a child that only has content in a subset of the
     # configured alts, get_record_info throws an exception.
-    webadmin = WebAdmin(env, output_path=project.tree)
-    data = json.loads(
-        webadmin.test_client().get("/admin/api/recordinfo?path=/projects").data
-    )
+    data = test_client.get("/admin/api/recordinfo?path=/projects").get_json()
     child_data = data["children"]
     assert list(sorted(child_data, key=itemgetter("label"))) == child_data
 
@@ -306,13 +257,13 @@ def test_get_new_attachment_info(test_client, path, alt, can_upload):
 
 def test_upload_new_attachment(scratch_client, scratch_content_path):
     params = {
-        "path": "/myobj",
+        "path": "/page",
         "file": (BytesIO(b"foo data"), "foo.txt"),
     }
     resp = scratch_client.post("/admin/api/newattachment", data=params)
     assert resp.status_code == 200
     assert not resp.get_json()["bad_upload"]
-    dstpath = scratch_content_path / "myobj/foo.txt"
+    dstpath = scratch_content_path / "page/foo.txt"
     assert dstpath.read_bytes() == b"foo data"
 
 
@@ -342,13 +293,13 @@ def test_upload_new_attachment_failure(scratch_client, scratch_content_path, pat
     "path, id, expect, creates",
     [
         (
-            "/myobj",
+            "/page",
             "new",
-            {"valid_id": True, "exists": False, "path": "/myobj/new"},
-            "myobj/new/contents.lr",
+            {"valid_id": True, "exists": False, "path": "/page/new"},
+            "page/new/contents.lr",
         ),
-        ("/myobj", ".new", {"valid_id": False, "exists": False, "path": None}, None),
-        ("/", "myobj", {"valid_id": True, "exists": True, "path": "/myobj"}, None),
+        ("/page", ".new", {"valid_id": False, "exists": False, "path": None}, None),
+        ("/", "page", {"valid_id": True, "exists": True, "path": "/page"}, None),
     ],
 )
 def test_add_new_record(

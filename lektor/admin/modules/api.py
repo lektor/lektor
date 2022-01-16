@@ -53,7 +53,7 @@ _BoolType = mdcls.NewType("_BoolType", bool, truthy={1, "1"}, falsy={0, "0"})
 _ServerType = mdcls.NewType("_ServerType", ServerInfo, field=_ServerInfoField)
 
 
-def _with_validated(param_type, from_json=False):
+def _with_validated(param_type):
     """Flask view decorator to validate parameters.
 
     The validated parameters are placed into the ``validated`` keyword
