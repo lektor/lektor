@@ -8,8 +8,12 @@ from flask import Flask
 from flask import request
 from werkzeug.security import safe_join
 from werkzeug.utils import append_slash_redirect
+from werkzeug.wsgi import pop_path_info
 
-from lektor.admin.modules import register_modules
+from lektor.admin.modules import api
+from lektor.admin.modules import common
+from lektor.admin.modules import dash
+from lektor.admin.modules import serve
 from lektor.builder import Builder
 from lektor.buildfailures import FailureController
 from lektor.db import Database
@@ -92,7 +96,15 @@ class LektorInfo:
         return ResolveResult(artifact_name, filename, record_path, alt)
 
 
-class WebUI(Flask):
+class LektorApp(Flask):
+    def __init__(self, lektor_info, debug=False, **kwargs):
+        Flask.__init__(self, "lektor.admin", **kwargs)
+        self.lektor_info = lektor_info
+        self.debug = debug
+        self.config["PROPAGATE_EXCEPTIONS"] = True
+
+
+class WebUI(LektorApp):
     def __init__(
         self,
         env,
@@ -102,14 +114,42 @@ class WebUI(Flask):
         verbosity=0,
         extra_flags=None,
     ):
-        Flask.__init__(self, "lektor.admin", static_url_path="/admin/static")
-        self.lektor_info = LektorInfo(
+        admin_path = "/admin"
+        lektor_info = LektorInfo(
             env, output_path, ui_lang, extra_flags=extra_flags, verbosity=verbosity
         )
-        self.debug = debug
-        self.config["PROPAGATE_EXCEPTIONS"] = True
+        super().__init__(
+            lektor_info, debug=debug, static_url_path=f"{admin_path}/static"
+        )
+        self.register_blueprint(serve.bp)
 
-        register_modules(self)
+        # The serve blueprint has a route that matches anything ("/<path:path>").
+        # That means if there is another route whose doesn't match based on request method,
+        # the serve view will take over and try to serve it.  To prevent this from
+        # happening for the paths under /admin, we structure them as a separate flask app.
+        admin = LektorApp(lektor_info, debug=debug)
+        admin.register_blueprint(common.bp)
+        admin.register_blueprint(dash.bp, url_prefix="/")
+        admin.register_blueprint(api.bp, url_prefix="/api")
+        self.admin = admin
+
+        # Make sure the admin app handles all requests for paths
+        # beginning with the admin_path
+        self.add_url_rule(
+            f"{admin_path}/<path:path>",
+            methods=["GET", "POST", "PUT"],
+            view_func=self._admin_view,
+        )
+        self.add_url_rule(f"{admin_path}/<view>", "dash.app", build_only=True)
+
+    def _admin_view(self, path):
+        environ = request.environ
+        environ["lektor.site_root"] = request.root_path
+        print(f"site_root: {request.root_path!r}")
+        while environ.get("PATH_INFO", "") != f"/{path}":
+            assert environ["PATH_INFO"]
+            pop_path_info(request.environ)
+        return self.admin.wsgi_app
 
 
 WebAdmin = WebUI

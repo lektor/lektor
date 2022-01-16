@@ -14,8 +14,8 @@ bp = Blueprint("common", __name__)
 
 class AdminContext:
     def __init__(self):
-        self.admin_root = current_app.blueprints["dash"].url_prefix.rstrip("/")
-        self.site_root = request.script_root
+        self.admin_root = request.root_path
+        self.site_root = request.environ["lektor.site_root"]
         self.info = current_app.lektor_info
 
     def get_temp_path(self, name=None):
