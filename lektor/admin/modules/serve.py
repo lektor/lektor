@@ -1,7 +1,5 @@
-import json
 import mimetypes
 import os
-import string
 from io import BytesIO
 from zlib import adler32
 
@@ -20,79 +18,15 @@ from lektor.constants import PRIMARY_ALT
 bp = Blueprint("serve", __name__)
 
 
-_EDIT_BUTTON_STYLE = """
-  <style type="text/css">
-    #lektor-edit-link {
-      position: fixed;
-      z-index: 9999999;
-      right: 10px;
-      top: 10px;
-      position: fixed;
-      margin: 0;
-      font-family: 'Verdana', sans-serif;
-      background: #eee;
-      color: #77304c;
-      font-weight: normal;
-      font-size: 32px;
-      padding: 0;
-      text-decoration: none!important;
-      border: 1px solid #ccc!important;
-      width: 40px;
-      height: 40px;
-      line-height: 40px;
-      text-align: center;
-      opacity: 0.7;
-    }
-
-    #lektor-edit-link:hover {
-      background: white!important;
-      opacity: 1.0;
-      border: 1px solid #aaa!important;
-    }
-  </style>
-"""
-
-
-_EDIT_BUTTON_SCRIPT_TMPL = string.Template(
-    """
-  <script type="text/javascript">
-    (function() {
-      if (window != window.top) {
-        return;
-      }
-      var link = document.createElement('a');
-      link.setAttribute('href', ${edit_url});
-      link.setAttribute('id', 'lektor-edit-link');
-      link.innerHTML = '\u270E';
-      document.body.appendChild(link);
-    })();
-  </script>
-"""
-)
-
-
 def rewrite_html_for_editing(fp, edit_url):
+    button_script = render_template("edit-button.html", edit_url=edit_url)
     contents = fp.read()
     fp.close()
     head_endpos = contents.find(b"</head>")
-    body_endpos = contents.find(b"</body>")
     if head_endpos < 0:
-        # If </head> not found, inject both <style> and <script> at end
-        head_endpos = body_endpos = len(contents)
-    elif body_endpos < 0:
-        # If </body> not found, inject <script> at end
-        body_endpos = len(contents)
-
-    button_script = _EDIT_BUTTON_SCRIPT_TMPL.substitute(
-        edit_url=json.dumps(edit_url)
-    ).encode("utf-8")
-
+        head_endpos = len(contents)
     return BytesIO(
-        contents[:head_endpos]
-        + _EDIT_BUTTON_STYLE.encode("utf-8")
-        + contents[head_endpos:body_endpos]
-        + button_script
-        + contents[body_endpos:]
+        contents[:head_endpos] + button_script.encode("utf-8") + contents[head_endpos:]
     )
 
 
