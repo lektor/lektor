@@ -426,3 +426,35 @@ def test_ping(test_client):
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["okay"]
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/missing.txt",
+        "/admin/missing.txt",
+        "/admin/api/missing.txt",
+        "/admin/api/edit/missing.txt",
+    ],
+)
+def test_missing_files(test_client, url):
+    resp = test_client.get(url)
+    assert resp.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "url, allowed",
+    [
+        ("/", {"GET"}),
+        ("/admin/api/recordinfo?path=%2F", {"GET"}),
+        ("/admin/api/clean", {"POST"}),
+        ("/admin/api/rawrecord", {"GET", "PUT"}),
+    ],
+)
+@pytest.mark.parametrize("method", {"GET", "POST", "PUT"})
+def test_allowed_methods(test_client, method, url, allowed):
+    if method not in allowed:
+        extra_allowed = {"OPTIONS", "HEAD"} if "GET" in allowed else {"OPTIONS"}
+        resp = test_client.open(url, method=method)
+        assert resp.status_code == 405
+        assert set(resp.allow) == allowed | extra_allowed
