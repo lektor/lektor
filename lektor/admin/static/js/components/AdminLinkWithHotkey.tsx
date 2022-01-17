@@ -5,8 +5,10 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { NavLink } from "react-router-dom";
+import { PageName } from "../context/page-context";
+import { RecordPathDetails } from "../context/record-context";
 import { getKey, KeyboardShortcut, keyboardShortcutHandler } from "../utils";
+import AdminLink from "./AdminLink";
 
 /**
  * React hook to add a global keyboard shortcut for the given
@@ -38,20 +40,20 @@ function useKeyboardShortcutRef<T extends HTMLElement>(
   return el;
 }
 
-export default function LinkWithHotkey({
-  to,
+export default function AdminLinkWithHotkey({
   children,
   shortcut,
-}: {
-  to: string;
+  ...linkProps
+}: RecordPathDetails & {
+  page: PageName;
   children: ReactNode;
   shortcut: KeyboardShortcut;
 }): JSX.Element {
   const el = useKeyboardShortcutRef<HTMLAnchorElement>(shortcut);
 
   return (
-    <NavLink to={to} activeClassName="active" title={getKey(shortcut)} ref={el}>
+    <AdminLink {...linkProps} title={getKey(shortcut)} ref={el}>
       {children}
-    </NavLink>
+    </AdminLink>
   );
 }

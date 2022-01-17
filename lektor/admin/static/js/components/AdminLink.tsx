@@ -9,9 +9,13 @@ function AdminLink({
   path,
   alt,
   children,
+  ...otherProps
 }: RecordPathDetails & {
   page: PageName;
   children: ReactNode;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  ref?: React.MutableRefObject<HTMLAnchorElement | null>;
+  title?: string;
 }): JSX.Element {
   const current = useRecord();
   const recordMatches = path === current.path && alt === current.alt;
@@ -20,7 +24,8 @@ function AdminLink({
     <NavLink
       to={adminPath(page, path, alt)}
       activeClassName="active"
-      isActive={(match) => !!(recordMatches && match)}
+      isActive={(match) => recordMatches && match != null}
+      {...otherProps}
     >
       {children}
     </NavLink>

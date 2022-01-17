@@ -5,8 +5,7 @@ import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { post } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
-import LinkWithHotkey from "../components/LinkWithHotkey";
-import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLinkWithHotkey from "../components/AdminLinkWithHotkey";
 import AdminLink from "../components/AdminLink";
 
 const getBrowseButtonTitle = () => {
@@ -55,9 +54,14 @@ function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
       </h3>
       <ul className="nav">
         <li key="edit">
-          <LinkWithHotkey to={adminPath("edit", path, alt)} shortcut={editKey}>
+          <AdminLinkWithHotkey
+            page="edit"
+            path={path}
+            alt={alt}
+            shortcut={editKey}
+          >
             {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
-          </LinkWithHotkey>
+          </AdminLinkWithHotkey>
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">
