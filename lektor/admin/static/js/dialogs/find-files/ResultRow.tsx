@@ -1,5 +1,5 @@
 import React from "react";
-import { adminPath } from "../../components/use-go-to-admin-page";
+import AdminLink from "../../components/AdminLink";
 import { PageName } from "../../context/page-context";
 import { RecordAlternative } from "../../context/record-context";
 import { SearchResult } from "./FindFiles";
@@ -22,12 +22,12 @@ export default function ResultRow({
 }): JSX.Element {
   return (
     <li className={isActive ? "active" : ""}>
-      <a href={adminPath(target, result.path, alt)} onClick={dismiss}>
-        {result.parents.map((item, idx) => (
-          <span key={idx}>{item.title}</span>
+      <AdminLink page={target} path={result.path} alt={alt} onClick={dismiss}>
+        {result.parents.map((item) => (
+          <span key={item.title}>{item.title}</span>
         ))}
         <strong>{result.title}</strong>
-      </a>
+      </AdminLink>
     </li>
   );
 }
