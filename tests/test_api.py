@@ -8,8 +8,8 @@ import click
 import pytest
 
 from lektor.admin import WebAdmin
+from lektor.admin.common import LektorContext
 from lektor.admin.utils import eventstream
-from lektor.admin.webui import LektorContext
 from lektor.builder import Builder
 from lektor.constants import PRIMARY_ALT
 from lektor.db import Database

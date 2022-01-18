@@ -2,8 +2,13 @@ import os
 import posixpath
 from dataclasses import dataclass
 from functools import wraps
+from typing import Any
+from typing import Callable
 from typing import Dict
+from typing import Iterator
+from typing import Mapping
 from typing import Optional
+from typing import TypeVar
 
 import click
 import marshmallow
@@ -14,10 +19,14 @@ from flask import g
 from flask import jsonify
 from flask import make_response
 from flask import request
+from flask import Response
 
+from lektor.admin.common import LektorApp
+from lektor.admin.common import LektorContext
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
-from lektor.environment import ServerInfo
+from lektor.datamodel import DataModel
+from lektor.environment.config import ServerInfo
 from lektor.publisher import publish
 from lektor.publisher import PublishError
 from lektor.utils import is_valid_id
@@ -27,8 +36,10 @@ bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 
 @bp.url_value_preprocessor
-def pass_lektor_ctx(endpoint, values):
+def pass_lektor_ctx(endpoint: Optional[str], values: Optional[Dict[str, Any]]) -> None:
     """Pass a `ctx` parameter to each view callable"""
+    assert isinstance(current_app, LektorApp)
+    assert isinstance(values, dict)
     lektor_ctx = current_app.lektor_info.make_lektor_context()
     values["lektor_ctx"] = lektor_ctx
     # pylint: disable=assigning-non-slot
@@ -36,7 +47,13 @@ def pass_lektor_ctx(endpoint, values):
 
 
 class _ServerInfoField(marshmallow.fields.String):
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(
+        self,
+        value: str,
+        attr: Optional[str],
+        data: Optional[Mapping[str, Any]],
+        **kwargs: Any
+    ) -> ServerInfo:
         server_id = super()._deserialize(value, attr, data, **kwargs)
         server_info = g.lektor_ctx.config.get_server(server_id)
         if server_info is None:
@@ -44,7 +61,7 @@ class _ServerInfoField(marshmallow.fields.String):
         return server_info
 
 
-def _is_valid_alt(value):
+def _is_valid_alt(value: str) -> bool:
     return bool(g.lektor_ctx.config.is_valid_alternative(value))
 
 
@@ -55,7 +72,10 @@ _BoolType = mdcls.NewType("_BoolType", bool, truthy={1, "1"}, falsy={0, "0"})
 _ServerType = mdcls.NewType("_ServerType", ServerInfo, field=_ServerInfoField)
 
 
-def _with_validated(param_type):
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def _with_validated(param_type: type) -> Callable[[F], F]:
     """Flask view decorator to validate parameters.
 
     The validated parameters are placed into the ``validated`` keyword
@@ -69,14 +89,14 @@ def _with_validated(param_type):
     schema_class = mdcls.class_schema(param_type)
     schema = schema_class(unknown=marshmallow.EXCLUDE)
 
-    def wrap(f):
+    def wrap(f):  # type: ignore[no-untyped-def] # FIXME
         @wraps(f)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
             if (
                 request.method in ("POST", "PUT")
                 and request.mimetype == "application/json"
             ):
-                data = request.get_json()
+                data = request.get_json() or {}
             else:
                 data = request.values
             try:
@@ -102,7 +122,7 @@ class _PathAndAlt:
 
 @bp.route("/pathinfo")
 @_with_validated(_PathAndAlt)
-def get_path_info(validated, lektor_ctx):
+def get_path_info(validated: _PathAndAlt, lektor_ctx: LektorContext) -> Response:
     """Returns the path segment information for a record."""
     alt = validated.alt
     tree_item = lektor_ctx.tree.get(validated.path)
@@ -126,7 +146,7 @@ def get_path_info(validated, lektor_ctx):
 
 @bp.route("/recordinfo")
 @_with_validated(_PathAndAlt)
-def get_record_info(validated, lektor_ctx):
+def get_record_info(validated: _PathAndAlt, lektor_ctx: LektorContext) -> Response:
     alt = validated.alt
     tree_item = lektor_ctx.tree.get(validated.path)
 
@@ -172,7 +192,7 @@ def get_record_info(validated, lektor_ctx):
 
 @bp.route("/previewinfo")
 @_with_validated(_PathAndAlt)
-def get_preview_info(validated, lektor_ctx):
+def get_preview_info(validated: _PathAndAlt, lektor_ctx: LektorContext) -> Response:
     record = lektor_ctx.pad.get(validated.path, alt=validated.alt)
     if record is None:
         return jsonify(exists=False, url=None, is_hidden=True)
@@ -188,7 +208,7 @@ class _FindParams:
 
 @bp.route("/find", methods=["POST"])
 @_with_validated(_FindParams)
-def find(validated, lektor_ctx):
+def find(validated: _FindParams, lektor_ctx: LektorContext) -> Response:
     # FIXME: move default to validator
     lang = validated.lang or current_app.config.get("lektor.ui_lang", "en")
     return jsonify(
@@ -198,7 +218,7 @@ def find(validated, lektor_ctx):
 
 @bp.route("/browsefs", methods=["POST"])
 @_with_validated(_PathAndAlt)
-def browsefs(validated, lektor_ctx):
+def browsefs(validated: _PathAndAlt, lektor_ctx: LektorContext) -> Response:
     record = lektor_ctx.pad.get(validated.path, alt=validated.alt)
     okay = False
     if record is not None:
@@ -219,7 +239,7 @@ class _UrlPath:
 
 @bp.route("/matchurl")
 @_with_validated(_UrlPath)
-def match_url(validated, lektor_ctx):
+def match_url(validated: _UrlPath, lektor_ctx: LektorContext) -> Response:
     record = lektor_ctx.pad.resolve_url_path(validated.url_path, alt_fallback=False)
     if record is None:
         return jsonify(exists=False, path=None, alt=None)
@@ -228,19 +248,19 @@ def match_url(validated, lektor_ctx):
 
 @bp.route("/rawrecord")
 @_with_validated(_PathAndAlt)
-def get_raw_record(validated, lektor_ctx):
+def get_raw_record(validated: _PathAndAlt, lektor_ctx: LektorContext) -> Response:
     ts = lektor_ctx.tree.edit(validated.path, alt=validated.alt)
     return jsonify(ts.to_json())
 
 
 @bp.route("/newrecord")
 @_with_validated(_PathAndAlt)
-def get_new_record_info(validated, lektor_ctx):
+def get_new_record_info(validated: _PathAndAlt, lektor_ctx: LektorContext) -> Response:
     pad = lektor_ctx.pad
     alt = validated.alt
     tree_item = lektor_ctx.tree.get(validated.path)
 
-    def describe_model(model):
+    def describe_model(model: DataModel) -> Dict[str, Any]:
         primary_field = None
         if model.primary_field is not None:
             f = model.field_map.get(model.primary_field)
@@ -272,7 +292,9 @@ def get_new_record_info(validated, lektor_ctx):
 
 @bp.route("/newattachment")
 @_with_validated(_PathAndAlt)
-def get_new_attachment_info(validated, lektor_ctx):
+def get_new_attachment_info(
+    validated: _PathAndAlt, lektor_ctx: LektorContext
+) -> Response:
     tree_item = lektor_ctx.tree.get(validated.path)
     label_i18n = tree_item.get_record_label_i18n(validated.alt)
     return jsonify(
@@ -286,7 +308,9 @@ def get_new_attachment_info(validated, lektor_ctx):
 
 @bp.route("/newattachment", methods=["POST"])
 @_with_validated(_PathAndAlt)
-def upload_new_attachments(validated, lektor_ctx):
+def upload_new_attachments(
+    validated: _PathAndAlt, lektor_ctx: LektorContext
+) -> Response:
     ts = lektor_ctx.tree.edit(validated.path, alt=validated.alt)
     if not ts.exists or ts.is_attachment:
         return jsonify({"bad_upload": True})
@@ -321,7 +345,7 @@ class _NewRecordParams:
 
 @bp.route("/newrecord", methods=["POST"])
 @_with_validated(_NewRecordParams)
-def add_new_record(validated, lektor_ctx):
+def add_new_record(validated: _NewRecordParams, lektor_ctx: LektorContext) -> Response:
     exists = False
 
     if not is_valid_id(validated.id):
@@ -348,7 +372,9 @@ class _DeleteRecordParams:
 
 @bp.route("/deleterecord", methods=["POST"])
 @_with_validated(_DeleteRecordParams)
-def delete_record(validated, lektor_ctx):
+def delete_record(
+    validated: _DeleteRecordParams, lektor_ctx: LektorContext
+) -> Response:
     if validated.path != "/":
         ts = lektor_ctx.tree.edit(validated.path, alt=validated.alt)
         with ts:
@@ -365,7 +391,9 @@ class _UpdateRawRecordParams:
 
 @bp.route("/rawrecord", methods=["PUT"])
 @_with_validated(_UpdateRawRecordParams)
-def update_raw_record(validated, lektor_ctx):
+def update_raw_record(
+    validated: _UpdateRawRecordParams, lektor_ctx: LektorContext
+) -> Response:
     ts = lektor_ctx.tree.edit(validated.path, alt=validated.alt)
     with ts:
         ts.data.update(validated.data)
@@ -373,7 +401,7 @@ def update_raw_record(validated, lektor_ctx):
 
 
 @bp.route("/servers")
-def get_servers(lektor_ctx):
+def get_servers(lektor_ctx: LektorContext) -> Response:
     servers = lektor_ctx.config.get_servers(public=True)
     return jsonify(
         servers=sorted(
@@ -383,7 +411,7 @@ def get_servers(lektor_ctx):
 
 
 @bp.route("/build", methods=["POST"])
-def trigger_build(lektor_ctx):
+def trigger_build(lektor_ctx: LektorContext) -> Response:
     builder = lektor_ctx.builder
     builder.build_all()
     builder.prune()
@@ -391,7 +419,7 @@ def trigger_build(lektor_ctx):
 
 
 @bp.route("/clean", methods=["POST"])
-def trigger_clean(lektor_ctx):
+def trigger_clean(lektor_ctx: LektorContext) -> Response:
     builder = lektor_ctx.builder
     builder.prune(all=True)
     builder.touch_site_config()
@@ -405,11 +433,13 @@ class _PublishBuildParams:
 
 @bp.route("/publish")
 @_with_validated(_PublishBuildParams)
-def publish_build(validated, lektor_ctx):
+def publish_build(
+    validated: _PublishBuildParams, lektor_ctx: LektorContext
+) -> Response:
     server_info = validated.server
 
     @eventstream
-    def generator():
+    def generator() -> Iterator[Dict[str, str]]:
         try:
             event_iter = (
                 publish(
@@ -429,5 +459,5 @@ def publish_build(validated, lektor_ctx):
 
 
 @bp.route("/ping")
-def ping(lektor_ctx):
+def ping(lektor_ctx: LektorContext) -> Response:
     return jsonify(project_id=lektor_ctx.project_id, okay=True)
