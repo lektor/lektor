@@ -59,7 +59,7 @@ def _send_html_for_editing(
         with open(filename, "rb") as fp:
             html = fp.read()
             st = os.stat(fp.fileno())
-    except OSError:
+    except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
     html = _rewrite_html_for_editing(html, edit_url)
     check = adler32(f"{filename}\0{edit_url}".encode("utf-8")) & 0xFFFFFFFF
@@ -75,10 +75,11 @@ def _deduce_mimetype(filename: Filename) -> str:
     return mimetype
 
 
-def _safe_send_file(filename: Filename, mimetype: Optional[str] = None) -> Response:
+def _checked_send_file(filename: Filename, mimetype: Optional[str] = None) -> Response:
+    """Same as flask.send_file, except raises NotFound on file errors."""
     try:
         resp = send_file(filename, mimetype=mimetype)
-    except OSError:  # FileNotFoundError, PermissionError
+    except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
     return resp
 
@@ -193,7 +194,7 @@ class ArtifactServer:
         mimetype = _deduce_mimetype(artifact.dst_filename)
         if mimetype == "text/html" and edit_url is not None:
             return _send_html_for_editing(artifact.dst_filename, edit_url, mimetype)
-        return _safe_send_file(artifact.dst_filename, mimetype=mimetype)
+        return _checked_send_file(artifact.dst_filename, mimetype=mimetype)
 
 
 def serve_artifact(path: str) -> ResponseReturnValue:
@@ -220,10 +221,10 @@ def serve_file(path: str) -> ResponseReturnValue:
             return append_slash_redirect(request.environ)
         for index in filename / "index.html", filename / "index.htm":
             if index.is_file():
-                return _safe_send_file(index, mimetype="text/html")
+                return _checked_send_file(index, mimetype="text/html")
         abort(404)
 
-    return _safe_send_file(filename, mimetype=_deduce_mimetype(filename.name))
+    return _checked_send_file(filename, mimetype=_deduce_mimetype(filename.name))
 
 
 @bp.route("/", defaults={"path": ""})

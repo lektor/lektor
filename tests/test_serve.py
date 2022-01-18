@@ -96,19 +96,19 @@ def test_deduce_mimetype(filename, mimetype):
     assert serve._deduce_mimetype(filename) == mimetype
 
 
-def test_safe_send_file(tmp_path, dummy_app):
+def test_checked_send_file(tmp_path, dummy_app):
     filename = tmp_path / "file"
     filename.write_text("content")
 
     with dummy_app.test_request_context():
-        resp = serve._safe_send_file(filename, "image/png")
+        resp = serve._checked_send_file(filename, "image/png")
     assert resp.headers["Content-Type"] == "image/png"
 
 
-def test_safe_send_file_raises_404(tmp_path, dummy_app):
+def test_checked_send_file_raises_404(tmp_path, dummy_app):
     with dummy_app.test_request_context():
         with pytest.raises(NotFound):
-            serve._safe_send_file(tmp_path / "missing.txt", "text/plain")
+            serve._checked_send_file(tmp_path / "missing.txt", "text/plain")
 
 
 ################################################################
