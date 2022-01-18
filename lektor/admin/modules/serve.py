@@ -82,17 +82,6 @@ def _safe_send_file(filename: Filename, mimetype: Optional[str] = None) -> Respo
     return resp
 
 
-def _get_index_html(directory: Directory) -> Asset:
-    """Find an index.html (or equivalent) asset for a Directory asset."""
-    for name in "index.html", "index.htm":
-        index = directory.get_child(name, from_url=True)
-        if index is not None:
-            break
-    else:
-        abort(404)
-    return index
-
-
 class ArtifactServer:
     """Resolve url_path to a Lektor source object, build it, serve the result.
 
@@ -107,24 +96,21 @@ class ArtifactServer:
         self.lektor_ctx = lektor_context
 
     def resolve_url_path(self, url_path: str) -> SourceObject:
-        pad = self.lektor_ctx.pad
-        source = pad.resolve_url_path(url_path)
-        if source is None:
-            # if not found, try stripping trailing "index.html"
-            url_head, sep, url_tail = url_path.rpartition("/")
-            if url_tail == "index.html":
-                source = pad.resolve_url_path(url_head + sep)
-            if not isinstance(source, Record):
-                # For asset Directories, we implicity add an
-                # index.html or index.htm back on, whichever exists.  If
-                # we implicitly strip an index.html here, we might end
-                # up adding an index.htm later, and thus would serve
-                # the index.htm with the index.html was explicitly
-                # requested.
-                source = None
+        source = self.lektor_ctx.pad.resolve_url_path(url_path)
         if source is None:
             abort(404)
         return source
+
+    @staticmethod
+    def resolve_directory_index(directory: Directory) -> Asset:
+        """Find an index.html (or equivalent) asset for a Directory asset."""
+        for name in "index.html", "index.htm":
+            index = directory.get_child(name, from_url=True)
+            if index is not None:
+                break
+        else:
+            abort(404)
+        return index
 
     def build_primary_artifact(self, source: SourceObject) -> Artifact:
         with self.lektor_ctx.cli_reporter():
@@ -170,9 +156,10 @@ class ArtifactServer:
             and source.url_path != "/"
         ):
             return append_slash_redirect(request.environ)
+
         if isinstance(source, Directory):
-            # Special case for asset directories: resolve to index.html if possible
-            source = _get_index_html(source)
+            # Special case for asset directories: resolve to index.html
+            source = self.resolve_directory_index(source)
 
         artifact = self.build_primary_artifact(source)
         edit_url = self.get_edit_url(source)

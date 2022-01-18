@@ -640,6 +640,17 @@ class Page(Record):
             rv = node.resolve_url_path(url_path[idx + 1 :])
             if rv is not None:
                 return rv
+
+        if len(url_path) == 1 and url_path[0] == "index.html":
+            if pg.enabled or "." not in self["_slug"]:
+                # This page renders to an index.html.  Its .url_path method returns
+                # a path ending with '/'.  Accept explicit "/index.html" when resolving.
+                #
+                # FIXME: the code for Record (and subclass) .url_path and .resolve_url
+                # could use some cleanup, especially where it deals with
+                # slugs that contain '.'s.
+                return self
+
         return None
 
     @cached_property

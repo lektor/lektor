@@ -249,6 +249,23 @@ class TestArtifactServer:
             a_s.resolve_url_path(url_path)
 
     @pytest.mark.parametrize(
+        "dir_name, index_name",
+        [
+            ("dir_with_index_html", "index.html"),
+            ("dir_with_index_htm", "index.htm"),
+        ],
+    )
+    def test_resolve_directory_index(self, a_s, pad, dir_name, index_name):
+        directory = pad.asset_root.get_child(dir_name)
+        index = a_s.resolve_directory_index(directory)
+        assert index.name == index_name
+
+    def test_resolve_directory_index_raises_404(self, a_s, pad):
+        directory = pad.asset_root.get_child("static")
+        with pytest.raises(NotFound):
+            a_s.resolve_directory_index(directory)
+
+    @pytest.mark.parametrize(
         "url_path, artifact_name",
         [
             ("de/extra/", "de/extra/index.html"),
