@@ -138,6 +138,15 @@ def project_path(tmp_path_factory):
         _template: missing.html
         """,
     )
+    # Add a page which will build to a *.txt file
+    write_text(
+        path / "content/extra/test.txt/contents.lr",
+        """
+        _model: page
+        ---
+        title: Text File
+        """,
+    )
     return path
 
 
@@ -330,7 +339,7 @@ class TestArtifactServer:
         "url_path, mimetype, is_editable",
         [
             ("projects/coffee/", "text/html", True),  # Page
-            ("extra/file.ext", "application/octet-stream", False),  # non-HTML Page
+            ("extra/test.txt", "text/plain", False),  # non-HTML Page
             ("hello.txt", "text/plain", False),  # Attachment
             # Check that build-failure report has edit pencil
             ("extra/build-failure/", "text/html", True),  # Failing build
