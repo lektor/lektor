@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from typing import Match
 from typing import Optional
+from typing import Tuple
 from typing import Union
 from zlib import adler32
 
@@ -96,6 +97,10 @@ class ArtifactServer:
         self.lektor_ctx = lektor_context
 
     def resolve_url_path(self, url_path: str) -> SourceObject:
+        """Resolve URL path to a source object.
+
+        Raise NotFound if resolution fails.
+        """
         source = self.lektor_ctx.pad.resolve_url_path(url_path)
         if source is None:
             abort(404)
@@ -103,7 +108,10 @@ class ArtifactServer:
 
     @staticmethod
     def resolve_directory_index(directory: Directory) -> Asset:
-        """Find an index.html (or equivalent) asset for a Directory asset."""
+        """Find an index.html (or equivalent) asset for a Directory asset
+
+        Raise NotFound if no index is found.
+        """
         for name in "index.html", "index.htm":
             index = directory.get_child(name, from_url=True)
             if index is not None:
@@ -112,21 +120,33 @@ class ArtifactServer:
             abort(404)
         return index
 
-    def build_primary_artifact(self, source: SourceObject) -> Artifact:
-        with self.lektor_ctx.cli_reporter():
-            prog, _ = self.lektor_ctx.builder.build(source)
+    def build_primary_artifact(
+        self, source: SourceObject
+    ) -> Tuple[Artifact, Optional[BuildFailure]]:
+        """Build source object, return primary artifact.
+
+        If the build was successfull, returns a tuple of (artifact, ``None``).
+
+        If the build failed, returns a tuple of (artifact, failure),
+        where failure is an instance of ``BuildFailure`` which
+        contains information regarding the failure.
+
+        Raises NotFound if no primary artifact is produced by the build process.
+        """
+        lektor_ctx = self.lektor_ctx
+        with lektor_ctx.cli_reporter():
+            prog, _ = lektor_ctx.builder.build(source)
         artifact = prog.primary_artifact
         if artifact is None:
             abort(404)
-        return artifact
-
-    def lookup_build_failure(self, artifact: Artifact) -> BuildFailure:
-        return self.lektor_ctx.failure_controller.lookup_failure(artifact.artifact_name)
+        failure = lektor_ctx.failure_controller.lookup_failure(artifact.artifact_name)
+        return artifact, failure
 
     @staticmethod
     def handle_build_failure(
         failure: BuildFailure, edit_url: Optional[str] = None
     ) -> Response:
+        """Format build failure to an HTML response."""
         html = render_template("build-failure.html", **failure.data).encode("utf-8")
         if edit_url is not None:
             html = _rewrite_html_for_editing(html, edit_url)
@@ -161,13 +181,12 @@ class ArtifactServer:
             # Special case for asset directories: resolve to index.html
             source = self.resolve_directory_index(source)
 
-        artifact = self.build_primary_artifact(source)
         edit_url = self.get_edit_url(source)
+        artifact, failure = self.build_primary_artifact(source)
 
         # If there was a build failure for the given artifact, we want
         # to render this instead of sending the (most likely missing or
         # corrupted) file.
-        failure = self.lookup_build_failure(artifact)
         if failure is not None:
             return self.handle_build_failure(failure, edit_url)
 

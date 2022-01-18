@@ -266,46 +266,34 @@ class TestArtifactServer:
             a_s.resolve_directory_index(directory)
 
     @pytest.mark.parametrize(
-        "url_path, artifact_name",
+        "url_path, artifact_name, failing",
         [
-            ("de/extra/", "de/extra/index.html"),
-            ("dir_with_index_html/", None),
-            ("dir_with_index_htm/", None),
-            ("dir_with_index_html/index.html", "dir_with_index_html/index.html"),
-            ("dir_with_index_htm/index.htm", "dir_with_index_htm/index.htm"),
-            ("static/", None),
+            ("de/extra/", "de/extra/index.html", False),
+            ("dir_with_index_html/", None, False),
+            ("dir_with_index_htm/", None, False),
+            ("dir_with_index_html/index.html", "dir_with_index_html/index.html", False),
+            ("dir_with_index_htm/index.htm", "dir_with_index_htm/index.htm", False),
+            ("static/", None, False),
+            ("/extra/build-failure", "extra/build-failure/index.html", True),
+            ("/extra/file.ext", "extra/file.ext", False),
         ],
     )
-    def test_build_primary_artifact(self, a_s, url_path, artifact_name):
+    def test_build_primary_artifact(self, a_s, url_path, artifact_name, failing):
         source = a_s.resolve_url_path(url_path)
         assert source is not None
         if artifact_name is None:
             with pytest.raises(NotFound):
                 a_s.build_primary_artifact(source)
         else:
-            artifact = a_s.build_primary_artifact(source)
+            artifact, failure = a_s.build_primary_artifact(source)
             assert artifact.artifact_name == artifact_name
+            assert (failure is not None) == failing
 
     def test_build_primary_artifact_raises_404(self, a_s, pad):
         source = pad.get("/extra/container")  # has _hidden = yes
         assert source is not None
         with pytest.raises(NotFound):
             a_s.build_primary_artifact(source)
-
-    @pytest.mark.parametrize(
-        "path, failing",
-        [
-            ("/extra/build-failure", True),
-            ("/extra/file.ext", False),
-        ],
-    )
-    def test_lookup_build_failure(self, a_s, pad, path, failing):
-        artifact = a_s.build_primary_artifact(pad.get(path))
-        failure = a_s.lookup_build_failure(artifact)
-        if failing:
-            assert failure.data["artifact"] == artifact.artifact_name
-        else:
-            assert failure is None
 
     @pytest.mark.parametrize("edit_url", [None, "EDIT_URL"])
     def test_handle_build_failure(self, app, a_s, mocker, edit_url):
