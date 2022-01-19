@@ -43,7 +43,7 @@ function AddNewPage({
   alt,
   item,
 }: {
-  alt: string;
+  alt: RecordAlternative;
   item: RecordPathInfoSegment;
 }) {
   return item.can_have_children ? (
@@ -57,12 +57,11 @@ function AddNewPage({
 
 function BreadCrumbs(): JSX.Element {
   const page = useContext(PageContext);
-  const record = useRecord();
+  const { path, alt } = useRecord();
 
   const [segments, setSegments] = useState<RecordPathInfoSegment[] | null>(
     null
   );
-  const { alt, path } = record;
 
   useEffect(() => {
     let ignore = false;

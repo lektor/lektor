@@ -11,12 +11,12 @@ export function EditPageActions({
   recordInfo: RawRecordInfo;
   hasPendingChanges: boolean;
 }): JSX.Element {
-  const record = useRecord();
+  const { path, alt } = useRecord();
   const goToAdminPage = useGoToAdminPage();
 
   const deleteRecord = useCallback(() => {
-    goToAdminPage("delete", record.path, record.alt);
-  }, [record, goToAdminPage]);
+    goToAdminPage("delete", path, alt);
+  }, [alt, goToAdminPage, path]);
 
   return (
     <div className="actions">

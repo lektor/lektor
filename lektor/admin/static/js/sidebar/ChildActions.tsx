@@ -1,6 +1,6 @@
 import React from "react";
 import { trans, trans_obj } from "../i18n";
-import { useRecord } from "../context/record-context";
+import { useRecordAlt } from "../context/record-context";
 import { RecordChild } from "../components/types";
 import ChildPagination from "./ChildPagination";
 import { CHILDREN_PER_PAGE } from "./constants";
@@ -17,13 +17,12 @@ export default function ChildActions({
   page: number;
   setPage: (n: number) => void;
 }): JSX.Element {
-  const record = useRecord();
+  const alt = useRecordAlt();
 
   const shownChildren = allChildren.slice(
     (page - 1) * CHILDREN_PER_PAGE,
     page * CHILDREN_PER_PAGE
   );
-  const { alt } = record;
 
   return (
     <>

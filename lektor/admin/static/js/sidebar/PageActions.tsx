@@ -42,8 +42,7 @@ function BrowseFSLink() {
 const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
 
 function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
-  const record = useRecord();
-  const { path, alt } = record;
+  const { path, alt } = useRecord();
 
   return (
     <>

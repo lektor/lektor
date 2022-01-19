@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { trimLeadingSlashes, trimTrailingSlashes } from "../utils";
 import { get } from "../fetch";
-import { RecordPathDetails, useRecord } from "../context/record-context";
+import { useRecord } from "../context/record-context";
 import { showErrorDialog } from "../error-dialog";
 import { useGoToAdminPage } from "../components/use-go-to-admin-page";
 
@@ -18,10 +18,8 @@ function getSiteRootUrl() {
   return trimTrailingSlashes(absRootUrl);
 }
 
-function usePreviewUrl(
-  { path, alt }: RecordPathDetails,
-  siteRootUrl: string
-): string {
+function usePreviewUrl(siteRootUrl: string): string {
+  const { path, alt } = useRecord();
   const [previewUrl, setPreviewUrl] = useState<string>("about:blank");
 
   useEffect(() => {
@@ -41,9 +39,8 @@ function usePreviewUrl(
 }
 
 export default function PreviewPage(): JSX.Element {
-  const record = useRecord();
   const siteRootUrl = useMemo(getSiteRootUrl, []);
-  const previewUrl = usePreviewUrl(record, siteRootUrl);
+  const previewUrl = usePreviewUrl(siteRootUrl);
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const goToAdminPage = useGoToAdminPage();
 

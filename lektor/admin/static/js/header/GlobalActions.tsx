@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useRecord } from "../context/record-context";
 import { getCanonicalUrl, keyboardShortcutHandler } from "../utils";
 import { get } from "../fetch";
@@ -23,12 +23,12 @@ export default function GlobalActions(): JSX.Element {
     return () => window.removeEventListener("keydown", onKeyPress);
   }, []);
 
-  const returnToWebsite = () => {
+  const returnToWebsite = useCallback(() => {
     get("/previewinfo", record).then(({ url }) => {
       window.location.href =
         url === null ? getCanonicalUrl("/") : getCanonicalUrl(url);
     }, showErrorDialog);
-  };
+  }, [record]);
 
   return (
     <div className="btn-group">

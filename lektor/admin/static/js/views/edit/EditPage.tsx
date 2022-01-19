@@ -139,8 +139,7 @@ function getValues({
 }
 
 function EditPage(): JSX.Element | null {
-  const record = useRecord();
-  const { path, alt } = record;
+  const { path, alt } = useRecord();
 
   const form = useRef<HTMLFormElement | null>(null);
   // The deserialised record data.

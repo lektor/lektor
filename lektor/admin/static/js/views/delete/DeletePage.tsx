@@ -14,13 +14,12 @@ import { dispatch } from "../../events";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
 function DeletePage(): JSX.Element | null {
-  const record = useRecord();
+  const { path, alt } = useRecord();
 
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [deleteMasterRecord, setDeleteMasterRecord] = useState(true);
 
   const goToAdminPage = useGoToAdminPage();
-  const { alt, path } = record;
 
   useEffect(() => {
     let ignore = false;
@@ -57,8 +56,8 @@ function DeletePage(): JSX.Element | null {
   }, [alt, path, deleteMasterRecord, goToAdminPage, recordInfo]);
 
   const cancelDelete = useCallback(() => {
-    goToAdminPage("edit", record.path, record.alt);
-  }, [goToAdminPage, record]);
+    goToAdminPage("edit", path, alt);
+  }, [goToAdminPage, path, alt]);
 
   if (!recordInfo || !recordInfo.can_be_deleted) {
     return null;

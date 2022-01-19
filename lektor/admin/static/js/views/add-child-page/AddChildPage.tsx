@@ -16,13 +16,12 @@ const alertErr = (text: string) => {
 };
 
 function AddChildPage(): JSX.Element | null {
-  const record = useRecord();
+  const { path, alt } = useRecord();
 
   const [newChildInfo, setNewChildInfo] = useState<NewRecordInfo | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [id, setId] = useState<string>("");
   const [primary, setPrimary] = useState<string>("");
-  const { alt, path } = record;
 
   useEffect(() => {
     let ignore = false;
