@@ -1691,8 +1691,10 @@ class Pad:
             return rv
         return None
 
-    def get_root(self, alt=PRIMARY_ALT):
+    def get_root(self, alt=None):
         """The root page of the database."""
+        if alt is None:
+            alt = self.config.primary_alternative or PRIMARY_ALT
         return self.get("/", alt=alt, persist=True)
 
     root = property(get_root)
