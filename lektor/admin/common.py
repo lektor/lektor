@@ -5,7 +5,9 @@ from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import Union
 
+from flask import current_app
 from flask import Flask
+from flask import g
 from werkzeug.utils import cached_property
 
 from lektor.builder import Builder
@@ -26,9 +28,6 @@ class LektorInfo(NamedTuple):
     output_path: Union[str, "os.PathLike[Any]"]
     verbosity: int = 0
     extra_flags: Optional[Sequence[str]] = None
-
-    def make_lektor_context(self) -> "LektorContext":
-        return LektorContext._make(self)
 
 
 class LektorContext(LektorInfo):
@@ -83,3 +82,12 @@ class LektorApp(Flask):
         self.config["lektor.ui_lang"] = ui_lang
         self.debug = debug
         self.config["PROPAGATE_EXCEPTIONS"] = True
+
+
+def get_lektor_context() -> LektorContext:
+    if not hasattr(g, "lektor_context"):
+        assert isinstance(current_app, LektorApp)
+        lektor_info = current_app.lektor_info
+        # pylint: disable=assigning-non-slot
+        g.lektor_context = LektorContext._make(lektor_info)
+    return g.lektor_context

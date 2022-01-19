@@ -11,7 +11,6 @@ from zlib import adler32
 from flask import abort
 from flask import Blueprint
 from flask import current_app
-from flask import g
 from flask import render_template
 from flask import request
 from flask import Response
@@ -22,6 +21,7 @@ from werkzeug.exceptions import NotFound
 from werkzeug.security import safe_join
 from werkzeug.utils import append_slash_redirect
 
+from lektor.admin.common import get_lektor_context
 from lektor.admin.common import LektorApp
 from lektor.admin.common import LektorContext
 from lektor.assets import Asset
@@ -198,12 +198,8 @@ class ArtifactServer:
 
 
 def serve_artifact(path: str) -> ResponseReturnValue:
-    if not hasattr(g, "artifact_server"):
-        # pylint: disable=assigning-non-slot
-        assert isinstance(current_app, LektorApp)
-        lektor_ctx = current_app.lektor_info.make_lektor_context()
-        g.artifact_server = ArtifactServer(lektor_ctx)
-    return g.artifact_server.serve_artifact(path)
+    lektor_context = get_lektor_context()
+    return ArtifactServer(lektor_context).serve_artifact(path)
 
 
 def serve_file(path: str) -> ResponseReturnValue:

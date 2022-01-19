@@ -9,6 +9,7 @@ import flask
 import pytest
 from werkzeug.exceptions import NotFound
 
+from lektor.admin.common import LektorContext
 from lektor.admin.modules import serve
 from lektor.admin.webui import LektorApp
 from lektor.admin.webui import LektorInfo
@@ -176,7 +177,8 @@ class TestArtifactServer:
 
     @pytest.fixture
     def a_s(self, app):
-        return serve.ArtifactServer(app.lektor_info.make_lektor_context())
+        lektor_context = LektorContext._make(app.lektor_info)
+        return serve.ArtifactServer(lektor_context)
 
     @pytest.fixture
     def pad(self, app):
