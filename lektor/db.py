@@ -1750,10 +1750,10 @@ class Pad:
 
         return resolver(record, pieces[1:])
 
-    def get(
-        self, path, alt=PRIMARY_ALT, page_num=None, persist=True, allow_virtual=True
-    ):
+    def get(self, path, alt=None, page_num=None, persist=True, allow_virtual=True):
         """Loads a record by path."""
+        if alt is None:
+            alt = self.config.primary_alternative or PRIMARY_ALT
         virt_markers = path.count("@")
 
         # If the virtual marker is included, we also want to look up the
