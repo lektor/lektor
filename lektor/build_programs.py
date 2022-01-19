@@ -241,7 +241,8 @@ class AttachmentBuildProgram(BuildProgram):
         )
 
     def produce_artifacts(self):
-        if self.source.is_visible:
+        primary_alt = self.build_state.config.primary_alternative or PRIMARY_ALT
+        if self.source.is_visible and self.source.alt == primary_alt:
             self.declare_artifact(
                 self.source.url_path, sources=list(self.source.iter_source_filenames())
             )
