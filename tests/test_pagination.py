@@ -23,8 +23,8 @@ def test_paginated_children(pad):
         u"Oven",
     ]
 
-    assert ("projects", "_primary", "1") in pad.cache.persistent
-    assert ("projects", "_primary", "2") not in pad.cache.persistent
+    assert ("projects", "en", "1") in pad.cache.persistent
+    assert ("projects", "en", "2") not in pad.cache.persistent
 
     page2 = pad.get("/projects", page_num=2)
 
@@ -40,7 +40,7 @@ def test_paginated_children(pad):
         u"Wolf",
     ]
 
-    assert ("projects", "_primary", "2") in pad.cache.persistent
+    assert ("projects", "en", "2") in pad.cache.persistent
 
 
 def test_unpaginated_children(pad):

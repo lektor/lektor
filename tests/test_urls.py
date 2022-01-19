@@ -105,10 +105,12 @@ def test_url_to_all_params_error_cases(pad, path, alt, absolute, external, base_
 
 
 def test_url_parse_virtual_path(pad):
-    wolf_de = pad.get("/projects/wolf@2", alt="de")
-    slave_de = pad.get("/projects/slave@2", alt="de")
-    assert wolf_de.url_path == "/de/projects/wolf/page/2/"
-    assert slave_de.url_path == "/de/projects/sklave/page/2/"
+    projects_de = pad.get("/projects@2", alt="de")
+    paginated_de = pad.get("/extra/paginated@2", alt="de")
+    paginated = pad.get("/extra/paginated@2")
+    assert projects_de.url_path == "/de/projects/page/2/"
+    assert paginated_de.url_path == "/de/extra/paginiert/page/2/"
+    assert paginated.url_path == "/extra/paginated/page/2/"
 
 
 def test_file_record_url(pad):

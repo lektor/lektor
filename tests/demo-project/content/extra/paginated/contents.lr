@@ -1,0 +1,5 @@
+_model: paginated
+---
+title: Paginated
+---
+_template: page.html
