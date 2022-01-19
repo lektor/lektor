@@ -1233,7 +1233,7 @@ class AttachmentsQuery(Query):
     """Specialized query class that only finds attachments."""
 
     def __init__(self, path, pad, alt=PRIMARY_ALT):
-        Query.__init__(self, path, pad, alt=PRIMARY_ALT)
+        Query.__init__(self, path, pad, alt=alt)
         self._include_pages = False
         self._include_attachments = True
 
