@@ -9,7 +9,7 @@ import flask
 import pytest
 from werkzeug.exceptions import NotFound
 
-from lektor.admin.common import LektorContext
+from lektor.admin.context import LektorContext
 from lektor.admin.modules import serve
 from lektor.admin.webui import LektorApp
 from lektor.admin.webui import LektorInfo

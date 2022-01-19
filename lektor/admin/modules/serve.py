@@ -21,9 +21,9 @@ from werkzeug.exceptions import NotFound
 from werkzeug.security import safe_join
 from werkzeug.utils import append_slash_redirect
 
-from lektor.admin.common import get_lektor_context
-from lektor.admin.common import LektorApp
-from lektor.admin.common import LektorContext
+from lektor.admin.context import get_lektor_context
+from lektor.admin.context import LektorApp
+from lektor.admin.context import LektorContext
 from lektor.assets import Asset
 from lektor.assets import Directory
 from lektor.builder import Artifact

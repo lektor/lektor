@@ -21,8 +21,8 @@ from flask import make_response
 from flask import request
 from flask import Response
 
-from lektor.admin.common import get_lektor_context
-from lektor.admin.common import LektorContext
+from lektor.admin.context import get_lektor_context
+from lektor.admin.context import LektorContext
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
 from lektor.datamodel import DataModel

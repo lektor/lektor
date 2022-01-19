@@ -3,11 +3,12 @@ from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import Union
 
+from flask import Flask
 from flask import request
 from werkzeug.wsgi import pop_path_info
 
-from lektor.admin.common import LektorApp
-from lektor.admin.common import LektorInfo
+from lektor.admin.context import LektorApp
+from lektor.admin.context import LektorInfo
 from lektor.admin.modules import api
 from lektor.admin.modules import dash
 from lektor.admin.modules import serve
@@ -17,6 +18,11 @@ if TYPE_CHECKING:
     import os
     from typing import Any
     from _typeshed.wsgi import WSGIApplication
+
+
+def _common_configuration(app: Flask, debug: bool = False) -> None:
+    app.debug = debug
+    app.config["PROPAGATE_EXCEPTIONS"] = True
 
 
 def make_app(
@@ -40,11 +46,15 @@ def make_app(
     # method, the serve view will take over and try to serve it.  To
     # prevent this from happening for the paths under /admin, we
     # structure them as a separate flask app.
-    admin_app = LektorApp(lektor_info, debug=debug, ui_lang=ui_lang)
+    admin_app = LektorApp(lektor_info)
+    _common_configuration(admin_app, debug=debug)
+    admin_app.config["lektor.ui_lang"] = ui_lang
     admin_app.register_blueprint(dash.bp, url_prefix="/")
     admin_app.register_blueprint(api.bp, url_prefix="/api")
 
-    app = LektorApp(lektor_info, debug=debug, static_url_path=f"{admin_path}/static")
+    # Serve static files from top-level app
+    app = LektorApp(lektor_info, static_url_path=f"{admin_path}/static")
+    _common_configuration(app, debug=debug)
     app.register_blueprint(serve.bp)
 
     # Pass requests for /admin/... to the admin app

@@ -70,18 +70,15 @@ class LektorContext(LektorInfo):
 
 
 class LektorApp(Flask):
+    """A Flask app that has a lektor_info attribute."""
+
     def __init__(
         self,
         lektor_info: LektorInfo,
-        debug: bool = False,
-        ui_lang: str = "en",
         **kwargs: Any,
     ) -> None:
         Flask.__init__(self, "lektor.admin", **kwargs)
         self.lektor_info = lektor_info
-        self.config["lektor.ui_lang"] = ui_lang
-        self.debug = debug
-        self.config["PROPAGATE_EXCEPTIONS"] = True
 
 
 def get_lektor_context() -> LektorContext:
