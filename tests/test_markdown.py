@@ -5,11 +5,26 @@ import pytest
 from markupsafe import Markup
 
 from lektor.context import Context
-from lektor.markdown import _markdown_cache
+from lektor.markdown import _require_ctx
+from lektor.markdown import get_markdown_parser
 from lektor.markdown import ImprovedRenderer
 from lektor.markdown import Markdown
 from lektor.markdown import markdown_to_html
+from lektor.markdown import RendererContext
+from lektor.markdown import RenderHelper
 from lektor.pluginsystem import Plugin
+
+
+def _xfail_958(*args):
+    return pytest.param(
+        *args,
+        marks=pytest.mark.xfail(
+            reason=(
+                "Attachment URLs are incorrect when alternatives are in use. "
+                "Test should pass when #958 is merged."
+            )
+        ),
+    )
 
 
 def _xfail_966(*args):
@@ -52,20 +67,45 @@ def context(record, base_url):
 
 @pytest.fixture
 def renderer_context(context, record):
-    ImprovedRenderer.record = record
-    ImprovedRenderer.meta = {}
-    try:
-        yield
-    finally:
-        del ImprovedRenderer.record
-        del ImprovedRenderer.meta
+    with RendererContext(record, {}) as renderer_context:
+        yield renderer_context
 
 
-def _normalize_html(output: Union[str, Markup]) -> str:
-    html = str(output).strip()
-    html = html.replace("&copy;", "©")
-    html = re.sub(r"(<img [^>]*?)\s*/>", r"\1>", html)
-    return html
+def test_require_ctx_raises_if_no_ctx():
+    with pytest.raises(RuntimeError) as exc_info:
+        _require_ctx()
+    assert "required for markdown rendering" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "record_path, record_alt, url, base_url, expected",
+    [
+        ("/", "en", "test.jpg", None, "test.jpg"),
+        ("/extra", "en", "missing", "/blog/", "../extra/missing"),
+        _xfail_966("/extra", "en", "a", "/blog/", "../extra/a/"),
+        _xfail_966("/extra", "en", "slash-slug", None, "long/path/"),
+        _xfail_958("/", "de", "test.jpg", None, "../test.jpg"),
+    ],
+)
+@pytest.mark.usefixtures("renderer_context")
+def test_RenderHelper_resolve_url(url, expected):
+    helper = RenderHelper()
+    assert helper.resolve_url(url) == expected
+
+
+@pytest.mark.usefixtures("renderer_context")
+def test_ImprovedRenderer_record(record):
+    renderer = ImprovedRenderer()
+    with pytest.deprecated_call() as warnings:
+        assert renderer.record is record
+    assert re.search(r"Use .*Renderer\.lektor.record instead", str(warnings[0].message))
+
+
+def test_ImprovedRenderer_meta(renderer_context):
+    renderer = ImprovedRenderer()
+    with pytest.deprecated_call() as warnings:
+        assert renderer.meta is renderer_context.meta
+    assert re.search(r"Use .*Renderer\.lektor.meta instead", str(warnings[0].message))
 
 
 @pytest.mark.parametrize(
@@ -102,16 +142,15 @@ def test_ImprovedRenderer_image(src, title, alt, expected):
     assert re.match(expected, result.rstrip())
 
 
+def test_get_markdown_parser_idempotent(env):
+    md = get_markdown_parser(env)
+    assert get_markdown_parser(env) is md
+
+
 @pytest.mark.usefixtures("context")
 def test_markdown_to_html(record):
-    # pylint: disable=unused-variable
-    html, meta = markdown_to_html("goober", record)
-    assert _normalize_html(html) == "<p>goober</p>"
-
-
-def test_markdown_to_html_requires_context(record):
-    with pytest.raises(RuntimeError):
-        markdown_to_html("goober", record)
+    result = markdown_to_html("goober", record)
+    assert result.html.rstrip() == "<p>goober</p>"
 
 
 class LinkCounterPlugin(Plugin):
@@ -121,7 +160,7 @@ class LinkCounterPlugin(Plugin):
 
     class RendererMixin:
         def link(self, *args, **kwargs):
-            self.meta["nlinks"] += 1
+            self.lektor.meta["nlinks"] += 1
             return super().link(*args, **kwargs)
 
     def on_markdown_config(self, config, **kwargs):
@@ -137,19 +176,6 @@ def link_counter_plugin(env):
     env.plugin_controller.instanciate_plugin("link-counter", LinkCounterPlugin)
 
 
-@pytest.fixture
-def fresh_markdown_parser(env):
-    """Disable Lektor's thread-local caching of Markdown parser."""
-    cached = getattr(_markdown_cache, "md", None)
-    if cached is not None:
-        del _markdown_cache.md
-    try:
-        yield
-    finally:
-        if cached is not None:
-            _markdown_cache.md = cached
-
-
 @pytest.mark.parametrize(
     "source, nlinks",
     [
@@ -157,11 +183,10 @@ def fresh_markdown_parser(env):
         ("[howdy](http://example.com/)", 1),
     ],
 )
-@pytest.mark.usefixtures("context", "link_counter_plugin", "fresh_markdown_parser")
+@pytest.mark.usefixtures("context", "link_counter_plugin")
 def test_markdown_to_html_meta(record, source, nlinks):
-    # pylint: disable=unused-variable
-    html, meta = markdown_to_html(source, record)
-    assert meta["nlinks"] == nlinks
+    result = markdown_to_html(source, record)
+    assert result.meta["nlinks"] == nlinks
 
 
 class TestMarkdown:
@@ -178,6 +203,25 @@ class TestMarkdown:
     @pytest.mark.parametrize("source, expected", [("x", True), ("", False)])
     def test_bool(self, markdown, source, expected):
         assert bool(markdown) is expected
+
+    def test_record(self, markdown, record):
+        assert markdown.record is record
+
+    def test_record_gone_away(self, mocker):
+        markdown = Markdown("text", mocker.Mock(name="record"))
+        with pytest.raises(RuntimeError) as exc_info:
+            markdown.record  # pylint: disable=pointless-statement
+        assert "gone away" in str(exc_info.value)
+
+    @pytest.mark.parametrize("source", ["![test](/test.jpg)"])
+    def test_render_caching(self, markdown, context):
+        render1 = markdown._Markdown__render()
+        assert '<img src="../test.jpg"' in render1.html
+        with context.changed_base_url("/"):
+            render2 = markdown._Markdown__render()
+            assert '<img src="test.jpg"' in render2.html
+        render3 = markdown._Markdown__render()
+        assert render3 is render1
 
     @pytest.mark.usefixtures("context", "link_counter_plugin")
     def test_meta(self, markdown):
@@ -198,6 +242,13 @@ class TestMarkdown:
     @pytest.mark.usefixtures("context")
     def test_markup(self, markdown):
         assert markdown.__html__().rstrip() == "<p>text</p>"
+
+
+def _normalize_html(output: Union[str, Markup]) -> str:
+    html = str(output).strip()
+    html = html.replace("&copy;", "©")
+    html = re.sub(r"(<img [^>]*?)\s*/>", r"\1>", html)
+    return html
 
 
 @pytest.mark.parametrize(

@@ -14,6 +14,10 @@ from lektor.types.formats import MarkdownDescriptor
 class DummySource:
     url_path = "/"
 
+    @staticmethod
+    def url_to(url, base_url=None):
+        return url
+
 
 def make_field(env, type, **options):
     return Field(env, "demo", type=env.types[type], options=options)
