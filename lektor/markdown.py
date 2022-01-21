@@ -9,7 +9,6 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Type
 from typing import TYPE_CHECKING
-from urllib.parse import urlsplit
 from weakref import ref as weakref
 
 import mistune  # type: ignore[import]
@@ -100,9 +99,6 @@ class RenderHelper:
         return get_base_url()
 
     def resolve_url(self, url: str) -> str:
-        s = urlsplit(url)
-        if not (s.scheme or s.netloc or s.query or s.fragment):
-            url = "!" + url  # prevent Lektor resolution
         return self.record.url_to(url, base_url=get_base_url())
 
 

@@ -15,27 +15,6 @@ from lektor.markdown import RenderHelper
 from lektor.pluginsystem import Plugin
 
 
-def _xfail_958(*args):
-    return pytest.param(
-        *args,
-        marks=pytest.mark.xfail(
-            reason=(
-                "Attachment URLs are incorrect when alternatives are in use. "
-                "Test should pass when #958 is merged."
-            )
-        ),
-    )
-
-
-def _xfail_966(*args):
-    return pytest.param(
-        *args,
-        marks=pytest.mark.xfail(
-            reason="Links are not currently resolved to lektor objects. See #966."
-        ),
-    )
-
-
 @pytest.fixture
 def record_path():
     return "/extra"
@@ -97,9 +76,9 @@ def test_RenderHelper_options(field_options):
     [
         ("/", "en", "test.jpg", None, "test.jpg"),
         ("/extra", "en", "missing", "/blog/", "../extra/missing"),
-        _xfail_966("/extra", "en", "a", "/blog/", "../extra/a/"),
-        _xfail_966("/extra", "en", "slash-slug", None, "long/path/"),
-        _xfail_958("/", "de", "test.jpg", None, "../test.jpg"),
+        ("/extra", "en", "a", "/blog/", "../extra/a/"),
+        ("/extra", "en", "slash-slug", None, "long/path/"),
+        ("/", "de", "test.jpg", None, "../test.jpg"),
     ],
 )
 @pytest.mark.usefixtures("renderer_context")
@@ -126,7 +105,7 @@ def test_ImprovedRenderer_meta(renderer_context):
 @pytest.mark.parametrize(
     "link, title, text, expected",
     [
-        _xfail_966("a", None, "text", r'<a href="a/">text</a>\Z'),
+        ("a", None, "text", r'<a href="a/">text</a>\Z'),
         ("missing", None, "text", r'<a href="missing">text</a>\Z'),
         ("/", "T", "text", r'<a href="../" title="T">text</a>\Z'),
         ("a&amp;b", None, "x", r'.* href="a&amp;b"'),
