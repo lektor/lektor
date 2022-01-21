@@ -161,8 +161,9 @@ class Context:
                 "Can only generate paths to other pages if "
                 "the context has a source document set."
             )
-        rv = self.source.url_to(path, alt=alt, absolute=True)
-        return self.pad.make_url(rv, self.base_url, absolute, external)
+        return self.source.url_to(
+            path, alt=alt, base_url=self.base_url, absolute=absolute, external=external
+        )
 
     def get_asset_url(self, asset):
         """Calculates the asset URL relative to the current record."""

@@ -1,10 +1,11 @@
 import pytest
 
+from lektor.context import _ctx_stack
+from lektor.context import Context
 from lektor.utils import cleanup_path
 
 
 def test_cleanup_path():
-
     assert cleanup_path("/") == "/"
     assert cleanup_path("/foo") == "/foo"
     assert cleanup_path("/foo/") == "/foo"
@@ -16,17 +17,49 @@ def test_cleanup_path():
     assert cleanup_path("/foo/../bar/") == "/foo/bar"
 
 
-def test_basic_url_to_with_alts(pad):
+@pytest.mark.parametrize(
+    "from_path, from_alt, to_path, to_alt, expected",
+    [
+        ("/projects/wolf", "en", "/projects/slave", "en", "../slave/"),
+        ("/projects/wolf", "de", "/projects/slave", "de", "../sklave/"),
+        ("/projects/slave", "en", "/projects/slave", "de", "../../de/projects/sklave/"),
+        ("/projects/slave", "de", "/projects/slave", "en", "../../../projects/slave/"),
+        ("/projects/wolf", "en", "/projects/wolf", "en", "./"),
+    ],
+)
+def test_url_to_page(pad, from_path, from_alt, to_path, to_alt, expected):
+    from_ = pad.get(from_path, alt=from_alt)
+    to = pad.get(to_path, alt=to_alt)
+    assert from_.url_to(to) == expected
 
-    wolf_en = pad.get("/projects/wolf", alt="en")
-    slave_en = pad.get("/projects/slave", alt="en")
-    wolf_de = pad.get("/projects/wolf", alt="de")
-    slave_de = pad.get("/projects/slave", alt="de")
 
-    assert wolf_en.url_to(slave_en) == "../slave/"
-    assert wolf_de.url_to(slave_de) == "../sklave/"
-    assert slave_en.url_to(slave_de) == "../../de/projects/sklave/"
-    assert slave_de.url_to(slave_en) == "../../../projects/slave/"
+@pytest.mark.parametrize(
+    "alt, expected",
+    [
+        ("en", "page/2/"),
+        ("de", "../de/blog/page/2/"),
+    ],
+)
+def test_url_to_page_with_explicit_alt(pad, alt, expected):
+    page1 = pad.get("/blog", alt="en", page_num=1)
+    page2 = pad.get("/blog", alt="en", page_num=2)
+    assert page1.url_to(page2, alt=alt) == expected
+
+
+@pytest.fixture
+def mock_build_context(mocker, pad):
+    ctx = mocker.Mock(spec=Context, pad=pad)
+    _ctx_stack.push(ctx)
+    try:
+        yield ctx
+    finally:
+        _ctx_stack.pop()
+
+
+def test_url_to_thumbnail(pad, mock_build_context):
+    extra_de = pad.get("/extra", alt="de")
+    thumbnail = pad.get("/test.jpg").thumbnail(42)
+    assert extra_de.url_to(thumbnail) == "../../test@42.jpg"
 
 
 @pytest.mark.parametrize(
@@ -75,6 +108,36 @@ def test_basic_url_to_with_alts(pad):
         ),
         ("/projects/slave", None, None, None, "/content/", "../projects/slave/"),
         ("/projects/slave", None, None, None, None, "../slave/"),
+        # Test relative paths are followed
+        ("../../extra", None, None, None, None, "../../extra/"),
+        ("../../extra", "de", None, None, None, "../../de/extra/"),
+        # No trailing slash
+        ("/extra/file.ext", "de", None, None, None, "../../de/extra/file.ext"),
+        # Test anchor is preserved
+        ("/projects/slave#anchor", None, None, None, None, "../slave/#anchor"),
+        # Test explicit alt in query
+        ("/projects/slave?alt=de", None, None, None, None, "../../de/projects/sklave/"),
+        # Test alt argument to url_to wins over query param
+        ("/projects/slave?alt=de", "en", None, None, None, "../slave/"),
+        # Unrecognized query params are ignored
+        ("/projects/slave?unrecognized=de", None, None, None, None, "../slave/"),
+        ("/projects/slave?query#anchor", None, None, None, None, "../slave/#anchor"),
+        # Non-resolvable paths are silently treated as URL paths
+        ("foo", None, None, None, None, "foo"),
+        ("foo?query#anchor", None, None, None, None, "foo?query#anchor"),
+        # External urls
+        (
+            "http://example.org/slave",
+            None,
+            None,
+            None,
+            None,
+            "http://example.org/slave",
+        ),
+        ("//example.com/?q#a", None, None, None, None, "//example.com/?q#a"),
+        # Test lektor: scheme forces Lektor resolution
+        ("lektor:/blog", None, None, None, None, "../../blog/"),
+        ("lektor:../coffee", None, None, None, None, "../coffee/"),
     ],
 )
 def test_url_to_all_params(pad, path, alt, absolute, external, base_url, expected):
@@ -94,6 +157,10 @@ def test_url_to_all_params(pad, path, alt, absolute, external, base_url, expecte
         ("/projects/slave", "de", None, True, "/content/"),
         ("/projects/slave", None, None, True, None),
         ("/projects/slave", None, None, True, "/content/"),
+        # lektor: scheme forces error if not resolvable via Lektor db
+        ("lektor:missing", None, None, True, None),
+        # netloc not allow with lektor: scheme
+        ("lektor://localhost:5000/blog", None, None, None, None),
     ],
 )
 def test_url_to_all_params_error_cases(pad, path, alt, absolute, external, base_url):

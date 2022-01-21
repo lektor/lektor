@@ -1625,6 +1625,13 @@ class Pad:
     def make_url(self, url, base_url=None, absolute=None, external=None):
         """Helper method that creates a finalized URL based on the parameters
         provided and the config.
+
+        :param url: URL path (starting with "/") relative to the
+            configured base_path.
+
+        :param base_url: Base URL path (starting with "/") relative to
+            the configured base_path.
+
         """
         url_style = self.db.config.url_style
         if absolute is None:

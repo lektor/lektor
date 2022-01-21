@@ -1,4 +1,7 @@
 import posixpath
+from typing import Optional
+from urllib.parse import parse_qsl
+from urllib.parse import urlsplit
 from weakref import ref as weakref
 
 from lektor.constants import PRIMARY_ALT
@@ -87,7 +90,14 @@ class SourceObject:
             return False
         return is_path_child_of(self.path, path, strict=strict)
 
-    def url_to(self, path, alt=None, absolute=None, external=None, base_url=None):
+    def url_to(
+        self,
+        path,  # : Union[str, "SourceObject", "SupportsUrlPath"]
+        alt: Optional[str] = None,
+        absolute: Optional[bool] = None,
+        external: Optional[bool] = None,
+        base_url: Optional[str] = None,
+    ) -> str:
         """Calculates the URL from the current source object to the given
         other source object.  Alternatively a path can also be provided
         instead of a source object.  If the path starts with a leading
@@ -95,39 +105,80 @@ class SourceObject:
 
         If a `base_url` is provided then it's used instead of the URL of
         the record itself.
+
+        API CHANGE: It used to be (lektor <= 3.3.1) that if absolute was true-ish,
+        then a url_path (URL path relative to the site's ``base_path`` was returned.
+        This is changed so that now an absolute URL path is returned.
         """
-        if alt is None:
-            alt = getattr(path, "alt", None)
-            if alt is None:
-                alt = self.alt
-
-        resolve = True
-        path = getattr(path, "url_path", path)
-        if path[:1] == "!":
-            resolve = False
-            path = path[1:]
-
-        if resolve:
-            if not path.startswith("/"):
-                if self.path is None:
-                    raise RuntimeError(
-                        "Cannot use relative URL generation "
-                        "from sources that do not have a "
-                        "path.  The source object without "
-                        "a path is %r" % self
-                    )
-                path = join_path(self.path, path)
-            source = self.pad.get(path, alt=alt)
-            if source is not None:
-                path = source.url_path
-        else:
-            path = posixpath.join(self.url_path, path)
-
-        if absolute:
-            return path
         if base_url is None:
             base_url = self.url_path
-        return self.pad.make_url(path, base_url, absolute, external)
+        if absolute:
+            # This sort of reproduces the old behaviour, where when
+            # ``absolute`` was trueish, the "absolute" URL path
+            # (relative to config.base_path) was returned, regardless
+            # of the value of ``external``.
+            external = False
+
+        if isinstance(path, SourceObject):
+            # assert not isinstance(path, Asset)
+            target = path
+            if alt is not None and alt != target.alt:
+                # NB: path.path includes page_num
+                alt_target = self.pad.get(path.path, alt=alt, persist=False)
+                if alt_target is not None:
+                    target = alt_target
+                # FIXME: issue warning if cannot get correct alt?
+            url_path = target.url_path
+        elif hasattr(path, "url_path"):  # e.g. Thumbnail
+            assert path.url_path.startswith("/")
+            url_path = path.url_path
+        elif path[:1] == "!":
+            url_path = posixpath.join(self.url_path, path[1:])
+        else:
+            return self._resolve_url(
+                path, alt=alt, absolute=absolute, external=external, base_url=base_url
+            )
+
+        return self.pad.make_url(url_path, base_url, absolute, external)
+
+    def _resolve_url(
+        self,
+        _url: str,
+        alt: Optional[str],
+        absolute: Optional[bool],
+        external: Optional[bool],
+        base_url: Optional[str],
+    ) -> str:
+        """Resolve (possibly relative) URL or db path to URL."""
+        url = urlsplit(_url)
+        if (url.scheme or url.netloc) and url.scheme != "lektor":
+            resolved = url
+        elif url.netloc:
+            raise RuntimeError("Netloc not allowed for lektor: scheme links")
+        else:
+            # Interpret path as (possibly relative) db-path
+            dbpath = join_path(self.path, url.path)
+            if alt is None:
+                params = dict(parse_qsl(url.query, keep_blank_values=False))
+                alt = params.get("alt", self.alt)
+                # XXX: support page_num in query, too?
+            target = self.pad.get(dbpath, alt=alt)
+            if target is not None:
+                url_path = target.url_path
+                query = ""
+            elif url.scheme:
+                raise RuntimeError(f"Can not resolve link {_url!r}")
+            else:
+                # Fall back to interpreting path as (possibly relative) URL path
+                url_path = posixpath.join(self.url_path, url.path)
+                query = url.query
+
+            result = self.pad.make_url(
+                url_path, absolute=absolute, external=external, base_url=base_url
+            )
+            resolved = urlsplit(result)._replace(query=query, fragment=url.fragment)
+
+        return resolved.geturl()
 
 
 class VirtualSourceObject(SourceObject):
