@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 from weakref import ref as weakref
 
 from lektor.constants import PRIMARY_ALT
+from lektor.context import ignore_url_unaffecting_dependencies
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
@@ -151,14 +152,15 @@ class SourceObject:
             # XXX: error if used with explicit alt?
             url_path = posixpath.join(self.url_path, path)
         else:
-            return self._resolve_url(
-                path,
-                alt=alt,
-                absolute=absolute,
-                external=external,
-                base_url=base_url,
-                strict=strict_resolve,
-            )
+            with ignore_url_unaffecting_dependencies():
+                return self._resolve_url(
+                    path,
+                    alt=alt,
+                    absolute=absolute,
+                    external=external,
+                    base_url=base_url,
+                    strict=strict_resolve,
+                )
 
         return self.pad.make_url(url_path, base_url, absolute, external)
 

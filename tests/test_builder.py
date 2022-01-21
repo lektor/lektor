@@ -135,7 +135,6 @@ def test_basic_artifact_current_test(pad, builder, reporter):
         "content/blog/post1/contents.lr",
         "content/blog/post1/hello.txt+en.lr",
         "content/blog/post1/hello.txt.lr",
-        "content/blog/post1/hello.txt",
         "templates/blog-post.html",
         "templates/layout.html",
         "models/blog-post.ini",

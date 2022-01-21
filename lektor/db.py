@@ -1527,7 +1527,13 @@ class Database:
         ctx = get_ctx()
         if ctx is not None:
             for filename in record.iter_source_filenames():
-                ctx.record_dependency(filename)
+                if isinstance(record, Attachment):
+                    # For Attachments, the actually attachment data
+                    # does not affect the URL of the attachment.
+                    affects_url = filename != record.attachment_filename
+                else:
+                    affects_url = True
+                ctx.record_dependency(filename, affects_url=affects_url)
             for virtual_source in record.iter_virtual_sources():
                 ctx.record_virtual_dependency(virtual_source)
             if getattr(record, "datamodel", None) and record.datamodel.filename:
