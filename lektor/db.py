@@ -1523,6 +1523,9 @@ class Database:
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:
                         ctx.record_dependency(dep_model.filename)
+            # XXX: In the case that our datamodel is implied, then the
+            # datamodel depends on the datamodel(s) of our parent(s).
+            # We do not currently record that.
         return record
 
     def process_data(self, data, datamodel, pad):

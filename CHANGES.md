@@ -28,6 +28,10 @@ These are all the changes in Lektor since the first public release.
   This fixes problems with the "edit" pencil when using alternatives ([#975][]),
   and issues when page ids include colons ([#610][]).
 
+#### Builder
+
+- Pages now record a build dependency on their datamodel `.ini` file.
+
 ### Refactorings
 
 - Cleaned up `EditorSession` to split mapping methods (for access to
