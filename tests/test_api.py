@@ -4,7 +4,6 @@ from operator import itemgetter
 from pathlib import Path
 from urllib.parse import urlencode
 
-import click
 import pytest
 
 from lektor.admin import WebAdmin
@@ -223,12 +222,12 @@ def test_find(test_client, use_json, lang):
     ],
 )
 def test_browsefs(test_client, mocker, project_path, path, alt, srcfile):
-    mocker.patch("click.launch")
+    launch = mocker.patch("click.launch")
     params = {"path": path, "alt": alt}
     resp = test_client.post("/admin/api/browsefs", json=params)
     assert resp.status_code == 200
     assert resp.get_json()["okay"]
-    assert click.launch.mock_calls == [
+    assert launch.mock_calls == [
         mocker.call(str(project_path / "content" / srcfile), locate=True),
     ]
 
@@ -326,11 +325,11 @@ def test_add_new_record(
     "delete_master, expect", [("1", True), (True, True), ("0", False), (False, False)]
 )
 def test_delete_record(scratch_client, mocker, delete_master, expect):
-    mocker.patch.object(EditorSession, "delete")
+    delete = mocker.patch.object(EditorSession, "delete")
     params = {"path": "/myobj", "delete_master": delete_master}
     resp = scratch_client.post("/admin/api/deleterecord", json=params)
     assert resp.status_code == 200
-    assert EditorSession.delete.mock_calls == [
+    assert delete.mock_calls == [
         mocker.call(delete_master=expect),
     ]
 
