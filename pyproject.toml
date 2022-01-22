@@ -10,3 +10,10 @@ addopts = "--strict-markers"
 markers = [
     "requiresinternet: marks tests requiring an internet connection",
 ]
+
+
+[tool.coverage.paths]
+paths = [
+    "lektor",
+    ".tox/py*/*/lektor",
+    ]
