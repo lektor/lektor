@@ -34,7 +34,7 @@ paths = [
 ignore = [".git"]
 
 [tool.pylint.FORMAT]
-max-line-length = 100
+max-line-length = 91
 max-module-lines = 2000
 
 [tool.pylint.DESIGN]
@@ -48,14 +48,11 @@ max-returns = 8
 disable = [
     "redundant-u-string-prefix",
     "consider-using-f-string",
-    "no-member",
     "missing-docstring",
     "unused-argument",
-    "bad-continuation",
     "redefined-outer-name",
     "invalid-name",
     "protected-access",
-    "star-args",
     "fixme",
     "broad-except",
     "redefined-builtin",
