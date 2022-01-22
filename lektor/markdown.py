@@ -2,7 +2,6 @@ import threading
 from weakref import ref as weakref
 
 import mistune
-from markupsafe import escape
 from markupsafe import Markup
 from werkzeug.urls import url_parse
 
@@ -10,6 +9,10 @@ from lektor.context import get_ctx
 
 
 _markdown_cache = threading.local()
+
+
+def escape(text: str) -> str:
+    return mistune.escape(text, quote=True)
 
 
 class ImprovedRenderer(mistune.Renderer):
