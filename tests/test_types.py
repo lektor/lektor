@@ -1,4 +1,5 @@
 import datetime
+import re
 import warnings
 
 import pytest
@@ -70,9 +71,9 @@ def test_markdown_links(env, pad):
             "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4"
             "//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
         )
-        assert (
-            md("![test](data:image/png;base64,%s)" % img)
-            == ('<p><img src="data:image/png;base64,%s" alt="test"></p>') % img
+        assert re.match(
+            rf'<p><img src="data:image/png;base64,{img}" alt="test"\s*/?></p>\Z',
+            md(f"![test](data:image/png;base64,{img})"),
         )
 
 
@@ -97,15 +98,19 @@ def test_markdown_images(pad, builder):
 
     prog, _ = builder.build(blog_index)
     with prog.artifacts[0].open("rb") as f:
-        assert (
-            b'This is an image <img src="2015/12/' b'post1/logo.png" alt="logo">.'
-        ) in f.read()
+        assert re.search(
+            rb'This is an image <img src="2015/12/post1/logo.png" alt="logo"\s*/?>.',
+            f.read(),
+        )
 
     blog_post = pad.get("/blog/post1")
 
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open("rb") as f:
-        assert b'This is an image <img src="logo.png" alt="logo">.' in f.read()
+        assert re.search(
+            rb'This is an image <img src="logo.png" alt="logo"\s*/?>.',
+            f.read(),
+        )
 
 
 def test_markdown_warns_on_invalid_options(env):
