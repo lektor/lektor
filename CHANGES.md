@@ -14,6 +14,10 @@ These are all the changes in Lektor since the first public release.
 
 ### Bugs
 
+#### Markdown Renderer
+
+- Fix overzealous HTML-entity escaping of link and image attributes. ([#989][])
+
 #### Admin API
 
 - Fix a bug in `make_editor_session` when editing non-existant pages
@@ -38,6 +42,11 @@ These are all the changes in Lektor since the first public release.
   record data) to a separate class, now available as
   `EditorSession.data`. ([#969][])
 
+#### Testing
+
+- Cleaned up and moved our `pylint` and `coverage` configuration to
+  `pyproject.toml`. ([#990][], [#991][])
+
 [#610]: https://github.com/lektor/lektor/issues/610
 [#962]: https://github.com/lektor/lektor/issues/962
 [#964]: https://github.com/lektor/lektor/pull/964
@@ -46,6 +55,9 @@ These are all the changes in Lektor since the first public release.
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 [#984]: https://github.com/lektor/lektor/pull/984
+[#989]: https://github.com/lektor/lektor/pull/989
+[#990]: https://github.com/lektor/lektor/pull/990
+[#991]: https://github.com/lektor/lektor/pull/991
 [jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
 
 ## 3.3.1 (2022-01-09)
