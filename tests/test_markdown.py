@@ -21,13 +21,6 @@ def _xfail_966(*args):
     )
 
 
-def _xfail_esc(*args):
-    return pytest.param(
-        *args,
-        marks=pytest.mark.xfail(reason="ImprovedRenderer HTML-escapes over-zealously"),
-    )
-
-
 @pytest.fixture
 def record_path():
     return "/extra"
@@ -81,7 +74,7 @@ def _normalize_html(output: Union[str, Markup]) -> str:
         _xfail_966("a", None, "text", r'<a href="a/">text</a>\Z'),
         ("missing", None, "text", r'<a href="missing">text</a>\Z'),
         ("/", "T", "text", r'<a href="../" title="T">text</a>\Z'),
-        _xfail_esc("a&amp;b", None, "x", r'.* href="a&amp;b"'),
+        ("a&amp;b", None, "x", r'.* href="a&amp;b"'),
         ("/", "<title>", "x", r'.* title="&lt;title&gt;"'),
     ],
 )
@@ -97,7 +90,7 @@ def test_ImprovedRenderer_link(link, title, text, expected):
     [
         ("/test.jpg", None, "text", r'<img src="../test.jpg" alt="text"\s*/?>\Z'),
         ("/test.jpg", "T", "x", r'.* title="T"'),
-        _xfail_esc("&amp;c.gif", None, "x", r'.* src="&amp;c.gif"'),
+        ("&amp;c.gif", None, "x", r'.* src="&amp;c.gif"'),
         ("/test.jpg", "<title>", "x", r'.* title="&lt;title&gt;"'),
         ("/test.jpg", None, "x&y", r'.* alt="x&amp;y"'),
     ],
@@ -222,25 +215,25 @@ class TestMarkdown:
         # Various link titles
         ('[x](x "TITLE")', r'.*<a\b.* title="TITLE">'),
         ('[x](x "©")', r'.*<a\b.* title="©">'),
-        _xfail_esc('[x](x "&copy;")', r'.*<a\b.* title="©">'),
+        ('[x](x "&copy;")', r'.*<a\b.* title="©">'),
         ('[x](x "a&b")', r'.*<a\b.* title="a&amp;b">'),
-        _xfail_esc('[x](x "a&amp;b")', r'.*<a\b.* title="a&amp;b">'),
+        ('[x](x "a&amp;b")', r'.*<a\b.* title="a&amp;b">'),
         ('[x](x "a<br>b")', r'.*<a\b.* title="a&lt;br&gt;b">'),
         # Various link hrefs
-        _xfail_esc("[x](&amp;c.html)", r'.*<a\b.* href="&amp;c.html">'),
+        ("[x](&amp;c.html)", r'.*<a\b.* href="&amp;c.html">'),
         ("[x](&c.html)", r'.*<a\b.* href="&amp;c.html">'),
         # Various image alts
         ("![©](x)", r'.*<img\b[^>]* alt="©"'),
-        _xfail_esc("![&copy;](x)", r'.*<img\b[^>]* alt="©"'),
+        ("![&copy;](x)", r'.*<img\b[^>]* alt="©"'),
         ("![<br>](x)", r'.*<img\b[^>]* alt="&lt;br&gt;"'),
         ("![&](x)", r'.*<img\b[^>]* alt="&amp;"'),
-        _xfail_esc("![&amp;](x)", r'.*<img\b[^>]* alt="&amp;"'),
+        ("![&amp;](x)", r'.*<img\b[^>]* alt="&amp;"'),
         # Various image titles
         ('![x](y "<br>")', r'.*<img\b[^>]* title="&lt;br&gt;"'),
-        _xfail_esc('![x](y "&lt;")', r'.*<img\b[^>]* title="&lt;"'),
+        ('![x](y "&lt;")', r'.*<img\b[^>]* title="&lt;"'),
         # Various image srcs
         ("![](x&y.gif)", r'.*<img\b[^>]* src="x&amp;y.gif"'),
-        _xfail_esc("![](x&amp;y.gif)", r'.*<img\b[^>]* src="x&amp;y.gif"'),
+        ("![](x&amp;y.gif)", r'.*<img\b[^>]* src="x&amp;y.gif"'),
         ("![](x<br>y.gif)", r'.*<img\b[^>]* src="x&lt;br&gt;y.gif"'),
     ],
 )
