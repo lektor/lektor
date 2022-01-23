@@ -4,6 +4,7 @@ from typing import ClassVar
 from typing import Dict
 from typing import Hashable
 from typing import List
+from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
 from typing import Type
@@ -32,6 +33,7 @@ def escape(text: str) -> str:
 
 
 Meta = Dict[str, Any]
+FieldOptions = Mapping[str, str]
 
 
 class RendererContext(NamedTuple):
@@ -39,6 +41,7 @@ class RendererContext(NamedTuple):
 
     record: SourceObject
     meta: Meta
+    field_options: FieldOptions
 
     def __enter__(self) -> "RendererContext":
         _threadlocal.renderer_context = self
@@ -77,6 +80,11 @@ class RenderHelper:
     @property
     def meta(self) -> Meta:
         return self.renderer_context.meta
+
+    @property
+    def field_options(self) -> FieldOptions:
+        """Field options."""
+        return self.renderer_context.field_options
 
     @property
     def renderer_context(self) -> RendererContext:
@@ -167,13 +175,15 @@ class RenderResult(NamedTuple):
     meta: Meta
 
 
-def markdown_to_html(text: str, record: SourceObject) -> RenderResult:
+def markdown_to_html(
+    text: str, record: SourceObject, field_options: FieldOptions
+) -> RenderResult:
     ctx = _require_ctx()
     md = get_markdown_parser(ctx.env)
 
     meta: Meta = {}
     ctx.env.plugin_controller.emit("markdown-meta-init", meta=meta, record=record)
-    with RendererContext(record, meta):
+    with RendererContext(record, meta, field_options):
         rv = md(text)
     ctx.env.plugin_controller.emit(
         "markdown-meta-postprocess", meta=meta, record=record
@@ -182,9 +192,12 @@ def markdown_to_html(text: str, record: SourceObject) -> RenderResult:
 
 
 class Markdown:
-    def __init__(self, source: str, record: SourceObject) -> None:
+    def __init__(
+        self, source: str, record: SourceObject, field_options: FieldOptions
+    ) -> None:
         self.source = source
         self.__record = weakref(record)
+        self.__field_options = field_options
         self.__cache: Dict[str, RenderResult] = {}
 
     def __bool__(self) -> bool:
@@ -210,7 +223,7 @@ class Markdown:
         key = md.renderer.lektor.cache_key()
         result = self.__cache.get(key) if key is not None else None
         if result is None:
-            result = markdown_to_html(self.source, self.record)
+            result = markdown_to_html(self.source, self.record, self.__field_options)
             self.__cache[key] = result
         return result
 

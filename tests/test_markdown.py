@@ -52,6 +52,15 @@ def record(pad, record_path, record_alt):
 
 
 @pytest.fixture
+def field_options():
+    """Field options"""
+    return {
+        "label": "Test Markdown Field",
+        "type": "markdown",
+    }
+
+
+@pytest.fixture
 def base_url(record):
     return None
 
@@ -66,8 +75,8 @@ def context(record, base_url):
 
 
 @pytest.fixture
-def renderer_context(context, record):
-    with RendererContext(record, {}) as renderer_context:
+def renderer_context(context, record, field_options):
+    with RendererContext(record, {}, field_options) as renderer_context:
         yield renderer_context
 
 
@@ -75,6 +84,12 @@ def test_require_ctx_raises_if_no_ctx():
     with pytest.raises(RuntimeError) as exc_info:
         _require_ctx()
     assert "required for markdown rendering" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("renderer_context")
+def test_RenderHelper_options(field_options):
+    helper = RenderHelper()
+    assert helper.field_options == field_options
 
 
 @pytest.mark.parametrize(
@@ -148,8 +163,8 @@ def test_get_markdown_parser_idempotent(env):
 
 
 @pytest.mark.usefixtures("context")
-def test_markdown_to_html(record):
-    result = markdown_to_html("goober", record)
+def test_markdown_to_html(record, field_options):
+    result = markdown_to_html("goober", record, field_options)
     assert result.html.rstrip() == "<p>goober</p>"
 
 
@@ -160,7 +175,8 @@ class LinkCounterPlugin(Plugin):
 
     class RendererMixin:
         def link(self, *args, **kwargs):
-            self.lektor.meta["nlinks"] += 1
+            multiplier = int(self.lektor.field_options.get("multiplier", 1))
+            self.lektor.meta["nlinks"] += multiplier
             return super().link(*args, **kwargs)
 
     def on_markdown_config(self, config, **kwargs):
@@ -184,8 +200,8 @@ def link_counter_plugin(env):
     ],
 )
 @pytest.mark.usefixtures("context", "link_counter_plugin")
-def test_markdown_to_html_meta(record, source, nlinks):
-    result = markdown_to_html(source, record)
+def test_markdown_to_html_meta(record, field_options, source, nlinks):
+    result = markdown_to_html(source, record, field_options)
     assert result.meta["nlinks"] == nlinks
 
 
@@ -197,8 +213,8 @@ class TestMarkdown:
         return "text"
 
     @pytest.fixture
-    def markdown(self, source, record):
-        return Markdown(source, record)
+    def markdown(self, source, record, field_options):
+        return Markdown(source, record, field_options)
 
     @pytest.mark.parametrize("source, expected", [("x", True), ("", False)])
     def test_bool(self, markdown, source, expected):
@@ -207,8 +223,8 @@ class TestMarkdown:
     def test_record(self, markdown, record):
         assert markdown.record is record
 
-    def test_record_gone_away(self, mocker):
-        markdown = Markdown("text", mocker.Mock(name="record"))
+    def test_record_gone_away(self, field_options, mocker):
+        markdown = Markdown("text", mocker.Mock(name="record"), field_options)
         with pytest.raises(RuntimeError) as exc_info:
             markdown.record  # pylint: disable=pointless-statement
         assert "gone away" in str(exc_info.value)
@@ -289,6 +305,15 @@ def _normalize_html(output: Union[str, Markup]) -> str:
     ],
 )
 @pytest.mark.usefixtures("context")
-def test_integration(record, source, expected):
-    rendered = _normalize_html(Markdown(source, record))
+def test_integration(record, field_options, source, expected):
+    rendered = _normalize_html(Markdown(source, record, field_options))
     assert re.match(expected, rendered)
+
+
+@pytest.mark.usefixtures("context", "link_counter_plugin")
+def test_field_options_integration(record, field_options):
+    # tests that we can pass field options to a custom renderer mixin
+    field_options = dict(field_options, multiplier="11")
+    two_links = "[one](x.html), [two](y.html)"
+    markdown = Markdown(two_links, record, field_options)
+    assert markdown.meta["nlinks"] == 22
