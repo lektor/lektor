@@ -154,7 +154,15 @@ class Context:
             return self.source.url_path
         return "/"
 
-    def url_to(self, path, alt=None, absolute=None, external=None):
+    def url_to(
+        self,
+        path,
+        alt=None,
+        absolute=None,
+        external=None,
+        resolve=None,
+        strict_resolve=None,
+    ):
         """Returns a URL to another path."""
         if self.source is None:
             raise RuntimeError(
@@ -162,7 +170,13 @@ class Context:
                 "the context has a source document set."
             )
         return self.source.url_to(
-            path, alt=alt, base_url=self.base_url, absolute=absolute, external=external
+            path,
+            alt=alt,
+            base_url=self.base_url,
+            absolute=absolute,
+            external=external,
+            resolve=resolve,
+            strict_resolve=strict_resolve,
         )
 
     def get_asset_url(self, asset):

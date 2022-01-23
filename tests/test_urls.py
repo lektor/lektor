@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from lektor.context import _ctx_stack
@@ -62,113 +64,206 @@ def test_url_to_thumbnail(pad, mock_build_context):
     assert extra_de.url_to(thumbnail) == "../../test@42.jpg"
 
 
+@pytest.fixture
+def external_url(pad):
+    pad.config.values["PROJECT"]["url"] = "http://example.org/site/"
+
+
 @pytest.mark.parametrize(
-    "path, alt, absolute, external, base_url, expected",
+    "path, kwargs, expected",
     [
-        ("/projects/slave", "", None, None, None, "../slave/"),
-        ("/projects/slave", "de", None, None, None, "../../de/projects/sklave/"),
-        ("/projects/slave", "de", True, None, None, "/de/projects/sklave/"),
-        ("/projects/slave", "de", True, True, None, "/de/projects/sklave/"),
-        ("/projects/slave", "de", True, True, "/content/", "/de/projects/sklave/"),
+        ("/projects/slave", {}, "../slave/"),
+        ("/projects/slave", {"absolute": True}, "/site/projects/slave/"),
         (
             "/projects/slave",
-            "de",
-            None,
-            True,
-            None,
-            "/projects/slave1/de/projects/sklave/",
+            {"external": True},
+            "http://example.org/site/projects/slave/",
         ),
         (
             "/projects/slave",
-            "de",
-            None,
-            True,
-            "/content/",
-            "/projects/slave1/de/projects/sklave/",
+            {"absolute": True, "external": True},
+            "/site/projects/slave/",
         ),
-        ("/projects/slave", "de", None, None, "/content/", "../de/projects/sklave/"),
-        ("", "de", None, None, None, "../../de/projects/wolf/"),
-        ("!", "de", None, None, None, "./"),
-        ("!/projects/slave", "de", None, None, None, "../slave"),
-        ("!/projects/slave", None, None, None, None, "../slave"),
-        ("!", None, None, None, None, "./"),
-        ("", None, None, None, None, "./"),
-        ("/projects/slave", None, True, None, None, "/projects/slave/"),
-        ("/projects/slave", None, True, True, None, "/projects/slave/"),
-        ("/projects/slave", None, True, True, "/content/", "/projects/slave/"),
-        ("/projects/slave", None, True, None, "/content/", "/projects/slave/"),
-        ("/projects/slave", None, None, True, None, "/projects/slave1/projects/slave/"),
+    ],
+)
+@pytest.mark.usefixtures("external_url")
+def test_url_to_external(pad, path, kwargs, expected):
+    wolf_en = pad.get("/projects/wolf")
+    assert wolf_en.url_to(path, **kwargs) == expected
+
+
+NO_PROJECT_URL = RuntimeError(r"To use absolute.*configure.*URL")
+CAN_NOT_RESOLVE = RuntimeError(r"Can not resolve")
+NETLOC_NOT_ALLOWED = RuntimeError(r"Netloc not allowed")
+CONFLICTING_ALT = RuntimeError(r"Conflicting.*alt")
+RESOLVE_INCOMPATIBLE_WITH_BANG = RuntimeError(r"Resolve=True.*incompatible.*!")
+
+
+def _id_for_dict(value):
+    if isinstance(value, dict):
+        return ",".join(f"{k}={v!r}" for k, v in value.items())
+    return None
+
+
+@pytest.mark.parametrize(
+    "path, kwargs, expected",
+    [
+        ("", {}, "./"),
+        (".", {}, "./"),
+        ("./", {}, "./"),
+        ("../", {}, "../"),
+        ("../wolf", {}, "./"),
+        ("../wolf/", {}, "./"),
+        ("../wolf/.", {}, "./"),
+        ("../slave", {}, "../slave/"),
+        ("../wolf/../slave/", {}, "../slave/"),
+        ("/projects/wolf", {}, "./"),
+        ("/projects/slave", {}, "../slave/"),
+        # Test alt
+        (".", {"alt": "de"}, "../../de/projects/wolf/"),
+        ("../slave", {"alt": "de"}, "../../de/projects/sklave/"),
+        ("/projects/wolf", {"alt": "de"}, "../../de/projects/wolf/"),
+        ("/projects/slave", {"alt": "de"}, "../../de/projects/sklave/"),
+        (".", {"alt": ""}, "./"),
+        # Test absolute
+        (".", {"absolute": True}, "/projects/wolf/"),
+        ("/projects/wolf", {"absolute": True}, "/projects/wolf/"),
+        ("../slave", {"absolute": True}, "/projects/slave/"),
+        ("/projects/slave", {"absolute": True}, "/projects/slave/"),
+        ("../slave", {"alt": "de", "absolute": True}, "/de/projects/sklave/"),
+        ("/projects/slave", {"alt": "de", "absolute": True}, "/de/projects/sklave/"),
+        # Test external
+        # Error if external set and no project URL
+        (".", {"external": True}, NO_PROJECT_URL),
+        (".", {"external": True, "base_url": "/content/"}, NO_PROJECT_URL),
+        ("/projects/slave", {"alt": "de", "external": True}, NO_PROJECT_URL),
+        # External ignored if absolute is set
+        (".", {"absolute": True, "external": True}, "/projects/wolf/"),
         (
-            "/projects/slave",
-            None,
-            None,
-            True,
-            "/content/",
-            "/projects/slave1/projects/slave/",
+            ".",
+            {"absolute": True, "external": True, "base_url": "/content/"},
+            "/projects/wolf/",
         ),
-        ("/projects/slave", None, None, None, "/content/", "../projects/slave/"),
-        ("/projects/slave", None, None, None, None, "../slave/"),
-        # Test relative paths are followed
-        ("../../extra", None, None, None, None, "../../extra/"),
-        ("../../extra", "de", None, None, None, "../../de/extra/"),
+        # Test base_url
+        (".", {"base_url": "/"}, "projects/wolf/"),
+        (".", {"alt": "de", "base_url": "/"}, "de/projects/wolf/"),
+        (".", {"base_url": "/content/"}, "../projects/wolf/"),
+        (".", {"absolute": True, "base_url": "/content/"}, "/projects/wolf/"),
         # No trailing slash
-        ("/extra/file.ext", "de", None, None, None, "../../de/extra/file.ext"),
-        # Test anchor is preserved
-        ("/projects/slave#anchor", None, None, None, None, "../slave/#anchor"),
-        # Test explicit alt in query
-        ("/projects/slave?alt=de", None, None, None, None, "../../de/projects/sklave/"),
-        # Test alt argument to url_to wins over query param
-        ("/projects/slave?alt=de", "en", None, None, None, "../slave/"),
-        # Unrecognized query params are ignored
-        ("/projects/slave?unrecognized=de", None, None, None, None, "../slave/"),
-        ("/projects/slave?query#anchor", None, None, None, None, "../slave/#anchor"),
+        ("/extra/file.ext", {}, "../../extra/file.ext"),
+        ("/extra/file.ext", {"alt": "de", "absolute": True}, "/de/extra/file.ext"),
+        # Custom slug
+        ("/extra/slash-slug", {}, "../../extra/long/path/"),
         # Non-resolvable paths are silently treated as URL paths
-        ("foo", None, None, None, None, "foo"),
-        ("foo?query#anchor", None, None, None, None, "foo?query#anchor"),
-        # External urls
+        ("missing", {}, "missing"),
+        ("./missing", {}, "missing"),
+        ("../missing", {}, "../missing"),
+        ("/missing", {}, "../../missing"),
+        ("missing", {"alt": "de"}, "missing"),
+        ("../missing", {"alt": "de"}, "../missing"),
+        ("missing", {"absolute": True}, "/projects/wolf/missing"),
+        ("missing", {"external": True}, NO_PROJECT_URL),
+        ("missing", {"base_url": "/projects/"}, "wolf/missing"),
+        # Disable resolution with '!' prefix
+        ("!missing", {}, "missing"),
+        ("!/extra/slash-slug", {}, "../../extra/slash-slug"),
+        ("!", {}, "./"),
+        ("!.", {}, "."),
+        ("!../slave", {}, "../slave"),  # no trailing slash
+        ("!../slave", {"alt": "de"}, "../slave"),  # alt ignored
+        ("!/projects/slave", {}, "../slave"),
+        ("!../slave", {"absolute": True}, "/projects/slave"),
+        ("!../slave", {"external": True}, NO_PROJECT_URL),
+        ("!../slave", {"absolute": True, "external": True}, "/projects/slave"),
+        ("!../slave", {"base_url": "/"}, "projects/slave"),
+        # Non-resolvable page falls back to URL-path resolution
+        # With full outer product of resolve and strict_resolve options
+        ("missing", {}, "missing"),
+        ("missing", {"resolve": True}, "missing"),
+        ("missing", {"resolve": False}, "missing"),
+        ("missing", {"strict_resolve": False}, "missing"),
+        ("missing", {"strict_resolve": True}, CAN_NOT_RESOLVE),
+        ("missing", {"resolve": True, "strict_resolve": False}, "missing"),
+        ("missing", {"resolve": True, "strict_resolve": True}, CAN_NOT_RESOLVE),
+        ("missing", {"resolve": False, "strict_resolve": False}, "missing"),
+        ("missing", {"resolve": False, "strict_resolve": True}, "missing"),
+        # Resolve=True can not be used with '!' prefix
+        ("!missing", {"resolve": True}, RESOLVE_INCOMPATIBLE_WITH_BANG),
+        ("!missing", {"resolve": False}, "missing"),
+        ("!missing", {"strict_resolve": True}, RESOLVE_INCOMPATIBLE_WITH_BANG),
+        ("!missing", {"strict_resolve": False}, "missing"),
+        ("!missing", {"resolve": False, "strict_resolve": True}, "missing"),
+        # Resolvable page with full outer product of resolve and strict_resolve options
+        ("/extra/slash-slug", {}, "../../extra/long/path/"),
+        ("/extra/slash-slug", {"resolve": True}, "../../extra/long/path/"),
+        ("/extra/slash-slug", {"resolve": False}, "../../extra/slash-slug"),
+        ("/extra/slash-slug", {"strict_resolve": False}, "../../extra/long/path/"),
+        ("/extra/slash-slug", {"strict_resolve": True}, "../../extra/long/path/"),
         (
-            "http://example.org/slave",
-            None,
-            None,
-            None,
-            None,
-            "http://example.org/slave",
+            "/extra/slash-slug",
+            {"resolve": True, "strict_resolve": False},
+            "../../extra/long/path/",
         ),
-        ("//example.com/?q#a", None, None, None, None, "//example.com/?q#a"),
-        # Test lektor: scheme forces Lektor resolution
-        ("lektor:/blog", None, None, None, None, "../../blog/"),
-        ("lektor:../coffee", None, None, None, None, "../coffee/"),
+        (
+            "/extra/slash-slug",
+            {"resolve": True, "strict_resolve": True},
+            "../../extra/long/path/",
+        ),
+        (
+            "/extra/slash-slug",
+            {"resolve": False, "strict_resolve": False},
+            "../../extra/slash-slug",
+        ),
+        (
+            "/extra/slash-slug",
+            {"resolve": False, "strict_resolve": True},
+            "../../extra/slash-slug",
+        ),
+        # Alt ignored when resolve=False
+        ("../slave", {"alt": "de", "resolve": False}, "../slave"),
+        ("../slave", {"alt": "de", "resolve": True}, "../../de/projects/sklave/"),
+        # Lektor: scheme is equivalent to strict_resolve
+        ("lektor:missing", {}, CAN_NOT_RESOLVE),
+        ("lektor:.", {}, "./"),
+        ("lektor:/extra/slash-slug", {}, "../../extra/long/path/"),
+        ("lektor:missing", {"resolve": False}, "lektor:missing"),  # XXX: reasonable?
+        ("lektor:missing", {"strict_resolve": False}, "missing"),
+        ("lektor://localhost:5000/blog", {}, NETLOC_NOT_ALLOWED),
+        # Test anchor is preserved
+        ("/projects/slave#anchor", {}, "../slave/#anchor"),
+        ("missing#anchor", {}, "missing#anchor"),
+        ("!missing#anchor", {}, "missing#anchor"),
+        ("/extra#anchor", {"resolve": False}, "../../extra#anchor"),
+        # Test anchor is preserved for non-resolved urls
+        ("missing?q", {}, "missing?q"),
+        ("!missing?q", {}, "missing?q"),
+        ("/extra?q", {"resolve": False}, "../../extra?q"),
+        # Test query and anchor are preserved for non-resolved urls
+        ("missing?q#a", {}, "missing?q#a"),
+        ("!missing?q#a", {}, "missing?q#a"),
+        ("/extra?q#a", {"resolve": False}, "../../extra?q#a"),
+        # Test explicit alt in query
+        ("../slave?alt=de", {}, "../../de/projects/sklave/"),
+        ("/extra?alt=de", {}, "../../de/extra/"),
+        # Conflicting specifications for alt
+        ("../slave?alt=de", {"alt": "en"}, CONFLICTING_ALT),
+        # Unrecognized query params are discarded for resolved urls
+        ("../slave?unrecognized=de", {}, "../slave/"),
+        ("/extra?query#anchor", {}, "../../extra/#anchor"),
+        # External urls
+        ("http://example.org/slave", {}, "http://example.org/slave"),
+        ("//example.com/?q#a", {}, "//example.com/?q#a"),
     ],
+    ids=_id_for_dict,
 )
-def test_url_to_all_params(pad, path, alt, absolute, external, base_url, expected):
-
-    if external and not absolute:
-        pad.db.config.base_url = "/projects/slave1/"
-
+def test_url_to_all_params(pad, path, kwargs, expected):
     wolf_en = pad.get("/projects/wolf")
-
-    assert wolf_en.url_to(path, alt, absolute, external, base_url) == expected
-
-
-@pytest.mark.parametrize(
-    "path, alt, absolute, external, base_url",
-    [
-        ("/projects/slave", "de", None, True, None),
-        ("/projects/slave", "de", None, True, "/content/"),
-        ("/projects/slave", None, None, True, None),
-        ("/projects/slave", None, None, True, "/content/"),
-        # lektor: scheme forces error if not resolvable via Lektor db
-        ("lektor:missing", None, None, True, None),
-        # netloc not allow with lektor: scheme
-        ("lektor://localhost:5000/blog", None, None, None, None),
-    ],
-)
-def test_url_to_all_params_error_cases(pad, path, alt, absolute, external, base_url):
-
-    wolf_en = pad.get("/projects/wolf")
-
-    with pytest.raises(RuntimeError):
-        wolf_en.url_to(path, alt, absolute, external, base_url)
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected)) as exc_info:
+            wolf_en.url_to(path, **kwargs)
+        assert re.search(str(expected), str(exc_info.value))
+    else:
+        assert wolf_en.url_to(path, **kwargs) == expected
 
 
 def test_url_parse_virtual_path(pad):

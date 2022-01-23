@@ -97,6 +97,8 @@ class SourceObject:
         absolute: Optional[bool] = None,
         external: Optional[bool] = None,
         base_url: Optional[str] = None,
+        resolve: Optional[bool] = None,
+        strict_resolve: Optional[bool] = None,
     ) -> str:
         """Calculates the URL from the current source object to the given
         other source object.  Alternatively a path can also be provided
@@ -105,6 +107,12 @@ class SourceObject:
 
         If a `base_url` is provided then it's used instead of the URL of
         the record itself.
+
+        If path is a string and resolve=False is passed, then no attempt is
+        made to resolve the path to a Lektor source object.
+
+        If path is a string and strict_resolve=True is passed, then an exception
+        is raise if the path can not be resolved to a Lektor source object.
 
         API CHANGE: It used to be (lektor <= 3.3.1) that if absolute was true-ish,
         then a url_path (URL path relative to the site's ``base_path`` was returned.
@@ -118,6 +126,8 @@ class SourceObject:
             # (relative to config.base_path) was returned, regardless
             # of the value of ``external``.
             external = False
+        if resolve is None and strict_resolve:
+            resolve = True
 
         if isinstance(path, SourceObject):
             # assert not isinstance(path, Asset)
@@ -127,16 +137,27 @@ class SourceObject:
                 alt_target = self.pad.get(path.path, alt=alt, persist=False)
                 if alt_target is not None:
                     target = alt_target
-                # FIXME: issue warning if cannot get correct alt?
+                # FIXME: issue warning or fail if cannot get correct alt?
             url_path = target.url_path
         elif hasattr(path, "url_path"):  # e.g. Thumbnail
             assert path.url_path.startswith("/")
             url_path = path.url_path
         elif path[:1] == "!":
+            # XXX: error if used with explicit alt?
+            if resolve:
+                raise RuntimeError("Resolve=True is incompatible with '!' prefix.")
             url_path = posixpath.join(self.url_path, path[1:])
+        elif resolve is not None and not resolve:
+            # XXX: error if used with explicit alt?
+            url_path = posixpath.join(self.url_path, path)
         else:
             return self._resolve_url(
-                path, alt=alt, absolute=absolute, external=external, base_url=base_url
+                path,
+                alt=alt,
+                absolute=absolute,
+                external=external,
+                base_url=base_url,
+                strict=strict_resolve,
             )
 
         return self.pad.make_url(url_path, base_url, absolute, external)
@@ -148,6 +169,7 @@ class SourceObject:
         absolute: Optional[bool],
         external: Optional[bool],
         base_url: Optional[str],
+        strict: Optional[bool],
     ) -> str:
         """Resolve (possibly relative) URL or db path to URL."""
         url = urlsplit(_url)
@@ -156,17 +178,22 @@ class SourceObject:
         elif url.netloc:
             raise RuntimeError("Netloc not allowed for lektor: scheme links")
         else:
+            if strict is None:
+                strict = url.scheme == "lektor"
             # Interpret path as (possibly relative) db-path
             dbpath = join_path(self.path, url.path)
-            if alt is None:
-                params = dict(parse_qsl(url.query, keep_blank_values=False))
-                alt = params.get("alt", self.alt)
-                # XXX: support page_num in query, too?
+            params = dict(parse_qsl(url.query, keep_blank_values=False))
+            query_alt = params.get("alt")
+            # XXX: support page_num in query, too?
+            if not alt:
+                alt = query_alt or self.alt
+            elif query_alt and query_alt != alt:
+                raise RuntimeError("Conflicting values for alt.")
             target = self.pad.get(dbpath, alt=alt)
             if target is not None:
                 url_path = target.url_path
                 query = ""
-            elif url.scheme:
+            elif strict:
                 raise RuntimeError(f"Can not resolve link {_url!r}")
             else:
                 # Fall back to interpreting path as (possibly relative) URL path
@@ -177,7 +204,6 @@ class SourceObject:
                 url_path, absolute=absolute, external=external, base_url=base_url
             )
             resolved = urlsplit(result)._replace(query=query, fragment=url.fragment)
-
         return resolved.geturl()
 
 
