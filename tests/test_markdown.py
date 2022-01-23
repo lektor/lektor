@@ -31,11 +31,17 @@ def record(pad, record_path, record_alt):
 
 
 @pytest.fixture
-def field_options():
+def resolve_links():
+    return None
+
+
+@pytest.fixture
+def field_options(resolve_links):
     """Field options"""
     return {
         "label": "Test Markdown Field",
         "type": "markdown",
+        "resolve_links": resolve_links,
     }
 
 
@@ -72,19 +78,29 @@ def test_RenderHelper_options(field_options):
 
 
 @pytest.mark.parametrize(
-    "record_path, record_alt, url, base_url, expected",
+    "record_path, record_alt, url, base_url, resolve_links, expected",
     [
-        ("/", "en", "test.jpg", None, "test.jpg"),
-        ("/extra", "en", "missing", "/blog/", "../extra/missing"),
-        ("/extra", "en", "a", "/blog/", "../extra/a/"),
-        ("/extra", "en", "slash-slug", None, "long/path/"),
-        ("/", "de", "test.jpg", None, "../test.jpg"),
+        ("/", "en", "test.jpg", None, None, "test.jpg"),
+        ("/extra", "en", "missing", "/blog/", None, "../extra/missing"),
+        ("/extra", "en", "a", "/blog/", None, "../extra/a/"),
+        ("/extra", "en", "slash-slug", None, None, "long/path/"),
+        ("/extra", "en", "slash-slug", None, "never", "slash-slug"),
+        ("/", "de", "test.jpg", None, None, "../test.jpg"),
     ],
 )
 @pytest.mark.usefixtures("renderer_context")
 def test_RenderHelper_resolve_url(url, expected):
     helper = RenderHelper()
     assert helper.resolve_url(url) == expected
+
+
+@pytest.mark.parametrize("resolve_links", ["always"])
+@pytest.mark.usefixtures("renderer_context")
+def test_RenderHelper_resolve_url_raises_when_not_resolvable():
+    helper = RenderHelper()
+    with pytest.raises(RuntimeError) as exc_info:
+        helper.resolve_url("missing")
+    assert re.search(r"Can not resolve .*missing", str(exc_info.value))
 
 
 @pytest.mark.usefixtures("renderer_context")

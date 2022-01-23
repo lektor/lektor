@@ -99,7 +99,19 @@ class RenderHelper:
         return get_base_url()
 
     def resolve_url(self, url: str) -> str:
-        return self.record.url_to(url, base_url=get_base_url())
+        resolve_links = self.field_options.get("resolve_links")
+        # Default is to resolve links to Lektor source objects when possible
+        # This is a change from previous versions where we never resolved
+        # links in Markdown.
+        resolve = strict_resolve = None
+        if resolve_links == "always":
+            strict_resolve = True
+        elif resolve_links == "never":
+            # This is the old behavior, equivalent to '!' prefix
+            resolve = False
+        return self.record.url_to(
+            url, base_url=get_base_url(), resolve=resolve, strict_resolve=strict_resolve
+        )
 
 
 class ImprovedRenderer(mistune.Renderer):  # type: ignore[misc]

@@ -1,5 +1,7 @@
 import datetime
+import warnings
 
+import pytest
 from babel.dates import get_timezone
 from markupsafe import escape
 from markupsafe import Markup
@@ -15,7 +17,7 @@ class DummySource:
     url_path = "/"
 
     @staticmethod
-    def url_to(url, base_url=None):
+    def url_to(url, **kwargs):
         return url
 
 
@@ -104,6 +106,20 @@ def test_markdown_images(pad, builder):
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open("rb") as f:
         assert b'This is an image <img src="logo.png" alt="logo">.' in f.read()
+
+
+def test_markdown_warns_on_invalid_options(env):
+    with pytest.warns(UserWarning) as warnings:
+        make_field(env, "markdown", label="Test", resolve_links="GARBAGE")
+    assert "Unrecognized value" in str(warnings[0].message)
+
+
+@pytest.mark.parametrize("resolve_links", ["always", "never", "when-possible", None])
+def test_markdown_does_not_warn_on_valid_options(env, resolve_links):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        field = make_field(env, "markdown", label="Test", resolve_links=resolve_links)
+    assert field.options["resolve_links"] == resolve_links
 
 
 def test_string(env, pad):
