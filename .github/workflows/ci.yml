@@ -128,7 +128,7 @@ jobs:
         shell: bash
         run: echo "PYTHONIOENCODING=utf-8" >> $GITHUB_ENV
       - name: Install python dependencies
-        run: python -m pip install codecov tox
+        run: python -m pip install tox codecov coverage[toml]
       - name: Run python tests
         run: tox -e py
       - name: Publish coverage
