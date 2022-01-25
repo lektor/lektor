@@ -1,9 +1,6 @@
 import React, { memo } from "react";
-import {
-  getUrlRecordPath,
-  RecordPathDetails,
-} from "../components/RecordComponent";
-import Link from "../components/Link";
+import AdminLink from "../components/AdminLink";
+import { RecordPathDetails } from "../components/RecordComponent";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 
@@ -16,17 +13,16 @@ function AttachmentActions({
 }) {
   const attachments = recordInfo.attachments;
   return (
-    <div className="section">
+    <>
       <h3>{trans("ATTACHMENTS")}</h3>
-      <ul className="nav record-attachments">
+      <ul className="nav">
         {attachments.length > 0 ? (
           attachments.map((atch) => {
-            const urlPath = getUrlRecordPath(atch.path, record.alt);
             return (
               <li key={atch.id}>
-                <Link to={`${urlPath}/edit`}>
+                <AdminLink page="edit" path={atch.path} alt={record.alt}>
                   {atch.id} ({atch.type})
-                </Link>
+                </AdminLink>
               </li>
             );
           })
@@ -36,7 +32,7 @@ function AttachmentActions({
           </li>
         )}
       </ul>
-    </div>
+    </>
   );
 }
 

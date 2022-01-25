@@ -17,7 +17,7 @@ repos:
       - id: eslint
         name: eslint
         language: node
-        entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix
+        entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix --max-warnings 0
         files: \.(ts|tsx)$
       - id: prettier
         name: prettier

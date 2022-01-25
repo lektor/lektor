@@ -1,13 +1,17 @@
-import React, { ChangeEvent, useEffect, useRef } from "react";
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import SlideDialog from "../components/SlideDialog";
-import { getApiUrl } from "../utils";
-import { loadData } from "../fetch";
+import { apiUrl, get, post } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
-import { RecordProps } from "../components/RecordComponent";
 
-interface Server {
+export interface Server {
   id: string;
   short_target: string;
   name: string;
@@ -56,12 +60,7 @@ function TargetServers({
   );
 }
 
-interface PublishState {
-  servers: Server[];
-  activeTarget: string;
-  log: string[];
-  currentState: "IDLE" | "BUILDING" | "PUBLISH" | "DONE";
-}
+type PublishState = "IDLE" | "BUILDING" | "PUBLISH" | "DONE";
 
 function BuildLog({ log }: { log: string[] }) {
   const buildLog = useRef<HTMLPreElement | null>(null);
@@ -78,117 +77,92 @@ function BuildLog({ log }: { log: string[] }) {
   );
 }
 
-type Props = Pick<RecordProps, "record"> & {
+function Publish({
+  dismiss,
+  preventNavigation,
+}: {
   dismiss: () => void;
   preventNavigation: (b: boolean) => void;
-};
+}): JSX.Element {
+  const [servers, setServers] = useState<Server[]>([]);
+  const [activeTarget, setActiveTarget] = useState("");
+  const [log, setLog] = useState<string[]>([]);
+  const [state, setState] = useState<PublishState>("IDLE");
 
-class Publish extends React.Component<Props, PublishState> {
-  constructor(props: Props) {
-    super(props);
-
-    this.state = {
-      servers: [],
-      activeTarget: "",
-      log: [],
-      currentState: "IDLE",
-    };
-
-    this.setActiveTarget = this.setActiveTarget.bind(this);
-    this.onPublish = this.onPublish.bind(this);
-  }
-
-  componentDidMount() {
-    this.syncDialog();
-  }
-
-  syncDialog() {
-    loadData("/servers", null).then(({ servers }: { servers: Server[] }) => {
-      this.setState({
-        servers,
-        activeTarget: servers.length ? servers[0].id : "",
-      });
+  useEffect(() => {
+    get("/servers", null).then(({ servers }) => {
+      setServers(servers);
+      setActiveTarget(servers.length ? servers[0].id : "");
     }, showErrorDialog);
-  }
+  }, []);
 
-  onPublish() {
-    this.setState({ log: [], currentState: "BUILDING" });
-    this.props.preventNavigation(true);
-    loadData("/build", null, { method: "POST" }).then(() => {
-      this.setState({ currentState: "PUBLISH" });
+  const onPublish = useCallback(() => {
+    setLog([]);
+    setState("BUILDING");
+    preventNavigation(true);
+    post("/build", null).then(() => {
+      setState("PUBLISH");
 
-      const es = new EventSource(
-        getApiUrl("/publish") +
-          "?server=" +
-          encodeURIComponent(this.state.activeTarget)
+      const eventSource = new EventSource(
+        apiUrl("/publish", { server: activeTarget })
       );
-      es.addEventListener("message", (event) => {
+      eventSource.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
         if (data === null) {
-          this.setState({ currentState: "DONE" });
-          this.props.preventNavigation(false);
-          es.close();
+          setState("DONE");
+          preventNavigation(false);
+          eventSource.close();
         } else {
-          this.setState((state) => ({
-            log: state.log.concat(data.msg),
-          }));
+          setLog((log) => log.concat(data.msg));
         }
       });
     }, showErrorDialog);
-  }
+  }, [activeTarget, preventNavigation]);
+  const isSafeToPublish = state === "IDLE" || state === "DONE";
 
-  setActiveTarget(activeTarget: string) {
-    this.setState({ activeTarget });
-  }
-
-  render() {
-    const state = this.state.currentState;
-    const isSafeToPublish = state === "IDLE" || state === "DONE";
-
-    return (
-      <SlideDialog
-        dismiss={this.props.dismiss}
-        hasCloseButton={false}
-        title={trans("PUBLISH")}
-      >
-        <p>{trans("PUBLISH_NOTE")}</p>
-        <TargetServers
-          activeTarget={this.state.activeTarget}
-          servers={this.state.servers}
-          setActiveTarget={this.setActiveTarget}
-        />
-        <p>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={!isSafeToPublish}
-            onClick={this.onPublish}
-          >
-            {trans("PUBLISH")}
-          </button>{" "}
-          <button
-            type="button"
-            className="btn btn-secondary border"
-            disabled={!isSafeToPublish}
-            onClick={this.props.dismiss}
-          >
-            {trans(state === "DONE" ? "CLOSE" : "CANCEL")}
-          </button>
-        </p>
-        {state !== "IDLE" ? (
-          <div>
-            <h3>
-              {state !== "DONE"
-                ? trans("CURRENTLY_PUBLISHING")
-                : trans("PUBLISH_DONE")}
-            </h3>
-            <pre>{trans("STATE") + ": " + trans(`PUBLISH_STATE_${state}`)}</pre>
-            <BuildLog log={this.state.log} />
-          </div>
-        ) : null}
-      </SlideDialog>
-    );
-  }
+  return (
+    <SlideDialog
+      dismiss={dismiss}
+      hasCloseButton={false}
+      title={trans("PUBLISH")}
+    >
+      <p>{trans("PUBLISH_NOTE")}</p>
+      <TargetServers
+        activeTarget={activeTarget}
+        servers={servers}
+        setActiveTarget={setActiveTarget}
+      />
+      <p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={!isSafeToPublish}
+          onClick={onPublish}
+        >
+          {trans("PUBLISH")}
+        </button>{" "}
+        <button
+          type="button"
+          className="btn btn-secondary border"
+          disabled={!isSafeToPublish}
+          onClick={dismiss}
+        >
+          {trans(state === "DONE" ? "CLOSE" : "CANCEL")}
+        </button>
+      </p>
+      {state !== "IDLE" ? (
+        <>
+          <h3>
+            {state !== "DONE"
+              ? trans("CURRENTLY_PUBLISHING")
+              : trans("PUBLISH_DONE")}
+          </h3>
+          <pre>{trans("STATE") + ": " + trans(`PUBLISH_STATE_${state}`)}</pre>
+          <BuildLog log={log} />
+        </>
+      ) : null}
+    </SlideDialog>
+  );
 }
 
 export default Publish;

@@ -126,12 +126,13 @@ def test_basic_artifact_current_test(pad, builder, reporter):
         ),
     ]
 
-    assert reporter.get_recorded_dependencies() == [
+    assert set(reporter.get_recorded_dependencies()) == {
         "Website.lektorproject",
         "content/blog/post1/contents.lr",
         "templates/blog-post.html",
         "templates/layout.html",
-    ]
+        "models/blog-post.ini",
+    }
 
     assert artifact.is_current
 

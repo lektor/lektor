@@ -15,11 +15,6 @@ from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
 
 
-_os_alt_seps = list(
-    sep for sep in [os.path.sep, os.path.altsep] if sep not in (None, "/")
-)
-
-
 class SilentWSGIRequestHandler(WSGIRequestHandler):
     def log(self, type, message, *args):
         pass
@@ -99,7 +94,7 @@ def browse_to_address(addr):
         webbrowser.open("http://%s:%s" % addr)
 
     t = threading.Thread(target=browse)
-    t.setDaemon(True)
+    t.daemon = True
     t.start()
 
 
@@ -120,6 +115,8 @@ def run_server(
     wz_as_main = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
     in_main_process = not lektor_dev or wz_as_main
     extra_flags = process_extra_flags(extra_flags)
+    if lektor_dev:
+        env.jinja_env.add_extension("jinja2.ext.debug")
 
     if in_main_process:
         background_builder = BackgroundBuilder(
@@ -129,7 +126,7 @@ def run_server(
             verbosity=verbosity,
             extra_flags=extra_flags,
         )
-        background_builder.setDaemon(True)
+        background_builder.daemon = True
         background_builder.start()
         env.plugin_controller.emit(
             "server-spawn", bindaddr=bindaddr, extra_flags=extra_flags
@@ -160,9 +157,9 @@ def run_server(
             use_debugger=True,
             threaded=True,
             use_reloader=lektor_dev,
-            request_handler=not lektor_dev
-            and SilentWSGIRequestHandler
-            or WSGIRequestHandler,
+            request_handler=WSGIRequestHandler
+            if lektor_dev
+            else SilentWSGIRequestHandler,
         )
     finally:
         if dt is not None:
