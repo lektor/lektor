@@ -1349,8 +1349,8 @@ class Database:
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
                             rv[key] = "".join(lines)
-            except IOError as e:
-                if e.errno not in (errno.ENOTDIR, errno.ENOENT):
+            except OSError as e:
+                if e.errno not in (errno.ENOTDIR, errno.ENOENT, errno.EINVAL):
                     raise
                 if not is_attachment or not os.path.isfile(fs_path[:-3]):
                     continue

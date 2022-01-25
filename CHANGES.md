@@ -32,6 +32,12 @@ These are all the changes in Lektor since the first public release.
   This fixes problems with the "edit" pencil when using alternatives ([#975][]),
   and issues when page ids include colons ([#610][]).
 
+#### Database
+
+- Fix for uncaught `OSError(error=EINVAL)` on Windows when `Pad.get`
+  was called with a path containing characters which are not allowed
+  in Windows filenames (e.g. `<>*?|\/":`).
+
 #### Builder
 
 - Pages now record a build dependency on their datamodel `.ini` file.
