@@ -12,6 +12,11 @@ These are all the changes in Lektor since the first public release.
   `LEKTOR_DEV` env var is set to 1 and `lektor server` is
   used. ([#984][])
 
+### License
+
+- The wording in the LICENSE file was standardized to that of the
+  current [BSD 3-Clause License][bsd]. ([#972][])
+
 ### Bugs
 
 #### Markdown Renderer
@@ -53,11 +58,13 @@ These are all the changes in Lektor since the first public release.
 - Cleaned up and moved our `pylint` and `coverage` configuration to
   `pyproject.toml`. ([#990][], [#991][])
 
+[bsd]: https://opensource.org/licenses/BSD-3-Clause
 [#610]: https://github.com/lektor/lektor/issues/610
 [#962]: https://github.com/lektor/lektor/issues/962
 [#964]: https://github.com/lektor/lektor/pull/964
 [#967]: https://github.com/lektor/lektor/pull/967
 [#969]: https://github.com/lektor/lektor/pull/969
+[#972]: https://github.com/lektor/lektor/pull/972
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 [#984]: https://github.com/lektor/lektor/pull/984
