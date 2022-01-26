@@ -1,12 +1,46 @@
 # Tests for lektor.db.Tree and related classes.
+import re
+import shutil
+from pathlib import Path
+
 import pytest
 
 from lektor.constants import PRIMARY_ALT
 from lektor.db import Tree
+from lektor.project import Project
+
+
+@pytest.fixture(scope="session")
+def no_alt_pad(tmp_path_factory):
+    no_alt_project = tmp_path_factory.mktemp("no-alts") / "demo-project"
+    demo_project = Path(__file__).parent / "demo-project"
+    shutil.copytree(demo_project, no_alt_project)
+
+    project_file = no_alt_project / "Website.lektorproject"
+    alt_section_re = r"(?ms)^\[alternatives\.\w+\].*?(?=^\[)"
+    project_file.write_text(re.sub(alt_section_re, "", project_file.read_text()))
+
+    dirs = [no_alt_project]
+    while dirs:
+        for child in dirs.pop().iterdir():
+            if child.is_dir():
+                dirs.append(child)
+            elif child.match("contents+*.lr"):
+                child.unlink()
+
+    project = Project.from_path(no_alt_project)
+    return project.make_env().new_pad()
+
+
+@pytest.fixture(params=[False, True])
+def disable_alternatives(request):
+    return request.param
 
 
 @pytest.fixture
-def tree(pad):
+def tree(pad, no_alt_pad, disable_alternatives):
+    if disable_alternatives:
+        pad = no_alt_pad
     return Tree(pad)
 
 
@@ -97,13 +131,17 @@ def test_tree_item_can_have_children(tree, path, expect):
 
 
 @pytest.mark.parametrize(
-    "path, alt, expect",
+    "disable_alternatives, path, alt, expect",
     [
-        ("/", PRIMARY_ALT, {"en": "Welcome"}),
-        ("/test.jpg", PRIMARY_ALT, {"en": "test.jpg"}),
-        ("/missing/gone", PRIMARY_ALT, {"en": "Gone"}),
-        ("/projects/bagpipe", PRIMARY_ALT, {"en": "Bagpipe"}),
-        ("/projects/bagpipe", "de", {"en": "Dudelsack"}),
+        (False, "/", PRIMARY_ALT, {"en": "Welcome"}),
+        (False, "/test.jpg", PRIMARY_ALT, {"en": "test.jpg"}),
+        (False, "/missing/gone", PRIMARY_ALT, {"en": "Gone"}),
+        (False, "/projects/bagpipe", PRIMARY_ALT, {"en": "Bagpipe"}),
+        (False, "/projects/bagpipe", "de", {"en": "Dudelsack"}),
+        (True, "/", PRIMARY_ALT, {"en": "Welcome"}),
+        (True, "/test.jpg", PRIMARY_ALT, {"en": "test.jpg"}),
+        (True, "/missing/gone", PRIMARY_ALT, {"en": "Gone"}),
+        (True, "/projects/bagpipe", PRIMARY_ALT, {"en": "Bagpipe"}),
     ],
 )
 def test_tree_item_get_record_label_i18n(tree, path, alt, expect):
@@ -151,15 +189,22 @@ def test_get(tree, path, name):
 
 
 @pytest.mark.parametrize(
-    "path, offset, limit, order_by, expect",
+    "disable_alternatives, path, offset, limit, order_by, expect",
     [
-        ("/extra/container", 0, None, None, ["a", "hello.txt"]),
-        ("/extra/container", 1, None, None, ["hello.txt"]),
-        ("/extra/container", 0, 1, None, ["a"]),
-        ("/projects", 0, 2, ("seq",), ["attachment.txt", "zaun"]),
-        ("/projects", 1, 1, ("seq",), ["zaun"]),
-        ("/projects", 0, 2, None, ["attachment.txt", "bagpipe"]),
-        ("/projects", 9, None, None, ["wolf", "zaun"]),
+        (False, "/extra/container", 0, None, None, ["a", "hello.txt"]),
+        (False, "/extra/container", 1, None, None, ["hello.txt"]),
+        (False, "/extra/container", 0, 1, None, ["a"]),
+        (False, "/projects", 0, 2, ("seq",), ["attachment.txt", "zaun"]),
+        (False, "/projects", 1, 1, ("seq",), ["zaun"]),
+        (False, "/projects", 0, 2, None, ["attachment.txt", "bagpipe"]),
+        (False, "/projects", 8, None, None, ["slave", "wolf", "zaun"]),
+        (True, "/extra/container", 0, None, None, ["a", "hello.txt"]),
+        (True, "/extra/container", 1, None, None, ["hello.txt"]),
+        (True, "/extra/container", 0, 1, None, ["a"]),
+        (True, "/projects", 0, 2, ("seq",), ["attachment.txt", "wolf"]),
+        (True, "/projects", 1, 1, ("seq",), ["wolf"]),
+        (True, "/projects", 0, 2, None, ["attachment.txt", "bagpipe"]),
+        (True, "/projects", 8, None, None, ["slave", "wolf"]),
     ],
 )
 def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
@@ -169,11 +214,12 @@ def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
 
 
 @pytest.mark.parametrize(
-    "path, order_by, expect",
+    "disable_alternatives, path, order_by, expect",
     [
-        ("/", None, ["blog", "extra", "projects"]),
-        ("/blog", ("-pub_date",), ["post2", "post1", "dummy.xml"]),
+        (False, "/", None, ["blog", "extra", "projects"]),
+        (False, "/blog", ("-pub_date",), ["post2", "post1", "dummy.xml"]),
         (
+            False,
             "/projects",
             ("seq",),
             [
@@ -190,6 +236,7 @@ def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
             ],
         ),
         (
+            False,
             "/projects",
             None,
             [
@@ -205,6 +252,8 @@ def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
                 "zaun",
             ],
         ),
+        (True, "/", None, ["blog", "extra", "projects"]),
+        (True, "/blog", ("-pub_date",), ["post2", "post1", "dummy.xml"]),
     ],
 )
 def test_tree_item_iter_subpages(tree, path, order_by, expect):
@@ -258,26 +307,34 @@ def test_tree_item_repr(tree, path, expect):
     assert repr(item) == expect
 
 
-def test_tree_item_alts(tree):
+@pytest.mark.parametrize(
+    "disable_alternatives, alts",
+    [(False, {PRIMARY_ALT, "en", "de"}), (True, {PRIMARY_ALT})],
+)
+def test_tree_item_alts(tree, alts):
     item = tree.get("/")
-    assert set(item.alts) == {PRIMARY_ALT, "en", "de"}
+    assert set(item.alts) == alts
 
 
 @pytest.mark.parametrize(
-    "path, alt, expect",
+    "disable_alternatives, path, alt, expect",
     [
-        ("/", PRIMARY_ALT, True),
-        ("/", "en", False),
-        ("/", "de", False),
-        ("/hello.txt", PRIMARY_ALT, False),
-        ("/hello.txt", "en", False),
-        ("/hello.txt", "de", False),
-        ("/missing", PRIMARY_ALT, False),
-        ("/missing", "en", False),
-        ("/missing", "de", False),
-        ("/projects/zaun", PRIMARY_ALT, False),
-        ("/projects/zaun", "en", False),
-        ("/projects/zaun", "de", True),
+        (False, "/", PRIMARY_ALT, True),
+        (False, "/", "en", False),
+        (False, "/", "de", False),
+        (False, "/hello.txt", PRIMARY_ALT, False),
+        (False, "/hello.txt", "en", False),
+        (False, "/hello.txt", "de", False),
+        (False, "/missing", PRIMARY_ALT, False),
+        (False, "/missing", "en", False),
+        (False, "/missing", "de", False),
+        (False, "/projects/zaun", PRIMARY_ALT, False),
+        (False, "/projects/zaun", "en", False),
+        (False, "/projects/zaun", "de", True),
+        (True, "/", PRIMARY_ALT, True),
+        (True, "/hello.txt", PRIMARY_ALT, False),
+        (True, "/missing", PRIMARY_ALT, False),
+        (True, "/projects/zaun", PRIMARY_ALT, False),
     ],
 )
 def test_alt_exists(tree, path, alt, expect):
@@ -286,11 +343,12 @@ def test_alt_exists(tree, path, alt, expect):
 
 
 @pytest.mark.parametrize(
-    "alt, expect",
+    "disable_alternatives, alt, expect",
     [
-        (PRIMARY_ALT, False),
-        ("en", True),
-        ("de", False),
+        (False, PRIMARY_ALT, False),
+        (False, "en", True),
+        (False, "de", False),
+        (True, PRIMARY_ALT, True),
     ],
 )
 def test_alt_is_primary_overlay(tree, alt, expect):
@@ -299,11 +357,11 @@ def test_alt_is_primary_overlay(tree, alt, expect):
 
 
 @pytest.mark.parametrize(
-    "alt, expect",
+    "disable_alternatives, alt, expect",
     [
-        (PRIMARY_ALT, {"en": "English", "de": "Englisch"}),
-        ("en", {"en": "English", "de": "Englisch"}),
-        ("de", {"en": "German", "de": "Deutsch"}),
+        (False, PRIMARY_ALT, {"en": "English", "de": "Englisch"}),
+        (False, "en", {"en": "English", "de": "Englisch"}),
+        (False, "de", {"en": "German", "de": "Deutsch"}),
     ],
 )
 def test_alt_name_i18n(tree, alt, expect):
@@ -312,12 +370,14 @@ def test_alt_name_i18n(tree, alt, expect):
 
 
 @pytest.mark.parametrize(
-    "path, alt, expect",
+    "disable_alternatives, path, alt, expect",
     [
-        ("/", PRIMARY_ALT, "<Alt '_primary'*>"),
-        ("/", "en", "<Alt 'en'>"),
-        ("/", "de", "<Alt 'de'>"),
-        ("/projects/zaun", "de", "<Alt 'de'*>"),
+        (False, "/", PRIMARY_ALT, "<Alt '_primary'*>"),
+        (False, "/", "en", "<Alt 'en'>"),
+        (False, "/", "de", "<Alt 'de'>"),
+        (False, "/projects/zaun", "de", "<Alt 'de'*>"),
+        (True, "/", PRIMARY_ALT, "<Alt '_primary'*>"),
+        (True, "/projects/zaun", PRIMARY_ALT, "<Alt '_primary'>"),
     ],
 )
 def test_alt_repr(tree, path, alt, expect):

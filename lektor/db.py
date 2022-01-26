@@ -2078,20 +2078,25 @@ class Tree:
         #
         # Here we construct a list of configured alts in preference order
         config = pad.db.config
-        alts = [PRIMARY_ALT]
+        alt_info = OrderedDict()
         if config.primary_alternative:
+            # Alternatives are configured
+            alts = [PRIMARY_ALT]
             alts.append(config.primary_alternative)
             alts.extend(
                 alt
                 for alt in config.list_alternatives()
                 if alt != config.primary_alternative
             )
-
-        alt_info = OrderedDict()
-        for alt in alts:
-            alt_info[alt] = {
-                "is_primary_overlay": alt == config.primary_alternative,
-                "name_i18n": config.get_alternative(alt)["name"],
+            for alt in alts:
+                alt_info[alt] = {
+                    "is_primary_overlay": alt == config.primary_alternative,
+                    "name_i18n": config.get_alternative(alt)["name"],
+                }
+        else:
+            alt_info[PRIMARY_ALT] = {
+                "is_primary_overlay": True,
+                "name_i18n": {"en": "Primary"},
             }
 
         self.pad = pad
