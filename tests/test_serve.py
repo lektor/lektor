@@ -471,6 +471,34 @@ def test_serve_from_file(app, output_path):
         assert resp.mimetype == "text/plain"
 
 
+@pytest.mark.parametrize(
+    "path_info, base_url, location",
+    [
+        ("/extra", "http://example.org/pfx/", "http://example.org/pfx/extra/"),
+        (
+            "/dir_with_index_html?qs",
+            "http://localhost/",
+            "http://localhost/dir_with_index_html/?qs",
+        ),
+        (
+            "/projects/coffee",
+            "http://localhost/pfx",
+            "http://localhost/pfx/projects/coffee/",
+        ),
+        ("/adir", "http://localhost/", "http://localhost/adir/"),
+        ("/adir/bdir", "http://localhost/", "http://localhost/adir/bdir/"),
+    ],
+)
+def test_serve_add_slash_redirect_integration(
+    app, output_path, path_info, base_url, location
+):
+    output_path.joinpath("adir/bdir").mkdir(parents=True)
+    with app.test_client() as c:
+        resp = c.get(path_info, base_url=base_url)
+        assert resp.status_code == 301
+        assert resp.location == location
+
+
 @pytest.fixture
 def scratch_app(scratch_env, output_path):
     lektor_info = LektorInfo(scratch_env, output_path)
