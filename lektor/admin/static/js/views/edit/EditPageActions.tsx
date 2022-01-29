@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { RecordPathDetails } from "../../components/RecordComponent";
+import { useRecord } from "../../context/record-context";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { trans } from "../../i18n";
 import { RawRecordInfo } from "./EditPage";
@@ -7,17 +7,16 @@ import { RawRecordInfo } from "./EditPage";
 export function EditPageActions({
   recordInfo,
   hasPendingChanges,
-  record,
 }: {
   recordInfo: RawRecordInfo;
   hasPendingChanges: boolean;
-  record: RecordPathDetails;
 }): JSX.Element {
+  const { path, alt } = useRecord();
   const goToAdminPage = useGoToAdminPage();
 
   const deleteRecord = useCallback(() => {
-    goToAdminPage("delete", record.path, record.alt);
-  }, [record, goToAdminPage]);
+    goToAdminPage("delete", path, alt);
+  }, [alt, goToAdminPage, path]);
 
   return (
     <div className="actions">

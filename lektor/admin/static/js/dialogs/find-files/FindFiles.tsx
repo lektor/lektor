@@ -1,31 +1,36 @@
-import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
+import React, {
+  KeyboardEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-import { RecordProps } from "../../components/RecordComponent";
+import { RecordPath, useRecordAlt } from "../../context/record-context";
 import SlideDialog from "../../components/SlideDialog";
 import { post } from "../../fetch";
 import { getCurrentLanguge, trans } from "../../i18n";
 import { showErrorDialog } from "../../error-dialog";
 import ResultRow from "./ResultRow";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
+import { PageContext } from "../../context/page-context";
 
 export type SearchResult = {
   parents: { title: string }[];
-  path: RecordProps["record"]["path"];
+  path: RecordPath;
   title: string;
 };
 
-function FindFiles({
-  page,
-  record,
-  dismiss,
-}: RecordProps & { dismiss: () => void }): JSX.Element {
+function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
+  const alt = useRecordAlt();
+  const page = useContext(PageContext);
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(-1);
 
   const goToAdminPage = useGoToAdminPage();
 
-  const { alt } = record;
   const target = page === "preview" ? "preview" : "edit";
 
   useEffect(() => {
@@ -89,7 +94,7 @@ function FindFiles({
             result={result}
             isActive={idx === selected}
             dismiss={dismiss}
-            alt={record.alt}
+            alt={alt}
             target={target}
           />
         ))}

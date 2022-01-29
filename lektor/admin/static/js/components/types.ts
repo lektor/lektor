@@ -1,8 +1,8 @@
-import { RecordPathDetails } from "./RecordComponent";
+import { RecordPath, RecordAlternative } from "../context/record-context";
 import type { Translatable } from "../i18n";
 
 export type Alternative = {
-  alt: RecordPathDetails["alt"];
+  alt: RecordAlternative;
   is_primary: boolean;
   primary_overlay: boolean;
   name_i18n: Translatable;
@@ -11,7 +11,7 @@ export type Alternative = {
 
 export type RecordChild = {
   id: string;
-  path: RecordPathDetails["path"];
+  path: RecordPath;
   label: string;
   label_i18n: Translatable;
   visible: boolean;
@@ -19,14 +19,14 @@ export type RecordChild = {
 
 export type RecordAttachment = {
   id: string;
-  path: RecordPathDetails["path"];
+  path: RecordPath;
   type: string;
 };
 
 // Returned by /recordinfo
 export type RecordInfo = {
   id: string;
-  path: RecordPathDetails["path"];
+  path: RecordPath;
   label_i18n?: Translatable;
   exists: boolean;
   is_attachment: boolean;

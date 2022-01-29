@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { RecordProps } from "../components/RecordComponent";
+import React, { useContext, useEffect, useState } from "react";
+import { useRecord } from "../context/record-context";
 import { get } from "../fetch";
 import { trans, trans_fallback } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import AdminLink from "../components/AdminLink";
-import { PageName, RecordPathDetails } from "../components/RecordComponent";
+import { RecordAlternative, RecordPath } from "../context/record-context";
+import { PageContext } from "../context/page-context";
 
 export interface RecordPathInfoSegment {
   id: string;
-  path: RecordPathDetails["path"];
+  path: RecordPath;
   label: string;
   label_i18n?: Record<string, string>;
   exists: boolean;
@@ -18,11 +19,11 @@ export interface RecordPathInfoSegment {
 function Crumb({
   alt,
   item,
-  target,
+  targetPage,
 }: {
-  alt: RecordPathDetails["alt"];
+  alt: RecordAlternative;
   item: RecordPathInfoSegment;
-  target: PageName & ("preview" | "edit");
+  targetPage: "preview" | "edit";
 }) {
   const { path, exists } = item;
   const label = exists ? trans_fallback(item.label_i18n, item.label) : item.id;
@@ -31,7 +32,7 @@ function Crumb({
     : "breadcrumb-item missing-record-crumb";
   return (
     <li className={className}>
-      <AdminLink page={target} path={path} alt={alt}>
+      <AdminLink page={targetPage} path={path} alt={alt}>
         {label}
       </AdminLink>
     </li>
@@ -42,7 +43,7 @@ function AddNewPage({
   alt,
   item,
 }: {
-  alt: string;
+  alt: RecordAlternative;
   item: RecordPathInfoSegment;
 }) {
   return item.can_have_children ? (
@@ -54,11 +55,13 @@ function AddNewPage({
   ) : null;
 }
 
-function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
+function BreadCrumbs(): JSX.Element {
+  const page = useContext(PageContext);
+  const { path, alt } = useRecord();
+
   const [segments, setSegments] = useState<RecordPathInfoSegment[] | null>(
     null
   );
-  const { alt, path } = record;
 
   useEffect(() => {
     let ignore = false;
@@ -92,7 +95,7 @@ function BreadCrumbs({ record, page }: RecordProps): JSX.Element {
   return (
     <ul className="breadcrumb">
       {segments.map((item) => (
-        <Crumb key={item.path} item={item} alt={alt} target={target} />
+        <Crumb key={item.path} item={item} alt={alt} targetPage={target} />
       ))}
       <AddNewPage item={lastItem} alt={alt} />
     </ul>

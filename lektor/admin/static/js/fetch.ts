@@ -1,13 +1,14 @@
 import { RecordInfo } from "./components/types";
-import { RecordPathDetails } from "./components/RecordComponent";
+import {
+  RecordAlternative,
+  RecordPath,
+  RecordPathDetails,
+} from "./context/record-context";
 import { SearchResult } from "./dialogs/find-files/FindFiles";
 import { Server } from "./dialogs/Publish";
 import { RecordPathInfoSegment } from "./header/BreadCrumbs";
 import { NewRecordInfo } from "./views/add-child-page/types";
 import { RawRecord } from "./views/edit/EditPage";
-
-type Path = RecordPathDetails["path"];
-type Alt = RecordPathDetails["alt"];
 
 export class FetchError extends Error {
   constructor(readonly code: string) {
@@ -46,13 +47,13 @@ function fetchJSON(
 /** Required URL parameters for GET API endpoints. */
 type GetAPIParams = {
   "/matchurl": { url_path: string };
-  "/newattachment": { path: Path };
-  "/newrecord": { path: Path; alt?: Alt };
-  "/pathinfo": { path: Path };
+  "/newattachment": { path: RecordPath };
+  "/newrecord": { path: RecordPath; alt?: RecordAlternative };
+  "/pathinfo": { path: RecordPath };
   "/ping": null;
   "/previewinfo": RecordPathDetails;
   "/rawrecord": RecordPathDetails;
-  "/recordinfo": { path: Path };
+  "/recordinfo": { path: RecordPath };
   "/servers": null;
 };
 
@@ -78,7 +79,7 @@ type PostAPIParams = {
   "/build": null;
   "/clean": null;
   "/deleterecord": RecordPathDetails & { delete_master: "1" | "0" };
-  "/find": { q: string; alt: Alt; lang: string };
+  "/find": { q: string; alt: RecordAlternative; lang: string };
   "/newrecord": null; // it's all in the JSON request.
 };
 
@@ -89,7 +90,7 @@ type PostAPIReturns = {
   "/clean": unknown;
   "/deleterecord": unknown;
   "/find": { results: SearchResult[] };
-  "/newrecord": { valid_id: boolean; exists: boolean; path: Path };
+  "/newrecord": { valid_id: boolean; exists: boolean; path: RecordPath };
 };
 
 /**

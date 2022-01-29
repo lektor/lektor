@@ -1,10 +1,9 @@
-import React, { useReducer } from "react";
+import React, { useContext, useReducer } from "react";
 
 import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import DialogSlot from "../components/DialogSlot";
 import ServerStatus from "../components/ServerStatus";
-import { RecordProps } from "../components/RecordComponent";
 import ErrorDialog from "../components/ErrorDialog";
 
 import EditPage from "./edit/EditPage";
@@ -12,6 +11,7 @@ import DeletePage from "./delete/DeletePage";
 import PreviewPage from "./PreviewPage";
 import AddChildPage from "./add-child-page/AddChildPage";
 import AddAttachmentPage from "./AddAttachmentPage";
+import { PageContext } from "../context/page-context";
 
 const mainComponentForPage = {
   edit: EditPage,
@@ -21,19 +21,16 @@ const mainComponentForPage = {
   upload: AddAttachmentPage,
 } as const;
 
-export default function App({ page, record }: RecordProps) {
+export default function App() {
+  const page = useContext(PageContext);
+
   const [sidebarIsActive, toggleSidebar] = useReducer((v) => !v, false);
   const MainComponent = mainComponentForPage[page];
   return (
     <>
-      <Header
-        sidebarIsActive={sidebarIsActive}
-        toggleSidebar={toggleSidebar}
-        page={page}
-        record={record}
-      />
+      <Header sidebarIsActive={sidebarIsActive} toggleSidebar={toggleSidebar} />
       <ErrorDialog />
-      <DialogSlot page={page} record={record} />
+      <DialogSlot />
       <div className="container">
         <div
           className={
@@ -43,10 +40,10 @@ export default function App({ page, record }: RecordProps) {
           }
         >
           <nav className="sidebar col-md-2 col-sm-3">
-            <Sidebar page={page} record={record} />
+            <Sidebar />
           </nav>
           <div className="main col-md-10 col-sm-9">
-            <MainComponent record={record} />
+            <MainComponent />
           </div>
         </div>
       </div>

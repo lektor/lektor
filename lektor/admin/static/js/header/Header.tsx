@@ -1,5 +1,4 @@
 import React from "react";
-import { RecordProps } from "../components/RecordComponent";
 
 import BreadCrumbs from "./BreadCrumbs";
 import GlobalActions from "./GlobalActions";
@@ -7,12 +6,10 @@ import GlobalActions from "./GlobalActions";
 export default function Header({
   sidebarIsActive,
   toggleSidebar,
-  page,
-  record,
 }: {
   sidebarIsActive: boolean;
   toggleSidebar: () => void;
-} & RecordProps): JSX.Element {
+}): JSX.Element {
   return (
     <header>
       <div className="container">
@@ -27,9 +24,9 @@ export default function Header({
           aria-label="Toggle navigation"
         />
         <div className="d-flex justify-content-between">
-          <BreadCrumbs page={page} record={record} />
+          <BreadCrumbs />
           <div>
-            <GlobalActions record={record} />
+            <GlobalActions />
           </div>
         </div>
       </div>

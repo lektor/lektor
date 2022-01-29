@@ -1,12 +1,11 @@
 import React, { MouseEvent, memo, useCallback } from "react";
-import { RecordPathDetails } from "../components/RecordComponent";
+import { useRecord } from "../context/record-context";
 import { RecordInfo } from "../components/types";
 import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { post } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
-import LinkWithHotkey from "../components/LinkWithHotkey";
-import { adminPath } from "../components/use-go-to-admin-page";
+import AdminLinkWithHotkey from "../components/AdminLinkWithHotkey";
 import AdminLink from "../components/AdminLink";
 
 const getBrowseButtonTitle = () => {
@@ -20,18 +19,16 @@ const getBrowseButtonTitle = () => {
   }
 };
 
-function BrowseFSLink({ record }: { record: RecordPathDetails }) {
+function BrowseFSLink() {
+  const record = useRecord();
   const fsOpen = useCallback(
     (ev: MouseEvent) => {
       ev.preventDefault();
-      post("/browsefs", { path: record.path, alt: record.alt }).then(
-        ({ okay }) => {
-          if (!okay) {
-            alert(trans("ERROR_CANNOT_BROWSE_FS"));
-          }
-        },
-        showErrorDialog
-      );
+      post("/browsefs", record).then(({ okay }) => {
+        if (!okay) {
+          alert(trans("ERROR_CANNOT_BROWSE_FS"));
+        }
+      }, showErrorDialog);
     },
     [record]
   );
@@ -44,14 +41,8 @@ function BrowseFSLink({ record }: { record: RecordPathDetails }) {
 
 const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
 
-function PageActions({
-  record,
-  recordInfo,
-}: {
-  record: RecordPathDetails;
-  recordInfo: RecordInfo;
-}) {
-  const { path, alt } = record;
+function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
+  const { path, alt } = useRecord();
 
   return (
     <>
@@ -62,9 +53,14 @@ function PageActions({
       </h3>
       <ul className="nav">
         <li key="edit">
-          <LinkWithHotkey to={adminPath("edit", path, alt)} shortcut={editKey}>
+          <AdminLinkWithHotkey
+            page="edit"
+            path={path}
+            alt={alt}
+            shortcut={editKey}
+          >
             {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
-          </LinkWithHotkey>
+          </AdminLinkWithHotkey>
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">
@@ -80,7 +76,7 @@ function PageActions({
         </li>
         {recordInfo.exists && (
           <li key="fs-open">
-            <BrowseFSLink record={record} />
+            <BrowseFSLink />
           </li>
         )}
         {recordInfo.can_have_children && (

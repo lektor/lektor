@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { RecordProps } from "../../components/RecordComponent";
+import { useRecord } from "../../context/record-context";
 import { trans, trans_format } from "../../i18n";
 import { get, post } from "../../fetch";
 import { slugify } from "../../slugify";
@@ -15,14 +15,13 @@ const alertErr = (text: string) => {
   alert(trans("ERROR_PREFIX") + text);
 };
 
-type Props = Pick<RecordProps, "record">;
+function AddChildPage(): JSX.Element | null {
+  const { path, alt } = useRecord();
 
-function AddChildPage({ record }: Props): JSX.Element | null {
   const [newChildInfo, setNewChildInfo] = useState<NewRecordInfo | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [id, setId] = useState<string>("");
   const [primary, setPrimary] = useState<string>("");
-  const { alt, path } = record;
 
   useEffect(() => {
     let ignore = false;

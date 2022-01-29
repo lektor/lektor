@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { RecordProps } from "../../components/RecordComponent";
-import { getParentFsPath } from "../../utils";
+import { useRecord } from "../../context/record-context";
+import { getParentPath } from "../../utils";
 import { get, post } from "../../fetch";
 import { showErrorDialog } from "../../error-dialog";
 import { RecordInfo } from "../../components/types";
@@ -13,14 +13,13 @@ import DeletePageHeader from "./DeletePageHeader";
 import { dispatch } from "../../events";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
-type Props = Pick<RecordProps, "record">;
+function DeletePage(): JSX.Element | null {
+  const { path, alt } = useRecord();
 
-function DeletePage({ record }: Props): JSX.Element | null {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [deleteMasterRecord, setDeleteMasterRecord] = useState(true);
 
   const goToAdminPage = useGoToAdminPage();
-  const { alt, path } = record;
 
   useEffect(() => {
     let ignore = false;
@@ -41,7 +40,7 @@ function DeletePage({ record }: Props): JSX.Element | null {
   }, [alt]);
 
   const deleteRecord = useCallback(() => {
-    const parent = getParentFsPath(path || "");
+    const parent = getParentPath(path);
     const targetPath = parent === null ? "/" : parent;
 
     post("/deleterecord", {
@@ -57,8 +56,8 @@ function DeletePage({ record }: Props): JSX.Element | null {
   }, [alt, path, deleteMasterRecord, goToAdminPage, recordInfo]);
 
   const cancelDelete = useCallback(() => {
-    goToAdminPage("edit", record.path, record.alt);
-  }, [goToAdminPage, record]);
+    goToAdminPage("edit", path, alt);
+  }, [goToAdminPage, path, alt]);
 
   if (!recordInfo || !recordInfo.can_be_deleted) {
     return null;
