@@ -4,16 +4,35 @@ import io
 import os
 import posixpath
 import shutil
-import subprocess
 import tempfile
 from contextlib import contextmanager
+from contextlib import ExitStack
+from contextlib import suppress
 from ftplib import Error as FTPError
+from subprocess import CalledProcessError
+from subprocess import CompletedProcess
+from subprocess import DEVNULL
+from subprocess import PIPE
+from subprocess import STDOUT
+from typing import Any
+from typing import Callable
+from typing import ContextManager
+from typing import Dict
+from typing import Generator
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
+from typing import Optional
+from typing import TYPE_CHECKING
 
 from werkzeug import urls
 
 from lektor.exception import LektorException
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
+
+if TYPE_CHECKING:
+    from _typeshed import StrOrBytesPath
 
 
 def _patch_git_env(env_overrides, ssh_command=None):
@@ -100,57 +119,181 @@ class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
 
 
-class Command:
-    def __init__(self, argline, cwd=None, env=None, capture=True, silent=False):
-        environ = dict(os.environ)
+class Command(ContextManager["Command"]):
+    """A wrapper around subprocess.Popen to facilitate streaming output via generator.
+
+    :param argline: Command with arguments to execute.
+    :param cwd: Optional. Directory in which to execute command.
+    :param env: Optional. Environment with which to run command.
+    :param capture: Default `True`. Whether to capture stdout and stderr.
+    :param silent: Default `False`. Discard output altogether.
+    :param check: Default `False`.
+        If set, raise ``CalledProcessError`` on non-zero return code.
+    :param input: Optional. A string to feed to the subprocess via stdin.
+    :param capture_stdout: Default `False`. Capture stdout and
+        return in ``CompletedProcess.stdout``.
+
+    Basic Usage
+    ===========
+
+    To run a command, returning any output on stdout or stderr to the caller
+    as an iterable (generator), while checking the return code from the command:
+
+        def run_command(argline):
+            # This passes the output
+            rv = yield from Command(argline)
+            if rv.returncode != 0:
+                raise RuntimeError("Command failed!")
+
+    This could be called as follows:
+
+        for outline in run_command(('ls')):
+            print(outline.rstrip())
+
+    Supplying input via stdin, Capturing stdout
+    ===========================================
+
+    The following example shows how input may be fed to a subprocess via stdin,
+    and how stdout may be captured for further processing.
+
+        def run_wc(input):
+            rv = yield from Command(('wc'), check=True, input=input, capture_stdout=True)
+            lines, words, chars = rv.stdout.split()
+            print(f"{words} words, {chars} chars")
+
+        stderr_lines = list(run_wc("a few words"))
+        # prints "3 words, 11 chars"
+
+    Note that ``check=True`` will cause a ``CalledProcessError`` to be raised if the
+    ``wc`` subprocess returns a non-zero return code.
+
+    """
+
+    def __init__(
+        self,
+        argline: Iterable[str],
+        cwd: Optional["StrOrBytesPath"] = None,
+        env: Optional[Mapping[str, str]] = None,
+        capture: bool = True,
+        silent: bool = False,
+        check: bool = False,
+        input: Optional[str] = None,
+        capture_stdout: bool = False,
+    ) -> None:
+        kwargs: Dict[str, Any] = {"cwd": cwd}
         if env:
-            environ.update(env)
-        kwargs = {"cwd": cwd, "env": environ}
+            kwargs["env"] = {**os.environ, **env}
         if silent:
-            kwargs["stdout"] = subprocess.DEVNULL
-            kwargs["stderr"] = subprocess.DEVNULL
+            kwargs["stdout"] = DEVNULL
+            kwargs["stderr"] = DEVNULL
             capture = False
+        if input is not None:
+            kwargs["stdin"] = PIPE
+        if capture or capture_stdout:
+            kwargs["stdout"] = PIPE
         if capture:
-            kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.STDOUT
-            # Since 3.7, Python has sane encoding defaults in the case that the system is
-            # (likely mis-)configured to use ASCII as the default encoding (PEP538).
-            # It also provides a way for the user to force the use of UTF-8 (PEP540).
-            kwargs["text"] = True
-            kwargs["errors"] = "replace"
-        self.capture = capture
-        self._cmd = portable_popen(argline, **kwargs)
+            kwargs["stderr"] = STDOUT if not capture_stdout else PIPE
 
-    def wait(self):
-        returncode = self._cmd.wait()
-        if self._cmd.stdout is not None:
-            self._cmd.stdout.close()
-        return returncode
+        # Python >= 3.7 has sane encoding defaults in the case that the system is
+        # (likely mis-)configured to use ASCII as the default encoding (PEP538).
+        # It also provides a way for the user to force the use of UTF-8 (PEP540).
+        kwargs["text"] = True
+        kwargs["errors"] = "replace"
 
-    @property
-    def returncode(self):
+        self.capture = capture  # b/c - unused
+        self.check = check
+        self._stdout = None
+
+        with ExitStack() as stack:
+            self._cmd = stack.enter_context(portable_popen(list(argline), **kwargs))
+            self._closer: Optional[Callable[[], None]] = stack.pop_all().close
+
+        if input is not None or capture_stdout:
+            self._output = self._communicate(input, capture_stdout, capture)
+        elif capture:
+            self._output = self._cmd.stdout
+        else:
+            self._output = None
+
+    def _communicate(
+        self, input: Optional[str], capture_stdout: bool, capture: bool
+    ) -> Optional[Iterator[str]]:
+        proc = self._cmd
+        try:
+            if capture_stdout:
+                self._stdout, errout = proc.communicate(input)
+            else:
+                errout, _ = proc.communicate(input)
+        except BaseException:
+            proc.kill()
+            with suppress(CalledProcessError):
+                self.close()
+            raise
+        if capture:
+            return iter(errout.splitlines())
+        return None
+
+    def close(self) -> None:
+        """Wait for subprocess to complete.
+
+        If check=True was passed to the constructor, raises ``CalledProcessError``
+        if the subprocess returns a non-zero status code.
+        """
+        closer, self._closer = self._closer, None
+        if closer:
+            # This waits for process and closes standard file descriptors
+            closer()
+        if self.check:
+            rc = self._cmd.poll()
+            if rc != 0:
+                raise CalledProcessError(rc, self._cmd.args, self._stdout)
+
+    def wait(self) -> int:
+        """Wait for subprocess to complete. Return status code."""
+        self._cmd.wait()
+        self.close()
         return self._cmd.returncode
 
-    def __enter__(self):
-        return self
+    def result(self) -> "CompletedProcess[str]":
+        """Wait for subprocess to complete.  Return ``CompletedProcess`` instance.
 
-    def __exit__(self, exc_type, exc_value, tb):
-        self.wait()
-
-    def __iter__(self):
-        if not self.capture:
-            raise RuntimeError("Not capturing")
-
-        for line in self._cmd.stdout:
-            yield line.rstrip()
-
-    def safe_iter(self):
-        with self:
-            for line in self:
-                yield line
+        If ``capture_stdout=True`` was passed to the constructor, the output
+        captured from stdout will be available on the ``.stdout`` attribute
+        of the return value.
+        """
+        return CompletedProcess(self._cmd.args, self.wait(), self._stdout)
 
     @property
-    def output(self):
+    def returncode(self) -> Optional[int]:
+        """Return exit status of the subprocess.
+
+        Or ``None`` if the subprocess is still alive.
+        """
+        return self._cmd.returncode
+
+    def __exit__(self, *__: Any) -> None:
+        self.close()
+
+    def __iter__(self) -> Generator[str, None, "CompletedProcess[str]"]:
+        """A generator with yields any captured output and returns a ``CompletedProcess``.
+
+        If ``capture`` is ``True`` (the default).  Both stdout and stderr are available
+        in the iterator output.
+
+        If ``capture_stdout`` is set, stdout is captured to a string which is made
+        available via ``CompletedProcess.stdout`` attribute of the return value. Stderr
+        output is available via the iterator output, as normal.
+        """
+        if self._output is None:
+            raise RuntimeError("Not capturing")
+        for line in self._output:
+            yield line.rstrip()
+        return self.result()
+
+    safe_iter = __iter__  # b/c - deprecated
+
+    @property
+    def output(self) -> Iterator[str]:  # b/c - deprecated
         return self.safe_iter()
 
 
