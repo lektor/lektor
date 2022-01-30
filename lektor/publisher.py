@@ -3,17 +3,17 @@ import hashlib
 import io
 import os
 import posixpath
-import shutil
-import tempfile
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
 from ftplib import Error as FTPError
+from pathlib import Path
 from subprocess import CalledProcessError
 from subprocess import CompletedProcess
 from subprocess import DEVNULL
 from subprocess import PIPE
 from subprocess import STDOUT
+from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import ContextManager
@@ -22,7 +22,10 @@ from typing import Generator
 from typing import Iterable
 from typing import Iterator
 from typing import Mapping
+from typing import NoReturn
 from typing import Optional
+from typing import Sequence
+from typing import Tuple
 from typing import TYPE_CHECKING
 
 from werkzeug import urls
@@ -31,88 +34,48 @@ from lektor.exception import LektorException
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from _typeshed import StrOrBytesPath
-
-
-def _patch_git_env(env_overrides, ssh_command=None):
-    env = dict(os.environ)
-    env.update(env_overrides or ())
-
-    keys = [
-        ("GIT_COMMITTER_NAME", "GIT_AUTHOR_NAME", "Lektor Bot"),
-        ("GIT_COMMITTER_EMAIL", "GIT_AUTHOR_EMAIL", "bot@getlektor.com"),
-    ]
-
-    for key_a, key_b, default in keys:
-        value_a = env.get(key_a)
-        value_b = env.get(key_b)
-        if value_a:
-            if not value_b:
-                env[key_b] = value_a
-        elif value_b:
-            if not value_a:
-                env[key_a] = value_b
-        else:
-            env[key_a] = default
-            env[key_b] = default
-
-    if ssh_command is not None and not env.get("GIT_SSH_COMMAND"):
-        env["GIT_SSH_COMMAND"] = ssh_command
-
-    return env
-
-
-def _write_ssh_key_file(temp_fn, credentials):
-    if credentials:
-        key_file = credentials.get("key_file")
-        if key_file is not None:
-            return key_file
-        key = credentials.get("key")
-        if key:
-            parts = key.split(":", 1)
-            if len(parts) == 1:
-                kt = "RSA"
-            else:
-                kt, key = parts
-            with open(temp_fn, "w", encoding="utf-8") as f:
-                f.write("-----BEGIN %s PRIVATE KEY-----\n" % kt.upper())
-                for x in range(0, len(key), 64):
-                    f.write(key[x : x + 64] + "\n")
-                f.write("-----END %s PRIVATE KEY-----\n" % kt.upper())
-            os.chmod(temp_fn, 0o600)
-            return temp_fn
-    return None
-
-
-def _get_ssh_cmd(port=None, keyfile=None):
-    ssh_args = []
-    if port:
-        ssh_args.append("-p %s" % port)
-    if keyfile:
-        ssh_args.append('-i "%s"' % keyfile)
-    return "ssh %s" % " ".join(ssh_args)
+    from _typeshed import StrPath
+    from lektor.environment import Environment
 
 
 @contextmanager
-def _temporary_folder(env):
-    base = env.temp_path
-    try:
-        os.makedirs(base)
-    except OSError:
-        pass
+def _ssh_key_file(
+    credentials: Optional[Mapping[str, str]]
+) -> Iterator[Optional["StrPath"]]:
+    with ExitStack() as stack:
+        key_file: Optional["StrPath"]
+        key_file = credentials.get("key_file") if credentials else None
+        key = credentials.get("key") if credentials else None
+        if not key_file and key:
+            if ":" in key:
+                key_type, _, key = key.partition(":")
+                key_type = key_type.upper()
+            else:
+                key_type = "RSA"
+            key_file = Path(stack.enter_context(TemporaryDirectory()), "keyfile")
+            with key_file.open("w", encoding="utf-8") as f:
+                f.write(f"-----BEGIN {key_type} PRIVATE KEY-----\n")
+                f.writelines(key[x : x + 64] + "\n" for x in range(0, len(key), 64))
+                f.write(f"-----END {key_type} PRIVATE KEY-----\n")
+        yield key_file
 
-    folder = tempfile.mkdtemp(prefix=".deploytemp", dir=base)
-    scratch = os.path.join(folder, "scratch")
-    os.mkdir(scratch)
-    os.chmod(scratch, 0o755)
-    try:
-        yield scratch
-    finally:
-        try:
-            shutil.rmtree(folder)
-        except (IOError, OSError):
-            pass
+
+@contextmanager
+def _ssh_command(
+    credentials: Optional[Mapping[str, str]], port: Optional[int] = None
+) -> Iterator[Optional[str]]:
+    with _ssh_key_file(credentials) as key_file:
+        args = []
+        if port:
+            args.append(f" -p {port}")
+        if key_file:
+            args.append(f' -i "{key_file}" -o IdentitiesOnly=yes')
+        if args:
+            yield "ssh" + " ".join(args)
+        else:
+            yield None
 
 
 class PublishError(LektorException):
@@ -298,20 +261,26 @@ class Command(ContextManager["Command"]):
 
 
 class Publisher:
-    def __init__(self, env, output_path):
+    def __init__(self, env: "Environment", output_path: str) -> None:
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
-    def fail(self, message):
+    def fail(self, message: str) -> NoReturn:
         # pylint: disable=no-self-use
         raise PublishError(message)
 
-    def publish(self, target_url, credentials=None, **extra):
+    def publish(
+        self,
+        target_url: urls.URL,
+        credentials: Optional[Mapping[str, str]] = None,
+        **extra: Any,
+    ) -> Iterator[str]:
         raise NotImplementedError()
 
 
 class RsyncPublisher(Publisher):
-    def get_command(self, target_url, tempdir, credentials):
+    @contextmanager
+    def get_command(self, target_url, credentials):
         credentials = credentials or {}
         argline = ["rsync", "-rclzv", "--exclude=.lektor"]
         target = []
@@ -326,33 +295,26 @@ class RsyncPublisher(Publisher):
         if delete:
             argline.append("--delete-after")
 
-        keyfile = _write_ssh_key_file(
-            os.path.join(tempdir, "ssh-auth-key"), credentials
-        )
+        with _ssh_command(credentials, target_url.port) as ssh_command:
+            if ssh_command:
+                argline.extend(("-e", ssh_command))
 
-        if target_url.port is not None or keyfile is not None:
-            argline.append("-e")
-            argline.append(_get_ssh_cmd(target_url.port, keyfile))
+            username = credentials.get("username") or target_url.username
+            if username:
+                target.append(username + "@")
 
-        username = credentials.get("username") or target_url.username
-        if username:
-            target.append(username + "@")
+            if target_url.ascii_host is not None:
+                target.append(target_url.ascii_host)
+                target.append(":")
+            target.append(target_url.path.rstrip("/") + "/")
 
-        if target_url.ascii_host is not None:
-            target.append(target_url.ascii_host)
-            target.append(":")
-        target.append(target_url.path.rstrip("/") + "/")
-
-        argline.append(self.output_path.rstrip("/\\") + "/")
-        argline.append("".join(target))
-        return Command(argline, env=env)
+            argline.append(self.output_path.rstrip("/\\") + "/")
+            argline.append("".join(target))
+            yield Command(argline, env=env)
 
     def publish(self, target_url, credentials=None, **extra):
-        with _temporary_folder(self.env) as tempdir:
-            client = self.get_command(target_url, tempdir, credentials)
-            with client:
-                for line in client:
-                    yield line
+        with self.get_command(target_url, credentials) as client:
+            yield from client
 
 
 class FtpConnection:
@@ -657,130 +619,222 @@ class FtpTlsPublisher(FtpPublisher):
     connection_class = FtpTlsConnection
 
 
-class GithubPagesPublisher(Publisher):
-    @staticmethod
-    def get_credentials(url, credentials=None):
-        credentials = credentials or {}
-        username = credentials.get("username") or url.username
-        password = credentials.get("password") or url.password
-        rv = username
-        if username and password:
-            rv += ":" + password
-        return rv if rv else None
+class GitRepo(ContextManager["GitRepo"]):
+    """A temporary git repository.
 
-    def update_git_config(self, repo, url, branch, credentials=None):
-        ssh_command = None
-        path = url.host + "/" + url.path.strip("/")
-        cred = None
-        if url.scheme in ("ghpages", "ghpages+ssh"):
-            push_url = "git@github.com:%s.git" % path
-            keyfile = _write_ssh_key_file(
-                os.path.join(repo, ".git", "ssh-auth-key"), credentials
+    This class provides some lower-level utility methods which may be
+    externally useful, but the main use case is:
+
+        def publish(html_output):
+            gitrepo = GitRepo(html_output)
+            yield from gitrepo.publish_ghpages(
+                push_url="git@github.com:owner/repo.git",
+                branch="gh-pages"
             )
-            if keyfile or url.port:
-                ssh_command = _get_ssh_cmd(url.port, keyfile)
-        else:
-            push_url = "https://github.com/%s.git" % path
-            cred = self.get_credentials(url, credentials)
 
-        with open(os.path.join(repo, ".git", "config"), "a", encoding="utf-8") as f:
-            f.write(
-                '[remote "origin"]\nurl = %s\n'
-                "fetch = +refs/heads/%s:refs/remotes/origin/%s\n"
-                % (push_url, branch, branch)
+    :param work_tree: The work tree for the repository.
+    """
+
+    def __init__(self, work_tree: "StrPath") -> None:
+        environ = {**os.environ, "GIT_WORK_TREE": str(work_tree)}
+
+        for what, default in [("NAME", "Lektor Bot"), ("EMAIL", "bot@getlektor.com")]:
+            value = (
+                environ.get(f"GIT_AUTHOR_{what}")
+                or environ.get(f"GIT_COMMITTER_{what}")
+                or default
             )
-            if cred:
-                cred_path = os.path.join(repo, ".git", "credentials")
-                f.write('[credential]\nhelper = store --file "%s"\n' % cred_path)
-                with open(cred_path, "w", encoding="utf-8") as cf:
-                    cf.write("https://%s@github.com\n" % cred)
+            for key in f"GIT_AUTHOR_{what}", f"GIT_COMMITTER_{what}":
+                environ[key] = environ.get(key) or value
 
-        return ssh_command
+        with ExitStack() as stack:
+            environ["GIT_DIR"] = stack.enter_context(TemporaryDirectory(suffix=".git"))
+            self.environ = environ
+            self.run("init", "--quiet")
 
-    def link_artifacts(self, path):
-        try:
-            link = os.link
-        except AttributeError:
-            link = shutil.copy
+            self._exit_stack = stack.pop_all()
 
-        # Clean old
-        for filename in os.listdir(path):
-            if filename == ".git":
-                continue
-            filename = os.path.join(path, filename)
-            try:
-                os.remove(filename)
-            except OSError:
-                shutil.rmtree(filename)
+    def __exit__(self, *__: Any) -> None:
+        self._exit_stack.close()
 
-        # Add new
-        for dirpath, dirnames, filenames in os.walk(self.output_path):
-            dirnames[:] = [x for x in dirnames if x != ".lektor"]
-            for filename in filenames:
-                full_path = os.path.join(self.output_path, dirpath, filename)
-                dst = os.path.join(
-                    path,
-                    full_path[len(self.output_path) :]
-                    .lstrip(os.path.sep)
-                    .lstrip(os.path.altsep or ""),
-                )
-                try:
-                    os.makedirs(os.path.dirname(dst))
-                except (OSError, IOError):
-                    pass
-                try:
-                    link(full_path, dst)
-                except OSError:  # Different Filesystems
-                    shutil.copy(full_path, dst)
+    def _popen(self, args: Sequence[str], **kwargs: Any) -> Command:
+        cmd = ["git"]
+        cmd.extend(args)
+        return Command(cmd, env=self.environ, **kwargs)
 
-    @staticmethod
-    def write_cname(path, target_url):
-        params = target_url.decode_query()
-        cname = params.get("cname")
+    def popen(
+        self,
+        *args: str,
+        check: bool = True,
+        input: Optional[str] = None,
+        capture_stdout: bool = False,
+    ) -> Command:
+        """Run a git subcommand."""
+        return self._popen(
+            args, check=check, input=input, capture_stdout=capture_stdout
+        )
+
+    def run(
+        self,
+        *args: str,
+        check: bool = True,
+        input: Optional[str] = None,
+        capture_stdout: bool = False,
+    ) -> "CompletedProcess[str]":
+        """Run a git subcommand and wait for completion."""
+        return self._popen(
+            args, check=check, input=input, capture_stdout=capture_stdout, capture=False
+        ).result()
+
+    def set_ssh_credentials(self, credentials: Mapping[str, str]) -> None:
+        """Set up git ssh credentials.
+
+        This repository will be configured to used whatever SSH credentials
+        can found in ``credentials`` (if any).
+        """
+        stack = self._exit_stack
+        ssh_command = stack.enter_context(_ssh_command(credentials))
+        if ssh_command:
+            self.environ.setdefault("GIT_SSH_COMMAND", ssh_command)
+
+    def set_https_credentials(self, credentials: Mapping[str, str]) -> None:
+        """Set up git http(s) credentials.
+
+        This repository will be configured to used whatever HTTP credentials
+        can found in ``credentials`` (if any).
+        """
+        username = credentials.get("username", "")
+        password = credentials.get("password")
+        if username or password:
+            userpass = f"{username}:{password}" if password else username
+            git_dir = self.environ["GIT_DIR"]
+            cred_file = Path(git_dir, "lektor_cred_file")
+            # pylint: disable=unspecified-encoding
+            cred_file.write_text(f"https://{userpass}@github.com\n")
+            self.run("config", "credential.helper", f'store --file "{cred_file}"')
+
+    def add_to_index(self, filename: str, content: str) -> None:
+        """Create a file in the index.
+
+        This creates file named ``filename`` with content ``content`` in the git
+        index.
+        """
+        oid = self.run(
+            "hash-object", "-w", "--stdin", input=content, capture_stdout=True
+        ).stdout.strip()
+        self.run("update-index", "--add", "--cacheinfo", "100644", oid, filename)
+
+    def publish_ghpages(
+        self, push_url: str, branch: str, cname: Optional[str] = None
+    ) -> Iterator[str]:
+        """Publish the contents of the work tree to GitHub pages.
+
+        :param push_url: The URL to push to.
+        :param branch: The branch to push to
+        :param cname: Optional. Create a top-level ``CNAME`` with given contents.
+        """
+        if (
+            yield from self.popen(
+                "fetch", "--depth=1", push_url, f"refs/heads/{branch}", check=False
+            )
+        ).returncode == 0:
+            # If fetch was succesful, reset HEAD to remote head, otherwise assume
+            # remote branch does not exist.
+            yield from self.popen("reset", "--soft", "FETCH_HEAD")
+
+        # At this point, the index is still empty. Add all but .lektor dir to index
+        yield from self.popen("add", "--force", "--all", "--", ".", ":(exclude).lektor")
         if cname is not None:
-            with open(os.path.join(path, "CNAME"), "w", encoding="utf-8") as f:
-                f.write("%s\n" % cname)
+            self.add_to_index("CNAME", f"{cname}\n")
 
-    @staticmethod
-    def detect_target_branch(target_url):
-        # When pushing to the username.github.io repo we need to push to
-        # master, otherwise to gh-pages
-        if target_url.host.lower() + ".github.io" == target_url.path.strip("/").lower():
-            branch = "master"
+        # Check for changes
+        proc = self.run("diff", "--cached", "--exit-code", "--quiet", check=False)
+        if proc.returncode == 0:
+            yield "No changes to publish☺\n"
+        elif proc.returncode == 1:
+            yield from self.popen(
+                "commit", "--quiet", "--message", "Synchronized build"
+            )
+            yield from self.popen("push", push_url, f"HEAD:refs/heads/{branch}")
         else:
-            branch = "gh-pages"
-        return branch
+            proc.check_returncode()  # raise error
 
-    def publish(self, target_url, credentials=None, **extra):
+
+class GithubPagesPublisher(Publisher):
+    """Publish to GitHub pages."""
+
+    def publish(
+        self,
+        target_url: urls.URL,
+        credentials: Optional[Mapping[str, str]] = None,
+        **extra: Any,
+    ) -> Iterator[str]:
         if not locate_executable("git"):
             self.fail("git executable not found; cannot deploy.")
 
-        branch = self.detect_target_branch(target_url)
+        push_url, branch, cname, warnings = self._parse_url(target_url)
+        creds = self._parse_credentials(credentials, target_url)
 
-        with _temporary_folder(self.env) as path:
-            ssh_command = None
+        yield from iter(warnings)
 
-            def git(args, **kwargs):
-                kwargs["env"] = _patch_git_env(kwargs.pop("env", None), ssh_command)
-                return Command(["git"] + args, cwd=path, **kwargs)
+        with GitRepo(self.output_path) as repo:
+            if push_url.startswith("https:"):
+                repo.set_https_credentials(creds)
+            else:
+                repo.set_ssh_credentials(creds)
+            yield from repo.publish_ghpages(push_url, branch, cname)
 
-            for line in git(["init"]).output:
-                yield line
-            ssh_command = self.update_git_config(path, target_url, branch, credentials)
-            for line in git(["remote", "update"]).output:
-                yield line
+    def _parse_url(
+        self, target_url: urls.URL
+    ) -> Tuple[str, str, Optional[str], Sequence[str]]:
+        if not target_url.host:
+            self.fail("github owner missing from target URL")
+        gh_owner = target_url.host.lower()
+        gh_project = target_url.path.strip("/").lower()
+        if not gh_project:
+            self.fail("github project missing from target URL")
 
-            if git(["checkout", "-q", branch], silent=True).wait() != 0:
-                git(["checkout", "-qb", branch], silent=True).wait()
+        params = target_url.decode_query()
+        cname = params.get("cname")
+        branch = params.get("branch")
+        warnings = []
 
-            self.link_artifacts(path)
-            self.write_cname(path, target_url)
-            for line in git(["add", "-f", "--all", "."]).output:
-                yield line
-            for line in git(["commit", "-qm", "Synchronized build"]).output:
-                yield line
-            for line in git(["push", "origin", branch]).output:
-                yield line
+        if not branch:
+            if gh_project == f"{gh_owner}.github.io":
+                warnings.append(
+                    "WARNING: The default branch for new GitHub pages repositories "
+                    "is 'main', but we are using the old default of 'master'. "
+                    "You may have to explicitly specify 'branch=master' in the "
+                    "query params of your target URL to push to the correct branch."
+                )
+                branch = "master"
+            else:
+                branch = "gh-pages"
+
+        if target_url.scheme in ("ghpages", "ghpages+ssh"):
+            push_url = f"ssh://git@github.com/{gh_owner}/{gh_project}.git"
+            default_port = 22
+        else:
+            push_url = f"https://github.com/{gh_owner}/{gh_project}.git"
+            default_port = 443
+        if target_url.port and target_url.port != default_port:
+            self.fail("github does not support pushing to non-standard ports")
+
+        return push_url, branch, cname, warnings
+
+    @staticmethod
+    def _parse_credentials(
+        credentials: Optional[Mapping[str, str]], target_url: urls.URL
+    ) -> Mapping[str, str]:
+        creds = dict(credentials or {})
+        # Fill in default username/password from target url
+        for key, default in [
+            ("username", target_url.username),
+            ("password", target_url.password),
+        ]:
+            if not creds.get(key) and default:
+                creds[key] = default
+        return creds
 
 
 builtin_publishers = {
