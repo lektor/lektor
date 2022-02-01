@@ -128,7 +128,8 @@ def test_Command_no_capture(capture_stdout, silent, stdout, out_err, capfd):
     )
     assert command.wait() == 0
     assert command.result().stdout == stdout
-    assert capfd.readouterr() == out_err
+    captured = tuple(_.replace(os.linesep, "\n") for _ in capfd.readouterr())
+    assert captured == out_err
 
 
 def test_Command_iter_raises_if_not_capturing():
