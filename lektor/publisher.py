@@ -13,7 +13,6 @@ from subprocess import CompletedProcess
 from subprocess import DEVNULL
 from subprocess import PIPE
 from subprocess import STDOUT
-from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import ContextManager
@@ -30,6 +29,7 @@ from typing import TYPE_CHECKING
 
 from werkzeug import urls
 
+from lektor.compat import TemporaryDirectory
 from lektor.exception import LektorException
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
