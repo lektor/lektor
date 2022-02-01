@@ -1,6 +1,7 @@
 import gc
 import os
 import re
+import signal
 import sys
 import warnings
 import weakref
@@ -138,10 +139,16 @@ def test_Command_iter_raises_if_not_capturing():
     assert command.wait() == 0
 
 
-def test_Command_SIGINT():
+@pytest.mark.skipif(os.name == "nt", reason="Windows")
+# XXX: Can not figure out how to reliably test KeyboardInterrupt handling under Windows.
+# Response to signal.SIGINT and/or signal.CTRL_C_EVENT varies depending on what shell
+# the test is run under.
+def test_Command_handles_keyboard_interrupt():
+    pid = os.getpid()
+    sig = signal.SIGINT
     with pytest.raises(KeyboardInterrupt):
         command = Command(
-            (sys.executable, "-c", f"import os; os.kill({os.getpid()}, 2)"),
+            (sys.executable, "-c", f"import os; os.kill({pid}, {sig})"),
             capture_stdout=True,
         )
         list(command)
