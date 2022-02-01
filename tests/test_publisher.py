@@ -61,17 +61,26 @@ def test_ssh_command(credentials, port, expected):
         assert key_file == expected
 
 
+def _pyscript(script):
+    return (sys.executable, "-c", script)
+
+
 @pytest.mark.parametrize(
     "cmd, input, expect_rc, expected",
     [
-        ("echo xxx", None, 0, ["xxx"]),
-        ("echo yyy 1>&2", None, 0, ["yyy"]),
-        ("exit 42", None, 42, []),
-        ("sort", "foo\nbar\n", 0, ["bar", "foo"]),
+        ("print('xxx')", None, 0, ["xxx"]),
+        ("print('yyy', file=sys.stderr)", None, 0, ["yyy"]),
+        ("exit(42)", None, 42, []),
+        (
+            "for _ in sorted(sys.stdin): print(_.strip())",
+            "foo\nbar\n",
+            0,
+            ["bar", "foo"],
+        ),
     ],
 )
 def test_Command_capture(cmd, input, expect_rc, expected):
-    command = Command(("sh", "-c", cmd), input=input)
+    command = Command(_pyscript("import sys\n" + cmd), input=input)
 
     def iter_output():
         proc = yield from command
@@ -82,12 +91,15 @@ def test_Command_capture(cmd, input, expect_rc, expected):
 
 
 def test_Command_env():
-    command = Command(("sh", "-c", "echo $TESTVAR"), env={"TESTVAR": "boo"})
+    command = Command(
+        _pyscript("import os; print(os.environ['TESTVAR'])"),
+        env={"TESTVAR": "boo"},
+    )
     assert list(command) == ["boo"]
 
 
 def test_Command_raises_CalledProcessError():
-    command = Command(("sh", "-c", "echo x && exit 42"), check=True)
+    command = Command(_pyscript("print('x'); exit(42)"), check=True)
 
     def iter_output():
         with pytest.raises(CalledProcessError) as exc_info:
@@ -108,7 +120,7 @@ def test_Command_raises_CalledProcessError():
 )
 def test_Command_no_capture(capture_stdout, silent, stdout, out_err, capfd):
     command = Command(
-        ("sh", "-c", "echo foo && echo bar 1>&2"),
+        _pyscript("import sys; print('foo'); print('bar', file=sys.stderr)"),
         capture=False,
         silent=silent,
         capture_stdout=capture_stdout,
@@ -119,7 +131,7 @@ def test_Command_no_capture(capture_stdout, silent, stdout, out_err, capfd):
 
 
 def test_Command_iter_raises_if_not_capturing():
-    command = Command(("sh", "-c", "exit 0"), capture=False)
+    command = Command(_pyscript("exit(0)"), capture=False)
     with pytest.raises(RuntimeError) as exc_info:
         next(iter(command))
     assert "Not capturing" in str(exc_info.value)
@@ -128,19 +140,22 @@ def test_Command_iter_raises_if_not_capturing():
 
 def test_Command_SIGINT():
     with pytest.raises(KeyboardInterrupt):
-        command = Command(("bash", "-c", f"kill -2 {os.getpid()}"), capture_stdout=True)
+        command = Command(
+            (sys.executable, "-c", f"import os; os.kill({os.getpid()}, 2)"),
+            capture_stdout=True,
+        )
         list(command)
 
 
 def test_Command_returncode():
-    command = Command(("sh", "-c", "exit 42"))
+    command = Command((sys.executable, "-c", "exit(42)"))
     assert command.returncode is None
     list(command)
     assert command.returncode == 42
 
 
 def test_Command_output():
-    command = Command(("sh", "-c", "echo foo"))
+    command = Command(_pyscript("print('foo')"))
     assert list(command.output) == ["foo"]
 
 
@@ -152,7 +167,7 @@ def test_Command_triggers_no_warnings():
         warnings.simplefilter("error")
 
         # This is essentially how RsyncPublisher runs rsync.
-        with Command([sys.executable, "-c", "print()"]) as client:
+        with Command(_pyscript("print()")) as client:
             for _ in client:
                 pass
 
@@ -309,7 +324,8 @@ class DummyUpstreamRepo:
 
 @pytest.fixture
 def upstream_repo(tmp_path, clean_git_environ):
-    return DummyUpstreamRepo(tmp_path / "upstream.git")
+    git_dir = tmp_path / "upstream.git"
+    return DummyUpstreamRepo(git_dir.__fspath__())
 
 
 def test_GitRepo_publish_ghpages(gitrepo, upstream_repo, work_tree):
