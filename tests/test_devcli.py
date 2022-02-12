@@ -9,6 +9,22 @@ from lektor.quickstart import get_default_author
 from lektor.quickstart import get_default_author_email
 
 
+@pytest.fixture(scope="session")
+def can_symlink(tmp_path_factory):
+    """Test whether current user has sufficient privileges to create symlinks."""
+    if os.name == "nt":
+        tmp_path = tmp_path_factory.mktemp("symlink-test")
+        try:
+            os.symlink("foo", tmp_path / "test")
+        except OSError as exc:
+            # Error Code 1314 - A required privilege is not held by the client
+            # pylint: disable=no-member
+            if exc.winerror != 1314:
+                raise
+            return False
+    return True
+
+
 # new-plugin
 def test_new_plugin(project_cli_runner):
     result = project_cli_runner.invoke(
@@ -257,7 +273,7 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
 
 
 # new-theme
-def test_new_theme(project_cli_runner):
+def test_new_theme(project_cli_runner, can_symlink):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
@@ -273,13 +289,11 @@ def test_new_theme(project_cli_runner):
     assert set(os.listdir(os.path.join(path, "example-site"))) == set(
         ["lektor-theme-name.lektorproject", "README.md", "themes"]
     )
-    try:
+    if can_symlink:
         assert (
             os.readlink(os.path.join(path, "example-site/themes/lektor-theme-name"))
             == "../../../lektor-theme-name"
         )
-    except AttributeError:
-        pass
 
     theme_inifile = IniFile(os.path.join(path, "theme.ini"))
     assert theme_inifile["theme.name"] == "Lektor Theme Name"
@@ -311,7 +325,7 @@ def test_new_theme_abort_cancel(project_cli_runner):
     assert result.exit_code == 1
 
 
-def test_new_theme_name_only(project_cli_runner):
+def test_new_theme_name_only(project_cli_runner, can_symlink):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
@@ -327,13 +341,11 @@ def test_new_theme_name_only(project_cli_runner):
     assert set(os.listdir(os.path.join(path, "example-site"))) == set(
         ["lektor-theme-name.lektorproject", "README.md", "themes"]
     )
-    try:
+    if can_symlink:
         assert (
             os.readlink(os.path.join(path, "example-site/themes/lektor-theme-name"))
             == "../../../lektor-theme-name"
         )
-    except AttributeError:
-        pass
 
     theme_inifile = IniFile(os.path.join(path, "theme.ini"))
     assert theme_inifile["theme.name"] == "Lektor Name Theme"

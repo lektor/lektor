@@ -1,4 +1,5 @@
 import gc
+import sys
 import warnings
 import weakref
 
@@ -13,7 +14,7 @@ def test_Command_triggers_no_warnings():
 
     with pytest.warns(None) as record:
         # This is essentially how RsyncPublisher runs rsync.
-        with Command(["echo"]) as client:
+        with Command([sys.executable, "-c", "print()"]) as client:
             for _ in client:
                 pass
 

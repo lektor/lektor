@@ -383,7 +383,13 @@ def theme_quickstart(defaults=None, project=None):
             "../../../lektor-theme-{}".format(theme_id),
             "lektor-theme-{}".format(theme_id),
         )
-    except AttributeError:
+    except OSError as exc:
+        # Windows, by default, only allows members of the "Administrators" group
+        # to create symlinks. For users who are not allowed to create symlinks,
+        # error Code 1314 - "A required privilege is not held by the client"
+        # is raised.
+        if getattr(exc, "winerror", None) != 1314:
+            raise
         g.warn(
             "Could not automatically make a symlink to have your example-site"
             "easily pick up your theme."
