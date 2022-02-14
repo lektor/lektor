@@ -2,7 +2,12 @@ import os
 from datetime import date
 
 from lektor.context import Context
+from lektor.db import Database
+from lektor.db import F
 from lektor.db import get_alts
+from lektor.db import Image
+from lektor.db import Query
+from lektor.db import Video
 
 
 def test_root(pad):
@@ -74,7 +79,7 @@ def test_basic_alts(pad):
         assert get_alts() == ["en", "de"]
 
 
-def test_basic_query_syntax(pad, F):
+def test_basic_query_syntax(pad):
     projects = pad.get("/projects")
 
     encumbered = (
@@ -280,7 +285,6 @@ def test_undiscoverable_basics(pad):
 
 
 def test_attachment_api(pad):
-    from lektor.db import Image, Video
 
     root = pad.root
     root_attachments = [
@@ -336,7 +340,7 @@ def test_distinct(pad):
 
 def test_root_pagination(scratch_project, scratch_env):
     base = scratch_project.tree
-    with open(os.path.join(base, "models", "page.ini"), "w") as f:
+    with open(os.path.join(base, "models", "page.ini"), "w", encoding="utf-8") as f:
         f.write(
             "[model]\n"
             "label = {{ this.title }}\n\n"
@@ -353,7 +357,9 @@ def test_root_pagination(scratch_project, scratch_env):
 
     for name in "a", "b", "c":
         os.mkdir(os.path.join(base, "content", name))
-        with open(os.path.join(base, "content", name, "contents.lr"), "w") as f:
+        with open(
+            os.path.join(base, "content", name, "contents.lr"), "w", encoding="utf-8"
+        ) as f:
             f.write(
                 "_model: page\n"
                 "---\n"
@@ -361,8 +367,6 @@ def test_root_pagination(scratch_project, scratch_env):
                 "---\n"
                 "body: Hello World!\n" % name
             )
-
-    from lektor.db import Database
 
     scratch_pad = Database(scratch_env).new_pad()
 
@@ -379,8 +383,6 @@ def test_root_pagination(scratch_project, scratch_env):
 def test_undefined_order(pad):
     # A missing value should sort after all others.
     blog_post = pad.db.datamodels["blog-post"]
-
-    from lektor.db import Query
 
     class TestQuery(Query):
         def _iterate(self):
@@ -426,10 +428,8 @@ def test_hidden_flag(pad):
 
 
 def test_default_order_by(scratch_project, scratch_env):
-    from lektor.db import Database
-
     tree = scratch_project.tree
-    with open(os.path.join(tree, "models", "mymodel.ini"), "w") as f:
+    with open(os.path.join(tree, "models", "mymodel.ini"), "w", encoding="utf-8") as f:
         f.write(
             "[children]\n"
             "order_by = title\n"
@@ -437,7 +437,9 @@ def test_default_order_by(scratch_project, scratch_env):
             "order_by = attachment_filename\n"
         )
     os.mkdir(os.path.join(tree, "content", "myobj"))
-    with open(os.path.join(tree, "content", "myobj", "contents.lr"), "w") as f:
+    with open(
+        os.path.join(tree, "content", "myobj", "contents.lr"), "w", encoding="utf-8"
+    ) as f:
         f.write("_model: mymodel\n" "---\n" "title: My Test Object\n")
 
     pad = Database(scratch_env).new_pad()
@@ -454,3 +456,18 @@ def test_offset_without_limit_query(pad):
     x = projects.children.offset(1).order_by("_slug").first()
 
     assert x["name"] == "Coffee"
+
+
+def test_Pad_get_invalid_path(pad):
+    # On windows '<' and/or '>' are invalid in filenames. These were
+    # causing an OSError(errno=EINVAL) exception in Database.load_raw_data
+    # that was not being caught. This test exercises that.
+    assert pad.get("/<foo>") is None
+
+
+def test_Database_iter_items_invalid_path(env):
+    # Check that there is no problem with uncaught
+    # OSError(errno=EINVAL) when a path contains non-filename-safe
+    # characters in Database.iter_items.
+    db = Database(env)
+    assert len(list(db.iter_items("/<foo>"))) == 0

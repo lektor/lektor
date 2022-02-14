@@ -1,2 +1,26 @@
-8ef36e00d437d02fbc04c0bb512fce78fc8f8ad7
+# Since version 2.23 (released in August 2019), git-blame has a feature
+# to ignore or bypass certain commits.
+#
+# This file contains a list of commits that are not likely what you
+# are looking for in a blame, such as mass reformatting or renaming.
+# You can set this file as a default ignore file for blame by running
+# the following command.
+#
+# $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# 2021-09-18 - update pylint
+#19486da795ba5dff7a8abf39302e3ec2c6429dd0
+# (commented out due to non-cosmetic changes related to adding explict
+# encoding arguments.)
+
+# 2021-02-06 - remove useless object inheritance from classes
+3ae5397f4b7344cdd2a745d458e19b8dfe9be2e1
+
+# 2020-11-12 - js: reformat all files with prettier
 7d83658c4fc95b3dc6dc7f8fa3d16e5a471c944f
+
+# 2020-10-23 - Beautify code again (#823)
+3faff8fae62604dcc234b9c2cd22588592c5572b
+
+# 2020-03-28 - lint: update standard
+caffd8a1259e8aa82635306c522cefd42dca857f

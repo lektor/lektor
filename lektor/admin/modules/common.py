@@ -4,7 +4,6 @@ from flask import Blueprint
 from flask import current_app
 from flask import g
 from flask import request
-from flask import url_for
 from werkzeug.utils import cached_property
 
 from lektor.db import Tree
@@ -13,9 +12,9 @@ from lektor.db import Tree
 bp = Blueprint("common", __name__)
 
 
-class AdminContext(object):
+class AdminContext:
     def __init__(self):
-        self.admin_root = url_for("dash.index").rstrip("/")
+        self.admin_root = current_app.blueprints["dash"].url_prefix.rstrip("/")
         self.site_root = request.script_root
         self.info = current_app.lektor_info
 
@@ -40,4 +39,5 @@ class AdminContext(object):
 
 @bp.before_app_request
 def find_common_info():
+    # pylint: disable=assigning-non-slot
     g.admin_context = AdminContext()

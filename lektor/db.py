@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # pylint: disable=too-many-lines
 import errno
 import functools
@@ -6,9 +7,10 @@ import operator
 import os
 import posixpath
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
-from itertools import chain
 from itertools import islice
+from operator import methodcaller
 
 from jinja2 import is_undefined
 from jinja2 import Undefined
@@ -18,19 +20,14 @@ from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
 from lektor import metaformat
-from lektor._compat import integer_types
-from lektor._compat import iteritems
-from lektor._compat import range_type
-from lektor._compat import string_types
-from lektor._compat import text_type
 from lektor.assets import Directory
+from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.context import get_ctx
 from lektor.databags import Databags
 from lektor.datamodel import load_datamodels
 from lektor.datamodel import load_flowblocks
 from lektor.editor import make_editor_session
-from lektor.environment import PRIMARY_ALT
 from lektor.filecontents import FileContents
 from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail
@@ -113,14 +110,14 @@ def _is_content_file(filename, alt=PRIMARY_ALT):
     return False
 
 
-class _CmpHelper(object):
+class _CmpHelper:
     def __init__(self, value, reverse):
         self.value = value
         self.reverse = reverse
 
     @staticmethod
     def coerce(a, b):
-        if isinstance(a, string_types) and isinstance(b, string_types):
+        if isinstance(a, str) and isinstance(b, str):
             return sort_normalize_string(a), sort_normalize_string(b)
         if type(a) is type(b):
             return a, b
@@ -130,12 +127,12 @@ class _CmpHelper(object):
             if isinstance(b, Undefined):
                 b = None
             return a, b
-        if isinstance(a, integer_types) or isinstance(a, float):
+        if isinstance(a, (int, float)):
             try:
                 return a, type(a)(b)
             except (ValueError, TypeError, OverflowError):
                 pass
-        if isinstance(b, integer_types) or isinstance(b, float):
+        if isinstance(b, (int, float)):
             try:
                 return type(b)(a), b
             except (ValueError, TypeError, OverflowError):
@@ -184,8 +181,9 @@ def save_eval(filter, record):
         return Undefined(e.message)
 
 
-class Expression(object):
+class Expression:
     def __eval__(self, record):
+        # pylint: disable=no-self-use
         return record
 
     def __eq__(self, other):
@@ -225,28 +223,28 @@ class Expression(object):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).lower().startswith(text_type(b).lower()),
+            lambda a, b: str(a).lower().startswith(str(b).lower()),
         )
 
     def endswith(self, other):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).lower().endswith(text_type(b).lower()),
+            lambda a, b: str(a).lower().endswith(str(b).lower()),
         )
 
     def startswith_cs(self, other):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).startswith(text_type(b)),
+            lambda a, b: str(a).startswith(str(b)),
         )
 
     def endswith_cs(self, other):
         return _BinExpr(
             self,
             _auto_wrap_expr(other),
-            lambda a, b: text_type(a).endswith(text_type(b)),
+            lambda a, b: str(a).endswith(str(b)),
         )
 
     def false(self):
@@ -350,7 +348,7 @@ class _RecordQueryField(Expression):
             return Undefined(obj=record, name=self.__field)
 
 
-class _RecordQueryProxy(object):
+class _RecordQueryProxy:
     def __getattr__(self, name):
         if not name.startswith("__"):
             return _RecordQueryField(name)
@@ -359,8 +357,8 @@ class _RecordQueryProxy(object):
     def __getitem__(self, name):
         try:
             return self.__getattr__(name)
-        except AttributeError:
-            raise KeyError(name)
+        except AttributeError as error:
+            raise KeyError(name) from error
 
 
 F = _RecordQueryProxy()
@@ -440,13 +438,13 @@ class Record(SourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in iteritems((self.datamodel.label_i18n or {})):
+        for lang, _ in (self.datamodel.label_i18n or {}).items():
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)
             rv[lang] = label
         # Fill in english if missing
-        if not rv:
+        if "en" not in rv:
             rv["en"] = self.get_fallback_record_label("en")
         return rv
 
@@ -490,7 +488,11 @@ class Record(SourceObject):
             else:
                 field = field.lstrip("+")
                 reverse = False
-            rv[idx] = _CmpHelper(self._data.get(field), reverse)
+            try:
+                value = self[field]
+            except KeyError:
+                value = None
+            rv[idx] = _CmpHelper(value, reverse)
         return rv
 
     def __contains__(self, name):
@@ -639,7 +641,7 @@ class Page(Record):
             return self
 
         # Try to resolve the correctly paginated version here.
-        elif pg.enabled:
+        if pg.enabled:
             rv = pg.match_pagination(self, url_path)
             if rv is not None:
                 return rv
@@ -649,7 +651,7 @@ class Page(Record):
         # rewarded.
         q = self.children.include_undiscoverable(True)
 
-        for idx in range_type(len(url_path)):
+        for idx in range(len(url_path)):
             piece = "/".join(url_path[: idx + 1])
             child = q.filter(F._slug == piece).first()
             if child is None:
@@ -854,7 +856,7 @@ class Image(Attachment):
         if mode is None:
             mode = ThumbnailMode.DEFAULT
         else:
-            mode = ThumbnailMode.from_label(mode)
+            mode = ThumbnailMode(mode)
 
         if width is not None:
             width = int(width)
@@ -944,7 +946,7 @@ class Video(Attachment):
         return VideoFrame(self, seek)
 
 
-class VideoFrame(object):
+class VideoFrame:
     """Representation of a specific frame in a VideoAttachment.
 
     This is currently only useful for thumbnails, but in the future it might
@@ -978,7 +980,7 @@ class VideoFrame(object):
         if mode is None:
             mode = ThumbnailMode.DEFAULT
         else:
-            mode = ThumbnailMode.from_label(mode)
+            mode = ThumbnailMode(mode)
 
         video = self.video
         return make_video_thumbnail(
@@ -1000,7 +1002,7 @@ attachment_classes = {
 }
 
 
-class Query(object):
+class Query:
     """Object that helps finding records.  The default configuration
     only finds pages.
     """
@@ -1026,7 +1028,7 @@ class Query(object):
         h.update(str(self.alt))
         h.update(str(self._include_pages))
         h.update(str(self._include_attachments))
-        h.update("(%s)" % u"|".join(self._order_by or ()).encode("utf-8"))
+        h.update("(%s)" % "|".join(self._order_by or ()).encode("utf-8"))
         h.update(str(self._limit))
         h.update(str(self._offset))
         h.update(str(self._include_hidden))
@@ -1113,7 +1115,7 @@ class Query(object):
         if base_record is not None:
             if self._include_attachments and not self._include_pages:
                 return base_record.datamodel.attachment_config.order_by
-            elif self._include_pages and not self._include_attachments:
+            if self._include_pages and not self._include_attachments:
                 return base_record.datamodel.child_config.order_by
             # Otherwise the query includes either both or neither
             # attachments and/nor children.  I have no idea which
@@ -1150,7 +1152,7 @@ class Query(object):
         return rv
 
     def first(self):
-        """Loads all matching records as list."""
+        """Return the first matching record."""
         return next(iter(self), None)
 
     def all(self):
@@ -1184,7 +1186,7 @@ class Query(object):
     def count(self):
         """Counts all matched objects."""
         rv = 0
-        for item in self:
+        for _ in self:
             rv += 1
         return rv
 
@@ -1331,7 +1333,23 @@ def _iter_datamodel_choices(datamodel_name, path, is_attachment=False):
     yield "none"
 
 
-class Database(object):
+def get_default_slug(record):
+    """Compute the default slug for a page.
+
+    This computes the default value of ``_slug`` for a page.  The slug
+    is computed by expanding the parent’s ``slug_format`` value.
+
+    """
+    parent = getattr(record, "parent", None)
+    if parent is None:
+        return ""
+    return parent.datamodel.get_default_child_slug(record.pad, record)
+
+
+default_slug_descriptor = property(get_default_slug)
+
+
+class Database:
     def __init__(self, env, config=None):
         self.env = env
         if config is None:
@@ -1373,9 +1391,9 @@ class Database(object):
                         rv_type = is_attachment
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
-                            rv[key] = u"".join(lines)
-            except IOError as e:
-                if e.errno not in (errno.ENOTDIR, errno.ENOENT):
+                            rv[key] = "".join(lines)
+            except OSError as e:
+                if e.errno not in (errno.ENOTDIR, errno.ENOENT, errno.EINVAL):
                     raise
                 if not is_attachment or not os.path.isfile(fs_path[:-3]):
                     continue
@@ -1415,7 +1433,7 @@ class Database(object):
 
         choiceiter = _iter_filename_choices(fn_base, alts, self.config)
 
-        for fs_path, actual_alt, is_attachment in choiceiter:
+        for fs_path, _actual_alt, is_attachment in choiceiter:
             if not os.path.isfile(fs_path):
                 continue
 
@@ -1428,7 +1446,7 @@ class Database(object):
             try:
                 dir_path = os.path.dirname(fs_path)
                 for filename in os.listdir(dir_path):
-                    if not isinstance(filename, text_type):
+                    if not isinstance(filename, str):
                         try:
                             filename = filename.decode(fs_enc)
                         except UnicodeError:
@@ -1548,23 +1566,15 @@ class Database(object):
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:
                         ctx.record_dependency(dep_model.filename)
+            # XXX: In the case that our datamodel is implied, then the
+            # datamodel depends on the datamodel(s) of our parent(s).
+            # We do not currently record that.
         return record
-
-    def get_default_slug(self, data, pad):
-        parent_path = posixpath.dirname(data["_path"])
-        parent = None
-        if parent_path != data["_path"]:
-            parent = pad.get(parent_path)
-        if parent:
-            slug = parent.datamodel.get_default_child_slug(pad, data)
-        else:
-            slug = ""
-        return slug
 
     def process_data(self, data, datamodel, pad):
         # Automatically fill in slugs
         if not data["_slug"]:
-            data["_slug"] = self.get_default_slug(data, pad)
+            data["_slug"] = default_slug_descriptor
         else:
             data["_slug"] = data["_slug"].strip("/")
 
@@ -1577,7 +1587,8 @@ class Database(object):
         if is_undefined(data["_template"]):
             data["_template"] = datamodel.get_default_template_name()
 
-    def get_record_class(self, datamodel, raw_data):
+    @staticmethod
+    def get_record_class(datamodel, raw_data):
         """Returns the appropriate record class for a datamodel and raw data."""
         is_attachment = bool(raw_data.get("_attachment_for"))
         if not is_attachment:
@@ -1602,7 +1613,7 @@ def _split_alt_from_url(config, clean_path):
         if clean_path.startswith(prefix):
             return alt, clean_path[len(prefix) :].strip("/")
         # Special case which is the URL root.
-        elif prefix.strip("/") == clean_path:
+        if prefix.strip("/") == clean_path:
             return alt, ""
 
     # Now find alternatives that are identified by a suffix.
@@ -1618,7 +1629,7 @@ def _split_alt_from_url(config, clean_path):
     return None, None
 
 
-class Pad(object):
+class Pad:
     def __init__(self, db):
         self.db = db
         self.cache = RecordCache(db.config["EPHEMERAL_RECORD_CACHE_SIZE"])
@@ -1791,7 +1802,7 @@ class Pad(object):
             return self.get_virtual(rv, virtual_path)
 
         # Sanity check: there must only be one or things will get weird.
-        elif virt_markers > 1:
+        if virt_markers > 1:
             return None
 
         path = cleanup_path(path)
@@ -1831,7 +1842,7 @@ class Pad(object):
         if rv is not None:
             if rv["_source_alt"] == alt:
                 return True
-            elif fallback or (
+            if fallback or (
                 rv["_source_alt"] == PRIMARY_ALT
                 and alt == self.config.primary_alternative
             ):
@@ -1876,39 +1887,101 @@ class Pad(object):
         ).include_hidden(True)
 
 
-class TreeItem(object):
+class TreeItem:
     """Represents a single tree item and all the alts within it."""
 
-    def __init__(
-        self,
-        tree,
-        path,
-        alts,
-        exists=True,
-        is_attachment=False,
-        attachment_type=None,
-        can_have_children=False,
-        can_have_attachments=False,
-        can_be_deleted=False,
-        is_visible=True,
-        label_i18n=None,
-    ):
+    def __init__(self, tree, path, alts, primary_record):
         self.tree = tree
         self.path = path
         self.alts = alts
-        self.exists = exists
-        self.is_attachment = is_attachment
-        self.attachment_type = attachment_type
-        self.can_have_children = can_have_children
-        self.can_have_attachments = can_have_attachments
-        self.can_be_deleted = can_be_deleted
-        self.is_visible = is_visible
-        self.label_i18n = label_i18n
+        self._primary_record = primary_record
 
     @property
     def id(self):
         """The local ID of the item."""
         return posixpath.basename(self.path)
+
+    @property
+    def exists(self):
+        """True iff metadata exists for the item.
+
+        If metadata exists for any alt, including the fallback (PRIMARY_ALT).
+
+        Note that for attachments without metadata, this is currently False.
+        But note that if is_attachment is True, the attachment file does exist.
+        """
+        # FIXME: this should probably be changed to return True for attachments,
+        # even those without metadata.
+        return self._primary_record is not None
+
+    @property
+    def is_attachment(self):
+        """True iff item is an attachment."""
+        if self._primary_record is None:
+            return False
+        return self._primary_record.is_attachment
+
+    @property
+    def is_visible(self):
+        """True iff item is not hidden."""
+        # XXX: This is send out from /api/recordinfo but appears to be
+        # unused by the React app
+        if self._primary_record is None:
+            return True
+        return self._primary_record.is_visible
+
+    @property
+    def can_be_deleted(self):
+        """True iff item can be deleted."""
+        if self.path == "/" or not self.exists:
+            return False
+        return self.is_attachment or not self._datamodel.protected
+
+    @property
+    def _datamodel(self):
+        if self._primary_record is None:
+            return None
+        return self._primary_record.datamodel
+
+    def get_record_label_i18n(self, alt=PRIMARY_ALT):
+        """Get record label translations for specific alt."""
+        record = self.alts[alt].record
+        if record is None:
+            # generate a reasonable fallback
+            # ("en" is the magical fallback lang)
+            label = self.id.replace("-", " ").replace("_", " ").title()
+            return {"en": label or "(Index)"}
+        return record.get_record_label_i18n()
+
+    @property
+    def can_have_children(self):
+        """True iff the item can contain subpages."""
+        if self._primary_record is None or self.is_attachment:
+            return False
+        return self._datamodel.has_own_children
+
+    @property
+    def implied_child_datamodel(self):
+        """The name of the default datamodel for children of this page, if any."""
+        datamodel = self._datamodel
+        return datamodel.child_config.model if datamodel else None
+
+    @property
+    def can_have_attachments(self):
+        """True iff the item can contain attachments."""
+        if self._primary_record is None or self.is_attachment:
+            return False
+        return self._datamodel.has_own_attachments
+
+    @property
+    def attachment_type(self):
+        """The type of an attachment.
+
+        E.g. "image", "video", or None if type is unknown.
+        """
+        if self._primary_record is None or not self.is_attachment:
+            return None
+        return self._primary_record["_attachment_type"] or None
 
     def get_parent(self):
         """Returns the parent item."""
@@ -1918,25 +1991,89 @@ class TreeItem(object):
 
     def get(self, path):
         """Returns a child within this item."""
-        if self.exists:
-            return self.tree.get(posixpath.join(self.path, path))
-        return None
+        # XXX: Unused?
+        return self.tree.get(posixpath.join(self.path, path))
 
-    def iter_children(self, include_attachments=True, include_pages=True):
-        """Iterates over all children."""
-        if not self.exists:
-            return iter(())
-        return self.tree.iter_children(self.path, include_attachments, include_pages)
+    def _get_child_ids(self, include_attachments=True, include_pages=True):
+        """Returns a sorted list of just the IDs of existing children."""
+        db = self.tree.pad.db
+        keep_attachments = include_attachments and self.can_have_attachments
+        keep_pages = include_pages and self.can_have_children
+        names = set(
+            name
+            for name, _, is_attachment in db.iter_items(self.path, alt=None)
+            if (keep_attachments if is_attachment else keep_pages)
+        )
+        return sorted(names, key=lambda name: name.lower())
+
+    def iter_children(
+        self, include_attachments=True, include_pages=True, order_by=None
+    ):
+        """Iterates over all children"""
+        children = (
+            self.tree.get(posixpath.join(self.path, name), persist=False)
+            for name in self._get_child_ids(include_attachments, include_pages)
+        )
+        if order_by is not None:
+            children = sorted(children, key=methodcaller("get_sort_key", order_by))
+        return children
 
     def get_children(
-        self, offset=0, limit=None, include_attachments=True, include_pages=True
+        self,
+        offset=0,
+        limit=None,
+        include_attachments=True,
+        include_pages=True,
+        order_by=None,
     ):
-        """Returns a list of all children."""
-        if not self.exists:
-            return []
-        return self.tree.get_children(
-            self.path, offset, limit, include_attachments, include_pages
-        )
+        """Returns a slice of children."""
+        # XXX: this method appears unused?
+        end = None
+        if limit is not None:
+            end = offset + limit
+        children = self.iter_children(include_attachments, include_pages, order_by)
+        return list(islice(children, offset, end))
+
+    def iter_attachments(self, order_by=None):
+        """Return an iterable of this records attachments.
+
+        By default, the attachments are sorted as specified by
+        ``[attachments]order_by`` in this records datamodel.
+        """
+        if order_by is None:
+            dm = self._datamodel
+            if dm is not None:
+                order_by = dm.attachment_config.order_by
+        return self.iter_children(include_pages=False, order_by=order_by)
+
+    def iter_subpages(self, order_by=None):
+        """Return an iterable of this records sub-pages.
+
+        By default, the records are sorted as specified by
+        ``[children]order_by`` in this records datamodel.
+
+        NB: This method should probably be called ``iter_children``,
+        but that name was already taken.
+        """
+        if order_by is None:
+            dm = self._datamodel
+            if dm is not None:
+                order_by = dm.child_config.order_by
+        return self.iter_children(include_attachments=False, order_by=order_by)
+
+    def get_sort_key(self, order_by):
+        if self._primary_record is None:
+
+            def sort_key(fieldspec):
+                if fieldspec.startswith("-"):
+                    field, reverse = fieldspec[1:], True
+                else:
+                    field, reverse = fieldspec.lstrip("+"), False
+                value = self.id if field == "_id" else None
+                return _CmpHelper(value, reverse)
+
+            return [sort_key(fieldspec) for fieldspec in order_by]
+        return self._primary_record.get_sort_key(order_by)
 
     def __repr__(self):
         return "<TreeItem %r%s>" % (
@@ -1945,17 +2082,19 @@ class TreeItem(object):
         )
 
 
-class Alt(object):
-    def __init__(self, id, record):
+class Alt:
+    def __init__(self, id, record, is_primary_overlay, name_i18n):
         self.id = id
         self.record = record
+        self.is_primary_overlay = is_primary_overlay
+        self.name_i18n = name_i18n
         self.exists = record is not None and os.path.isfile(record.source_filename)
 
     def __repr__(self):
         return "<Alt %r%s>" % (self.id, self.exists and "*" or "")
 
 
-class Tree(object):
+class Tree:
     """Special object that can be used to get a broader insight into the
     database in a way that is not bound to the alt system directly.
 
@@ -1968,86 +2107,65 @@ class Tree(object):
     """
 
     def __init__(self, pad):
+        # Note that in theory different alts can disagree on what
+        # datamodel they use but this is something that is really not
+        # supported.  This cannot happen if you edit based on the admin
+        # panel and if you edit it manually and screw up that part, we
+        # cannot really do anything about it.
+        #
+        # We will favor the datamodel from the fallback record
+        # (alt=PRIMARY_ALT) if it exists. If it does not, we will
+        # use the data for the primary alternative. If data does not exist
+        # for either of those, we will pick from among the other
+        # existing alts quasi-randomly.
+        #
+        # Here we construct a list of configured alts in preference order
+        config = pad.db.config
+        alt_info = OrderedDict()
+        if config.primary_alternative:
+            # Alternatives are configured
+            alts = [PRIMARY_ALT]
+            alts.append(config.primary_alternative)
+            alts.extend(
+                alt
+                for alt in config.list_alternatives()
+                if alt != config.primary_alternative
+            )
+            for alt in alts:
+                alt_info[alt] = {
+                    "is_primary_overlay": alt == config.primary_alternative,
+                    "name_i18n": config.get_alternative(alt)["name"],
+                }
+        else:
+            alt_info[PRIMARY_ALT] = {
+                "is_primary_overlay": True,
+                "name_i18n": {"en": "Primary"},
+            }
+
         self.pad = pad
+        self._alt_info = alt_info
 
     def get(self, path=None, persist=True):
         """Returns a path item at the given node."""
         path = "/" + (path or "").strip("/")
         alts = {}
-        exists = False
-        first_record = None
-        label_i18n = None
-
-        for alt in chain([PRIMARY_ALT], self.pad.db.config.list_alternatives()):
+        primary_record = None
+        for alt, alt_info in self._alt_info.items():
             record = self.pad.get(path, alt=alt, persist=persist, allow_virtual=False)
-            if first_record is None:
-                first_record = record
-            if record is not None:
-                exists = True
-            alts[alt] = Alt(alt, record)
+            if primary_record is None:
+                primary_record = record
+            alts[alt] = Alt(alt, record, **alt_info)
+        return TreeItem(self, path, alts, primary_record)
 
-        # These flags only really make sense if we found an existing
-        # record, otherwise we fall back to some sort of sane default.
-        # Note that in theory different alts can disagree on what
-        # datamodel they use but this is something that is really not
-        # supported.  This cannot happen if you edit based on the admin
-        # panel and if you edit it manually and screw up the part, we
-        # cannot really do anything about it.
-        #
-        # More importantly we genreally assume that first_record is the
-        # primary alt.  There are some situations in which case this is
-        # not true, for instance if no primary alt exists.  In this case
-        # we just go with any record.
-        is_visible = True
-        is_attachment = False
-        attachment_type = None
-        can_have_children = False
-        can_have_attachments = False
-        can_be_deleted = exists and path != "/"
-
-        if first_record is not None:
-            is_attachment = first_record.is_attachment
-            is_visible = first_record.is_visible
-            dm = first_record.datamodel
-            if not is_attachment:
-                can_have_children = dm.has_own_children
-                can_have_attachments = dm.has_own_attachments
-                if dm.protected:
-                    can_be_deleted = False
-            else:
-                attachment_type = first_record["_attachment_type"] or None
-            label_i18n = first_record.get_record_label_i18n()
-
-        return TreeItem(
-            self,
-            path,
-            alts,
-            exists,
-            is_attachment=is_attachment,
-            attachment_type=attachment_type,
-            can_have_children=can_have_children,
-            can_have_attachments=can_have_attachments,
-            can_be_deleted=can_be_deleted,
-            is_visible=is_visible,
-            label_i18n=label_i18n,
+    def iter_children(
+        self, path=None, include_attachments=True, include_pages=True, order_by=None
+    ):
+        """Iterates over all children below a path"""
+        # XXX: this method is unused?
+        path = "/" + (path or "").strip("/")
+        return self.get(path, persist=False).iter_children(
+            include_attachments, include_pages, order_by
         )
-
-    def _get_child_ids(self, path=None, include_attachments=True, include_pages=True):
-        """Returns a sorted list of just the IDs of children below a path."""
-        path = "/" + (path or "").strip("/")
-        names = set()
-        for name, _, is_attachment in self.pad.db.iter_items(path, alt=None):
-            if (is_attachment and include_attachments) or (
-                not is_attachment and include_pages
-            ):
-                names.add(name)
-        return sorted(names, key=lambda x: x.lower())
-
-    def iter_children(self, path=None, include_attachments=True, include_pages=True):
-        """Iterates over all children below a path."""
-        path = "/" + (path or "").strip("/")
-        for name in self._get_child_ids(path, include_attachments, include_pages):
-            yield self.get(posixpath.join(path, name), persist=False)
 
     def get_children(
         self,
@@ -2056,18 +2174,14 @@ class Tree(object):
         limit=None,
         include_attachments=True,
         include_pages=True,
+        order_by=None,
     ):
         """Returns a slice of children."""
+        # XXX: this method is unused?
         path = "/" + (path or "").strip("/")
-        end = None
-        if limit is not None:
-            end = offset + limit
-        return [
-            self.get(posixpath.join(path, name), persist=False)
-            for name in self._get_child_ids(path, include_attachments, include_pages)[
-                offset:end
-            ]
-        ]
+        return self.get(path, persist=False).get_children(
+            offset, limit, include_attachments, include_pages, order_by
+        )
 
     def edit(self, path, is_attachment=None, alt=PRIMARY_ALT, datamodel=None):
         """Edits a record by path."""
@@ -2080,7 +2194,7 @@ class Tree(object):
         )
 
 
-class RecordCache(object):
+class RecordCache:
     """The record cache holds records eitehr in an persistent or ephemeral
     section which helps the pad not load records it already saw.
     """
@@ -2089,8 +2203,9 @@ class RecordCache(object):
         self.persistent = {}
         self.ephemeral = LRUCache(ephemeral_cache_size)
 
-    def _get_cache_key(self, record_or_path, alt=PRIMARY_ALT, virtual_path=None):
-        if isinstance(record_or_path, string_types):
+    @staticmethod
+    def _get_cache_key(record_or_path, alt=PRIMARY_ALT, virtual_path=None):
+        if isinstance(record_or_path, str):
             path = record_or_path.strip("/")
         else:
             path, virtual_path = split_virtual_path(record_or_path.path)

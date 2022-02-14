@@ -1,10 +1,11 @@
+import json
 import os
 from operator import itemgetter
 
 import pytest
-from flask import json
 
 from lektor.admin import WebAdmin
+from lektor.admin.utils import eventstream
 
 
 @pytest.fixture
@@ -26,19 +27,25 @@ def children_records_data():
 def prepare_stub_data(scratch_project, children_records_data):
     """Creates folders, models, test object and its children records."""
     tree = scratch_project.tree
-    with open(os.path.join(tree, "models", "mymodel.ini"), "w") as f:
+    with open(os.path.join(tree, "models", "mymodel.ini"), "w", encoding="utf-8") as f:
         f.write("[children]\n" "order_by = -pub_date, title\n")
-    with open(os.path.join(tree, "models", "mychildmodel.ini"), "w") as f:
+    with open(
+        os.path.join(tree, "models", "mychildmodel.ini"), "w", encoding="utf-8"
+    ) as f:
         f.write(
             "[fields.title]\n" "type = string\n" "[fields.pub_date]\n" "type = date"
         )
     os.mkdir(os.path.join(tree, "content", "myobj"))
-    with open(os.path.join(tree, "content", "myobj", "contents.lr"), "w") as f:
+    with open(
+        os.path.join(tree, "content", "myobj", "contents.lr"), "w", encoding="utf-8"
+    ) as f:
         f.write("_model: mymodel\n" "---\n" "title: My Test Object\n")
     for record in children_records_data:
         os.mkdir(os.path.join(tree, "content", "myobj", record["id"]))
         with open(
-            os.path.join(tree, "content", "myobj", record["id"], "contents.lr"), "w"
+            os.path.join(tree, "content", "myobj", record["id"], "contents.lr"),
+            "w",
+            encoding="utf-8",
         ) as f:
             f.write(
                 "_model: mychildmodel\n"
@@ -67,9 +74,20 @@ def test_children_sorting_via_api(scratch_project, scratch_env, children_records
     )
 
 
+def test_recordinfo_children_sort_limited_alts(project, env):
+    # This excercises the bug described in #962, namely that
+    # if a page has a child that only has content in a subset of the
+    # configured alts, get_record_info throws an exception.
+    webadmin = WebAdmin(env, output_path=project.tree)
+    data = json.loads(
+        webadmin.test_client().get("/admin/api/recordinfo?path=/projects").data
+    )
+    child_data = data["children"]
+    assert list(sorted(child_data, key=itemgetter("label"))) == child_data
+
+
 def test_eventstream_yield_bytes():
     count = 0
-    from lektor.admin.utils import eventstream
 
     @eventstream
     def testfunc():

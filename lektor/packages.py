@@ -10,7 +10,6 @@ import click
 import pkg_resources
 import requests
 
-from lektor._compat import iteritems
 from lektor.utils import portable_popen
 
 
@@ -20,7 +19,7 @@ class PackageException(Exception):
 
 def _get_package_version_from_project(cfg, name):
     choices = (name.lower(), "lektor-" + name.lower())
-    for pkg, version in iteritems(cfg.section_as_dict("packages")):
+    for pkg, version in cfg.section_as_dict("packages").items():
         if pkg.lower() in choices:
             return {"name": pkg, "version": version}
     return None
@@ -68,7 +67,7 @@ def add_package_to_project(project, req):
 def remove_package_from_project(project, name):
     cfg = project.open_config()
     choices = (name.lower(), "lektor-" + name.lower())
-    for pkg, version in iteritems(cfg.section_as_dict("packages")):
+    for pkg, version in cfg.section_as_dict("packages").items():
         if pkg.lower() in choices:
             del cfg["packages.%s" % pkg]
             cfg.save()
@@ -205,7 +204,7 @@ def publish_package(path):
 def load_manifest(filename):
     rv = {}
     try:
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             for line in f:
                 if line[:1] == "@":
                     rv[line.strip()] = None
@@ -222,7 +221,7 @@ def load_manifest(filename):
 
 
 def write_manifest(filename, packages):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         for package, version in sorted(packages.items()):
             if package[:1] == "@":
                 f.write("%s\n" % package)
@@ -261,7 +260,7 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
     all_packages.update((x, None) for x in local_packages)
 
     # step 1: figure out which remote packages to install.
-    for package, version in iteritems(remote_packages):
+    for package, version in remote_packages.items():
         old_version = old_manifest.pop(package, None)
         if old_version is None:
             to_install.append((package, version))
@@ -279,7 +278,7 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
             shutil.rmtree(package_root)
         except OSError:
             pass
-        to_install = iteritems(all_packages)
+        to_install = all_packages.items()
 
     if to_install:
         click.echo("Updating packages in %s for project" % package_root)

@@ -1,8 +1,16 @@
-<!doctype html>
-<title>{% block title %}{% endblock %}</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='gen/vendor.css') }}">
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='gen/styles.css') }}">
-{% block body %}{% endblock %}
-{% block scripts %}
-<script type=text/javascript src="{{ url_for('static', filename='gen/vendor.js') }}"></script>
-{% endblock %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='gen/vendor.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='gen/app.css') }}">
+  </head>
+  <body>
+    {% block body %}{% endblock %}
+    {% block scripts %}
+    <script type=text/javascript src="{{ url_for('static', filename='gen/vendor.js') }}"></script>
+    {% endblock %}
+  </body>
+</html>

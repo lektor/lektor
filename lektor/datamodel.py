@@ -1,23 +1,22 @@
 import errno
-import math
 import os
 
 from inifile import IniFile
 
-from lektor import types
-from lektor._compat import iteritems
-from lektor._compat import itervalues
-from lektor.environment import Expression
-from lektor.environment import FormatExpression
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
+from lektor.environment.expressions import Expression
+from lektor.environment.expressions import FormatExpression
 from lektor.i18n import generate_i18n_kvs
 from lektor.i18n import get_i18n_block
 from lektor.pagination import Pagination
+from lektor.reporter import reporter
+from lektor.types import builtin_types
+from lektor.types.base import RawValue
 from lektor.utils import bool_from_string
 from lektor.utils import slugify
 
 
-class ChildConfig(object):
+class ChildConfig:
     def __init__(
         self,
         enabled=None,
@@ -47,7 +46,7 @@ class ChildConfig(object):
         }
 
 
-class PaginationConfig(object):
+class PaginationConfig:
     def __init__(self, env, enabled=None, per_page=None, url_suffix=None, items=None):
         self.env = env
         if enabled is None:
@@ -55,6 +54,11 @@ class PaginationConfig(object):
         self.enabled = enabled
         if per_page is None:
             per_page = 20
+        elif not isinstance(per_page, int):
+            raise TypeError(f"per_page must be an int or None, not {per_page!r}")
+        if per_page <= 0:
+            raise ValueError("per_page must be positive, not {per_page}")
+
         self.per_page = per_page
         if url_suffix is None:
             url_suffix = "page"
@@ -69,7 +73,9 @@ class PaginationConfig(object):
     def count_pages(self, record):
         """Returns the total number of pages for the children of a record."""
         total = self.count_total_items(record)
-        return int(math.ceil(total / float(self.per_page)))
+        npages = (total + self.per_page - 1) // self.per_page
+        # Even when there are no children, we want at least one page
+        return max(npages, 1)
 
     def slice_query_for_page(self, record, page):
         """Slices the query so it returns the children for a given page."""
@@ -78,7 +84,8 @@ class PaginationConfig(object):
             return query
         return query.limit(self.per_page).offset((page - 1) * self.per_page)
 
-    def get_record_for_page(self, record, page_num):
+    @staticmethod
+    def get_record_for_page(record, page_num):
         """Given a normal record this one returns the version specific
         for a page.
         """
@@ -145,7 +152,7 @@ class PaginationConfig(object):
         }
 
 
-class AttachmentConfig(object):
+class AttachmentConfig:
     def __init__(self, enabled=None, model=None, order_by=None, hidden=None):
         if enabled is None:
             enabled = True
@@ -165,7 +172,7 @@ class AttachmentConfig(object):
         }
 
 
-class Field(object):
+class Field:
     def __init__(self, env, name, type=None, options=None):
         if type is None:
             type = env.types["string"]
@@ -202,7 +209,7 @@ class Field(object):
         }
 
     def deserialize_value(self, value, pad=None):
-        raw_value = types.RawValue(self.name, value, field=self, pad=pad)
+        raw_value = RawValue(self.name, value, field=self, pad=pad)
         return self.type.value_from_raw_with_default(raw_value)
 
     def serialize_value(self, value):
@@ -223,7 +230,7 @@ def _iter_all_fields(obj):
         yield field
 
 
-class DataModel(object):
+class DataModel:
     def __init__(
         self,
         env,
@@ -272,7 +279,7 @@ class DataModel(object):
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
         self.field_map = dict((x.name, x) for x in fields)
-        for key, (ty, opts) in iteritems(system_fields):
+        for key, (ty, opts) in system_fields.items():
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
         self._child_slug_tmpl = None
@@ -340,8 +347,8 @@ class DataModel(object):
             return "_".join(
                 self._child_slug_tmpl[1].evaluate(pad, this=data).strip().split()
             ).strip("/")
-        except Exception:
-            # XXX: log
+        except Exception as exc:
+            reporter.report_generic("Failed to expand child slug_format: %s" % exc)
             return "temp-" + slugify(data["_id"])
 
     def get_default_template_name(self):
@@ -376,7 +383,7 @@ class DataModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in itervalues(self.field_map):
+        for field in self.field_map.values():
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv["_model"] = self.id
@@ -389,7 +396,7 @@ class DataModel(object):
         )
 
 
-class FlowBlockModel(object):
+class FlowBlockModel:
     def __init__(
         self,
         env,
@@ -438,7 +445,7 @@ class FlowBlockModel(object):
 
     def process_raw_data(self, raw_data, pad=None):
         rv = {}
-        for field in itervalues(self.field_map):
+        for field in self.field_map.values():
             value = raw_data.get(field.name)
             rv[field.name] = field.deserialize_value(value, pad=pad)
         rv["_flowblock"] = self.id
@@ -681,7 +688,7 @@ system_fields = {}
 
 def add_system_field(name, **opts):
     opts = dict(generate_i18n_kvs(**opts))
-    ty = types.builtin_types[opts.pop("type")]
+    ty = builtin_types[opts.pop("type")]
     system_fields[name] = (ty, opts)
 
 

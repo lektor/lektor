@@ -1,12 +1,12 @@
 import posixpath
 from weakref import ref as weakref
 
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
 
-class SourceObject(object):
+class SourceObject:
     source_classification = "generic"
 
     # We consider this class at least what public usage is to considered
@@ -44,6 +44,7 @@ class SourceObject(object):
             yield self.source_filename
 
     def iter_virtual_sources(self):
+        # pylint: disable=no-self-use
         return []
 
     @property
@@ -143,9 +144,11 @@ class VirtualSourceObject(SourceObject):
         raise NotImplementedError()
 
     def get_mtime(self, path_cache):
+        # pylint: disable=no-self-use
         return None
 
     def get_checksum(self, path_cache):
+        # pylint: disable=no-self-use
         return None
 
     @property

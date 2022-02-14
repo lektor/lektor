@@ -12,7 +12,6 @@ import click
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
-from lektor._compat import text_type
 from lektor.utils import fs_enc
 from lektor.utils import slugify
 
@@ -20,7 +19,7 @@ from lektor.utils import slugify
 _var_re = re.compile(r"@([^@]+)@")
 
 
-class Generator(object):
+class Generator:
     def __init__(self, base):
         self.question = 0
         self.jinja_env = Environment(
@@ -36,11 +35,12 @@ class Generator(object):
         )
         self.options = {}
         # term width in [1, 78]
-        self.term_width = min(max(click.get_terminal_size()[0], 1), 78)
+        self.term_width = min(max(shutil.get_terminal_size()[0], 1), 78)
         self.e = click.secho
         self.w = partial(click.wrap_text, width=self.term_width)
 
-    def abort(self, message):
+    @staticmethod
+    def abort(message):
         click.echo("Error: %s" % message, err=True)
         raise click.Abort()
 
@@ -99,14 +99,15 @@ class Generator(object):
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
-                if not isinstance(path, text_type):
+                if not isinstance(path, str):
                     filename = filename.decode(fs_enc)
                 shutil.move(
                     os.path.join(scratch, filename), os.path.join(path, filename)
                 )
             os.rmdir(scratch)
 
-    def expand_filename(self, base, ctx, template_filename):
+    @staticmethod
+    def expand_filename(base, ctx, template_filename):
         def _repl(match):
             return ctx[match.group(1)]
 
@@ -131,11 +132,12 @@ class Generator(object):
 
 
 def get_default_author():
+    # pylint: disable=import-outside-toplevel
     import getpass
 
     if os.name == "nt":
         user = getpass.getuser()
-        if isinstance(user, text_type):
+        if isinstance(user, str):
             return user
         return user.decode("mbcs")
 
@@ -146,27 +148,24 @@ def get_default_author():
     ent = pwd.getpwuid(os.getuid())  # pylint: disable=no-member
     if ent and ent.pw_gecos:
         name = ent.pw_gecos
-        if isinstance(name, text_type):
+        if isinstance(name, str):
             return name
         return name.decode("utf-8", "replace")
 
     name = getpass.getuser()
-    if isinstance(name, text_type):
+    if isinstance(name, str):
         return name
     return name.decode("utf-8", "replace")
 
 
 def get_default_author_email():
     try:
-        value = (
-            subprocess.Popen(
-                ["git", "config", "user.email"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            .communicate()[0]
-            .strip()
-        )
+        with subprocess.Popen(
+            ["git", "config", "user.email"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as proc:
+            value = proc.communicate()[0].strip()
         return value.decode("utf-8")
     except Exception:
         return None

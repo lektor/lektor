@@ -5,10 +5,9 @@
 [![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://pypi.org/project/Lektor/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Lektor.svg)](https://pypi.org/project/Lektor/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-<img alt="node:?" src="https://img.shields.io/badge/node-%3E=8-blue.svg"/>
 [![Join the chat at https://gitter.im/lektor/lektor](https://badges.gitter.im/lektor/lektor.svg)](https://gitter.im/lektor/lektor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Lektor is a static website generator.  It builds out an entire project
+Lektor is a static website generator. It builds out an entire project
 from static files into many individual HTML pages and has a built-in
 admin UI and minimal desktop app.
 
@@ -24,8 +23,8 @@ repository, which contains the sourcecode for the official lektor website.
 
 For installation instructions head to the official documentation:
 
-* [Installation](https://www.getlektor.com/docs/installation/)
-* [Quickstart](https://www.getlektor.com/docs/quickstart/)
+- [Installation](https://www.getlektor.com/docs/installation/)
+- [Quickstart](https://www.getlektor.com/docs/quickstart/)
 
 ## Want to develop on Lektor?
 

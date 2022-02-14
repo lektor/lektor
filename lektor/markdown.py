@@ -2,15 +2,17 @@ import threading
 from weakref import ref as weakref
 
 import mistune
-from markupsafe import escape
 from markupsafe import Markup
 from werkzeug.urls import url_parse
 
-from lektor._compat import PY2
 from lektor.context import get_ctx
 
 
 _markdown_cache = threading.local()
+
+
+def escape(text: str) -> str:
+    return mistune.escape(text, quote=True)
 
 
 class ImprovedRenderer(mistune.Renderer):
@@ -38,7 +40,7 @@ class ImprovedRenderer(mistune.Renderer):
         return '<img src="%s" alt="%s">' % (src, text)
 
 
-class MarkdownConfig(object):
+class MarkdownConfig:
     def __init__(self):
         self.options = {
             "escape": False,
@@ -84,7 +86,7 @@ def markdown_to_html(text, record=None):
     return rv, meta
 
 
-class Markdown(object):
+class Markdown:
     def __init__(self, source, record=None):
         self.source = source
         self.__record = weakref(record) if record is not None else lambda: None
@@ -120,12 +122,9 @@ class Markdown(object):
     def __getitem__(self, name):
         return self.meta[name]
 
-    def __unicode__(self):
+    def __str__(self):
         self.__render()
         return self.__html
-
-    if not PY2:
-        __str__ = __unicode__
 
     def __html__(self):
         self.__render()

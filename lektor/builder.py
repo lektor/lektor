@@ -1,5 +1,4 @@
 import hashlib
-import locale
 import os
 import shutil
 import sqlite3
@@ -12,18 +11,15 @@ from contextlib import contextmanager
 from itertools import chain
 
 import click
-from werkzeug.posixemulation import rename
 
-from lektor._compat import iteritems
-from lektor._compat import PY2
-from lektor._compat import text_type
 from lektor.build_programs import builtin_build_programs
 from lektor.buildfailures import FailureController
+from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
-from lektor.environment import PRIMARY_ALT
 from lektor.reporter import reporter
 from lektor.sourcesearch import find_files
 from lektor.utils import fs_enc
+from lektor.utils import process_extra_flags
 from lektor.utils import prune_file_and_folder
 
 
@@ -94,7 +90,7 @@ def create_tables(con):
         con.close()
 
 
-class BuildState(object):
+class BuildState:
     def __init__(self, builder, path_cache):
         self.builder = builder
 
@@ -265,7 +261,7 @@ class BuildState(object):
         con = self.connect_to_database()
         try:
             cur = con.cursor()
-            for lang, title in iteritems(info.title_i18n):
+            for lang, title in info.title_i18n.items():
                 cur.execute(
                     """
                     insert or replace into source_info
@@ -346,7 +342,8 @@ class BuildState(object):
         )
         return cur.fetchone() is not None
 
-    def _get_artifact_config_hash(self, cur, artifact_name):
+    @staticmethod
+    def _get_artifact_config_hash(cur, artifact_name):
         """Returns the artifact's config hash."""
         cur.execute(
             """
@@ -373,7 +370,7 @@ class BuildState(object):
 
             # If we do have an already existing artifact, we need to check if
             # any of the source files we depend on changed.
-            for source_name, info in self._iter_artifact_dependency_infos(
+            for _, info in self._iter_artifact_dependency_infos(
                 cur, artifact_name, sources
             ):
                 # if we get a missing source info it means that we never
@@ -483,7 +480,7 @@ def _describe_fs_path_for_checksum(path):
     return b"\x00"
 
 
-class FileInfo(object):
+class FileInfo:
     """A file info object holds metainformation of a file so that changes
     can be detected easily.
     """
@@ -554,7 +551,7 @@ class FileInfo(object):
                 for filename in sorted(os.listdir(self.filename)):
                     if self.env.is_uninteresting_source_name(filename):
                         continue
-                    if isinstance(filename, text_type):
+                    if isinstance(filename, str):
                         filename = filename.encode("utf-8")
                     h.update(filename)
                     h.update(
@@ -597,7 +594,7 @@ class FileInfo(object):
         return self.checksum == other.checksum
 
 
-class VirtualSourceInfo(object):
+class VirtualSourceInfo:
     def __init__(self, path, mtime=None, checksum=None):
         self.path = path
         self.mtime = mtime
@@ -633,7 +630,7 @@ artifacts_row = namedtuple(
 )
 
 
-class Artifact(object):
+class Artifact:
     """This class represents a build artifact."""
 
     def __init__(
@@ -689,7 +686,7 @@ class Artifact(object):
         except OSError:
             pass
 
-    def open(self, mode="rb", ensure_dir=None):
+    def open(self, mode="rb", encoding=None, ensure_dir=None):
         """Opens the artifact for reading or writing.  This is transaction
         safe by writing into a temporary file and by moving it over the
         actual source in commit.
@@ -700,7 +697,7 @@ class Artifact(object):
             self.ensure_dir()
         if "r" in mode:
             fn = self._new_artifact_file or self.dst_filename
-            return open(fn, mode)
+            return open(fn, mode=mode, encoding=encoding)
         if self._new_artifact_file is None:
             fd, tmp_filename = tempfile.mkstemp(
                 dir=os.path.dirname(self.dst_filename), prefix=".__trans"
@@ -708,7 +705,7 @@ class Artifact(object):
             os.chmod(tmp_filename, 0o644)
             self._new_artifact_file = tmp_filename
             return os.fdopen(fd, mode)
-        return open(self._new_artifact_file, mode)
+        return open(self._new_artifact_file, mode=mode, encoding=encoding)
 
     def replace_with_file(self, filename, ensure_dir=True, copy=False):
         """This is similar to open but it will move over a given named
@@ -839,7 +836,6 @@ class Artifact(object):
     def clear_dirty_flag(self):
         """Clears the dirty flag for all sources."""
 
-        @self._auto_deferred_update_operation
         def operation(con):
             sources = [self.build_state.to_source_filename(x) for x in self.sources]
             cur = con.cursor()
@@ -853,12 +849,13 @@ class Artifact(object):
             cur.close()
             reporter.report_dirty_flag(False)
 
+        self._auto_deferred_update_operation(operation)
+
     def set_dirty_flag(self):
         """Given a list of artifacts this will mark all of their sources
         as dirty so that they will be rebuilt next time.
         """
 
-        @self._auto_deferred_update_operation
         def operation(con):
             sources = set()
             for source in self.sources:
@@ -877,6 +874,8 @@ class Artifact(object):
             cur.close()
 
             reporter.report_dirty_flag(True)
+
+        self._auto_deferred_update_operation(operation)
 
     def _auto_deferred_update_operation(self, f):
         """Helper that defers an update operation when inside an update
@@ -929,7 +928,7 @@ class Artifact(object):
                 op(con)
 
             if self._new_artifact_file is not None:
-                rename(self._new_artifact_file, self.dst_filename)
+                os.replace(self._new_artifact_file, self.dst_filename)
                 self._new_artifact_file = None
 
             if con is not None:
@@ -992,7 +991,7 @@ class Artifact(object):
         self.build_state.notify_failure(self, exc_info)
 
 
-class PathCache(object):
+class PathCache:
     def __init__(self, env):
         self.file_info_cache = {}
         self.source_filename_cache = {}
@@ -1008,7 +1007,7 @@ class PathCache(object):
         if rv is not None:
             return rv
         folder = os.path.abspath(self.env.root_path)
-        if isinstance(folder, text_type) and not isinstance(filename, text_type):
+        if isinstance(folder, str) and not isinstance(filename, str):
             filename = filename.decode(fs_enc)
         filename = os.path.normpath(os.path.join(folder, filename))
         if filename.startswith(folder):
@@ -1044,20 +1043,7 @@ class PathCache(object):
         return rv
 
 
-def process_extra_flags(flags):
-    if isinstance(flags, dict):
-        return flags
-    rv = {}
-    for flag in flags or ():
-        if ":" in flag:
-            k, v = flag.split(":", 1)
-            rv[k] = v
-        else:
-            rv[flag] = flag
-    return rv
-
-
-class Builder(object):
+class Builder:
     def __init__(self, pad, destination_path, buildstate_path=None, extra_flags=None):
         self.extra_flags = process_extra_flags(extra_flags)
         self.pad = pad
@@ -1111,20 +1097,6 @@ class Builder(object):
             timeout=10,
             check_same_thread=False,
         )
-        if PY2:
-            # This code block solve lektor/lektor#243 issue
-            # `os.walk` return :class:`str` type string. But :class:`str` mean
-            # different type between Python 2 and 3.
-            # (:class:`str` on PY2 is equivalent to :class:`bytes` on PY3)
-            # :mod:`sqlite` can not consume multibyte input string because
-            # it expect :class:`unicode` on PY2, not bytes.
-            # If sqlite make connection without text_factory, Multibyte
-            # filename must raise :class:`ProgrammingError`
-            # So we must decode filename as system encoding for on PY2 via
-            # text_factory.
-
-            system_encoding = locale.getdefaultlocale()[1]
-            con.text_factory = lambda x: x.decode(system_encoding, "ignore")
         cur = con.cursor()
         cur.execute("pragma journal_mode=WAL")
         cur.execute("pragma synchronous=NORMAL")
@@ -1159,10 +1131,7 @@ class Builder(object):
         ):
             if isinstance(source, cls):
                 return builder(source, build_state)
-        # TODO: re-enable pylint when https://github.com/PyCQA/pylint/issues/1782 is fixed.
-        raise RuntimeError(
-            "I do not know how to build %r" % source
-        )  # pylint: disable=inconsistent-return-statements
+        raise RuntimeError("I do not know how to build %r" % source)
 
     def build_artifact(self, artifact, build_func):
         """Various parts of the system once they have an artifact and a
@@ -1187,7 +1156,8 @@ class Builder(object):
                 return ctx
         return None
 
-    def update_source_info(self, prog, build_state):
+    @staticmethod
+    def update_source_info(prog, build_state):
         """Updates a single source info based on a program.  This is done
         automatically as part of a build.
         """

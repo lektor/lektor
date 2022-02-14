@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+################################################################
+#
+# pytest
+#
+[tool.pytest.ini_options]
+norecursedirs = ["venv", ".tox", ".git", "node_modules"]
+addopts = "--strict-markers"
+markers = [
+    "requiresinternet: marks tests requiring an internet connection",
+]
+
+
+################################################################
+#
+# coverage
+#
+[tool.coverage.paths]
+paths = [
+    "lektor",
+    ".tox/py*/*/lektor",
+]
+
+################################################################
+#
+# pylint
+#
+[tool.pylint.MASTER]
+ignore = [".git"]
+
+[tool.pylint.FORMAT]
+max-line-length = 91
+max-module-lines = 2000
+
+[tool.pylint.DESIGN]
+max-attributes = 20
+max-locals = 30
+max-branches = 20
+max-nested-blocks = 8
+max-returns = 8
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = [
+    "redundant-u-string-prefix",
+    "consider-using-f-string",
+    "missing-docstring",
+    "unused-argument",
+    "redefined-outer-name",
+    "invalid-name",
+    "protected-access",
+    "fixme",
+    "broad-except",
+    "redefined-builtin",
+    "too-many-arguments",
+    "too-few-public-methods",
+    "too-many-public-methods",
+    "duplicate-code",
+]

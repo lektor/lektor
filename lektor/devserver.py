@@ -8,16 +8,11 @@ from werkzeug.serving import WSGIRequestHandler
 
 from lektor.admin import WebAdmin
 from lektor.builder import Builder
-from lektor.builder import process_extra_flags
 from lektor.db import Database
 from lektor.reporter import CliReporter
 from lektor.utils import portable_popen
+from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
-
-
-_os_alt_seps = list(
-    sep for sep in [os.path.sep, os.path.altsep] if sep not in (None, "/")
-)
 
 
 class SilentWSGIRequestHandler(WSGIRequestHandler):
@@ -28,10 +23,7 @@ class SilentWSGIRequestHandler(WSGIRequestHandler):
 class BackgroundBuilder(threading.Thread):
     def __init__(self, env, output_path, prune=True, verbosity=0, extra_flags=None):
         threading.Thread.__init__(self)
-        watcher = Watcher(env, output_path)
-        watcher.observer.start()
         self.env = env
-        self.watcher = watcher
         self.output_path = output_path
         self.prune = prune
         self.verbosity = verbosity
@@ -57,12 +49,13 @@ class BackgroundBuilder(threading.Thread):
     def run(self):
         with CliReporter(self.env, verbosity=self.verbosity):
             self.build(update_source_info_first=True)
-            for ts, _, _ in self.watcher:
-                if self.last_build is None or ts > self.last_build:
-                    self.build()
+            with Watcher(self.env, self.output_path) as watcher:
+                for ts, _, _ in watcher:
+                    if self.last_build is None or ts > self.last_build:
+                        self.build()
 
 
-class DevTools(object):
+class DevTools:
     """This provides extra helpers for launching tools such as webpack."""
 
     def __init__(self, env):
@@ -72,6 +65,8 @@ class DevTools(object):
     def start(self):
         if self.watcher is not None:
             return
+
+        # pylint: disable=import-outside-toplevel
         from lektor import admin
 
         admin = os.path.dirname(admin.__file__)
@@ -91,6 +86,7 @@ class DevTools(object):
 
 
 def browse_to_address(addr):
+    # pylint: disable=import-outside-toplevel
     import webbrowser
 
     def browse():
@@ -98,7 +94,7 @@ def browse_to_address(addr):
         webbrowser.open("http://%s:%s" % addr)
 
     t = threading.Thread(target=browse)
-    t.setDaemon(True)
+    t.daemon = True
     t.start()
 
 
@@ -119,6 +115,8 @@ def run_server(
     wz_as_main = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
     in_main_process = not lektor_dev or wz_as_main
     extra_flags = process_extra_flags(extra_flags)
+    if lektor_dev:
+        env.jinja_env.add_extension("jinja2.ext.debug")
 
     if in_main_process:
         background_builder = BackgroundBuilder(
@@ -128,7 +126,7 @@ def run_server(
             verbosity=verbosity,
             extra_flags=extra_flags,
         )
-        background_builder.setDaemon(True)
+        background_builder.daemon = True
         background_builder.start()
         env.plugin_controller.emit(
             "server-spawn", bindaddr=bindaddr, extra_flags=extra_flags
@@ -159,9 +157,9 @@ def run_server(
             use_debugger=True,
             threaded=True,
             use_reloader=lektor_dev,
-            request_handler=not lektor_dev
-            and SilentWSGIRequestHandler
-            or WSGIRequestHandler,
+            request_handler=WSGIRequestHandler
+            if lektor_dev
+            else SilentWSGIRequestHandler,
         )
     finally:
         if dt is not None:

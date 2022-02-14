@@ -1,55 +1,49 @@
-const webpack = require("webpack");
 const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   mode: "development",
   entry: {
-    app: "./js/main.jsx",
-    styles: "./less/main.less",
+    app: "./js/main.tsx",
   },
   output: {
-    path: path.join(__dirname, "/gen"),
+    path: path.join(__dirname, "gen"),
     publicPath: "./",
-    filename: "[name].js",
   },
   devtool: "source-map",
   optimization: {
-    splitChunks: {
-      chunks: "all",
-      name: "vendor",
-    },
+    splitChunks: { chunks: "all", name: "vendor" },
   },
   resolve: {
     modules: ["../node_modules"],
-    extensions: [".jsx", ".js", ".json"],
+    extensions: [".tsx", ".ts", "..."],
   },
   module: {
     rules: [
       {
-        test: /\.jsx$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
         loader: "babel-loader",
         options: {
-          presets: ["@babel/preset-react", "@babel/preset-env"],
+          presets: [
+            "@babel/preset-env",
+            "@babel/preset-react",
+            "@babel/preset-typescript",
+          ],
           cacheDirectory: true,
         },
       },
       {
-        test: /\.less$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          "css-loader?sourceMap",
-          "less-loader?sourceMap",
-        ],
+        test: /\.scss$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader?sourceMap"],
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
         test: /\.(ttf|eot|svg|woff2?)(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "file-loader",
+        type: "asset",
       },
     ],
   },
@@ -57,10 +51,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "[name].css",
       chunkFilename: "[id].css",
-    }),
-    new webpack.ProvidePlugin({
-      $: "jquery",
-      jQuery: "jquery",
     }),
   ],
 };

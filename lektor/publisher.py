@@ -1,26 +1,17 @@
 import errno
 import hashlib
+import io
 import os
 import posixpath
-import select
 import shutil
 import subprocess
+import sys
 import tempfile
-import threading
 from contextlib import contextmanager
 from ftplib import Error as FTPError
 
 from werkzeug import urls
 
-from lektor._compat import BytesIO
-from lektor._compat import iteritems
-from lektor._compat import iterkeys
-from lektor._compat import PY2
-from lektor._compat import queue
-from lektor._compat import range_type
-from lektor._compat import string_types
-from lektor._compat import StringIO
-from lektor._compat import text_type
 from lektor.exception import LektorException
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
@@ -66,9 +57,9 @@ def _write_ssh_key_file(temp_fn, credentials):
                 kt = "RSA"
             else:
                 kt, key = parts
-            with open(temp_fn, "w") as f:
+            with open(temp_fn, "w", encoding="utf-8") as f:
                 f.write("-----BEGIN %s PRIVATE KEY-----\n" % kt.upper())
-                for x in range_type(0, len(key), 64):
+                for x in range(0, len(key), 64):
                     f.write(key[x : x + 64] + "\n")
                 f.write("-----END %s PRIVATE KEY-----\n" % kt.upper())
             os.chmod(temp_fn, 0o600)
@@ -110,27 +101,34 @@ class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
 
 
-class Command(object):
+class Command:
     def __init__(self, argline, cwd=None, env=None, capture=True, silent=False):
         environ = dict(os.environ)
         if env:
             environ.update(env)
         kwargs = {"cwd": cwd, "env": environ}
         if silent:
-            self.devnull = open(os.devnull, "rb+")
-            kwargs["stdout"] = self.devnull
-            kwargs["stderr"] = self.devnull
+            kwargs["stdout"] = subprocess.DEVNULL
+            kwargs["stderr"] = subprocess.DEVNULL
             capture = False
         if capture:
             kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.STDOUT
+            if sys.version_info >= (3, 7):
+                # Python >= 3.7 has sane encoding defaults in the case that the system is
+                # (likely mis-)configured to use ASCII as the default encoding (PEP538).
+                # It also provides a way for the user to force the use of UTF-8 (PEP540).
+                kwargs["text"] = True
+            else:
+                kwargs["encoding"] = "utf-8"
+            kwargs["errors"] = "replace"
         self.capture = capture
         self._cmd = portable_popen(argline, **kwargs)
 
     def wait(self):
         returncode = self._cmd.wait()
-        if hasattr(self, "devnull"):
-            self.devnull.close()
+        if self._cmd.stdout is not None:
+            self._cmd.stdout.close()
         return returncode
 
     @property
@@ -141,49 +139,14 @@ class Command(object):
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        self._cmd.wait()
+        self.wait()
 
     def __iter__(self):
         if not self.capture:
             raise RuntimeError("Not capturing")
 
-        # Windows platforms do not have select() for files
-        if os.name == "nt":
-            q = queue.Queue()
-
-            def reader(stream):
-                while 1:
-                    line = stream.readline()
-                    q.put(line)
-                    if not line:
-                        break
-
-            t1 = threading.Thread(target=reader, args=(self._cmd.stdout,))
-            t1.setDaemon(True)
-            t2 = threading.Thread(target=reader, args=(self._cmd.stderr,))
-            t2.setDaemon(True)
-            t1.start()
-            t2.start()
-            outstanding = 2
-            while outstanding:
-                item = q.get()
-                if not item:
-                    outstanding -= 1
-                else:
-                    yield item.rstrip().decode("utf-8", "replace")
-
-        # Otherwise we can go with select()
-        else:
-            streams = [self._cmd.stdout, self._cmd.stderr]
-            while streams:
-                for l in select.select(streams, [], streams):
-                    for stream in l:
-                        line = stream.readline()
-                        if not line:
-                            if stream in streams:
-                                streams.remove(stream)
-                            break
-                        yield line.rstrip().decode("utf-8", "replace")
+        for line in self._cmd.stdout:
+            yield line.rstrip()
 
     def safe_iter(self):
         with self:
@@ -195,12 +158,13 @@ class Command(object):
         return self.safe_iter()
 
 
-class Publisher(object):
+class Publisher:
     def __init__(self, env, output_path):
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
     def fail(self, message):
+        # pylint: disable=no-self-use
         raise PublishError(message)
 
     def publish(self, target_url, credentials=None, **extra):
@@ -252,7 +216,7 @@ class RsyncPublisher(Publisher):
                     yield line
 
 
-class FtpConnection(object):
+class FtpConnection:
     def __init__(self, url, credentials=None):
         credentials = credentials or {}
         self.con = self.make_connection()
@@ -262,7 +226,9 @@ class FtpConnection(object):
         self.log_buffer = []
         self._known_folders = set()
 
-    def make_connection(self):
+    @staticmethod
+    def make_connection():
+        # pylint: disable=import-outside-toplevel
         from ftplib import FTP
 
         return FTP()
@@ -272,7 +238,7 @@ class FtpConnection(object):
         del self.log_buffer[:]
         for chunk in log:
             for line in chunk.splitlines():
-                if not isinstance(line, text_type):
+                if not isinstance(line, str):
                     line = line.decode("utf-8", "replace")
                 yield line.rstrip()
 
@@ -290,16 +256,10 @@ class FtpConnection(object):
 
         try:
             credentials = {}
-            if PY2:
-                if self.username:
-                    credentials["user"] = self.username.encode("utf-8")
-                if self.password:
-                    credentials["passwd"] = self.password.encode("utf-8")
-            else:
-                if self.username:
-                    credentials["user"] = self.username
-                if self.password:
-                    credentials["passwd"] = self.password
+            if self.username:
+                credentials["user"] = self.username
+            if self.password:
+                credentials["passwd"] = self.password
             log.append(self.con.login(**credentials))
 
         except Exception as e:
@@ -321,11 +281,11 @@ class FtpConnection(object):
         return True
 
     def mkdir(self, path, recursive=True):
-        if not isinstance(path, text_type):
+        if not isinstance(path, str):
             path = path.decode("utf-8")
         if path in self._known_folders:
             return
-        dirname, basename = posixpath.split(path)
+        dirname, _ = posixpath.split(path)
         if dirname and recursive:
             self.mkdir(dirname)
         try:
@@ -338,13 +298,10 @@ class FtpConnection(object):
         self._known_folders.add(path)
 
     def append(self, filename, data):
-        if not isinstance(filename, text_type):
+        if not isinstance(filename, str):
             filename = filename.decode("utf-8")
 
-        if PY2:
-            input = StringIO(data)
-        else:
-            input = BytesIO(data.encode("utf-8"))
+        input = io.BytesIO(data.encode("utf-8"))
 
         try:
             self.con.storbinary("APPE " + filename, input)
@@ -354,14 +311,11 @@ class FtpConnection(object):
         return True
 
     def get_file(self, filename, out=None):
-        if not isinstance(filename, text_type):
+        if not isinstance(filename, str):
             filename = filename.decode("utf-8")
         getvalue = False
         if out is None:
-            if PY2:
-                out = StringIO()
-            else:
-                out = BytesIO()
+            out = io.BytesIO()
             getvalue = True
         try:
             self.con.retrbinary("RETR " + filename, out.write)
@@ -371,22 +325,17 @@ class FtpConnection(object):
                 self.log_buffer.append(e)
             return None
         if getvalue:
-            if PY2:
-                return out.getvalue()
             return out.getvalue().decode("utf-8")
         return out
 
     def upload_file(self, filename, src, mkdir=False):
-        if isinstance(src, string_types):
-            if PY2:
-                src = StringIO(src)
-            else:
-                src = BytesIO(src.encode("utf-8"))
+        if isinstance(src, str):
+            src = io.BytesIO(src.encode("utf-8"))
         if mkdir:
             directory = posixpath.dirname(filename)
             if directory:
                 self.mkdir(directory, recursive=True)
-        if not isinstance(filename, text_type):
+        if not isinstance(filename, str):
             filename = filename.decode("utf-8")
         try:
             self.con.storbinary("STOR " + filename, src, blocksize=32768)
@@ -410,7 +359,7 @@ class FtpConnection(object):
                 self.log_buffer.append(str(e))
 
     def delete_file(self, filename):
-        if isinstance(filename, text_type):
+        if isinstance(filename, str):
             filename = filename.encode("utf-8")
         try:
             self.con.delete(filename)
@@ -418,7 +367,7 @@ class FtpConnection(object):
             self.log_buffer.append(str(e))
 
     def delete_folder(self, filename):
-        if isinstance(filename, text_type):
+        if isinstance(filename, str):
             filename = filename.encode("utf-8")
         try:
             self.con.rmd(filename)
@@ -429,12 +378,13 @@ class FtpConnection(object):
 
 class FtpTlsConnection(FtpConnection):
     def make_connection(self):
+        # pylint: disable=import-outside-toplevel
         from ftplib import FTP_TLS
 
         return FTP_TLS()
 
     def connect(self):
-        connected = super(FtpTlsConnection, self).connect()
+        connected = super().connect()
         if connected:
             # Upgrade data connection to TLS.
             self.con.prot_p()  # pylint: disable=no-member
@@ -444,7 +394,8 @@ class FtpTlsConnection(FtpConnection):
 class FtpPublisher(Publisher):
     connection_class = FtpConnection
 
-    def read_existing_artifacts(self, con):
+    @staticmethod
+    def read_existing_artifacts(con):
         contents = con.get_file(".lektor/listing")
         if not contents:
             return {}, set()
@@ -455,7 +406,7 @@ class FtpPublisher(Publisher):
         for line in contents.splitlines():
             items = line.split("|")
             if len(items) == 2:
-                if not isinstance(items[0], text_type):
+                if not isinstance(items[0], str):
                     artifact_name = items[0].decode("utf-8")
                 else:
                     artifact_name = items[0]
@@ -494,7 +445,8 @@ class FtpPublisher(Publisher):
                     h.hexdigest(),
                 )
 
-    def get_temp_filename(self, filename):
+    @staticmethod
+    def get_temp_filename(filename):
         dirname, basename = posixpath.split(filename)
         return posixpath.join(dirname, "." + basename + ".tmp")
 
@@ -509,10 +461,10 @@ class FtpPublisher(Publisher):
     def consolidate_listing(self, con, current_artifacts):
         server_artifacts, duplicates = self.read_existing_artifacts(con)
         known_folders = set()
-        for artifact_name in iterkeys(current_artifacts):
+        for artifact_name in current_artifacts.keys():
             known_folders.add(posixpath.dirname(artifact_name))
 
-        for artifact_name, checksum in iteritems(server_artifacts):
+        for artifact_name, checksum in server_artifacts.items():
             if artifact_name not in current_artifacts:
                 con.log_buffer.append("000 Deleting %s" % artifact_name)
                 con.delete_file(artifact_name)
@@ -523,7 +475,7 @@ class FtpPublisher(Publisher):
 
         if duplicates or server_artifacts != current_artifacts:
             listing = []
-            for artifact_name, checksum in iteritems(current_artifacts):
+            for artifact_name, checksum in current_artifacts.items():
                 listing.append("%s|%s\n" % (artifact_name, checksum))
             listing.sort()
             con.upload_file(".lektor/.listing.tmp", "".join(listing))
@@ -566,7 +518,8 @@ class FtpTlsPublisher(FtpPublisher):
 
 
 class GithubPagesPublisher(Publisher):
-    def get_credentials(self, url, credentials=None):
+    @staticmethod
+    def get_credentials(url, credentials=None):
         credentials = credentials or {}
         username = credentials.get("username") or url.username
         password = credentials.get("password") or url.password
@@ -590,7 +543,7 @@ class GithubPagesPublisher(Publisher):
             push_url = "https://github.com/%s.git" % path
             cred = self.get_credentials(url, credentials)
 
-        with open(os.path.join(repo, ".git", "config"), "a") as f:
+        with open(os.path.join(repo, ".git", "config"), "a", encoding="utf-8") as f:
             f.write(
                 '[remote "origin"]\nurl = %s\n'
                 "fetch = +refs/heads/%s:refs/remotes/origin/%s\n"
@@ -599,7 +552,7 @@ class GithubPagesPublisher(Publisher):
             if cred:
                 cred_path = os.path.join(repo, ".git", "credentials")
                 f.write('[credential]\nhelper = store --file "%s"\n' % cred_path)
-                with open(cred_path, "w") as cf:
+                with open(cred_path, "w", encoding="utf-8") as cf:
                     cf.write("https://%s@github.com\n" % cred)
 
         return ssh_command
@@ -640,14 +593,16 @@ class GithubPagesPublisher(Publisher):
                 except OSError:  # Different Filesystems
                     shutil.copy(full_path, dst)
 
-    def write_cname(self, path, target_url):
+    @staticmethod
+    def write_cname(path, target_url):
         params = target_url.decode_query()
         cname = params.get("cname")
         if cname is not None:
-            with open(os.path.join(path, "CNAME"), "w") as f:
+            with open(os.path.join(path, "CNAME"), "w", encoding="utf-8") as f:
                 f.write("%s\n" % cname)
 
-    def detect_target_branch(self, target_url):
+    @staticmethod
+    def detect_target_branch(target_url):
         # When pushing to the username.github.io repo we need to push to
         # master, otherwise to gh-pages
         if target_url.host.lower() + ".github.io" == target_url.path.strip("/").lower():
@@ -699,7 +654,7 @@ builtin_publishers = {
 
 
 def publish(env, target, output_path, credentials=None, **extra):
-    url = urls.url_parse(text_type(target))
+    url = urls.url_parse(str(target))
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)

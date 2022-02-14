@@ -15,7 +15,7 @@ from lektor.utils import resolve_dotted_value
 def load_databag(filename):
     try:
         if filename.endswith(".json"):
-            with open(filename, "r") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 return json.load(f, object_pairs_hook=OrderedDict)
         elif filename.endswith(".ini"):
             return decode_flat_data(IniFile(filename).items(), dict_cls=OrderedDict)
@@ -24,9 +24,10 @@ def load_databag(filename):
     except (OSError, IOError) as e:
         if e.errno != errno.ENOENT:
             raise
+        return None
 
 
-class Databags(object):
+class Databags:
     def __init__(self, env):
         self.env = env
         self.root_path = os.path.join(self.env.root_path, "databags")

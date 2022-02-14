@@ -1,32 +1,33 @@
 import os
 import shutil
+from pathlib import Path
 
 import pytest
 
 from lektor.builder import Builder
+from lektor.context import Context
+from lektor.db import Database
+from lektor.db import Siblings
+from lektor.environment import Environment
+from lektor.project import Project
 from lektor.reporter import Reporter
 
 
 @pytest.fixture(scope="function")
-def pntest_project(request):
-    from lektor.project import Project
+def pntest_project(tmp_path):
+    src = Path(__file__).parent / "dependency-test-project"
+    tmp_project = tmp_path / "project"
+    shutil.copytree(src, tmp_project)
+    return Project.from_path(tmp_project)
 
-    return Project.from_path(
-        os.path.join(os.path.dirname(__file__), "dependency-test-project")
-    )
 
-
-@pytest.fixture(scope="function")
-def pntest_env(request, pntest_project):
-    from lektor.environment import Environment
-
+@pytest.fixture
+def pntest_env(pntest_project):
     return Environment(pntest_project)
 
 
-@pytest.fixture(scope="function")
-def pntest_pad(request, pntest_env):
-    from lektor.db import Database
-
+@pytest.fixture
+def pntest_pad(pntest_env):
     return Database(pntest_env).new_pad()
 
 
@@ -39,13 +40,13 @@ class DependencyReporter(Reporter):
         source_id = self.current_artifact.source_obj["_id"]
         row = self.deps.setdefault(source_id, set())
         for (
-            artifact_name,
+            _artifact_name,
             source_path,
-            mtime,
-            size,
-            checksum,
-            is_dir,
-            is_primary,
+            _mtime,
+            _size,
+            _checksum,
+            _is_dir,
+            _is_primary,
         ) in dependencies:
             row.add(source_path)
 
@@ -57,17 +58,19 @@ class DependencyReporter(Reporter):
         self.deps = {}
 
 
-@pytest.fixture(scope="function")
-def pntest_reporter(request, pntest_env):
+@pytest.fixture
+def pntest_reporter(pntest_env):
     reporter = DependencyReporter(pntest_env)
     reporter.push()
-    request.addfinalizer(reporter.pop)
-    return reporter
+    try:
+        yield reporter
+    finally:
+        reporter.pop()
 
 
-def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
+def test_prev_next_dependencies(tmp_path, pntest_env, pntest_reporter):
     env, reporter = pntest_env, pntest_reporter
-    builder = Builder(env.new_pad(), str(tmpdir.mkdir("output")))
+    builder = Builder(env.new_pad(), tmp_path / "output")
     builder.build_all()
 
     # We start with posts 1, 2, and 4. Posts 1 and 2 depend on each other,
@@ -87,15 +90,9 @@ def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
     # Create post3, check that post2 and post4's dependencies are updated.
     post3_dir = os.path.join(env.project.tree, "content", "post3")
 
-    def cleanup():
-        try:
-            shutil.rmtree(post3_dir)
-        except (OSError, IOError):
-            pass
-
-    request.addfinalizer(cleanup)
     os.makedirs(post3_dir)
-    open(os.path.join(post3_dir, "contents.lr"), "w+").close()
+    with open(os.path.join(post3_dir, "contents.lr"), "w+", encoding="utf-8"):
+        pass
 
     reporter.clear()
     builder = Builder(env.new_pad(), builder.destination_path)
@@ -114,9 +111,6 @@ def test_prev_next_dependencies(request, tmpdir, pntest_env, pntest_reporter):
 
 
 def test_prev_next_virtual_resolver(pntest_pad):
-    from lektor.context import Context
-    from lektor.db import Siblings
-
     with Context(pad=pntest_pad):
         siblings = pntest_pad.get("post2@siblings")
         assert isinstance(siblings, Siblings)

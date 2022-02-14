@@ -1,0 +1,91 @@
+/* collapsed sidebar styles */
+@media screen and (max-width: (map-get($grid-breakpoints, "sm") - 1)) {
+  .navbar-toggle.navbar-toggle {
+    display: initial;
+  }
+
+  .block-offcanvas {
+    position: relative;
+    transition: all 0.25s ease-out;
+    left: 0;
+  }
+  .sidebar {
+    position: absolute;
+    width: 40vw;
+    left: -40vw;
+  }
+  .block-offcanvas.active {
+    left: 40vw;
+  }
+}
+
+nav.sidebar {
+  padding: 0;
+  height: 100%;
+
+  h3 {
+    margin: 0;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 15px;
+    background: $block-header-background;
+    color: white;
+    padding: 3px 7px;
+    display: inline-block;
+  }
+
+  ul.nav {
+    li {
+      margin: 2px 2px 0 20px;
+      width: 100%;
+      padding: 0;
+
+      a:hover {
+        background: $block-item-hover-background;
+        color: $block-item-hover-color;
+      }
+
+      a,
+      > em {
+        display: inline-block;
+        padding: 5px 10px;
+        background: $block-item-background;
+        color: $block-item-color;
+        &.active {
+          font-weight: 500;
+          background: $block-item-active-background;
+          color: $block-item-active-color;
+          outline: none;
+        }
+      }
+    }
+
+    li.alt-missing a {
+      color: $block-item-missing-color;
+    }
+    li.current-alt a {
+      font-weight: bold;
+    }
+
+    li.pagination {
+      > * {
+        display: inline-block;
+        text-align: center;
+        font-style: normal;
+        width: 20%;
+        font-weight: bold;
+      }
+      span.page {
+        width: 60%;
+        font-weight: normal;
+      }
+      em {
+        color: $gray-700;
+        background: transparent;
+      }
+      *:last-child {
+        float: right;
+      }
+    }
+  }
+}

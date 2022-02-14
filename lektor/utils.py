@@ -14,16 +14,10 @@ import unicodedata
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
+from functools import lru_cache
+from pathlib import PurePosixPath
+from queue import Queue
 from threading import Thread
-
-try:
-    from functools import lru_cache
-except ImportError:
-    from functools32 import lru_cache
-try:
-    from pathlib import PurePosixPath
-except ImportError:
-    from pathlib2 import PurePosixPath
 
 import click
 from jinja2 import is_undefined
@@ -31,19 +25,7 @@ from markupsafe import Markup
 from slugify import slugify as _slugify
 from werkzeug import urls
 from werkzeug.http import http_date
-from werkzeug.posixemulation import rename
 from werkzeug.urls import url_parse
-
-from lektor._compat import (
-    queue,
-    integer_types,
-    iteritems,
-    reraise,
-    string_types,
-    text_type,
-    range_type,
-)
-from lektor.uilink import BUNDLE_BIN_PATH, EXTRA_PATHS
 
 
 is_windows = os.name == "nt"
@@ -127,7 +109,7 @@ def is_path_child_of(a, b, strict=True):
 
 def untrusted_to_os_path(path):
     path = path.strip("/").replace("/", os.path.sep)
-    if not isinstance(path, text_type):
+    if not isinstance(path, str):
         path = path.decode(fs_enc, "replace")
     return path
 
@@ -170,7 +152,7 @@ def iter_dotted_path_prefixes(dotted_path):
     if len(pieces) == 1:
         yield dotted_path, None
     else:
-        for x in range_type(1, len(pieces)):
+        for x in range(1, len(pieces)):
             yield ".".join(pieces[:x]), ".".join(pieces[x:])
 
 
@@ -220,9 +202,9 @@ def decode_flat_data(itemiter, dict_cls=dict):
             if not container:
                 return values
             return _convert(container)
-        elif container.pop(_list_marker, False):
+        if container.pop(_list_marker, False):
             return [_convert(x[1]) for x in sorted(container.items())]
-        return dict_cls((k, _convert(v)) for k, v in iteritems(container))
+        return dict_cls((k, _convert(v)) for k, v in container.items())
 
     result = dict_cls()
 
@@ -234,7 +216,7 @@ def decode_flat_data(itemiter, dict_cls=dict):
         for part in parts:
             last_container = container
             container = _enter_container(container, part)
-            last_container[_list_marker] = isinstance(part, integer_types)
+            last_container[_list_marker] = isinstance(part, int)
         container[_value_marker] = [value]
 
     return _convert(result)
@@ -250,7 +232,7 @@ def merge(a, b):
         for idx, (item_1, item_2) in enumerate(zip(a, b)):
             a[idx] = merge(item_1, item_2)
     if isinstance(a, dict) and isinstance(b, dict):
-        for key, value in iteritems(b):
+        for key, value in b.items():
             a[key] = merge(a.get(key), value)
         return a
     return a
@@ -321,11 +303,6 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
 
     if resolve:
         paths = os.environ.get("PATH", "").split(os.pathsep)
-        if BUNDLE_BIN_PATH and include_bundle_path:
-            paths.insert(0, BUNDLE_BIN_PATH)
-        for extra_path in EXTRA_PATHS:
-            if extra_path not in paths:
-                paths.append(extra_path)
         choices = [os.path.join(path, exe_file) for path in paths]
 
     if os.name == "nt":
@@ -338,7 +315,7 @@ def locate_executable(exe_file, cwd=None, include_bundle_path=True):
                     return path + ext
         return None
     except OSError:
-        pass
+        return None
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -350,7 +327,7 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, uuid.UUID):
             return str(o)
         if hasattr(o, "__html__"):
-            return text_type(o.__html__())
+            return str(o.__html__())
         return json.JSONEncoder.default(self, o)
 
 
@@ -378,6 +355,7 @@ def safe_call(func, args=None, kwargs=None):
     except Exception:
         # XXX: logging
         traceback.print_exc()
+        return None
 
 
 class Worker(Thread):
@@ -394,11 +372,11 @@ class Worker(Thread):
             self.tasks.task_done()
 
 
-class WorkerPool(object):
+class WorkerPool:
     def __init__(self, num_threads=None):
         if num_threads is None:
             num_threads = multiprocessing.cpu_count()
-        self.tasks = queue.Queue(num_threads)
+        self.tasks = Queue(num_threads)
         for _ in range(num_threads):
             Worker(self.tasks)
 
@@ -409,7 +387,7 @@ class WorkerPool(object):
         self.tasks.join()
 
 
-class Url(object):
+class Url:
     def __init__(self, value):
         self.url = value
         u = url_parse(value)
@@ -463,7 +441,7 @@ def prune_file_and_folder(name, base):
 
 
 def sort_normalize_string(s):
-    return unicodedata.normalize("NFD", text_type(s).lower().strip())
+    return unicodedata.normalize("NFD", str(s).lower().strip())
 
 
 def get_dependent_url(url_path, suffix, ext=None):
@@ -475,7 +453,7 @@ def get_dependent_url(url_path, suffix, ext=None):
 
 
 @contextmanager
-def atomic_open(filename, mode="r"):
+def atomic_open(filename, mode="r", encoding=None):
     if "r" not in mode:
         fd, tmp_filename = tempfile.mkstemp(
             dir=os.path.dirname(filename), prefix=".__atomic-write"
@@ -483,23 +461,26 @@ def atomic_open(filename, mode="r"):
         os.chmod(tmp_filename, 0o644)
         f = os.fdopen(fd, mode)
     else:
-        f = open(filename, mode)
+        f = open(filename, mode=mode, encoding=encoding)
         tmp_filename = None
     try:
         yield f
-    except Exception:
+    except Exception as e:
         f.close()
-        exc_type, exc_value, tb = sys.exc_info()
+        _exc_type, exc_value, tb = sys.exc_info()
         if tmp_filename is not None:
             try:
                 os.remove(tmp_filename)
             except OSError:
                 pass
-        reraise(exc_type, exc_value, tb)
+
+        if exc_value.__traceback__ is not tb:
+            raise exc_value.with_traceback(tb) from e
+        raise exc_value from e
     else:
         f.close()
         if tmp_filename is not None:
-            rename(tmp_filename, filename)
+            os.replace(tmp_filename, filename)
 
 
 def portable_popen(cmd, *args, **kwargs):
@@ -513,7 +494,7 @@ def portable_popen(cmd, *args, **kwargs):
     if exe is None:
         raise RuntimeError('Could not locate executable "%s"' % cmd[0])
 
-    if isinstance(exe, text_type) and sys.platform != "win32":
+    if isinstance(exe, str) and sys.platform != "win32":
         exe = exe.encode(sys.getfilesystemencoding())
     cmd[0] = exe
     return subprocess.Popen(cmd, *args, **kwargs)
@@ -546,11 +527,11 @@ def secure_url(url):
 def bool_from_string(val, default=None):
     if val in (True, False, 1, 0):
         return bool(val)
-    if isinstance(val, string_types):
+    if isinstance(val, str):
         val = val.lower()
         if val in ("true", "yes", "1"):
             return True
-        elif val in ("false", "no", "0"):
+        if val in ("false", "no", "0"):
             return False
     return default
 
@@ -619,6 +600,9 @@ def get_relative_path(source, target):
         else:
             # prepend the distance to the common ancestor
             return distance / relpath
+    # We should never get here.  (The last ancestor in source.parents will
+    # be '.' — target.relative_to('.') will always succeed.)
+    raise AssertionError("This should not happen")
 
 
 def get_structure_hash(params):
@@ -648,11 +632,11 @@ def get_structure_hash(params):
             h.update("L%d;" % len(obj))
             for item in obj:
                 _hash(item)
-        elif isinstance(obj, integer_types):
+        elif isinstance(obj, int):
             h.update("T%d;" % obj)
         elif isinstance(obj, bytes):
             h.update("B%d;%s;" % (len(obj), obj))
-        elif isinstance(obj, text_type):
+        elif isinstance(obj, str):
             h.update("S%d;%s;" % (len(obj), obj.encode("utf-8")))
         elif hasattr(obj, "__get_lektor_param_hash__"):
             obj.__get_lektor_param_hash__(h)
@@ -662,6 +646,8 @@ def get_structure_hash(params):
 
 
 def profile_func(func):
+    # pylint: disable=import-outside-toplevel
+
     from cProfile import Profile
     from pstats import Stats
 
@@ -722,14 +708,14 @@ def get_cache_dir():
     )
 
 
-class URLBuilder(object):
+class URLBuilder:
     def __init__(self):
         self.items = []
 
     def append(self, item):
         if item is None:
             return
-        item = text_type(item).strip("/")
+        item = str(item).strip("/")
         if item:
             self.items.append(item)
 
@@ -740,7 +726,7 @@ class URLBuilder(object):
         if url == "/":
             return url
         if trailing_slash is None:
-            rest, last = url.split("/", 1)
+            _, last = url.split("/", 1)
             if "." in last:
                 return url
         return url + "/"
@@ -759,3 +745,16 @@ def comma_delimited(s):
         stripped = part.strip()
         if stripped:
             yield stripped
+
+
+def process_extra_flags(flags):
+    if isinstance(flags, dict):
+        return flags
+    rv = {}
+    for flag in flags or ():
+        if ":" in flag:
+            k, v = flag.split(":", 1)
+            rv[k] = v
+        else:
+            rv[flag] = flag
+    return rv

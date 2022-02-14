@@ -2,21 +2,24 @@ import os
 import re
 import warnings
 
+from markers import imagemagick
+
 from lektor.cli import cli
 
 
 def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
     os.mkdir("build_dir")
-    with open("build_dir/test", "w"):
+    with open("build_dir/test", "w", encoding="utf-8"):
         pass
     result = project_cli_runner.invoke(cli, ["build", "-O", "build_dir"], input="n\n")
     assert "Aborted!" in result.output
     assert result.exit_code == 1
 
 
+@imagemagick
 def test_build_continue_in_existing_nonempty_dir(project_cli_runner):
     os.mkdir("build_dir")
-    with open("build_dir/test", "w"):
+    with open("build_dir/test", "w", encoding="utf-8"):
         pass
     result = project_cli_runner.invoke(cli, ["build", "-O", "build_dir"], input="y\n")
     assert "Finished prune" in result.output
@@ -55,6 +58,7 @@ def test_build_no_project(isolated_cli_runner):
     assert "Could not automatically discover project." in result.output
 
 
+@imagemagick
 def test_build(project_cli_runner):
     result = project_cli_runner.invoke(cli, ["build"])
     assert (
@@ -90,7 +94,7 @@ def test_deprecated_build_flag(project_cli_runner, mocker):
         result = project_cli_runner.invoke(cli, ["build", "--build-flag", "webpack"])
         assert result.exit_code == 0
         assert mock_builder.call_args[1]["extra_flags"] == ("webpack",)
-        assert len(w) == 1
+        assert w
         assert "use --extra-flag instead of --build-flag" in str(w[0].message)
 
 

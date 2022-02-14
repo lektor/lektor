@@ -1,9 +1,5 @@
+import json
 import os
-
-from flask import json
-
-from lektor._compat import iteritems
-from lektor.uilink import UI_LANG
 
 
 translations_path = os.path.join(
@@ -16,8 +12,6 @@ KNOWN_LANGUAGES = list(
 
 translations = {}
 for _lang in KNOWN_LANGUAGES:
-    # We use flask.json here which can deal with bytes unlike the stdlib
-    # json module which barfs on bytes on 3.x
     with open(os.path.join(translations_path, _lang + ".json"), "rb") as f:
         translations[_lang] = json.load(f)
 
@@ -34,8 +28,6 @@ def is_valid_language(lang):
 
 def get_default_lang():
     """Returns the default language the system should use."""
-    if UI_LANG is not None:
-        return UI_LANG
     for key in "LANGUAGE", "LC_ALL", "LC_CTYPE", "LANG":
         value = os.environ.get(key)
         if not value:
@@ -81,7 +73,7 @@ def generate_i18n_kvs(**opts):
     for key, value in opts.items():
         if key.endswith("_i18n"):
             base_key = key[:-5]
-            for lang, trans in iteritems(load_i18n_block(value)):
+            for lang, trans in load_i18n_block(value).items():
                 lang_key = "%s[%s]" % (base_key, lang)
                 yield lang_key, trans
         else:

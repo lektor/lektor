@@ -6,7 +6,7 @@ import os
 from werkzeug.debug.tbtools import Traceback
 
 
-class BuildFailure(object):
+class BuildFailure:
     def __init__(self, data):
         self.data = data
 
@@ -26,7 +26,7 @@ class BuildFailure(object):
         return self.data
 
 
-class FailureController(object):
+class FailureController:
     def __init__(self, pad, destination_path):
         self.pad = pad
         self.path = os.path.join(
@@ -47,11 +47,12 @@ class FailureController(object):
         """Looks up a failure for the given artifact name."""
         fn = self.get_filename(artifact_name)
         try:
-            with open(fn, "r") as f:
+            with open(fn, "r", encoding="utf-8") as f:
                 return BuildFailure(json.load(f))
         except IOError as e:
             if e.errno != errno.ENOENT:
                 raise
+            return None
 
     def clear_failure(self, artifact_name):
         """Clears a stored failure."""
@@ -68,6 +69,6 @@ class FailureController(object):
             os.makedirs(os.path.dirname(fn))
         except OSError:
             pass
-        with open(fn, mode="w") as f:
+        with open(fn, mode="w", encoding="utf-8") as f:
             json.dump(BuildFailure.from_exc_info(artifact_name, exc_info).to_json(), f)
             f.write("\n")

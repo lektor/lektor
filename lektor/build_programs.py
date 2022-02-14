@@ -2,13 +2,11 @@ import os
 import shutil
 from itertools import chain
 
-from lektor._compat import iteritems
-from lektor._compat import range_type
 from lektor.assets import Directory
 from lektor.assets import File
+from lektor.constants import PRIMARY_ALT
 from lektor.db import Attachment
 from lektor.db import Page
-from lektor.environment import PRIMARY_ALT
 from lektor.exception import LektorException
 
 
@@ -27,7 +25,7 @@ def buildprogram(source_cls):
     return decorator
 
 
-class SourceInfo(object):
+class SourceInfo:
     """Holds some information about a source file for indexing into the
     build state.
     """
@@ -44,7 +42,7 @@ class SourceInfo(object):
         en_title = self.path
         if "en" in title_i18n:
             en_title = title_i18n["en"]
-        for key, value in iteritems(title_i18n):
+        for key, value in title_i18n.items():
             if key == "en":
                 continue
             if value != en_title:
@@ -52,7 +50,7 @@ class SourceInfo(object):
         self.title_i18n["en"] = en_title
 
 
-class BuildProgram(object):
+class BuildProgram:
     def __init__(self, source, build_state):
         self.source = source
         self.build_state = build_state
@@ -140,6 +138,7 @@ class BuildProgram(object):
         building.  An individual build never recurses down to this, but
         a `build_all` will use this.
         """
+        # pylint: disable=no-self-use
         return iter(())
 
 
@@ -177,20 +176,23 @@ class PageBuildProgram(BuildProgram):
             )
 
     def build_artifact(self, artifact):
+        # Record dependecies on all our sources and datamodel
+        self.source.pad.db.track_record_dependency(self.source)
+
         try:
             self.source.url_path.encode("ascii")
-        except UnicodeError:
+        except UnicodeError as error:
             raise BuildError(
                 "The URL for this record contains non ASCII "
                 "characters.  This is currently not supported "
                 "for portability reasons (%r)." % self.source.url_path
-            )
+            ) from error
 
         artifact.render_template_into(self.source["_template"], this=self.source)
 
     def _iter_paginated_children(self):
         total = self.source.datamodel.pagination_config.count_pages(self.source)
-        for page_num in range_type(1, total + 1):
+        for page_num in range(1, total + 1):
             yield Page(self.source.pad, self.source._data, page_num=page_num)
 
     def iter_child_sources(self):

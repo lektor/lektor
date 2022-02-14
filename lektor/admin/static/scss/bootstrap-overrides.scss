@@ -1,0 +1,60 @@
+// Colors
+$primary: #77304c;
+$custom-theme-colors: (
+  "primary": $primary,
+  "secondary": #fff,
+);
+
+// Wider than default on wide screens
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1360px,
+);
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1300px,
+);
+
+// Fonts
+$font-family-serif: "Roboto Slab", "Georgia", "Times New Roman", serif;
+$font-family-base: $font-family-serif;
+
+// Get rid of rounded things
+$enable-rounded: false;
+
+$input-color: #111;
+$input-border-focus: #807177;
+
+// Required
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+
+$theme-colors: map-merge($theme-colors, $custom-theme-colors);
+
+// Reset and dependencies
+@import "bootstrap/scss/reboot";
+
+// Core CSS
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+
+// Components
+@import "bootstrap/scss/forms/input-group";
+@import "bootstrap/scss/list-group";
+@import "bootstrap/scss/breadcrumb";
+
+// Utility classes
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/utilities/api";

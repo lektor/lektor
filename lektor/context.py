@@ -64,7 +64,7 @@ def get_locale(default="en_US"):
     return default
 
 
-class Context(object):
+class Context:
     """The context is a thread local object that provides the system with
     general information about in which state it is.  The context is created
     whenever a source is processed and can be accessed by template engine and
@@ -138,7 +138,8 @@ class Context(object):
     def push(self):
         _ctx_stack.push(self)
 
-    def pop(self):
+    @staticmethod
+    def pop():
         _ctx_stack.pop()
 
     def __enter__(self):

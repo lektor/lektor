@@ -160,12 +160,12 @@ class Dimensions(namedtuple("Dimensions", ["width", "height"])):
     def resize(self, width=None, height=None, mode=ThumbnailMode.DEFAULT, upscale=None):
         if mode == ThumbnailMode.FIT:
             return self.fit_within(width, height, upscale)
-        elif mode == ThumbnailMode.CROP:
+        if mode == ThumbnailMode.CROP:
             return self.cover(width, height, upscale)
-        elif mode == ThumbnailMode.STRETCH:
+        if mode == ThumbnailMode.STRETCH:
             return self.stretch(width, height, upscale)
-        else:
-            raise ValueError('Unexpected mode "{!r}"'.format(mode))
+
+        raise ValueError('Unexpected mode "{!r}"'.format(mode))
 
 
 def get_timecode(td):
@@ -214,7 +214,7 @@ def get_suffix(seek, width, height, mode, quality):
         suffix += "_%s" % "x".join(str(x) for x in [width, height] if x is not None)
 
     if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.label
+        suffix += "_%s" % mode.value
 
     if quality is not None:
         suffix += "_q%s" % quality
@@ -290,7 +290,7 @@ def make_video_thumbnail(
 ):
     if mode != ThumbnailMode.FIT and (width is None or height is None):
         msg = '"%s" mode requires both `width` and `height` to be defined.'
-        raise ValueError(msg % mode.label)
+        raise ValueError(msg % mode.value)
 
     if upscale is None:
         upscale = {
@@ -325,7 +325,6 @@ def make_video_thumbnail(
     if quality is None and format == "jpg":
         quality = 95
 
-    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_video])
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
 
@@ -364,5 +363,9 @@ def make_video_thumbnail(
                 "is outside of the video duration?"
             )
             raise RuntimeError(msg.format(source_video))
+
+    ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_video])(
+        build_thumbnail_artifact
+    )
 
     return Thumbnail(dst_url_path, crop_dim.width, crop_dim.height)

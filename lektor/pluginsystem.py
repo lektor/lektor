@@ -5,10 +5,10 @@ from weakref import ref as weakref
 
 import pkg_resources
 from inifile import IniFile
+from pkg_resources import get_distribution
 
-from lektor._compat import iteritems
-from lektor._compat import itervalues
 from lektor.context import get_ctx
+from lektor.utils import process_extra_flags
 
 
 def get_plugin(plugin_id_or_class, env=None):
@@ -24,11 +24,11 @@ def get_plugin(plugin_id_or_class, env=None):
     plugin_id = env.plugin_ids_by_class.get(plugin_id_or_class, plugin_id_or_class)
     try:
         return env.plugins[plugin_id]
-    except KeyError:
-        raise LookupError("Plugin %r not found" % plugin_id)
+    except KeyError as error:
+        raise LookupError("Plugin %r not found" % plugin_id) from error
 
 
-class Plugin(object):
+class Plugin:
     """This needs to be subclassed for custom plugins."""
 
     name = "Your Plugin Name"
@@ -47,13 +47,12 @@ class Plugin(object):
 
     @property
     def version(self):
-        from pkg_resources import get_distribution
 
         return get_distribution("lektor-" + self.id).version
 
     @property
     def path(self):
-        mod = sys.modules[self.__class__.__module__.split(".")[0]]
+        mod = sys.modules[self.__class__.__module__.split(".", maxsplit=1)[0]]
         path = os.path.abspath(os.path.dirname(mod.__file__))
         if not path.startswith(self.env.project.get_package_cache_path()):
             return path
@@ -96,7 +95,7 @@ class Plugin(object):
         return cfg
 
     def emit(self, event, **kwargs):
-        return self.env.pluginsystem.emit(self.id + "-" + event, **kwargs)
+        return self.env.plugin_controller.emit(self.id + "-" + event, **kwargs)
 
     def to_json(self):
         return {
@@ -116,9 +115,8 @@ def load_plugins():
         match_name = "lektor-" + ep.name.lower()
         if match_name != ep.dist.project_name.lower():
             raise RuntimeError(
-                "Mismatching entry point name.  Found "
-                '"%s" but expected "%s" for package "%s".'
-                % (ep.name, ep.dist.project_name[7:], ep.dist.project_name)
+                "Disallowed distribution name: distribution name for "
+                f"plugin {ep.name!r} must be {match_name!r}."
             )
         rv[ep.name] = ep.load()
     return rv
@@ -127,12 +125,12 @@ def load_plugins():
 def initialize_plugins(env):
     """Initializes the plugins for the environment."""
     plugins = load_plugins()
-    for plugin_id, plugin_cls in iteritems(plugins):
+    for plugin_id, plugin_cls in plugins.items():
         env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls)
     env.plugin_controller.emit("setup-env")
 
 
-class PluginController(object):
+class PluginController:
     """Helper management class that is used to control plugins through
     the environment.
     """
@@ -157,10 +155,9 @@ class PluginController(object):
 
     def iter_plugins(self):
         # XXX: sort?
-        return itervalues(self.env.plugins)
+        return self.env.plugins.values()
 
     def emit(self, event, **kwargs):
-        from lektor.builder import process_extra_flags
 
         rv = {}
         kwargs["extra_flags"] = process_extra_flags(self.extra_flags)

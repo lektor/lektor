@@ -1,26 +1,26 @@
 repos:
-- repo: https://github.com/ambv/black
-  rev: 20.8b1
-  hooks:
-  - id: black
-- repo: https://github.com/asottile/reorder_python_imports
-  rev: v2.3.5
-  hooks:
-  -   id: reorder-python-imports
-- repo: https://gitlab.com/pycqa/flake8
-  rev: '3.8.4'
-  hooks:
-  - id: flake8
-    language_version: python3
-- repo: local
-  hooks:
-  - id: eslint
-    name: eslint
-    language: node
-    entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix
-    files: \.(js|jsx)$
-  - id: prettier
-    name: prettier
-    language: node
-    entry: ./lektor/admin/node_modules/prettier/bin-prettier.js --write --list-different
-    files: \.(js|jsx|less)$
+  - repo: https://github.com/ambv/black
+    rev: "21.9b0"
+    hooks:
+      - id: black
+  - repo: https://github.com/asottile/reorder_python_imports
+    rev: "v2.6.0"
+    hooks:
+      - id: reorder-python-imports
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: "3.9.2"
+    hooks:
+      - id: flake8
+        language_version: python3
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        language: node
+        entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix --max-warnings 0
+        files: \.(ts|tsx)$
+      - id: prettier
+        name: prettier
+        language: node
+        entry: ./lektor/admin/node_modules/prettier/bin-prettier.js --write --list-different
+        files: \.(ts|tsx|js|less|ya?ml|md)$

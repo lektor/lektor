@@ -1,9 +1,4 @@
-from math import ceil
-
-from lektor._compat import range_type
-
-
-class Pagination(object):
+class Pagination:
     def __init__(self, record, pagination_config):
         #: the pagination config
         self.config = pagination_config
@@ -23,51 +18,51 @@ class Pagination(object):
 
     @property
     def pages(self):
-        """The total number of pages"""
-        if self.per_page == 0:
-            pages = 0
-        else:
-            pages = int(ceil(self.total / float(self.per_page)))
-        return pages
+        """The total number of pages."""
+        pages = (self.total + self.per_page - 1) // self.per_page
+        # Even when there are no children, we want at least one page
+        return max(pages, 1)
 
     @property
     def prev_num(self):
-        """Number of the previous page."""
+        """The page number of the previous page."""
         if self.page > 1:
             return self.page - 1
         return None
 
     @property
     def has_prev(self):
-        """True if a previous page exists"""
+        """True if a previous page exists."""
         return self.page > 1
 
     @property
     def prev(self):
+        """The record for the previous page."""
         if not self.has_prev:
             return None
         return self.config.get_record_for_page(self.current, self.page - 1)
 
     @property
     def has_next(self):
-        """True if a next page exists."""
+        """True if a following page exists."""
         return self.page < self.pages
 
     @property
     def next_num(self):
-        """Number of the next page"""
+        """The page number of the following page."""
         if self.page < self.pages:
             return self.page + 1
         return None
 
     @property
     def next(self):
+        """The record for the following page."""
         if not self.has_next:
             return None
         return self.config.get_record_for_page(self.current, self.page + 1)
 
     def for_page(self, page):
-        """Returns the pagination for a specific page."""
+        """Returns the record for a specific page."""
         if 1 <= page <= self.pages:
             return self.config.get_record_for_page(self.current, page)
         return None
@@ -115,7 +110,7 @@ class Pagination(object):
 
         """
         last = 0
-        for num in range_type(1, self.pages + 1):
+        for num in range(1, self.pages + 1):
             # pylint: disable=chained-comparison
             if (
                 num <= left_edge

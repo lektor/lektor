@@ -1,8 +1,9 @@
 import pytest
 
+from lektor.utils import cleanup_path
+
 
 def test_cleanup_path():
-    from lektor.utils import cleanup_path
 
     assert cleanup_path("/") == "/"
     assert cleanup_path("/foo") == "/foo"

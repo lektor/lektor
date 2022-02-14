@@ -1,7 +1,6 @@
 import sqlite3
 
-from lektor._compat import iteritems
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
 
 
 def _iter_parents(path):
@@ -59,7 +58,7 @@ def _build_parent_path(path, mapping, alt, lang):
     rv = []
     for parent in _iter_parents(path):
         info = _find_best_info(mapping.get(parent) or [], alt, lang)
-        id = _id_from_path(info["path"])
+        id = _id_from_path(parent)
         if info is None:
             title = id or "(Index)"
         else:
@@ -74,7 +73,7 @@ def _process_search_results(builder, cur, alt, lang, limit):
 
     files_needed = set()
 
-    for path, infos in iteritems(mapping):
+    for path, infos in mapping.items():
         info = _find_best_info(infos, alt, lang)
         if info is None:
             continue

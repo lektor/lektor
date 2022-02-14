@@ -1,16 +1,15 @@
 import traceback
 
-from lektor._compat import iteritems
-from lektor.environment import Expression
-from lektor.environment import FormatExpression
-from lektor.environment import PRIMARY_ALT
+from lektor.constants import PRIMARY_ALT
+from lektor.environment.expressions import Expression
+from lektor.environment.expressions import FormatExpression
 from lektor.i18n import get_i18n_block
-from lektor.types import Type
+from lektor.types.base import Type
 
 
 def _reflow_and_split_labels(labels):
     rv = []
-    for lang, string in iteritems(labels):
+    for lang, string in labels.items():
         for idx, item in enumerate(string.split(",")):
             try:
                 d = rv[idx]
@@ -51,7 +50,7 @@ def _parse_choices(options):
     return rv
 
 
-class ChoiceSource(object):
+class ChoiceSource:
     def __init__(self, env, options):
         source = options.get("source")
         if source is not None:
