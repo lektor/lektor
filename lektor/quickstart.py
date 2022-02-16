@@ -1,19 +1,24 @@
+import getpass
 import os
 import re
 import shutil
-import subprocess
-import tempfile
-import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from functools import partial
+from importlib import import_module
+from subprocess import PIPE
+from subprocess import run
+from tempfile import TemporaryDirectory
+from typing import Optional
 
 import click
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
-from lektor.utils import fs_enc
+from lektor.utils import locate_executable
 from lektor.utils import slugify
+
+pwd = import_module("pwd") if os.name != "nt" else None
 
 
 _var_re = re.compile(r"@([^@]+)@")
@@ -88,23 +93,15 @@ class Generator:
             except OSError as e:
                 self.abort("Bad target folder: %s" % e)
 
-        scratch = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-        os.makedirs(scratch)
-        try:
+        with TemporaryDirectory() as scratch:
             yield scratch
-        except Exception:
-            shutil.rmtree(scratch)
-            raise
-        else:
+
             # Use shutil.move here in case we move across a file system
             # boundary.
             for filename in os.listdir(scratch):
-                if not isinstance(path, str):
-                    filename = filename.decode(fs_enc)
                 shutil.move(
                     os.path.join(scratch, filename), os.path.join(path, filename)
                 )
-            os.rmdir(scratch)
 
     @staticmethod
     def expand_filename(base, ctx, template_filename):
@@ -131,44 +128,41 @@ class Generator:
                         f.write((rv + "\n").encode("utf-8"))
 
 
-def get_default_author():
-    # pylint: disable=import-outside-toplevel
-    import getpass
+def get_default_author() -> str:
+    """Attempt to guess an the name of the current user."""
+    if pwd is not None:
+        try:
+            pw_gecos = pwd.getpwuid(os.getuid()).pw_gecos
+        except KeyError:
+            pass
+        else:
+            full_name = pw_gecos.split(",", 1)[0].strip()
+            if full_name:
+                return full_name
 
-    if os.name == "nt":
-        user = getpass.getuser()
-        if isinstance(user, str):
-            return user
-        return user.decode("mbcs")
-
-    # we disable pylint, because there is no such
-    # modules on windows & it's false positive
-    import pwd  # pylint: disable=import-error
-
-    ent = pwd.getpwuid(os.getuid())  # pylint: disable=no-member
-    if ent and ent.pw_gecos:
-        name = ent.pw_gecos
-        if isinstance(name, str):
-            return name
-        return name.decode("utf-8", "replace")
-
-    name = getpass.getuser()
-    if isinstance(name, str):
-        return name
-    return name.decode("utf-8", "replace")
+    return getpass.getuser()
 
 
-def get_default_author_email():
-    try:
-        with subprocess.Popen(
-            ["git", "config", "user.email"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        ) as proc:
-            value = proc.communicate()[0].strip()
-        return value.decode("utf-8")
-    except Exception:
-        return None
+def get_default_author_email() -> Optional[str]:
+    """Attempt to guess an email address for the current user.
+
+    May return an empty string if not reasonable guess can be made.
+    """
+    git = locate_executable("git")
+    if git:
+        proc = run(
+            (git, "config", "user.email"), stdout=PIPE, errors="strict", check=False
+        )
+        if proc.returncode == 0:
+            return proc.stdout.strip()
+
+    email = os.environ.get("EMAIL", "").strip()
+    if email:
+        return email
+    # We could fall back to f"{getpass.getuser()}@{socket.getfqdn()}",
+    # but it is probably better just to go with no default in that
+    # case.
+    return None
 
 
 def project_quickstart(defaults=None):
@@ -204,15 +198,7 @@ def project_quickstart(defaults=None):
 
     path = defaults.get("path")
     if path is None:
-        here = os.path.abspath(os.getcwd())
-        default_project_path = None
-        try:
-            if len(os.listdir(here)) == []:
-                default_project_path = here
-        except OSError:
-            pass
-        if default_project_path is None:
-            default_project_path = os.path.join(os.getcwd(), name)
+        default_project_path = os.path.join(os.getcwd(), name)
         path = g.prompt(
             "Project Path",
             default_project_path,
@@ -260,7 +246,7 @@ def plugin_quickstart(defaults=None, project=None):
             info="This is the human readable name for this plugin",
         )
 
-    plugin_id = plugin_name.lower()  # pylint: disable=no-member
+    plugin_id = plugin_name.lower()
     if plugin_id.startswith("lektor"):
         plugin_id = plugin_id[6:]
     if plugin_id.endswith("plugin"):
@@ -323,7 +309,7 @@ def theme_quickstart(defaults=None, project=None):
             info="This is the human readable name for this theme",
         )
 
-    theme_id = theme_name.lower()  # pylint: disable=no-member
+    theme_id = theme_name.lower()
     if theme_id != "lektor" and theme_id.startswith("lektor"):
         theme_id = theme_id[6:].strip()
     if theme_id != "theme" and theme_id.startswith("theme"):

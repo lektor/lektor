@@ -202,35 +202,6 @@ def reporter(request, env):
 
 
 @pytest.fixture(scope="function")
-def os_user(monkeypatch):
-    # pylint: disable=import-outside-toplevel
-    if os.name == "nt":
-        import getpass  # pylint: disable=unused-import # noqa
-
-        monkeypatch.setattr("getpass.getuser", lambda: "Lektor Test")
-        return "lektortest"
-
-    # we disable pylint, because there is no such
-    # modules on windows & it's false positive
-    import pwd  # pylint: disable=import-error
-
-    struct = pwd.struct_passwd(
-        (
-            "lektortest",  # pw_name
-            "lektorpass",  # pw_passwd
-            9999,  # pw_uid
-            9999,  # pw_gid
-            "Lektor Test",  # pw_gecos
-            "/tmp/lektortest",  # pw_dir
-            "/bin/lektortest",  # pw_shell
-        )
-    )
-    monkeypatch.setattr("pwd.getpwuid", lambda id: struct)
-    monkeypatch.setenv("USER", "lektortest")
-    return "lektortest"
-
-
-@pytest.fixture(scope="function")
 def project_cli_runner(isolated_cli_runner, project, save_sys_path):
     """
     Copy the project files into the isolated file system used by the
