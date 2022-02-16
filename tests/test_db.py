@@ -109,7 +109,7 @@ def test_basic_query_syntax_template(pad, eval_expr):
     assert [x["name"] for x in encumbered] == ["Master", "Slave"]
 
 
-def test_isin_syntax(pad, F):
+def test_isin_syntax(pad):
     projects = pad.get("/projects")
 
     encumbered = (
@@ -124,7 +124,7 @@ def test_isin_syntax(pad, F):
     assert [x["name"] for x in encumbered] == ["Coffee", "Master", "Slave"]
 
 
-def test_isin_generator_query(pad, F):
+def test_isin_generator_query(pad):
     projects = pad.get("/projects")
 
     query1 = projects.children.filter(
@@ -135,7 +135,7 @@ def test_isin_generator_query(pad, F):
     assert query2.all() == query1
 
 
-def test_isin_isnotin_query(pad, F):
+def test_isin_isnotin_query(pad):
     projects = pad.get("/projects")
     query1 = projects.children.filter(F.name.isnotin(["Master", "Slave"]))
     query2 = projects.children.isnot().filter(F.name.isin(["Master", "Slave"]))
@@ -145,7 +145,7 @@ def test_isin_isnotin_query(pad, F):
     assert query2.all() == query1.all()
 
 
-def test_isin_isnotin_complementarity(pad, F):
+def test_isin_isnotin_complementarity(pad):
     projects = pad.get("/projects")
     names = ["Master", "Slave", "Wolf"]
     isnotin = projects.children.filter(F.name.isnotin(names))
@@ -155,7 +155,7 @@ def test_isin_isnotin_complementarity(pad, F):
     assert sorted(qs, key=lambda r: r["name"]) == sorted(qa, key=lambda r: r["name"])
 
 
-def test_isin_false_isnotin(pad, F):
+def test_isin_false_isnotin(pad):
     projects = pad.get("/projects")
     names = ["Master", "Slave", "Wolf"]
     isnotin = projects.children.filter(F.name.isnotin(names))
@@ -165,7 +165,7 @@ def test_isin_false_isnotin(pad, F):
     assert isin_false.all() == isin_isnot.all()
 
 
-def test_isin_isnot_query(pad, F):
+def test_isin_isnot_query(pad):
     projects = pad.get("/projects")
     query1 = projects.children.filter((F.name != "Master") & (F.name != "Slave"))
 
@@ -174,7 +174,7 @@ def test_isin_isnot_query(pad, F):
     assert query2.all() == query1.all()
 
 
-def test_isin_not_undiscoverable_query(pad, F):
+def test_isin_not_undiscoverable_query(pad):
     projects = pad.get("/projects")
     query1 = projects.children.filter(
         (F.name != "Master") & (F.name != "Slave")
@@ -191,7 +191,7 @@ def test_isin_not_undiscoverable_query(pad, F):
     assert query2.all() == query1.all()
 
 
-def test_isin_template_generator_expr(pad, F, eval_expr):
+def test_isin_template_generator_expr(pad, eval_expr):
     projects = pad.get("/projects")
 
     query1 = projects.children.filter((F.name == "Wolf") | (F.name == "Coffee"))
@@ -212,7 +212,7 @@ def test_isin_template_generator_expr(pad, F, eval_expr):
     assert query2.all() == query1.all()
 
 
-def test_isin_template_ids_are_special(pad, F, eval_expr):
+def test_isin_template_ids_are_special(pad, eval_expr):
     projects = pad.get("/projects")
 
     query1 = projects.children.filter((F.name == "Wolf") | (F.name == "Coffee"))
