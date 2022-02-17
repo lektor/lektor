@@ -4,9 +4,8 @@ import textwrap
 import pytest
 from inifile import IniFile
 
+import lektor.quickstart
 from lektor.cli import cli
-from lektor.quickstart import get_default_author
-from lektor.quickstart import get_default_author_email
 
 
 @pytest.fixture(scope="session")
@@ -23,6 +22,24 @@ def can_symlink(tmp_path_factory):
                 raise
             return False
     return True
+
+
+@pytest.fixture
+def default_author(mocker):
+    author = "J. Random Hacker"
+    mocker.patch.object(
+        lektor.quickstart, "get_default_author", spec=True, return_value=author
+    )
+    return author
+
+
+@pytest.fixture
+def default_author_email(mocker):
+    email = "jrh@example.org"
+    mocker.patch.object(
+        lektor.quickstart, "get_default_author_email", spec=True, return_value=email
+    )
+    return email
 
 
 # new-plugin
@@ -156,7 +173,7 @@ def test_new_plugin_abort_cancel(project_cli_runner):
     assert result.exit_code == 1
 
 
-def test_new_plugin_name_only(project_cli_runner):
+def test_new_plugin_name_only(project_cli_runner, default_author, default_author_email):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin"],
@@ -168,10 +185,8 @@ def test_new_plugin_name_only(project_cli_runner):
     assert os.listdir(path) == ["plugin-name"]
 
     # setup.py
-    author = get_default_author()
-    author_email = get_default_author_email()
     setup_expected = textwrap.dedent(
-        """
+        f"""
         import ast
         import io
         import re
@@ -188,8 +203,8 @@ def test_new_plugin_name_only(project_cli_runner):
                 f.read().decode('utf-8')).group(1)))
 
         setup(
-            author='{}',
-            author_email='{}',
+            author='{default_author}',
+            author_email='{default_author_email}',
             description=description,
             keywords='Lektor plugin',
             license='MIT',
@@ -212,7 +227,6 @@ def test_new_plugin_name_only(project_cli_runner):
         )
     """
     ).strip()
-    setup_expected = setup_expected.format(author, author_email)
     with open(os.path.join(path, "plugin-name", "setup.py"), encoding="utf-8") as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
@@ -325,7 +339,9 @@ def test_new_theme_abort_cancel(project_cli_runner):
     assert result.exit_code == 1
 
 
-def test_new_theme_name_only(project_cli_runner, can_symlink):
+def test_new_theme_name_only(
+    project_cli_runner, can_symlink, default_author, default_author_email
+):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
@@ -349,8 +365,8 @@ def test_new_theme_name_only(project_cli_runner, can_symlink):
 
     theme_inifile = IniFile(os.path.join(path, "theme.ini"))
     assert theme_inifile["theme.name"] == "Lektor Name Theme"
-    assert theme_inifile["author.email"] == get_default_author_email()
-    assert theme_inifile["author.name"] == get_default_author()
+    assert theme_inifile["author.email"] == default_author_email
+    assert theme_inifile["author.name"] == default_author
 
     with open(os.path.join(path, "README.md"), encoding="utf-8") as f:
         readme_contents = f.read().strip()
