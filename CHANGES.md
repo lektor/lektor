@@ -53,6 +53,10 @@ These are all the changes in Lektor since the first public release.
 - When running `lektor dev new-theme`: fix check for ability to create symlinks
   under Windows. ([#996][])
 
+#### Tests
+
+- Fix for test failures when git is not installed. ([#998][], [#1000][])
+
 ### Refactorings
 
 - Cleaned up `EditorSession` to split mapping methods (for access to
@@ -64,6 +68,11 @@ These are all the changes in Lektor since the first public release.
 - Cleaned up and moved our `pylint` and `coverage` configuration to
   `pyproject.toml`. ([#990][], [#991][])
 
+#### Packaging
+
+- Omit `example` subdirectory, frontend source code, developer-centric
+  config files, as well as other assorted cruft from sdist. ([#986][])
+
 [bsd]: https://opensource.org/licenses/BSD-3-Clause
 [#610]: https://github.com/lektor/lektor/issues/610
 [#962]: https://github.com/lektor/lektor/issues/962
@@ -74,11 +83,14 @@ These are all the changes in Lektor since the first public release.
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 [#984]: https://github.com/lektor/lektor/pull/984
+[#986]: https://github.com/lektor/lektor/pull/986
 [#988]: https://github.com/lektor/lektor/pull/988
 [#989]: https://github.com/lektor/lektor/pull/989
 [#990]: https://github.com/lektor/lektor/pull/990
 [#991]: https://github.com/lektor/lektor/pull/991
 [#996]: https://github.com/lektor/lektor/pull/996
+[#998]: https://github.com/lektor/lektor/issues/998
+[#1000]: https://github.com/lektor/lektor/pull/1000
 [jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
 
 ## 3.3.1 (2022-01-09)
