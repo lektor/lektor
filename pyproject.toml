@@ -10,25 +10,3 @@ addopts = "--strict-markers"
 markers = [
     "requiresinternet: marks tests requiring an internet connection",
 ]
-
-[tool.check-manifest]
-ignore = [
-    # These are not in git but are included in dist
-    "lektor/admin/static/gen/*",
-
-    # These are in git but not included in dist
-    "Makefile",
-    "pylintrc",
-    "tox.ini",
-    ".codecov.yml",
-    ".editorconfig",
-    ".git-blame-ignore-revs",
-    ".pre-commit-config.yaml",
-    "lektor/admin/.eslintrc.js",
-    "lektor/admin/babel-require.js",
-    "lektor/admin/package-lock.json",
-    "lektor/admin/package.json",
-    "lektor/admin/tsconfig.json",
-    "example/**",
-    "tests/**",
-]
