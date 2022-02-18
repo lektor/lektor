@@ -6,7 +6,7 @@ import { join } from "path";
 const { readdir } = promises;
 
 it("i18n: imports translations for all languages", () => {
-  return readdir(join(__dirname, "../../../translations")).then(
+  return readdir(join(__dirname, "..", "..", "lektor", "translations")).then(
     (allTranslations) =>
       strictEqual(
         allTranslations.filter((s) => s.endsWith(".json")).length,

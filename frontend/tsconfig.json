@@ -1,5 +1,5 @@
 {
-  "include": ["static/js/**/*"],
+  "include": ["js/**/*"],
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",

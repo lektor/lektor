@@ -1,6 +1,7 @@
 # NB: Everything in git gets automatically included by setuptools_scm
 
-graft lektor/admin/static/gen
+prune frontend
+graft lektor/admin/static
 
 global-exclude *.py[cdo] __pycache__ *.so .DS_Store .gitkeep *~
 prune .github
@@ -8,8 +9,5 @@ exclude .gitignore .git-blame-ignore-revs
 exclude .codecov.yml .editorconfig .pre-commit-config.yaml
 
 exclude Makefile pylintrc
-exclude lektor/admin/*.js lektor/admin/*.json lektor/admin/static/*.config.js
-prune lektor/admin/static/js
-prune lektor/admin/static/scss
 
 prune example

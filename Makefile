@@ -1,14 +1,14 @@
 all: build-js
 
 .PHONY: build-js
-build-js: lektor/admin/node_modules
+build-js: frontend/node_modules
 	@echo "---> building static files"
-	@cd lektor/admin; npm run webpack
+	@cd frontend; npm run webpack
 
-lektor/admin/node_modules: lektor/admin/package-lock.json
+frontend/node_modules: frontend/package-lock.json
 	@echo "---> installing npm dependencies"
-	@cd lektor/admin; npm install
-	@touch -m lektor/admin/node_modules
+	@cd frontend; npm install
+	@touch -m frontend/node_modules
 
 # Run tests on Python files.
 test-python:
@@ -16,10 +16,10 @@ test-python:
 	tox -e py
 
 # Run tests on the Frontend code.
-test-js: lektor/admin/node_modules
+test-js: frontend/node_modules
 	@echo "---> running javascript tests"
-	@cd lektor/admin; npx tsc
-	@cd lektor/admin; npm test
+	@cd frontend; npx tsc
+	@cd frontend; npm test
 
 .PHONY: lint
 # Lint code.

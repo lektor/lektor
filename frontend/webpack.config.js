@@ -7,7 +7,7 @@ module.exports = {
     app: "./js/main.tsx",
   },
   output: {
-    path: path.join(__dirname, "gen"),
+    path: path.join(__dirname, "..", "lektor", "admin", "static"),
     publicPath: "./",
   },
   devtool: "source-map",
@@ -15,7 +15,6 @@ module.exports = {
     splitChunks: { chunks: "all", name: "vendor" },
   },
   resolve: {
-    modules: ["../node_modules"],
     extensions: [".tsx", ".ts", "..."],
   },
   module: {
