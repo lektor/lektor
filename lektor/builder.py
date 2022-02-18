@@ -24,7 +24,7 @@ from lektor.utils import prune_file_and_folder
 
 
 def create_tables(con):
-    can_disable_rowid = ("3", "8") <= tuple(sqlite3.sqlite_version.split("."))
+    can_disable_rowid = (3, 8, 2) <= sqlite3.sqlite_version_info
     if can_disable_rowid:
         without_rowid = "without rowid"
     else:
@@ -32,7 +32,7 @@ def create_tables(con):
 
     try:
         con.execute(
-            """
+            f"""
             create table if not exists artifacts (
                 artifact text,
                 source text,
@@ -42,9 +42,8 @@ def create_tables(con):
                 is_dir integer,
                 is_primary_source integer,
                 primary key (artifact, source)
-            ) %s;
+            ) {without_rowid};
         """
-            % without_rowid
         )
         con.execute(
             """
@@ -54,26 +53,24 @@ def create_tables(con):
         """
         )
         con.execute(
-            """
+            f"""
             create table if not exists artifact_config_hashes (
                 artifact text,
                 config_hash text,
                 primary key (artifact)
-            ) %s;
+            ) {without_rowid};
         """
-            % without_rowid
         )
         con.execute(
-            """
+            f"""
             create table if not exists dirty_sources (
                 source text,
                 primary key (source)
-            ) %s;
+            ) {without_rowid};
         """
-            % without_rowid
         )
         con.execute(
-            """
+            f"""
             create table if not exists source_info (
                 path text,
                 alt text,
@@ -82,9 +79,8 @@ def create_tables(con):
                 source text,
                 title text,
                 primary key (path, alt, lang)
-            ) %s;
+            ) {without_rowid};
         """
-            % without_rowid
         )
     finally:
         con.close()
