@@ -135,16 +135,6 @@ def test_isin_generator_query(pad):
     assert query2.all() == query1
 
 
-def test_isin_isnotin_query(pad):
-    projects = pad.get("/projects")
-    query1 = projects.children.filter(F.name.isnotin(["Master", "Slave"]))
-    query2 = projects.children.isnot().filter(F.name.isin(["Master", "Slave"]))
-
-    assert query2._negate is True
-    assert query1._negate is False
-    assert query2.all() == query1.all()
-
-
 def test_isin_isnotin_complementarity(pad):
     projects = pad.get("/projects")
     names = ["Master", "Slave", "Wolf"]
@@ -160,35 +150,7 @@ def test_isin_false_isnotin(pad):
     names = ["Master", "Slave", "Wolf"]
     isnotin = projects.children.filter(F.name.isnotin(names))
     isin_false = projects.children.filter(F.name.isin(names).false())
-    isin_isnot = projects.children.filter(F.name.isin(names)).isnot()
     assert isnotin.all() == isin_false.all()
-    assert isin_false.all() == isin_isnot.all()
-
-
-def test_isin_isnot_query(pad):
-    projects = pad.get("/projects")
-    query1 = projects.children.filter((F.name != "Master") & (F.name != "Slave"))
-
-    query2 = projects.children.isnot().filter(F.name.isin(["Master", "Slave"]))
-    assert query2._negate is True
-    assert query2.all() == query1.all()
-
-
-def test_isin_not_undiscoverable_query(pad):
-    projects = pad.get("/projects")
-    query1 = projects.children.filter(
-        (F.name != "Master") & (F.name != "Slave")
-    ).include_undiscoverable(True)
-
-    query2 = (
-        projects.children.isnot()
-        .filter(F.name.isin(["Master", "Slave"]))
-        .include_undiscoverable(True)
-    )
-    assert query2._negate is True
-    assert query2._include_undiscoverable is True
-    assert query1._include_undiscoverable is True
-    assert query2.all() == query1.all()
 
 
 def test_isin_template_generator_expr(pad, eval_expr):

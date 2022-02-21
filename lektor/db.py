@@ -1022,7 +1022,6 @@ class Query:
         self._include_undiscoverable = False
         self._page_num = None
         self._filter_func = None
-        self._negate = False
 
     def __get_lektor_param_hash__(self, h):
         h.update(str(self.alt))
@@ -1034,7 +1033,6 @@ class Query:
         h.update(str(self._include_hidden))
         h.update(str(self._include_undiscoverable))
         h.update(str(self._page_num))
-        h.update(str(self._negate))
 
     @property
     def self(self):
@@ -1064,12 +1062,10 @@ class Query:
                 return False
         if not self._include_undiscoverable and record.is_undiscoverable:
             return False
-        # De Morgan's Law(s): !(A and B and C) = !A or !B or !C
-        negate = self._negate
         for filter in self._filters or ():
             if not save_eval(filter, record):
-                return negate
-        return not negate
+                return False
+        return True
 
     def _iterate(self):
         """Low level record iteration."""
@@ -1175,12 +1171,6 @@ class Query:
         """Sets the limit of the query."""
         rv = self._clone(mark_dirty=True)
         rv._limit = limit
-        return rv
-
-    def isnot(self):
-        """Return a complemented (not) query."""
-        rv = self._clone(mark_dirty=True)
-        rv._negate = not self._negate
         return rv
 
     def count(self):
