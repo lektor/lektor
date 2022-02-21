@@ -4,9 +4,42 @@ import textwrap
 import pytest
 from inifile import IniFile
 
+import lektor.quickstart
 from lektor.cli import cli
-from lektor.quickstart import get_default_author
-from lektor.quickstart import get_default_author_email
+
+
+@pytest.fixture(scope="session")
+def can_symlink(tmp_path_factory):
+    """Test whether current user has sufficient privileges to create symlinks."""
+    if os.name == "nt":
+        tmp_path = tmp_path_factory.mktemp("symlink-test")
+        try:
+            os.symlink("foo", tmp_path / "test")
+        except OSError as exc:
+            # Error Code 1314 - A required privilege is not held by the client
+            # pylint: disable=no-member
+            if exc.winerror != 1314:
+                raise
+            return False
+    return True
+
+
+@pytest.fixture
+def default_author(mocker):
+    author = "J. Random Hacker"
+    mocker.patch.object(
+        lektor.quickstart, "get_default_author", spec=True, return_value=author
+    )
+    return author
+
+
+@pytest.fixture
+def default_author_email(mocker):
+    email = "jrh@example.org"
+    mocker.patch.object(
+        lektor.quickstart, "get_default_author_email", spec=True, return_value=email
+    )
+    return email
 
 
 # new-plugin
@@ -140,7 +173,7 @@ def test_new_plugin_abort_cancel(project_cli_runner):
     assert result.exit_code == 1
 
 
-def test_new_plugin_name_only(project_cli_runner):
+def test_new_plugin_name_only(project_cli_runner, default_author, default_author_email):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin"],
@@ -152,10 +185,8 @@ def test_new_plugin_name_only(project_cli_runner):
     assert os.listdir(path) == ["plugin-name"]
 
     # setup.py
-    author = get_default_author()
-    author_email = get_default_author_email()
     setup_expected = textwrap.dedent(
-        """
+        f"""
         import ast
         import io
         import re
@@ -172,8 +203,8 @@ def test_new_plugin_name_only(project_cli_runner):
                 f.read().decode('utf-8')).group(1)))
 
         setup(
-            author='{}',
-            author_email='{}',
+            author='{default_author}',
+            author_email='{default_author_email}',
             description=description,
             keywords='Lektor plugin',
             license='MIT',
@@ -196,7 +227,6 @@ def test_new_plugin_name_only(project_cli_runner):
         )
     """
     ).strip()
-    setup_expected = setup_expected.format(author, author_email)
     with open(os.path.join(path, "plugin-name", "setup.py"), encoding="utf-8") as f:
         setup_contents = f.read().strip()
     assert setup_contents == setup_expected
@@ -257,7 +287,7 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
 
 
 # new-theme
-def test_new_theme(project_cli_runner):
+def test_new_theme(project_cli_runner, can_symlink):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
@@ -273,13 +303,11 @@ def test_new_theme(project_cli_runner):
     assert set(os.listdir(os.path.join(path, "example-site"))) == set(
         ["lektor-theme-name.lektorproject", "README.md", "themes"]
     )
-    try:
+    if can_symlink:
         assert (
             os.readlink(os.path.join(path, "example-site/themes/lektor-theme-name"))
             == "../../../lektor-theme-name"
         )
-    except AttributeError:
-        pass
 
     theme_inifile = IniFile(os.path.join(path, "theme.ini"))
     assert theme_inifile["theme.name"] == "Lektor Theme Name"
@@ -311,7 +339,9 @@ def test_new_theme_abort_cancel(project_cli_runner):
     assert result.exit_code == 1
 
 
-def test_new_theme_name_only(project_cli_runner):
+def test_new_theme_name_only(
+    project_cli_runner, can_symlink, default_author, default_author_email
+):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
@@ -327,18 +357,16 @@ def test_new_theme_name_only(project_cli_runner):
     assert set(os.listdir(os.path.join(path, "example-site"))) == set(
         ["lektor-theme-name.lektorproject", "README.md", "themes"]
     )
-    try:
+    if can_symlink:
         assert (
             os.readlink(os.path.join(path, "example-site/themes/lektor-theme-name"))
             == "../../../lektor-theme-name"
         )
-    except AttributeError:
-        pass
 
     theme_inifile = IniFile(os.path.join(path, "theme.ini"))
     assert theme_inifile["theme.name"] == "Lektor Name Theme"
-    assert theme_inifile["author.email"] == get_default_author_email()
-    assert theme_inifile["author.name"] == get_default_author()
+    assert theme_inifile["author.email"] == default_author_email
+    assert theme_inifile["author.name"] == default_author
 
     with open(os.path.join(path, "README.md"), encoding="utf-8") as f:
         readme_contents = f.read().strip()

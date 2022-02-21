@@ -36,6 +36,7 @@ These are all the changes in Lektor since the first public release.
 - Changed the structure of the URLs used by the GUI single-page app ([#976][]).
   This fixes problems with the "edit" pencil when using alternatives ([#975][]),
   and issues when page ids include colons ([#610][]).
+- Other React refactors and fixes ([#988][]).
 
 #### Database
 
@@ -46,6 +47,11 @@ These are all the changes in Lektor since the first public release.
 #### Builder
 
 - Pages now record a build dependency on their datamodel `.ini` file.
+
+#### Command Line
+
+- When running `lektor dev new-theme`: fix check for ability to create symlinks
+  under Windows. ([#996][])
 
 ### Refactorings
 
@@ -68,9 +74,11 @@ These are all the changes in Lektor since the first public release.
 [#975]: https://github.com/lektor/lektor/issues/975
 [#976]: https://github.com/lektor/lektor/pull/976
 [#984]: https://github.com/lektor/lektor/pull/984
+[#988]: https://github.com/lektor/lektor/pull/988
 [#989]: https://github.com/lektor/lektor/pull/989
 [#990]: https://github.com/lektor/lektor/pull/990
 [#991]: https://github.com/lektor/lektor/pull/991
+[#996]: https://github.com/lektor/lektor/pull/996
 [jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
 
 ## 3.3.1 (2022-01-09)

@@ -144,9 +144,11 @@ jobs:
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python dependencies
-        run: python -m pip install tox coverage[toml]
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions coverage[toml]
       - name: Run python tests
-        run: tox -e py
+        run: tox
       - name: Generate coverage.xml
         shell: bash
         run: |

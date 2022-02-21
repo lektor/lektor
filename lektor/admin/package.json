@@ -16,7 +16,7 @@
     "@babel/register": "^7.12.13",
     "@types/jsdom": "^16.2.6",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.4.9",
+    "@types/node": "^17.0.18",
     "@types/react": "^17.0.1",
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.7",
