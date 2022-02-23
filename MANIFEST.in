@@ -11,3 +11,5 @@ exclude Makefile pylintrc
 exclude lektor/admin/*.js lektor/admin/*.json lektor/admin/static/*.config.js
 prune lektor/admin/static/js
 prune lektor/admin/static/scss
+
+prune example
