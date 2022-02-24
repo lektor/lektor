@@ -32,6 +32,7 @@ paths = [
 #
 [tool.pylint.MASTER]
 ignore = [".git"]
+extension-pkg-whitelist = ["pydantic"]
 
 [tool.pylint.FORMAT]
 max-line-length = 91
@@ -64,10 +65,6 @@ disable = [
 
 [tool.mypy]
 files = "$MYPY_CONFIG_FILE_DIR/lektor"
-
-plugins = [
-    "marshmallow_dataclass.mypy",
-]
 
 show_error_codes = true
 error_summary = true

@@ -1,19 +1,16 @@
 import os
 import posixpath
-from dataclasses import dataclass
-from dataclasses import field
 from functools import wraps
 from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Iterator
-from typing import Mapping
 from typing import Optional
+from typing import Type
 from typing import TypeVar
 
 import click
-import marshmallow
-import marshmallow_dataclass as mdcls
+import pydantic
 from flask import Blueprint
 from flask import current_app
 from flask import jsonify
@@ -44,44 +41,50 @@ def pass_lektor_context(
     values["ctx"] = get_lektor_context()
 
 
-class _ServerInfoField(marshmallow.fields.String):
-    def _deserialize(
-        self,
-        value: str,
-        attr: Optional[str],
-        data: Optional[Mapping[str, Any]],
-        **kwargs: Any
-    ) -> ServerInfo:
-        lektor_config = self.context["lektor_config"]
-        server_id = super()._deserialize(value, attr, data, **kwargs)
-        server_info = lektor_config.get_server(server_id)
+# Mark types for special validation
+
+
+class _ServerInfo(ServerInfo):
+    @classmethod
+    def __get_validators__(cls) -> Iterator[Callable[[Any], Any]]:
+        yield pydantic.validators.str_validator
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value: str) -> ServerInfo:
+        # pylint: disable=no-self-argument,no-self-use
+        # ATM, there seems to be no clean way to pass context to pydantic
+        # validators. https://github.com/samuelcolvin/pydantic/issues/1549
+        lektor_config = get_lektor_context().config
+        server_info = lektor_config.get_server(value)
         if server_info is None:
-            raise marshmallow.ValidationError("Invalid server id.")
+            raise ValueError("Invalid server id.")
         return server_info
 
 
-def _is_valid_alt(value: str) -> bool:
-    lektor_config = get_lektor_context().config
-    return bool(lektor_config.is_valid_alternative(value))
+class _AltType(str):
+    @classmethod
+    def __get_validators__(cls) -> Iterator[Callable[[Any], Any]]:
+        yield pydantic.validators.str_validator
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value: str) -> "_AltType":
+        lektor_config = get_lektor_context().config
+        if not lektor_config.is_valid_alternative(value):
+            raise ValueError(f"{value!r} is not a configured value for alt")
+        return cls(value)
 
 
-# Mark types for special validation
-_PathType = mdcls.NewType("_PathType", str)
-_AltType = mdcls.NewType("_AltType", str, validate=_is_valid_alt)
-_BoolType = mdcls.NewType("_BoolType", bool, truthy={1, "1"}, falsy={0, "0"})
+_PRIMARY_ALT = _AltType(PRIMARY_ALT)
+
+_PathType = str
 
 
-class _SchemaBase(marshmallow.Schema):
-    TYPE_MAPPING = {ServerInfo: _ServerInfoField}
-
-    class Meta:
-        unknown = marshmallow.EXCLUDE
+F = TypeVar("F", bound=Callable[..., Response])
 
 
-F = TypeVar("F", bound=Callable[..., Any])
-
-
-def _with_validated(param_type: type) -> Callable[[F], F]:
+def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
     """Flask view decorator to validate parameters.
 
     The validated parameters are placed into the ``validated`` keyword
@@ -90,10 +93,8 @@ def _with_validated(param_type: type) -> Callable[[F], F]:
     If the request has a JSON body, the parameters are parsed from that.
     Otherwise, the parameters are parsed from ``request.values``.
 
-    :param param_type: A dataclass which specifies the parameters.
+    :param param_model: A pydantic model that specifies the parameters.
     """
-    schema_class = mdcls.class_schema(param_type, base_schema=_SchemaBase)
-    schema = schema_class()
 
     def wrap(f):  # type: ignore[no-untyped-def] # FIXME
         @wraps(f)
@@ -105,15 +106,14 @@ def _with_validated(param_type: type) -> Callable[[F], F]:
                 data = request.get_json() or {}
             else:
                 data = request.values
-            schema.context = {
-                "lektor_config": kwargs["ctx"].config,
-            }
+
             try:
-                kwargs["validated"] = schema.load(data)
-            except marshmallow.ValidationError as exc:
+                kwargs["validated"] = param_model.parse_obj(data)
+            except pydantic.ValidationError as exc:
                 error = {
                     "title": "Invalid parameters",
-                    "messages": exc.messages,
+                    "message": str(exc),
+                    "errors": exc.errors(),
                 }
                 return make_response(jsonify(error=error), 400)
             return f(*args, **kwargs)
@@ -123,10 +123,9 @@ def _with_validated(param_type: type) -> Callable[[F], F]:
     return wrap
 
 
-@dataclass
-class _PathAndAlt:
+class _PathAndAlt(pydantic.BaseModel):
     path: _PathType
-    alt: _AltType = PRIMARY_ALT
+    alt: _AltType = _PRIMARY_ALT
 
 
 @bp.route("/pathinfo")
@@ -208,10 +207,9 @@ def get_preview_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
     return jsonify(exists=True, url=record.url_path, is_hidden=record.is_hidden)
 
 
-@dataclass
-class _FindParams:
+class _FindParams(pydantic.BaseModel):
     q: str
-    alt: _AltType = PRIMARY_ALT
+    alt: _AltType = _PRIMARY_ALT
     lang: Optional[str] = None
 
 
@@ -241,8 +239,7 @@ def browsefs(validated: _PathAndAlt, ctx: LektorContext) -> Response:
     return jsonify(okay=okay)
 
 
-@dataclass
-class _UrlPath:
+class _UrlPath(pydantic.BaseModel):
     url_path: str
 
 
@@ -339,13 +336,12 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
     )
 
 
-@dataclass
-class _NewRecordParams:
+class _NewRecordParams(pydantic.BaseModel):
     id: str
     model: Optional[str]
     data: Dict[str, Optional[str]]
     path: _PathType
-    alt: _AltType = PRIMARY_ALT
+    alt: _AltType = _PRIMARY_ALT
 
 
 @bp.route("/newrecord", methods=["POST"])
@@ -368,11 +364,10 @@ def add_new_record(validated: _NewRecordParams, ctx: LektorContext) -> Response:
     return jsonify({"valid_id": True, "exists": exists, "path": path})
 
 
-@dataclass
-class _DeleteRecordParams:
-    delete_master: _BoolType
+class _DeleteRecordParams(pydantic.BaseModel):
+    delete_master: bool
     path: _PathType
-    alt: _AltType = PRIMARY_ALT
+    alt: _AltType = _PRIMARY_ALT
 
 
 @bp.route("/deleterecord", methods=["POST"])
@@ -385,11 +380,10 @@ def delete_record(validated: _DeleteRecordParams, ctx: LektorContext) -> Respons
     return jsonify(okay=True)
 
 
-@dataclass
-class _UpdateRawRecordParams:
+class _UpdateRawRecordParams(pydantic.BaseModel):
     data: Dict[str, Optional[str]]
     path: _PathType
-    alt: _AltType = PRIMARY_ALT
+    alt: _AltType = _PRIMARY_ALT
 
 
 @bp.route("/rawrecord", methods=["PUT"])
@@ -429,9 +423,8 @@ def trigger_clean(ctx: LektorContext) -> Response:
     return jsonify(okay=True)
 
 
-@dataclass
-class _PublishBuildParams:
-    server_info: ServerInfo = field(metadata=dict(data_key="server"))
+class _PublishBuildParams(pydantic.BaseModel):
+    server_info: _ServerInfo = pydantic.Field(alias="server")
 
 
 @bp.route("/publish")
