@@ -332,7 +332,19 @@ def test_offset_without_limit_query(pad):
     assert x["name"] == "Coffee"
 
 
-################################################################
+def test_Pad_get_invalid_path(pad):
+    # On windows '<' and/or '>' are invalid in filenames. These were
+    # causing an OSError(errno=EINVAL) exception in Database.load_raw_data
+    # that was not being caught. This test exercises that.
+    assert pad.get("/<foo>") is None
+
+
+def test_Database_iter_items_invalid_path(env):
+    # Check that there is no problem with uncaught
+    # OSError(errno=EINVAL) when a path contains non-filename-safe
+    # characters in Database.iter_items.
+    db = Database(env)
+    assert len(list(db.iter_items("/<foo>"))) == 0
 
 
 def write_files(*path_text_pairs):

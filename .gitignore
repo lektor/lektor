@@ -8,11 +8,12 @@
 build
 dist
 venv
-lektor/admin/static/gen
+lektor/admin/static
 example-project
 
 coverage/
 .coverage
+.coverage.*
 coverage.xml
 coverage.lcov
 .nyc_output
@@ -20,6 +21,3 @@ coverage.lcov
 .tox
 
 node_modules
-gui/build
-gui/node_modules
-gui/static/gen

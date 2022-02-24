@@ -7,9 +7,10 @@ import operator
 import os
 import posixpath
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
-from itertools import chain
 from itertools import islice
+from operator import methodcaller
 
 from jinja2 import is_undefined
 from jinja2 import Undefined
@@ -1366,8 +1367,8 @@ class Database:
                     for key, lines in metaformat.tokenize(f, encoding="utf-8"):
                         if key not in rv:
                             rv[key] = "".join(lines)
-            except IOError as e:
-                if e.errno not in (errno.ENOTDIR, errno.ENOENT):
+            except OSError as e:
+                if e.errno not in (errno.ENOTDIR, errno.ENOENT, errno.EINVAL):
                     raise
                 if not is_attachment or not os.path.isfile(fs_path[:-3]):
                     continue
@@ -1540,6 +1541,9 @@ class Database:
                 for dep_model in self.iter_dependent_models(record.datamodel):
                     if dep_model.filename:
                         ctx.record_dependency(dep_model.filename)
+            # XXX: In the case that our datamodel is implied, then the
+            # datamodel depends on the datamodel(s) of our parent(s).
+            # We do not currently record that.
         return record
 
     def process_data(self, data, datamodel, pad):
@@ -1863,36 +1867,98 @@ class Pad:
 class TreeItem:
     """Represents a single tree item and all the alts within it."""
 
-    def __init__(
-        self,
-        tree,
-        path,
-        alts,
-        exists=True,
-        is_attachment=False,
-        attachment_type=None,
-        can_have_children=False,
-        can_have_attachments=False,
-        can_be_deleted=False,
-        is_visible=True,
-        label_i18n=None,
-    ):
+    def __init__(self, tree, path, alts, primary_record):
         self.tree = tree
         self.path = path
         self.alts = alts
-        self.exists = exists
-        self.is_attachment = is_attachment
-        self.attachment_type = attachment_type
-        self.can_have_children = can_have_children
-        self.can_have_attachments = can_have_attachments
-        self.can_be_deleted = can_be_deleted
-        self.is_visible = is_visible
-        self.label_i18n = label_i18n
+        self._primary_record = primary_record
 
     @property
     def id(self):
         """The local ID of the item."""
         return posixpath.basename(self.path)
+
+    @property
+    def exists(self):
+        """True iff metadata exists for the item.
+
+        If metadata exists for any alt, including the fallback (PRIMARY_ALT).
+
+        Note that for attachments without metadata, this is currently False.
+        But note that if is_attachment is True, the attachment file does exist.
+        """
+        # FIXME: this should probably be changed to return True for attachments,
+        # even those without metadata.
+        return self._primary_record is not None
+
+    @property
+    def is_attachment(self):
+        """True iff item is an attachment."""
+        if self._primary_record is None:
+            return False
+        return self._primary_record.is_attachment
+
+    @property
+    def is_visible(self):
+        """True iff item is not hidden."""
+        # XXX: This is send out from /api/recordinfo but appears to be
+        # unused by the React app
+        if self._primary_record is None:
+            return True
+        return self._primary_record.is_visible
+
+    @property
+    def can_be_deleted(self):
+        """True iff item can be deleted."""
+        if self.path == "/" or not self.exists:
+            return False
+        return self.is_attachment or not self._datamodel.protected
+
+    @property
+    def _datamodel(self):
+        if self._primary_record is None:
+            return None
+        return self._primary_record.datamodel
+
+    def get_record_label_i18n(self, alt=PRIMARY_ALT):
+        """Get record label translations for specific alt."""
+        record = self.alts[alt].record
+        if record is None:
+            # generate a reasonable fallback
+            # ("en" is the magical fallback lang)
+            label = self.id.replace("-", " ").replace("_", " ").title()
+            return {"en": label or "(Index)"}
+        return record.get_record_label_i18n()
+
+    @property
+    def can_have_children(self):
+        """True iff the item can contain subpages."""
+        if self._primary_record is None or self.is_attachment:
+            return False
+        return self._datamodel.has_own_children
+
+    @property
+    def implied_child_datamodel(self):
+        """The name of the default datamodel for children of this page, if any."""
+        datamodel = self._datamodel
+        return datamodel.child_config.model if datamodel else None
+
+    @property
+    def can_have_attachments(self):
+        """True iff the item can contain attachments."""
+        if self._primary_record is None or self.is_attachment:
+            return False
+        return self._datamodel.has_own_attachments
+
+    @property
+    def attachment_type(self):
+        """The type of an attachment.
+
+        E.g. "image", "video", or None if type is unknown.
+        """
+        if self._primary_record is None or not self.is_attachment:
+            return None
+        return self._primary_record["_attachment_type"] or None
 
     def get_parent(self):
         """Returns the parent item."""
@@ -1902,25 +1968,89 @@ class TreeItem:
 
     def get(self, path):
         """Returns a child within this item."""
-        if self.exists:
-            return self.tree.get(posixpath.join(self.path, path))
-        return None
+        # XXX: Unused?
+        return self.tree.get(posixpath.join(self.path, path))
 
-    def iter_children(self, include_attachments=True, include_pages=True):
-        """Iterates over all children."""
-        if not self.exists:
-            return iter(())
-        return self.tree.iter_children(self.path, include_attachments, include_pages)
+    def _get_child_ids(self, include_attachments=True, include_pages=True):
+        """Returns a sorted list of just the IDs of existing children."""
+        db = self.tree.pad.db
+        keep_attachments = include_attachments and self.can_have_attachments
+        keep_pages = include_pages and self.can_have_children
+        names = set(
+            name
+            for name, _, is_attachment in db.iter_items(self.path, alt=None)
+            if (keep_attachments if is_attachment else keep_pages)
+        )
+        return sorted(names, key=lambda name: name.lower())
+
+    def iter_children(
+        self, include_attachments=True, include_pages=True, order_by=None
+    ):
+        """Iterates over all children"""
+        children = (
+            self.tree.get(posixpath.join(self.path, name), persist=False)
+            for name in self._get_child_ids(include_attachments, include_pages)
+        )
+        if order_by is not None:
+            children = sorted(children, key=methodcaller("get_sort_key", order_by))
+        return children
 
     def get_children(
-        self, offset=0, limit=None, include_attachments=True, include_pages=True
+        self,
+        offset=0,
+        limit=None,
+        include_attachments=True,
+        include_pages=True,
+        order_by=None,
     ):
-        """Returns a list of all children."""
-        if not self.exists:
-            return []
-        return self.tree.get_children(
-            self.path, offset, limit, include_attachments, include_pages
-        )
+        """Returns a slice of children."""
+        # XXX: this method appears unused?
+        end = None
+        if limit is not None:
+            end = offset + limit
+        children = self.iter_children(include_attachments, include_pages, order_by)
+        return list(islice(children, offset, end))
+
+    def iter_attachments(self, order_by=None):
+        """Return an iterable of this records attachments.
+
+        By default, the attachments are sorted as specified by
+        ``[attachments]order_by`` in this records datamodel.
+        """
+        if order_by is None:
+            dm = self._datamodel
+            if dm is not None:
+                order_by = dm.attachment_config.order_by
+        return self.iter_children(include_pages=False, order_by=order_by)
+
+    def iter_subpages(self, order_by=None):
+        """Return an iterable of this records sub-pages.
+
+        By default, the records are sorted as specified by
+        ``[children]order_by`` in this records datamodel.
+
+        NB: This method should probably be called ``iter_children``,
+        but that name was already taken.
+        """
+        if order_by is None:
+            dm = self._datamodel
+            if dm is not None:
+                order_by = dm.child_config.order_by
+        return self.iter_children(include_attachments=False, order_by=order_by)
+
+    def get_sort_key(self, order_by):
+        if self._primary_record is None:
+
+            def sort_key(fieldspec):
+                if fieldspec.startswith("-"):
+                    field, reverse = fieldspec[1:], True
+                else:
+                    field, reverse = fieldspec.lstrip("+"), False
+                value = self.id if field == "_id" else None
+                return _CmpHelper(value, reverse)
+
+            return [sort_key(fieldspec) for fieldspec in order_by]
+        return self._primary_record.get_sort_key(order_by)
 
     def __repr__(self):
         return "<TreeItem %r%s>" % (
@@ -1930,9 +2060,11 @@ class TreeItem:
 
 
 class Alt:
-    def __init__(self, id, record):
+    def __init__(self, id, record, is_primary_overlay, name_i18n):
         self.id = id
         self.record = record
+        self.is_primary_overlay = is_primary_overlay
+        self.name_i18n = name_i18n
         self.exists = record is not None and os.path.isfile(record.source_filename)
 
     def __repr__(self):
@@ -1952,86 +2084,65 @@ class Tree:
     """
 
     def __init__(self, pad):
+        # Note that in theory different alts can disagree on what
+        # datamodel they use but this is something that is really not
+        # supported.  This cannot happen if you edit based on the admin
+        # panel and if you edit it manually and screw up that part, we
+        # cannot really do anything about it.
+        #
+        # We will favor the datamodel from the fallback record
+        # (alt=PRIMARY_ALT) if it exists. If it does not, we will
+        # use the data for the primary alternative. If data does not exist
+        # for either of those, we will pick from among the other
+        # existing alts quasi-randomly.
+        #
+        # Here we construct a list of configured alts in preference order
+        config = pad.db.config
+        alt_info = OrderedDict()
+        if config.primary_alternative:
+            # Alternatives are configured
+            alts = [PRIMARY_ALT]
+            alts.append(config.primary_alternative)
+            alts.extend(
+                alt
+                for alt in config.list_alternatives()
+                if alt != config.primary_alternative
+            )
+            for alt in alts:
+                alt_info[alt] = {
+                    "is_primary_overlay": alt == config.primary_alternative,
+                    "name_i18n": config.get_alternative(alt)["name"],
+                }
+        else:
+            alt_info[PRIMARY_ALT] = {
+                "is_primary_overlay": True,
+                "name_i18n": {"en": "Primary"},
+            }
+
         self.pad = pad
+        self._alt_info = alt_info
 
     def get(self, path=None, persist=True):
         """Returns a path item at the given node."""
         path = "/" + (path or "").strip("/")
         alts = {}
-        exists = False
-        first_record = None
-        label_i18n = None
-
-        for alt in chain([PRIMARY_ALT], self.pad.db.config.list_alternatives()):
+        primary_record = None
+        for alt, alt_info in self._alt_info.items():
             record = self.pad.get(path, alt=alt, persist=persist, allow_virtual=False)
-            if first_record is None:
-                first_record = record
-            if record is not None:
-                exists = True
-            alts[alt] = Alt(alt, record)
+            if primary_record is None:
+                primary_record = record
+            alts[alt] = Alt(alt, record, **alt_info)
+        return TreeItem(self, path, alts, primary_record)
 
-        # These flags only really make sense if we found an existing
-        # record, otherwise we fall back to some sort of sane default.
-        # Note that in theory different alts can disagree on what
-        # datamodel they use but this is something that is really not
-        # supported.  This cannot happen if you edit based on the admin
-        # panel and if you edit it manually and screw up the part, we
-        # cannot really do anything about it.
-        #
-        # More importantly we genreally assume that first_record is the
-        # primary alt.  There are some situations in which case this is
-        # not true, for instance if no primary alt exists.  In this case
-        # we just go with any record.
-        is_visible = True
-        is_attachment = False
-        attachment_type = None
-        can_have_children = False
-        can_have_attachments = False
-        can_be_deleted = exists and path != "/"
-
-        if first_record is not None:
-            is_attachment = first_record.is_attachment
-            is_visible = first_record.is_visible
-            dm = first_record.datamodel
-            if not is_attachment:
-                can_have_children = dm.has_own_children
-                can_have_attachments = dm.has_own_attachments
-                if dm.protected:
-                    can_be_deleted = False
-            else:
-                attachment_type = first_record["_attachment_type"] or None
-            label_i18n = first_record.get_record_label_i18n()
-
-        return TreeItem(
-            self,
-            path,
-            alts,
-            exists,
-            is_attachment=is_attachment,
-            attachment_type=attachment_type,
-            can_have_children=can_have_children,
-            can_have_attachments=can_have_attachments,
-            can_be_deleted=can_be_deleted,
-            is_visible=is_visible,
-            label_i18n=label_i18n,
+    def iter_children(
+        self, path=None, include_attachments=True, include_pages=True, order_by=None
+    ):
+        """Iterates over all children below a path"""
+        # XXX: this method is unused?
+        path = "/" + (path or "").strip("/")
+        return self.get(path, persist=False).iter_children(
+            include_attachments, include_pages, order_by
         )
-
-    def _get_child_ids(self, path=None, include_attachments=True, include_pages=True):
-        """Returns a sorted list of just the IDs of children below a path."""
-        path = "/" + (path or "").strip("/")
-        names = set()
-        for name, _, is_attachment in self.pad.db.iter_items(path, alt=None):
-            if (is_attachment and include_attachments) or (
-                not is_attachment and include_pages
-            ):
-                names.add(name)
-        return sorted(names, key=lambda x: x.lower())
-
-    def iter_children(self, path=None, include_attachments=True, include_pages=True):
-        """Iterates over all children below a path."""
-        path = "/" + (path or "").strip("/")
-        for name in self._get_child_ids(path, include_attachments, include_pages):
-            yield self.get(posixpath.join(path, name), persist=False)
 
     def get_children(
         self,
@@ -2040,18 +2151,14 @@ class Tree:
         limit=None,
         include_attachments=True,
         include_pages=True,
+        order_by=None,
     ):
         """Returns a slice of children."""
+        # XXX: this method is unused?
         path = "/" + (path or "").strip("/")
-        end = None
-        if limit is not None:
-            end = offset + limit
-        return [
-            self.get(posixpath.join(path, name), persist=False)
-            for name in self._get_child_ids(path, include_attachments, include_pages)[
-                offset:end
-            ]
-        ]
+        return self.get(path, persist=False).get_children(
+            offset, limit, include_attachments, include_pages, order_by
+        )
 
     def edit(self, path, is_attachment=None, alt=PRIMARY_ALT, datamodel=None):
         """Edits a record by path."""

@@ -1,0 +1,59 @@
+@import "./fonts.css";
+@import "./bootstrap-overrides.scss";
+@import "./variables.scss";
+
+html,
+body {
+  height: 100%;
+  font-size: 14px;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+a {
+  text-decoration: none;
+}
+
+h2 {
+  margin-top: 0.5rem;
+  font-weight: 400;
+}
+
+div.main {
+  position: relative;
+  height: 100%;
+
+  h3 {
+    font-size: 20px;
+    margin: 15px 0 0 0;
+  }
+}
+
+iframe.preview {
+  display: block;
+  border: 0;
+  width: 100%;
+  height: calc(100vh - 38px);
+}
+
+div.actions {
+  background: $background-taint;
+  padding: 10px;
+  margin: 15px 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+
+  > * {
+    margin-right: 5px;
+  }
+}
+
+@import "./sidebar.scss";
+@import "./header.scss";
+@import "./dialog.scss";
+@import "./forms.scss";
+@import "./toggle-group.scss";
+@import "./static-pages.scss";

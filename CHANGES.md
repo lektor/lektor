@@ -2,7 +2,141 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 4.0 (UNRELEASED - in development)
+## 3.3.2 (unreleased)
+
+### Features
+
+#### Command Line
+
+- Enabled the [Jinja debug extension][jinja-dbg-ext] when the
+  `LEKTOR_DEV` env var is set to 1 and `lektor server` is
+  used. ([#984][])
+
+### License
+
+- The wording in the LICENSE file was standardized to that of the
+  current [BSD 3-Clause License][bsd]. ([#972][])
+
+### Bugs
+
+#### Markdown Renderer
+
+- Fix overzealous HTML-entity escaping of link and image attributes. ([#989][])
+
+#### Admin API
+
+- Fix a bug in `make_editor_session` when editing non-existant pages
+  with a non-primary alt. ([#964][])
+- Fix the ability to add an initial flowblock to a page. (Broken in 3.3.1.)
+- Refactor API views to move business logic back into the `Tree`
+  adapter ([#967][]). This fixes [#962][].
+
+#### Admin UI
+
+- Changed the structure of the URLs used by the GUI single-page app ([#976][]).
+  This fixes problems with the "edit" pencil when using alternatives ([#975][]),
+  and issues when page ids include colons ([#610][]).
+- Other React refactors and fixes ([#988][]).
+
+#### Database
+
+- Fix for uncaught `OSError(error=EINVAL)` on Windows when `Pad.get`
+  was called with a path containing characters which are not allowed
+  in Windows filenames (e.g. `<>*?|\/":`).
+
+#### Builder
+
+- Pages now record a build dependency on their datamodel `.ini` file.
+
+#### Command Line
+
+- When running `lektor dev new-theme`: fix check for ability to create symlinks
+  under Windows. ([#996][])
+
+#### Tests
+
+- Fix for test failures when git is not installed. ([#998][], [#1000][])
+
+### Refactorings
+
+- Cleaned up `EditorSession` to split mapping methods (for access to
+  record data) to a separate class, now available as
+  `EditorSession.data`. ([#969][])
+
+#### Testing
+
+- Cleaned up and moved our `pylint` and `coverage` configuration to
+  `pyproject.toml`. ([#990][], [#991][])
+
+#### Packaging
+
+- Omit `example` subdirectory, frontend source code, developer-centric
+  config files, as well as other assorted cruft from sdist. ([#986][])
+
+[bsd]: https://opensource.org/licenses/BSD-3-Clause
+[#610]: https://github.com/lektor/lektor/issues/610
+[#962]: https://github.com/lektor/lektor/issues/962
+[#964]: https://github.com/lektor/lektor/pull/964
+[#967]: https://github.com/lektor/lektor/pull/967
+[#969]: https://github.com/lektor/lektor/pull/969
+[#972]: https://github.com/lektor/lektor/pull/972
+[#975]: https://github.com/lektor/lektor/issues/975
+[#976]: https://github.com/lektor/lektor/pull/976
+[#984]: https://github.com/lektor/lektor/pull/984
+[#986]: https://github.com/lektor/lektor/pull/986
+[#988]: https://github.com/lektor/lektor/pull/988
+[#989]: https://github.com/lektor/lektor/pull/989
+[#990]: https://github.com/lektor/lektor/pull/990
+[#991]: https://github.com/lektor/lektor/pull/991
+[#996]: https://github.com/lektor/lektor/pull/996
+[#998]: https://github.com/lektor/lektor/issues/998
+[#1000]: https://github.com/lektor/lektor/pull/1000
+[jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
+
+## 3.3.1 (2022-01-09)
+
+### Bugs Fixed
+
+- Fixed an import cycle which caused in `ImportError` if
+  `lektor.types` was imported before `lektor.environemnt`. [#974][]
+
+#### Deprecations
+
+- Disuse deprecated `Thread.setDaemon()`. [#979][]
+
+#### Admin UI
+
+- Fix spastic scroll behavior when editing flow elements. [#640][]
+- Fix admin GUI when page contains an unknown flowblock type. [#968][]
+- Fix admin GUI layout on mobile devices. [#981][]
+
+#### Tests
+
+- Increased timeout in `test_watcher.IterateInThread` to prevent
+  random spurious failures during CI testing.
+- Fix `tests/test_prev_next_sibling.py` so as to allow running
+  multiple test runs in parallel.
+- Use per-testenv coverage files to prevent contention when running `tox --parallel`.
+- Mark tests that require a working internet connections with pytest mark `requiresinternet`. [#983][]
+
+### Refactors
+
+#### Admin UI
+
+- Finish rewriting React class-based components to function-based components. [#977][]
+- Finish adding types for all API endpoints. [#980][]
+- Remove disused event-source polyfill.
+
+[#640]: https://github.com/lektor/lektor/issues/640
+[#968]: https://github.com/lektor/lektor/issues/968
+[#974]: https://github.com/lektor/lektor/pull/974
+[#977]: https://github.com/lektor/lektor/pull/977
+[#979]: https://github.com/lektor/lektor/pull/979
+[#980]: https://github.com/lektor/lektor/pull/980
+[#981]: https://github.com/lektor/lektor/pull/981
+[#983]: https://github.com/lektor/lektor/pull/983
+
+## 3.3.0 (2021-12-14)
 
 This release drops support for versions of Python before 3.6.
 In particular, Python 2.7 is no longer supported.
@@ -98,7 +232,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 - We now require node >= 14. [#940][]
 - Update NPM/JS dependencies. Update to webpack v5. [#816][],
   [#834][], [#848][], [#852][], [#860][], [#905][], [#917][],
-  [#926][], [#945][]
+  [#926][], [#945][], [#957][]
 - Use [prettier][] and [eslint][] for JS (and YAML) beautification and style enforcement. [#825][], [#936][]
 - Disuse unmaintained `jsdomify` to prevent hanging tests. [#839][]
 - Disuse jQuery. [#851][]
@@ -214,6 +348,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 [#942]: https://github.com/lektor/lektor/pull/942
 [#945]: https://github.com/lektor/lektor/pull/945
 [#952]: https://github.com/lektor/lektor/pull/952
+[#957]: https://github.com/lektor/lektor/pull/957
 
 ## 3.2.3 (2021-12-11)
 

@@ -33,7 +33,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
-        run: make lektor/admin/node_modules
+        run: make frontend/node_modules
       - uses: actions/setup-python@v2
         with:
           python-version: "3.9"
@@ -80,50 +80,79 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python: ["3.6", "3.10"]
+        python: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        exclude:
+          - os: "macos-latest"
+            python: "3.7"
+          - os: "macos-latest"
+            python: "3.8"
+          - os: "macos-latest"
+            python: "3.9"
+          - os: "windows-latest"
+            python: "3.6"
+          - os: "windows-latest"
+            python: "3.8"
+          - os: "windows-latest"
+            python: "3.9"
         include:
           - os: "ubuntu-latest"
-            path: ~/.cache/pip
+            pip-cache-dir: ~/.cache/pip
           - os: "macos-latest"
-            path: ~/Library/Caches/pip
+            pip-cache-dir: ~/Library/Caches/pip
           - os: "windows-latest"
-            path: ~\AppData\Local\pip\Cache
-          - os: "ubuntu-latest"
-            path: ~/.cache/pip
-            python: "3.7"
-          - os: "ubuntu-latest"
-            path: ~/.cache/pip
-            python: "3.8"
-          - os: "ubuntu-latest"
-            path: ~/.cache/pip
-            python: "3.9"
+            pip-cache-dir: ~\AppData\Local\pip\Cache
+          - python: "3.10"
+            install-imagemagick: true
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
         uses: actions/cache@v2
         with:
-          path: ${{ matrix.path }}
+          path: ${{ matrix.pip-cache-dir }}
           key: ${{ runner.os }}-py-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+
       - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos') && matrix.python == '3.10'
+        if: startsWith(runner.os, 'macos') && matrix.install-imagemagick
         run: brew install imagemagick ffmpeg
+
       - name: Install Windows system dependencies
-        if: startsWith(runner.os, 'windows') && matrix.python == '3.10'
-        run: choco install --no-progress --timeout 600 imagemagick.tool ffmpeg
+        if: startsWith(runner.os, 'windows') && matrix.install-imagemagick
+        run: |
+          choco install --no-progress --timeout 600 imagemagick.app ffmpeg
+          # The imagemagick.app package, for whatever reason, installs
+          # magick.exe into a directory which is not in the default
+          # search path. Currently, it seems to get installed in a
+          # directory named something like:
+          #
+          # "C:\Program Files\ImageMagick-7.1.0-Q16-HDRI"
+          $ImDirs = (
+            Get-ChildItem $env:ProgramFiles 'ImageMagick*' -Directory
+            | Select-Object -ExpandProperty FullName
+          )
+          if ($ImDirs.Length -eq 0) { Throw "Could not find path to ImageMagick" }
+          $ImDirs | Out-File $env:GITHUB_PATH utf8 -Append
+          $ImDirs | % { "::notice title=ImageMagick::ImageMagick installed at $_" }
         continue-on-error: true
       - name: Workaround for UnicodeDecodeError from tox on Windows
         # Refs:
         #   https://github.com/lektor/lektor/pull/933#issuecomment-923107580
         #   https://github.com/tox-dev/tox/issues/1550
         if: startsWith(runner.os, 'windows')
-        shell: bash
-        run: echo "PYTHONIOENCODING=utf-8" >> $GITHUB_ENV
+        run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
+
       - name: Install python dependencies
-        run: python -m pip install codecov tox
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions coverage[toml]
       - name: Run python tests
-        run: tox -e py
-      - name: Publish coverage
-        run: codecov -t 39974034-91d8-48d1-9698-de48e0667a09
+        run: tox
+      - name: Generate coverage.xml
+        shell: bash
+        run: |
+          coverage combine --append || true
+          coverage xml
+      - name: Publish coverage data to codecov
+        uses: codecov/codecov-action@v2

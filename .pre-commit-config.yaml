@@ -17,10 +17,10 @@ repos:
       - id: eslint
         name: eslint
         language: node
-        entry: ./lektor/admin/node_modules/eslint/bin/eslint.js --fix
+        entry: ./frontend/node_modules/eslint/bin/eslint.js --fix --max-warnings 0
         files: \.(ts|tsx)$
       - id: prettier
         name: prettier
         language: node
-        entry: ./lektor/admin/node_modules/prettier/bin-prettier.js --write --list-different
+        entry: ./frontend/node_modules/prettier/bin-prettier.js --write --list-different
         files: \.(ts|tsx|js|less|ya?ml|md)$
