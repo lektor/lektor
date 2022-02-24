@@ -49,13 +49,10 @@
     "webpack-cli": "^4.5.0"
   },
   "scripts": {
-    "prettier": "prettier --write static/js static/scss",
-    "lint": "prettier --check static/js static/scss && eslint --ext .js,.jsx,.ts,.tsx static/js",
-    "fix-lint": "eslint --ext .js,.jsx static/js --fix",
     "test": "nyc mocha",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
-    "dev": "webpack --watch --config ./static/webpack.config.js --context ./static",
-    "webpack": "webpack --config ./static/webpack.config.js --context ./static"
+    "dev": "webpack --watch",
+    "webpack": "webpack"
   },
   "targets": "defaults",
   "babel": {
@@ -74,8 +71,8 @@
   },
   "mocha": {
     "spec": [
-      "static/js/**/*.test.ts",
-      "static/js/**/*.test.tsx"
+      "js/**/*.test.ts",
+      "js/**/*.test.tsx"
     ],
     "require": [
       "./babel-require.js"

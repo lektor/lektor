@@ -33,7 +33,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
-        run: make lektor/admin/node_modules
+        run: make frontend/node_modules
       - uses: actions/setup-python@v2
         with:
           python-version: "3.9"
