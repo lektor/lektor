@@ -3,8 +3,6 @@ import sys
 import warnings
 import weakref
 
-import pytest
-
 from lektor.publisher import Command
 
 
@@ -12,7 +10,9 @@ def test_Command_triggers_no_warnings():
     # This excercises the issue where publishing via rsync resulted
     # in ResourceWarnings about unclosed streams.
 
-    with pytest.warns(None) as record:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+
         # This is essentially how RsyncPublisher runs rsync.
         with Command([sys.executable, "-c", "print()"]) as client:
             for _ in client:
@@ -31,7 +31,3 @@ def test_Command_triggers_no_warnings():
             "Unable to trigger garbage collection of Command instance, "
             "so unable to check for warnings issued during finalization."
         )
-
-    for warning in record.list:
-        print(warning)
-    assert len(record) == 0
