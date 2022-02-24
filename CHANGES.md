@@ -40,6 +40,13 @@ These are all the changes in Lektor since the first public release.
 
 #### Database
 
+- Fix `Attachment.url_path` when _alternatives_ are in use. There is only
+  one copy of each attachment emitted — the `url_path` should always be
+  that corresponding to the _primary alternative_. ([#958][])
+- `Pad.get`, if not passed an explicit value for the `alt` parameter,
+  now returns the record for the _primary alternative_ rather than the
+  fallback record. Similarly, `Pad.root` now returns the root record
+  for the _primary alternative_. ([#958][], [#965][])
 - Fix for uncaught `OSError(error=EINVAL)` on Windows when `Pad.get`
   was called with a path containing characters which are not allowed
   in Windows filenames (e.g. `<>*?|\/":`).
@@ -47,6 +54,8 @@ These are all the changes in Lektor since the first public release.
 #### Builder
 
 - Pages now record a build dependency on their datamodel `.ini` file.
+- Fix sqlite version detection so that we use "without rowid" optimization
+  with current versions of sqlite. ([#1002][])
 
 #### Command Line
 
@@ -68,6 +77,12 @@ These are all the changes in Lektor since the first public release.
 - Cleaned up and moved our `pylint` and `coverage` configuration to
   `pyproject.toml`. ([#990][], [#991][])
 
+#### Admin UI
+
+- Move frontend source from `lektor/admin/static/` to `frontend/`.
+  Compiled frontend code moved from `lektor/admin/static/gen/` to
+  'lektor/admin/static/`. ([#1003][])
+
 #### Packaging
 
 - Omit `example` subdirectory, frontend source code, developer-centric
@@ -75,8 +90,10 @@ These are all the changes in Lektor since the first public release.
 
 [bsd]: https://opensource.org/licenses/BSD-3-Clause
 [#610]: https://github.com/lektor/lektor/issues/610
+[#958]: https://github.com/lektor/lektor/pull/958
 [#962]: https://github.com/lektor/lektor/issues/962
 [#964]: https://github.com/lektor/lektor/pull/964
+[#965]: https://github.com/lektor/lektor/issues/965
 [#967]: https://github.com/lektor/lektor/pull/967
 [#969]: https://github.com/lektor/lektor/pull/969
 [#972]: https://github.com/lektor/lektor/pull/972
@@ -91,6 +108,8 @@ These are all the changes in Lektor since the first public release.
 [#996]: https://github.com/lektor/lektor/pull/996
 [#998]: https://github.com/lektor/lektor/issues/998
 [#1000]: https://github.com/lektor/lektor/pull/1000
+[#1002]: https://github.com/lektor/lektor/pull/1002
+[#1003]: https://github.com/lektor/lektor/pull/1003
 [jinja-dbg-ext]: https://jinja.palletsprojects.com/en/latest/extensions/#debug-extension
 
 ## 3.3.1 (2022-01-09)
