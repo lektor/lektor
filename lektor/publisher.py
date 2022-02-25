@@ -185,7 +185,7 @@ class RsyncPublisher(Publisher):
 
         delete = options.get("delete", False) in ("", "on", "yes", "true", "1", None)
         if delete:
-            argline.append("--delete-delay")
+            argline.append("--delete-after")
 
         keyfile = _write_ssh_key_file(
             os.path.join(tempdir, "ssh-auth-key"), credentials
