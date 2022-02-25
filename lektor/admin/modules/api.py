@@ -3,6 +3,7 @@ import posixpath
 from functools import wraps
 from typing import Any
 from typing import Callable
+from typing import cast
 from typing import Dict
 from typing import Iterator
 from typing import Optional
@@ -96,9 +97,9 @@ def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
     :param param_model: A pydantic model that specifies the parameters.
     """
 
-    def wrap(f):  # type: ignore[no-untyped-def] # FIXME
+    def wrap(f: F) -> F:
         @wraps(f)
-        def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
+        def wrapper(*args: Any, **kwargs: Any) -> Response:
             if (
                 request.method in ("POST", "PUT")
                 and request.mimetype == "application/json"
@@ -118,7 +119,9 @@ def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
                 return make_response(jsonify(error=error), 400)
             return f(*args, **kwargs)
 
-        return wrapper
+        # This cast seems necessary, atm.
+        # https://github.com/python/mypy/issues/1927
+        return cast(F, wrapper)
 
     return wrap
 
