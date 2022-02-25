@@ -424,7 +424,9 @@ def trigger_clean(ctx: LektorContext) -> Response:
 
 
 class _PublishBuildParams(pydantic.BaseModel):
-    server_info: _ServerInfo = pydantic.Field(alias="server")
+    # Pydantic<1.5 requires a value for the first argument (default),
+    # and recognizes Elipsis as meaning "required".
+    server_info: _ServerInfo = pydantic.Field(..., alias="server")
 
 
 @bp.route("/publish")
