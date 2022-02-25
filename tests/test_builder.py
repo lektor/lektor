@@ -17,7 +17,7 @@ def test_basic_build(pad, builder):
     # Root and its thumbnail image were updated.
     assert artifact in build_state.updated_artifacts
     assert artifact.artifact_name == "index.html"
-    assert artifact.sources == [root.source_filename]
+    assert set(artifact.sources) == set(root.iter_source_filenames())
     assert artifact.updated
     assert artifact.extra is None
     assert artifact.config_hash is None
@@ -34,6 +34,7 @@ def test_child_sources_basic(pad, builder):
         "b",
         "file.ext",
         "hello.txt",
+        "paginated",
         "slash-slug",
     ]
 
@@ -128,6 +129,7 @@ def test_basic_artifact_current_test(pad, builder, reporter):
 
     assert set(reporter.get_recorded_dependencies()) == {
         "Website.lektorproject",
+        "content/blog/post1/contents+en.lr",
         "content/blog/post1/contents.lr",
         "templates/blog-post.html",
         "templates/layout.html",

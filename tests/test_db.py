@@ -1,5 +1,10 @@
+import inspect
 import os
+import re
 from datetime import date
+from pathlib import Path
+
+import pytest
 
 from lektor.context import Context
 from lektor.db import Database
@@ -16,7 +21,7 @@ def test_root(pad):
     assert record is not None
     assert record["title"] == "Welcome"
     assert record["_template"] == "page.html"
-    assert record["_alt"] == "_primary"
+    assert record["_alt"] == "en"
     assert record["_slug"] == ""
     assert record["_id"] == ""
     assert record["_path"] == "/"
@@ -172,6 +177,16 @@ def test_attachment_api(pad):
     assert video["_attachment_type"] == "video"
     assert isinstance(video, Video)
     assert video.url_path == "/test.mp4"
+
+
+@pytest.mark.parametrize("alt", ["_primary", "en", "de"])
+def test_attachment_url_path_with_alt(pad, alt):
+    # Attachments do not vary with alt. There is only one copy of each
+    # attachment, with URL corresponding to the PRIMARY_ALT, emitted.
+    # Check that the .url_path for an attachment points to the correct
+    # URL regardless of alt.
+    img = pad.get("test.jpg", alt=alt)
+    assert img.url_path == "/test.jpg"
 
 
 def test_query_normalization(pad):
@@ -330,3 +345,145 @@ def test_Database_iter_items_invalid_path(env):
     # characters in Database.iter_items.
     db = Database(env)
     assert len(list(db.iter_items("/<foo>"))) == 0
+
+
+def write_files(*path_text_pairs):
+    for path, text in path_text_pairs:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(inspect.cleandoc(text), "utf-8")
+
+
+@pytest.fixture
+def dotted_slug_test_records(scratch_project_data):
+    content_path = Path(scratch_project_data, "content")
+    write_files(
+        (
+            content_path / "test_dotted/contents.lr",
+            """
+            title: Test Dotted
+            ---
+            _slug: subdir/test.dotted
+            """,
+        ),
+        (
+            content_path / "test_dotted/child/contents.lr",
+            """
+            title: Test Dotted Child
+            """,
+        ),
+    )
+
+
+@pytest.fixture
+def primary_alt_is_prefixed(scratch_project_data):
+    project_file = Path(scratch_project_data, "Scratch.lektorproject")
+    content = project_file.read_text(encoding="utf-8")
+    write_files(
+        (
+            project_file,
+            content.replace(
+                "[alternatives.en]\n",
+                ("[alternatives.en]\n" "url_prefix = /en/\n"),
+            ),
+        )
+    )
+
+
+@pytest.fixture
+def paginated_pages(scratch_project_data):
+    project_path = Path(scratch_project_data)
+    write_files(
+        (
+            project_path / "content/paginated/contents.lr",
+            """
+            _model: paginated
+            ---
+            title: Test Paginated
+            """,
+        ),
+        (
+            project_path / "content/paginated.dotted/contents.lr",
+            """
+            _model: paginated
+            ---
+            title: Test Paginated with dotted name
+            """,
+        ),
+        (
+            project_path / "models/paginated.ini",
+            """
+            [model]
+            name = Paginated
+            extends = page
+
+            [pagination]
+            enabled = true
+            """,
+        ),
+    )
+
+
+@pytest.fixture
+def dummy_attachment(scratch_project_data):
+    attachment = Path(scratch_project_data, "content/test.txt")
+    write_files((attachment, "some text"))
+
+
+@pytest.mark.parametrize(
+    "path, clean_url_path",
+    [
+        ("/test_dotted", "subdir/test.dotted"),
+        ("/test_dotted/child", "subdir/_test.dotted/child"),
+    ],
+)
+@pytest.mark.usefixtures("dotted_slug_test_records")
+def test_Record_get_clean_url_path(scratch_pad, path, clean_url_path):
+    record = scratch_pad.get(path)
+    assert record._get_clean_url_path() == clean_url_path
+
+
+@pytest.mark.usefixtures("primary_alt_is_prefixed")
+def test_Record_get_url_path_defaults_to_primary_alt(scratch_pad):
+    record = scratch_pad.get("/")
+    assert record._get_url_path() == "/en"
+
+
+@pytest.mark.parametrize(
+    "path, alt, page_num, url_path",
+    [
+        ("/", "en", None, "/"),
+        ("/", "de", None, "/de/"),
+        ("/paginated", "en", 1, "/paginated/"),
+        ("/paginated", "de", 2, "/de/paginated/page/2/"),
+        ("/test_dotted", "en", None, "/subdir/test.dotted"),
+        ("/test_dotted", "de", None, "/de/subdir/test.dotted"),
+    ],
+)
+@pytest.mark.usefixtures("dotted_slug_test_records", "paginated_pages")
+def test_Page_url_path(scratch_pad, path, alt, page_num, url_path):
+    page = scratch_pad.get(path, alt=alt, page_num=page_num)
+    assert page.url_path == url_path
+
+
+@pytest.mark.usefixtures("primary_alt_is_prefixed")
+def test_Page_url_path_is_for_primary_alt(scratch_pad):
+    page = scratch_pad.get("/")
+    assert page.url_path == "/en/"
+
+
+@pytest.mark.usefixtures("paginated_pages")
+def test_Page_url_path_raise_error_if_paginated_and_dotted(scratch_pad):
+    page = scratch_pad.get("/paginated.dotted")
+    with pytest.raises(Exception) as exc_info:
+        page.url_path  # pylint: disable=pointless-statement
+    assert re.match(
+        r"(?=.*\bextension\b)(?=.*\bpagination\b).*\bcannot be used",
+        str(exc_info.value),
+    )
+
+
+@pytest.mark.parametrize("alt", ["en", "de"])
+@pytest.mark.usefixtures("primary_alt_is_prefixed", "dummy_attachment")
+def test_Attachment_url_path_is_for_primary_alt(scratch_pad, alt):
+    attachment = scratch_pad.get("/test.txt")
+    assert attachment.url_path == "/en/test.txt"
