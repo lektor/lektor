@@ -402,6 +402,13 @@ def test_clean(test_client, webadmin, mocker):
     assert mocker.call.prune(all=True) in builder.mock_calls
 
 
+@pytest.mark.xfail(reason="FIXME")
+def test_publish_requires_post(test_client, mocker):
+    # See https://github.com/lektor/lektor/issues/1006
+    resp = test_client.get("/admin/api/publish?server=unknown")
+    assert resp.status_code == 405
+
+
 def test_publish(test_client, mocker):
     def dummy_publish(env, target, output_path, credentials=None, **extra):
         yield "line1"
@@ -409,7 +416,6 @@ def test_publish(test_client, mocker):
 
     mocker.patch("lektor.admin.modules.api.publish", side_effect=dummy_publish)
 
-    # FIXME: should require POST
     resp = test_client.get("/admin/api/publish?server=production")
     assert resp.status_code == 200
     assert list(resp.response) == [
@@ -427,7 +433,6 @@ def test_publish(test_client, mocker):
     ],
 )
 def test_publish_bad_params(test_client, params):
-    # FIXME: should require POST
     resp = test_client.get(f"/admin/api/publish?{urlencode(params)}")
     assert resp.status_code == 400
     assert "server" in invalid_fields(resp.get_json()["error"])

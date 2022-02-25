@@ -53,7 +53,6 @@ class _ServerInfo(ServerInfo):
 
     @classmethod
     def validate(cls, value: str) -> ServerInfo:
-        # pylint: disable=no-self-argument,no-self-use
         # ATM, there seems to be no clean way to pass context to pydantic
         # validators. https://github.com/samuelcolvin/pydantic/issues/1549
         lektor_config = get_lektor_context().config
@@ -213,16 +212,36 @@ def get_preview_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
 class _FindParams(pydantic.BaseModel):
     q: str
     alt: _AltType = _PRIMARY_ALT
-    lang: Optional[str] = None
+    lang: str
+
+    # NB: Pydantic's checks for duplicate validator names seem kind of
+    # goofy, and — anyway — broken in the case that a module gets
+    # imported more than once. Multiple imports of the same module can
+    # happen for various reasons. The one biting me is running:
+    #
+    #    pytest --cov=lektor.admin.modules.api tests/test_api.py
+    #
+    # (Pytest-cov must import the module passed to --cov once — to find the
+    # source file? — then pytest imports it again when running the tests.)
+    #
+    # So here we pass allow_reuse=True to disable the check altogether.
+    #
+    # Related: https://github.com/samuelcolvin/pydantic/issues/312
+    @pydantic.validator("lang", pre=True, always=True, allow_reuse=True)
+    @classmethod
+    def set_default_lang(cls, value: Optional[str]) -> str:
+        if value is None:
+            return current_app.config.get("lektor.ui_lang", "en")
+        return value
 
 
 @bp.route("/find", methods=["POST"])
 @_with_validated(_FindParams)
 def find(validated: _FindParams, ctx: LektorContext) -> Response:
-    # FIXME: move default to validator
-    lang = validated.lang or current_app.config.get("lektor.ui_lang", "en")
     return jsonify(
-        results=ctx.builder.find_files(validated.q, alt=validated.alt, lang=lang)
+        results=ctx.builder.find_files(
+            validated.q, alt=validated.alt, lang=validated.lang
+        )
     )
 
 
