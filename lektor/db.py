@@ -771,6 +771,8 @@ class Attachment(Record):
 
     def iter_source_filenames(self):
         yield self.source_filename
+        if self.alt != PRIMARY_ALT:
+            yield self.pad.db.to_fs_path(self["_path"]) + ".lr"
         yield self.attachment_filename
 
     @property

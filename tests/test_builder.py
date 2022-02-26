@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from markers import imagemagick
 
 
@@ -87,7 +85,6 @@ def test_child_sources_pagination(pad, builder):
     ]
 
 
-@pytest.mark.xfail(reason="FIXME: Attachment.iter_source_filenames is broken")
 def test_basic_artifact_current_test(pad, builder, reporter):
     post1 = pad.get("blog/post1")
 
