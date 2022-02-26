@@ -222,13 +222,6 @@ def _id_for_dict(value):
         # Alt ignored when resolve=False
         ("../slave", {"alt": "de", "resolve": False}, "../slave"),
         ("../slave", {"alt": "de", "resolve": True}, "../../de/projects/sklave/"),
-        # Lektor: scheme is equivalent to strict_resolve
-        ("lektor:missing", {}, CAN_NOT_RESOLVE),
-        ("lektor:.", {}, "./"),
-        ("lektor:/extra/slash-slug", {}, "../../extra/long/path/"),
-        ("lektor:missing", {"resolve": False}, "lektor:missing"),  # XXX: reasonable?
-        ("lektor:missing", {"strict_resolve": False}, "missing"),
-        ("lektor://localhost:5000/blog", {}, NETLOC_NOT_ALLOWED),
         # Test anchor is preserved
         ("/projects/slave#anchor", {}, "../slave/#anchor"),
         ("missing#anchor", {}, "missing#anchor"),
@@ -253,6 +246,7 @@ def _id_for_dict(value):
         # External urls
         ("http://example.org/slave", {}, "http://example.org/slave"),
         ("//example.com/?q#a", {}, "//example.com/?q#a"),
+        ("some-scheme:foo", {}, "some-scheme:foo"),
     ],
     ids=_id_for_dict,
 )

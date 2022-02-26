@@ -113,7 +113,7 @@ class SourceObject:
         made to resolve the path to a Lektor source object.
 
         If path is a string and strict_resolve=True is passed, then an exception
-        is raise if the path can not be resolved to a Lektor source object.
+        is raised if the path can not be resolved to a Lektor source object.
 
         API CHANGE: It used to be (lektor <= 3.3.1) that if absolute was true-ish,
         then a url_path (URL path relative to the site's ``base_path`` was returned.
@@ -175,13 +175,9 @@ class SourceObject:
     ) -> str:
         """Resolve (possibly relative) URL or db path to URL."""
         url = urlsplit(_url)
-        if (url.scheme or url.netloc) and url.scheme != "lektor":
+        if url.scheme or url.netloc:
             resolved = url
-        elif url.netloc:
-            raise RuntimeError("Netloc not allowed for lektor: scheme links")
         else:
-            if strict is None:
-                strict = url.scheme == "lektor"
             # Interpret path as (possibly relative) db-path
             dbpath = join_path(self.path, url.path)
             params = dict(parse_qsl(url.query, keep_blank_values=False))
