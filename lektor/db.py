@@ -304,11 +304,11 @@ class _SeqExpr(Expression):
                 return item.__eval__(record)
             return item
 
-        if self.__evaluated:
-            return self.__value
-        self.__value = [eval(v) for v in self.__value]
-        self.__evaluated = True
-        return self.__value
+        if not self.__evaluated:
+            # in case we have a generator
+            self.__value = list(self.__value)
+            self.__evaluated = True
+        return (eval(v) for v in self.__value)
 
 
 class _BinExpr(Expression):
