@@ -8,6 +8,7 @@ import os
 import posixpath
 import warnings
 from collections import OrderedDict
+from collections.abc import Collection
 from datetime import timedelta
 from itertools import islice
 from operator import methodcaller
@@ -289,26 +290,21 @@ class _Literal(Expression):
 
 class _SeqExpr(Expression):
     def __init__(self, value):
-        try:
-            iter(value)
-        except TypeError:
-            value = [value]
-        self.__evaluated = False
+        if not isinstance(value, Collection):
+            try:
+                value = list(value)
+            except TypeError:
+                value = [value]
         self.__value = value
 
     def __eval__(self, record):
-        def eval(item):
+        for item in self.__value:
             if isinstance(item, Record):
-                return item["_id"]
-            if isinstance(item, Expression):
-                return item.__eval__(record)
-            return item
-
-        if not self.__evaluated:
-            # in case we have a generator
-            self.__value = list(self.__value)
-            self.__evaluated = True
-        return (eval(v) for v in self.__value)
+                yield item["_id"]
+            elif isinstance(item, Expression):
+                yield item.__eval__(record)
+            else:
+                yield item
 
 
 class _BinExpr(Expression):
