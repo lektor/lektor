@@ -358,6 +358,14 @@ def test_delete_record(scratch_client, mocker, delete_master, expect):
                 "alt": None,
             },
         ),
+        (
+            "/static/demo.css",  # non-Records do not exist
+            {
+                "exists": False,
+                "path": None,
+                "alt": None,
+            },
+        ),
     ],
 )
 def test_match_url(test_client, url_path, expect):
