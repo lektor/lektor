@@ -1,12 +1,25 @@
-import json
 import os
 from operator import itemgetter
 from pathlib import Path
+from urllib.parse import urlencode
 
 import pytest
 
 from lektor.admin import WebAdmin
 from lektor.admin.utils import eventstream
+from lektor.constants import PRIMARY_ALT
+
+
+@pytest.fixture
+def test_client(env, tmp_path):
+    webadmin = WebAdmin(env, output_path=tmp_path / "htdocs")
+    return webadmin.test_client()
+
+
+@pytest.fixture
+def scratch_test_client(scratch_env, tmp_path):
+    webadmin = WebAdmin(scratch_env, output_path=tmp_path / "htdocs")
+    return webadmin.test_client()
 
 
 @pytest.fixture
@@ -57,11 +70,11 @@ def prepare_stub_data(scratch_project, children_records_data):
             )
 
 
-def test_children_sorting_via_api(scratch_project, scratch_env, children_records_data):
-    webadmin = WebAdmin(scratch_env, output_path=scratch_project.tree)
-    data = json.loads(
-        webadmin.test_client().get("/admin/api/recordinfo?path=/myobj").data
-    )
+def test_children_sorting_via_api(scratch_test_client, children_records_data):
+    resp = scratch_test_client.get("/admin/api/recordinfo?path=/myobj")
+    assert resp.status_code == 200
+    data = resp.get_json()
+
     children_records_ids_provided_by_api = list(map(itemgetter("id"), data["children"]))
 
     records_ordered_by_title = sorted(children_records_data, key=itemgetter("title"))
@@ -75,31 +88,27 @@ def test_children_sorting_via_api(scratch_project, scratch_env, children_records
     )
 
 
-def test_recordinfo_children_sort_limited_alts(project, env):
+def test_recordinfo_children_sort_limited_alts(test_client):
     # This excercises the bug described in #962, namely that
     # if a page has a child that only has content in a subset of the
     # configured alts, get_record_info throws an exception.
-    webadmin = WebAdmin(env, output_path=project.tree)
-    data = json.loads(
-        webadmin.test_client().get("/admin/api/recordinfo?path=/projects").data
-    )
-    child_data = data["children"]
+    resp = test_client.get("/admin/api/recordinfo?path=/projects")
+    assert resp.status_code == 200
+    child_data = resp.get_json()["children"]
     assert list(sorted(child_data, key=itemgetter("label"))) == child_data
 
 
-def test_newrecord(scratch_project, scratch_env):
+def test_newrecord(scratch_test_client, scratch_project):
     params = {"path": "/", "id": "new", "data": {}}
-    webadmin = WebAdmin(scratch_env, output_path=scratch_project.tree)
-    resp = webadmin.test_client().post("/admin/api/newrecord", json=params)
+    resp = scratch_test_client.post("/admin/api/newrecord", json=params)
     assert resp.status_code == 200
     assert resp.get_json() == {"valid_id": True, "exists": False, "path": "/new"}
     assert Path(scratch_project.tree, "content", "new", "contents.lr").exists()
 
 
-def test_newrecord_bad_path(scratch_project, scratch_env):
+def test_newrecord_bad_path(scratch_test_client, scratch_project):
     params = {"path": "/../../templates", "id": "", "data": {}}
-    webadmin = WebAdmin(scratch_env, output_path=scratch_project.tree)
-    resp = webadmin.test_client().post("/admin/api/newrecord", json=params)
+    resp = scratch_test_client.post("/admin/api/newrecord", json=params)
     assert resp.status_code == 400
     assert resp.get_data(as_text=True) == "Invalid path"
 
@@ -116,3 +125,39 @@ def test_eventstream_yield_bytes():
         count += 1
         assert isinstance(data, bytes)
     assert count >= 2
+
+
+@pytest.mark.parametrize(
+    "url_path, expect",
+    [
+        (
+            "/blog/2015/12/post1/hello.txt",
+            {
+                "exists": True,
+                "path": "/blog/post1/hello.txt",
+                "alt": PRIMARY_ALT,
+            },
+        ),
+        (
+            "/missing",
+            {
+                "exists": False,
+                "path": None,
+                "alt": None,
+            },
+        ),
+        (
+            "/static/demo.css",  # non-Records do not exist
+            {
+                "exists": False,
+                "path": None,
+                "alt": None,
+            },
+        ),
+    ],
+)
+def test_match_url(test_client, url_path, expect):
+    params = {"url_path": url_path}
+    resp = test_client.get(f"/admin/api/matchurl?{urlencode(params)}")
+    assert resp.status_code == 200
+    assert resp.get_json() == expect

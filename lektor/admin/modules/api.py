@@ -11,6 +11,7 @@ from flask import request
 
 from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
+from lektor.db import Record
 from lektor.publisher import publish
 from lektor.publisher import PublishError
 from lektor.utils import cleanup_path
@@ -164,10 +165,15 @@ def browsefs():
 
 @bp.route("/matchurl")
 def match_url():
+    """Find the Record that corresponds to a URL.
+
+    This is used by the admin UI to find the db record that corresponds
+    to a page when the preview iframe is navigated.
+    """
     record = g.admin_context.pad.resolve_url_path(
         request.args["url_path"], alt_fallback=False
     )
-    if record is None:
+    if not isinstance(record, Record):
         return jsonify(exists=False, path=None, alt=None)
     return jsonify(exists=True, path=record["_path"], alt=record["_alt"])
 
