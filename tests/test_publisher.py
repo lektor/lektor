@@ -1,9 +1,14 @@
 import gc
+import os
 import sys
 import warnings
 import weakref
+from shutil import which
+
+import pytest
 
 from lektor.publisher import Command
+from lektor.publisher import publish
 
 
 def test_Command_triggers_no_warnings():
@@ -31,3 +36,31 @@ def test_Command_triggers_no_warnings():
             "Unable to trigger garbage collection of Command instance, "
             "so unable to check for warnings issued during finalization."
         )
+
+
+@pytest.mark.skipif(
+    which("rsync") is None, reason="rsync is not available on this system"
+)
+@pytest.mark.parametrize("delete", ["yes", "no"])
+def test_RsyncPublisher_integration(env, tmp_path, delete):
+    # Integration test of local rsync deployment
+    # Ensures that RsyncPublisher can successfully invoke rsync
+    files = {"file.txt": "content\n"}
+    output = tmp_path / "output"
+    output.mkdir()
+    for path, content in files.items():
+        output.joinpath(path).write_text(content)
+
+    target_path = tmp_path / "target"
+    target_path.mkdir()
+    target = f"rsync://{target_path.resolve()}?delete={delete}"
+
+    event_iter = publish(env, target, output)
+    for line in event_iter:
+        print(line)
+
+    target_files = {
+        os.fspath(_.relative_to(target_path)): _.read_text()
+        for _ in target_path.iterdir()
+    }
+    assert target_files == files
