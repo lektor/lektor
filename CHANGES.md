@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.3.2 (unreleased)
+## 3.3.2 (2022-03-01)
 
 ### Features
 
@@ -61,6 +61,7 @@ These are all the changes in Lektor since the first public release.
 
 - When running `lektor dev new-theme`: fix check for ability to create symlinks
   under Windows. ([#996][])
+- Fix _rsync_ publisher when deletion enabled on macOS. ([#946][], [#954][])
 
 #### Tests
 
@@ -90,6 +91,8 @@ These are all the changes in Lektor since the first public release.
 
 [bsd]: https://opensource.org/licenses/BSD-3-Clause
 [#610]: https://github.com/lektor/lektor/issues/610
+[#946]: https://github.com/lektor/lektor/issues/946
+[#954]: https://github.com/lektor/lektor/pull/954
 [#958]: https://github.com/lektor/lektor/pull/958
 [#962]: https://github.com/lektor/lektor/issues/962
 [#964]: https://github.com/lektor/lektor/pull/964
