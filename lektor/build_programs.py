@@ -5,6 +5,7 @@ from itertools import chain
 from lektor.assets import Directory
 from lektor.assets import File
 from lektor.constants import PRIMARY_ALT
+from lektor.context import get_ctx
 from lektor.db import Attachment
 from lektor.db import Page
 from lektor.exception import LektorException
@@ -177,7 +178,7 @@ class PageBuildProgram(BuildProgram):
 
     def build_artifact(self, artifact):
         # Record dependecies on all our sources and datamodel
-        self.source.pad.db.track_record_dependency(self.source)
+        get_ctx().track_source_dependency(self.source)
 
         try:
             self.source.url_path.encode("ascii")

@@ -94,6 +94,7 @@ class Context:
         # Processing information
         self.referenced_dependencies = set()
         self.referenced_virtual_dependencies = set()
+        self._tracked_sources = set()
         self.sub_artifacts = []
 
         self.flow_block_render_stack = []
@@ -244,6 +245,25 @@ class Context:
         self.referenced_virtual_dependencies.add(virtual_source)
         for coll in self._dependency_collectors:
             coll(virtual_source)
+
+    def track_source_dependency(self, source):
+        """Track all dependencies of source object"""
+        if source not in self._tracked_sources:
+            self._tracked_sources.add(source)
+            for filename in source.iter_source_filenames():
+                self.record_dependency(filename)
+            for virtual_source in source.iter_virtual_sources():
+                self.record_virtual_dependency(virtual_source)
+
+            if hasattr(source, "datamodel"):
+                db = source.pad.db
+                for model in db.iter_dependent_models(source.datamodel):
+                    if model.filename:
+                        self.record_dependency(model.filename)
+                # XXX: In the case that the record's datamodel is
+                # implied, then the datamodel depends on the
+                # datamodel(s) of our parent(s).  We do not currently
+                # record that.
 
     @contextmanager
     def gather_dependencies(self, func):

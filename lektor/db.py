@@ -27,6 +27,7 @@ from lektor.context import get_ctx
 from lektor.databags import Databags
 from lektor.datamodel import load_datamodels
 from lektor.datamodel import load_flowblocks
+from lektor.editor import implied_keys as IMPLIED_KEYS  # FIXME: refactor
 from lektor.editor import make_editor_session
 from lektor.filecontents import FileContents
 from lektor.imagetools import get_image_info
@@ -271,7 +272,7 @@ class _ContainmentExpr(Expression):
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
-            item = item["_id"]
+            item = item._data["_id"]
         return item in seq
 
 
@@ -371,9 +372,10 @@ class Record(DBSourceObject):
         return FileContents(self.source_filename)
 
     def get_fallback_record_label(self, lang):
-        if not self["_id"]:
+        id_ = self._data["_id"]
+        if not id_:
             return "(Index)"
-        return self["_id"].replace("-", " ").replace("_", " ").title()
+        return id_.replace("-", " ").replace("_", " ").title()
 
     def get_record_label_i18n(self):
         rv = {}
@@ -462,6 +464,15 @@ class Record(DBSourceObject):
         return name in self._data and not is_undefined(self._data[name])
 
     def __getitem__(self, name):
+        if name in IMPLIED_KEYS:
+            # These are always stored as plain strings in the raw _data.
+            # Furthermore, these values do not come form the ``.lr`` files, so
+            # accessing them should not result in tracking dependency on the record.
+            return self._data[name]
+
+        ctx = get_ctx()
+        if ctx is not None:
+            ctx.track_source_dependency(self)
         rv = self._bound_data.get(name, Ellipsis)
         if rv is not Ellipsis:
             return rv
@@ -660,7 +671,7 @@ class Page(Record):
         siblings = Siblings(self, *self._siblings)
         ctx = get_ctx()
         if ctx:
-            ctx.pad.db.track_record_dependency(siblings)
+            ctx.track_source_dependency(siblings)
         return siblings
 
     @cached_property
@@ -726,7 +737,7 @@ class Attachment(Record):
         return FileContents(self.attachment_filename)
 
     def get_fallback_record_label(self, lang):
-        return self["_id"]
+        return self._data["_id"]
 
     def iter_source_filenames(self):
         attachment_filename = self.attachment_filename
@@ -996,18 +1007,18 @@ class Query:
 
     def _iterate(self):
         """Low level record iteration."""
-        # If we iterate over children we also need to track those
-        # dependencies.  There are two ways in which we track them.  The
-        # first is through the start record of the query.  If that does
-        # not work for whatever reason (because it does not exist for
-        # instance).
-        self_record = self.pad.get(self.path, alt=self.alt)
-        if self_record is not None:
-            self.pad.db.track_record_dependency(self_record)
-
-        # We also always want to record the path itself as dependency.
         ctx = get_ctx()
         if ctx is not None:
+            # If we iterate over children we also need to track those
+            # dependencies.  There are two ways in which we track
+            # them.  The first is through the start record of the
+            # query.  If that does not work for whatever reason
+            # (because it does not exist for instance).
+            self_record = self.pad.get(self.path, alt=self.alt)
+            if self_record is not None:
+                ctx.track_source_dependency(self_record)
+
+            # We also always want to record the path itself as dependency.
             ctx.record_dependency(self.pad.db.to_fs_path(self.path))
 
         for name, _, is_attachment in self.pad.db.iter_items(self.path, alt=self.alt):
@@ -1471,27 +1482,12 @@ class Database:
         """Gets the attachment type for a path."""
         return self.config["ATTACHMENT_TYPES"].get(posixpath.splitext(path)[1].lower())
 
-    def track_record_dependency(self, record):
+    # FIXME: deprecate this method
+    @staticmethod
+    def track_record_dependency(record):
         ctx = get_ctx()
         if ctx is not None:
-            for filename in record.iter_source_filenames():
-                if isinstance(record, Attachment):
-                    # For Attachments, the actually attachment data
-                    # does not affect the URL of the attachment.
-                    affects_url = filename != record.attachment_filename
-                else:
-                    affects_url = True
-                ctx.record_dependency(filename, affects_url=affects_url)
-            for virtual_source in record.iter_virtual_sources():
-                ctx.record_virtual_dependency(virtual_source)
-            if getattr(record, "datamodel", None) and record.datamodel.filename:
-                ctx.record_dependency(record.datamodel.filename)
-                for dep_model in self.iter_dependent_models(record.datamodel):
-                    if dep_model.filename:
-                        ctx.record_dependency(dep_model.filename)
-            # XXX: In the case that our datamodel is implied, then the
-            # datamodel depends on the datamodel(s) of our parent(s).
-            # We do not currently record that.
+            ctx.track_source_dependency(record)
         return record
 
     def process_data(self, data, datamodel, pad):
@@ -1746,24 +1742,25 @@ class Pad:
             virtual_path = str(page_num)
 
         rv = self.cache.get(path, alt, virtual_path)
-        if rv is not Ellipsis:
-            if rv is not None:
-                self.db.track_record_dependency(rv)
-            return rv
-
-        raw_data = self.db.load_raw_data(path, alt=alt)
-        if raw_data is None:
-            self.cache.remember_as_missing(path, alt, virtual_path)
+        if rv is None:
             return None
+        if rv is Ellipsis:
+            raw_data = self.db.load_raw_data(path, alt=alt)
+            if raw_data is None:
+                self.cache.remember_as_missing(path, alt, virtual_path)
+                return None
 
-        rv = self.instance_from_data(raw_data, page_num=page_num)
+            rv = self.instance_from_data(raw_data, page_num=page_num)
 
-        if persist:
-            self.cache.persist(rv)
-        else:
-            self.cache.remember(rv)
+            if persist:
+                self.cache.persist(rv)
+            else:
+                self.cache.remember(rv)
 
-        return self.db.track_record_dependency(rv)
+        ctx = get_ctx()
+        if ctx is not None:
+            ctx.track_source_dependency(rv)
+        return rv
 
     def alt_exists(self, path, alt=PRIMARY_ALT, fallback=False):
         """Checks if an alt exists."""
@@ -1775,10 +1772,10 @@ class Pad:
         # the right source alt.
         rv = self.get(path, alt)
         if rv is not None:
-            if rv["_source_alt"] == alt:
+            if rv._data["_source_alt"] == alt:
                 return True
             if fallback or (
-                rv["_source_alt"] == PRIMARY_ALT
+                rv._data["_source_alt"] == PRIMARY_ALT
                 and alt == self.config.primary_alternative
             ):
                 return True
