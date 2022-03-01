@@ -367,6 +367,7 @@ class Record(DBSourceObject):
 
     @cached_property
     def contents(self):
+        # FIXME: unused. Deprecate?
         return FileContents(self.source_filename)
 
     def get_fallback_record_label(self, lang):
@@ -502,23 +503,13 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
         return self._next_page
 
     def iter_source_filenames(self):
-        for page in self._prev_page, self._next_page:
-            if page:
-                yield page.source_filename
-
-    def _file_infos(self, path_cache):
-        for page in self._prev_page, self._next_page:
-            if page:
-                yield path_cache.get_file_info(page.source_filename)
-
-    def get_mtime(self, path_cache):
-        mtimes = [i.mtime for i in self._file_infos(path_cache)]
-        return max(mtimes) if mtimes else None
+        return ()
 
     def get_checksum(self, path_cache):
-        sums = "|".join(i.filename_and_checksum for i in self._file_infos(path_cache))
+        def path(page):
+            return page.path if page is not None else ""
 
-        return sums or None
+        return f"{path(self._prev_page)}|{path(self._next_page)}"
 
 
 def siblings_resolver(node, url_path):
