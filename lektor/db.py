@@ -559,18 +559,11 @@ class Page(Record):
             alt=self.alt,
         )
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            return os.path.join(
-                self.pad.db.to_fs_path(self["_path"]), "contents+%s.lr" % self.alt
-            )
-        return os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
-
     def iter_source_filenames(self):
-        yield self.source_filename
+        fs_path = self.pad.db.to_fs_path(self._data["_path"])
         if self.alt != PRIMARY_ALT:
-            yield os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
+            yield os.path.join(fs_path, f"contents+{self.alt}.lr")
+        yield os.path.join(fs_path, "contents.lr")
 
     @property
     def url_path(self):
@@ -723,14 +716,6 @@ class Attachment(Record):
     """This represents a loaded attachment."""
 
     is_attachment = True
-
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            suffix = "+%s.lr" % self.alt
-        else:
-            suffix = ".lr"
-        return self.pad.db.to_fs_path(self["_path"]) + suffix
 
     def _is_considered_hidden(self):
         # Attachments are only considered hidden if they have been

@@ -77,7 +77,7 @@ def test_asset_children(asset, child_names):
 
 @pytest.mark.parametrize("asset_path", ["/static"])
 def test_asset_children_no_children_if_dir_unreadable(asset):
-    asset.source_filename += "-missing"
+    asset._source_filename += "-missing"
     assert len(set(asset.children)) == 0
 
 

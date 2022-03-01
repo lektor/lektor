@@ -27,7 +27,13 @@ class SourceObject:
 
     @property
     def source_filename(self):
-        """The primary source filename of this source object."""
+        """The primary source filename of this source object.
+
+        In general, subclasses should implement/override ``iter_source_filenames``
+        rather than this property.
+        """
+        source_filenames = self.iter_source_filenames()
+        return next(iter(source_filenames), None)
 
     is_hidden = False
     is_discoverable = True
@@ -43,13 +49,16 @@ class SourceObject:
         return not self.is_discoverable
 
     def iter_source_filenames(self):
-        fn = self.source_filename
-        if fn is not None:
-            yield self.source_filename
+        """An iterable of the source filenames for this source object.
+
+        The first returned filename should be the "primary" one.
+        """
+        # pylint: disable=no-self-use
+        return ()
 
     def iter_virtual_sources(self):
         # pylint: disable=no-self-use
-        return []
+        return ()
 
     @property
     def url_path(self):
@@ -234,9 +243,8 @@ class VirtualSourceObject(SourceObject):
     def alt(self):
         return self.record.alt
 
-    @property
-    def source_filename(self):
-        return self.record.source_filename
+    def iter_source_filenames(self):
+        return self.record.iter_source_filenames()
 
     def iter_virtual_sources(self):
         yield self

@@ -12,7 +12,7 @@ def get_asset(pad, filename, parent=None):
         return None
 
     try:
-        stat_obj = os.stat(os.path.join(parent.source_filename, filename))
+        stat_obj = os.stat(os.path.join(parent._source_filename, filename))
     except OSError:
         return None
     if stat.S_ISDIR(stat_obj.st_mode):
@@ -24,11 +24,7 @@ def get_asset(pad, filename, parent=None):
 
 
 class Asset(SourceObject):
-    # Source specific overrides.  The source_filename to none removes
-    # the inherited descriptor.
     source_classification = "asset"
-    source_filename = None
-
     artifact_extension = ""
 
     def __init__(self, pad, name, path=None, parent=None):
@@ -36,11 +32,14 @@ class Asset(SourceObject):
         if parent is not None:
             if path is None:
                 path = name
-            path = os.path.join(parent.source_filename, path)
-        self.source_filename = path
+            path = os.path.join(parent._source_filename, path)
+        self._source_filename = path
 
         self.name = name
         self.parent = parent
+
+    def iter_source_filenames(self):
+        yield self._source_filename
 
     @property
     def url_name(self):
@@ -99,7 +98,7 @@ class Directory(Asset):
     @property
     def children(self):
         try:
-            files = os.listdir(self.source_filename)
+            files = os.listdir(self._source_filename)
         except OSError:
             return
 
