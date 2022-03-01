@@ -764,10 +764,11 @@ class Attachment(Record):
         return self["_id"]
 
     def iter_source_filenames(self):
-        yield self.source_filename
+        attachment_filename = self.attachment_filename
         if self.alt != PRIMARY_ALT:
-            yield self.pad.db.to_fs_path(self["_path"]) + ".lr"
-        yield self.attachment_filename
+            yield f"{attachment_filename}+{self.alt}.lr"
+        yield f"{attachment_filename}.lr"
+        yield attachment_filename
 
     @property
     def url_path(self):
