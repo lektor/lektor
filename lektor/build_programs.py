@@ -5,7 +5,6 @@ from itertools import chain
 from lektor.assets import Directory
 from lektor.assets import File
 from lektor.constants import PRIMARY_ALT
-from lektor.context import get_ctx
 from lektor.db import Attachment
 from lektor.db import Page
 from lektor.exception import LektorException
@@ -177,9 +176,8 @@ class PageBuildProgram(BuildProgram):
             )
 
     def build_artifact(self, artifact):
-        # Record dependecies on all our sources and datamodel
-        get_ctx().track_source_dependency(self.source)
-
+        # FIXME: This check should probably be moved into Artifact so that it
+        # is applied for all artifacts, not just those built from Pages.
         try:
             self.source.url_path.encode("ascii")
         except UnicodeError as error:

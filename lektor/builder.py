@@ -676,7 +676,12 @@ artifacts_row = namedtuple(
 
 
 class Artifact:
-    """This class represents a build artifact."""
+    """This class represents a build artifact.
+
+    :param sources: The _primary sources_ for the artifact.
+        If none of the primary sources for an artifact exist, the artifact
+        will be considered obsolete and will be deleted at the next pruning.
+    """
 
     def __init__(
         self,
@@ -946,8 +951,11 @@ class Artifact:
         """
         ctx = self.begin_update()
         try:
+            if self.source_obj:
+                # Record dependencies on all sources and datamodel
+                ctx.track_source_dependency(self.source_obj)
             yield ctx
-        except:  # pylint: disable=bare-except  # noqa
+        except BaseException:
             exc_info = sys.exc_info()
             self.finish_update(ctx, exc_info)
         else:
