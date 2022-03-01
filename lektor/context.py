@@ -241,8 +241,8 @@ class Context:
 
     def record_virtual_dependency(self, virtual_source):
         """Records a dependency from processing."""
-        path = virtual_source.path
-        self.referenced_virtual_dependencies[path] = virtual_source
+        key = virtual_source.path, virtual_source.alt
+        self.referenced_virtual_dependencies[key] = virtual_source
         for coll in self._dependency_collectors:
             coll(virtual_source)
 

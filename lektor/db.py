@@ -332,7 +332,7 @@ class Record(SourceObject):
     @property
     def alt(self):
         """Returns the alt of this source object."""
-        return self["_alt"]
+        return self._data["_alt"]
 
     @property
     def is_hidden(self):
@@ -436,7 +436,7 @@ class Record(SourceObject):
 
     @property
     def path(self):
-        return self["_path"]
+        return self._data["_path"]
 
     def get_sort_key(self, fields):
         """Returns a sort key for the given field specifications specific
@@ -475,16 +475,17 @@ class Record(SourceObject):
             return True
         if self.__class__ != other.__class__:
             return False
-        return self["_path"] == other["_path"]
+        # NB: self.path potentially includes page_num for Pages
+        return self.path == other.path and self.alt == other.alt
 
     def __hash__(self):
-        return hash(self.path)
+        return hash((self.path, self.alt))
 
     def __repr__(self):
         return "<%s model=%r path=%r%s%s>" % (
             self.__class__.__name__,
-            self["_model"],
-            self["_path"],
+            self._data["_model"],
+            self._data["_path"],
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
             self.page_num is not None and " page_num=%r" % self.page_num or "",
         )
@@ -543,7 +544,7 @@ class Page(Record):
 
     @cached_property
     def path(self):
-        rv = self["_path"]
+        rv = self._data["_path"]
         if self.page_num is not None:
             rv = "%s@%s" % (rv, self.page_num)
         return rv
@@ -553,7 +554,9 @@ class Page(Record):
         if self.page_num is None:
             return self
         return self.pad.get(
-            self["_path"], persist=self.pad.cache.is_persistent(self), alt=self.alt
+            self._data["_path"],
+            persist=self.pad.cache.is_persistent(self),
+            alt=self.alt,
         )
 
     @property
@@ -663,12 +666,12 @@ class Page(Record):
         repl_query = self.datamodel.get_child_replacements(self)
         if repl_query is not None:
             return repl_query.include_undiscoverable(False)
-        return Query(path=self["_path"], pad=self.pad, alt=self.alt)
+        return Query(path=self._data["_path"], pad=self.pad, alt=self.alt)
 
     @property
     def attachments(self):
         """Returns a query for the attachments of this record."""
-        return AttachmentsQuery(path=self["_path"], pad=self.pad, alt=self.alt)
+        return AttachmentsQuery(path=self._data["_path"], pad=self.pad, alt=self.alt)
 
     def has_prev(self):
         return self.get_siblings().prev_page is not None
@@ -744,7 +747,7 @@ class Attachment(Record):
 
     @property
     def attachment_filename(self):
-        return self.pad.db.to_fs_path(self["_path"])
+        return self.pad.db.to_fs_path(self._data["_path"])
 
     @property
     def parent(self):
@@ -1733,7 +1736,7 @@ class Pad:
         if pieces[0].isdigit():
             if len(pieces) == 1:
                 return self.get(
-                    record["_path"], alt=record.alt, page_num=int(pieces[0])
+                    record._data["_path"], alt=record.alt, page_num=int(pieces[0])
                 )
             return None
 
