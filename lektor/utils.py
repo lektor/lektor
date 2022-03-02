@@ -15,7 +15,6 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import PurePosixPath
 
-import click
 from jinja2 import is_undefined
 from markupsafe import Markup
 from slugify import slugify as _slugify
@@ -645,10 +644,6 @@ def format_lat_long(lat=None, long=None, secs=True):
     if long is not None:
         rv.append(_format(long, "EW"))
     return u", ".join(rv)
-
-
-def get_app_dir():
-    return click.get_app_dir("Lektor")
 
 
 def get_cache_dir():
