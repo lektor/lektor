@@ -99,6 +99,9 @@ jobs:
             pip-cache-dir: ~\AppData\Local\pip\Cache
           - python: "3.10"
             install-imagemagick: true
+    env:
+      # Run the slow tests.
+      PYTEST_ADDOPTS: --runslow
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
