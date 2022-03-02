@@ -2,22 +2,18 @@
 import codecs
 import hashlib
 import json
-import multiprocessing
 import os
 import posixpath
 import re
 import subprocess
 import sys
 import tempfile
-import traceback
 import unicodedata
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import PurePosixPath
-from queue import Queue
-from threading import Thread
 
 import click
 from jinja2 import is_undefined
@@ -347,44 +343,6 @@ def htmlsafe_json_dump(obj, **kwargs):
 
 def tojson_filter(obj, **kwargs):
     return Markup(htmlsafe_json_dump(obj, **kwargs))
-
-
-def safe_call(func, args=None, kwargs=None):
-    try:
-        return func(*(args or ()), **(kwargs or {}))
-    except Exception:
-        # XXX: logging
-        traceback.print_exc()
-        return None
-
-
-class Worker(Thread):
-    def __init__(self, tasks):
-        Thread.__init__(self)
-        self.tasks = tasks
-        self.daemon = True
-        self.start()
-
-    def run(self):
-        while 1:
-            func, args, kwargs = self.tasks.get()
-            safe_call(func, args, kwargs)
-            self.tasks.task_done()
-
-
-class WorkerPool:
-    def __init__(self, num_threads=None):
-        if num_threads is None:
-            num_threads = multiprocessing.cpu_count()
-        self.tasks = Queue(num_threads)
-        for _ in range(num_threads):
-            Worker(self.tasks)
-
-    def add_task(self, func, *args, **kargs):
-        self.tasks.put((func, args, kargs))
-
-    def wait_for_completion(self):
-        self.tasks.join()
 
 
 class Url:
