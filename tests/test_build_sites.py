@@ -6,6 +6,7 @@ from shutil import which
 from subprocess import run
 
 import pytest
+from markers import imagemagick
 
 
 @pytest.fixture(autouse=True)
@@ -30,29 +31,30 @@ def build_project(tmp_path):
     return build_project
 
 
-def _not_unbuildable(path):
-    # This one is not actually buildable (due to bad page id 'bäd')
-    return path.name != "ünicöde-project"
+requires_ffmpeg = pytest.mark.skipif(
+    not all(which(_) for _ in ("ffmpeg", "ffprobe")),
+    reason="requires ffmpeg and ffprobe",
+)
 
 
-def iter_projects(path=Path.cwd(), maxdepth=2, filter=_not_unbuildable):
-    if filter(path) and any(path.glob("*.lektorproject")):
-        yield str(path.relative_to(Path.cwd()))
-
-    if maxdepth > 0:
-        for subdir in path.iterdir():
-            if subdir.is_dir():
-                yield from iter_projects(subdir, maxdepth=maxdepth - 1)
-
-
-@pytest.mark.parametrize("project", iter_projects())
+@pytest.mark.parametrize(
+    "project",
+    [
+        "tests/child-sources-test-project",
+        "tests/dependency-test-project",
+        pytest.param("example", marks=imagemagick),
+        pytest.param("tests/demo-project", marks=(imagemagick, requires_ffmpeg)),
+    ],
+)
 def test_build_project(project, build_project):
-    build_project(project)
+    project_path = Path(__file__).parent.parent / project
+    build_project(project_path)
 
 
 @pytest.mark.skipif(not which("git"), reason="git not installed")
 @pytest.mark.requiresinternet
 @pytest.mark.slowtest
+@imagemagick
 def test_build_lektor_website(tmp_path, build_project):
     repo = "https://github.com/lektor/lektor-website.git"
     project_dir = tmp_path / "project"
