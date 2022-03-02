@@ -33,7 +33,7 @@ from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import read_exif
 from lektor.imagetools import ThumbnailMode
-from lektor.sourceobj import SourceObject
+from lektor.sourceobj import DBSourceObject
 from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
@@ -302,12 +302,12 @@ class _RecordQueryProxy:
 F = _RecordQueryProxy()
 
 
-class Record(SourceObject):
+class Record(DBSourceObject):
     source_classification = "record"
     supports_pagination = False
 
     def __init__(self, pad, data, page_num=None):
-        SourceObject.__init__(self, pad)
+        super().__init__(pad)
         self._data = data
         self._bound_data = {}
         if page_num is not None and not self.supports_pagination:
@@ -469,17 +469,6 @@ class Record(SourceObject):
             rv = rv.__get__(self)
         self._bound_data[name] = rv
         return rv
-
-    def __eq__(self, other):
-        if self is other:
-            return True
-        if self.__class__ != other.__class__:
-            return False
-        # NB: self.path potentially includes page_num for Pages
-        return self.path == other.path and self.alt == other.alt
-
-    def __hash__(self):
-        return hash((self.path, self.alt))
 
     def __repr__(self):
         return "<%s model=%r path=%r%s%s>" % (
