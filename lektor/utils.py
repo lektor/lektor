@@ -645,6 +645,9 @@ class URLBuilder:
 
 
 def build_url(iterable, trailing_slash=None):
+    # NB: While this function is not used by Lektor itself, it is used
+    # by a number of plugins including: lektor-atom,
+    # lektor-gemini-capsule, lektor-index-pages, and lektor-tags.
     builder = URLBuilder()
     for item in iterable:
         builder.append(item)
