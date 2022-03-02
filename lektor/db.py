@@ -8,6 +8,7 @@ import os
 import posixpath
 from collections import OrderedDict
 from datetime import timedelta
+from functools import total_ordering
 from itertools import islice
 from operator import methodcaller
 
@@ -91,6 +92,7 @@ def _require_ctx(record):
     return ctx
 
 
+@total_ordering
 class _CmpHelper:
     def __init__(self, value, reverse):
         self.value = value
@@ -124,9 +126,6 @@ class _CmpHelper:
         a, b = self.coerce(self.value, other.value)
         return a == b
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __lt__(self, other):
         a, b = self.coerce(self.value, other.value)
         try:
@@ -138,15 +137,6 @@ class _CmpHelper:
             if self.reverse:
                 return a is not None
             return a is None
-
-    def __gt__(self, other):
-        return not (self.__lt__(other) or self.__eq__(other))
-
-    def __le__(self, other):
-        return self.__lt__(other) or self.__eq__(other)
-
-    def __ge__(self, other):
-        return not self.__lt__(other)
 
 
 def _auto_wrap_expr(value):
@@ -486,9 +476,6 @@ class Record(SourceObject):
         if self.__class__ != other.__class__:
             return False
         return self["_path"] == other["_path"]
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __hash__(self):
         return hash(self.path)
