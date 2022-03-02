@@ -23,7 +23,7 @@ def build_project(tmp_path):
 
     def build_project(project_dir):
         run(
-            (sys.executable, "-m", "lektor", "build", "-O", output_dir),
+            (sys.executable, "-m", "lektor", "build", "-O", output_dir.__fspath__()),
             cwd=project_dir,
             check=True,
         )
@@ -59,5 +59,5 @@ def test_build_lektor_website(tmp_path, build_project):
     repo = "https://github.com/lektor/lektor-website.git"
     project_dir = tmp_path / "project"
 
-    run(("git", "clone", "--depth=1", repo, project_dir), check=True)
+    run(("git", "clone", "--depth=1", repo, project_dir.__fspath__()), check=True)
     build_project(project_dir)
