@@ -1000,17 +1000,6 @@ class Query:
         self._page_num = None
         self._filter_func = None
 
-    def __get_lektor_param_hash__(self, h):
-        h.update(str(self.alt))
-        h.update(str(self._include_pages))
-        h.update(str(self._include_attachments))
-        h.update("(%s)" % "|".join(self._order_by or ()).encode("utf-8"))
-        h.update(str(self._limit))
-        h.update(str(self._offset))
-        h.update(str(self._include_hidden))
-        h.update(str(self._include_undiscoverable))
-        h.update(str(self._page_num))
-
     @property
     def self(self):
         """Returns the object this query starts out from."""

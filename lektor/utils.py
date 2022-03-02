@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import codecs
-import hashlib
 import json
 import os
 import posixpath
@@ -560,46 +559,6 @@ def get_relative_path(source, target):
     # We should never get here.  (The last ancestor in source.parents will
     # be '.' — target.relative_to('.') will always succeed.)
     raise AssertionError("This should not happen")
-
-
-def get_structure_hash(params):
-    """Given a Python structure this generates a hash.  This is useful for
-    storing artifact config hashes.  Not all Python types are supported, but
-    quite a few are.
-    """
-    h = hashlib.md5()
-
-    def _hash(obj):
-        if obj is None:
-            h.update("N;")
-        elif obj is True:
-            h.update("T;")
-        elif obj is False:
-            h.update("F;")
-        elif isinstance(obj, dict):
-            h.update("D%d;" % len(obj))
-            for key, value in sorted(obj.items()):
-                _hash(key)
-                _hash(value)
-        elif isinstance(obj, tuple):
-            h.update("T%d;" % len(obj))
-            for item in obj:
-                _hash(item)
-        elif isinstance(obj, list):
-            h.update("L%d;" % len(obj))
-            for item in obj:
-                _hash(item)
-        elif isinstance(obj, int):
-            h.update("T%d;" % obj)
-        elif isinstance(obj, bytes):
-            h.update("B%d;%s;" % (len(obj), obj))
-        elif isinstance(obj, str):
-            h.update("S%d;%s;" % (len(obj), obj.encode("utf-8")))
-        elif hasattr(obj, "__get_lektor_param_hash__"):
-            obj.__get_lektor_param_hash__(h)
-
-    _hash(params)
-    return h.hexdigest()
 
 
 def profile_func(func):
