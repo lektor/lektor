@@ -3,7 +3,7 @@ all: build-js
 .PHONY: build-js
 build-js: frontend/node_modules
 	@echo "---> building static files"
-	@cd frontend; npm run webpack
+	@cd frontend; npm run build
 
 frontend/node_modules: frontend/package-lock.json
 	@echo "---> installing npm dependencies"

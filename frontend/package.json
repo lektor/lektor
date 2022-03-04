@@ -27,6 +27,8 @@
     "babel-plugin-istanbul": "^6.0.0",
     "bootstrap": "^5.0.2",
     "css-loader": "^6.2.0",
+    "esbuild": "^0.14.25",
+    "esbuild-register": "^3.3.2",
     "eslint": "^8.4.1",
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
@@ -41,7 +43,7 @@
     "react-dom": "^17.0.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "sass": "^1.32.7",
+    "sass": "^1.49.9",
     "sass-loader": "^12.1.0",
     "style-loader": "^3.2.1",
     "typescript": "^4.1.3",
@@ -50,8 +52,9 @@
   },
   "scripts": {
     "test": "nyc mocha",
+    "build": "node -r esbuild-register build.ts",
+    "dev": "node -r esbuild-register build.ts --watch",
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov",
-    "dev": "webpack --watch",
     "webpack": "webpack"
   },
   "targets": "defaults",
@@ -74,9 +77,7 @@
       "js/**/*.test.ts",
       "js/**/*.test.tsx"
     ],
-    "require": [
-      "./babel-require.js"
-    ]
+    "require": "esbuild-register"
   },
   "nyc": {
     "extension": [
@@ -89,8 +90,6 @@
       "text",
       "html"
     ],
-    "require": [
-      "./babel-require.js"
-    ]
+    "require": "esbuild-register"
   }
 }
