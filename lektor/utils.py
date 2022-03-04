@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
 import codecs
-import hashlib
 import json
-import multiprocessing
 import os
 import posixpath
 import re
 import subprocess
 import sys
 import tempfile
-import traceback
 import unicodedata
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import PurePosixPath
-from queue import Queue
-from threading import Thread
 
-import click
 from jinja2 import is_undefined
 from markupsafe import Markup
 from slugify import slugify as _slugify
@@ -349,44 +343,6 @@ def tojson_filter(obj, **kwargs):
     return Markup(htmlsafe_json_dump(obj, **kwargs))
 
 
-def safe_call(func, args=None, kwargs=None):
-    try:
-        return func(*(args or ()), **(kwargs or {}))
-    except Exception:
-        # XXX: logging
-        traceback.print_exc()
-        return None
-
-
-class Worker(Thread):
-    def __init__(self, tasks):
-        Thread.__init__(self)
-        self.tasks = tasks
-        self.daemon = True
-        self.start()
-
-    def run(self):
-        while 1:
-            func, args, kwargs = self.tasks.get()
-            safe_call(func, args, kwargs)
-            self.tasks.task_done()
-
-
-class WorkerPool:
-    def __init__(self, num_threads=None):
-        if num_threads is None:
-            num_threads = multiprocessing.cpu_count()
-        self.tasks = Queue(num_threads)
-        for _ in range(num_threads):
-            Worker(self.tasks)
-
-    def add_task(self, func, *args, **kargs):
-        self.tasks.put((func, args, kargs))
-
-    def wait_for_completion(self):
-        self.tasks.join()
-
-
 class Url:
     def __init__(self, value):
         self.url = value
@@ -605,46 +561,6 @@ def get_relative_path(source, target):
     raise AssertionError("This should not happen")
 
 
-def get_structure_hash(params):
-    """Given a Python structure this generates a hash.  This is useful for
-    storing artifact config hashes.  Not all Python types are supported, but
-    quite a few are.
-    """
-    h = hashlib.md5()
-
-    def _hash(obj):
-        if obj is None:
-            h.update("N;")
-        elif obj is True:
-            h.update("T;")
-        elif obj is False:
-            h.update("F;")
-        elif isinstance(obj, dict):
-            h.update("D%d;" % len(obj))
-            for key, value in sorted(obj.items()):
-                _hash(key)
-                _hash(value)
-        elif isinstance(obj, tuple):
-            h.update("T%d;" % len(obj))
-            for item in obj:
-                _hash(item)
-        elif isinstance(obj, list):
-            h.update("L%d;" % len(obj))
-            for item in obj:
-                _hash(item)
-        elif isinstance(obj, int):
-            h.update("T%d;" % obj)
-        elif isinstance(obj, bytes):
-            h.update("B%d;%s;" % (len(obj), obj))
-        elif isinstance(obj, str):
-            h.update("S%d;%s;" % (len(obj), obj.encode("utf-8")))
-        elif hasattr(obj, "__get_lektor_param_hash__"):
-            obj.__get_lektor_param_hash__(h)
-
-    _hash(params)
-    return h.hexdigest()
-
-
 def profile_func(func):
     # pylint: disable=import-outside-toplevel
 
@@ -689,10 +605,6 @@ def format_lat_long(lat=None, long=None, secs=True):
     return u", ".join(rv)
 
 
-def get_app_dir():
-    return click.get_app_dir("Lektor")
-
-
 def get_cache_dir():
     if is_windows:
         folder = os.environ.get("LOCALAPPDATA")
@@ -733,6 +645,9 @@ class URLBuilder:
 
 
 def build_url(iterable, trailing_slash=None):
+    # NB: While this function is not used by Lektor itself, it is used
+    # by a number of plugins including: lektor-atom,
+    # lektor-gemini-capsule, lektor-index-pages, and lektor-tags.
     builder = URLBuilder()
     for item in iterable:
         builder.append(item)

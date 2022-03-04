@@ -91,14 +91,6 @@ def _require_ctx(record):
     return ctx
 
 
-def _is_content_file(filename, alt=PRIMARY_ALT):
-    if filename == "contents.lr":
-        return True
-    if alt != PRIMARY_ALT and filename == "contents+%s.lr" % alt:
-        return True
-    return False
-
-
 class _CmpHelper:
     def __init__(self, value, reverse):
         self.value = value
@@ -1007,17 +999,6 @@ class Query:
         self._include_undiscoverable = False
         self._page_num = None
         self._filter_func = None
-
-    def __get_lektor_param_hash__(self, h):
-        h.update(str(self.alt))
-        h.update(str(self._include_pages))
-        h.update(str(self._include_attachments))
-        h.update("(%s)" % "|".join(self._order_by or ()).encode("utf-8"))
-        h.update(str(self._limit))
-        h.update(str(self._offset))
-        h.update(str(self._include_hidden))
-        h.update(str(self._include_undiscoverable))
-        h.update(str(self._page_num))
 
     @property
     def self(self):
