@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { StrictMode, useMemo } from "react";
 import ReactDOM from "react-dom";
 import {
   BrowserRouter,
@@ -49,9 +49,11 @@ const dash = document.getElementById("dash");
 if (dash) {
   setCurrentLanguage($LEKTOR_CONFIG.lang);
   ReactDOM.render(
-    <BrowserRouter>
-      <Main />
-    </BrowserRouter>,
+    <StrictMode>
+      <BrowserRouter>
+        <Main />
+      </BrowserRouter>
+    </StrictMode>,
     dash
   );
 }
