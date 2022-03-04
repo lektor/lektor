@@ -20,6 +20,11 @@ These are all the changes in Lektor since the first public release.
 - Fix the _edit_ (`<ctl>-e`) hotkey. ([#1022][])
 - Handle hotkeys when the preview iframe has the focus. ([#1022][])
 
+#### Dev Server
+
+- Fix building of javascript when devserver is run with `LEKTOR_DEV` set.
+  Broken since Lektor 3.3.2 by PR [#1003][].
+
 [#1022]: https://github.com/lektor/lektor/issues/1022
 
 ## 3.3.5 (2022-07-18)
