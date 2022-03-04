@@ -1,14 +1,9 @@
-import React, {
-  MutableRefObject,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
-import { PageName } from "../context/page-context";
-import { RecordPathDetails } from "../context/record-context";
-import { getKey, KeyboardShortcut, keyboardShortcutHandler } from "../utils";
-import AdminLink from "./AdminLink";
+import React, { MutableRefObject, useCallback, useEffect, useRef } from "react";
+import { NavLink } from "react-router-dom";
+import { useRecord } from "../context/record-context";
+import { KeyboardShortcut, keyboardShortcutHandler } from "../utils";
+import { AdminLinkProps } from "./AdminLink";
+import { adminPath } from "./use-go-to-admin-page";
 
 /**
  * React hook to add a global keyboard shortcut for the given
@@ -41,19 +36,33 @@ function useKeyboardShortcutRef<T extends HTMLElement>(
 }
 
 export default function AdminLinkWithHotkey({
+  page,
+  path,
+  alt,
   children,
   shortcut,
-  ...linkProps
-}: RecordPathDetails & {
-  page: PageName;
-  children: ReactNode;
+  ...otherProps
+}: AdminLinkProps & {
   shortcut: KeyboardShortcut;
 }): JSX.Element {
+  // Because we need to pass the ref in, this component is not using
+  // the AdminLink component but rather duplicates it mostly.
+  // This is a separate component because we want to avoid all the hooks
+  // for plain links.
   const el = useKeyboardShortcutRef<HTMLAnchorElement>(shortcut);
 
+  const current = useRecord();
+  const recordMatches = path === current.path && alt === current.alt;
+
   return (
-    <AdminLink {...linkProps} title={getKey(shortcut)} ref={el}>
+    <NavLink
+      to={adminPath(page, path, alt)}
+      activeClassName="active"
+      isActive={(match) => recordMatches && match != null}
+      ref={el}
+      {...otherProps}
+    >
       {children}
-    </AdminLink>
+    </NavLink>
   );
 }
