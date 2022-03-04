@@ -56,7 +56,7 @@ class BackgroundBuilder(threading.Thread):
 
 
 class DevTools:
-    """This provides extra helpers for launching tools such as webpack."""
+    """This builds the admin frontend (in watch mode)."""
 
     def __init__(self, env):
         self.watcher = None
@@ -66,16 +66,9 @@ class DevTools:
         if self.watcher is not None:
             return
 
-        # pylint: disable=import-outside-toplevel
-        from lektor import admin
-
-        admin = os.path.dirname(admin.__file__)
-        portable_popen(["npm", "install", "."], cwd=admin).wait()
-
-        self.watcher = portable_popen(
-            [os.path.join(admin, "node_modules/.bin/webpack"), "--watch"],
-            cwd=os.path.join(admin, "static"),
-        )
+        frontend = os.path.join(os.path.dirname(__file__), "..", "frontend")
+        portable_popen(["npm", "install"], cwd=frontend).wait()
+        self.watcher = portable_popen(["npm", "run", "dev"], cwd=frontend)
 
     def stop(self):
         if self.watcher is None:
