@@ -46,7 +46,10 @@ async function runBuild(dev: boolean) {
     // The following options differ between dev and prod builds.
     // For prod builds, we want to use React's prod build and minify.
     define: { "process.env.NODE_ENV": dev ? '"development"' : '"production"' },
-    minify: !dev,
+    // Only minify syntax (like DCE and not by removing whitespace and renaming
+    // identifiers). This keeps the bundle size a bit larger but still very
+    // readable.
+    minifySyntax: !dev,
     // For dev builds, watch source files and rebuild.
     watch: dev ? { onRebuild: () => console.log("finished rebuild") } : false,
   });
