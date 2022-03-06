@@ -2,6 +2,15 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0 (unreleased)
+
+This release drops support for Python 3.6, which has reached end-of-life in
+December 2021.
+
+### Refactorings
+
+- Removed unused cruft. ([#1009][])
+
 ## 3.3.2 (2022-03-01)
 
 ### Features
