@@ -75,10 +75,8 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_package(
-    package_root, package=None, version=None, requirements_file=None
-):
-    """This downloads and installs a specific version of a package."""
+def download_and_install_packages(package_root, requirement_specifiers):
+    """This downloads and installs a specific version of packages."""
     # XXX: windows
     env = dict(os.environ)
 
@@ -91,11 +89,7 @@ def download_and_install_package(
         package_root,
     ]
 
-    if package is not None:
-        args.append("%s%s%s" % (package, version and "==" or "", version or ""))
-    if requirements_file is not None:
-        args.extend(("-r", requirements_file))
-
+    args.extend(requirement_specifiers)
     rv = portable_popen(args, env=env).wait()
     if rv != 0:
         raise RuntimeError("Failed to install dependency package.")
@@ -103,6 +97,33 @@ def download_and_install_package(
 
 def install_local_package(package_root, path):
     """This installs a local dependency of a package."""
+
+    # Because of these bugs:
+    # - pip https://github.com/pypa/pip/issues/4390
+    # - setuptools https://github.com/pypa/setuptools/issues/392
+    # we cannot just call `pip install --target $folder --editable $package`.
+    # Hence the workaround of first installing only the package and then it's dependencies
+    # TODO Once https://github.com/pypa/pip/pull/9636 is released, this can all go away
+    # and the normal install will just work
+
+    # Because pip can resolve dependencies differently when it is called with them individually,
+    # it is important to call it with all of them together. Also
+
+    # requires.txt is specified here:
+    # https://setuptools.readthedocs.io/en/latest/deprecated/python_eggs.html#requires-txt
+    # requirementx.txt is specified here:
+    # https://pip.pypa.io/en/stable/reference/pip_install/#requirements-file-format
+    # What can be part of the dependencies is specified here:
+    # https://setuptools.readthedocs.io/en/latest/userguide/dependency_management.html#id4
+
+    editable_install_without_dependencies(package_root, path)
+
+    requirements = requirements_from_unfinished_editable_install_at_path(path)
+    if requirements is not None:
+        download_and_install_packages(package_root, requirements)
+
+
+def editable_install_without_dependencies(package_root, path):
     # XXX: windows
     env = dict(os.environ)
     env["PYTHONPATH"] = package_root
@@ -124,6 +145,8 @@ def install_local_package(package_root, path):
     if rv != 0:
         raise RuntimeError("Failed to install local package")
 
+
+def requirements_from_unfinished_editable_install_at_path(path):
     # Step 2: generate the egg info into a temp folder to find the
     # requirements.
     tmp = tempfile.mkdtemp()
@@ -143,13 +166,30 @@ def install_local_package(package_root, path):
         dirs = os.listdir(tmp)
         if rv != 0 or len(dirs) != 1:
             raise RuntimeError("Failed to create egg info for local package.")
-        requires = os.path.join(tmp, dirs[0], "requires.txt")
+        requires_path = os.path.join(tmp, dirs[0], "requires.txt")
 
-        # We have dependencies, install them!
-        if os.path.isfile(requires):
-            download_and_install_package(package_root, requirements_file=requires)
+        if os.path.isfile(requires_path):
+            # We have dependencies, install them!
+            return requirements_from_requires_file(requires_path)
     finally:
         shutil.rmtree(tmp)
+
+    # no dependencies to install
+    return None
+
+
+def requirements_from_requires_file(requires_path):
+    """Create a sanitized copy of `requires.txt`."""
+    # requires.txt can contain [extras_require] sections wich pip doesn't understand
+    with open(requires_path, "r") as requires:
+        section_name, extracted_requirements = next(
+            pkg_resources.split_sections(requires)
+        )
+        if section_name is None:
+            return extracted_requirements
+
+    # no dependencies to install
+    return None
 
 
 def get_package_info(path):
@@ -292,7 +332,9 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
                     package_root, os.path.join(local_package_path, package[1:])
                 )
             else:
-                download_and_install_package(package_root, package, version)
+                requirement_spec = f"{package}=={version}" if version else package
+                download_and_install_packages(package_root, [requirement_spec])
+
         write_manifest(manifest_file, all_packages)
 
 
