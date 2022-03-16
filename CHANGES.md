@@ -11,6 +11,8 @@ December 2021.
 
 - Removed unused cruft. ([#1009][])
 
+[#1009]: https://github.com/lektor/lektor/pull/1009
+
 ## 3.3.2 (2022-03-01)
 
 ### Features
