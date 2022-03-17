@@ -23,11 +23,6 @@ def write_text(path, text):
     path.write_text(cleandoc(text))
 
 
-def invalid_fields(error):
-    """Extract names of invalid fields from JSON error return value."""
-    return set(".".join(e["loc"]) for e in error["errors"])
-
-
 @pytest.fixture
 def scratch_project_data(scratch_project_data):
     content = Path(scratch_project_data) / "content"
@@ -115,7 +110,7 @@ def test_invalid_params(test_client, endpoint, params, invalid):
     assert resp.status_code == 400
     error = resp.get_json()["error"]
     assert error["title"] == "Invalid parameters"
-    assert invalid_fields(error) == invalid
+    assert set(error["messages"].keys()) == invalid
 
 
 def test_recordinfo(test_client):
@@ -443,7 +438,7 @@ def test_publish(test_client, mocker):
 def test_publish_bad_params(test_client, params):
     resp = test_client.get(f"/admin/api/publish?{urlencode(params)}")
     assert resp.status_code == 400
-    assert "server" in invalid_fields(resp.get_json()["error"])
+    assert "server" in resp.get_json()["error"]["messages"]
 
 
 def test_ping(test_client):

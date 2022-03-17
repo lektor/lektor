@@ -1,17 +1,20 @@
 import os
 import posixpath
+from dataclasses import dataclass
+from dataclasses import field
 from functools import wraps
 from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
 from typing import Iterator
+from typing import Mapping
 from typing import Optional
-from typing import Type
 from typing import TypeVar
 
 import click
-import pydantic
+import marshmallow
+import marshmallow_dataclass as mdcls
 from flask import Blueprint
 from flask import current_app
 from flask import jsonify
@@ -43,49 +46,44 @@ def pass_lektor_context(
     values["ctx"] = get_lektor_context()
 
 
-# Mark types for special validation
-
-
-class _ServerInfo(ServerInfo):
-    @classmethod
-    def __get_validators__(cls) -> Iterator[Callable[[Any], Any]]:
-        yield pydantic.validators.str_validator
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value: str) -> ServerInfo:
-        # ATM, there seems to be no clean way to pass context to pydantic
-        # validators. https://github.com/samuelcolvin/pydantic/issues/1549
-        lektor_config = get_lektor_context().config
-        server_info = lektor_config.get_server(value)
+class _ServerInfoField(marshmallow.fields.String):
+    def _deserialize(
+        self,
+        value: str,
+        attr: Optional[str],
+        data: Optional[Mapping[str, Any]],
+        **kwargs: Any
+    ) -> ServerInfo:
+        lektor_config = self.context["lektor_config"]
+        server_id = super()._deserialize(value, attr, data, **kwargs)
+        server_info = lektor_config.get_server(server_id)
         if server_info is None:
-            raise ValueError("Invalid server id.")
+            raise marshmallow.ValidationError("Invalid server id.")
         return server_info
 
 
-class _AltType(str):
-    @classmethod
-    def __get_validators__(cls) -> Iterator[Callable[[Any], Any]]:
-        yield pydantic.validators.str_validator
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value: str) -> "_AltType":
-        lektor_config = get_lektor_context().config
-        if not lektor_config.is_valid_alternative(value):
-            raise ValueError(f"{value!r} is not a configured value for alt")
-        return cls(value)
+def _is_valid_alt(value: str) -> bool:
+    lektor_config = get_lektor_context().config
+    return bool(lektor_config.is_valid_alternative(value))
 
 
-_PRIMARY_ALT = _AltType(PRIMARY_ALT)
-
-_PathType = str
-
-
-F = TypeVar("F", bound=Callable[..., Response])
+# Mark types for special validation
+_PathType = mdcls.NewType("_PathType", str)
+_AltType = mdcls.NewType("_AltType", str, validate=_is_valid_alt)
+_BoolType = mdcls.NewType("_BoolType", bool, truthy={1, "1"}, falsy={0, "0"})
 
 
-def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
+class _SchemaBase(marshmallow.Schema):
+    TYPE_MAPPING = {ServerInfo: _ServerInfoField}
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def _with_validated(param_type: type) -> Callable[[F], F]:
     """Flask view decorator to validate parameters.
 
     The validated parameters are placed into the ``validated`` keyword
@@ -94,8 +92,10 @@ def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
     If the request has a JSON body, the parameters are parsed from that.
     Otherwise, the parameters are parsed from ``request.values``.
 
-    :param param_model: A pydantic model that specifies the parameters.
+    :param param_type: A dataclass which specifies the parameters.
     """
+    schema_class = mdcls.class_schema(param_type, base_schema=_SchemaBase)
+    schema = schema_class()
 
     def wrap(f: F) -> F:
         @wraps(f)
@@ -107,14 +107,15 @@ def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
                 data = request.get_json() or {}
             else:
                 data = request.values
-
+            schema.context = {
+                "lektor_config": kwargs["ctx"].config,
+            }
             try:
-                kwargs["validated"] = param_model.parse_obj(data)
-            except pydantic.ValidationError as exc:
+                kwargs["validated"] = schema.load(data)
+            except marshmallow.ValidationError as exc:
                 error = {
                     "title": "Invalid parameters",
-                    "message": str(exc),
-                    "errors": exc.errors(),
+                    "messages": exc.messages,
                 }
                 return make_response(jsonify(error=error), 400)
             return f(*args, **kwargs)
@@ -126,9 +127,10 @@ def _with_validated(param_model: Type[pydantic.BaseModel]) -> Callable[[F], F]:
     return wrap
 
 
-class _PathAndAlt(pydantic.BaseModel):
+@dataclass
+class _PathAndAlt:
     path: _PathType
-    alt: _AltType = _PRIMARY_ALT
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/pathinfo")
@@ -210,39 +212,19 @@ def get_preview_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
     return jsonify(exists=True, url=record.url_path, is_hidden=record.is_hidden)
 
 
-class _FindParams(pydantic.BaseModel):
+@dataclass
+class _FindParams:
     q: str
-    alt: _AltType = _PRIMARY_ALT
-    lang: str
-
-    # NB: Pydantic's checks for duplicate validator names seem kind of
-    # goofy, and — anyway — broken in the case that a module gets
-    # imported more than once. Multiple imports of the same module can
-    # happen for various reasons. The one biting me is running:
-    #
-    #    pytest --cov=lektor.admin.modules.api tests/test_api.py
-    #
-    # (Pytest-cov must import the module passed to --cov once — to find the
-    # source file? — then pytest imports it again when running the tests.)
-    #
-    # So here we pass allow_reuse=True to disable the check altogether.
-    #
-    # Related: https://github.com/samuelcolvin/pydantic/issues/312
-    @pydantic.validator("lang", pre=True, always=True, allow_reuse=True)
-    @classmethod
-    def set_default_lang(cls, value: Optional[str]) -> str:
-        if value is None:
-            return current_app.config.get("lektor.ui_lang", "en")
-        return value
+    alt: _AltType = PRIMARY_ALT
+    lang: Optional[str] = None
 
 
 @bp.route("/find", methods=["POST"])
 @_with_validated(_FindParams)
 def find(validated: _FindParams, ctx: LektorContext) -> Response:
+    lang = validated.lang or current_app.config.get("lektor.ui_lang", "en")
     return jsonify(
-        results=ctx.builder.find_files(
-            validated.q, alt=validated.alt, lang=validated.lang
-        )
+        results=ctx.builder.find_files(validated.q, alt=validated.alt, lang=lang)
     )
 
 
@@ -262,7 +244,8 @@ def browsefs(validated: _PathAndAlt, ctx: LektorContext) -> Response:
     return jsonify(okay=okay)
 
 
-class _UrlPath(pydantic.BaseModel):
+@dataclass
+class _UrlPath:
     url_path: str
 
 
@@ -364,12 +347,13 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
     )
 
 
-class _NewRecordParams(pydantic.BaseModel):
+@dataclass
+class _NewRecordParams:
     id: str
     model: Optional[str]
     data: Dict[str, Optional[str]]
     path: _PathType
-    alt: _AltType = _PRIMARY_ALT
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/newrecord", methods=["POST"])
@@ -392,10 +376,11 @@ def add_new_record(validated: _NewRecordParams, ctx: LektorContext) -> Response:
     return jsonify({"valid_id": True, "exists": exists, "path": path})
 
 
-class _DeleteRecordParams(pydantic.BaseModel):
-    delete_master: bool
+@dataclass
+class _DeleteRecordParams:
+    delete_master: _BoolType
     path: _PathType
-    alt: _AltType = _PRIMARY_ALT
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/deleterecord", methods=["POST"])
@@ -408,10 +393,11 @@ def delete_record(validated: _DeleteRecordParams, ctx: LektorContext) -> Respons
     return jsonify(okay=True)
 
 
-class _UpdateRawRecordParams(pydantic.BaseModel):
+@dataclass
+class _UpdateRawRecordParams:
     data: Dict[str, Optional[str]]
     path: _PathType
-    alt: _AltType = _PRIMARY_ALT
+    alt: _AltType = PRIMARY_ALT
 
 
 @bp.route("/rawrecord", methods=["PUT"])
@@ -451,10 +437,9 @@ def trigger_clean(ctx: LektorContext) -> Response:
     return jsonify(okay=True)
 
 
-class _PublishBuildParams(pydantic.BaseModel):
-    # Pydantic<1.5 requires a value for the first argument (default),
-    # and recognizes Elipsis as meaning "required".
-    server_info: _ServerInfo = pydantic.Field(..., alias="server")
+@dataclass
+class _PublishBuildParams:
+    server_info: ServerInfo = field(metadata=dict(data_key="server"))
 
 
 @bp.route("/publish")
