@@ -2,6 +2,22 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.3 (2022-03-29)
+
+### Bugs
+
+#### Bit-rot
+
+- Fixes for `werkzeug>=2.10`. ([#1019][], [#1018][])
+
+#### CI
+
+- Update pre-commit config to use `black==22.3.0` to avoid breakage
+  caused by `click>=8.1.0`. ([#1019][])
+
+[#1018]: https://github.com/lektor/lektor/issues/1018
+[#1019]: https://github.com/lektor/lektor/pull/1019
+
 ## 3.3.2 (2022-03-01)
 
 ### Features
