@@ -2,8 +2,7 @@ import errno
 import hashlib
 import json
 import os
-
-from werkzeug.debug.tbtools import Traceback
+from traceback import TracebackException
 
 
 class BuildFailure:
@@ -12,13 +11,14 @@ class BuildFailure:
 
     @classmethod
     def from_exc_info(cls, artifact_name, exc_info):
-        tb = Traceback(*exc_info)
-        tb.filter_hidden_frames()
+        te = TracebackException(*exc_info)
+        # NB: we have dropped werkzeug's support for Paste's __traceback_hide__
+        # frame local.
         return cls(
             {
                 "artifact": artifact_name,
-                "exception": tb.exception,
-                "traceback": tb.plaintext,
+                "exception": "".join(te.format_exception_only()).strip(),
+                "traceback": "".join(te.format()).strip(),
             }
         )
 

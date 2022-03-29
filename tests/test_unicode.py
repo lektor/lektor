@@ -10,9 +10,7 @@ from lektor.reporter import BufferReporter
 
 
 def get_unicode_builder(tmpdir):
-    proj = Project.from_path(
-        os.path.join(os.path.dirname(__file__), u"ünicöde-project")
-    )
+    proj = Project.from_path(os.path.join(os.path.dirname(__file__), "ünicöde-project"))
     env = Environment(proj)
     pad = Database(env).new_pad()
 

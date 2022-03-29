@@ -90,5 +90,6 @@ def test_resolve_artifact(resolve_artifact, url_path, expected, output_path):
 def test_resolve_artifact_redirects(resolve_artifact, url_path, location):
     with pytest.raises(HTTPException) as exc:
         resolve_artifact(url_path)
-    assert exc.value.response.status_code == 301
+    # add_slash_redirect in werkzeug>=2.1.0 returns 308 - previously it returned 301
+    assert exc.value.response.status_code in (301, 308)
     assert exc.value.response.headers["Location"] == location

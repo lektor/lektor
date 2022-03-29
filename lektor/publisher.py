@@ -530,7 +530,7 @@ class GithubPagesPublisher(Publisher):
 
     def update_git_config(self, repo, url, branch, credentials=None):
         ssh_command = None
-        path = url.host + u"/" + url.path.strip(u"/")
+        path = url.host + "/" + url.path.strip("/")
         cred = None
         if url.scheme in ("ghpages", "ghpages+ssh"):
             push_url = "git@github.com:%s.git" % path

@@ -127,7 +127,7 @@ class Flow:
         self.record = record
 
     def __html__(self):
-        return Markup(u"\n\n".join(x.__html__() for x in self.blocks))
+        return Markup("\n\n".join(x.__html__() for x in self.blocks))
 
     def __bool__(self):
         return bool(self.blocks)
@@ -215,7 +215,7 @@ class FlowType(Type):
 
                 d = {}
                 for key, lines in tokenize(block_lines):
-                    d[key] = u"".join(lines)
+                    d[key] = "".join(lines)
                 rv.append(flowblock.process_raw_data(d, pad=raw.pad))
         except BadFlowBlock as e:
             return raw.bad_value(str(e))

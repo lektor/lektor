@@ -65,7 +65,7 @@ def test_magic_split_ext():
 def test_slugify():
 
     assert slugify("w o w") == "w-o-w"
-    assert slugify(u"Șö prĕtty") == "so-pretty"
+    assert slugify("Șö prĕtty") == "so-pretty"
     assert slugify("im age.jpg") == "im-age.jpg"
     assert slugify("slashed/slug") == "slashed/slug"
 

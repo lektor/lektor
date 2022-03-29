@@ -86,7 +86,7 @@ def project():
 def scratch_project_data(tmpdir):
     base = tmpdir.mkdir("scratch-proj")
     lektorfile_text = textwrap.dedent(
-        u"""
+        """
         [project]
         name = Scratch
 
@@ -98,7 +98,7 @@ def scratch_project_data(tmpdir):
     )
     base.join("Scratch.lektorproject").write_text(lektorfile_text, "utf8", ensure=True)
     content_text = textwrap.dedent(
-        u"""
+        """
         _model: page
         ---
         title: Index
@@ -108,14 +108,14 @@ def scratch_project_data(tmpdir):
     )
     base.join("content", "contents.lr").write_text(content_text, "utf8", ensure=True)
     template_text = textwrap.dedent(
-        u"""
+        """
         <h1>{{ this.title }}</h1>
         {{ this.body }}
     """
     )
     base.join("templates", "page.html").write_text(template_text, "utf8", ensure=True)
     model_text = textwrap.dedent(
-        u"""
+        """
         [model]
         label = {{ this.title }}
 

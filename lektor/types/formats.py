@@ -16,4 +16,4 @@ class MarkdownType(Type):
     widget = "multiline-text"
 
     def value_from_raw(self, raw):
-        return MarkdownDescriptor(raw.value or u"")
+        return MarkdownDescriptor(raw.value or "")
