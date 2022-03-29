@@ -7,11 +7,31 @@ These are all the changes in Lektor since the first public release.
 This release drops support for Python 3.6, which has reached end-of-life in
 December 2021.
 
+### Bugs
+
+#### Admin Server
+
+- Refactor and fix numerous buglets in the admin http server. ([#987][])
+
+#### Bit-rot
+
+- Fixes for `werkzeug>=2.1.0`. ([#1019][], [#1018][])
+- Update npm package minimist. ([#1021][])
+
+#### CI
+
+- Update pre-commit config to use `black==22.3.0` to avoid breakage
+  caused by `click>=8.1.0`. ([#1019][])
+
 ### Refactorings
 
 - Removed unused cruft. ([#1009][])
 
+[#987]: https://github.com/lektor/lektor/pull/987
 [#1009]: https://github.com/lektor/lektor/pull/1009
+[#1018]: https://github.com/lektor/lektor/issues/1018
+[#1019]: https://github.com/lektor/lektor/pull/1019
+[#1021]: https://github.com/lektor/lektor/pull/1021
 
 ## 3.3.2 (2022-03-01)
 
