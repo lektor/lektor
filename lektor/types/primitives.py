@@ -27,7 +27,7 @@ class StringType(SingleInputType):
         try:
             return raw.value.splitlines()[0].strip()
         except IndexError:
-            return u""
+            return ""
 
 
 class StringsType(Type):

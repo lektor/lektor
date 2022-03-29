@@ -182,7 +182,7 @@ class EXIFInfo:
         val = self._get_float("EXIF ShutterSpeedValue")
         if val is not None:
             return "1/%d" % round(
-                1 / (2 ** -val)  # pylint: disable=invalid-unary-operand-type
+                1 / (2**-val)  # pylint: disable=invalid-unary-operand-type
             )
         return None
 

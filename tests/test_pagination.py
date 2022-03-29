@@ -17,10 +17,10 @@ def test_paginated_children(pad):
     children = page1.pagination.items.all()
     assert len(children) == 4
     assert [x["name"] for x in children] == [
-        u"Coffee",
-        u"Bagpipe",
-        u"Master",
-        u"Oven",
+        "Coffee",
+        "Bagpipe",
+        "Master",
+        "Oven",
     ]
 
     assert ("projects", "en", "1") in pad.cache.persistent
@@ -35,9 +35,9 @@ def test_paginated_children(pad):
     children = page2.pagination.items.all()
     assert len(children) == 3
     assert [x["name"] for x in children] == [
-        u"Postage",
-        u"Slave",
-        u"Wolf",
+        "Postage",
+        "Slave",
+        "Wolf",
     ]
 
     assert ("projects", "en", "2") in pad.cache.persistent
@@ -54,13 +54,13 @@ def test_unpaginated_children(pad):
     children = page_all.pagination.items.all()
     assert len(children) == 7
     assert [x["name"] for x in children] == [
-        u"Coffee",
-        u"Bagpipe",
-        u"Master",
-        u"Oven",
-        u"Postage",
-        u"Slave",
-        u"Wolf",
+        "Coffee",
+        "Bagpipe",
+        "Master",
+        "Oven",
+        "Postage",
+        "Slave",
+        "Wolf",
     ]
 
 
@@ -147,14 +147,14 @@ def test_unpaginated_children_other_alt(pad):
     children = page_all.pagination.items.all()
     assert len(children) == 8
     assert [x["name"] for x in children] == [
-        u"Kaffee",
-        u"Dudelsack",
-        u"Meister",
-        u"Ofen",
-        u"Porto",
-        u"Sklave",
-        u"Wolf",
-        u"Zaun",
+        "Kaffee",
+        "Dudelsack",
+        "Meister",
+        "Ofen",
+        "Porto",
+        "Sklave",
+        "Wolf",
+        "Zaun",
     ]
 
 
