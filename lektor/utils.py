@@ -329,10 +329,10 @@ def htmlsafe_json_dump(obj, **kwargs):
     kwargs.setdefault("cls", JSONEncoder)
     rv = (
         json.dumps(obj, **kwargs)
-        .replace(u"<", u"\\u003c")
-        .replace(u">", u"\\u003e")
-        .replace(u"&", u"\\u0026")
-        .replace(u"'", u"\\u0027")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("'", "\\u0027")
     )
     if not _slash_escape:
         rv = rv.replace("\\/", "/")
@@ -405,7 +405,7 @@ def get_dependent_url(url_path, suffix, ext=None):
     url_base, url_ext = posixpath.splitext(url_filename)
     if ext is None:
         ext = url_ext
-    return posixpath.join(url_directory, url_base + u"@" + suffix + ext)
+    return posixpath.join(url_directory, url_base + "@" + suffix + ext)
 
 
 @contextmanager
@@ -590,10 +590,10 @@ def deg_to_dms(deg):
 def format_lat_long(lat=None, long=None, secs=True):
     def _format(value, sign):
         d, m, sd = deg_to_dms(value)
-        return u"%d° %d′ %s%s" % (
+        return "%d° %d′ %s%s" % (
             abs(d),
             abs(m),
-            secs and (u"%d″ " % abs(sd)) or "",
+            secs and ("%d″ " % abs(sd)) or "",
             sign[d < 0],
         )
 
@@ -602,7 +602,7 @@ def format_lat_long(lat=None, long=None, secs=True):
         rv.append(_format(lat, "NS"))
     if long is not None:
         rv.append(_format(long, "EW"))
-    return u", ".join(rv)
+    return ", ".join(rv)
 
 
 def get_cache_dir():

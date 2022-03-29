@@ -8,7 +8,7 @@ class Expression:
 
         def result_func(value):
             result.append(value)
-            return u""
+            return ""
 
         values = self.env.make_default_tmpl_values(pad, this, values, alt)
         values["__result__"] = result_func

@@ -39,7 +39,7 @@ def theme_project(theme_project_tmpdir, request):
 
     # Create the .lektorproject file
     lektorfile_text = textwrap.dedent(
-        u"""
+        """
         [project]
         name = Themes Project
         {}
