@@ -8,7 +8,7 @@ These are all the changes in Lektor since the first public release.
 
 #### Bit-rot
 
-- Fixes for `werkzeug>=2.10`. ([#1019][], [#1018][])
+- Fixes for `werkzeug>=2.1.0`. ([#1019][], [#1018][])
 
 #### CI
 
