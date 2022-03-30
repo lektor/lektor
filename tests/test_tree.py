@@ -12,9 +12,9 @@ from lektor.project import Project
 
 
 @pytest.fixture(scope="session")
-def no_alt_pad(tmp_path_factory):
+def no_alt_pad(tmp_path_factory, data_path):
     no_alt_project = tmp_path_factory.mktemp("no-alts") / "demo-project"
-    demo_project = Path(__file__).parent / "demo-project"
+    demo_project = data_path / "demo-project"
     shutil.copytree(demo_project, no_alt_project)
 
     project_file = no_alt_project / "Website.lektorproject"

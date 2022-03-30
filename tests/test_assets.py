@@ -1,6 +1,5 @@
 import inspect
 import shutil
-from pathlib import Path
 
 import pytest
 
@@ -17,9 +16,9 @@ def _fixme(*args):
 
 
 @pytest.fixture(scope="module")
-def project_path(tmp_path_factory):
+def project_path(tmp_path_factory, data_path):
     """Make our own private copy of the demo-project"""
-    demo = Path(__file__).parent / "demo-project"
+    demo = data_path / "demo-project"
     path = tmp_path_factory.mktemp("test_serve") / "demo-project"
 
     shutil.copytree(demo, path)

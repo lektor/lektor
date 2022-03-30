@@ -51,8 +51,8 @@ def scratch_content_path(scratch_project):
 
 
 @pytest.fixture(scope="session")
-def project_path():
-    return Path(__file__).parent / "demo-project"
+def project_path(data_path):
+    return data_path / "demo-project"
 
 
 @pytest.fixture(scope="session")

@@ -13,16 +13,12 @@ sep = os.path.sep
 
 
 @pytest.fixture(scope="function")
-def theme_project_tmpdir(tmpdir):
+def theme_project_tmpdir(tmp_path, data_path):
     """Copy themes-project to a temp dir, and copy demo-project content to it."""
-    themes_dir = os.path.join(os.path.dirname(__file__), "themes-project")
-    content_dir = os.path.join(os.path.dirname(__file__), "demo-project", "content")
-
-    temp_dir = tmpdir.mkdir("temp").join("themes-project")
-
-    shutil.copytree(themes_dir, str(temp_dir))
-    shutil.copytree(content_dir, str(temp_dir.join("content")))
-
+    temp_dir = tmp_path / "temp/themes-project"
+    temp_dir.parent.mkdir()
+    shutil.copytree(data_path / "themes-project", temp_dir)
+    shutil.copytree(data_path / "demo-project/content", temp_dir / "content")
     return temp_dir
 
 
@@ -47,11 +43,9 @@ def theme_project(theme_project_tmpdir, request):
             "themes = blog_theme, project_theme" if with_themes_var else ""
         )
     )
-
-    theme_project_tmpdir.join("themes.lektorproject").write_text(
-        lektorfile_text, "utf8", ensure=True
-    )
-    return Project.from_path(str(theme_project_tmpdir))
+    lektorfile = theme_project_tmpdir / "themes.lektorproject"
+    lektorfile.write_text(lektorfile_text, "utf8")
+    return Project.from_path(theme_project_tmpdir)
 
 
 @pytest.fixture(scope="function")

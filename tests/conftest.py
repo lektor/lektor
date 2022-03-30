@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 import textwrap
+from pathlib import Path
 
 import pkg_resources
 import pytest
@@ -15,6 +16,15 @@ from lektor.environment import Environment
 from lektor.environment.expressions import Expression
 from lektor.project import Project
 from lektor.reporter import BufferReporter
+
+
+@pytest.fixture(scope="session")
+def data_path():
+    """Path to directory which contains test data.
+
+    Current this data lives in the ``tests`` directory.
+    """
+    return Path(__file__).parent
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -78,8 +88,8 @@ def save_sys_path(monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def project():
-    return Project.from_path(os.path.join(os.path.dirname(__file__), "demo-project"))
+def project(data_path):
+    return Project.from_path(data_path / "demo-project")
 
 
 @pytest.fixture(scope="function")
@@ -174,14 +184,12 @@ def scratch_builder(tmpdir, scratch_pad):
 # Builder for child-sources-test-project, a project to test that child sources
 # are built even if they're filtered out by a pagination query.
 @pytest.fixture(scope="function")
-def child_sources_test_project_builder(tmpdir):
-    project = Project.from_path(
-        os.path.join(os.path.dirname(__file__), "child-sources-test-project")
-    )
-    env = Environment(project)
-    pad = Database(env).new_pad()
-
-    return Builder(pad, str(tmpdir.mkdir("output")))
+def child_sources_test_project_builder(tmp_path, data_path):
+    output_path = tmp_path / "output"
+    output_path.mkdir()
+    project = Project.from_path(data_path / "child-sources-test-project")
+    pad = project.make_env().new_pad()
+    return Builder(pad, str(output_path))
 
 
 @pytest.fixture(scope="function")
