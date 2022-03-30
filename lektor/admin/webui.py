@@ -1,115 +1,77 @@
-import os
-import sys
-from typing import NamedTuple
 from typing import Optional
+from typing import Sequence
+from typing import TYPE_CHECKING
+from typing import Union
 
-from flask import abort
 from flask import Flask
 from flask import request
-from werkzeug.security import safe_join
-from werkzeug.utils import append_slash_redirect
+from werkzeug.wsgi import pop_path_info
 
-from lektor.admin.modules import register_modules
-from lektor.builder import Builder
-from lektor.buildfailures import FailureController
-from lektor.db import Database
-from lektor.db import Record
-from lektor.reporter import CliReporter
+from lektor.admin.context import LektorApp
+from lektor.admin.context import LektorInfo
+from lektor.admin.modules import api
+from lektor.admin.modules import dash
+from lektor.admin.modules import serve
+from lektor.environment import Environment
 
-
-class ResolveResult(NamedTuple):
-    artifact_name: Optional[str]
-    filename: Optional[str]
-    record_path: Optional[str]
-    alt: Optional[str]
+if TYPE_CHECKING:
+    import os
+    from typing import Any
+    from _typeshed.wsgi import WSGIApplication
 
 
-class LektorInfo:
-    def __init__(self, env, output_path, ui_lang="en", extra_flags=None, verbosity=0):
-        self.env = env
-        self.ui_lang = ui_lang
-        self.output_path = output_path
-        self.extra_flags = extra_flags
-        self.verbosity = verbosity
-
-    def get_pad(self):
-        return Database(self.env).new_pad()
-
-    def get_builder(self, pad=None):
-        if pad is None:
-            pad = self.get_pad()
-        return Builder(pad, self.output_path, extra_flags=self.extra_flags)
-
-    def get_failure_controller(self, pad=None):
-        if pad is None:
-            pad = self.get_pad()
-        return FailureController(pad, self.output_path)
-
-    def resolve_artifact(self, url_path, pad=None, redirect_slash=True):
-        """Resolves an artifact and also triggers a build if necessary.
-        Returns a tuple in the form ``(artifact_name, filename)`` where
-        `artifact_name` can be `None` in case a file was targeted explicitly.
-        """
-        if pad is None:
-            pad = self.get_pad()
-
-        artifact_name = filename = record_path = alt = None
-
-        # We start with trying to resolve a source and then use the
-        # primary
-        source = pad.resolve_url_path(url_path)
-        if source is not None:
-            # If the request path does not end with a slash but we
-            # requested a URL that actually wants a trailing slash, we
-            # append it.  This is consistent with what apache and nginx do
-            # and it ensures our relative urls work.
-            if (
-                not url_path.endswith("/")
-                and source.url_path != "/"
-                and source.url_path != url_path
-            ):
-                return abort(append_slash_redirect(request.environ))
-
-            with CliReporter(self.env, verbosity=self.verbosity):
-                builder = self.get_builder(pad)
-                prog, _ = builder.build(source)
-
-            artifact = prog.primary_artifact
-            if artifact is not None:
-                artifact_name = artifact.artifact_name
-                filename = artifact.dst_filename
-            alt = source.alt
-            if isinstance(source, Record):
-                record_path = source.record.path
-
-        if filename is None:
-            path_list = url_path.strip("/").split("/")
-            if sys.platform == "win32":
-                filename = os.path.join(self.output_path, *path_list)
-            else:
-                filename = safe_join(self.output_path, *path_list)
-
-        return ResolveResult(artifact_name, filename, record_path, alt)
+def _common_configuration(app: Flask, debug: bool = False) -> None:
+    app.debug = debug
+    app.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-class WebUI(Flask):
-    def __init__(
-        self,
-        env,
-        debug=False,
-        output_path=None,
-        ui_lang="en",
-        verbosity=0,
-        extra_flags=None,
-    ):
-        Flask.__init__(self, "lektor.admin", static_url_path="/admin/static")
-        self.lektor_info = LektorInfo(
-            env, output_path, ui_lang, extra_flags=extra_flags, verbosity=verbosity
-        )
-        self.debug = debug
-        self.config["PROPAGATE_EXCEPTIONS"] = True
+def make_app(
+    env: Environment,
+    debug: bool = False,
+    output_path: Optional[Union[str, "os.PathLike[Any]"]] = None,
+    ui_lang: str = "en",
+    verbosity: int = 0,
+    extra_flags: Optional[Sequence[str]] = None,
+    *,
+    admin_path: str = "/admin",
+) -> LektorApp:
+    if output_path is None:
+        output_path = env.project.get_output_path()
 
-        register_modules(self)
+    lektor_info = LektorInfo(env, output_path, verbosity, extra_flags)
+
+    # The top-level app has a route that matches anything
+    # ("/<path:path>" in the serve blueprint).  That means that if
+    # there is another route whose doesn't match based on request
+    # method, the serve view will take over and try to serve it.  To
+    # prevent this from happening for the paths under /admin, we
+    # structure them as a separate flask app.
+    admin_app = LektorApp(lektor_info)
+    _common_configuration(admin_app, debug=debug)
+    admin_app.config["lektor.ui_lang"] = ui_lang
+    admin_app.register_blueprint(dash.bp, url_prefix="/")
+    admin_app.register_blueprint(api.bp, url_prefix="/api")
+
+    # Serve static files from top-level app
+    app = LektorApp(lektor_info, static_url_path=f"{admin_path}/static")
+    _common_configuration(app, debug=debug)
+    app.register_blueprint(serve.bp)
+
+    # Pass requests for /admin/... to the admin app
+    @app.route(f"{admin_path}/<path:path>", methods=["GET", "POST", "PUT"])
+    def admin_view(path: str) -> "WSGIApplication":
+        environ = request.environ
+        # Save top-level SCRIPT_NAME (used by dash)
+        environ["lektor.site_root"] = request.root_path
+        while environ.get("PATH_INFO", "") != f"/{path}":
+            assert environ["PATH_INFO"]
+            pop_path_info(request.environ)
+        return admin_app.wsgi_app
+
+    # Add rule to construct URL to /admin/edit
+    app.add_url_rule(f"{admin_path}/edit", "url.edit", build_only=True)
+
+    return app
 
 
-WebAdmin = WebUI
+WebAdmin = WebUI = make_app

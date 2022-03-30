@@ -1,0 +1,40 @@
+<style type="text/css">
+ #lektor-edit-link {
+     position: fixed;
+     z-index: 9999999;
+     right: 10px;
+     top: 10px;
+     position: fixed;
+     margin: 0;
+     font-family: 'Verdana', sans-serif;
+     background: #eee;
+     color: #77304c;
+     font-weight: normal;
+     font-size: 32px;
+     padding: 0;
+     text-decoration: none!important;
+     border: 1px solid #ccc!important;
+     width: 40px;
+     height: 40px;
+     line-height: 40px;
+     text-align: center;
+     opacity: 0.7;
+ }
+
+ #lektor-edit-link:hover {
+     background: white!important;
+     opacity: 1.0;
+     border: 1px solid #aaa!important;
+ }
+</style>
+<script type="text/javascript">
+ document.addEventListener('DOMContentLoaded', function () {
+   if (window === window.top) {
+     var link = document.createElement('a');
+     link.setAttribute('href', {{ edit_url|tojson }});
+     link.setAttribute('id', 'lektor-edit-link');
+     link.innerHTML = '\u270E';
+     document.body.appendChild(link);
+   }
+ });
+</script>

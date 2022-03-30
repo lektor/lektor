@@ -61,3 +61,39 @@ disable = [
     "too-many-public-methods",
     "duplicate-code",
 ]
+
+[tool.mypy]
+files = "$MYPY_CONFIG_FILE_DIR/lektor"
+
+plugins = [
+    "marshmallow_dataclass.mypy",
+]
+
+show_error_codes = true
+error_summary = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+strict = true
+#implicit_reexport = true
+
+# We have just started to add annotation.  For now, ignore all errors
+# by default. (This can be disabled on a per-package or per-module
+# basis in the overrides.)
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# Packages and modules we want to check
+module = [
+    "lektor.constants",
+    "lektor.admin.*",
+]
+ignore_errors = false
+
+[[tool.mypy.overrides]]
+module = [
+    "lektor.admin.*",
+]
+disallow_untyped_calls = false
+warn_return_any = false

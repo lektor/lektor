@@ -1,6 +1,7 @@
 # Tests for lektor.db.Tree and related classes.
 import re
 import shutil
+from inspect import cleandoc
 from pathlib import Path
 
 import pytest
@@ -11,9 +12,9 @@ from lektor.project import Project
 
 
 @pytest.fixture(scope="session")
-def no_alt_pad(tmp_path_factory):
+def no_alt_pad(tmp_path_factory, data_path):
     no_alt_project = tmp_path_factory.mktemp("no-alts") / "demo-project"
-    demo_project = Path(__file__).parent / "demo-project"
+    demo_project = data_path / "demo-project"
     shutil.copytree(demo_project, no_alt_project)
 
     project_file = no_alt_project / "Website.lektorproject"
@@ -383,3 +384,98 @@ def test_alt_name_i18n(tree, alt, expect):
 def test_alt_repr(tree, path, alt, expect):
     item = tree.get(path)
     assert repr(item.alts[alt]) == expect
+
+
+################################################################
+#
+# Tests for subpage and attachment ordering
+
+
+def write_text(path, text):
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(cleandoc(text))
+
+
+@pytest.fixture
+def order_by():
+    return ""
+
+
+@pytest.fixture
+def order_attachments_by():
+    return ""
+
+
+@pytest.fixture
+def scratch_project_data(scratch_project_data, order_by, order_attachments_by):
+    project_path = Path(scratch_project_data)
+
+    models = project_path / "models"
+    write_text(
+        models / "parent.ini",
+        f"""
+        [children]
+        order_by = {order_by}
+        [attachments]
+        order_by = {order_attachments_by}
+        """,
+    )
+    write_text(
+        models / "child.ini",
+        """
+        [fields.title]
+        type = string
+        """,
+    )
+
+    parent = project_path / "content/parent"
+    write_text(
+        parent / "contents.lr",
+        """
+        _model: parent
+        ---
+        title: Parent
+        """,
+    )
+    for n in range(4):
+        write_text(
+            parent / f"child{n}/contents.lr",
+            f"""
+            _model: child
+            ---
+            title: Child {n}
+            """,
+        )
+    for n in range(5):
+        write_text(parent / f"attach{n}.txt", f"data{n}")
+
+    return scratch_project_data
+
+
+@pytest.fixture
+def scratch_tree(scratch_pad):
+    return Tree(scratch_pad)
+
+
+@pytest.mark.parametrize(
+    "order_by, expected_ids",
+    [
+        ("title", [f"child{n}" for n in range(4)]),
+        ("-title", [f"child{n}" for n in reversed(range(4))]),
+    ],
+)
+def test_child_sorting(scratch_tree, expected_ids):
+    parent = scratch_tree.get("/parent")
+    assert [child.id for child in parent.iter_subpages()] == expected_ids
+
+
+@pytest.mark.parametrize(
+    "order_attachments_by, expected_ids",
+    [
+        ("_id", [f"attach{n}.txt" for n in range(5)]),
+        ("-_id", [f"attach{n}.txt" for n in reversed(range(5))]),
+    ],
+)
+def test_attachment_sorting(scratch_tree, expected_ids):
+    parent = scratch_tree.get("/parent")
+    assert [child.id for child in parent.iter_attachments()] == expected_ids

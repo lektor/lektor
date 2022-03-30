@@ -1,6 +1,5 @@
 import os
 import shutil
-from pathlib import Path
 
 import pytest
 
@@ -14,8 +13,8 @@ from lektor.reporter import Reporter
 
 
 @pytest.fixture(scope="function")
-def pntest_project(tmp_path):
-    src = Path(__file__).parent / "dependency-test-project"
+def pntest_project(tmp_path, data_path):
+    src = data_path / "dependency-test-project"
     tmp_project = tmp_path / "project"
     shutil.copytree(src, tmp_project)
     return Project.from_path(tmp_project)
