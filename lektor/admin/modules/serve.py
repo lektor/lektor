@@ -19,7 +19,7 @@ from flask import url_for
 from flask.typing import ResponseReturnValue
 from werkzeug.exceptions import NotFound
 from werkzeug.security import safe_join
-from werkzeug.utils import redirect
+from werkzeug.utils import append_slash_redirect
 
 from lektor.admin.context import get_lektor_context
 from lektor.admin.context import LektorApp
@@ -36,19 +36,6 @@ bp = Blueprint("serve", __name__)
 
 
 Filename = Union[str, os.PathLike]
-
-
-def _append_slash_redirect() -> Response:
-    """Return 301 redirect to the current URL with a "/" appended."""
-    # NB: werkzeug.utils.append_slash_redirect does not work correctly
-    # (at least as we were using it) when the path contains more than
-    # one segment (e.g. "/foo/bar" was being redirected to
-    # "/foo/foo/bar/").  It does not sound like an upstream fix is
-    # forthcoming (https://github.com/pallets/werkzeug/pull/1538).
-    _, _, tail = request.path.rpartition("/")
-    qs = request.query_string
-    location = f"{tail}/?{str(qs, 'utf-8')}" if qs else f"{tail}/"
-    return redirect(location, 301)
 
 
 def _rewrite_html_for_editing(html: bytes, edit_url: str) -> bytes:
@@ -189,7 +176,7 @@ class ArtifactServer:
             and source.url_path.endswith("/")
             and source.url_path != "/"
         ):
-            return _append_slash_redirect()
+            return append_slash_redirect(request.environ)
 
         if isinstance(source, Directory):
             # Special case for asset directories: resolve to index.html
@@ -227,7 +214,7 @@ def serve_file(path: str) -> ResponseReturnValue:
     filename = Path(output_path, safe_path)  # coverts safe_path to native path seps
     if filename.is_dir():
         if not path.endswith("/"):
-            return _append_slash_redirect()
+            return append_slash_redirect(request.environ)
         for index in filename / "index.html", filename / "index.htm":
             if index.is_file():
                 return _checked_send_file(index, mimetype="text/html")

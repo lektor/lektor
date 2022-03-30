@@ -3,6 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 from urllib.parse import parse_qsl
+from urllib.parse import urljoin
 from urllib.parse import urlparse
 
 import flask
@@ -339,7 +340,7 @@ class TestArtifactServer:
     def test_serve_artifact_adds_slash(self, a_s, app, url_path, location):
         with app.test_request_context(f"/{url_path}"):
             resp = a_s.serve_artifact(url_path)
-        assert resp.status_code == 301
+        assert resp.status_code in (301, 308)
         assert resp.location == location
 
     @pytest.mark.parametrize(
@@ -412,7 +413,7 @@ def test_serve_file_dir_handling(output_path, app, index_html):
 
     with app.test_request_context("/adir"):
         resp = serve.serve_file("adir")
-    assert resp.status_code == 301
+    assert resp.status_code in (301, 308)
     assert resp.location == "adir/"
 
     with app.test_request_context("/adir/"):
@@ -482,7 +483,7 @@ def test_serve_from_file(app, output_path):
         ),
         (
             "/projects/coffee",
-            "http://localhost/pfx",
+            "http://localhost/pfx/",
             "http://localhost/pfx/projects/coffee/",
         ),
         ("/adir", "http://localhost/", "http://localhost/adir/"),
@@ -495,8 +496,11 @@ def test_serve_add_slash_redirect_integration(
     output_path.joinpath("adir/bdir").mkdir(parents=True)
     with app.test_client() as c:
         resp = c.get(path_info, base_url=base_url)
-        assert resp.status_code == 301
-        assert resp.location == location
+        assert resp.status_code in (301, 308)
+        # Be careful to accept either absolute or relative URLs in resp.location
+        # See https://httpwg.org/specs/rfc7231.html#header.location
+        request_url = urljoin(base_url, path_info.lstrip("/"))
+        assert urljoin(request_url, resp.location) == location
 
 
 @pytest.fixture
