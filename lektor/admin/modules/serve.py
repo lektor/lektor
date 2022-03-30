@@ -164,7 +164,7 @@ class ArtifactServer:
         )
         return url_for("url.edit", path=record.path, alt=alt)
 
-    def serve_artifact(self, url_path: str) -> ResponseReturnValue:
+    def serve_artifact(self, url_path: str) -> Response:
         source = self.resolve_url_path(url_path)
 
         # If the request path does not end with a slash but we
@@ -197,12 +197,12 @@ class ArtifactServer:
         return _checked_send_file(artifact.dst_filename, mimetype=mimetype)
 
 
-def serve_artifact(path: str) -> ResponseReturnValue:
+def serve_artifact(path: str) -> Response:
     lektor_context = get_lektor_context()
     return ArtifactServer(lektor_context).serve_artifact(path)
 
 
-def serve_file(path: str) -> ResponseReturnValue:
+def serve_file(path: str) -> Response:
     """Serve file directly from Lektor's output directory."""
     assert isinstance(current_app, LektorApp)
     output_path = current_app.lektor_info.output_path
@@ -225,7 +225,7 @@ def serve_file(path: str) -> ResponseReturnValue:
 
 @bp.route("/", defaults={"path": ""})
 @bp.route("/<path:path>")
-def serve_artifact_or_file(path: str) -> ResponseReturnValue:
+def serve_artifact_or_file(path: str) -> Response:
     try:
         return serve_artifact(path)
     except NotFound:
