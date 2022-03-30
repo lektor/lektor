@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from markers import imagemagick
 
 
@@ -271,3 +273,28 @@ def test_slug_contains_slash(pad, builder):
     prog, _ = builder.build(record)
     (artifact,) = prog.artifacts
     assert artifact.artifact_name == "extra/long/path/index.html"
+
+
+def test_asseturl_dependency_tracking_integration(
+    scratch_project_data, scratch_pad, scratch_builder
+):
+    scratch_project_data.joinpath("templates/page.html").write_text(
+        "{{ '/asset.txt'|asseturl }}", "utf-8"
+    )
+    asset_txt = scratch_project_data / "assets/asset.txt"
+    asset_txt.parent.mkdir(exist_ok=True)
+    asset_txt.write_text("an asset\n", "utf-8")
+
+    prog, build_state = scratch_builder.build(scratch_pad.root)
+    assert len(build_state.updated_artifacts) == 1
+    output = Path(prog.artifacts[0].dst_filename)
+    asset_url = output.read_text(encoding="utf-8").rstrip()
+
+    prog, build_state = scratch_builder.build(scratch_pad.root)
+    assert len(build_state.updated_artifacts) == 0
+
+    asset_txt.write_text("updated asset\n", "utf-8")
+    prog, build_state = scratch_builder.build(scratch_pad.root)
+    updated_asset_url = output.read_text(encoding="utf-8").rstrip()
+    assert updated_asset_url != asset_url
+    assert len(build_state.updated_artifacts) == 1

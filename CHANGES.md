@@ -13,6 +13,12 @@ December 2021.
 
 - Refactor and fix numerous buglets in the admin http server. ([#987][])
 
+#### Builder
+
+- The `asseturl` filter was not propery tracking build dependencies
+  resulting in stale hashes in the asset URL if the asset was
+  updated. ([#1020][])
+
 #### Bit-rot
 
 - Fixes for `werkzeug>=2.1.0`. ([#1019][], [#1018][])
@@ -31,6 +37,7 @@ December 2021.
 [#1009]: https://github.com/lektor/lektor/pull/1009
 [#1018]: https://github.com/lektor/lektor/issues/1018
 [#1019]: https://github.com/lektor/lektor/pull/1019
+[#1020]: https://github.com/lektor/lektor/issues/1020
 [#1021]: https://github.com/lektor/lektor/pull/1021
 
 ## 3.3.2 (2022-03-01)
