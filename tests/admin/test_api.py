@@ -25,16 +25,14 @@ def write_text(path, text):
 
 @pytest.fixture
 def scratch_project_data(scratch_project_data):
-    content = Path(scratch_project_data) / "content"
     write_text(
-        content / "page/contents.lr",
+        scratch_project_data / "content/page/contents.lr",
         """
         _model: page
         ---
         title: A Page
         """,
     )
-
     return scratch_project_data
 
 

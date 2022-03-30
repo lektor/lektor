@@ -93,9 +93,16 @@ def project(data_path):
 
 
 @pytest.fixture(scope="function")
-def scratch_project_data(tmpdir):
-    base = tmpdir.mkdir("scratch-proj")
-    lektorfile_text = textwrap.dedent(
+def scratch_project_data(tmp_path):
+    base = tmp_path / "scratch-proj"
+
+    def write_text(path, text):
+        filename = base / path
+        filename.parent.mkdir(parents=True, exist_ok=True)
+        filename.write_text(textwrap.dedent(text), "utf-8")
+
+    write_text(
+        "Scratch.lektorproject",
         """
         [project]
         name = Scratch
@@ -104,27 +111,27 @@ def scratch_project_data(tmpdir):
         primary = yes
         [alternatives.de]
         url_prefix = /de/
-    """
+        """,
     )
-    base.join("Scratch.lektorproject").write_text(lektorfile_text, "utf8", ensure=True)
-    content_text = textwrap.dedent(
+    write_text(
+        "content/contents.lr",
         """
         _model: page
         ---
         title: Index
         ---
         body: *Hello World!*
-    """
+        """,
     )
-    base.join("content", "contents.lr").write_text(content_text, "utf8", ensure=True)
-    template_text = textwrap.dedent(
+    write_text(
+        "templates/page.html",
         """
         <h1>{{ this.title }}</h1>
         {{ this.body }}
-    """
+        """,
     )
-    base.join("templates", "page.html").write_text(template_text, "utf8", ensure=True)
-    model_text = textwrap.dedent(
+    write_text(
+        "models/page.ini",
         """
         [model]
         label = {{ this.title }}
@@ -133,17 +140,15 @@ def scratch_project_data(tmpdir):
         type = string
         [fields.body]
         type = markdown
-    """
+        """,
     )
-    base.join("models", "page.ini").write_text(model_text, "utf8", ensure=True)
 
     return base
 
 
 @pytest.fixture(scope="function")
 def scratch_project(scratch_project_data):
-    base = scratch_project_data
-    return Project.from_path(str(base))
+    return Project.from_path(scratch_project_data)
 
 
 @pytest.fixture(scope="function")
@@ -172,13 +177,17 @@ def scratch_tree(scratch_pad):
 
 
 @pytest.fixture(scope="function")
-def builder(tmpdir, pad):
-    return Builder(pad, str(tmpdir.mkdir("output")))
+def builder(tmp_path, pad):
+    output_path = tmp_path / "output"
+    output_path.mkdir()
+    return Builder(pad, str(output_path))
 
 
 @pytest.fixture(scope="function")
-def scratch_builder(tmpdir, scratch_pad):
-    return Builder(scratch_pad, str(tmpdir.mkdir("output")))
+def scratch_builder(tmp_path, scratch_pad):
+    output_path = tmp_path / "output"
+    output_path.mkdir()
+    return Builder(scratch_pad, str(output_path))
 
 
 # Builder for child-sources-test-project, a project to test that child sources

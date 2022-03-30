@@ -126,11 +126,9 @@ class TestPlugin:
     @pytest.fixture
     def scratch_project_data(self, scratch_project_data):
         """Add plugin config file to scratch project."""
-        scratch_project_data.join("configs", "dummy-plugin.ini").write_text(
-            "test_setting = test value\n",
-            encoding="utf-8",
-            ensure=True,
-        )
+        plugin_ini = scratch_project_data / "configs/dummy-plugin.ini"
+        plugin_ini.parent.mkdir(exist_ok=True)
+        plugin_ini.write_text("test_setting = test value\n", "utf-8")
         return scratch_project_data
 
     @pytest.fixture

@@ -2,7 +2,6 @@
 import re
 import shutil
 from inspect import cleandoc
-from pathlib import Path
 
 import pytest
 
@@ -408,9 +407,7 @@ def order_attachments_by():
 
 @pytest.fixture
 def scratch_project_data(scratch_project_data, order_by, order_attachments_by):
-    project_path = Path(scratch_project_data)
-
-    models = project_path / "models"
+    models = scratch_project_data / "models"
     write_text(
         models / "parent.ini",
         f"""
@@ -428,7 +425,7 @@ def scratch_project_data(scratch_project_data, order_by, order_attachments_by):
         """,
     )
 
-    parent = project_path / "content/parent"
+    parent = scratch_project_data / "content/parent"
     write_text(
         parent / "contents.lr",
         """

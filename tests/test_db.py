@@ -2,7 +2,6 @@ import inspect
 import os
 import re
 from datetime import date
-from pathlib import Path
 
 import pytest
 
@@ -355,7 +354,7 @@ def write_files(*path_text_pairs):
 
 @pytest.fixture
 def dotted_slug_test_records(scratch_project_data):
-    content_path = Path(scratch_project_data, "content")
+    content_path = scratch_project_data / "content"
     write_files(
         (
             content_path / "test_dotted/contents.lr",
@@ -376,7 +375,7 @@ def dotted_slug_test_records(scratch_project_data):
 
 @pytest.fixture
 def primary_alt_is_prefixed(scratch_project_data):
-    project_file = Path(scratch_project_data, "Scratch.lektorproject")
+    project_file = scratch_project_data / "Scratch.lektorproject"
     content = project_file.read_text(encoding="utf-8")
     write_files(
         (
@@ -391,10 +390,9 @@ def primary_alt_is_prefixed(scratch_project_data):
 
 @pytest.fixture
 def paginated_pages(scratch_project_data):
-    project_path = Path(scratch_project_data)
     write_files(
         (
-            project_path / "content/paginated/contents.lr",
+            scratch_project_data / "content/paginated/contents.lr",
             """
             _model: paginated
             ---
@@ -402,7 +400,7 @@ def paginated_pages(scratch_project_data):
             """,
         ),
         (
-            project_path / "content/paginated.dotted/contents.lr",
+            scratch_project_data / "content/paginated.dotted/contents.lr",
             """
             _model: paginated
             ---
@@ -410,7 +408,7 @@ def paginated_pages(scratch_project_data):
             """,
         ),
         (
-            project_path / "models/paginated.ini",
+            scratch_project_data / "models/paginated.ini",
             """
             [model]
             name = Paginated
@@ -425,7 +423,7 @@ def paginated_pages(scratch_project_data):
 
 @pytest.fixture
 def dummy_attachment(scratch_project_data):
-    attachment = Path(scratch_project_data, "content/test.txt")
+    attachment = scratch_project_data / "content/test.txt"
     write_files((attachment, "some text"))
 
 

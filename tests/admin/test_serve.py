@@ -513,7 +513,7 @@ def scratch_app(scratch_env, output_path):
 
 
 def test_serve_custom_404(scratch_app, scratch_project_data):
-    custom_404 = Path(scratch_project_data) / "assets/404.html"
+    custom_404 = scratch_project_data / "assets/404.html"
     custom_404.parent.mkdir(exist_ok=True)
     custom_404.write_text("custom 404")
 
