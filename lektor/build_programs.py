@@ -31,7 +31,7 @@ class SourceInfo:
     """
 
     def __init__(
-        self, path, filename, alt=PRIMARY_ALT, type="unknown", title_i18n=None
+        self, path, filename, alt=PRIMARY_ALT, type="unknown", title_i18n={}
     ):
         self.path = path
         self.alt = alt
