@@ -16,7 +16,7 @@ export function dispatch<T extends keyof LektorEvents>(
 }
 
 /** Subscribe to one of Lektor's custom events. */
-export function subscribe<T extends keyof LektorEvents>(
+function subscribe<T extends keyof LektorEvents>(
   type: T,
   handler: (ev: CustomEvent<LektorEvents[T]>) => void
 ): void {
@@ -24,7 +24,7 @@ export function subscribe<T extends keyof LektorEvents>(
 }
 
 /** Subscribe from one of Lektor's custom events. */
-export function unsubscribe<T extends keyof LektorEvents>(
+function unsubscribe<T extends keyof LektorEvents>(
   type: T,
   handler: (ev: CustomEvent<LektorEvents[T]>) => void
 ): void {

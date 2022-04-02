@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useReducer, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
 import { get } from "../fetch";
 import { trans_obj } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
@@ -8,7 +14,7 @@ import Alternatives from "./Alternatives";
 import AttachmentActions from "./AttachmentActions";
 import { CHILDREN_PER_PAGE } from "./constants";
 import ChildActions from "./ChildActions";
-import { subscribe, unsubscribe } from "../events";
+import { useLektorEvent } from "../events";
 import { PageContext } from "../context/page-context";
 import { useRecordPath } from "../context/record-context";
 
@@ -54,15 +60,17 @@ function Sidebar(): JSX.Element | null {
   const [childPosCache] = useState(() => new ChildPosCache());
   const [updateForced, forceUpdate] = useReducer((x) => x + 1, 0);
 
-  useEffect(() => {
-    const handler = ({ detail }: CustomEvent<string>) => {
-      if (detail === path) {
-        forceUpdate();
-      }
-    };
-    subscribe("lektor-attachments-changed", handler);
-    return () => unsubscribe("lektor-attachments-changed", handler);
-  }, [path]);
+  useLektorEvent(
+    "lektor-attachments-changed",
+    useCallback(
+      ({ detail }) => {
+        if (detail === path) {
+          forceUpdate();
+        }
+      },
+      [path]
+    )
+  );
 
   useEffect(() => {
     let ignore = false;

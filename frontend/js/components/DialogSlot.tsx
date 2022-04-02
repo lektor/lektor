@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import FindFiles from "../dialogs/find-files/FindFiles";
 import Publish from "../dialogs/Publish";
 import Refresh from "../dialogs/Refresh";
-import { LektorEvents, subscribe, unsubscribe } from "../events";
+import { LektorEvents, useLektorEvent } from "../events";
 
 type DialogDetails = LektorEvents["lektor-dialog"];
 
@@ -20,14 +20,14 @@ export default function DialogSlot(): JSX.Element | null {
       setDialog((d) => (d ? { ...d, preventNavigation } : null)),
     []
   );
-  useEffect(() => {
-    const handler = ({ detail }: CustomEvent<DialogDetails>) => {
+
+  useLektorEvent(
+    "lektor-dialog",
+    useCallback(({ detail }) => {
       // Only change dialog if there is no dialog yet.
       setDialog((current) => current ?? detail);
-    };
-    subscribe("lektor-dialog", handler);
-    return () => unsubscribe("lektor-dialog", handler);
-  }, []);
+    }, [])
+  );
 
   if (!dialog) {
     return null;

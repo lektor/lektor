@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import SlideDialog from "./SlideDialog";
 import { trans, TranslationEntry } from "../i18n";
-import { LektorEvents, subscribe, unsubscribe } from "../events";
+import { useLektorEvent } from "../events";
 
 /**
  * Listen to events and show an error dialog (potentially on top of an open
@@ -12,12 +12,12 @@ export default function ErrorDialog(): JSX.Element | null {
 
   const dismiss = useCallback(() => setError(null), []);
 
-  useEffect(() => {
-    const handler = ({ detail }: CustomEvent<LektorEvents["lektor-error"]>) =>
+  useLektorEvent(
+    "lektor-error",
+    useCallback(({ detail }) => {
       setError(detail);
-    subscribe("lektor-error", handler);
-    return () => unsubscribe("lektor-error", handler);
-  }, []);
+    }, [])
+  );
 
   if (!error) {
     return null;
