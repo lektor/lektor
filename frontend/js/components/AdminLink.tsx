@@ -4,19 +4,23 @@ import { PageName } from "../context/page-context";
 import { RecordPathDetails, useRecord } from "../context/record-context";
 import { adminPath } from "./use-go-to-admin-page";
 
+export type AdminLinkProps = RecordPathDetails & {
+  page: PageName;
+  children: ReactNode;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  title?: string;
+};
+
+/**
+ * Link to an admin page.
+ */
 function AdminLink({
   page,
   path,
   alt,
   children,
   ...otherProps
-}: RecordPathDetails & {
-  page: PageName;
-  children: ReactNode;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  ref?: React.MutableRefObject<HTMLAnchorElement | null>;
-  title?: string;
-}): JSX.Element {
+}: AdminLinkProps): JSX.Element {
   const current = useRecord();
   const recordMatches = path === current.path && alt === current.alt;
 

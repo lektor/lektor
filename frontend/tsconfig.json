@@ -1,10 +1,9 @@
 {
-  "include": ["js/**/*"],
+  "include": ["build.ts", "js/**/*"],
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "allowJs": true,
-    "checkJs": true,
+    "target": "es2015",
+    "module": "es2015",
+    "moduleResolution": "node",
     "jsx": "react",
     "noEmit": true,
     "strict": true,
