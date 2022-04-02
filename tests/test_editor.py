@@ -239,7 +239,7 @@ def test_editor_data_values(editor_data):
     assert "fallback2" in editor_data.values()
     assert len(editor_data.values()) == 1
 
-    assert list(editor_data.values(fallback=False)) == []
+    assert not list(editor_data.values(fallback=False))
     assert "fallback2" not in editor_data.values(fallback=False)
     assert len(editor_data.values(fallback=False)) == 0
 

@@ -27,11 +27,13 @@ def test_BuildFailure_from_exc_info():
             raise RuntimeError("test error")  # pylint: disable=raise-missing-from
 
     artifact_name = "test_artifact"
+    failure = None
     try:
         throw_exception()
     except Exception:
         failure = BuildFailure.from_exc_info(artifact_name, sys.exc_info())
 
+    assert failure
     assert failure.data["artifact"] == artifact_name
     assert failure.data["exception"] == "RuntimeError: test error"
     traceback = failure.data["traceback"]
