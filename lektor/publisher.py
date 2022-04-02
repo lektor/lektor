@@ -373,7 +373,8 @@ class FtpConnection:
 
 
 class FtpTlsConnection(FtpConnection):
-    def make_connection(self):
+    @staticmethod
+    def make_connection():
         # pylint: disable=import-outside-toplevel
         from ftplib import FTP_TLS
 
