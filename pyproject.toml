@@ -26,6 +26,12 @@ paths = [
     ".tox/py*/*/lektor",
 ]
 
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    '^\s*\.\.\.\s*$',
+]
+
 ################################################################
 #
 # pylint

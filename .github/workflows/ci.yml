@@ -145,10 +145,5 @@ jobs:
           python -m pip install tox tox-gh-actions coverage[toml]
       - name: Run python tests
         run: tox
-      - name: Generate coverage.xml
-        shell: bash
-        run: |
-          coverage combine --append || true
-          coverage xml
       - name: Publish coverage data to codecov
         uses: codecov/codecov-action@v2

@@ -771,6 +771,8 @@ class Attachment(Record):
 
     def iter_source_filenames(self):
         yield self.source_filename
+        if self.alt != PRIMARY_ALT:
+            yield self.pad.db.to_fs_path(self["_path"]) + ".lr"
         yield self.attachment_filename
 
     @property
@@ -1525,7 +1527,13 @@ class Database:
         ctx = get_ctx()
         if ctx is not None:
             for filename in record.iter_source_filenames():
-                ctx.record_dependency(filename)
+                if isinstance(record, Attachment):
+                    # For Attachments, the actually attachment data
+                    # does not affect the URL of the attachment.
+                    affects_url = filename != record.attachment_filename
+                else:
+                    affects_url = True
+                ctx.record_dependency(filename, affects_url=affects_url)
             for virtual_source in record.iter_virtual_sources():
                 ctx.record_virtual_dependency(virtual_source)
             if getattr(record, "datamodel", None) and record.datamodel.filename:
@@ -1625,6 +1633,13 @@ class Pad:
     def make_url(self, url, base_url=None, absolute=None, external=None):
         """Helper method that creates a finalized URL based on the parameters
         provided and the config.
+
+        :param url: URL path (starting with "/") relative to the
+            configured base_path.
+
+        :param base_url: Base URL path (starting with "/") relative to
+            the configured base_path.
+
         """
         url_style = self.db.config.url_style
         if absolute is None:

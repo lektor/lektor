@@ -99,6 +99,7 @@ class Context:
         self.flow_block_render_stack = []
 
         self._forced_base_url = None
+        self._resolving_url = False
 
         # General cache system where other things can put their temporary
         # stuff in.
@@ -154,15 +155,30 @@ class Context:
             return self.source.url_path
         return "/"
 
-    def url_to(self, path, alt=None, absolute=None, external=None):
+    def url_to(
+        self,
+        path,
+        alt=None,
+        absolute=None,
+        external=None,
+        resolve=None,
+        strict_resolve=None,
+    ):
         """Returns a URL to another path."""
         if self.source is None:
             raise RuntimeError(
                 "Can only generate paths to other pages if "
                 "the context has a source document set."
             )
-        rv = self.source.url_to(path, alt=alt, absolute=True)
-        return self.pad.make_url(rv, self.base_url, absolute, external)
+        return self.source.url_to(
+            path,
+            alt=alt,
+            base_url=self.base_url,
+            absolute=absolute,
+            external=external,
+            resolve=resolve,
+            strict_resolve=strict_resolve,
+        )
 
     def get_asset_url(self, asset):
         """Calculates the asset URL relative to the current record."""
@@ -211,8 +227,14 @@ class Context:
         self.sub_artifacts.append((aft, build_func))
         reporter.report_sub_artifact(aft)
 
-    def record_dependency(self, filename):
-        """Records a dependency from processing."""
+    def record_dependency(self, filename, affects_url=None):
+        """Records a dependency from processing.
+
+        If ``affects_url`` is set to ``False`` the dependency will be ignored if
+        we are in the process of resolving a URL.
+        """
+        if self._resolving_url and affects_url is False:
+            return
         self.referenced_dependencies.add(filename)
         for coll in self._dependency_collectors:
             coll(filename)
@@ -244,3 +266,17 @@ class Context:
             yield
         finally:
             self._forced_base_url = old
+
+
+@contextmanager
+def ignore_url_unaffecting_dependencies(value=True):
+    """Ignore dependencies which do not affect URL resolution within context."""
+    ctx = get_ctx()
+    if ctx is not None:
+        old = ctx._resolving_url
+        ctx._resolving_url = value
+    try:
+        yield
+    finally:
+        if ctx is not None:
+            ctx._resolving_url = old

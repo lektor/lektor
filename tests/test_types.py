@@ -1,5 +1,8 @@
 import datetime
+import re
+import warnings
 
+import pytest
 from babel.dates import get_timezone
 from markupsafe import escape
 from markupsafe import Markup
@@ -13,6 +16,10 @@ from lektor.types.formats import MarkdownDescriptor
 
 class DummySource:
     url_path = "/"
+
+    @staticmethod
+    def url_to(url, **kwargs):
+        return url
 
 
 def make_field(env, type, **options):
@@ -64,9 +71,9 @@ def test_markdown_links(env, pad):
             "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4"
             "//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
         )
-        assert (
-            md("![test](data:image/png;base64,%s)" % img)
-            == ('<p><img src="data:image/png;base64,%s" alt="test"></p>') % img
+        assert re.match(
+            rf'<p><img src="data:image/png;base64,{img}" alt="test"\s*/?></p>\Z',
+            md(f"![test](data:image/png;base64,{img})"),
         )
 
 
@@ -91,15 +98,33 @@ def test_markdown_images(pad, builder):
 
     prog, _ = builder.build(blog_index)
     with prog.artifacts[0].open("rb") as f:
-        assert (
-            b'This is an image <img src="2015/12/' b'post1/logo.png" alt="logo">.'
-        ) in f.read()
+        assert re.search(
+            rb'This is an image <img src="2015/12/post1/logo.png" alt="logo"\s*/?>.',
+            f.read(),
+        )
 
     blog_post = pad.get("/blog/post1")
 
     prog, _ = builder.build(blog_post)
     with prog.artifacts[0].open("rb") as f:
-        assert b'This is an image <img src="logo.png" alt="logo">.' in f.read()
+        assert re.search(
+            rb'This is an image <img src="logo.png" alt="logo"\s*/?>.',
+            f.read(),
+        )
+
+
+def test_markdown_warns_on_invalid_options(env):
+    with pytest.warns(UserWarning) as warnings:
+        make_field(env, "markdown", label="Test", resolve_links="GARBAGE")
+    assert "Unrecognized value" in str(warnings[0].message)
+
+
+@pytest.mark.parametrize("resolve_links", ["always", "never", "when-possible", None])
+def test_markdown_does_not_warn_on_valid_options(env, resolve_links):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        field = make_field(env, "markdown", label="Test", resolve_links=resolve_links)
+    assert field.options["resolve_links"] == resolve_links
 
 
 def test_string(env, pad):
