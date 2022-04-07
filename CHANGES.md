@@ -7,11 +7,31 @@ These are all the changes in Lektor since the first public release.
 This release drops support for Python 3.6, which has reached end-of-life in
 December 2021.
 
+### Changes
+
+#### Markdown
+
+- Links and image URLs in markdown text are now, by default, resolved
+  via the Lektor database. Previously, they were not. Note that this
+  behavior may be customized on a per-datamodel-field basis if one
+  wants to get the old behavior back. ([#992][])
+
+- Lektor now supports either [mistune][] 2.x or mistune 0.x. The
+  configuration API of mistune 2.x differs significantly from that of
+  mistune 0.x. If you are using a plugin that customizes the markdown
+  rendering, you will likely have to update the plugin to support the
+  newer mistune, or pin mistune to the older version. ([#992][])
+
 ### Bugs
 
 #### Admin Server
 
 - Refactor and fix numerous buglets in the admin http server. ([#987][])
+
+#### Admin Frontend
+
+- Use [esbuild][] rather than webpack/babel to build the admin js code. ([#1012][])
+- Update frontend deps. ([#1025][])
 
 #### Builder
 
@@ -28,17 +48,23 @@ December 2021.
 
 - Update pre-commit config to use `black==22.3.0` to avoid breakage
   caused by `click>=8.1.0`. ([#1019][])
+- Updateto `pylint=2.13.4`. ([#1025][])
 
 ### Refactorings
 
 - Removed unused cruft. ([#1009][])
 
+[mistune]: https://mistune.readthedocs.io/en/latest/
+[esbuild]: https://github.com/evanw/esbuild
 [#987]: https://github.com/lektor/lektor/pull/987
+[#992]: https://github.com/lektor/lektor/pull/992
 [#1009]: https://github.com/lektor/lektor/pull/1009
+[#1012]: https://github.com/lektor/lektor/pull/1012
 [#1018]: https://github.com/lektor/lektor/issues/1018
 [#1019]: https://github.com/lektor/lektor/pull/1019
 [#1020]: https://github.com/lektor/lektor/issues/1020
 [#1021]: https://github.com/lektor/lektor/pull/1021
+[#1025]: https://github.com/lektor/lektor/pull/1025
 
 ## 3.3.2 (2022-03-01)
 
