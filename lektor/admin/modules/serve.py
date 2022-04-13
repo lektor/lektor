@@ -44,6 +44,7 @@ def _rewrite_html_for_editing(html: bytes, edit_url: str) -> bytes:
     The pencil will link to ``edit_url``.
     """
     button_script = render_template("edit-button.html", edit_url=edit_url)
+    button_script += render_template("livereload.html")
 
     def button(m: Match[bytes]) -> bytes:
         return button_script.encode("utf-8") + m.group(0)

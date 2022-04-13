@@ -1,0 +1,6 @@
+<script
+  src="{{ url_for('livereload.static', filename='livereload/listener.js') }}"
+  data-worker-script="{{ url_for('livereload.static', filename='livereload/worker.js') }}"
+  data-events-path="{{ url_for('livereload.events') }}"
+  defer
+></script>
