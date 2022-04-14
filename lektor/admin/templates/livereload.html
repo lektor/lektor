@@ -1,6 +1,28 @@
-<script
-  src="{{ url_for('livereload.static', filename='livereload/listener.js') }}"
-  data-worker-script="{{ url_for('livereload.static', filename='livereload/worker.js') }}"
-  data-events-path="{{ url_for('livereload.events') }}"
-  defer
-></script>
+<script type="text/javascript">
+  (function () {
+    const workerScriptPath =
+      "{{ url_for('livereload.static', filename='livereload/worker.js') }}";
+    const eventsPath = "{{ url_for('livereload.events') }}";
+
+    if (!window.SharedWorker) {
+      console.debug("😭 live-reload cannot work in this browser.");
+    } else {
+      const worker = new SharedWorker(workerScriptPath, {
+        name: "live-reload",
+      });
+
+      worker.port.addEventListener("message", (event) => {
+        if (event.data === "Reload") {
+          location.reload();
+        }
+      });
+
+      worker.port.postMessage({
+        type: "initialize",
+        eventsPath,
+      });
+
+      worker.port.start();
+    }
+  })();
+</script>

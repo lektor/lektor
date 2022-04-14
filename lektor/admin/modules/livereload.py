@@ -1,30 +1,24 @@
 import json
 import secrets
 import threading
-from typing import Any, Generator, Optional
+from typing import Any
 
-from flask import Blueprint, current_app, request
-from werkzeug.exceptions import NotAcceptable
+from flask import Blueprint
+
+from lektor.admin.utils import eventstream
 
 PING_DELAY = 1.0
-RELOAD_DEBOUNCE_TIME = 0.05  # seconds
 
 bp = Blueprint("livereload", __name__, static_folder="static")
 # Use a random ID to detect reloading, which will be changed after reloaded
 version_id = secrets.token_urlsafe(16)
 
 reload_event = threading.Event()
-reload_timer: Optional[threading.Timer] = None
 
 
 def trigger_reload():
     """Trigger reload after a debounce delay."""
-    global reload_timer
-    if reload_timer is not None:
-        reload_timer.cancel()
-
-    reload_timer = threading.Timer(RELOAD_DEBOUNCE_TIME, reload_event.set)
-    reload_timer.start()
+    reload_event.set()
 
 
 def message(type_: str, **kwargs: Any) -> bytes:
@@ -40,17 +34,12 @@ def message(type_: str, **kwargs: Any) -> bytes:
 
 
 @bp.route("/events")
+@eventstream
 def events():
-    if "text/event-stream" not in request.accept_mimetypes:
-        raise NotAcceptable()
+    while True:
+        yield {"type": "ping", "versionId": version_id}
 
-    def event_stream() -> Generator[bytes, None, None]:
-        while True:
-            yield message("ping", versionId=version_id)
-
-            should_reload = reload_event.wait(timeout=PING_DELAY)
-            if should_reload:
-                reload_event.clear()
-                yield message("reload")
-
-    return current_app.response_class(event_stream(), mimetype="text/event-stream")
+        should_reload = reload_event.wait(timeout=PING_DELAY)
+        if should_reload:
+            yield {"type": "reload"}
+            reload_event.clear()

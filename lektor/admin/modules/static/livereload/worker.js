@@ -21,60 +21,20 @@ const receiveMessage = (event) => {
     const givenEventsPath = event.data.eventsPath;
 
     if (givenEventsPath !== eventsPath) {
+      eventsPath = event.data.eventsPath;
       if (eventSource) {
         eventSource.close();
       }
-
-      resetConnectTimeout();
-
       setTimeout(connectToEvents, 0);
     }
-
-    eventsPath = event.data.eventsPath;
   }
 };
 
-let connectAttempts;
-let connectTimeoutMs;
-
-const resetConnectTimeout = () => {
-  connectAttempts = 0;
-  connectTimeoutMs = 100;
-};
-resetConnectTimeout();
-
-const bumpConnectTimeout = () => {
-  connectAttempts++;
-
-  if (connectTimeoutMs === 100 && connectAttempts === 20) {
-    connectAttempts = 0;
-    connectTimeoutMs = 300;
-  } else if (connectTimeoutMs === 300 && connectAttempts === 20) {
-    connectAttempts = 0;
-    connectTimeoutMs = 1000;
-  } else if (connectTimeoutMs === 1000 && connectAttempts === 20) {
-    connectAttempts = 0;
-    connectTimeoutMs = 3000;
-  } else if (connectAttempts === 100) {
-    // Give up after 5 minutes.
-    console.debug(
-      "😢 live-reload failed to connect after 5 minutes, shutting down."
-    );
-    close();
-    return;
-  }
-  if (connectAttempts === 0) {
-    console.debug(
-      "😅 live-reload EventSource error, retrying every " +
-        connectTimeoutMs +
-        "ms"
-    );
-  }
-};
+const retryInterval = 1000;
 
 const connectToEvents = () => {
   if (!eventsPath) {
-    setTimeout(connectToEvents, connectTimeoutMs);
+    setTimeout(connectToEvents, retryInterval);
     return;
   }
 
@@ -85,10 +45,6 @@ const connectToEvents = () => {
   });
 
   eventSource.addEventListener("message", (event) => {
-    // Reset connection timeout when receiving a message, as it’s proof that
-    // we are actually connected.
-    resetConnectTimeout();
-
     const message = JSON.parse(event.data);
 
     if (message.type === "ping") {
@@ -106,7 +62,6 @@ const connectToEvents = () => {
   eventSource.addEventListener("error", () => {
     eventSource.close();
     eventSource = null;
-    bumpConnectTimeout();
-    setTimeout(connectToEvents, connectTimeoutMs);
+    setTimeout(connectToEvents, retryInterval);
   });
 };
