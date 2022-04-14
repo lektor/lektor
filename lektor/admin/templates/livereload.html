@@ -1,7 +1,6 @@
 <script type="text/javascript">
   (function () {
-    const workerScriptPath =
-      "{{ url_for('livereload.static', filename='livereload/worker.js') }}";
+    const workerScriptPath = "{{ url_for('livereload.worker_script') }}";
     const eventsPath = "{{ url_for('livereload.events') }}";
 
     if (!window.SharedWorker) {

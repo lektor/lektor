@@ -3,13 +3,13 @@ import secrets
 import threading
 from typing import Any
 
-from flask import Blueprint
+from flask import Blueprint, render_template, url_for
 
 from lektor.admin.utils import eventstream
 
 PING_DELAY = 1.0
 
-bp = Blueprint("livereload", __name__, static_folder="static")
+bp = Blueprint("livereload", __name__)
 # Use a random ID to detect reloading, which will be changed after reloaded
 version_id = secrets.token_urlsafe(16)
 
@@ -43,3 +43,12 @@ def events():
         if should_reload:
             yield {"type": "reload"}
             reload_event.clear()
+
+
+@bp.route("/events/worker.js")
+def worker_script():
+    return (
+        render_template("livereload-worker.js", events_url=url_for(".events")),
+        200,
+        {"Content-Type": "text/javascript"},
+    )

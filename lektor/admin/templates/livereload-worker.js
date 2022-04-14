@@ -1,7 +1,7 @@
 /* eslint-env worker */
 "use strict";
 
-let eventsPath = null;
+const eventsPath = {{ events_url|tojson }};
 let port = null;
 let currentVersionId = null;
 let eventSource = null;
@@ -12,31 +12,12 @@ addEventListener("connect", (event) => {
     port.close();
   }
   port = event.ports[0];
-  port.addEventListener("message", receiveMessage);
   port.start();
 });
-
-const receiveMessage = (event) => {
-  if (event.data.type === "initialize") {
-    const givenEventsPath = event.data.eventsPath;
-
-    if (givenEventsPath !== eventsPath) {
-      eventsPath = event.data.eventsPath;
-      if (eventSource) {
-        eventSource.close();
-      }
-      setTimeout(connectToEvents, 0);
-    }
-  }
-};
 
 const retryInterval = 1000;
 
 const connectToEvents = () => {
-  if (!eventsPath) {
-    setTimeout(connectToEvents, retryInterval);
-    return;
-  }
 
   eventSource = new EventSource(eventsPath);
 
@@ -65,3 +46,5 @@ const connectToEvents = () => {
     setTimeout(connectToEvents, retryInterval);
   });
 };
+
+connectToEvents();
