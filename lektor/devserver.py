@@ -6,7 +6,7 @@ import traceback
 from werkzeug.serving import run_simple
 from werkzeug.serving import WSGIRequestHandler
 
-from lektor.admin import WebAdmin, trigger_reload
+from lektor.admin import WebAdmin
 from lektor.builder import Builder
 from lektor.db import Database
 from lektor.reporter import CliReporter
@@ -52,7 +52,6 @@ class BackgroundBuilder(threading.Thread):
                 for ts, _, _ in watcher:
                     if self.last_build is None or ts > self.last_build:
                         self.build()
-                        trigger_reload()
 
 
 def browse_to_address(addr):

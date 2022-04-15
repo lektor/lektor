@@ -1,6 +1,8 @@
+import queue
 import time
 import traceback
 from contextlib import contextmanager
+from weakref import WeakSet
 
 import click
 from click import style
@@ -10,6 +12,14 @@ from werkzeug.local import LocalStack
 
 _reporter_stack = LocalStack()
 _build_buffer_stack = LocalStack()
+_change_stream_reporters = WeakSet()
+
+
+def report_artifact_built(artifact, is_current):
+    if is_current:
+        return
+    for reporter in _change_stream_reporters:
+        reporter.change_stream.put(artifact)
 
 
 def describe_build_func(func):
@@ -112,6 +122,7 @@ class Reporter:
         try:
             yield
         finally:
+            report_artifact_built(artifact, is_current)
             self.finish_artifact_build(now)
             self.artifact_stack.pop()
 
@@ -175,6 +186,19 @@ class Reporter:
 
 class NullReporter(Reporter):
     pass
+
+
+class ChangeStreamReporter(Reporter):
+    def __init__(self, env, verbosity=0):
+        super().__init__(env, verbosity)
+        self.change_stream = queue.Queue()
+
+    def push(self):
+        super().push()
+        _change_stream_reporters.add(self)
+
+    def next_change(self, timeout=None):
+        return self.change_stream.get(timeout=timeout)
 
 
 class BufferReporter(Reporter):

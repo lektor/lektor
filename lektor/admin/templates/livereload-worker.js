@@ -2,17 +2,14 @@
 "use strict";
 
 const eventsPath = {{ events_url|tojson }};
-let port = null;
 let currentVersionId = null;
 let eventSource = null;
+let ports = [];
 
 addEventListener("connect", (event) => {
-  // Only keep one active port, for whichever tab was last loaded.
-  if (port) {
-    port.close();
-  }
-  port = event.ports[0];
+  const port = event.ports[0];
   port.start();
+  ports.push(port);
 });
 
 const retryInterval = 1000;
@@ -31,12 +28,12 @@ const connectToEvents = () => {
     if (message.type === "ping") {
       if (currentVersionId !== null && currentVersionId !== message.versionId) {
         console.debug("🔁 live-reload triggering reload.");
-        port.postMessage("Reload");
+        ports.forEach((port) => port.postMessage({type: "restart"}));
       }
 
       currentVersionId = message.versionId;
     } else if (message.type === "reload") {
-      port.postMessage("Reload");
+      ports.forEach((port) => port.postMessage(message));
     }
   });
 
