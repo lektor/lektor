@@ -4,7 +4,7 @@ import secrets
 from flask import Blueprint, render_template, url_for
 
 from lektor.admin.utils import eventstream
-from lektor.reporter import ChangeStreamReporter
+from lektor.reporter import reporter
 
 PING_DELAY = 1.0
 
@@ -16,15 +16,16 @@ version_id = secrets.token_urlsafe(16)
 @bp.route("/events")
 @eventstream
 def events():
-    with ChangeStreamReporter(None) as reporter:
+    events = queue.Queue()
+    with reporter.register_change_stream(events):
         while True:
             yield {"type": "ping", "versionId": version_id}
 
             try:
-                artifact = reporter.next_change(PING_DELAY)
+                change = events.get(timeout=PING_DELAY)
             except queue.Empty:
                 continue
-            yield {"type": "reload", "path": artifact.artifact_name}
+            yield {"type": "reload", "path": change.artifact_name}
 
 
 @bp.route("/events/worker.js")

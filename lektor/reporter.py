@@ -1,8 +1,6 @@
-import queue
 import time
 import traceback
 from contextlib import contextmanager
-from weakref import WeakSet
 
 import click
 from click import style
@@ -12,14 +10,6 @@ from werkzeug.local import LocalStack
 
 _reporter_stack = LocalStack()
 _build_buffer_stack = LocalStack()
-_change_stream_reporters = WeakSet()
-
-
-def report_artifact_built(artifact, is_current):
-    if is_current:
-        return
-    for reporter in _change_stream_reporters:
-        reporter.change_stream.put(artifact)
 
 
 def describe_build_func(func):
@@ -32,6 +22,8 @@ def describe_build_func(func):
 
 
 class Reporter:
+    _change_streams = set()
+
     def __init__(self, env, verbosity=0):
         self.env = env
         self.verbosity = verbosity
@@ -107,6 +99,14 @@ class Reporter:
             self.builder_stack.pop()
             self.finish_build(activity, now)
 
+    @contextmanager
+    def register_change_stream(self, stream):
+        self._change_streams.add(stream)
+        try:
+            yield
+        finally:
+            self._change_streams.discard(stream)
+
     def start_build(self, activity):
         pass
 
@@ -122,9 +122,15 @@ class Reporter:
         try:
             yield
         finally:
-            report_artifact_built(artifact, is_current)
+            self.report_artifact_built(artifact, is_current)
             self.finish_artifact_build(now)
             self.artifact_stack.pop()
+
+    def report_artifact_built(self, artifact, is_current):
+        if is_current:
+            return
+        for queue in self._change_streams:
+            queue.put(artifact)
 
     def start_artifact_build(self, is_current):
         pass
@@ -186,19 +192,6 @@ class Reporter:
 
 class NullReporter(Reporter):
     pass
-
-
-class ChangeStreamReporter(Reporter):
-    def __init__(self, env, verbosity=0):
-        super().__init__(env, verbosity)
-        self.change_stream = queue.Queue()
-
-    def push(self):
-        super().push()
-        _change_stream_reporters.add(self)
-
-    def next_change(self, timeout=None):
-        return self.change_stream.get(timeout=timeout)
 
 
 class BufferReporter(Reporter):
