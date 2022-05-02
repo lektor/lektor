@@ -357,39 +357,28 @@ def server_cmd(
 @cli.command("project-info", short_help="Shows the info about a project.")
 @click.option("as_json", "--json", is_flag=True, help="Prints out the data as json.")
 @click.option(
-    "ops",
     "--name",
     is_flag=True,
-    multiple=True,
-    flag_value="name",
     help="Print the project name",
 )
 @click.option(
-    "ops",
     "--project-file",
     is_flag=True,
-    multiple=True,
-    flag_value="project_file",
     help="Print the path to the project file.",
 )
 @click.option(
-    "ops",
     "--tree",
     is_flag=True,
-    multiple=True,
-    flag_value="tree",
     help="Print the path to the tree.",
 )
 @click.option(
-    "ops",
+    "default_output_path",
     "--output-path",
     is_flag=True,
-    multiple=True,
-    flag_value="default_output_path",
     help="Print the path to the default output path.",
 )
 @pass_context
-def project_info_cmd(ctx, as_json, ops):
+def project_info_cmd(ctx, as_json, **opts):
     """Prints out information about the project.  This is particular
     useful for script usage or for discovering information about a
     Lektor project that is not immediately obvious (like the paths
@@ -400,6 +389,7 @@ def project_info_cmd(ctx, as_json, ops):
         echo_json(project.to_json())
         return
 
+    ops = [k for k, v in opts.items() if v]
     if ops:
         data = project.to_json()
         for op in ops:
