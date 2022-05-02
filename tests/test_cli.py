@@ -2,9 +2,11 @@ import os
 import re
 import warnings
 
+import pytest
 from markers import imagemagick
 
 from lektor.cli import cli
+from lektor.project import Project
 
 
 def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
@@ -103,3 +105,23 @@ def test_deploy_extra_flag(project_cli_runner, mocker):
     result = project_cli_runner.invoke(cli, ["deploy", "-f", "draft"])
     assert result.exit_code == 0
     assert mock_publish.call_args[1]["extra_flags"] == ("draft",)
+
+
+@pytest.mark.parametrize(
+    "flag, expect",
+    [
+        ("--name", "Demo Project"),
+        ("--project-file", "{tree_dir}{os.sep}Website.lektorproject"),
+        ("--tree", "{tree_dir}"),
+        ("--output-path", "{output_path}"),
+    ],
+)
+def test_project_info_path_flags(project_cli_runner, flag, expect):
+    tree_dir = os.getcwd()
+    result = project_cli_runner.invoke(cli, ["project-info", flag])
+    assert result.exit_code == 0
+    assert result.stdout.rstrip() == expect.format(
+        tree_dir=tree_dir,
+        output_path=Project.from_path(tree_dir).get_output_path(),
+        os=os,
+    )

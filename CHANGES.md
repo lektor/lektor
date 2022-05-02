@@ -2,6 +2,17 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.4 (2022-05-02)
+
+### Bugs
+
+#### Bit-rot
+
+- Fixes for `click==8.1.3`. ([#1031][], [#1033][])
+
+[#1031]: https://github.com/lektor/lektor/issues/1031
+[#1033]: https://github.com/lektor/lektor/pull/1033
+
 ## 3.3.3 (2022-03-29)
 
 ### Bugs
