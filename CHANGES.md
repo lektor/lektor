@@ -41,6 +41,7 @@ December 2021.
 
 #### Bit-rot
 
+- Fixes for `click==8.1.3`. ([#1031][], [#1033][])
 - Fixes for `werkzeug>=2.1.0`. ([#1019][], [#1018][])
 - Update npm package minimist. ([#1021][])
 
@@ -65,6 +66,8 @@ December 2021.
 [#1020]: https://github.com/lektor/lektor/issues/1020
 [#1021]: https://github.com/lektor/lektor/pull/1021
 [#1025]: https://github.com/lektor/lektor/pull/1025
+[#1031]: https://github.com/lektor/lektor/issues/1031
+[#1033]: https://github.com/lektor/lektor/pull/1033
 
 ## 3.3.2 (2022-03-01)
 
