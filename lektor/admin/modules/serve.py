@@ -49,7 +49,10 @@ def _rewrite_html_for_editing(
     livereload = render_template("livereload.html", artifact_name=artifact_name)
 
     def extras(m: Match[bytes]) -> bytes:
-        return (button + livereload).encode("utf-8") + m.group(0)
+        components = button
+        if current_app.config.get("ENABLE_LIVERELOAD", False):
+            components += livereload
+        return components.encode("utf-8") + m.group(0)
 
     return re.sub(rb"(?i)</\s*head\s*>|\Z", extras, html, count=1)
 
