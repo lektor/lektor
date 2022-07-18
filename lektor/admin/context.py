@@ -59,7 +59,7 @@ class LektorContext(LektorInfo):
 
     @cached_property
     def builder(self) -> Builder:
-        return Builder(self.pad, self.output_path, self.extra_flags)
+        return Builder(self.pad, self.output_path, extra_flags=self.extra_flags)
 
     @cached_property
     def failure_controller(self) -> FailureController:
