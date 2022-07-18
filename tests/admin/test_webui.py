@@ -60,3 +60,18 @@ def test_get(test_client, url, mimetype, is_editable):
     assert resp.mimetype == mimetype
     data = b"".join(resp.get_app_iter(flask.request.environ)).decode("utf-8")
     assert ("/admin/edit?" in data) == is_editable
+
+
+def test_get_admin_does_something_useful(test_client, mocker):
+    # Test that GET /admin eventually gets to the admin JS app
+    # See https://github.com/lektor/lektor/issues/1043
+    render_template = mocker.patch(
+        "lektor.admin.modules.dash.render_template",
+        return_value="RENDERED",
+    )
+    resp = test_client.get("/admin", follow_redirects=True)
+    assert resp.status_code == 200
+    assert resp.get_data(as_text=True) == render_template.return_value
+    assert render_template.mock_calls == [
+        mocker.call("dash.html", lektor_config=mocker.ANY),
+    ]
