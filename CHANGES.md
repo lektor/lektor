@@ -27,6 +27,7 @@ December 2021.
 #### Admin Server
 
 - Refactor and fix numerous buglets in the admin http server. ([#987][])
+- Fix 404 error for `/admin`. ([#1043][], [#1044][])
 
 #### Admin Frontend
 
@@ -44,12 +45,25 @@ December 2021.
 - Fixes for `click==8.1.3`. ([#1031][], [#1033][])
 - Fixes for `werkzeug>=2.1.0`. ([#1019][], [#1018][])
 - Update npm package minimist. ([#1021][])
+- Remove dependency on the `requests[security]` extra. ([#1036][])
+- Remove `build-system.requires` dependencies on `wheel`, and the
+  `setuptools_scm[toml]` extra. ([#1036][])
 
 #### CI
 
 - Update pre-commit config to use `black==22.3.0` to avoid breakage
   caused by `click>=8.1.0`. ([#1019][])
 - Updateto `pylint=2.13.4`. ([#1025][])
+
+#### Command Line
+
+- Fix exception when `--extra-flag`s are specified. ([#1041][], [#1042][])
+
+#### Packaging
+
+- Declare explicit dependencies on `MarkupSafe` and `pytz`,
+  where were transitively implied but are imported directly
+  by Lektor code. ([#1036][])
 
 ### Refactorings
 
@@ -68,6 +82,11 @@ December 2021.
 [#1025]: https://github.com/lektor/lektor/pull/1025
 [#1031]: https://github.com/lektor/lektor/issues/1031
 [#1033]: https://github.com/lektor/lektor/pull/1033
+[#1036]: https://github.com/lektor/lektor/pull/1036
+[#1041]: https://github.com/lektor/lektor/issues/1041
+[#1042]: https://github.com/lektor/lektor/pull/1042
+[#1043]: https://github.com/lektor/lektor/issues/1043
+[#1044]: https://github.com/lektor/lektor/pull/1044
 
 ## 3.3.2 (2022-03-01)
 
