@@ -58,12 +58,13 @@ def make_app(
     app.register_blueprint(serve.bp)
 
     # Pass requests for /admin/... to the admin app
-    @app.route(f"{admin_path}/<path:path>", methods=["GET", "POST", "PUT"])
-    def admin_view(path: str) -> "WSGIApplication":
+    @app.route(f"{admin_path}/", defaults={"page": ""})
+    @app.route(f"{admin_path}/<path:page>", methods=["GET", "POST", "PUT"])
+    def admin_view(page: str) -> "WSGIApplication":
         environ = request.environ
         # Save top-level SCRIPT_NAME (used by dash)
         environ["lektor.site_root"] = request.root_path
-        while environ.get("PATH_INFO", "") != f"/{path}":
+        while environ.get("PATH_INFO", "") != f"/{page}":
             assert environ["PATH_INFO"]
             pop_path_info(request.environ)
         return admin_app.wsgi_app
