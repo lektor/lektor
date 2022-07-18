@@ -2,6 +2,17 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.5 (2022-07-18)
+
+### Bugs
+
+#### Admin Server
+
+- Fix 404 from `/admin`. ([#1043][], [#1044][])
+
+[#1043]: https://github.com/lektor/lektor/issues/1043
+[#1044]: https://github.com/lektor/lektor/pull/1044
+
 ## 3.3.4 (2022-05-02)
 
 ### Bugs
