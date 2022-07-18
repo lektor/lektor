@@ -9,9 +9,10 @@ from flask import request
 bp = Blueprint("dash", __name__, url_prefix="/admin")
 
 
-@bp.route("/<any(edit, delete, preview, add-child, upload):view>", endpoint="app")
+@bp.route("/<any(edit, delete, preview, add-child, upload, ''):page>", endpoint="app")
 def app_view(**kwargs: Any) -> str:
     """Render the React admin GUI app."""
+    # Note: client side app handles redirect from page='' to page='edit'
     return render_template(
         "dash.html",
         lektor_config={
