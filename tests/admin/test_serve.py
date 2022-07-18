@@ -163,6 +163,7 @@ def output_path(tmp_path):
 def flag(request):
     return request.param
 
+
 @pytest.fixture
 def app(output_path, project_path, flag):
     project = Project.from_path(project_path)
@@ -172,6 +173,7 @@ def app(output_path, project_path, flag):
     app.register_blueprint(serve.bp, url_prefix="/")
     app.add_url_rule("/ADMIN/EDIT", "url.edit", build_only=True)
     return app
+
 
 ################################################################
 
