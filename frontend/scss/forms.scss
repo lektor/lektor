@@ -16,8 +16,8 @@ dl.field {
 
   textarea {
     display: block;
-    overflow: hidden;
-    resize: none;
+    overflow-y: auto;
+    resize: vertical;
   }
 }
 
