@@ -1,4 +1,5 @@
-import React, { ChangeEvent, useCallback, useEffect, useRef } from "react";
+import React, { ChangeEvent, useCallback } from "react";
+import TextareaAutosize from "react-textarea-autosize";
 import { getInputClass, WidgetProps } from "./types";
 
 export function MultiLineTextInputWidget({
@@ -8,16 +9,6 @@ export function MultiLineTextInputWidget({
   disabled,
   onChange: onChangeProp,
 }: WidgetProps) {
-  const textarea = useRef<HTMLTextAreaElement | null>(null);
-
-  const recalculateSize = useCallback(() => {
-    const node = textarea.current;
-    if (node) {
-      node.style.height = "auto";
-      node.style.height = node.scrollHeight + "px";
-    }
-  }, []);
-
   const onChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       onChangeProp(event.target.value);
@@ -25,21 +16,9 @@ export function MultiLineTextInputWidget({
     [onChangeProp]
   );
 
-  useEffect(() => {
-    recalculateSize();
-  }, [recalculateSize, value]);
-
-  useEffect(() => {
-    window.addEventListener("resize", recalculateSize);
-    return () => {
-      window.removeEventListener("resize", recalculateSize);
-    };
-  }, [recalculateSize]);
-
   return (
     <div>
-      <textarea
-        ref={textarea}
+      <TextareaAutosize
         className={getInputClass(type)}
         onChange={onChange}
         value={value}
