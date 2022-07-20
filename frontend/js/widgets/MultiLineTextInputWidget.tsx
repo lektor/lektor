@@ -1,3 +1,4 @@
+import fitTextarea from "fit-textarea";
 import React, { ChangeEvent, useCallback, useEffect, useRef } from "react";
 import { getInputClass, WidgetProps } from "./types";
 
@@ -10,11 +11,9 @@ export function MultiLineTextInputWidget({
 }: WidgetProps) {
   const textarea = useRef<HTMLTextAreaElement | null>(null);
 
-  const recalculateSize = useCallback(() => {
-    const node = textarea.current;
-    if (node) {
-      node.style.height = "auto";
-      node.style.height = node.scrollHeight + "px";
+  useEffect(() => {
+    if (textarea?.current) {
+      fitTextarea.watch(textarea?.current);
     }
   }, []);
 
@@ -24,17 +23,6 @@ export function MultiLineTextInputWidget({
     },
     [onChangeProp]
   );
-
-  useEffect(() => {
-    recalculateSize();
-  }, [recalculateSize, value]);
-
-  useEffect(() => {
-    window.addEventListener("resize", recalculateSize);
-    return () => {
-      window.removeEventListener("resize", recalculateSize);
-    };
-  }, [recalculateSize]);
 
   return (
     <div>
