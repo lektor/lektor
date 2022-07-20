@@ -9,6 +9,12 @@ December 2021.
 
 ### Changes
 
+#### Admin Frontend
+
+- The _save_ hotkey (`<ctl>-s`) now always switches to the _preview_
+  view. Previously, the _save_ hotkey was disabled unless there were
+  changes to be saved. ([#1022][])
+
 #### Markdown
 
 - Links and image URLs in markdown text are now, by default, resolved

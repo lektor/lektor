@@ -186,16 +186,16 @@ function EditPage(): JSX.Element | null {
     const onKeyPress = keyboardShortcutHandler(
       { key: "Control+s", mac: "Meta+s", preventDefault: true },
       () => {
-        if (form.current?.reportValidity()) {
-          form.current
-            .querySelector<HTMLButtonElement>("button[type='submit']")
-            ?.click();
+        if (hasPendingChanges) {
+          form.current?.requestSubmit();
+        } else {
+          goToAdminPage("preview", path, alt);
         }
       }
     );
     window.addEventListener("keydown", onKeyPress);
     return () => window.removeEventListener("keydown", onKeyPress);
-  }, []);
+  }, [hasPendingChanges, goToAdminPage, path, alt]);
 
   const setFieldValue = useCallback(
     (fieldName: string, value: SetStateAction<string>) => {
