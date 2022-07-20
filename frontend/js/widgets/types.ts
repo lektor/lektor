@@ -54,9 +54,9 @@ export type WidgetComponent = FakeWidget | RealWidget;
 
 export function getInputClass(type: WidgetType): string {
   if (type.size === "small") {
-    return "form-control input-sm";
+    return "form-control form-control-sm";
   } else if (type.size === "large") {
-    return "form-control input-lg";
+    return "form-control form-control-lg";
   }
   return "form-control";
 }

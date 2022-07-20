@@ -2,6 +2,16 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.6 (unreleased)
+
+### Bugs
+
+#### Admin Frontend
+
+- Make `size = {small|large}` field option work again. ([#1022][])
+
+[#1022]: https://github.com/lektor/lektor/issues/1022
+
 ## 3.3.5 (2022-07-18)
 
 ### Bugs
