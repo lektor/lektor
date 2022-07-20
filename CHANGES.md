@@ -4,12 +4,20 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.3.6 (unreleased)
 
+### Changes
+
+#### Admin Frontend
+
+- The _save_ hotkey (`<ctl>-s`) now always switches to the _preview_
+  view. Previously, the _save_ hotkey was disabled unless there were
+  changes to be saved. ([#1022][])
+
 ### Bugs
 
 #### Admin Frontend
 
 - Make `size = {small|large}` field option work again. ([#1022][])
-- Fix the <ctl>-e hotkey. ([#1022][])
+- Fix the _edit_ (`<ctl>-e`) hotkey. ([#1022][])
 - Handle hotkeys when the preview iframe has the focus. ([#1022][])
 
 [#1022]: https://github.com/lektor/lektor/issues/1022
