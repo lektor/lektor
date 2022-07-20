@@ -34,6 +34,7 @@ December 2021.
 - Use [esbuild][] rather than webpack/babel to build the admin js code. ([#1012][])
 - Update frontend deps. ([#1025][])
 - Make `size = {small|large}` field option work again. ([#1022][])
+- Handle hotkeys when the preview iframe has the focus. ([#1022][])
 
 #### Builder
 
