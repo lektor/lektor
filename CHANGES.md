@@ -33,6 +33,7 @@ December 2021.
 
 - Use [esbuild][] rather than webpack/babel to build the admin js code. ([#1012][])
 - Update frontend deps. ([#1025][])
+- Make `size = {small|large}` field option work again. ([#1022][])
 
 #### Builder
 
@@ -79,6 +80,7 @@ December 2021.
 [#1019]: https://github.com/lektor/lektor/pull/1019
 [#1020]: https://github.com/lektor/lektor/issues/1020
 [#1021]: https://github.com/lektor/lektor/pull/1021
+[#1022]: https://github.com/lektor/lektor/issues/1022
 [#1025]: https://github.com/lektor/lektor/pull/1025
 [#1031]: https://github.com/lektor/lektor/issues/1031
 [#1033]: https://github.com/lektor/lektor/pull/1033
