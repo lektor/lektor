@@ -9,6 +9,7 @@ These are all the changes in Lektor since the first public release.
 #### Admin Frontend
 
 - Make `size = {small|large}` field option work again. ([#1022][])
+- Fix the <ctl>-e hotkey. ([#1022][])
 
 [#1022]: https://github.com/lektor/lektor/issues/1022
 

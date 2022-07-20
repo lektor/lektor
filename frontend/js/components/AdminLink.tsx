@@ -1,22 +1,24 @@
-import React, { memo, ReactNode } from "react";
+import React, { forwardRef, memo, ForwardedRef, ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { PageName } from "../context/page-context";
 import { RecordPathDetails, useRecord } from "../context/record-context";
 import { adminPath } from "./use-go-to-admin-page";
 
-function AdminLink({
-  page,
-  path,
-  alt,
-  children,
-  ...otherProps
-}: RecordPathDetails & {
-  page: PageName;
-  children: ReactNode;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  ref?: React.MutableRefObject<HTMLAnchorElement | null>;
-  title?: string;
-}): JSX.Element {
+function AdminLink(
+  {
+    page,
+    path,
+    alt,
+    children,
+    ...otherProps
+  }: RecordPathDetails & {
+    page: PageName;
+    children: ReactNode;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+    title?: string;
+  },
+  ref: ForwardedRef<HTMLAnchorElement | null>
+): JSX.Element {
   const current = useRecord();
   const recordMatches = path === current.path && alt === current.alt;
 
@@ -26,10 +28,11 @@ function AdminLink({
       activeClassName="active"
       isActive={(match) => recordMatches && match != null}
       {...otherProps}
+      ref={ref}
     >
       {children}
     </NavLink>
   );
 }
 
-export default memo(AdminLink);
+export default memo(forwardRef(AdminLink));
