@@ -1,4 +1,5 @@
 import inspect
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -408,6 +409,22 @@ def test_serve_file(output_path, app):
         content = b"".join(resp.get_app_iter(flask.request.environ))
     assert resp.mimetype == "text/plain"
     assert content == b"content"
+
+
+@pytest.mark.parametrize("output_path", [Path("relative")])
+def test_serve_file_with_relative_output_path(output_path, app, tmp_path):
+    # This excercises a bug having to do with serving files when
+    # Lektor is given a relative output directory.
+    #
+    # E.g. via `lektor server -O outdir`
+    #
+    save_cwd = os.getcwd()
+    os.chdir(tmp_path)
+    try:
+        output_path.mkdir()
+        test_serve_file(output_path, app)
+    finally:
+        os.chdir(save_cwd)
 
 
 @pytest.mark.parametrize("index_html", ["index.html", "index.htm"])
