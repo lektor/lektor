@@ -77,8 +77,10 @@ def _deduce_mimetype(filename: Filename) -> str:
 
 def _checked_send_file(filename: Filename, mimetype: Optional[str] = None) -> Response:
     """Same as flask.send_file, except raises NotFound on file errors."""
+    # NB: flask.send_file interprets relative paths relative to
+    # current_app.root_path. We don't want that.
     try:
-        resp = send_file(filename, mimetype=mimetype)
+        resp = send_file(os.path.abspath(filename), mimetype=mimetype)
     except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
     return resp
@@ -211,7 +213,7 @@ def serve_file(path: str) -> Response:
     if safe_path is None:
         abort(404)
 
-    filename = Path(output_path, safe_path)  # coverts safe_path to native path seps
+    filename = Path(output_path, safe_path)  # converts safe_path to native path seps
     if filename.is_dir():
         if not path.endswith("/"):
             return append_slash_redirect(request.environ)
