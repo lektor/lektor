@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { WidgetProps } from "./types";
 import { trans_obj } from "../i18n";
 
@@ -12,6 +12,15 @@ export function BooleanInputWidget({
   placeholder,
   onChange,
 }: WidgetProps): JSX.Element {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const input = ref.current;
+    if (input) {
+      input.indeterminate = !value;
+    }
+  }, [value]);
+
   return (
     <div className="form-check">
       <label className="form-check-label">
@@ -19,17 +28,8 @@ export function BooleanInputWidget({
           type="checkbox"
           className="form-check-input"
           disabled={disabled}
-          ref={(checkbox) => {
-            if (checkbox) {
-              if (!value && placeholder) {
-                checkbox.indeterminate = true;
-                checkbox.checked = isTrue(placeholder);
-              } else {
-                checkbox.indeterminate = false;
-              }
-            }
-          }}
-          checked={isTrue(value)}
+          ref={ref}
+          checked={isTrue(value || placeholder)}
           onChange={(ev) => {
             onChange(ev.target.checked ? "yes" : "no");
           }}
