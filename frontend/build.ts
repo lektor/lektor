@@ -3,6 +3,7 @@
  */
 
 import { build, Plugin } from "esbuild";
+import fg from "fast-glob";
 import { resolve, dirname, join } from "path";
 import { argv } from "process";
 import { compile } from "sass";
@@ -14,6 +15,10 @@ const sassPlugin: Plugin = {
     onResolve({ filter: /\.scss$/ }, ({ path, resolveDir }) => ({
       path: resolve(resolveDir, path),
       namespace: "sass",
+      watchFiles: fg.sync(["**/*.scss"], {
+        cwd: dirname(resolve(resolveDir, path)),
+        absolute: true,
+      }),
     }));
     onLoad({ filter: /.*/, namespace: "sass" }, ({ path }) => ({
       contents: compile(path).css.toString(),
