@@ -86,6 +86,14 @@ def _checked_send_file(filename: Filename, mimetype: Optional[str] = None) -> Re
     return resp
 
 
+class HiddenRecordException(NotFound):
+    """Exception thrown when a request is made for a hidden page."""
+
+    def __init__(self, source: SourceObject) -> None:
+        super().__init__(description=f"Record is hidden: {source!r}")
+        self.source = source
+
+
 class ArtifactServer:
     """Resolve url_path to a Lektor source object, build it, serve the result.
 
@@ -104,7 +112,7 @@ class ArtifactServer:
 
         Raise NotFound if resolution fails.
         """
-        source = self.lektor_ctx.pad.resolve_url_path(url_path)
+        source = self.lektor_ctx.pad.resolve_url_path(url_path, include_invisible=True)
         if source is None:
             abort(404)
         return source
@@ -180,6 +188,9 @@ class ArtifactServer:
         ):
             return append_slash_redirect(request.environ)
 
+        if source.is_hidden:
+            raise HiddenRecordException(source)
+
         if isinstance(source, Directory):
             # Special case for asset directories: resolve to index.html
             source = self.resolve_directory_index(source)
@@ -230,6 +241,8 @@ def serve_file(path: str) -> Response:
 def serve_artifact_or_file(path: str) -> Response:
     try:
         return serve_artifact(path)
+    except HiddenRecordException:
+        raise
     except NotFound:
         return serve_file(path)
 
@@ -238,5 +251,5 @@ def serve_artifact_or_file(path: str) -> Response:
 def serve_error_page(error: NotFound) -> ResponseReturnValue:
     try:
         return serve_artifact("404.html"), 404
-    except NotFound as e:
-        return e
+    except NotFound:
+        return error
