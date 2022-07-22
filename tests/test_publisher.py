@@ -336,55 +336,83 @@ def upstream_repo(tmp_path, clean_git_environ):
     return DummyUpstreamRepo(git_dir.__fspath__())
 
 
-def test_GitRepo_publish_ghpages(gitrepo, upstream_repo, work_tree):
+@pytest.fixture
+def publish_ghpages(work_tree, clean_git_environ):
+    # Run publish_ghpages on a fresh GitRepo instance
+    if not locate_executable("git"):
+        pytest.skip("no git")
+
+    def GitRepo_publish_ghpages(*args, **kwargs):
+        with GitRepo(work_tree) as repo:
+            rv = yield from repo.publish_ghpages(*args, **kwargs)
+            return rv
+
+    return GitRepo_publish_ghpages
+
+
+def test_GitRepo_publish_ghpages(publish_ghpages, upstream_repo, work_tree):
     test_file = work_tree / "new-file"
     test_file.write_text("test\n")
-    for line in gitrepo.publish_ghpages(upstream_repo.url, "gh-pages"):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages"):
         print(line)
     assert upstream_repo.count_commits("gh-pages") == 1
     assert upstream_repo.ls_files("gh-pages") == {"new-file"}
 
     test_file.rename(work_tree / "renamed-file")
-    for line in gitrepo.publish_ghpages(upstream_repo.url, "gh-pages"):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages"):
         print(line)
     assert upstream_repo.count_commits("gh-pages") == 2
     assert upstream_repo.ls_files("gh-pages") == {"renamed-file"}
 
 
-def test_GitRepo_publish_ghpages_cname(gitrepo, upstream_repo, work_tree):
-    for line in gitrepo.publish_ghpages(upstream_repo.url, "gh-pages", "example.org"):
+def test_GitRepo_publish_ghpages_cname(publish_ghpages, upstream_repo, work_tree):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages", "example.org"):
         print(line)
     assert upstream_repo.count_commits("gh-pages") == 1
     assert upstream_repo.ls_files("gh-pages") == {"CNAME"}
 
-    for line in gitrepo.publish_ghpages(upstream_repo.url, "gh-pages"):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages"):
         print(line)
     assert upstream_repo.count_commits("gh-pages") == 2
     assert upstream_repo.ls_files("gh-pages") == set()
 
 
-def test_GitRepo_publish_ghpages_ignores_lektor_dir(gitrepo, upstream_repo, work_tree):
+def test_GitRepo_publish_ghpages_ignores_lektor_dir(
+    publish_ghpages, upstream_repo, work_tree
+):
     lektor_dir = work_tree / ".lektor"
     lektor_dir.mkdir()
     lektor_dir.joinpath("ignored").write_text("should not be published")
     work_tree.joinpath("included").write_text("should be published")
 
-    for line in gitrepo.publish_ghpages(upstream_repo.url, "gh-pages"):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages"):
         print(line)
     assert upstream_repo.count_commits("gh-pages") == 1
     assert upstream_repo.ls_files("gh-pages") == {"included"}
 
 
-def test_GitRepo_publish_ghpages_no_changes(gitrepo, upstream_repo):
-    for line in gitrepo.publish_ghpages(upstream_repo.url, "gh-pages", "example.com"):
+def test_GitRepo_publish_ghpages_no_changes(publish_ghpages, upstream_repo):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages", "example.com"):
         print(line)
     assert upstream_repo.ls_files("gh-pages") == {"CNAME"}
     assert any(
         "No changes" in line
-        for line in gitrepo.publish_ghpages(
-            upstream_repo.url, "gh-pages", "example.com"
-        )
+        for line in publish_ghpages(upstream_repo.url, "gh-pages", "example.com")
     )
+
+
+def test_GitRepo_publish_ghpages_discard_history(
+    publish_ghpages, upstream_repo, work_tree
+):
+    for line in publish_ghpages(upstream_repo.url, "gh-pages", "example.com"):
+        print(line)
+    assert upstream_repo.ls_files("gh-pages") == {"CNAME"}
+
+    work_tree.joinpath("myfile").write_text("contents")
+    for line in publish_ghpages(upstream_repo.url, "gh-pages", None, False):
+        print(line)
+    assert upstream_repo.count_commits("gh-pages") == 1
+    assert upstream_repo.ls_files("gh-pages") == {"myfile"}
 
 
 @pytest.fixture
@@ -401,13 +429,18 @@ def ghp_publisher(env, output_path):
     "target_url, publish_args, warns",
     [
         (
-            "ghpages://owner/project?cname=example.com",
-            ("ssh://git@github.com/owner/project.git", "gh-pages", "example.com"),
+            "ghpages://owner/project?cname=example.com&preserve_history=no",
+            (
+                "ssh://git@github.com/owner/project.git",
+                "gh-pages",
+                "example.com",
+                False,
+            ),
             False,
         ),
         (
             "ghpages+https://owner/owner.github.io",
-            ("https://github.com/owner/owner.github.io.git", "master", None),
+            ("https://github.com/owner/owner.github.io.git", "master", None, True),
             True,
         ),
     ],
@@ -449,31 +482,45 @@ def test_GithubPagesPublisher_publish_fails_if_no_git(ghp_publisher):
     [
         (
             "ghpages://owner/project",
-            ("ssh://git@github.com/owner/project.git", "gh-pages", None, []),
+            ("ssh://git@github.com/owner/project.git", "gh-pages", None, True, []),
         ),
         (
             "ghpages://owner/owner.github.io?branch=main",
-            ("ssh://git@github.com/owner/owner.github.io.git", "main", None, []),
+            ("ssh://git@github.com/owner/owner.github.io.git", "main", None, True, []),
         ),
         (
             "ghpages://owner/project?branch=brnch&cname=example.com",
-            ("ssh://git@github.com/owner/project.git", "brnch", "example.com", []),
+            (
+                "ssh://git@github.com/owner/project.git",
+                "brnch",
+                "example.com",
+                True,
+                [],
+            ),
+        ),
+        (
+            "ghpages://owner/project?preserve_history=no",
+            ("ssh://git@github.com/owner/project.git", "gh-pages", None, False, []),
+        ),
+        (
+            "ghpages://owner/project?preserve_history=yes",
+            ("ssh://git@github.com/owner/project.git", "gh-pages", None, True, []),
         ),
         (
             "ghpages+ssh://own/proj",
-            ("ssh://git@github.com/own/proj.git", "gh-pages", None, []),
+            ("ssh://git@github.com/own/proj.git", "gh-pages", None, True, []),
         ),
         (
             "ghpages+https://own/proj",
-            ("https://github.com/own/proj.git", "gh-pages", None, []),
+            ("https://github.com/own/proj.git", "gh-pages", None, True, []),
         ),
         (
             "ghpages+ssh://own:22/proj",
-            ("ssh://git@github.com/own/proj.git", "gh-pages", None, []),
+            ("ssh://git@github.com/own/proj.git", "gh-pages", None, True, []),
         ),
         (
             "ghpages+https://own:443/proj",
-            ("https://github.com/own/proj.git", "gh-pages", None, []),
+            ("https://github.com/own/proj.git", "gh-pages", None, True, []),
         ),
     ],
 )
@@ -484,11 +531,12 @@ def test_GithubPagesPublisher_parse_url(ghp_publisher, target_url, expected):
 
 def test_GithubPagesPublisher_parse_url_warns_on_default_master_branch(ghp_publisher):
     url = url_parse("ghpages://owner/owner.github.io")
-    push_url, branch, cname, warnings = ghp_publisher._parse_url(url)
-    assert (push_url, branch, cname) == (
+    push_url, branch, cname, preserve_history, warnings = ghp_publisher._parse_url(url)
+    assert (push_url, branch, cname, preserve_history) == (
         "ssh://git@github.com/owner/owner.github.io.git",
         "master",
         None,
+        True,
     )
     assert len(warnings) == 1
     assert re.match(r"WARNING:.*default branch.*is.*main", warnings[0])

@@ -31,6 +31,7 @@ from werkzeug import urls
 
 from lektor.compat import TemporaryDirectory
 from lektor.exception import LektorException
+from lektor.utils import bool_from_string
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
 
@@ -725,7 +726,11 @@ class GitRepo(ContextManager["GitRepo"]):
         self.run("update-index", "--add", "--cacheinfo", "100644", oid, filename)
 
     def publish_ghpages(
-        self, push_url: str, branch: str, cname: Optional[str] = None
+        self,
+        push_url: str,
+        branch: str,
+        cname: Optional[str] = None,
+        preserve_history: bool = True,
     ) -> Iterator[str]:
         """Publish the contents of the work tree to GitHub pages.
 
@@ -733,14 +738,14 @@ class GitRepo(ContextManager["GitRepo"]):
         :param branch: The branch to push to
         :param cname: Optional. Create a top-level ``CNAME`` with given contents.
         """
-        if (
-            yield from self.popen(
+        if preserve_history:
+            fetch_cmd = yield from self.popen(
                 "fetch", "--depth=1", push_url, f"refs/heads/{branch}", check=False
             )
-        ).returncode == 0:
-            # If fetch was succesful, reset HEAD to remote head, otherwise assume
-            # remote branch does not exist.
-            yield from self.popen("reset", "--soft", "FETCH_HEAD")
+            if fetch_cmd.returncode == 0:
+                # If fetch was succesful, reset HEAD to remote head, otherwise assume
+                # remote branch does not exist.
+                yield from self.popen("reset", "--soft", "FETCH_HEAD")
 
         # At this point, the index is still empty. Add all but .lektor dir to index
         yield from self.popen("add", "--force", "--all", "--", ".", ":(exclude).lektor")
@@ -755,7 +760,10 @@ class GitRepo(ContextManager["GitRepo"]):
             yield from self.popen(
                 "commit", "--quiet", "--message", "Synchronized build"
             )
-            yield from self.popen("push", push_url, f"HEAD:refs/heads/{branch}")
+            push_cmd = ["push", push_url, f"HEAD:refs/heads/{branch}"]
+            if not preserve_history:
+                push_cmd.insert(1, "--force")
+            yield from self.popen(*push_cmd)
         else:
             proc.check_returncode()  # raise error
 
@@ -772,7 +780,9 @@ class GithubPagesPublisher(Publisher):
         if not locate_executable("git"):
             self.fail("git executable not found; cannot deploy.")
 
-        push_url, branch, cname, warnings = self._parse_url(target_url)
+        push_url, branch, cname, preserve_history, warnings = self._parse_url(
+            target_url
+        )
         creds = self._parse_credentials(credentials, target_url)
 
         yield from iter(warnings)
@@ -782,11 +792,11 @@ class GithubPagesPublisher(Publisher):
                 repo.set_https_credentials(creds)
             else:
                 repo.set_ssh_credentials(creds)
-            yield from repo.publish_ghpages(push_url, branch, cname)
+            yield from repo.publish_ghpages(push_url, branch, cname, preserve_history)
 
     def _parse_url(
         self, target_url: urls.URL
-    ) -> Tuple[str, str, Optional[str], Sequence[str]]:
+    ) -> Tuple[str, str, Optional[str], bool, Sequence[str]]:
         if not target_url.host:
             self.fail("github owner missing from target URL")
         gh_owner = target_url.host.lower()
@@ -797,6 +807,8 @@ class GithubPagesPublisher(Publisher):
         params = target_url.decode_query()
         cname = params.get("cname")
         branch = params.get("branch")
+        preserve_history = bool_from_string(params.get("preserve_history"), True)
+
         warnings = []
 
         if not branch:
@@ -820,7 +832,7 @@ class GithubPagesPublisher(Publisher):
         if target_url.port and target_url.port != default_port:
             self.fail("github does not support pushing to non-standard ports")
 
-        return push_url, branch, cname, warnings
+        return push_url, branch, cname, preserve_history, warnings
 
     @staticmethod
     def _parse_credentials(
