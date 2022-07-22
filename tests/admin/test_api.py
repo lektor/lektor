@@ -74,7 +74,7 @@ def test_client(webadmin):
 
 
 def test_recordinfo_children_sort_limited_alts(test_client):
-    # This excercises the bug described in #962, namely that
+    # This exercises the bug described in #962, namely that
     # if a page has a child that only has content in a subset of the
     # configured alts, get_record_info throws an exception.
     data = test_client.get("/admin/api/recordinfo?path=/projects").get_json()

@@ -2179,7 +2179,7 @@ class Tree:
 
 
 class RecordCache:
-    """The record cache holds records eitehr in an persistent or ephemeral
+    """The record cache holds records either in an persistent or ephemeral
     section which helps the pad not load records it already saw.
     """
 

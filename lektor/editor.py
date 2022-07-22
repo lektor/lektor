@@ -427,7 +427,7 @@ del _deprecated_data_proxy
 class EditorData(Mapping):
     """A read-only view of edited data.
 
-    This is a chained dict with (possibly) mutated data overlayed on
+    This is a chained dict with (possibly) mutated data overlaid on
     the original data for the record.
     """
 
@@ -493,7 +493,7 @@ class EditorData(Mapping):
 class MutableEditorData(EditorData, MutableMapping):
     """A mutable view of edited data.
 
-    This is a chained dict with (possibly) mutated data overlayed on
+    This is a chained dict with (possibly) mutated data overlaid on
     the original data for the record.
     """
 
