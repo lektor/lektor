@@ -222,6 +222,7 @@ class TestArtifactServer:
             ("blog", "/blog@1"),
             ("blog/2015/12/post1/", "/blog/post1"),
             ("de/blog/", "/blog@1"),
+            ("extra/container", "/extra/container"),
         ],
     )
     def test_resolve_url_path(self, a_s, url_path, source_path):
@@ -359,6 +360,10 @@ class TestArtifactServer:
             ("extra/build-failure/", "text/html", True),  # Failing build
             # Asset file
             ("static/demo.css", "text/css", False),
+            # Page with hidden parent
+            ("extra/container/a/", "text/html", True),
+            # Asset file with hidden parent
+            ("extra/container/hello.txt", "text/plain", False),
             # Asset directories with index.{htm,html}
             ("dir_with_index_html/", "text/html", False),
             ("dir_with_index_htm/", "text/html", False),
@@ -380,6 +385,7 @@ class TestArtifactServer:
         "url_path",
         [
             "test@192.jpg",  # sub-artifact — no resolvable to source object
+            "extra/container/",  # hidden page
             "static/",  # Asset directory without index.html
             "dir_with_index_html/index.htm",
             "dir_with_index_htm/index.html",
@@ -449,6 +455,7 @@ def test_serve_file_dir_handling(output_path, app, index_html):
     "path",
     [
         "missing",
+        "example/container",  # hidden page
         "adir/",  # no adir/index.{html,htm} exists
         "adir/../top.txt",  # ".." not allowed in path
         "../adir/index.txt",  # points outside of output_path
@@ -472,17 +479,19 @@ def test_serve_file_raises_404(output_path, app, path):
 
 
 @pytest.mark.parametrize(
-    "path, status, mimetype",
+    "path, status, mimetype, content",
     [
-        ("/hello.txt", 200, "text/plain"),
-        ("/missing/", 404, "text/html"),
+        ("/hello.txt", 200, "text/plain", "Hello I am an Attachment"),
+        ("/missing/", 404, "text/html", "The requested URL was not found"),
+        ("/extra/container/", 404, "text/html", "Record is hidden"),
     ],
 )
-def test_serve(app, path, status, mimetype):
+def test_serve(app, path, status, mimetype, content):
     with app.test_client() as c:
         resp = c.get(path)
         assert resp.status_code == status
         assert resp.mimetype == mimetype
+        assert content in resp.get_data(True)
 
 
 def test_serve_from_file(app, output_path):

@@ -78,6 +78,28 @@ def test_url_matching_with_customized_slug_in_alt(pad):
     assert get_alts(en) == ["en", "de"]
 
 
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/",
+        "/extra/container/a",  # child if hidden page explicit marked as non-hidden
+        "/extra/container/hello.txt",  # attachment of hidden page
+    ],
+)
+def test_resolve_url(pad, path):
+    assert pad.resolve_url_path(path) is not None
+
+
+def test_resolve_url_hidden_page(pad):
+    assert pad.resolve_url_path("/extra/container") is None
+    assert pad.resolve_url_path("/extra/container", include_invisible=True) is not None
+
+
+def test_resolve_url_asset(pad):
+    assert pad.resolve_url_path("/static/demo.css") is not None
+    assert pad.resolve_url_path("/static/demo.css", include_assets=False) is None
+
+
 def test_basic_alts(pad):
     with Context(pad=pad):
         assert get_alts() == ["en", "de"]
