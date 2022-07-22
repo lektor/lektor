@@ -108,7 +108,7 @@ class BuildProgram:
             _build(artifact, build_func)
 
         # If we failed anywhere we want to mark *all* artifacts as dirty.
-        # This means that if a sub-artifact failes we also rebuild the
+        # This means that if a sub-artifact fails we also rebuild the
         # parent next time around.
         if failures:
             for artifact in self.artifacts:
