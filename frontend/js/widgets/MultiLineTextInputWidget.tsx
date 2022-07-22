@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useRef } from "react";
+import React, { ChangeEvent } from "react";
 import { getInputClass, WidgetProps } from "./types";
 
 export function MultiLineTextInputWidget({
@@ -8,39 +8,31 @@ export function MultiLineTextInputWidget({
   disabled,
   onChange: onChangeProp,
 }: WidgetProps) {
-  const textarea = useRef<HTMLTextAreaElement | null>(null);
+  const onChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    onChangeProp(event.target.value);
+  };
 
-  const recalculateSize = useCallback(() => {
-    const node = textarea.current;
-    if (node) {
-      node.style.height = "auto";
-      node.style.height = node.scrollHeight + "px";
-    }
-  }, []);
-
-  const onChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      onChangeProp(event.target.value);
-    },
-    [onChangeProp]
-  );
-
-  useEffect(() => {
-    recalculateSize();
-  }, [recalculateSize, value]);
-
-  useEffect(() => {
-    window.addEventListener("resize", recalculateSize);
-    return () => {
-      window.removeEventListener("resize", recalculateSize);
-    };
-  }, [recalculateSize]);
-
+  /* How this works
+   *
+   * The idea is ripped off from here:
+   *
+   *   https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/
+   *
+   * We stack an (invisible) <div> under our <textarea> in a container
+   * with display: grid.
+   *
+   * The issue we are trying to solve is that <textarea>s do not expand
+   * when content is added to them.  However, <div>s do!
+   *
+   * The contents of the <textarea> is duplicated to the <div>. The
+   * grid layout ensures that when the <div> expands, the <textarea> is
+   * expanded to match.
+   */
   return (
-    <div>
+    <div className="text-widget">
+      <div className="text-widget__replica">{value}</div>
       <textarea
-        ref={textarea}
-        className={getInputClass(type)}
+        className={`${getInputClass(type)} text-widget__textarea`}
         onChange={onChange}
         value={value}
         disabled={disabled}

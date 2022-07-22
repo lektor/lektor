@@ -16,6 +16,7 @@ These are all the changes in Lektor since the first public release.
 
 #### Admin Frontend
 
+- Fix for spurious page scrolling when typing in textareas. ([#1038][], [#1050][])
 - Make `size = {small|large}` field option work again. ([#1022][])
 - Fix the _edit_ (`<ctl>-e`) hotkey. ([#1022][])
 - Handle hotkeys when the preview iframe has the focus. ([#1022][])
@@ -26,6 +27,8 @@ These are all the changes in Lektor since the first public release.
   Broken since Lektor 3.3.2 by PR [#1003][].
 
 [#1022]: https://github.com/lektor/lektor/issues/1022
+[#1038]: https://github.com/lektor/lektor/issues/1038
+[#1050]: https://github.com/lektor/lektor/pull/1050
 
 ## 3.3.5 (2022-07-18)
 
