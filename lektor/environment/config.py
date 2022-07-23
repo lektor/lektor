@@ -201,7 +201,7 @@ class Config:
         return sorted(self.values["ALTERNATIVES"])
 
     def iter_alternatives(self):
-        """Iterates over all alterantives.  If the system is disabled this
+        """Iterates over all alternatives.  If the system is disabled this
         yields '_primary'.
         """
         found = False

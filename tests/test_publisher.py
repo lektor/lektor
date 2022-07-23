@@ -12,7 +12,7 @@ from lektor.publisher import publish
 
 
 def test_Command_triggers_no_warnings():
-    # This excercises the issue where publishing via rsync resulted
+    # This exercises the issue where publishing via rsync resulted
     # in ResourceWarnings about unclosed streams.
 
     with warnings.catch_warnings():
