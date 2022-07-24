@@ -51,7 +51,7 @@ December 2021.
 #### Bit-rot
 
 - Fixes for `click==8.1.3`. ([#1031][], [#1033][])
-- Fixes for `werkzeug>=2.1.0`. ([#1019][], [#1018][])
+- Fixes for `werkzeug>=2.2.0`. ([#1019][], [#1018][], [#1051][])
 - Update npm package minimist. ([#1021][])
 - Remove dependency on the `requests[security]` extra. ([#1036][])
 - Remove `build-system.requires` dependencies on `wheel`, and the
@@ -96,6 +96,7 @@ December 2021.
 [#1042]: https://github.com/lektor/lektor/pull/1042
 [#1043]: https://github.com/lektor/lektor/issues/1043
 [#1044]: https://github.com/lektor/lektor/pull/1044
+[#1051]: https://github.com/lektor/lektor/pull/1051
 
 ## 3.3.2 (2022-03-01)
 
