@@ -2,10 +2,10 @@ from typing import Optional
 from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import Union
+from wsgiref.util import shift_path_info
 
 from flask import Flask
 from flask import request
-from werkzeug.wsgi import pop_path_info
 
 from lektor.admin.context import LektorApp
 from lektor.admin.context import LektorInfo
@@ -66,7 +66,7 @@ def make_app(
         environ["lektor.site_root"] = request.root_path
         while environ.get("PATH_INFO", "") != f"/{page}":
             assert environ["PATH_INFO"]
-            pop_path_info(request.environ)
+            shift_path_info(request.environ)
         return admin_app.wsgi_app
 
     # Add rule to construct URL to /admin/edit

@@ -1,7 +1,8 @@
+from wsgiref.util import shift_path_info
+
 import pytest
 from werkzeug.exceptions import NotFound
 from werkzeug.test import Client
-from werkzeug.wsgi import pop_path_info
 
 from lektor.admin.webui import make_app
 
@@ -13,7 +14,7 @@ def app(env, ui_lang, tmp_path, admin_path, app_prefix):
         return app
 
     def prefixed_app(environ, start_response):
-        if pop_path_info(environ) != app_prefix:
+        if shift_path_info(environ) != app_prefix:
             return NotFound()(environ, start_response)
         return app(environ, start_response)
 
