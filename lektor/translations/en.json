@@ -124,5 +124,7 @@
   "OPEN_OTHER_PROJECT": "Open other Project",
   "OPEN_OTHER_PROJECT_QUESTION": "Opening this file requires opening another project (%s). The current project will be closed. Do you want to continue?",
   "COLLAPSE": "Collapse",
-  "EXPAND": "Expand"
+  "EXPAND": "Expand",
+  "AUTOSIZE_TEXTAREA": "Autosize textarea",
+  "SHRINK_TEXTAREA": "Shrink textarea"
 }

@@ -94,16 +94,14 @@ div.flow-block {
   &__textarea {
     grid-area: 1 / 1 / 2 / 2; // Place them on top of each other
 
-
     // Ensure they get identical styling
     @extend .form-control;
     white-space: pre-wrap;    // How textarea wraps
-
-    overflow: hidden;         // never any scrollbars
   }
 
   &__replica {
     visibility: hidden;
+    overflow: hidden; // never any scrollbars
 
     &:after {
         // adding an extra space prevents jank when text ends with newline
@@ -113,6 +111,12 @@ div.flow-block {
 
   &__textarea {
     resize: none;
+    &--resizeable {
+      resize: vertical;
+    }
+    &--autosized {
+      overflow: hidden;         // hide scrollbars
+    }
   }
 }
 
