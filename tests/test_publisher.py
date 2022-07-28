@@ -5,6 +5,7 @@ import signal
 import sys
 import warnings
 import weakref
+from itertools import chain
 from pathlib import Path
 from shutil import which
 from subprocess import CalledProcessError
@@ -337,7 +338,21 @@ def upstream_repo(tmp_path, clean_git_environ):
 
 
 @pytest.fixture
-def publish_ghpages(work_tree, clean_git_environ):
+def no_scary_output(capsys):
+    # Check that no scary messages are output to stdout
+    def is_scary(line):
+        return line.startswith("fatal")
+
+    yield
+    captured = capsys.readouterr()
+    scary_output = list(
+        filter(is_scary, chain(captured.out.splitlines(), captured.err.splitlines()))
+    )
+    assert len(scary_output) == 0
+
+
+@pytest.fixture
+def publish_ghpages(work_tree, clean_git_environ, no_scary_output):
     # Run publish_ghpages on a fresh GitRepo instance
     if not locate_executable("git"):
         pytest.skip("no git")

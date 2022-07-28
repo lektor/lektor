@@ -738,34 +738,48 @@ class GitRepo(ContextManager["GitRepo"]):
         :param branch: The branch to push to
         :param cname: Optional. Create a top-level ``CNAME`` with given contents.
         """
+        refspec = f"refs/heads/{branch}"
         if preserve_history:
-            fetch_cmd = yield from self.popen(
-                "fetch", "--depth=1", push_url, f"refs/heads/{branch}", check=False
-            )
+            yield "Fetching existing head"
+            fetch_cmd = self.popen("fetch", "--depth=1", push_url, refspec, check=False)
+            yield from _prefix_output(fetch_cmd)
             if fetch_cmd.returncode == 0:
-                # If fetch was succesful, reset HEAD to remote head, otherwise assume
-                # remote branch does not exist.
-                yield from self.popen("reset", "--soft", "FETCH_HEAD")
+                # If fetch was succesful, reset HEAD to remote head
+                yield from _prefix_output(self.popen("reset", "--soft", "FETCH_HEAD"))
+            else:
+                # otherwise assume remote branch does not exist
+                yield f"Creating new branch {branch}"
 
         # At this point, the index is still empty. Add all but .lektor dir to index
-        yield from self.popen("add", "--force", "--all", "--", ".", ":(exclude).lektor")
+        yield from _prefix_output(
+            self.popen("add", "--force", "--all", "--", ".", ":(exclude).lektor")
+        )
         if cname is not None:
             self.add_to_index("CNAME", f"{cname}\n")
 
         # Check for changes
-        proc = self.run("diff", "--cached", "--exit-code", "--quiet", check=False)
-        if proc.returncode == 0:
-            yield "No changes to publish☺\n"
-        elif proc.returncode == 1:
-            yield from self.popen(
-                "commit", "--quiet", "--message", "Synchronized build"
+        diff_cmd = self.popen("diff", "--cached", "--exit-code", "--quiet", check=False)
+        yield from _prefix_output(diff_cmd)
+        if diff_cmd.returncode == 0:
+            yield "No changes to publish☺"
+        elif diff_cmd.returncode == 1:
+            yield "Creating commit"
+            yield from _prefix_output(
+                self.popen("commit", "--quiet", "--message", "Synchronized build")
             )
-            push_cmd = ["push", push_url, f"HEAD:refs/heads/{branch}"]
+            push_cmd = ["push", push_url, f"HEAD:{refspec}"]
             if not preserve_history:
                 push_cmd.insert(1, "--force")
-            yield from self.popen(*push_cmd)
+            yield "Pushing to github"
+            yield from _prefix_output(self.popen(*push_cmd))
+            yield "Success!"
         else:
-            proc.check_returncode()  # raise error
+            diff_cmd.result().check_returncode()  # raise error
+
+
+def _prefix_output(lines: Iterable[str], prefix: str = "> ") -> Iterator[str]:
+    """Add prefix to lines."""
+    return (f"{prefix}{line}" for line in lines)
 
 
 class GithubPagesPublisher(Publisher):
