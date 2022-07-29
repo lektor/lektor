@@ -5,6 +5,7 @@ import signal
 import sys
 import warnings
 import weakref
+from contextlib import ExitStack
 from itertools import chain
 from pathlib import Path
 from shutil import which
@@ -470,7 +471,10 @@ def test_GithubPagesPublisher_publish(
     GitRepo.return_value.__enter__.return_value = repo
 
     url = url_parse(target_url)
-    output = list(ghp_publisher.publish(url))
+    with ExitStack() as stack:
+        if warns:
+            stack.enter_context(pytest.deprecated_call())
+        output = list(ghp_publisher.publish(url))
 
     GitRepo.assert_called_once_with(output_path)
     if "+https:" in target_url:
@@ -479,8 +483,8 @@ def test_GithubPagesPublisher_publish(
         repo.set_ssh_credentials.assert_called_once_with({})
     repo.publish_ghpages.assert_called_once_with(*publish_args)
     if warns:
-        assert output[0].startswith("WARNING")
-        output = output[1:]
+        assert "WARNING" in " ".join(output)
+        output = output[-1:]
     assert output == ["Published!"]
 
 
@@ -546,15 +550,18 @@ def test_GithubPagesPublisher_parse_url(ghp_publisher, target_url, expected):
 
 def test_GithubPagesPublisher_parse_url_warns_on_default_master_branch(ghp_publisher):
     url = url_parse("ghpages://owner/owner.github.io")
-    push_url, branch, cname, preserve_history, warnings = ghp_publisher._parse_url(url)
+    with pytest.deprecated_call():
+        push_url, branch, cname, preserve_history, warnings = ghp_publisher._parse_url(
+            url
+        )
     assert (push_url, branch, cname, preserve_history) == (
         "ssh://git@github.com/owner/owner.github.io.git",
         "master",
         None,
         True,
     )
-    assert len(warnings) == 1
-    assert re.match(r"WARNING:.*default branch.*is.*main", warnings[0])
+    assert len(warnings) > 0
+    assert re.search(r"WARNING.*set.*branch", " ".join(warnings))
 
 
 @pytest.mark.parametrize(

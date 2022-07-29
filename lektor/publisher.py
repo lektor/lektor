@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
 from ftplib import Error as FTPError
+from inspect import cleandoc
 from pathlib import Path
 from subprocess import CalledProcessError
 from subprocess import CompletedProcess
@@ -26,6 +27,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import TYPE_CHECKING
+from warnings import warn
 
 from werkzeug import urls
 
@@ -827,11 +829,14 @@ class GithubPagesPublisher(Publisher):
 
         if not branch:
             if gh_project == f"{gh_owner}.github.io":
-                warnings.append(
-                    "WARNING: The default branch for new GitHub pages repositories "
-                    "is 'main', but we are using the old default of 'master'. "
-                    "You may have to explicitly specify 'branch=master' in the "
-                    "query params of your target URL to push to the correct branch."
+                warnings.extend(
+                    cleandoc(self._EXPLICIT_BRANCH_SUGGESTED_MSG).splitlines()
+                )
+                warn(
+                    " ".join(
+                        cleandoc(self._DEFAULT_BRANCH_DEPRECATION_MSG).splitlines()
+                    ),
+                    category=DeprecationWarning,
                 )
                 branch = "master"
             else:
@@ -847,6 +852,28 @@ class GithubPagesPublisher(Publisher):
             self.fail("github does not support pushing to non-standard ports")
 
         return push_url, branch, cname, preserve_history, warnings
+
+    _EXPLICIT_BRANCH_SUGGESTED_MSG = """
+    ================================================================
+    WARNING!!! You should explicitly set the name of the published
+    branch of your GitHub pages repository.
+
+    The default branch for new GitHub pages repositories has changed
+    to 'main', but Lektor still defaults to the old value, 'master'.
+    In a future version of Lektor, the default branch name will
+    changed to match the new GitHub default.
+
+    For details, see
+    https://getlektor.com/docs/deployment/ghpages/#pushing-to-an-explicit-branch
+    ================================================================
+    """
+
+    _DEFAULT_BRANCH_DEPRECATION_MSG = """
+    Currently, by default, Lektor pushes to the 'master' branch when
+    deploying to GitHub pages repositories.  In a future version of
+    Lektor, the default branch will GitHub's new default, 'main'.
+    It is suggest that you explicitly set which branch to push to.
+    """
 
     @staticmethod
     def _parse_credentials(
