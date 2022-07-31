@@ -7,4 +7,5 @@ export function showErrorDialog(error: unknown): void {
   } else {
     console.error("unknown error:", error);
   }
+  throw error;
 }

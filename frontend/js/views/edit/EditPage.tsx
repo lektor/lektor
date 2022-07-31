@@ -1,5 +1,4 @@
 import React, {
-  FormEvent,
   SetStateAction,
   useCallback,
   useEffect,
@@ -7,7 +6,6 @@ import React, {
   useState,
 } from "react";
 
-import { keyboardShortcutHandler } from "../../utils";
 import { get, put } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
 import {
@@ -23,6 +21,7 @@ import ToggleGroup from "../../components/ToggleGroup";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { useRecord } from "../../context/record-context";
 import { unstable_usePrompt } from "react-router-dom";
+import { setShortcutHandler, ShortcutAction } from "../../shortcut-keys";
 
 export type RawRecordInfo = {
   alt: string;
@@ -188,21 +187,6 @@ function EditPage(): JSX.Element | null {
     };
   }, [alt, path, setHasPendingChanges]);
 
-  useEffect(() => {
-    const onKeyPress = keyboardShortcutHandler(
-      { key: "Control+s", mac: "Meta+s", preventDefault: true },
-      () => {
-        if (hasPendingChanges) {
-          form.current?.requestSubmit();
-        } else {
-          goToAdminPage("preview", path, alt);
-        }
-      }
-    );
-    window.addEventListener("keydown", onKeyPress);
-    return () => window.removeEventListener("keydown", onKeyPress);
-  }, [hasPendingChanges, goToAdminPage, path, alt]);
-
   const setFieldValue = useCallback(
     (fieldName: string, value: SetStateAction<string>) => {
       setRecordData((r) => ({
@@ -214,25 +198,34 @@ function EditPage(): JSX.Element | null {
     [setHasPendingChanges]
   );
 
-  const saveChanges = useCallback(
-    (ev: FormEvent) => {
-      ev.preventDefault();
+  const maybeSaveChanges = useCallback(() => {
+    if (hasPendingChanges) {
       const data = getValues({ recordDataModel, recordInfo, recordData });
-      put("/rawrecord", { data, path, alt }).then(() => {
+      return put("/rawrecord", { data, path, alt }).then(() => {
         setHasPendingChanges(false);
-        goToAdminPage("preview", path, alt);
       }, showErrorDialog);
-    },
-    [
-      alt,
-      goToAdminPage,
-      path,
-      recordData,
-      recordDataModel,
-      recordInfo,
-      setHasPendingChanges,
-    ]
-  );
+    } else {
+      return Promise.resolve();
+    }
+  }, [
+    path,
+    alt,
+    hasPendingChanges,
+    setHasPendingChanges,
+    recordData,
+    recordDataModel,
+    recordInfo,
+  ]);
+
+  useEffect(() => {
+    const saveAndPreview = () =>
+      maybeSaveChanges().then(() => goToAdminPage("preview", path, alt));
+    const cleanup = [
+      setShortcutHandler(ShortcutAction.Save, maybeSaveChanges),
+      setShortcutHandler(ShortcutAction.Preview, saveAndPreview),
+    ];
+    return () => cleanup.forEach((cb) => cb());
+  }, [maybeSaveChanges, path, alt, goToAdminPage]);
 
   const renderFormField = useCallback(
     (field: Field) => {
@@ -277,7 +270,13 @@ function EditPage(): JSX.Element | null {
   return (
     <>
       <h2>{title}</h2>
-      <form ref={form} onSubmit={saveChanges}>
+      <form
+        ref={form}
+        onSubmit={(e) => {
+          e.preventDefault();
+          maybeSaveChanges();
+        }}
+      >
         <FieldRows fields={normalFields} renderFunc={renderFormField} />
         {systemFields.length > 0 && (
           <ToggleGroup

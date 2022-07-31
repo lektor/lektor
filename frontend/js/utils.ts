@@ -41,53 +41,20 @@ export function getCanonicalUrl(localPath: string): string {
   return `${base}/${trimLeadingSlashes(localPath)}`;
 }
 
-export function getPlatform(): "windows" | "mac" | "linux" | "other" {
-  if (navigator.appVersion.indexOf("Win") !== -1) {
-    return "windows";
-  } else if (navigator.appVersion.indexOf("Mac") !== -1) {
-    return "mac";
-  } else if (
-    navigator.appVersion.indexOf("X11") !== -1 ||
-    navigator.appVersion.indexOf("Linux") !== -1
-  ) {
-    return "linux";
+export function getPlatform(): "windows" | "mac" | "linux" | null {
+  try {
+    const appVersion = navigator?.appVersion;
+    if (appVersion?.match(/Win/)) {
+      return "windows";
+    } else if (appVersion?.match(/\bMac/)) {
+      return "mac";
+    } else if (appVersion?.match(/\b(X11|Linux)/)) {
+      return "linux";
+    }
+    return null;
+  } catch (e) {
+    return null;
   }
-  return "other";
-}
-
-export interface KeyboardShortcut {
-  key: string;
-  mac?: string;
-  preventDefault?: boolean;
-}
-
-export function getKey(shortcut: KeyboardShortcut): string {
-  return getPlatform() === "mac" && shortcut.mac ? shortcut.mac : shortcut.key;
-}
-
-export function keyboardShortcutHandler(
-  shortcut: KeyboardShortcut,
-  action: (ev: KeyboardEvent) => void
-): (ev: KeyboardEvent) => void {
-  const key = getKey(shortcut);
-  return (ev) => {
-    let eventKey = ev.key;
-    if (ev.altKey) {
-      eventKey = `Alt+${eventKey}`;
-    }
-    if (ev.ctrlKey) {
-      eventKey = `Control+${eventKey}`;
-    }
-    if (ev.metaKey) {
-      eventKey = `Meta+${eventKey}`;
-    }
-    if (eventKey === key) {
-      if (shortcut.preventDefault) {
-        ev.preventDefault();
-      }
-      action(ev);
-    }
-  };
 }
 
 export function getParentPath(path: RecordPath): RecordPath | null {

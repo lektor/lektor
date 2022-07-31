@@ -1,26 +1,22 @@
 import React, { useCallback, useEffect } from "react";
 import { useRecord } from "../context/record-context";
-import { getCanonicalUrl, keyboardShortcutHandler } from "../utils";
+import { getCanonicalUrl } from "../utils";
 import { get } from "../fetch";
 import { trans } from "../i18n";
 import { showErrorDialog } from "../error-dialog";
 import { dispatch } from "../events";
+import { setShortcutHandler, ShortcutAction } from "../shortcut-keys";
 
 const findFiles = () => dispatch("lektor-dialog", { type: "find-files" });
 const refresh = () => dispatch("lektor-dialog", { type: "refresh" });
 const publish = () => dispatch("lektor-dialog", { type: "publish" });
-
-const onKeyPress = keyboardShortcutHandler(
-  { key: "Control+g", mac: "Meta+g", preventDefault: true },
-  findFiles
-);
+const preferences = () => dispatch("lektor-dialog", { type: "preferences" });
 
 export default function GlobalActions(): JSX.Element {
   const record = useRecord();
 
   useEffect(() => {
-    window.addEventListener("keydown", onKeyPress);
-    return () => window.removeEventListener("keydown", onKeyPress);
+    return setShortcutHandler(ShortcutAction.Search, findFiles);
   }, []);
 
   const returnToWebsite = useCallback(() => {
@@ -63,6 +59,14 @@ export default function GlobalActions(): JSX.Element {
         title={trans("RETURN_TO_WEBSITE")}
       >
         <i className="fa fa-eye fa-fw" />
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary border"
+        onClick={preferences}
+        title={trans("PREFERENCES")}
+      >
+        <i className="fa fa-gear fa-fw" />
       </button>
     </div>
   );
