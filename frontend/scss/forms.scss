@@ -123,7 +123,8 @@ div.flow-block {
     // Slash, rather than bootstrap's horizontal bar, seems more intuitive indication
     // of indeterminate state.
     background-image:  escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='none' stroke='#{$form-check-input-indeterminate-color}' stroke-linecap='round' stroke-width='3' d='M6 6 l8 8'/></svg>"));
-    &[checked] {
+
+    &.form-check-input--default-true {
         background-color: scale-color(
             $form-check-input-checked-bg-color,
             $alpha: -25%

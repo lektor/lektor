@@ -25,7 +25,10 @@ export function BooleanInputWidget({
       <label className="form-check-label">
         <input
           type="checkbox"
-          className="form-check-input"
+          className={[
+            "form-check-input",
+            `form-check-input--default-${placeholder ? "true" : "false"}`,
+          ].join(" ")}
           disabled={disabled}
           ref={(checkbox) => {
             if (checkbox) {
