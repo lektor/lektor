@@ -37,7 +37,7 @@ export function BooleanInputWidget({
           onChange={(ev) => {
             onChange(ev.target.checked ? "yes" : "no");
           }}
-          onKeyPress={(ev) => {
+          onKeyDown={(ev) => {
             if (isDeleteOrBackspace(ev)) {
               ev.preventDefault();
               ev.stopPropagation();
