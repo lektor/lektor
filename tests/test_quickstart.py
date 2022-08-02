@@ -19,13 +19,6 @@ class struct_passwd(NamedTuple):
 
 
 @pytest.fixture
-def no_utils(monkeypatch):
-    """Monkeypatch $PATH to hide any installed external utilities (e.g. git)."""
-    monkeypatch.setitem(os.environ, "PATH", "/dev/null")
-    locate_executable.cache_clear()
-
-
-@pytest.fixture
 def git_config_file(tmp_path, monkeypatch):
     """Create a temporary git config file, and monkeypatch $GIT_CONFIG to point to it."""
     config_file = tmp_path / "git_config"

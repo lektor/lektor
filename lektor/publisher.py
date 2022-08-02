@@ -3,172 +3,287 @@ import hashlib
 import io
 import os
 import posixpath
-import shutil
-import subprocess
-import tempfile
 from contextlib import contextmanager
+from contextlib import ExitStack
+from contextlib import suppress
 from ftplib import Error as FTPError
+from inspect import cleandoc
+from pathlib import Path
+from subprocess import CalledProcessError
+from subprocess import CompletedProcess
+from subprocess import DEVNULL
+from subprocess import PIPE
+from subprocess import STDOUT
+from typing import Any
+from typing import Callable
+from typing import ContextManager
+from typing import Dict
+from typing import Generator
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
+from typing import NoReturn
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
+from warnings import warn
 
 from werkzeug import urls
 
+from lektor.compat import TemporaryDirectory
 from lektor.exception import LektorException
+from lektor.utils import bool_from_string
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
 
-
-def _patch_git_env(env_overrides, ssh_command=None):
-    env = dict(os.environ)
-    env.update(env_overrides or ())
-
-    keys = [
-        ("GIT_COMMITTER_NAME", "GIT_AUTHOR_NAME", "Lektor Bot"),
-        ("GIT_COMMITTER_EMAIL", "GIT_AUTHOR_EMAIL", "bot@getlektor.com"),
-    ]
-
-    for key_a, key_b, default in keys:
-        value_a = env.get(key_a)
-        value_b = env.get(key_b)
-        if value_a:
-            if not value_b:
-                env[key_b] = value_a
-        elif value_b:
-            if not value_a:
-                env[key_a] = value_b
-        else:
-            env[key_a] = default
-            env[key_b] = default
-
-    if ssh_command is not None and not env.get("GIT_SSH_COMMAND"):
-        env["GIT_SSH_COMMAND"] = ssh_command
-
-    return env
-
-
-def _write_ssh_key_file(temp_fn, credentials):
-    if credentials:
-        key_file = credentials.get("key_file")
-        if key_file is not None:
-            return key_file
-        key = credentials.get("key")
-        if key:
-            parts = key.split(":", 1)
-            if len(parts) == 1:
-                kt = "RSA"
-            else:
-                kt, key = parts
-            with open(temp_fn, "w", encoding="utf-8") as f:
-                f.write("-----BEGIN %s PRIVATE KEY-----\n" % kt.upper())
-                for x in range(0, len(key), 64):
-                    f.write(key[x : x + 64] + "\n")
-                f.write("-----END %s PRIVATE KEY-----\n" % kt.upper())
-            os.chmod(temp_fn, 0o600)
-            return temp_fn
-    return None
-
-
-def _get_ssh_cmd(port=None, keyfile=None):
-    ssh_args = []
-    if port:
-        ssh_args.append("-p %s" % port)
-    if keyfile:
-        ssh_args.append('-i "%s"' % keyfile)
-    return "ssh %s" % " ".join(ssh_args)
+if TYPE_CHECKING:  # pragma: no cover
+    from _typeshed import StrOrBytesPath
+    from _typeshed import StrPath
+    from lektor.environment import Environment
 
 
 @contextmanager
-def _temporary_folder(env):
-    base = env.temp_path
-    try:
-        os.makedirs(base)
-    except OSError:
-        pass
+def _ssh_key_file(
+    credentials: Optional[Mapping[str, str]]
+) -> Iterator[Optional["StrPath"]]:
+    with ExitStack() as stack:
+        key_file: Optional["StrPath"]
+        key_file = credentials.get("key_file") if credentials else None
+        key = credentials.get("key") if credentials else None
+        if not key_file and key:
+            if ":" in key:
+                key_type, _, key = key.partition(":")
+                key_type = key_type.upper()
+            else:
+                key_type = "RSA"
+            key_file = Path(stack.enter_context(TemporaryDirectory()), "keyfile")
+            with key_file.open("w", encoding="utf-8") as f:
+                f.write(f"-----BEGIN {key_type} PRIVATE KEY-----\n")
+                f.writelines(key[x : x + 64] + "\n" for x in range(0, len(key), 64))
+                f.write(f"-----END {key_type} PRIVATE KEY-----\n")
+        yield key_file
 
-    folder = tempfile.mkdtemp(prefix=".deploytemp", dir=base)
-    scratch = os.path.join(folder, "scratch")
-    os.mkdir(scratch)
-    os.chmod(scratch, 0o755)
-    try:
-        yield scratch
-    finally:
-        try:
-            shutil.rmtree(folder)
-        except (IOError, OSError):
-            pass
+
+@contextmanager
+def _ssh_command(
+    credentials: Optional[Mapping[str, str]], port: Optional[int] = None
+) -> Iterator[Optional[str]]:
+    with _ssh_key_file(credentials) as key_file:
+        args = []
+        if port:
+            args.append(f" -p {port}")
+        if key_file:
+            args.append(f' -i "{key_file}" -o IdentitiesOnly=yes')
+        if args:
+            yield "ssh" + " ".join(args)
+        else:
+            yield None
 
 
 class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
 
 
-class Command:
-    def __init__(self, argline, cwd=None, env=None, capture=True, silent=False):
-        environ = dict(os.environ)
+class Command(ContextManager["Command"]):
+    """A wrapper around subprocess.Popen to facilitate streaming output via generator.
+
+    :param argline: Command with arguments to execute.
+    :param cwd: Optional. Directory in which to execute command.
+    :param env: Optional. Environment with which to run command.
+    :param capture: Default `True`. Whether to capture stdout and stderr.
+    :param silent: Default `False`. Discard output altogether.
+    :param check: Default `False`.
+        If set, raise ``CalledProcessError`` on non-zero return code.
+    :param input: Optional. A string to feed to the subprocess via stdin.
+    :param capture_stdout: Default `False`. Capture stdout and
+        return in ``CompletedProcess.stdout``.
+
+    Basic Usage
+    ===========
+
+    To run a command, returning any output on stdout or stderr to the caller
+    as an iterable (generator), while checking the return code from the command:
+
+        def run_command(argline):
+            # This passes the output
+            rv = yield from Command(argline)
+            if rv.returncode != 0:
+                raise RuntimeError("Command failed!")
+
+    This could be called as follows:
+
+        for outline in run_command(('ls')):
+            print(outline.rstrip())
+
+    Supplying input via stdin, Capturing stdout
+    ===========================================
+
+    The following example shows how input may be fed to a subprocess via stdin,
+    and how stdout may be captured for further processing.
+
+        def run_wc(input):
+            rv = yield from Command(('wc'), check=True, input=input, capture_stdout=True)
+            lines, words, chars = rv.stdout.split()
+            print(f"{words} words, {chars} chars")
+
+        stderr_lines = list(run_wc("a few words"))
+        # prints "3 words, 11 chars"
+
+    Note that ``check=True`` will cause a ``CalledProcessError`` to be raised if the
+    ``wc`` subprocess returns a non-zero return code.
+
+    """
+
+    def __init__(
+        self,
+        argline: Iterable[str],
+        cwd: Optional["StrOrBytesPath"] = None,
+        env: Optional[Mapping[str, str]] = None,
+        capture: bool = True,
+        silent: bool = False,
+        check: bool = False,
+        input: Optional[str] = None,
+        capture_stdout: bool = False,
+    ) -> None:
+        kwargs: Dict[str, Any] = {"cwd": cwd}
         if env:
-            environ.update(env)
-        kwargs = {"cwd": cwd, "env": environ}
+            kwargs["env"] = {**os.environ, **env}
         if silent:
-            kwargs["stdout"] = subprocess.DEVNULL
-            kwargs["stderr"] = subprocess.DEVNULL
+            kwargs["stdout"] = DEVNULL
+            kwargs["stderr"] = DEVNULL
             capture = False
+        if input is not None:
+            kwargs["stdin"] = PIPE
+        if capture or capture_stdout:
+            kwargs["stdout"] = PIPE
         if capture:
-            kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.STDOUT
-            # Since 3.7, Python has sane encoding defaults in the case that the system is
-            # (likely mis-)configured to use ASCII as the default encoding (PEP538).
-            # It also provides a way for the user to force the use of UTF-8 (PEP540).
-            kwargs["text"] = True
-            kwargs["errors"] = "replace"
-        self.capture = capture
-        self._cmd = portable_popen(argline, **kwargs)
+            kwargs["stderr"] = STDOUT if not capture_stdout else PIPE
 
-    def wait(self):
-        returncode = self._cmd.wait()
-        if self._cmd.stdout is not None:
-            self._cmd.stdout.close()
-        return returncode
+        # Python >= 3.7 has sane encoding defaults in the case that the system is
+        # (likely mis-)configured to use ASCII as the default encoding (PEP538).
+        # It also provides a way for the user to force the use of UTF-8 (PEP540).
+        kwargs["text"] = True
+        kwargs["errors"] = "replace"
 
-    @property
-    def returncode(self):
+        self.capture = capture  # b/c - unused
+        self.check = check
+        self._stdout = None
+
+        with ExitStack() as stack:
+            self._cmd = stack.enter_context(portable_popen(list(argline), **kwargs))
+            self._closer: Optional[Callable[[], None]] = stack.pop_all().close
+
+        if input is not None or capture_stdout:
+            self._output = self._communicate(input, capture_stdout, capture)
+        elif capture:
+            self._output = self._cmd.stdout
+        else:
+            self._output = None
+
+    def _communicate(
+        self, input: Optional[str], capture_stdout: bool, capture: bool
+    ) -> Optional[Iterator[str]]:
+        proc = self._cmd
+        try:
+            if capture_stdout:
+                self._stdout, errout = proc.communicate(input)
+            else:
+                errout, _ = proc.communicate(input)
+        except BaseException:
+            proc.kill()
+            with suppress(CalledProcessError):
+                self.close()
+            raise
+        if capture:
+            return iter(errout.splitlines())
+        return None
+
+    def close(self) -> None:
+        """Wait for subprocess to complete.
+
+        If check=True was passed to the constructor, raises ``CalledProcessError``
+        if the subprocess returns a non-zero status code.
+        """
+        closer, self._closer = self._closer, None
+        if closer:
+            # This waits for process and closes standard file descriptors
+            closer()
+        if self.check:
+            rc = self._cmd.poll()
+            if rc != 0:
+                raise CalledProcessError(rc, self._cmd.args, self._stdout)
+
+    def wait(self) -> int:
+        """Wait for subprocess to complete. Return status code."""
+        self._cmd.wait()
+        self.close()
         return self._cmd.returncode
 
-    def __enter__(self):
-        return self
+    def result(self) -> "CompletedProcess[str]":
+        """Wait for subprocess to complete.  Return ``CompletedProcess`` instance.
 
-    def __exit__(self, exc_type, exc_value, tb):
-        self.wait()
-
-    def __iter__(self):
-        if not self.capture:
-            raise RuntimeError("Not capturing")
-
-        for line in self._cmd.stdout:
-            yield line.rstrip()
-
-    def safe_iter(self):
-        with self:
-            for line in self:
-                yield line
+        If ``capture_stdout=True`` was passed to the constructor, the output
+        captured from stdout will be available on the ``.stdout`` attribute
+        of the return value.
+        """
+        return CompletedProcess(self._cmd.args, self.wait(), self._stdout)
 
     @property
-    def output(self):
+    def returncode(self) -> Optional[int]:
+        """Return exit status of the subprocess.
+
+        Or ``None`` if the subprocess is still alive.
+        """
+        return self._cmd.returncode
+
+    def __exit__(self, *__: Any) -> None:
+        self.close()
+
+    def __iter__(self) -> Generator[str, None, "CompletedProcess[str]"]:
+        """A generator with yields any captured output and returns a ``CompletedProcess``.
+
+        If ``capture`` is ``True`` (the default).  Both stdout and stderr are available
+        in the iterator output.
+
+        If ``capture_stdout`` is set, stdout is captured to a string which is made
+        available via ``CompletedProcess.stdout`` attribute of the return value. Stderr
+        output is available via the iterator output, as normal.
+        """
+        if self._output is None:
+            raise RuntimeError("Not capturing")
+        for line in self._output:
+            yield line.rstrip()
+        return self.result()
+
+    safe_iter = __iter__  # b/c - deprecated
+
+    @property
+    def output(self) -> Iterator[str]:  # b/c - deprecated
         return self.safe_iter()
 
 
 class Publisher:
-    def __init__(self, env, output_path):
+    def __init__(self, env: "Environment", output_path: str) -> None:
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
-    def fail(self, message):
+    def fail(self, message: str) -> NoReturn:
         # pylint: disable=no-self-use
         raise PublishError(message)
 
-    def publish(self, target_url, credentials=None, **extra):
+    def publish(
+        self,
+        target_url: urls.URL,
+        credentials: Optional[Mapping[str, str]] = None,
+        **extra: Any,
+    ) -> Iterator[str]:
         raise NotImplementedError()
 
 
 class RsyncPublisher(Publisher):
-    def get_command(self, target_url, tempdir, credentials):
+    @contextmanager
+    def get_command(self, target_url, credentials):
         credentials = credentials or {}
         argline = ["rsync", "-rclzv", "--exclude=.lektor"]
         target = []
@@ -183,33 +298,26 @@ class RsyncPublisher(Publisher):
         if delete:
             argline.append("--delete-after")
 
-        keyfile = _write_ssh_key_file(
-            os.path.join(tempdir, "ssh-auth-key"), credentials
-        )
+        with _ssh_command(credentials, target_url.port) as ssh_command:
+            if ssh_command:
+                argline.extend(("-e", ssh_command))
 
-        if target_url.port is not None or keyfile is not None:
-            argline.append("-e")
-            argline.append(_get_ssh_cmd(target_url.port, keyfile))
+            username = credentials.get("username") or target_url.username
+            if username:
+                target.append(username + "@")
 
-        username = credentials.get("username") or target_url.username
-        if username:
-            target.append(username + "@")
+            if target_url.ascii_host is not None:
+                target.append(target_url.ascii_host)
+                target.append(":")
+            target.append(target_url.path.rstrip("/") + "/")
 
-        if target_url.ascii_host is not None:
-            target.append(target_url.ascii_host)
-            target.append(":")
-        target.append(target_url.path.rstrip("/") + "/")
-
-        argline.append(self.output_path.rstrip("/\\") + "/")
-        argline.append("".join(target))
-        return Command(argline, env=env)
+            argline.append(self.output_path.rstrip("/\\") + "/")
+            argline.append("".join(target))
+            yield Command(argline, env=env)
 
     def publish(self, target_url, credentials=None, **extra):
-        with _temporary_folder(self.env) as tempdir:
-            client = self.get_command(target_url, tempdir, credentials)
-            with client:
-                for line in client:
-                    yield line
+        with self.get_command(target_url, credentials) as client:
+            yield from client
 
 
 class FtpConnection:
@@ -514,130 +622,272 @@ class FtpTlsPublisher(FtpPublisher):
     connection_class = FtpTlsConnection
 
 
-class GithubPagesPublisher(Publisher):
-    @staticmethod
-    def get_credentials(url, credentials=None):
-        credentials = credentials or {}
-        username = credentials.get("username") or url.username
-        password = credentials.get("password") or url.password
-        rv = username
-        if username and password:
-            rv += ":" + password
-        return rv if rv else None
+class GitRepo(ContextManager["GitRepo"]):
+    """A temporary git repository.
 
-    def update_git_config(self, repo, url, branch, credentials=None):
-        ssh_command = None
-        path = url.host + "/" + url.path.strip("/")
-        cred = None
-        if url.scheme in ("ghpages", "ghpages+ssh"):
-            push_url = "git@github.com:%s.git" % path
-            keyfile = _write_ssh_key_file(
-                os.path.join(repo, ".git", "ssh-auth-key"), credentials
+    This class provides some lower-level utility methods which may be
+    externally useful, but the main use case is:
+
+        def publish(html_output):
+            gitrepo = GitRepo(html_output)
+            yield from gitrepo.publish_ghpages(
+                push_url="git@github.com:owner/repo.git",
+                branch="gh-pages"
             )
-            if keyfile or url.port:
-                ssh_command = _get_ssh_cmd(url.port, keyfile)
-        else:
-            push_url = "https://github.com/%s.git" % path
-            cred = self.get_credentials(url, credentials)
 
-        with open(os.path.join(repo, ".git", "config"), "a", encoding="utf-8") as f:
-            f.write(
-                '[remote "origin"]\nurl = %s\n'
-                "fetch = +refs/heads/%s:refs/remotes/origin/%s\n"
-                % (push_url, branch, branch)
+    :param work_tree: The work tree for the repository.
+    """
+
+    def __init__(self, work_tree: "StrPath") -> None:
+        environ = {**os.environ, "GIT_WORK_TREE": str(work_tree)}
+
+        for what, default in [("NAME", "Lektor Bot"), ("EMAIL", "bot@getlektor.com")]:
+            value = (
+                environ.get(f"GIT_AUTHOR_{what}")
+                or environ.get(f"GIT_COMMITTER_{what}")
+                or default
             )
-            if cred:
-                cred_path = os.path.join(repo, ".git", "credentials")
-                f.write('[credential]\nhelper = store --file "%s"\n' % cred_path)
-                with open(cred_path, "w", encoding="utf-8") as cf:
-                    cf.write("https://%s@github.com\n" % cred)
+            for key in f"GIT_AUTHOR_{what}", f"GIT_COMMITTER_{what}":
+                environ[key] = environ.get(key) or value
 
-        return ssh_command
+        with ExitStack() as stack:
+            environ["GIT_DIR"] = stack.enter_context(TemporaryDirectory(suffix=".git"))
+            self.environ = environ
+            self.run("init", "--quiet")
 
-    def link_artifacts(self, path):
-        try:
-            link = os.link
-        except AttributeError:
-            link = shutil.copy
+            self._exit_stack = stack.pop_all()
 
-        # Clean old
-        for filename in os.listdir(path):
-            if filename == ".git":
-                continue
-            filename = os.path.join(path, filename)
-            try:
-                os.remove(filename)
-            except OSError:
-                shutil.rmtree(filename)
+    def __exit__(self, *__: Any) -> None:
+        self._exit_stack.close()
 
-        # Add new
-        for dirpath, dirnames, filenames in os.walk(self.output_path):
-            dirnames[:] = [x for x in dirnames if x != ".lektor"]
-            for filename in filenames:
-                full_path = os.path.join(self.output_path, dirpath, filename)
-                dst = os.path.join(
-                    path,
-                    full_path[len(self.output_path) :]
-                    .lstrip(os.path.sep)
-                    .lstrip(os.path.altsep or ""),
-                )
-                try:
-                    os.makedirs(os.path.dirname(dst))
-                except (OSError, IOError):
-                    pass
-                try:
-                    link(full_path, dst)
-                except OSError:  # Different Filesystems
-                    shutil.copy(full_path, dst)
+    def _popen(self, args: Sequence[str], **kwargs: Any) -> Command:
+        cmd = ["git"]
+        cmd.extend(args)
+        return Command(cmd, env=self.environ, **kwargs)
 
-    @staticmethod
-    def write_cname(path, target_url):
-        params = target_url.decode_query()
-        cname = params.get("cname")
+    def popen(
+        self,
+        *args: str,
+        check: bool = True,
+        input: Optional[str] = None,
+        capture_stdout: bool = False,
+    ) -> Command:
+        """Run a git subcommand."""
+        return self._popen(
+            args, check=check, input=input, capture_stdout=capture_stdout
+        )
+
+    def run(
+        self,
+        *args: str,
+        check: bool = True,
+        input: Optional[str] = None,
+        capture_stdout: bool = False,
+    ) -> "CompletedProcess[str]":
+        """Run a git subcommand and wait for completion."""
+        return self._popen(
+            args, check=check, input=input, capture_stdout=capture_stdout, capture=False
+        ).result()
+
+    def set_ssh_credentials(self, credentials: Mapping[str, str]) -> None:
+        """Set up git ssh credentials.
+
+        This repository will be configured to used whatever SSH credentials
+        can found in ``credentials`` (if any).
+        """
+        stack = self._exit_stack
+        ssh_command = stack.enter_context(_ssh_command(credentials))
+        if ssh_command:
+            self.environ.setdefault("GIT_SSH_COMMAND", ssh_command)
+
+    def set_https_credentials(self, credentials: Mapping[str, str]) -> None:
+        """Set up git http(s) credentials.
+
+        This repository will be configured to used whatever HTTP credentials
+        can found in ``credentials`` (if any).
+        """
+        username = credentials.get("username", "")
+        password = credentials.get("password")
+        if username or password:
+            userpass = f"{username}:{password}" if password else username
+            git_dir = self.environ["GIT_DIR"]
+            cred_file = Path(git_dir, "lektor_cred_file")
+            # pylint: disable=unspecified-encoding
+            cred_file.write_text(f"https://{userpass}@github.com\n")
+            self.run("config", "credential.helper", f'store --file "{cred_file}"')
+
+    def add_to_index(self, filename: str, content: str) -> None:
+        """Create a file in the index.
+
+        This creates file named ``filename`` with content ``content`` in the git
+        index.
+        """
+        oid = self.run(
+            "hash-object", "-w", "--stdin", input=content, capture_stdout=True
+        ).stdout.strip()
+        self.run("update-index", "--add", "--cacheinfo", "100644", oid, filename)
+
+    def publish_ghpages(
+        self,
+        push_url: str,
+        branch: str,
+        cname: Optional[str] = None,
+        preserve_history: bool = True,
+    ) -> Iterator[str]:
+        """Publish the contents of the work tree to GitHub pages.
+
+        :param push_url: The URL to push to.
+        :param branch: The branch to push to
+        :param cname: Optional. Create a top-level ``CNAME`` with given contents.
+        """
+        refspec = f"refs/heads/{branch}"
+        if preserve_history:
+            yield "Fetching existing head"
+            fetch_cmd = self.popen("fetch", "--depth=1", push_url, refspec, check=False)
+            yield from _prefix_output(fetch_cmd)
+            if fetch_cmd.returncode == 0:
+                # If fetch was succesful, reset HEAD to remote head
+                yield from _prefix_output(self.popen("reset", "--soft", "FETCH_HEAD"))
+            else:
+                # otherwise assume remote branch does not exist
+                yield f"Creating new branch {branch}"
+
+        # At this point, the index is still empty. Add all but .lektor dir to index
+        yield from _prefix_output(
+            self.popen("add", "--force", "--all", "--", ".", ":(exclude).lektor")
+        )
         if cname is not None:
-            with open(os.path.join(path, "CNAME"), "w", encoding="utf-8") as f:
-                f.write("%s\n" % cname)
+            self.add_to_index("CNAME", f"{cname}\n")
 
-    @staticmethod
-    def detect_target_branch(target_url):
-        # When pushing to the username.github.io repo we need to push to
-        # master, otherwise to gh-pages
-        if target_url.host.lower() + ".github.io" == target_url.path.strip("/").lower():
-            branch = "master"
+        # Check for changes
+        diff_cmd = self.popen("diff", "--cached", "--exit-code", "--quiet", check=False)
+        yield from _prefix_output(diff_cmd)
+        if diff_cmd.returncode == 0:
+            yield "No changes to publish☺"
+        elif diff_cmd.returncode == 1:
+            yield "Creating commit"
+            yield from _prefix_output(
+                self.popen("commit", "--quiet", "--message", "Synchronized build")
+            )
+            push_cmd = ["push", push_url, f"HEAD:{refspec}"]
+            if not preserve_history:
+                push_cmd.insert(1, "--force")
+            yield "Pushing to github"
+            yield from _prefix_output(self.popen(*push_cmd))
+            yield "Success!"
         else:
-            branch = "gh-pages"
-        return branch
+            diff_cmd.result().check_returncode()  # raise error
 
-    def publish(self, target_url, credentials=None, **extra):
+
+def _prefix_output(lines: Iterable[str], prefix: str = "> ") -> Iterator[str]:
+    """Add prefix to lines."""
+    return (f"{prefix}{line}" for line in lines)
+
+
+class GithubPagesPublisher(Publisher):
+    """Publish to GitHub pages."""
+
+    def publish(
+        self,
+        target_url: urls.URL,
+        credentials: Optional[Mapping[str, str]] = None,
+        **extra: Any,
+    ) -> Iterator[str]:
         if not locate_executable("git"):
             self.fail("git executable not found; cannot deploy.")
 
-        branch = self.detect_target_branch(target_url)
+        push_url, branch, cname, preserve_history, warnings = self._parse_url(
+            target_url
+        )
+        creds = self._parse_credentials(credentials, target_url)
 
-        with _temporary_folder(self.env) as path:
-            ssh_command = None
+        yield from iter(warnings)
 
-            def git(args, **kwargs):
-                kwargs["env"] = _patch_git_env(kwargs.pop("env", None), ssh_command)
-                return Command(["git"] + args, cwd=path, **kwargs)
+        with GitRepo(self.output_path) as repo:
+            if push_url.startswith("https:"):
+                repo.set_https_credentials(creds)
+            else:
+                repo.set_ssh_credentials(creds)
+            yield from repo.publish_ghpages(push_url, branch, cname, preserve_history)
 
-            for line in git(["init"]).output:
-                yield line
-            ssh_command = self.update_git_config(path, target_url, branch, credentials)
-            for line in git(["remote", "update"]).output:
-                yield line
+    def _parse_url(
+        self, target_url: urls.URL
+    ) -> Tuple[str, str, Optional[str], bool, Sequence[str]]:
+        if not target_url.host:
+            self.fail("github owner missing from target URL")
+        gh_owner = target_url.host.lower()
+        gh_project = target_url.path.strip("/").lower()
+        if not gh_project:
+            self.fail("github project missing from target URL")
 
-            if git(["checkout", "-q", branch], silent=True).wait() != 0:
-                git(["checkout", "-qb", branch], silent=True).wait()
+        params = target_url.decode_query()
+        cname = params.get("cname")
+        branch = params.get("branch")
+        preserve_history = bool_from_string(params.get("preserve_history"), True)
 
-            self.link_artifacts(path)
-            self.write_cname(path, target_url)
-            for line in git(["add", "-f", "--all", "."]).output:
-                yield line
-            for line in git(["commit", "-qm", "Synchronized build"]).output:
-                yield line
-            for line in git(["push", "origin", branch]).output:
-                yield line
+        warnings = []
+
+        if not branch:
+            if gh_project == f"{gh_owner}.github.io":
+                warnings.extend(
+                    cleandoc(self._EXPLICIT_BRANCH_SUGGESTED_MSG).splitlines()
+                )
+                warn(
+                    " ".join(
+                        cleandoc(self._DEFAULT_BRANCH_DEPRECATION_MSG).splitlines()
+                    ),
+                    category=DeprecationWarning,
+                )
+                branch = "master"
+            else:
+                branch = "gh-pages"
+
+        if target_url.scheme in ("ghpages", "ghpages+ssh"):
+            push_url = f"ssh://git@github.com/{gh_owner}/{gh_project}.git"
+            default_port = 22
+        else:
+            push_url = f"https://github.com/{gh_owner}/{gh_project}.git"
+            default_port = 443
+        if target_url.port and target_url.port != default_port:
+            self.fail("github does not support pushing to non-standard ports")
+
+        return push_url, branch, cname, preserve_history, warnings
+
+    _EXPLICIT_BRANCH_SUGGESTED_MSG = """
+    ================================================================
+    WARNING!!! You should explicitly set the name of the published
+    branch of your GitHub pages repository.
+
+    The default branch for new GitHub pages repositories has changed
+    to 'main', but Lektor still defaults to the old value, 'master'.
+    In a future version of Lektor, the default branch name will
+    changed to match the new GitHub default.
+
+    For details, see
+    https://getlektor.com/docs/deployment/ghpages/#pushing-to-an-explicit-branch
+    ================================================================
+    """
+
+    _DEFAULT_BRANCH_DEPRECATION_MSG = """
+    Currently, by default, Lektor pushes to the 'master' branch when
+    deploying to GitHub pages repositories.  In a future version of
+    Lektor, the default branch will GitHub's new default, 'main'.
+    It is suggest that you explicitly set which branch to push to.
+    """
+
+    @staticmethod
+    def _parse_credentials(
+        credentials: Optional[Mapping[str, str]], target_url: urls.URL
+    ) -> Mapping[str, str]:
+        creds = dict(credentials or {})
+        # Fill in default username/password from target url
+        for key, default in [
+            ("username", target_url.username),
+            ("password", target_url.password),
+        ]:
+            if not creds.get(key) and default:
+                creds[key] = default
+        return creds
 
 
 builtin_publishers = {

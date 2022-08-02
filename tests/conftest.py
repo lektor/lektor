@@ -16,6 +16,7 @@ from lektor.environment import Environment
 from lektor.environment.expressions import Expression
 from lektor.project import Project
 from lektor.reporter import BufferReporter
+from lektor.utils import locate_executable
 
 
 @pytest.fixture(scope="session")
@@ -231,3 +232,15 @@ def project_cli_runner(isolated_cli_runner, project, save_sys_path):
         else:
             shutil.copy2(entry_path, entry)
     return isolated_cli_runner
+
+
+@pytest.fixture
+def no_utils(monkeypatch):
+    """Monkeypatch $PATH to hide any installed external utilities
+    (e.g. git, imagemagick)."""
+    monkeypatch.setitem(os.environ, "PATH", "/dev/null")
+    locate_executable.cache_clear()
+    try:
+        yield
+    finally:
+        locate_executable.cache_clear()
