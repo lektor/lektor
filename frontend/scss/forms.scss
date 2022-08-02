@@ -107,3 +107,28 @@ div.flow-block {
 .spacing-widget {
   height: 30px;
 }
+
+// Visually distinguish between checked and unchecked indeterminate checkbox
+// (Checkboxes, as far as the browser is concerned only have three states.
+// Indeterminate checkboxes are not :checked, but we still set the default value
+// for the field in the checked attribute and would like to be able to tell
+// the difference between those that default to true vs false.)
+.form-check-input[type="checkbox"]:indeterminate {
+    border-color: rgba(#000, 0.25);
+    background-color: scale-color(
+        $form-check-input-checked-bg-color,
+        $alpha: -70%,
+        $saturation: -30%
+    );
+    // Slash, rather than bootstrap's horizontal bar, seems more intuitive indication
+    // of indeterminate state.
+    background-image:  escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='none' stroke='#{$form-check-input-indeterminate-color}' stroke-linecap='round' stroke-width='3' d='M6 6 l8 8'/></svg>"));
+
+    &.form-check-input--default-true {
+        background-color: scale-color(
+            $form-check-input-checked-bg-color,
+            $alpha: -25%
+        );
+        border-color: $form-check-input-checked-border-color;
+    }
+}
