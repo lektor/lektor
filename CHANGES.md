@@ -14,6 +14,11 @@ December 2021.
 - The _save_ hotkey (`<ctl>-s`) now always switches to the _preview_
   view. Previously, the _save_ hotkey was disabled unless there were
   changes to be saved. ([#1022][])
+- Boolean checkboxes can now be reverted to the "unset" state by
+  typing _Delete_ or _Backspace_ into them. This is pertinent, e.g.,
+  for the `_hidden` field, where unset mean something different
+  (inherit from parent) than either `false` or `true`. ([#1048][])
+- Add ability to resize textareas. ([#1050][])
 
 #### Markdown
 
@@ -21,12 +26,24 @@ December 2021.
   via the Lektor database. Previously, they were not. Note that this
   behavior may be customized on a per-datamodel-field basis if one
   wants to get the old behavior back. ([#992][])
-
 - Lektor now supports either [mistune][] 2.x or mistune 0.x. The
   configuration API of mistune 2.x differs significantly from that of
   mistune 0.x. If you are using a plugin that customizes the markdown
   rendering, you will likely have to update the plugin to support the
   newer mistune, or pin mistune to the older version. ([#992][])
+
+#### GitHub Pages Publisher
+
+- Add support for specifying which branch to push to by specifying a
+  `branch` query param on the target URL. ([#978][], [#995][])
+- Add support for force-pushing orphan commits by adding a
+  `preserve_history=no` query param to the target URL. ([#995][])
+
+#### Thumbnailing
+
+- The `crop` parameter of the `Image.thumbnail()` method (long since
+  depreacted) has been removed. ([#551][], [#960][])
+- Implicit thumbnail upscaling has been disabled. ([#551][], [#960][])
 
 ### Bugs
 
@@ -34,6 +51,7 @@ December 2021.
 
 - Refactor and fix numerous buglets in the admin http server. ([#987][])
 - Fix 404 error for `/admin`. ([#1043][], [#1044][])
+- Fix URL resolution to hidden pages. ([#1048][])
 
 #### Admin Frontend
 
@@ -41,12 +59,17 @@ December 2021.
 - Update frontend deps. ([#1025][])
 - Make `size = {small|large}` field option work again. ([#1022][])
 - Handle hotkeys when the preview iframe has the focus. ([#1022][])
+- Fix for spurious page scrolling when typing in textareas. ([#1][],
+  [#1038][], [#1050][])
 
 #### Builder
 
 - The `asseturl` filter was not propery tracking build dependencies
   resulting in stale hashes in the asset URL if the asset was
   updated. ([#1020][])
+- Fix so that un-hidden children of hidden parents are built. Fix
+  pruning logic so that artifacts corresponding to hidden pages are
+  pruned. ([#203][], [#1048][])
 
 #### Bit-rot
 
@@ -79,8 +102,14 @@ December 2021.
 
 [mistune]: https://mistune.readthedocs.io/en/latest/
 [esbuild]: https://github.com/evanw/esbuild
+[#1]: https://github.com/lektor/lektor/issues/1
+[#203]: https://github.com/lektor/lektor/issues/203
+[#551]: https://github.com/lektor/lektor/pull/551
+[#960]: https://github.com/lektor/lektor/pull/960
+[#978]: https://github.com/lektor/lektor/issues/978
 [#987]: https://github.com/lektor/lektor/pull/987
 [#992]: https://github.com/lektor/lektor/pull/992
+[#995]: https://github.com/lektor/lektor/pull/995
 [#1009]: https://github.com/lektor/lektor/pull/1009
 [#1012]: https://github.com/lektor/lektor/pull/1012
 [#1018]: https://github.com/lektor/lektor/issues/1018
@@ -92,10 +121,13 @@ December 2021.
 [#1031]: https://github.com/lektor/lektor/issues/1031
 [#1033]: https://github.com/lektor/lektor/pull/1033
 [#1036]: https://github.com/lektor/lektor/pull/1036
+[#1038]: https://github.com/lektor/lektor/issues/1038
 [#1041]: https://github.com/lektor/lektor/issues/1041
 [#1042]: https://github.com/lektor/lektor/pull/1042
 [#1043]: https://github.com/lektor/lektor/issues/1043
 [#1044]: https://github.com/lektor/lektor/pull/1044
+[#1048]: https://github.com/lektor/lektor/pull/1048
+[#1050]: https://github.com/lektor/lektor/pull/1050
 [#1051]: https://github.com/lektor/lektor/pull/1051
 
 ## 3.3.2 (2022-03-01)
