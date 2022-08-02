@@ -13,12 +13,6 @@ dl.field {
     color: $tab-header-color;
     padding: 2px 8px;
   }
-
-  textarea {
-    display: block;
-    overflow: hidden;
-    resize: none;
-  }
 }
 
 .system-fields {
@@ -90,6 +84,40 @@ div.flow-block {
 .checkboxes-widget {
   border: 1px solid $input-group-addon-border-color;
   padding: 5px 10px;
+}
+
+.text-widget {
+  display: grid;
+  contain: layout;
+
+  &__replica,
+  &__textarea {
+    grid-area: 1 / 1 / 2 / 2; // Place them on top of each other
+
+    // Ensure they get identical styling
+    @extend .form-control;
+    white-space: pre-wrap;    // How textarea wraps
+  }
+
+  &__replica {
+    visibility: hidden;
+    overflow: hidden; // never any scrollbars
+
+    &:after {
+        // adding an extra space prevents jank when text ends with newline
+        content: " ";
+    }
+  }
+
+  &__textarea {
+    resize: none;
+    &--resizeable {
+      resize: vertical;
+    }
+    &--autosized {
+      overflow: hidden;         // hide scrollbars
+    }
+  }
 }
 
 /* fake types */
