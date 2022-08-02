@@ -6,7 +6,6 @@ import hashlib
 import operator
 import os
 import posixpath
-import warnings
 from collections import OrderedDict
 from datetime import timedelta
 from itertools import islice
@@ -832,20 +831,8 @@ class Image(Attachment):
             return rv
         return Undefined("The format of the image could not be determined.")
 
-    def thumbnail(
-        self, width=None, height=None, crop=None, mode=None, upscale=None, quality=None
-    ):
+    def thumbnail(self, width=None, height=None, mode=None, upscale=None, quality=None):
         """Utility to create thumbnails."""
-
-        # `crop` exists to preserve backward-compatibility, and will be removed.
-        if crop is not None and mode is not None:
-            raise ValueError("Arguments `crop` and `mode` are mutually exclusive.")
-
-        if crop is not None:
-            warnings.warn(
-                'The `crop` argument is deprecated. Use `mode="crop"` instead.'
-            )
-            mode = "crop"
 
         if mode is None:
             mode = ThumbnailMode.DEFAULT

@@ -329,12 +329,11 @@ class Test_make_image_thumbnail:
         assert rv.url_path != source_url_path
         assert len(ctx.sub_artifacts) == 1
 
-    def test_implicit_upscale(self, ctx, test_jpg, source_url_path):
-        with pytest.warns(UserWarning, match=r"image is being scaled up"):
-            rv = make_image_thumbnail(ctx, test_jpg, source_url_path, 512)
-        assert (rv.width, rv.height) == (512, 683)
-        assert rv.url_path == "test@512.jpg"
-        assert len(ctx.sub_artifacts) == 1
+    def test_no_implicit_upscale(self, ctx, test_jpg, source_url_path):
+        rv = make_image_thumbnail(ctx, test_jpg, source_url_path, 512)
+        assert (rv.width, rv.height) == (384, 512)
+        assert rv.url_path == "test.jpg"
+        assert len(ctx.sub_artifacts) == 0
 
     @pytest.mark.parametrize("mode", iter(ThumbnailMode))
     def test_upscale_false(self, ctx, test_jpg, source_url_path, mode):

@@ -593,16 +593,6 @@ def make_image_thumbnail(
 
     would_upscale = computed_width > source_width or computed_height > source_height
 
-    # this part needs to be removed once backward-compatibility period passes
-    if would_upscale and upscale is None:
-        warnings.warn(
-            "Your image is being scaled up since the requested thumbnail "
-            "size is larger than the source. This default will change "
-            "in the future. If you want to preserve the current behaviour, "
-            "use `upscale=True`."
-        )
-        upscale = True
-
     if would_upscale and not upscale:
         return Thumbnail(source_url_path, source_width, source_height)
 
