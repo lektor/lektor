@@ -620,7 +620,11 @@ class Page(Record):
         # When we resolve URLs we also want to be able to explicitly
         # target undiscoverable pages.  Those who know the URL are
         # rewarded.
-        q = self.children.include_undiscoverable(True)
+
+        # We also want to resolve hidden children
+        # here. Pad.resolve_url_path() is where the check for hidden
+        # records is done.
+        q = self.children.include_undiscoverable(True).include_hidden(True)
 
         for idx in range(len(url_path)):
             piece = "/".join(url_path[: idx + 1])

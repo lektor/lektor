@@ -387,47 +387,60 @@ class BuildState:
         finally:
             con.close()
 
+    def iter_existing_artifacts(self):
+        """Scan output directory for artifacts.
+
+        Returns an iterable of the artifact_names for artifacts found.
+        """
+        is_ignored = self.env.is_ignored_artifact
+
+        def _unignored(filenames):
+            return filter(lambda fn: not is_ignored(fn), filenames)
+
+        dst = self.builder.destination_path
+        for dirpath, dirnames, filenames in os.walk(dst):
+            dirnames[:] = _unignored(dirnames)
+            for filename in _unignored(filenames):
+                full_path = os.path.join(dst, dirpath, filename)
+                yield self.artifact_name_from_destination_filename(full_path)
+
     def iter_unreferenced_artifacts(self, all=False):
         """Finds all unreferenced artifacts in the build folder and yields
         them.
         """
-        dst = os.path.join(self.builder.destination_path)
+        if all:
+            return self.iter_existing_artifacts()
 
         con = self.connect_to_database()
         cur = con.cursor()
 
+        def _is_unreferenced(artifact_name):
+            # Check whether any of the primary sources for the artifact
+            # exist and — if the source can be resolved to a record —
+            # correspond to non-hidden records.
+            cur.execute(
+                """
+                SELECT DISTINCT source, path, alt
+                FROM artifacts LEFT JOIN source_info USING(source)
+                WHERE artifact = ?
+                    AND is_primary_source""",
+                [artifact_name],
+            )
+            for source, path, alt in cur.fetchall():
+                if self.get_file_info(source).exists:
+                    if path is None:
+                        return False  # no record to check
+                    record = self.pad.get(path, alt)
+                    if record is None:
+                        # I'm not sure this should happen, but be safe
+                        return False
+                    if record.is_visible:
+                        return False
+            # no sources exist, or those that do belong to hidden records
+            return True
+
         try:
-            for dirpath, dirnames, filenames in os.walk(dst):
-                dirnames[:] = [
-                    x for x in dirnames if not self.env.is_ignored_artifact(x)
-                ]
-                for filename in filenames:
-                    if self.env.is_ignored_artifact(filename):
-                        continue
-                    full_path = os.path.join(dst, dirpath, filename)
-                    artifact_name = self.artifact_name_from_destination_filename(
-                        full_path
-                    )
-
-                    if all:
-                        yield artifact_name
-                        continue
-
-                    cur.execute(
-                        """
-                        select source from artifacts
-                         where artifact = ?
-                           and is_primary_source""",
-                        [artifact_name],
-                    )
-                    sources = set(x[0] for x in cur.fetchall())
-
-                    # It's a bad artifact if there are no primary sources
-                    # or the primary sources do not exist.
-                    if not sources or not any(
-                        self.get_file_info(x).exists for x in sources
-                    ):
-                        yield artifact_name
+            yield from filter(_is_unreferenced, self.iter_existing_artifacts())
         finally:
             con.close()
 

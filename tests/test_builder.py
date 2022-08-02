@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from markers import imagemagick
 
 
@@ -34,6 +35,7 @@ def test_child_sources_basic(pad, builder):
     assert [x["_id"] for x in child_sources] == [
         "a",
         "b",
+        "container",  # hidden children should be built, too
         "file.ext",
         "hello.txt",
         "paginated",
@@ -261,6 +263,26 @@ def test_iter_child_attachments(child_sources_test_project_builder):
     assert builder.pad.get("attachment.txt") in prog.iter_child_sources()
 
 
+@pytest.mark.parametrize(
+    "parent_path, child_name",
+    [
+        ("/extra", "container"),  # a hidden page
+        ("/extra/container", "a"),  # a page whose parent is hidden
+        ("/extra/container", "hello.txt"),  # an attachment whose parent is hidden
+    ],
+)
+def test_iter_children_of_hidden_pages(builder, pad, parent_path, child_name):
+    # Test that child sources are built even if they're parent is hidden
+    parent = pad.get(parent_path)
+    child = pad.get(f"{parent_path}/{child_name}")
+    # sanity checks
+    assert parent is not None and child is not None
+    assert parent.is_hidden or child.is_hidden
+
+    prog, _ = builder.build(parent)
+    assert child in prog.iter_child_sources()
+
+
 def test_record_is_file(pad, builder):
     record = pad.get("/extra/file.ext")
 
@@ -300,3 +322,23 @@ def test_asseturl_dependency_tracking_integration(
     updated_asset_url = output.read_text(encoding="utf-8").rstrip()
     assert updated_asset_url != asset_url
     assert len(build_state.updated_artifacts) == 1
+
+
+def test_prune_remove_artifacts_of_hidden_pages(scratch_project_data, scratch_builder):
+    pad = scratch_builder.pad
+    # Build root page
+    prog, _ = scratch_builder.build(pad.root)
+    (artifact,) = prog.artifacts
+    assert Path(artifact.dst_filename).is_file()
+
+    # Do a prune.  Output artifact should survive
+    pad.cache.flush()
+    scratch_builder.prune()
+    assert Path(artifact.dst_filename).is_file()
+
+    # Mark page as hidden, prune should then clean the artifact
+    contents_lr = scratch_project_data.joinpath("content/contents.lr")
+    contents_lr.write_text(contents_lr.read_text() + "\n---\n_hidden: yes\n")
+    pad.cache.flush()
+    scratch_builder.prune()
+    assert not Path(artifact.dst_filename).is_file()

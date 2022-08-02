@@ -125,6 +125,7 @@
   "OPEN_OTHER_PROJECT_QUESTION": "Opening this file requires opening another project (%s). The current project will be closed. Do you want to continue?",
   "COLLAPSE": "Collapse",
   "EXPAND": "Expand",
+  "TRISTATE_CHECKBOX_TOOLTIP": "Tri-state checkbox: use <del> or <backspace> to revert to unset",
   "AUTOSIZE_TEXTAREA": "Autosize textarea",
   "SHRINK_TEXTAREA": "Shrink textarea"
 }
