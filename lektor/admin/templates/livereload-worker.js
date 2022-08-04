@@ -4,15 +4,9 @@
 const eventsPath = {{ events_url|tojson }};
 let currentVersionId = null;
 let eventSource = null;
-let ports = [];
-
-addEventListener("connect", (event) => {
-  const port = event.ports[0];
-  port.start();
-  ports.push(port);
-});
 
 const retryInterval = 1000;
+const channel = new BroadcastChannel("live-reload");
 
 const connectToEvents = () => {
 
@@ -28,12 +22,12 @@ const connectToEvents = () => {
     if (message.type === "ping") {
       if (currentVersionId !== null && currentVersionId !== message.versionId) {
         console.debug("🔁 live-reload triggering reload.");
-        ports.forEach((port) => port.postMessage({type: "restart"}));
+        channel.postMessage({type: "restart"});
       }
 
       currentVersionId = message.versionId;
     } else if (message.type === "reload") {
-      ports.forEach((port) => port.postMessage(message));
+      channel.postMessage(message);
     }
   });
 
