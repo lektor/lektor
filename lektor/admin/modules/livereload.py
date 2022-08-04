@@ -1,7 +1,9 @@
 import queue
 import secrets
 
-from flask import Blueprint, render_template, url_for
+from flask import Blueprint
+from flask import render_template
+from flask import url_for
 
 from lektor.admin.utils import eventstream
 from lektor.reporter import reporter
