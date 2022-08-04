@@ -46,13 +46,11 @@ def _rewrite_html_for_editing(
     The pencil will link to ``edit_url``.
     """
     button = render_template("edit-button.html", edit_url=edit_url)
-    livereload = render_template("livereload.html", artifact_name=artifact_name)
+    if "livereload" in current_app.blueprints:
+        button += render_template("livereload.html", artifact_name=artifact_name)
 
     def extras(m: Match[bytes]) -> bytes:
-        components = button
-        if current_app.config.get("ENABLE_LIVERELOAD", False):
-            components += livereload
-        return components.encode("utf-8") + m.group(0)
+        return button.encode("utf-8") + m.group(0)
 
     return re.sub(rb"(?i)</\s*head\s*>|\Z", extras, html, count=1)
 
