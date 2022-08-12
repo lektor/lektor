@@ -27,7 +27,6 @@ is_windows = os.name == "nt"
 
 _slash_escape = "\\/" not in json.dumps("/")
 
-_slashes_re = re.compile(r"(/\.{1,2}(/|$))|/")
 _last_num_re = re.compile(r"^(.*)(\d+)(.*?)$")
 _list_marker = object()
 _value_marker = object()
@@ -75,7 +74,9 @@ def join_path(a, b):
 
 
 def cleanup_path(path):
-    return "/" + _slashes_re.sub("/", path).strip("/")
+    # NB: POSIX allows for two leading slashes in a pathname, so we have to
+    # deal with the possiblity of leading double-slash ourself.
+    return posixpath.normpath("/" + path.lstrip("/"))
 
 
 def cleanup_url_path(url_path):

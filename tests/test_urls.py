@@ -8,16 +8,26 @@ from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
 
 
-def test_cleanup_path():
-    assert cleanup_path("/") == "/"
-    assert cleanup_path("/foo") == "/foo"
-    assert cleanup_path("/foo/") == "/foo"
-    assert cleanup_path("/////foo/") == "/foo"
-    assert cleanup_path("/////foo////") == "/foo"
-    assert cleanup_path("/////foo/.///") == "/foo"
-    assert cleanup_path("/////foo/..///") == "/foo"
-    assert cleanup_path("/foo/./bar/") == "/foo/bar"
-    assert cleanup_path("/foo/../bar/") == "/foo/bar"
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("", "/"),
+        ("/", "/"),
+        ("/foo", "/foo"),
+        ("//foo", "/foo"),
+        ("///foo", "/foo"),
+        ("/foo/", "/foo"),
+        ("/////foo/", "/foo"),
+        ("/////foo////", "/foo"),
+        ("/////foo/.///", "/foo"),
+        ("/////foo/..///", "/"),
+        (".", "/"),
+        ("/foo/./bar/", "/foo/bar"),
+        ("/foo/../bar/", "/bar"),
+    ],
+)
+def test_cleanup_path(path, expected):
+    assert cleanup_path(path) == expected
 
 
 @pytest.mark.parametrize(
