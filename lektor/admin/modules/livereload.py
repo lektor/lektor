@@ -19,7 +19,7 @@ version_id = secrets.token_urlsafe(16)
 @eventstream
 def events():
     events = queue.Queue()
-    with reporter.register_change_stream(events):
+    with reporter.on_build_change(events.put):
         while True:
             yield {"type": "ping", "versionId": version_id}
 

@@ -22,7 +22,7 @@ def describe_build_func(func):
 
 
 class Reporter:
-    _change_streams = set()
+    _change_callbacks = set()
 
     def __init__(self, env, verbosity=0):
         self.env = env
@@ -100,12 +100,12 @@ class Reporter:
             self.finish_build(activity, now)
 
     @contextmanager
-    def register_change_stream(self, stream):
-        self._change_streams.add(stream)
+    def on_build_change(self, callback):
+        self._change_callbacks.add(callback)
         try:
             yield
         finally:
-            self._change_streams.discard(stream)
+            self._change_callbacks.discard(callback)
 
     def start_build(self, activity):
         pass
@@ -129,8 +129,8 @@ class Reporter:
     def report_artifact_built(self, artifact, is_current):
         if is_current:
             return
-        for queue in self._change_streams:
-            queue.put(artifact)
+        for callback in self._change_callbacks:
+            callback(artifact)
 
     def start_artifact_build(self, is_current):
         pass
