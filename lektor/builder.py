@@ -409,7 +409,7 @@ class BuildState:
         them.
         """
         if all:
-            return self.iter_existing_artifacts()
+            yield from self.iter_existing_artifacts()
 
         con = self.connect_to_database()
         cur = con.cursor()

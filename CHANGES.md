@@ -2,6 +2,16 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b2 (unreleased)
+
+### Bugs
+
+#### Command Line
+
+- Fix `lektor clean` (broken in [#1048][]). ([#1056][])
+
+[#1056]: https://github.com/lektor/lektor/issues/1056
+
 ## 3.4.0b1 (2022-08-02)
 
 This release drops support for Python 3.6, which has reached end-of-life in

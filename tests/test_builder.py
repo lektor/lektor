@@ -342,3 +342,15 @@ def test_prune_remove_artifacts_of_hidden_pages(scratch_project_data, scratch_bu
     pad.cache.flush()
     scratch_builder.prune()
     assert not Path(artifact.dst_filename).is_file()
+
+
+def test_prune_all(builder):
+    pad = builder.pad
+    # Don't build / — it has a zillion thumbnail images and so is slow to build
+    src = pad.get("/blog/post1")
+    prog, _ = builder.build(src)
+    (artifact,) = prog.artifacts
+    assert Path(artifact.dst_filename).is_file()
+    pad.cache.flush()
+    builder.prune(all=True)
+    assert not Path(artifact.dst_filename).is_file()
