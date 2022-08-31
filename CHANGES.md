@@ -10,7 +10,14 @@ These are all the changes in Lektor since the first public release.
 
 - Fix `lektor clean` (broken in [#1048][]). ([#1056][])
 
+#### Bit-Rot
+
+- Pin `typing.inspect` to prevent breakage of `marshmallow_dataclass`.
+  ([#1058][], [lovasoa/marshmallow_dataclass#207][md#207])
+
 [#1056]: https://github.com/lektor/lektor/issues/1056
+[#1058]: https://github.com/lektor/lektor/issues/1058
+[md#207]: https://github.com/lovasoa/marshmallow_dataclass/pull/207
 
 ## 3.4.0b1 (2022-08-02)
 
