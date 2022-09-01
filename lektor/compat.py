@@ -5,6 +5,8 @@ import tempfile
 from functools import partial
 from itertools import chain
 
+__all__ = ["TemporaryDirectory", "importlib_metadata"]
+
 
 def _ensure_tree_writeable(path: str) -> None:
     """Attempt to ensure that all files in the tree rooted at path are writeable."""
@@ -51,3 +53,9 @@ if sys.version_info >= (3, 8):
     TemporaryDirectory = tempfile.TemporaryDirectory
 else:
     TemporaryDirectory = FixedTemporaryDirectory
+
+if sys.version_info >= (3, 10):
+    from importlib import metadata as importlib_metadata
+else:
+    # we use importlib.metadata.packages_distributions() which is new in python 3.10
+    import importlib_metadata

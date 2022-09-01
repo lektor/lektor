@@ -7,7 +7,6 @@ import tempfile
 from subprocess import PIPE
 
 import click
-import pkg_resources
 import requests
 
 from lektor.utils import portable_popen
@@ -296,19 +295,6 @@ def update_cache(package_root, remote_packages, local_package_path, refresh=Fals
         write_manifest(manifest_file, all_packages)
 
 
-def add_site(path):
-    """This adds a path to as proper site packages to all associated import
-    systems.  Primarily it invokes `site.addsitedir` and also configures
-    pkg_resources' metadata accordingly.
-    """
-    site.addsitedir(path)
-    ws = pkg_resources.working_set
-    ws.entry_keys.setdefault(path, [])
-    ws.entries.append(path)
-    for dist in pkg_resources.find_distributions(path, False):
-        ws.add(dist, path, insert=True)
-
-
 def load_packages(env, reinstall=False):
     """This loads all the packages of a project.  What this does is updating
     the current cache in ``root/package-cache`` and then add the Python
@@ -326,7 +312,7 @@ def load_packages(env, reinstall=False):
         os.path.join(env.root_path, "packages"),
         refresh=reinstall,
     )
-    add_site(package_root)
+    site.addsitedir(package_root)
 
 
 def wipe_package_cache(env):
