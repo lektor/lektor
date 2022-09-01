@@ -4,10 +4,9 @@ import sys
 import warnings
 from weakref import ref as weakref
 
-import pkg_resources
 from inifile import IniFile
-from pkg_resources import get_distribution
 
+from lektor.compat import importlib_metadata as metadata
 from lektor.context import get_ctx
 from lektor.utils import process_extra_flags
 
@@ -48,8 +47,10 @@ class Plugin:
 
     @property
     def version(self):
-
-        return get_distribution("lektor-" + self.id).version
+        try:
+            return metadata.version(_dist_name_for_module(self.__module__))
+        except LookupError:
+            return None
 
     @property
     def path(self):
@@ -112,12 +113,19 @@ class Plugin:
 def load_plugins():
     """Loads all available plugins and returns them."""
     rv = {}
-    for ep in pkg_resources.iter_entry_points("lektor.plugins"):
+    for ep in metadata.entry_points(  # pylint: disable=unexpected-keyword-arg
+        group="lektor.plugins"
+    ):
+        # XXX: do we really need to be so strict about distribution names?
         match_name = "lektor-" + ep.name.lower()
-        if match_name != ep.dist.project_name.lower():
+        try:
+            dist_name = _dist_name_for_module(ep.module)
+        except LookupError:
+            dist_name = ""
+        if match_name != dist_name.lower():
             raise RuntimeError(
                 "Disallowed distribution name: distribution name for "
-                f"plugin {ep.name!r} must be {match_name!r}."
+                f"plugin {ep.name!r} must be {match_name!r} (not {dist_name!r})."
             )
         rv[ep.name] = ep.load()
     return rv
@@ -187,3 +195,12 @@ class PluginController:
                         DeprecationWarning,
                     )
         return rv
+
+
+def _dist_name_for_module(module: str) -> "str | None":
+    """Return the name of the distribution which provides the named module."""
+    top_level = module.partition(".")[0]
+    distributions = metadata.packages_distributions().get(top_level, [])
+    if len(distributions) != 1:
+        raise LookupError(f"Can not find distribution for {module}")
+    return distributions[0]

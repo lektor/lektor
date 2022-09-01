@@ -1,14 +1,19 @@
 """Unit tests for lektor.pluginsystem.
 """
+import inspect
+import sys
+from importlib.abc import Loader
+from importlib.machinery import ModuleSpec
 from pathlib import Path
 from unittest import mock
 
-import pkg_resources
 import pytest
 
 from lektor.cli import cli
+from lektor.compat import importlib_metadata as metadata
 from lektor.context import Context
 from lektor.packages import add_package_to_project
+from lektor.pluginsystem import _dist_name_for_module
 from lektor.pluginsystem import get_plugin
 from lektor.pluginsystem import load_plugins
 from lektor.pluginsystem import Plugin
@@ -58,24 +63,54 @@ def dummy_plugin_calls(monkeypatch):
     return DummyPlugin.calls
 
 
-class DummyEntryPointMetadata:
-    """Implement enough of `pkg_resources.IMetadataProvider` to convince a
-    Distribution that it has an entry point.
-    """
+class DummyDistribution(metadata.Distribution):
 
+    _files = {
+        "top_level.txt": f"{__name__}\n",
+        "entry_points.txt": inspect.cleandoc(
+            f"""
+            [lektor.plugins]
+            dummy-plugin = {__name__}:DummyPlugin
+            """
+        ),
+    }
+
+    # Allow overriding inherited properties with class attributes
+    metadata = None
+
+    def __init__(self, metadata):
+        self.metadata = metadata
+
+    def read_text(self, filename):
+        return self._files.get(filename)
+
+    def locate_file(self, path):  # pylint: disable=no-self-use
+        return None
+
+
+class DummyPluginLoader(Loader):
+    # pylint: disable=abstract-method
     # pylint: disable=no-self-use
 
-    def __init__(self, entry_points_txt):
-        self.entry_points_txt = entry_points_txt
+    def create_module(self, spec):
+        return None
 
-    def has_metadata(self, name):
-        return name == "entry_points.txt"
+    def exec_module(self, module):
+        setattr(module, "DummyPlugin", DummyPlugin)
 
-    def get_metadata(self, name):
-        return self.entry_points_txt if name == "entry_points.txt" else ""
 
-    def get_metadata_lines(self, name):
-        return pkg_resources.yield_lines(self.get_metadata(name))
+class DummyPluginFinder(metadata.DistributionFinder):
+    def __init__(self, module: str, distribution: metadata.Distribution):
+        self.module = module
+        self.distribution = distribution
+
+    def find_spec(self, fullname, path, target=None):
+        if fullname == self.module and path is None:
+            return ModuleSpec(fullname, DummyPluginLoader())
+        return None
+
+    def find_distributions(self, context=metadata.DistributionFinder.Context()):
+        return [self.distribution]
 
 
 @pytest.fixture
@@ -84,20 +119,18 @@ def dummy_plugin_distribution_name():
 
 
 @pytest.fixture
-def dummy_plugin_distribution(dummy_plugin_distribution_name, save_sys_path):
+def dummy_plugin_distribution(
+    dummy_plugin_distribution_name, save_sys_path, monkeypatch
+):
     """Add a dummy plugin distribution to the current working_set."""
-    dist = pkg_resources.Distribution(
-        project_name=dummy_plugin_distribution_name,
-        metadata=DummyEntryPointMetadata(
-            f"""
-            [lektor.plugins]
-            dummy-plugin = {__name__}:DummyPlugin
-            """
-        ),
-        version="1.23",
-        location=__file__,
+    dist = DummyDistribution(
+        {
+            "Name": dummy_plugin_distribution_name,
+            "Version": "1.23",
+        }
     )
-    pkg_resources.working_set.add(dist)
+    finder = DummyPluginFinder(__name__, dist)
+    monkeypatch.setattr("sys.meta_path", [finder] + sys.meta_path)
     return dist
 
 
@@ -173,7 +206,7 @@ class TestPlugin:
         assert plugin.path is None
 
     def test_import_name(self, dummy_plugin):
-        assert dummy_plugin.import_name == "test_pluginsystem:DummyPlugin"
+        assert dummy_plugin.import_name == f"{__name__}:DummyPlugin"
 
     def test_get_lektor_config(self, dummy_plugin):
         cfg = dummy_plugin.get_lektor_config()
@@ -223,7 +256,7 @@ class TestPlugin:
             "name": DummyPlugin.name,
             "description": DummyPlugin.description,
             "version": dummy_plugin_distribution.version,
-            "import_name": "test_pluginsystem:DummyPlugin",
+            "import_name": f"{__name__}:DummyPlugin",
             "path": str(Path(__file__).parent),
         }
 
@@ -311,3 +344,12 @@ def test_cli_integration(project, cli_runner, monkeypatch):
     )
     for call in DummyPlugin.calls:
         assert call["extra_flags"] == {"flag1": "flag1", "flag2": "value2"}
+
+
+def test_dist_name_form_module():
+    assert _dist_name_for_module("lektor.db") == "Lektor"
+
+
+def test_dist_name_form_module_raises_exception():
+    with pytest.raises(LookupError):
+        assert _dist_name_for_module("missing.module")

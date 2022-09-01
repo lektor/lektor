@@ -1,9 +1,9 @@
+import importlib
 import os
 import shutil
 import sys
 import textwrap
 
-import pkg_resources
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
@@ -43,12 +43,12 @@ def temporary_lektor_cache(tmp_path_factory):
 
 @pytest.fixture
 def save_sys_path(monkeypatch):
-    """Save `sys.path`, `sys.modules`, and `pkg_resources` state on test
-    entry, restore after test completion.
+    """Save `sys.path`, and `sys.modules` state on test entry, restore after test
+    completion.
 
     Any test which constructs a `lektor.environment.Environment` instance
     or which runs any of the Lektor CLI commands should use this fixture
-    to ensure that alternations made to `sys.path` do not interfere with
+    to ensure that alterations made to `sys.path` do not interfere with
     other tests.
 
     Lektor's private package cache is added to `sys.path` by
@@ -72,18 +72,15 @@ def save_sys_path(monkeypatch):
     # using monkeypatch to swap it out.
     saved_modules = sys.modules.copy()
 
-    # While pkg_resources.__getstate__ and pkg_resources.__setstate__
-    # do not appear to be a documented part of the pkg_resources API,
-    # they are used in setuptools' own tests, and appear to have been
-    # a stable feature since 2011.
-    saved_state = pkg_resources.__getstate__()
+    # It's not clear that this is necessary, but it probably won't hurt.
+    importlib.invalidate_caches()
+
     try:
         yield
     finally:
         for name in set(sys.modules).difference(saved_modules):
             del sys.modules[name]
         sys.modules.update(saved_modules)
-        pkg_resources.__setstate__(saved_state)
 
 
 @pytest.fixture(scope="function")
