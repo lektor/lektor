@@ -2,6 +2,12 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b3 (unreleased)
+
+### Bugs
+
+- Fix spelling of `typing-inspect` in dependencies. ([#1058][], continued)
+
 ## 3.4.0b2 (2022-08-31)
 
 ### Bugs
