@@ -1,7 +1,6 @@
 # pylint: disable=import-outside-toplevel
 import json
 import os
-import warnings
 
 import click
 
@@ -31,25 +30,6 @@ def extraflag(cli):
         help="Defines an arbitrary flag.  These can be used by plugins "
         "to customize the build and deploy process.  More information can be "
         "found in the documentation of affected plugins.",
-    )(cli)
-
-
-def _buildflag_deprecated(ctx, param, value):
-    if value:
-        warnings.warn(
-            "use --extra-flag instead of --build-flag",
-            DeprecationWarning,
-        )
-    return value
-
-
-def buildflag(cli):
-    return click.option(
-        "--build-flag",
-        "build_flags",
-        multiple=True,
-        help="Deprecated. Use --extra-flag instead.",
-        callback=_buildflag_deprecated,
     )(cli)
 
 

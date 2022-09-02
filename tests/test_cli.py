@@ -1,6 +1,5 @@
 import os
 import re
-import warnings
 
 import pytest
 from markers import imagemagick
@@ -86,18 +85,6 @@ def test_build_extra_flag(project_cli_runner, mocker):
     result = project_cli_runner.invoke(cli, ["build", "-f", "webpack"])
     assert result.exit_code == 0
     assert mock_builder.call_args[1]["extra_flags"] == ("webpack",)
-    assert "use --extra-flag instead of --build-flag" not in result.output
-
-
-def test_deprecated_build_flag(project_cli_runner, mocker):
-    mock_builder = mocker.patch("lektor.builder.Builder")
-    mock_builder.return_value.build_all.return_value = 0
-    with warnings.catch_warnings(record=True) as w:
-        result = project_cli_runner.invoke(cli, ["build", "--build-flag", "webpack"])
-        assert result.exit_code == 0
-        assert mock_builder.call_args[1]["extra_flags"] == ("webpack",)
-        assert w
-        assert "use --extra-flag instead of --build-flag" in str(w[0].message)
 
 
 def test_deploy_extra_flag(project_cli_runner, mocker):
