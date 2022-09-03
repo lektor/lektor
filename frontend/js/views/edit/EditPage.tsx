@@ -1,12 +1,13 @@
 import React, {
   FormEvent,
+  RefObject,
   SetStateAction,
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { Prompt } from "react-router-dom";
 
 import { keyboardShortcutHandler } from "../../utils";
 import { get, put } from "../../fetch";
@@ -23,6 +24,9 @@ import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { useRecord } from "../../context/record-context";
+import { UNSAFE_NavigationContext } from "react-router-dom";
+
+import type { History } from "history";
 
 export type RawRecordInfo = {
   alt: string;
@@ -138,6 +142,36 @@ function getValues({
   return rv;
 }
 
+/**
+ * Block navigation.
+ *
+ * To ensure that we can both enable the "blocker" on re-renders and also get the correct
+ * state of the pendingChanges variable, we need both the state value and the ref.
+ */
+function useBlockNavigation(
+  hasPendingChanges: boolean,
+  pendingChanges: RefObject<boolean>
+) {
+  const { navigator } = useContext(UNSAFE_NavigationContext);
+  const blockNavigator = navigator as History;
+
+  useEffect(() => {
+    if (!hasPendingChanges) {
+      return;
+    }
+    const unblock = blockNavigator.block((tx) => {
+      if (
+        !pendingChanges.current ||
+        window.confirm(trans("UNLOAD_ACTIVE_TAB"))
+      ) {
+        unblock();
+        tx.retry();
+      }
+    });
+    return unblock;
+  }, [blockNavigator, hasPendingChanges, pendingChanges]);
+}
+
 function EditPage(): JSX.Element | null {
   const { path, alt } = useRecord();
 
@@ -147,9 +181,20 @@ function EditPage(): JSX.Element | null {
   const [recordDataModel, setRecordDataModel] =
     useState<RecordDataModel | null>(null);
   const [recordInfo, setRecordnfo] = useState<RawRecordInfo | null>(null);
-  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+
+  // We need both a ref and a state for this to access it in renders while still
+  // ensuring that we can read its value in separate callbacks that were rendered at
+  // the same time.
+  const pendingChanges = useRef(false);
+  const [hasPendingChanges, rawSetHasPendingChanges] = useState(false);
+  const setHasPendingChanges = useCallback((v: boolean) => {
+    rawSetHasPendingChanges(v);
+    pendingChanges.current = v;
+  }, []);
 
   const goToAdminPage = useGoToAdminPage();
+
+  useBlockNavigation(hasPendingChanges, pendingChanges);
 
   useEffect(() => {
     let ignore = false;
@@ -180,7 +225,7 @@ function EditPage(): JSX.Element | null {
     return () => {
       ignore = true;
     };
-  }, [alt, path]);
+  }, [alt, path, setHasPendingChanges]);
 
   useEffect(() => {
     const onKeyPress = keyboardShortcutHandler(
@@ -205,7 +250,7 @@ function EditPage(): JSX.Element | null {
       }));
       setHasPendingChanges(true);
     },
-    []
+    [setHasPendingChanges]
   );
 
   const saveChanges = useCallback(
@@ -217,7 +262,15 @@ function EditPage(): JSX.Element | null {
         goToAdminPage("preview", path, alt);
       }, showErrorDialog);
     },
-    [alt, goToAdminPage, path, recordData, recordDataModel, recordInfo]
+    [
+      alt,
+      goToAdminPage,
+      path,
+      recordData,
+      recordDataModel,
+      recordInfo,
+      setHasPendingChanges,
+    ]
   );
 
   const renderFormField = useCallback(
@@ -262,7 +315,6 @@ function EditPage(): JSX.Element | null {
 
   return (
     <>
-      {hasPendingChanges && <Prompt message={trans("UNLOAD_ACTIVE_TAB")} />}
       <h2>{title}</h2>
       <form ref={form} onSubmit={saveChanges}>
         <FieldRows fields={normalFields} renderFunc={renderFormField} />
