@@ -1,4 +1,3 @@
-import sys
 from typing import Any
 from typing import Dict
 from typing import Hashable
@@ -9,6 +8,7 @@ from weakref import ref as weakref
 from deprecated import deprecated
 from markupsafe import Markup
 
+from lektor.compat import importlib_metadata as metadata
 from lektor.markdown.controller import ControllerCache
 from lektor.markdown.controller import FieldOptions
 from lektor.markdown.controller import MarkdownController
@@ -16,18 +16,13 @@ from lektor.markdown.controller import Meta
 from lektor.markdown.controller import RenderResult
 from lektor.sourceobj import SourceObject
 
-if sys.version_info >= (3, 8):
-    from importlib.metadata import version
-else:
-    from importlib_metadata import version
-
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
 
 
 controller_class: Type[MarkdownController]
 
-MISTUNE_VERSION = version("mistune")
+MISTUNE_VERSION = metadata.version("mistune")
 if MISTUNE_VERSION.startswith("0."):
     from lektor.markdown.mistune0 import MarkdownController0 as controller_class
 elif MISTUNE_VERSION.startswith("2."):

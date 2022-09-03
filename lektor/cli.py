@@ -5,7 +5,6 @@ import time
 import warnings
 
 import click
-import pkg_resources
 
 from lektor.cli_utils import AliasedGroup
 from lektor.cli_utils import echo_json
@@ -13,12 +12,13 @@ from lektor.cli_utils import extraflag
 from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
 from lektor.cli_utils import validate_language
+from lektor.compat import importlib_metadata as metadata
 from lektor.project import Project
 from lektor.utils import profile_func
 from lektor.utils import secure_url
 
 
-version = pkg_resources.get_distribution("Lektor").version  # pylint: disable=no-member
+version = metadata.version("Lektor")
 
 
 @click.group(cls=AliasedGroup)
