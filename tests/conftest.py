@@ -19,6 +19,27 @@ from lektor.reporter import BufferReporter
 from lektor.utils import locate_executable
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--runslow", action="store_true", default=False, help="run slow tests"
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "slowtest: marks very slow tests that are normally skipped; use --runslow enable",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    if not config.getoption("--runslow"):
+        skip = pytest.mark.skip(reason="need --runslow option to run")
+        for item in items:
+            if "slowtest" in item.keywords:
+                item.add_marker(skip)
+
+
 @pytest.fixture(scope="session")
 def data_path():
     """Path to directory which contains test data.

@@ -99,6 +99,9 @@ jobs:
             pip-cache-dir: ~\AppData\Local\pip\Cache
           - python: "3.10"
             install-imagemagick: true
+    env:
+      # Run the slow tests.
+      PYTEST_ADDOPTS: --runslow
     steps:
       - uses: actions/checkout@v2
       - name: Cache pip
@@ -110,12 +113,18 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos') && matrix.install-imagemagick
+      - name: Install ffmpeg (Linux)
+        if: runner.os == 'Linux' && matrix.install-imagemagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install imagemagick and ffmpeg (macOS)
+        if: runner.os == 'macOS' && matrix.install-imagemagick
         run: brew install imagemagick ffmpeg
 
-      - name: Install Windows system dependencies
-        if: startsWith(runner.os, 'windows') && matrix.install-imagemagick
+      - name: Install imagemagick and ffmpeg (Windows)
+        if: runner.os == 'Windows' && matrix.install-imagemagick
         run: |
           choco install --no-progress --timeout 600 imagemagick.app ffmpeg
           # The imagemagick.app package, for whatever reason, installs
@@ -136,7 +145,7 @@ jobs:
         # Refs:
         #   https://github.com/lektor/lektor/pull/933#issuecomment-923107580
         #   https://github.com/tox-dev/tox/issues/1550
-        if: startsWith(runner.os, 'windows')
+        if: runner.os == 'Windows'
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python dependencies
