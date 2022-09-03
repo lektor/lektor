@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PageName } from "../context/page-context";
 import { RecordAlternative, RecordPath } from "../context/record-context";
 
@@ -28,12 +28,12 @@ export function adminPath(
  *          and page fs path and alt.
  */
 export function useGoToAdminPage() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   return useCallback(
     (name: PageName, path: RecordPath, alt: RecordAlternative) => {
-      history.push(adminPath(name, path, alt));
+      navigate(adminPath(name, path, alt));
     },
-    [history]
+    [navigate]
   );
 }

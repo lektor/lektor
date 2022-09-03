@@ -2,9 +2,9 @@ import React, { StrictMode, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
-  Redirect,
+  Navigate,
   useLocation,
-  useRouteMatch,
+  useMatch,
 } from "react-router-dom";
 import { setCurrentLanguage } from "./i18n";
 import { RecordContext, RecordPathDetails } from "./context/record-context";
@@ -38,9 +38,9 @@ function Page({ page }: { page: PageName }) {
 
 function Main() {
   const root = $LEKTOR_CONFIG.admin_root;
-  const page = useRouteMatch<{ page: string }>(`${root}/:page`)?.params.page;
+  const page = useMatch(`${root}/:page`)?.params.page;
   if (!isPageName(page)) {
-    return <Redirect to={adminPath("edit", "/", "_primary")} />;
+    return <Navigate to={adminPath("edit", "/", "_primary")} />;
   }
   return <Page page={page} />;
 }

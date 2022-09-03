@@ -27,8 +27,9 @@ function AdminLink({
   return (
     <NavLink
       to={adminPath(page, path, alt)}
-      activeClassName="active"
-      isActive={(match) => recordMatches && match != null}
+      className={({ isActive }) =>
+        isActive && recordMatches ? "active" : undefined
+      }
       {...otherProps}
     >
       {children}

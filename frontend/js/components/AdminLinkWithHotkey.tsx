@@ -57,8 +57,9 @@ export default function AdminLinkWithHotkey({
   return (
     <NavLink
       to={adminPath(page, path, alt)}
-      activeClassName="active"
-      isActive={(match) => recordMatches && match != null}
+      className={({ isActive }) =>
+        isActive && recordMatches ? "active" : undefined
+      }
       ref={el}
       {...otherProps}
     >
