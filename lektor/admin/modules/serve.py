@@ -62,7 +62,7 @@ def _send_html_for_editing(
     except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
     html = _rewrite_html_for_editing(html, edit_url)
-    check = adler32(f"{filename}\0{edit_url}".encode("utf-8")) & 0xFFFFFFFF
+    check = adler32(f"{filename}\0{edit_url}".encode()) & 0xFFFFFFFF
     resp = Response(html, mimetype=mimetype)
     resp.set_etag(f"{st.st_mtime}-{st.st_size}-{check}")
     return resp

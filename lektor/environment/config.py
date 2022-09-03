@@ -116,7 +116,7 @@ class ServerInfo:
         match = re.match(r"([a-z]+)://([^/]+)", self.target)
         if match is not None:
             protocol, server = match.groups()
-            return "%s via %s" % (server, protocol)
+            return f"{server} via {protocol}"
         return self.target
 
     def to_json(self):

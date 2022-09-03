@@ -102,4 +102,4 @@ def serialize(iterable, encoding=None):
                 yield _produce(line, escape=True)
             yield _produce("\n")
         else:
-            yield _produce("%s: %s\n" % (key, value))
+            yield _produce(f"{key}: {value}\n")

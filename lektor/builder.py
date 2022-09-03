@@ -143,7 +143,9 @@ class BuildState:
             pass
         fn = os.path.join(
             dir,
-            "nt-%s-%s.tmp" % (identifier or "generic", os.urandom(20).encode("hex")),
+            "nt-{}-{}.tmp".format(
+                identifier or "generic", os.urandom(20).encode("hex")
+            ),
         )
         self.named_temporaries.add(fn)
         return fn
@@ -577,7 +579,7 @@ class FileInfo:
                             break
                         h.update(chunk)
             checksum = h.hexdigest()
-        except (OSError, IOError):
+        except OSError:
             checksum = "0" * 40
         self._checksum = checksum
         return checksum
@@ -585,7 +587,7 @@ class FileInfo:
     @property
     def filename_and_checksum(self):
         """Like 'filename:checksum'."""
-        return "%s:%s" % (self.filename, self.checksum)
+        return f"{self.filename}:{self.checksum}"
 
     def unchanged(self, other):
         """Given another file info checks if the are similar enough to
@@ -622,7 +624,7 @@ class VirtualSourceInfo:
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
 
     def __repr__(self):
-        return "VirtualSourceInfo(%r, %r, %r)" % (self.path, self.mtime, self.checksum)
+        return f"VirtualSourceInfo({self.path!r}, {self.mtime!r}, {self.checksum!r})"
 
 
 artifacts_row = namedtuple(
@@ -666,7 +668,7 @@ class Artifact:
         self._pending_update_ops = []
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self.dst_filename,
         )
@@ -752,9 +754,9 @@ class Artifact:
         """
 
         def operation(con):
-            primary_sources = set(
+            primary_sources = {
                 self.build_state.to_source_filename(x) for x in self.sources
-            )
+            }
 
             seen = set()
             rows = []

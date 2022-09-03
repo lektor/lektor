@@ -24,7 +24,7 @@ def discover_relevant_flowblock_models(flow, pad, record, alt):
 
     all_blocks = pad.db.flowblocks
     if flow_blocks is None:
-        return dict((k, v.to_json(pad, record, alt)) for k, v in all_blocks.items())
+        return {k: v.to_json(pad, record, alt) for k, v in all_blocks.items()}
 
     wanted_blocks = set()
     to_process = flow_blocks[:]
@@ -115,7 +115,7 @@ class FlowBlock:
             ctx.flow_block_render_stack.pop()
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self["_flowblock"],
         )
@@ -135,7 +135,7 @@ class Flow:
     __nonzero__ = __bool__
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self.blocks,
         )

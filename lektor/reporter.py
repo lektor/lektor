@@ -277,7 +277,7 @@ class CliReporter(Reporter):
         click.echo(" " * (self.indentation * 2) + text)
 
     def _write_kv_info(self, key, value):
-        self._write_line("%s: %s" % (key, style(str(value), fg="yellow")))
+        self._write_line("{}: {}".format(key, style(str(value), fg="yellow")))
 
     def start_build(self, activity):
         self._write_line(style("Started %s" % activity, fg="cyan"))
@@ -291,7 +291,7 @@ class CliReporter(Reporter):
     def finish_build(self, activity, start_time):
         self._write_line(
             style(
-                "Finished %s in %.2f sec" % (activity, time.time() - start_time),
+                f"Finished {activity} in {time.time() - start_time:.2f} sec",
                 fg="cyan",
             )
         )
@@ -304,7 +304,7 @@ class CliReporter(Reporter):
             sign = click.style("X", fg="cyan")
         else:
             sign = click.style("U", fg="green")
-        self._write_line("%s %s" % (sign, artifact.artifact_name))
+        self._write_line(f"{sign} {artifact.artifact_name}")
 
         self.indent()
 
@@ -325,7 +325,7 @@ class CliReporter(Reporter):
         err = " ".join(
             "".join(traceback.format_exception_only(*exc_info[:2])).splitlines()
         ).strip()
-        self._write_line("%s %s (%s)" % (sign, artifact.artifact_name, err))
+        self._write_line(f"{sign} {artifact.artifact_name} ({err})")
 
         if not self.show_tracebacks:
             return
@@ -347,7 +347,8 @@ class CliReporter(Reporter):
     def report_write_source_info(self, info):
         if self.show_artifact_internals and self.show_debug_info:
             self._write_kv_info(
-                "writing source info", "%s [%s]" % (info.title_i18n["en"], info.type)
+                "writing source info",
+                "{} [{}]".format(info.title_i18n["en"], info.type),
             )
 
     def report_prune_source_info(self, source):
@@ -380,7 +381,7 @@ class CliReporter(Reporter):
             self.outdent()
 
     def report_pruned_artifact(self, artifact_name):
-        self._write_line("%s %s" % (style("D", fg="red"), artifact_name))
+        self._write_line("{} {}".format(style("D", fg="red"), artifact_name))
 
 
 null_reporter = NullReporter(None)

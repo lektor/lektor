@@ -216,7 +216,7 @@ class Field:
         return self.type.value_to_raw(value)
 
     def __repr__(self):
-        return "<%s %r type=%r>" % (
+        return "<{} {!r} type={!r}>".format(
             self.__class__.__name__,
             self.name,
             self.type,
@@ -226,8 +226,7 @@ class Field:
 def _iter_all_fields(obj):
     for name in sorted(x for x in obj.field_map if x[:1] == "_"):
         yield obj.field_map[name]
-    for field in obj.fields:
-        yield field
+    yield from obj.fields
 
 
 class DataModel:
@@ -278,7 +277,7 @@ class DataModel:
         # This is a mapping of the key names to the actual field which
         # also includes the system fields.  This is primarily used for
         # fast internal operations but also the admin.
-        self.field_map = dict((x.name, x) for x in fields)
+        self.field_map = {x.name: x for x in fields}
         for key, (ty, opts) in system_fields.items():
             self.field_map[key] = Field(env, name=key, type=ty, options=opts)
 
@@ -390,7 +389,7 @@ class DataModel:
         return rv
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self.id,
         )
@@ -419,7 +418,7 @@ class FlowBlockModel:
         self.order = order
         self.button_label = button_label
 
-        self.field_map = dict((x.name, x) for x in fields)
+        self.field_map = {x.name: x for x in fields}
         self.field_map["_flowblock"] = Field(
             env, name="_flowblock", type=env.types["string"]
         )
@@ -452,7 +451,7 @@ class FlowBlockModel:
         return rv
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self.id,
         )

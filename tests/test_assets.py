@@ -72,7 +72,7 @@ def test_asset_artifact_name(asset, artifact_name):
     ],
 )
 def test_asset_children(asset, child_names):
-    assert set(child.name for child in asset.children) == child_names
+    assert {child.name for child in asset.children} == child_names
 
 
 @pytest.mark.parametrize("asset_path", ["/static"])

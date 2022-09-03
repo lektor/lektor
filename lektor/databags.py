@@ -15,13 +15,13 @@ from lektor.utils import resolve_dotted_value
 def load_databag(filename):
     try:
         if filename.endswith(".json"):
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, encoding="utf-8") as f:
                 return json.load(f, object_pairs_hook=OrderedDict)
         elif filename.endswith(".ini"):
             return decode_flat_data(IniFile(filename).items(), dict_cls=OrderedDict)
         else:
             return None
-    except (OSError, IOError) as e:
+    except OSError as e:
         if e.errno != errno.ENOENT:
             raise
         return None

@@ -541,7 +541,7 @@ class FtpPublisher(Publisher):
                             if not item:
                                 break
                             h.update(item)
-                except IOError as e:
+                except OSError as e:
                     if e.errno != errno.ENOENT:
                         raise
                 yield (
@@ -561,7 +561,7 @@ class FtpPublisher(Publisher):
             con.log_buffer.append("000 Updating %s" % artifact_name)
             con.upload_file(tmp_dst, source, mkdir=True)
             con.rename_file(tmp_dst, artifact_name)
-            con.append(".lektor/listing", "%s|%s\n" % (artifact_name, checksum))
+            con.append(".lektor/listing", f"{artifact_name}|{checksum}\n")
 
     def consolidate_listing(self, con, current_artifacts):
         server_artifacts, duplicates = self.read_existing_artifacts(con)
@@ -581,7 +581,7 @@ class FtpPublisher(Publisher):
         if duplicates or server_artifacts != current_artifacts:
             listing = []
             for artifact_name, checksum in current_artifacts.items():
-                listing.append("%s|%s\n" % (artifact_name, checksum))
+                listing.append(f"{artifact_name}|{checksum}\n")
             listing.sort()
             con.upload_file(".lektor/.listing.tmp", "".join(listing))
             con.rename_file(".lektor/.listing.tmp", ".lektor/listing")
@@ -589,16 +589,14 @@ class FtpPublisher(Publisher):
     def publish(self, target_url, credentials=None, **extra):
         con = self.connection_class(target_url, credentials)
         connected = con.connect()
-        for event in con.drain_log():
-            yield event
+        yield from con.drain_log()
         if not connected:
             return
 
         yield "000 Reading server state ..."
         con.mkdir(".lektor")
         committed_artifacts, _ = self.read_existing_artifacts(con)
-        for event in con.drain_log():
-            yield event
+        yield from con.drain_log()
 
         yield "000 Begin sync ..."
         current_artifacts = {}
@@ -606,14 +604,12 @@ class FtpPublisher(Publisher):
             current_artifacts[artifact_name] = checksum
             if checksum != committed_artifacts.get(artifact_name):
                 self.upload_artifact(con, artifact_name, filename, checksum)
-                for event in con.drain_log():
-                    yield event
+                yield from con.drain_log()
         yield "000 Sync done!"
 
         yield "000 Consolidating server state ..."
         self.consolidate_listing(con, current_artifacts)
-        for event in con.drain_log():
-            yield event
+        yield from con.drain_log()
 
         yield "000 All done!"
 

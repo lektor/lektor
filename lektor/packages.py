@@ -91,7 +91,7 @@ def download_and_install_package(
     ]
 
     if package is not None:
-        args.append("%s%s%s" % (package, version and "==" or "", version or ""))
+        args.append("{}{}{}".format(package, version and "==" or "", version or ""))
     if requirements_file is not None:
         args.extend(("-r", requirements_file))
 
@@ -213,7 +213,7 @@ def load_manifest(filename):
                     key = line[0].strip()
                     value = line[1].strip()
                     rv[key] = value
-    except IOError as e:
+    except OSError as e:
         if e.errno != errno.ENOENT:
             raise
     return rv
@@ -225,7 +225,7 @@ def write_manifest(filename, packages):
             if package[:1] == "@":
                 f.write("%s\n" % package)
             else:
-                f.write("%s=%s\n" % (package, version))
+                f.write(f"{package}={version}\n")
 
 
 def list_local_packages(path):
@@ -320,5 +320,5 @@ def wipe_package_cache(env):
     package_root = env.project.get_package_cache_path()
     try:
         shutil.rmtree(package_root)
-    except (OSError, IOError):
+    except OSError:
         pass

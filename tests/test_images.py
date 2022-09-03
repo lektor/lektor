@@ -154,7 +154,7 @@ def test_thumbnail_dimensions_reported(builder):
         html = f.read()
 
     for t, (w, h) in _THUMBNAILS.items():
-        assert '<img src="%s" width="%s" height="%s">' % (t, w, h) in html
+        assert f'<img src="{t}" width="{w}" height="{h}">' in html
 
 
 @imagemagick

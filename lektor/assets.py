@@ -87,7 +87,7 @@ class Asset(SourceObject):
         return None
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self.artifact_name,
         )

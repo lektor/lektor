@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import decimal
 import os
 import posixpath
@@ -51,7 +50,7 @@ class ThumbnailMode(Enum):
 
 
 def _convert_gps(coords, hem):
-    deg, min, sec = [float(x.num) / float(x.den) for x in coords]
+    deg, min, sec = (float(x.num) / float(x.den) for x in coords)
     sign = -1 if hem in "SW" else 1
     return sign * (deg + min / 60.0 + sec / 3600.0)
 
@@ -125,7 +124,7 @@ class EXIFInfo:
     def _get_frac_string(self, key):
         try:
             val = self._mapping[key].values[0]
-            return "%s/%s" % (val.num, val.den)
+            return f"{val.num}/{val.den}"
         except LookupError:
             return None
 

@@ -266,18 +266,18 @@ def test_deprecated_data_proxy_methods(pad):
     with pytest.deprecated_call(match=r"EditorSession\.items .* deprecated"):
         assert set(editor.items()) == items
     with pytest.deprecated_call(match=r"EditorSession\.__iter__ .* deprecated"):
-        assert set(editor) == set(key for key, val in items)
+        assert set(editor) == {key for key, val in items}
     with pytest.deprecated_call(match=r"EditorSession\.keys .* deprecated"):
-        assert set(editor.keys()) == set(key for key, val in items)
+        assert set(editor.keys()) == {key for key, val in items}
     with pytest.deprecated_call(match=r"EditorSession\.values .* deprecated"):
-        assert set(editor.values()) == set(val for key, val in items)
+        assert set(editor.values()) == {val for key, val in items}
 
     with pytest.deprecated_call(match=r"EditorSession\.iteritems .*\.data\.items "):
         assert set(editor.iteritems()) == items
     with pytest.deprecated_call(match=r"EditorSession\.iterkeys .*\.data\.keys "):
-        assert set(editor.iterkeys()) == set(key for key, val in items)
+        assert set(editor.iterkeys()) == {key for key, val in items}
     with pytest.deprecated_call(match=r"EditorSession\.itervalues .*\.data\.values "):
-        assert set(editor.itervalues()) == set(val for key, val in items)
+        assert set(editor.itervalues()) == {val for key, val in items}
 
     with pytest.deprecated_call(match=r"EditorSession\.revert_key .* deprecated"):
         editor.revert_key("test")

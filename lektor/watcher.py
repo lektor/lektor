@@ -125,7 +125,6 @@ def watch(env):
     """Returns a generator of file system events in the environment."""
     with Watcher(env) as watcher:
         try:
-            for event in watcher:
-                yield event
+            yield from watcher
         except KeyboardInterrupt:
             pass

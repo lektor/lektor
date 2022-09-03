@@ -62,7 +62,7 @@ def shell_cmd(ctx, extra_flags):
     from lektor.db import F, Tree
     from lektor.builder import Builder
 
-    banner = "Python %s on %s\nLektor Project: %s" % (
+    banner = "Python {} on {}\nLektor Project: {}".format(
         sys.version,
         sys.platform,
         ctx.get_env().root_path,
@@ -70,7 +70,7 @@ def shell_cmd(ctx, extra_flags):
     ns = {}
     startup = os.environ.get("PYTHONSTARTUP")
     if startup and os.path.isfile(startup):
-        with open(startup, "r", encoding="utf-8") as f:
+        with open(startup, encoding="utf-8") as f:
             eval(compile(f.read(), startup, "exec"), ns)  # pylint: disable=eval-used
     pad = ctx.get_env().new_pad()
     ns.update(

@@ -74,7 +74,7 @@ def generate_i18n_kvs(**opts):
         if key.endswith("_i18n"):
             base_key = key[:-5]
             for lang, trans in load_i18n_block(value).items():
-                lang_key = "%s[%s]" % (base_key, lang)
+                lang_key = f"{base_key}[{lang}]"
                 yield lang_key, trans
         else:
             yield key, value

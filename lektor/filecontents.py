@@ -36,13 +36,13 @@ class FileContents:
     def bytes(self):
         try:
             return os.stat(self.filename).st_size
-        except (OSError, IOError):
+        except OSError:
             return 0
 
     def as_data_url(self, mediatype=None):
         if mediatype is None:
             mediatype = self.mimetype
-        return "data:%s;base64,%s" % (
+        return "data:{};base64,{}".format(
             mediatype,
             self.as_base64(),
         )
@@ -86,7 +86,7 @@ class FileContents:
             )
 
     def __repr__(self):
-        return "<FileContents %r md5=%r>" % (
+        return "<FileContents {!r} md5={!r}>".format(
             self.filename,
             self.md5,
         )
