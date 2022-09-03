@@ -4,9 +4,29 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.4.0b3 (unreleased)
 
+### Deprecations
+
+- Remove support for the `--build-flag` option to `lektor build` and
+  `lektor server`. ([#1062][])
+
 ### Bugs
 
 - Fix spelling of `typing-inspect` in dependencies. ([#1058][], continued)
+
+#### Admin Server
+
+- Fix Admin UI tracking of navigation to URLs with anchors or query
+  strings in the preview view. ([#1053][])
+
+#### Bit-Rot
+
+- Disuse `pkg_resources` in favor of `importlib.metadata`. ([#1061][])
+- Update frontend dependencies, including upgrade to React version 18. ([#1063][])
+
+[#1053]: https://github.com/lektor/lektor/pull/1053
+[#1061]: https://github.com/lektor/lektor/pull/1061
+[#1062]: https://github.com/lektor/lektor/pull/1062
+[#1063]: https://github.com/lektor/lektor/pull/1063
 
 ## 3.4.0b2 (2022-08-31)
 
@@ -18,7 +38,7 @@ These are all the changes in Lektor since the first public release.
 
 #### Bit-Rot
 
-- Pin `typing.inspect` to prevent breakage of `marshmallow_dataclass`.
+- Pin `typing-inspect` to prevent breakage of `marshmallow_dataclass`.
   ([#1058][], [lovasoa/marshmallow_dataclass#207][md#207])
 
 [#1056]: https://github.com/lektor/lektor/issues/1056
