@@ -21,9 +21,9 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py-3.9-pip-${{ hashFiles('**/setup.cfg') }}
@@ -34,7 +34,7 @@ jobs:
           cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: make frontend/node_modules
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.9"
       - name: Install python dependencies
@@ -61,7 +61,7 @@ jobs:
           - node: "current"
             os: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
@@ -102,13 +102,13 @@ jobs:
           - python: "3.10"
             install-imagemagick: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ matrix.pip-cache-dir }}
           key: ${{ runner.os }}-py-${{ matrix.python }}-pip-${{ hashFiles('**/setup.cfg') }}
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
 
