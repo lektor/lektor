@@ -88,7 +88,7 @@ def test_parse_path():
     assert parse_path("/foo/") == ["foo"]
     assert parse_path("/foo/bar") == ["foo", "bar"]
     assert parse_path("/foo/bar/") == ["foo", "bar"]
-    assert parse_path("/foo/bar/../stuff") == ["foo", "bar", "stuff"]
+    assert parse_path("/foo/bar/../stuff") == ["foo", "stuff"]
 
 
 @pytest.mark.parametrize(

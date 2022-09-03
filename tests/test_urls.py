@@ -5,18 +5,73 @@ import pytest
 from lektor.context import _ctx_stack
 from lektor.context import Context
 from lektor.utils import cleanup_path
+from lektor.utils import cleanup_url_path
 
 
-def test_cleanup_path():
-    assert cleanup_path("/") == "/"
-    assert cleanup_path("/foo") == "/foo"
-    assert cleanup_path("/foo/") == "/foo"
-    assert cleanup_path("/////foo/") == "/foo"
-    assert cleanup_path("/////foo////") == "/foo"
-    assert cleanup_path("/////foo/.///") == "/foo"
-    assert cleanup_path("/////foo/..///") == "/foo"
-    assert cleanup_path("/foo/./bar/") == "/foo/bar"
-    assert cleanup_path("/foo/../bar/") == "/foo/bar"
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("", "/"),
+        ("/", "/"),
+        ("/foo", "/foo"),
+        ("//foo", "/foo"),
+        ("///foo", "/foo"),
+        ("/foo/", "/foo"),
+        ("/////foo/", "/foo"),
+        ("/////foo////", "/foo"),
+        ("/////foo/.///", "/foo"),
+        ("/////foo/..///", "/"),
+        (".", "/"),
+        ("/foo/./bar/", "/foo/bar"),
+        ("/foo/../bar/", "/bar"),
+    ],
+)
+def test_cleanup_path(path, expected):
+    assert cleanup_path(path) == expected
+
+
+@pytest.mark.parametrize(
+    "url_path, expected",
+    [
+        ("", "/"),
+        ("foo", "/foo"),
+        ("foo/", "/foo"),
+        ("/", "/"),
+        ("//", "/"),
+        ("/foo", "/foo"),
+        ("/foo/", "/foo"),
+        ("///foo", "/foo"),
+        ("////foo", "/foo"),
+        ("/////foo", "/foo"),
+        ("foo///bar", "/foo/bar"),
+        ("./foo/.", "/foo"),
+        ("/foo/./bar", "/foo/bar"),
+        ("../foo", "/foo"),
+        ("/../foo/", "/foo"),
+        ("foo/../bar", "/bar"),
+        ("foo/../../bar/", "/bar"),
+        ("foo#frag", "/foo"),  # fragment gets stripped
+        ("/foo?query", "/foo"),  # query get stripped
+        ("///foo", "/foo"),  # empty netloc
+        ("http:foo", "/foo"),  # explicit scheme
+        ("HTTP:FOO", "/FOO"),  # explicit scheme get case normalized
+        ("https:///foo", "/foo"),  # explicit scheme
+    ],
+)
+def test_cleanup_url_path(url_path, expected):
+    assert cleanup_url_path(url_path) == expected
+
+
+@pytest.mark.parametrize(
+    "url_path",
+    [
+        "file:///foo",  # bad scheme
+        "//example.net/bar",  # netloc not allowed
+    ],
+)
+def test_cleanup_url_path_raises_value_error(url_path):
+    with pytest.raises(ValueError):
+        cleanup_url_path(url_path)
 
 
 @pytest.mark.parametrize(

@@ -35,6 +35,7 @@ from lektor.imagetools import ThumbnailMode
 from lektor.sourceobj import SourceObject
 from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
+from lektor.utils import cleanup_url_path
 from lektor.utils import fs_enc
 from lektor.utils import locate_executable
 from lektor.utils import make_relative_url
@@ -1660,7 +1661,10 @@ class Pad:
         might be an attachment.  If a record cannot be found or is unexposed
         the return value will be `None`.
         """
-        pieces = clean_path = cleanup_path(url_path).strip("/")
+        try:
+            clean_path = cleanup_url_path(url_path).strip("/")
+        except ValueError:
+            return None
 
         # Split off the alt and if no alt was found, point it to the
         # primary alternative.  If the clean path comes back as `None`

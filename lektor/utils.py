@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import PurePosixPath
+from urllib.parse import urlsplit
 
 from jinja2 import is_undefined
 from markupsafe import Markup
@@ -26,7 +27,6 @@ is_windows = os.name == "nt"
 
 _slash_escape = "\\/" not in json.dumps("/")
 
-_slashes_re = re.compile(r"(/\.{1,2}(/|$))|/")
 _last_num_re = re.compile(r"^(.*)(\d+)(.*?)$")
 _list_marker = object()
 _value_marker = object()
@@ -74,7 +74,29 @@ def join_path(a, b):
 
 
 def cleanup_path(path):
-    return "/" + _slashes_re.sub("/", path).strip("/")
+    # NB: POSIX allows for two leading slashes in a pathname, so we have to
+    # deal with the possiblity of leading double-slash ourself.
+    return posixpath.normpath("/" + path.lstrip("/"))
+
+
+def cleanup_url_path(url_path):
+    """Clean up a URL path.
+
+    This strips any query, and/or fragment that may be present in the
+    input path.
+
+    Raises ValueError if the path contains a _scheme_
+    which is neither ``http`` nor ``https``, or a _netloc_.
+    """
+    scheme, netloc, path, _, _ = urlsplit(url_path, scheme="http")
+    if scheme not in ("http", "https"):
+        raise ValueError(f"Invalid scheme: {url_path!r}")
+    if netloc:
+        raise ValueError(f"Invalid netloc: {url_path!r}")
+
+    # NB: POSIX allows for two leading slashes in a pathname, so we have to
+    # deal with the possiblity of leading double-slash ourself.
+    return posixpath.normpath("/" + path.lstrip("/"))
 
 
 def parse_path(path):

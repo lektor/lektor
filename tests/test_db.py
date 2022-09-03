@@ -82,8 +82,12 @@ def test_url_matching_with_customized_slug_in_alt(pad):
     "path",
     [
         "/",
-        "/extra/container/a",  # child if hidden page explicit marked as non-hidden
+        "/extra/container/a",  # child of hidden page explicit marked as non-hidden
         "/extra/container/hello.txt",  # attachment of hidden page
+        "/#fragment",  # fragment should be ignored
+        "/?query",  # query should be ignored
+        "http:/",  # http scheme should be ignored
+        "https:/",  # https scheme should be ignored
     ],
 )
 def test_resolve_url(pad, path):
@@ -98,6 +102,17 @@ def test_resolve_url_hidden_page(pad):
 def test_resolve_url_asset(pad):
     assert pad.resolve_url_path("/static/demo.css") is not None
     assert pad.resolve_url_path("/static/demo.css", include_assets=False) is None
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "ftp:///",  # bad scheme
+        "//localhost/",  # path should not have a netloc
+    ],
+)
+def test_resolve_url_invalid_path(pad, path):
+    assert pad.resolve_url_path(path) is None
 
 
 def test_basic_alts(pad):
