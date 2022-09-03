@@ -1,5 +1,4 @@
 # pylint: disable=import-outside-toplevel
-import itertools
 import os
 import sys
 import time
@@ -9,7 +8,6 @@ import click
 import pkg_resources
 
 from lektor.cli_utils import AliasedGroup
-from lektor.cli_utils import buildflag
 from lektor.cli_utils import echo_json
 from lektor.cli_utils import extraflag
 from lektor.cli_utils import pass_context
@@ -84,7 +82,6 @@ def cli(ctx, project=None, language=None):
     "`.lektor` inside the output path.",
 )
 @extraflag
-@buildflag
 @click.option("--profile", is_flag=True, help="Enable build profiler.")
 @pass_context
 def build_cmd(
@@ -97,7 +94,6 @@ def build_cmd(
     buildstate_path,
     profile,
     extra_flags,
-    build_flags,
 ):
     """Builds the entire project into the final artifacts.
 
@@ -118,8 +114,6 @@ def build_cmd(
     """
     from lektor.builder import Builder
     from lektor.reporter import CliReporter
-
-    extra_flags = tuple(itertools.chain(extra_flags or (), build_flags or ()))
 
     if output_path is None:
         output_path = ctx.get_default_output_path()
@@ -320,12 +314,9 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
     help="Increases the verbosity of the logging.",
 )
 @extraflag
-@buildflag
 @click.option("--browse", is_flag=True)
 @pass_context
-def server_cmd(
-    ctx, host, port, output_path, prune, verbosity, extra_flags, build_flags, browse
-):
+def server_cmd(ctx, host, port, output_path, prune, verbosity, extra_flags, browse):
     """The server command will launch a local server for development.
 
     Lektor's development server will automatically build all files into
@@ -335,7 +326,6 @@ def server_cmd(
     """
     from lektor.devserver import run_server
 
-    extra_flags = tuple(itertools.chain(extra_flags or (), build_flags or ()))
     if output_path is None:
         output_path = ctx.get_default_output_path()
     ctx.load_plugins(extra_flags=extra_flags)
