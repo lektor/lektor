@@ -1,5 +1,5 @@
 import React, { StrictMode, useMemo } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
   Redirect,
@@ -48,12 +48,13 @@ function Main() {
 const dash = document.getElementById("dash");
 if (dash) {
   setCurrentLanguage($LEKTOR_CONFIG.lang);
-  ReactDOM.render(
+
+  const root = createRoot(dash);
+  root.render(
     <StrictMode>
       <BrowserRouter>
         <Main />
       </BrowserRouter>
-    </StrictMode>,
-    dash
+    </StrictMode>
   );
 }
