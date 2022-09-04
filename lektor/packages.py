@@ -20,9 +20,6 @@ from venv import EnvBuilder
 
 import click
 import requests
-from build.util import project_wheel_metadata
-
-from lektor.utils import portable_popen
 
 
 if TYPE_CHECKING:
@@ -88,43 +85,6 @@ def remove_package_from_project(project, name):
             cfg.save()
             return {"name": pkg, "version": version}
     return None
-
-
-def get_package_info(path):
-    """Returns various package metadata of a local package at a path."""
-    # FIXME: Do we need this at all?  It's only used to by `lektor plugins publish`
-    # sub-command to check that the package name matches `lektor-*` before publishing.
-    #
-    keymap = (
-        ("name", "Name"),
-        ("author", "Author"),
-        ("author_email", "Author-Email"),
-        ("license", "License"),
-        ("url", "Home-Page"),
-    )
-    # XXX: isolated=False is considerably faster but seems fragile
-    meta = project_wheel_metadata(path, isolated=True)
-    return {"path": path, **{key: meta.get(metakey) for key, metakey in keymap}}
-
-
-def register_package(path):
-    """Registers the plugin at the given path."""
-    # FIXME: Deprecate/delete?
-    # FIXME: Update to use build/twine?
-    # Note that pre-registration is no longer supported by PyPI. See note here:
-    #
-    # https://twine.readthedocs.io/en/stable/#twine-register
-    #
-    portable_popen([sys.executable, "setup.py", "register"], cwd=path).wait()
-
-
-def publish_package(path):
-    """Registers the plugin at the given path."""
-    # FIXME: Deprecate/delete?
-    # FIXME: Update to use build/twine
-    portable_popen(
-        [sys.executable, "setup.py", "sdist", "bdist_wheel", "upload"], cwd=path
-    ).wait()
 
 
 class VirtualEnv:
