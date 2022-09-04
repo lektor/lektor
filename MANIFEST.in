@@ -1,13 +1,16 @@
 # NB: Everything in git gets automatically included by setuptools_scm
+#     We only need to include the built frontend JS, CSS and fonts
+#     and exclude development-related files.
 
 prune frontend
 graft lektor/admin/static
 
-global-exclude *.py[cdo] __pycache__ *.so .DS_Store .gitkeep *~
 prune .github
-exclude .gitignore .git-blame-ignore-revs
-exclude .codecov.yml .editorconfig .pre-commit-config.yaml
-
-exclude Makefile pylintrc
+exclude .codecov.yml
+exclude .editorconfig
+exclude .git-blame-ignore-revs
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude Makefile
 
 prune example
