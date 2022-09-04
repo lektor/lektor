@@ -32,10 +32,6 @@ else:
     StrPath = object
 
 
-class PackageException(Exception):
-    pass
-
-
 def _get_package_version_from_project(cfg, name):
     choices = (name.lower(), "lektor-" + name.lower())
     for pkg, version in cfg.section_as_dict("packages").items():
