@@ -2,6 +2,8 @@ all: build-js
 
 .PHONY: build-js
 build-js: frontend/node_modules
+	@echo "---> cleaning static files"
+	@rm -rf lektor/admin/static
 	@echo "---> building static files"
 	@cd frontend; npm run build
 
@@ -38,7 +40,7 @@ test-all: test-js
 
 # This creates source distribution and a wheel.
 dist: build-js setup.cfg MANIFEST.in
-	rm -r build dist
+	rm -rf build dist
 	python -m build
 
 # Before making a release, CHANGES.md needs to be updated and
