@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import dataclasses
 import mimetypes
 import os
 import re
 from pathlib import Path
-from typing import Match
 from typing import TYPE_CHECKING
 from typing import Union
 from zlib import adler32
@@ -44,25 +44,48 @@ bp = Blueprint("serve", __name__)
 Filename = Union[str, os.PathLike]
 
 
-def _rewrite_html_for_editing(
-    html: bytes, edit_url: str, artifact_name: str | None = None
+@dataclasses.dataclass(frozen=True)
+class LivereloadConfig:
+    artifactName: str
+    eventsUrl: str
+    workerJs: str
+
+    @classmethod
+    def from_artifact(cls, artifact: Artifact | None) -> LivereloadConfig | None:
+        if artifact is not None and "livereload" in current_app.blueprints:
+            return cls(
+                artifactName=artifact.artifact_name,
+                eventsUrl=url_for("livereload.events"),
+                workerJs=url_for("static", filename="livereload-worker.js"),
+            )
+        return None
+
+
+@dataclasses.dataclass(frozen=True)
+class TooldrawerConfig:
+    editUrl: str | None = None
+    livereloadConfig: LivereloadConfig | None = None
+
+    def __bool__(self) -> bool:
+        return self.editUrl is not None or self.livereloadConfig is not None
+
+
+def _inject_tooldrawer(
+    html: bytes, tooldrawer_config: TooldrawerConfig | None
 ) -> bytes:
-    """Adds an "edit pencil" button to the text of an HTML page.
-
-    The pencil will link to ``edit_url``.
-    """
-    button = render_template("edit-button.html", edit_url=edit_url)
-    if "livereload" in current_app.blueprints:
-        button += render_template("livereload.html", artifact_name=artifact_name)
-
-    def extras(m: Match[bytes]) -> bytes:
-        return button.encode("utf-8") + m.group(0)
-
-    return re.sub(rb"(?i)</\s*head\s*>|\Z", extras, html, count=1)
+    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML page."""
+    if tooldrawer_config:
+        tooldrawer_html = render_template(
+            "tooldrawer.html",
+            tooldrawer_config=dataclasses.asdict(tooldrawer_config),
+            tooldrawer_js=url_for("static", filename="tooldrawer.js"),
+        ).encode("utf-8")
+        html = re.sub(rb"(?i)(?=</\s*head\s*>|\Z)", tooldrawer_html, html, count=1)
+    return html
 
 
 def _send_html_for_editing(
-    artifact: Artifact, edit_url: str, mimetype: str = "text/html"
+    artifact: Artifact, tooldrawer_config: TooldrawerConfig, mimetype: str = "text/html"
 ) -> ResponseValue:
     """Serve an HTML file, after mangling it to add an "edit pencil" button."""
     try:
@@ -71,8 +94,11 @@ def _send_html_for_editing(
             st = os.stat(fp.fileno())
     except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
-    html = _rewrite_html_for_editing(html, edit_url, artifact.artifact_name)
-    check = adler32(f"{artifact.dst_filename}\0{edit_url}".encode()) & 0xFFFFFFFF
+    html = _inject_tooldrawer(html, tooldrawer_config)
+    check = (
+        adler32(f"{artifact.dst_filename}\0{hash(tooldrawer_config)}".encode())
+        & 0xFFFFFFFF
+    )
     resp = Response(html, mimetype=mimetype)
     resp.set_etag(f"{st.st_mtime}-{st.st_size}-{check}")
     return resp
@@ -167,12 +193,11 @@ class ArtifactServer:
 
     @staticmethod
     def handle_build_failure(
-        failure: BuildFailure, edit_url: str | None = None
+        failure: BuildFailure, tooldrawer_config: TooldrawerConfig | None = None
     ) -> Response:
         """Format build failure to an HTML response."""
         html = render_template("build-failure.html", **failure.data).encode("utf-8")
-        if edit_url is not None:
-            html = _rewrite_html_for_editing(html, edit_url)
+        html = _inject_tooldrawer(html, tooldrawer_config)
         return Response(html, mimetype="text/html")
 
     def get_edit_url(self, source: SourceObject) -> str | None:
@@ -207,18 +232,21 @@ class ArtifactServer:
             # Special case for asset directories: resolve to index.html
             source = self.resolve_directory_index(source)
 
-        edit_url = self.get_edit_url(source)
         artifact, failure = self.build_primary_artifact(source)
+        tooldrawer_config = TooldrawerConfig(
+            editUrl=self.get_edit_url(source),
+            livereloadConfig=LivereloadConfig.from_artifact(artifact),
+        )
 
         # If there was a build failure for the given artifact, we want
         # to render this instead of sending the (most likely missing or
         # corrupted) file.
         if failure is not None:
-            return self.handle_build_failure(failure, edit_url)
+            return self.handle_build_failure(failure, tooldrawer_config)
 
         mimetype = _deduce_mimetype(artifact.dst_filename)
-        if mimetype == "text/html" and edit_url is not None:
-            return _send_html_for_editing(artifact, edit_url, mimetype)
+        if mimetype == "text/html" and tooldrawer_config:
+            return _send_html_for_editing(artifact, tooldrawer_config, mimetype)
         return _checked_send_file(artifact.dst_filename, mimetype=mimetype)
 
 

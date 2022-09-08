@@ -1,0 +1,10 @@
+{#
+
+This is injected into HTML artifacts served by the admin server.
+
+It is responsible for displaying the tooldrawer containing the edit
+button and livereload control button
+
+-#}
+<script>var TOOLDRAWER_CONFIG = {{ tooldrawer_config | tojson }};</script>
+<script defer src="{{ tooldrawer_js }}"></script>
