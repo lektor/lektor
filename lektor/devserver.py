@@ -1,8 +1,13 @@
 import os
+import shutil
+import subprocess
 import threading
 import time
 import traceback
+from pathlib import Path
+from typing import ClassVar
 
+import click
 from werkzeug.serving import run_simple
 from werkzeug.serving import WSGIRequestHandler
 
@@ -10,7 +15,6 @@ from lektor.admin import WebAdmin
 from lektor.builder import Builder
 from lektor.db import Database
 from lektor.reporter import CliReporter
-from lektor.utils import portable_popen
 from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
 
@@ -58,6 +62,9 @@ class BackgroundBuilder(threading.Thread):
 class DevTools:
     """This builds the admin frontend (in watch mode)."""
 
+    frontend_path: ClassVar[Path] = Path(__file__).parent / "../frontend"
+    npm: ClassVar[str] = "npm"
+
     def __init__(self, env):
         self.watcher = None
         self.env = env
@@ -65,10 +72,19 @@ class DevTools:
     def start(self):
         if self.watcher is not None:
             return
+        if not self.frontend_path.is_dir():
+            return
+        npm = shutil.which(self.npm)
+        if npm is None:
+            self.log(f"Can not find {self.npm!r} command. Not re-building frontend.")
+            return
 
-        frontend = os.path.join(os.path.dirname(__file__), "..", "frontend")
-        portable_popen(["npm", "install"], cwd=frontend).wait()
-        self.watcher = portable_popen(["npm", "run", "dev"], cwd=frontend)
+        proc = subprocess.run((npm, "install"), cwd=self.frontend_path, check=False)
+        if proc.returncode != 0:
+            self.log(f"Command '{self.npm} install' failed. Not re-building frontend.")
+            return
+        # pylint: disable=consider-using-with
+        self.watcher = subprocess.Popen((npm, "run", "dev"), cwd=self.frontend_path)
 
     def stop(self):
         if self.watcher is None:
@@ -76,6 +92,10 @@ class DevTools:
         self.watcher.kill()
         self.watcher.wait()
         self.watcher = None
+
+    @staticmethod
+    def log(msg):
+        click.echo(click.style(msg, "red"))
 
 
 def browse_to_address(addr):
