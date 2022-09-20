@@ -121,7 +121,7 @@ def _find_plugins():
     for dist in metadata.distributions():
         for ep in dist.entry_points:
             if ep.group == "lektor.plugins":
-                _check_dist_name(dist.name, ep.name)
+                _check_dist_name(dist.metadata["Name"], ep.name)
                 yield dist, ep
 
 
