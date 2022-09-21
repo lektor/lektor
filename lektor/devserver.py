@@ -1,13 +1,8 @@
 import os
-import shutil
-import subprocess
 import threading
 import time
 import traceback
-from pathlib import Path
-from typing import ClassVar
 
-import click
 from werkzeug.serving import run_simple
 from werkzeug.serving import WSGIRequestHandler
 
@@ -57,45 +52,6 @@ class BackgroundBuilder(threading.Thread):
                 for ts, _, _ in watcher:
                     if self.last_build is None or ts > self.last_build:
                         self.build()
-
-
-class DevTools:
-    """This builds the admin frontend (in watch mode)."""
-
-    frontend_path: ClassVar[Path] = Path(__file__).parent / "../frontend"
-    npm: ClassVar[str] = "npm"
-
-    def __init__(self, env):
-        self.watcher = None
-        self.env = env
-
-    def start(self):
-        if self.watcher is not None:
-            return
-        if not self.frontend_path.is_dir():
-            return
-        npm = shutil.which(self.npm)
-        if npm is None:
-            self.log(f"Can not find {self.npm!r} command. Not re-building frontend.")
-            return
-
-        proc = subprocess.run((npm, "install"), cwd=self.frontend_path, check=False)
-        if proc.returncode != 0:
-            self.log(f"Command '{self.npm} install' failed. Not re-building frontend.")
-            return
-        # pylint: disable=consider-using-with
-        self.watcher = subprocess.Popen((npm, "run", "dev"), cwd=self.frontend_path)
-
-    def stop(self):
-        if self.watcher is None:
-            return
-        self.watcher.kill()
-        self.watcher.wait()
-        self.watcher = None
-
-    @staticmethod
-    def log(msg):
-        click.echo(click.style(msg, "red"))
 
 
 def browse_to_address(addr):
@@ -154,11 +110,6 @@ def run_server(
         extra_flags=extra_flags,
     )
 
-    dt = None
-    if lektor_dev and not wz_as_main:
-        dt = DevTools(env)
-        dt.start()
-
     if browse:
         browse_to_address(bindaddr)
 
@@ -175,7 +126,5 @@ def run_server(
             else SilentWSGIRequestHandler,
         )
     finally:
-        if dt is not None:
-            dt.stop()
         if in_main_process:
             env.plugin_controller.emit("server-stop")
