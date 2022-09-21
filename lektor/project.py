@@ -182,6 +182,7 @@ class Project:
             "project_file": self.project_file,
             "project_path": self.project_path,
             "default_output_path": self.get_output_path(),
+            "package_cache_path": str(self.get_package_cache_path()),
             "id": self.id,
             "tree": self.tree,
         }

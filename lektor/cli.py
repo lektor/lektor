@@ -378,6 +378,12 @@ def server_cmd(
     is_flag=True,
     help="Print the path to the default output path.",
 )
+@click.option(
+    "package_cache_path",
+    "--package-cache",
+    is_flag=True,
+    help="Print the path to the package cache.",
+)
 @pass_context
 def project_info_cmd(ctx, as_json, **opts):
     """Prints out information about the project.  This is particular
@@ -386,20 +392,21 @@ def project_info_cmd(ctx, as_json, **opts):
     to the default output folder).
     """
     project = ctx.get_project()
+    json_data = project.to_json()
     if as_json:
-        echo_json(project.to_json())
+        echo_json(json_data)
         return
 
     ops = [k for k, v in opts.items() if v]
     if ops:
-        data = project.to_json()
         for op in ops:
-            click.echo(data.get(op, ""))
+            click.echo(json_data.get(op, ""))
     else:
-        click.echo("Name: %s" % project.name)
-        click.echo("File: %s" % project.project_file)
-        click.echo("Tree: %s" % project.tree)
-        click.echo("Output: %s" % project.get_output_path())
+        click.echo("Name: %s" % json_data["name"])
+        click.echo("File: %s" % json_data["project_file"])
+        click.echo("Tree: %s" % json_data["tree"])
+        click.echo("Output: %s" % json_data["default_output_path"])
+        click.echo("Package Cache: %s" % json_data["package_cache_path"])
 
 
 @cli.command(
