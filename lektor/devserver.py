@@ -10,7 +10,6 @@ from lektor.admin import WebAdmin
 from lektor.builder import Builder
 from lektor.db import Database
 from lektor.reporter import CliReporter
-from lektor.utils import portable_popen
 from lektor.utils import process_extra_flags
 from lektor.watcher import Watcher
 
@@ -53,29 +52,6 @@ class BackgroundBuilder(threading.Thread):
                 for ts, _, _ in watcher:
                     if self.last_build is None or ts > self.last_build:
                         self.build()
-
-
-class DevTools:
-    """This builds the admin frontend (in watch mode)."""
-
-    def __init__(self, env):
-        self.watcher = None
-        self.env = env
-
-    def start(self):
-        if self.watcher is not None:
-            return
-
-        frontend = os.path.join(os.path.dirname(__file__), "..", "frontend")
-        portable_popen(["npm", "install"], cwd=frontend).wait()
-        self.watcher = portable_popen(["npm", "run", "dev"], cwd=frontend)
-
-    def stop(self):
-        if self.watcher is None:
-            return
-        self.watcher.kill()
-        self.watcher.wait()
-        self.watcher = None
 
 
 def browse_to_address(addr):
@@ -134,11 +110,6 @@ def run_server(
         extra_flags=extra_flags,
     )
 
-    dt = None
-    if lektor_dev and not wz_as_main:
-        dt = DevTools(env)
-        dt.start()
-
     if browse:
         browse_to_address(bindaddr)
 
@@ -155,7 +126,5 @@ def run_server(
             else SilentWSGIRequestHandler,
         )
     finally:
-        if dt is not None:
-            dt.stop()
         if in_main_process:
             env.plugin_controller.emit("server-stop")

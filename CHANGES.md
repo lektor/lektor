@@ -2,6 +2,18 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.7 (not released)
+
+### Bugs
+
+#### Dev Server
+
+- Remove frontend javascript rebuild machinery altogether. Since the frontend
+  source code is not included in distributed Lektor wheels this was breaking
+  `LEKTOR_DEV` functionality for all but those running Lektor from git. ([#1072][])
+
+[#1072]: https://github.com/lektor/lektor/pull/1072
+
 ## 3.3.6 (2022-07-27)
 
 ### Changes
