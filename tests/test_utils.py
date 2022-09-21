@@ -8,6 +8,7 @@ from lektor.utils import magic_split_ext
 from lektor.utils import make_relative_url
 from lektor.utils import parse_path
 from lektor.utils import slugify
+from lektor.utils import unique_everseen
 
 
 def test_join_path():
@@ -127,3 +128,15 @@ def test_make_relative_url(source, target, expected):
 def test_make_relative_url_relative_source_absolute_target():
     with pytest.raises(ValueError):
         make_relative_url("rel/a/tive/", "/abs/o/lute")
+
+
+@pytest.mark.parametrize(
+    "seq, expected",
+    [
+        (iter(()), ()),
+        ((2, 1, 1, 2, 1), (2, 1)),
+        ((1, 2, 1, 2, 1), (1, 2)),
+    ],
+)
+def test_unique_everseen(seq, expected):
+    assert tuple(unique_everseen(seq)) == expected

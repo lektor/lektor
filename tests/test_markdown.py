@@ -16,6 +16,7 @@ from lektor.markdown.controller import get_renderer_context
 from lektor.markdown.controller import RendererContext
 from lektor.markdown.controller import RendererHelper
 from lektor.markdown.controller import require_ctx
+from lektor.markdown.controller import UnknownPluginError
 from lektor.pluginsystem import Plugin
 
 
@@ -158,6 +159,42 @@ def test_markdown_controller_get_cache_key_no_context(markdown_controller):
 def test_controller_cache(env):
     controller = get_controller(env)
     assert get_controller(env) is controller
+
+
+if MISTUNE_VERSION.startswith("0."):
+    plugin_url = ...
+else:
+    from mistune.plugins import plugin_url
+
+
+def plugin_null(md):
+    return md
+
+
+@pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+@pytest.mark.parametrize(
+    "plugin, resolved",
+    [
+        (plugin_null, plugin_null),  # callable is already resolved
+        ("url", plugin_url),  # resolve through mistune.PLUGINS
+        ("mistune.plugins:plugin_url", plugin_url),  # resolve via import
+    ],
+)
+def test_markdown_controller_resolve_plugin(plugin, resolved, markdown_controller):
+    assert markdown_controller.resolve_plugin(plugin) is resolved
+
+
+@pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+@pytest.mark.parametrize("plugin", ["badplugin", "unknown_module:badplugin"])
+def test_markdown_controller_resolve_plugin_unknown(plugin, markdown_controller):
+    with pytest.raises(UnknownPluginError):
+        markdown_controller.resolve_plugin(plugin)
+
+
+@pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+def test_markdown_controller_resolve_plugin_raises_typeerror(markdown_controller):
+    with pytest.raises(TypeError):
+        markdown_controller.resolve_plugin(None)
 
 
 @pytest.fixture

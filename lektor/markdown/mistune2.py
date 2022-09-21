@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sys
+from importlib import import_module
 from typing import Any
 from typing import Callable
 from typing import ClassVar
@@ -14,6 +15,8 @@ import mistune  # type: ignore[import]
 
 from lektor.markdown.controller import MarkdownController
 from lektor.markdown.controller import RendererHelper
+from lektor.markdown.controller import UnknownPluginError
+from lektor.utils import unique_everseen
 
 
 class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
@@ -61,13 +64,6 @@ class MarkdownConfig:
             "plugins": list(self.DEFAULT_PLUGINS),
         }
 
-    PLUGINS = {**mistune.PLUGINS}
-
-    def resolve_plugin(self, plugin: str | MistunePlugin) -> MistunePlugin:
-        if isinstance(plugin, str):
-            return self.PLUGINS[plugin]
-        return plugin
-
     def make_renderer(self) -> ImprovedRenderer:
         bases = tuple(self.renderer_mixins) + (self.renderer_base,)
         renderer_cls = type("renderer_cls", bases, {})
@@ -87,5 +83,29 @@ class MarkdownController2(MarkdownController):
         parser_options = cfg.parser_options
         plugins = parser_options.get("plugins")
         if plugins:
-            parser_options["plugins"] = tuple(map(cfg.resolve_plugin, plugins))
+            # Resolve and filter out duplicates
+            parser_options["plugins"] = tuple(
+                unique_everseen(map(self.resolve_plugin, plugins))
+            )
         return mistune.Markdown(renderer, **cfg.parser_options)
+
+    PLUGINS = {**mistune.PLUGINS}
+
+    def resolve_plugin(self, plugin: str | MistunePlugin) -> MistunePlugin:
+        if callable(plugin):
+            return plugin
+        if not isinstance(plugin, str):
+            raise TypeError(
+                f"Plugins should be specified as strings or callables, not {plugin!r}"
+            )
+
+        module_name, sep, attr = plugin.partition(":")
+        if sep:
+            try:
+                return getattr(import_module(module_name.strip()), attr.strip())
+            except (ImportError, AttributeError) as exc:
+                raise UnknownPluginError(f"Can not load plugin {plugin!r}") from exc
+        try:
+            return self.PLUGINS[plugin]
+        except KeyError as exc:
+            raise UnknownPluginError(f"Unknown plugin {plugin!r}") from exc
