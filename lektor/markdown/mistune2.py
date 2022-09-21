@@ -1,4 +1,6 @@
 """MarkdownController implementation for mistune 2.x"""
+from __future__ import annotations
+
 import sys
 from typing import Any
 from typing import Callable
@@ -40,7 +42,14 @@ else:
         plugins: Sequence[Callable[[mistune.Markdown], None]]
 
 
+MistunePlugin = Callable[[mistune.Markdown], None]
+
+
 class MarkdownConfig:
+    # Enabling these plugins give us feature parity with mistune 0.8.4.
+    # We enable them by default for the sake of backwards-compatibility.
+    DEFAULT_PLUGINS = ("url", "strikethrough", "footnotes", "table")
+
     def __init__(self) -> None:
         self.renderer_options = {
             "escape": False,
@@ -48,7 +57,16 @@ class MarkdownConfig:
         }
         self.renderer_base = ImprovedRenderer
         self.renderer_mixins: List[type] = []
-        self.parser_options: ParserConfigDict = {}
+        self.parser_options: ParserConfigDict = {
+            "plugins": list(self.DEFAULT_PLUGINS),
+        }
+
+    PLUGINS = {**mistune.PLUGINS}
+
+    def resolve_plugin(self, plugin: str | MistunePlugin) -> MistunePlugin:
+        if isinstance(plugin, str):
+            return self.PLUGINS[plugin]
+        return plugin
 
     def make_renderer(self) -> ImprovedRenderer:
         bases = tuple(self.renderer_mixins) + (self.renderer_base,)
@@ -66,4 +84,8 @@ class MarkdownController2(MarkdownController):
         env.plugin_controller.emit(
             "markdown-lexer-config", config=cfg, renderer=renderer
         )
+        parser_options = cfg.parser_options
+        plugins = parser_options.get("plugins")
+        if plugins:
+            parser_options["plugins"] = tuple(map(cfg.resolve_plugin, plugins))
         return mistune.Markdown(renderer, **cfg.parser_options)
