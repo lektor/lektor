@@ -98,12 +98,77 @@ source = "vcs"
 dependencies = [
     "pytest >= 6",
     "pytest-click",
-    "pytest-cov",
     "pytest-mock",
     "coverage[toml]",
 ]
 [tool.hatch.envs.default.scripts]
-tests = "pytest tests"
+test-python = [
+    "python -V",
+    "pip freeze | python -c 'import sys; print(\",\".join(_.rstrip() for _ in sys.stdin))'",
+    "coverage run -m pytest tests",
+]
+cover-clean = [
+    "- coverage combine -q",
+    "coverage erase",
+]
+cover-report = [
+    "- coverage combine --append",
+    "coverage xml",
+    "coverage report",
+]
+test-js = [
+    "cd frontend && npm install",
+    "cd frontend && npx tsc",
+    "cd frontend && npm test",
+]
+
+[tool.hatch.envs.dev]
+# Extra stuff that's nice to have in a development environment
+#
+#     hatch env create dev
+#
+# then, either
+#
+#     . $(hatch env find dev)/bin/activate
+#
+# or
+#
+#     hatch -e dev shell
+#
+# or
+#
+#     hatch run dev:emacs lektor/db.py &
+#
+dev-mode = true
+extra-dependencies = [
+    "flake8",
+    "flake8-bugbear",
+    "ipdb",
+    "mypy==0.971",
+    "pre-commit",
+    "pylint==2.13.4",
+    "pytest-cov",
+]
+
+[tool.hatch.envs.lint]
+extra-dependencies = [
+    "pylint==2.13.4",
+]
+[tool.hatch.envs.lint.scripts]
+all = "pylint lektor tests"
+
+[tool.hatch.envs.test]
+dev-mode = false
+[[tool.hatch.envs.test.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10"]
+[[tool.hatch.envs.test.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10"]
+mistune = ["mistune0"]
+# FIXME: noutils?
+[tool.hatch.envs.test.overrides]
+name.'-mistune0\b'.dependencies = ["mistune<1"]
+
+
 
 
 ################################################################
@@ -127,7 +192,9 @@ paths = [
     "lektor",
     ".tox/py*/*/lektor",
 ]
-
+[tool.coverage.run]
+parallel = true
+source_pkgs = ["lektor"]
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
