@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - "*-maintenance"
+      - "*"
   pull_request:
     branches:
       - master
@@ -33,11 +34,10 @@ jobs:
         with:
           python-version: "3.9"
           cache: "pip"
-          cache-dependency-path: "**/setup.cfg"
+          cache-dependency-path: "pyproject.toml"
       - name: Install python dependencies
-        run: python -m pip install tox
-      - name: Run pylint
-        run: tox -e lint
+        run: python -m pip install hatch
+      - run: hatch run lint:all
       - name: Run pre-commit
         uses: pre-commit/action@v2.0.3
 
@@ -62,16 +62,23 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "npm"
           cache-dependency-path: "**/package-lock.json"
-      - name: Build frontend
-        run: make
-      - name: Typecheck and run frontend tests
-        run: make test-js
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+          cache: "pip"
+          cache-dependency-path: "pyproject.toml"
+      - name: Install python dependencies
+        run: python -m pip install hatch
+      - run: hatch run test-js
 
   ############################################################################
   # Python tests
   ############################################################################
   python-tests:
     name: ${{ matrix.os }} py${{ matrix.python }}
+    env:
+      # Do not build frontend
+      HATCH_BUILD_NO_HOOKS: "true"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -100,7 +107,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: "pip"
-          cache-dependency-path: "**/setup.cfg"
+          cache-dependency-path: "pyproject.toml"
       - name: Install macOS system dependencies
         if: startsWith(runner.os, 'macos') && matrix.install-imagemagick
         run: brew install imagemagick ffmpeg
@@ -133,8 +140,10 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox tox-gh-actions coverage[toml]
+          python -m pip install hatch
       - name: Run python tests
-        run: tox
+        run: hatch run +mistune +python=${{ matrix.python }} test:test-python
+      - name: Report coverage
+        run: hatch run cover-report
       - name: Publish coverage data to codecov
         uses: codecov/codecov-action@v3
