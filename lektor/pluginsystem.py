@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import os
 import sys
 import warnings
+from typing import Type
 from weakref import ref as weakref
 
 from inifile import IniFile
@@ -33,6 +36,8 @@ class Plugin:
     name = "Your Plugin Name"
     description = "Description goes here"
 
+    __dist: metadata.Distribution = None
+
     def __init__(self, env, id):
         self._env = weakref(env)
         self.id = id
@@ -46,10 +51,9 @@ class Plugin:
 
     @property
     def version(self):
-        try:
-            return metadata.version(_dist_name_for_module(self.__module__))
-        except LookupError:
-            return None
+        if self.__dist is not None:
+            return self.__dist.version
+        return None
 
     @property
     def path(self):
@@ -109,32 +113,39 @@ class Plugin:
         }
 
 
-def load_plugins():
-    """Loads all available plugins and returns them."""
-    rv = {}
-    for ep in metadata.entry_points(  # pylint: disable=unexpected-keyword-arg
-        group="lektor.plugins"
-    ):
-        # XXX: do we really need to be so strict about distribution names?
-        match_name = "lektor-" + ep.name.lower()
-        try:
-            dist_name = _dist_name_for_module(ep.module)
-        except LookupError:
-            dist_name = ""
-        if match_name != dist_name.lower():
-            raise RuntimeError(
-                "Disallowed distribution name: distribution name for "
-                f"plugin {ep.name!r} must be {match_name!r} (not {dist_name!r})."
-            )
-        rv[ep.name] = ep.load()
-    return rv
+def _find_plugins():
+    """Find all available plugins.
+
+    Returns an interator of (distribution, entry_point) pairs.
+    """
+    for dist in metadata.distributions():
+        for ep in dist.entry_points:
+            if ep.group == "lektor.plugins":
+                _check_dist_name(dist.metadata["Name"], ep.name)
+                yield dist, ep
+
+
+def _check_dist_name(dist_name, plugin_id):
+    """Check that plugin comes from a validly named distribution.
+
+    Raises RuntimeError if distribution name is not of the form
+    ``lektor-``*<plugin_id>*.
+    """
+    # XXX: do we really need to be so strict about distribution names?
+    match_name = "lektor-" + plugin_id.lower()
+    if match_name != dist_name.lower():
+        raise RuntimeError(
+            "Disallowed distribution name: distribution name for "
+            f"plugin {plugin_id!r} must be {match_name!r} (not {dist_name!r})."
+        )
 
 
 def initialize_plugins(env):
     """Initializes the plugins for the environment."""
-    plugins = load_plugins()
-    for plugin_id, plugin_cls in plugins.items():
-        env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls)
+    for dist, ep in _find_plugins():
+        plugin_id = ep.name
+        plugin_cls = ep.load()
+        env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls, dist)
     env.plugin_controller.emit("setup-env")
 
 
@@ -154,11 +165,22 @@ class PluginController:
             raise RuntimeError("Environment went away")
         return rv
 
-    def instanciate_plugin(self, plugin_id, plugin_cls):
+    def instanciate_plugin(
+        self,
+        plugin_id: str,
+        plugin_cls: Type[Plugin],
+        dist: metadata.Distribution | None = None,
+    ) -> None:
         env = self.env
         if plugin_id in env.plugins:
             raise RuntimeError('Plugin "%s" is already registered' % plugin_id)
-        env.plugins[plugin_id] = plugin_cls(env, plugin_id)
+        plugin = plugin_cls(env, plugin_id)
+        # Plugin.version needs the source distribution to be able to cleanly determine
+        # the plugin version.  For reasons of backward compatibility, we don't want to
+        # change the signature of the constructor, so we stick it in a private attribute
+        # here.
+        plugin._Plugin__dist = dist
+        env.plugins[plugin_id] = plugin
         env.plugin_ids_by_class[plugin_cls] = plugin_id
 
     def iter_plugins(self):
@@ -187,12 +209,3 @@ class PluginController:
                         DeprecationWarning,
                     )
         return rv
-
-
-def _dist_name_for_module(module: str) -> "str | None":
-    """Return the name of the distribution which provides the named module."""
-    top_level = module.partition(".")[0]
-    distributions = metadata.packages_distributions().get(top_level, [])
-    if len(distributions) != 1:
-        raise LookupError(f"Can not find distribution for {module}")
-    return distributions[0]

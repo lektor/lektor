@@ -13,9 +13,9 @@ from lektor.cli import cli
 from lektor.compat import importlib_metadata as metadata
 from lektor.context import Context
 from lektor.packages import add_package_to_project
-from lektor.pluginsystem import _dist_name_for_module
+from lektor.pluginsystem import _check_dist_name
+from lektor.pluginsystem import _find_plugins
 from lektor.pluginsystem import get_plugin
-from lektor.pluginsystem import load_plugins
 from lektor.pluginsystem import Plugin
 from lektor.pluginsystem import PluginController
 
@@ -107,18 +107,11 @@ class DummyPluginFinder(metadata.DistributionFinder):
 
 
 @pytest.fixture
-def dummy_plugin_distribution_name():
-    return "lektor-dummy-plugin"
-
-
-@pytest.fixture
-def dummy_plugin_distribution(
-    dummy_plugin_distribution_name, save_sys_path, monkeypatch
-):
+def dummy_plugin_distribution(save_sys_path, monkeypatch):
     """Add a dummy plugin distribution to the current working_set."""
     dist = DummyDistribution(
         {
-            "Name": dummy_plugin_distribution_name,
+            "Name": "lektor-dummy-plugin",
             "Version": "1.23",
         }
     )
@@ -128,9 +121,11 @@ def dummy_plugin_distribution(
 
 
 @pytest.fixture
-def dummy_plugin(env):
+def dummy_plugin(env, dummy_plugin_distribution):
     """Instantiate and register a dummy plugin in env"""
-    env.plugin_controller.instanciate_plugin("dummy-plugin", DummyPlugin)
+    env.plugin_controller.instanciate_plugin(
+        "dummy-plugin", DummyPlugin, dummy_plugin_distribution
+    )
     return env.plugins["dummy-plugin"]
 
 
@@ -165,9 +160,11 @@ class TestPlugin:
         return scratch_project_data
 
     @pytest.fixture
-    def scratch_plugin(self, scratch_env):
+    def scratch_plugin(self, scratch_env, dummy_plugin_distribution):
         """Instantiate and register a dummy plugin with scratch_env"""
-        scratch_env.plugin_controller.instanciate_plugin("dummy-plugin", DummyPlugin)
+        scratch_env.plugin_controller.instanciate_plugin(
+            "dummy-plugin", DummyPlugin, dummy_plugin_distribution
+        )
         return scratch_env.plugins["dummy-plugin"]
 
     def test_env(self, dummy_plugin, env):
@@ -182,6 +179,12 @@ class TestPlugin:
 
     def test_version(self, dummy_plugin, dummy_plugin_distribution):
         assert dummy_plugin.version == dummy_plugin_distribution.version
+
+    def test_version_missing(self, env):
+        # Instantiate plugin without specifying distribution
+        env.plugin_controller.instanciate_plugin("dummy-plugin", DummyPlugin)
+        plugin = env.plugins["dummy-plugin"]
+        assert plugin.version is None
 
     def test_path(self, dummy_plugin):
         assert dummy_plugin.path == str(Path(__file__).parent)
@@ -252,14 +255,30 @@ class TestPlugin:
         }
 
 
-def test_load_plugins(dummy_plugin_distribution):
-    assert load_plugins() == {"dummy-plugin": DummyPlugin}
+def test_find_plugins(dummy_plugin_distribution):
+    (ep,) = dummy_plugin_distribution.entry_points
+    assert list(_find_plugins()) == [(dummy_plugin_distribution, ep)]
 
 
-@pytest.mark.parametrize("dummy_plugin_distribution_name", ["evil-dist-name"])
-def test_load_plugins_bad_distname(dummy_plugin_distribution):
-    with pytest.raises(RuntimeError, match=r"Disallowed distribution name"):
-        load_plugins()
+@pytest.mark.parametrize(
+    "dist_name, plugin_id",
+    [
+        ("Lektor-FOO", "Foo"),
+    ],
+)
+def test_check_dist_name(dist_name, plugin_id):
+    _check_dist_name(dist_name, plugin_id)
+
+
+@pytest.mark.parametrize(
+    "dist_name, plugin_id",
+    [
+        ("NotLektor-FOO", "Foo"),
+    ],
+)
+def test_check_dist_name_raises(dist_name, plugin_id):
+    with pytest.raises(RuntimeError):
+        _check_dist_name(dist_name, plugin_id)
 
 
 class TestPluginController:
@@ -328,12 +347,3 @@ def test_cli_integration(project, cli_runner, monkeypatch):
     )
     for call in DummyPlugin.calls:
         assert call["extra_flags"] == {"flag1": "flag1", "flag2": "value2"}
-
-
-def test_dist_name_form_module():
-    assert _dist_name_for_module("lektor.db") == "Lektor"
-
-
-def test_dist_name_form_module_raises_exception():
-    with pytest.raises(LookupError):
-        assert _dist_name_for_module("missing.module")
