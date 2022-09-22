@@ -1,8 +1,110 @@
-[build-system]
-requires = ["setuptools>=45", "setuptools_scm>=6.2"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "Lektor"
+description = "A static content management system."
+dynamic = ["version"]
+readme = "README.md"
+requires-python = ">=3.7"
+license = { file = "LICENSE" }
+# FIXME? platforms = any
+authors = [
+    { name = "Armin Ronacher", email = "armin.ronacher@active-4.com" },
+]
+classifiers = [
+    "Framework :: Lektor",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "Babel",
+    "click>=6.0",
+    "deprecated",
+    "EXIFRead",
+    "filetype>=1.0.7",
+    "Flask",
+    "importlib_metadata; python_version<'3.8'",
+    "inifile>=0.4.1",
+    "Jinja2>=3.0",
+    "MarkupSafe",
+    "marshmallow",
+    "marshmallow_dataclass>=8.5.9",
+    "mistune>=0.7.0,<3",
+    "pip",
+    "python-slugify",
+    "pytz",
+    "requests",
+    "setuptools",
+    "watchdog",
+    "Werkzeug>=2.1.0,<3",
+]
+optional-dependencies = { ipython = ["ipython"] }
 
-[tool.setuptools_scm]
+
+[project.urls]
+Homepage = "https://www.getlektor.com/"
+Source = "https://github.com/lektor/lektor/"
+Documentation = "https://www.getlektor.com/docs/"
+Changelog = "https://github.com/lektor/lektor/blob/master/CHANGES.md"
+
+[project.scripts]
+lektor = "lektor.cli:main"
+
+################################################################
+#
+# build configuration
+#
+[build-system]
+requires = ["hatchling>=1.9.0", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+    "/lektor",
+]
+artifacts = [
+    "/lektor/admin/static",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/lektor",
+    "/CHANGES.md",
+    "/frontend",
+    "/tests",
+]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.version]
+source = "vcs"
+
+
+################################################################
+#
+# hatch env configuration
+#
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest >= 6",
+    "pytest-click",
+    "pytest-cov",
+    "pytest-mock",
+    "coverage[toml]",
+]
+[tool.hatch.envs.default.scripts]
+tests = "pytest tests"
+
 
 ################################################################
 #
