@@ -23,7 +23,7 @@ These are all the changes in Lektor since the first public release.
 
 #### Bit-Rot
 
-- Disuse `pkg_resources` in favor of `importlib.metadata`. ([#1061][])
+- Disuse `pkg_resources` in favor of `importlib.metadata`. ([#1061][], [#1073][])
 - Update frontend dependencies, including upgrade to React version 18. ([#1063][])
 
 #### Packaging
@@ -36,6 +36,7 @@ These are all the changes in Lektor since the first public release.
 [#1063]: https://github.com/lektor/lektor/pull/1063
 [#1064]: https://github.com/lektor/lektor/pull/1064
 [#1066]: https://github.com/lektor/lektor/pull/1066
+[#1073]: https://github.com/lektor/lektor/pull/1073
 
 ## 3.4.0b2 (2022-08-31)
 
