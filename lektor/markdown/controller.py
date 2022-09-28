@@ -127,6 +127,10 @@ class RendererHelper:
         )
 
 
+class UnknownPluginError(LookupError):
+    """Exception raised when a mistune2 plugin name can not be resolved."""
+
+
 class RenderResult(NamedTuple):
     html: str
     meta: Meta

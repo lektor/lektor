@@ -13,6 +13,9 @@ from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import PurePosixPath
+from typing import Hashable
+from typing import Iterable
+from typing import TypeVar
 from urllib.parse import urlsplit
 
 from jinja2 import is_undefined
@@ -695,3 +698,17 @@ def process_extra_flags(flags):
         else:
             rv[flag] = flag
     return rv
+
+
+_H = TypeVar("_H", bound=Hashable)
+
+
+def unique_everseen(seq: Iterable[_H]) -> Iterable[_H]:
+    """Filter out duplicates from iterable."""
+    # This is a less general version of more_itertools.unique_everseen.
+    # Should we need more general functionality, consider using that instead.
+    seen = set()
+    for val in seq:
+        if val not in seen:
+            seen.add(val)
+            yield val

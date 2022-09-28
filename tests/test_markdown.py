@@ -16,6 +16,7 @@ from lektor.markdown.controller import get_renderer_context
 from lektor.markdown.controller import RendererContext
 from lektor.markdown.controller import RendererHelper
 from lektor.markdown.controller import require_ctx
+from lektor.markdown.controller import UnknownPluginError
 from lektor.pluginsystem import Plugin
 
 
@@ -160,6 +161,42 @@ def test_controller_cache(env):
     assert get_controller(env) is controller
 
 
+if MISTUNE_VERSION.startswith("0."):
+    plugin_url = ...
+else:
+    from mistune.plugins import plugin_url
+
+
+def plugin_null(md):
+    return md
+
+
+@pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+@pytest.mark.parametrize(
+    "plugin, resolved",
+    [
+        (plugin_null, plugin_null),  # callable is already resolved
+        ("url", plugin_url),  # resolve through mistune.PLUGINS
+        ("mistune.plugins:plugin_url", plugin_url),  # resolve via import
+    ],
+)
+def test_markdown_controller_resolve_plugin(plugin, resolved, markdown_controller):
+    assert markdown_controller.resolve_plugin(plugin) is resolved
+
+
+@pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+@pytest.mark.parametrize("plugin", ["badplugin", "unknown_module:badplugin"])
+def test_markdown_controller_resolve_plugin_unknown(plugin, markdown_controller):
+    with pytest.raises(UnknownPluginError):
+        markdown_controller.resolve_plugin(plugin)
+
+
+@pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+def test_markdown_controller_resolve_plugin_raises_typeerror(markdown_controller):
+    with pytest.raises(TypeError):
+        markdown_controller.resolve_plugin(None)
+
+
 @pytest.fixture
 def improved_renderer():
     # pylint: disable=import-outside-toplevel
@@ -170,22 +207,19 @@ def improved_renderer():
     return ImprovedRenderer()
 
 
-if MISTUNE_VERSION.startswith("0."):
+@pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
+@pytest.mark.usefixtures("renderer_context")
+def test_ImprovedRenderer_record(record, improved_renderer):
+    with pytest.deprecated_call() as warnings:
+        assert improved_renderer.record is record
+    assert re.search(r"Use .*Renderer\.lektor.record instead", str(warnings[0].message))
 
-    @pytest.mark.usefixtures("renderer_context")
-    def test_ImprovedRenderer_record(record, improved_renderer):
-        with pytest.deprecated_call() as warnings:
-            assert improved_renderer.record is record
-        assert re.search(
-            r"Use .*Renderer\.lektor.record instead", str(warnings[0].message)
-        )
 
-    def test_ImprovedRenderer_meta(renderer_context, improved_renderer):
-        with pytest.deprecated_call() as warnings:
-            assert improved_renderer.meta is renderer_context.meta
-        assert re.search(
-            r"Use .*Renderer\.lektor.meta instead", str(warnings[0].message)
-        )
+@pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
+def test_ImprovedRenderer_meta(renderer_context, improved_renderer):
+    with pytest.deprecated_call() as warnings:
+        assert improved_renderer.meta is renderer_context.meta
+    assert re.search(r"Use .*Renderer\.lektor.meta instead", str(warnings[0].message))
 
 
 @pytest.mark.parametrize(
@@ -249,6 +283,22 @@ def test_markdown_to_html(record, field_options):
     assert result.html.rstrip() == "<p>goober</p>"
 
 
+def plugin_linkcount(md):
+    """A test mistune2 plugin.
+
+    This replaces ``[link-count]`` in text with the current link count
+    wrapped in a <code> element.
+    """
+
+    def parse_linkcount(inline, _m, _state):
+        nlinks = inline.renderer.lektor.meta["nlinks"]
+        return "codespan", str(nlinks)
+
+    md.inline.register_rule("link_count", r"\[link-count\]", parse_linkcount)
+    index = md.inline.rules.index("ref_link2")
+    md.inline.rules.insert(index, "link_count")
+
+
 class LinkCounterPlugin(Plugin):
     """A test plugin to test the renderer meta system."""
 
@@ -262,6 +312,13 @@ class LinkCounterPlugin(Plugin):
 
     def on_markdown_config(self, config, **kwargs):
         config.renderer_mixins.append(self.RendererMixin)
+
+    @staticmethod
+    def on_markdown_lexer_config(config, renderer, **kwargs):
+        if not hasattr(config, "parser_options"):
+            return  # mistune 0
+        # Configure a plugin just to make sure we can
+        config.parser_options.setdefault("plugins", []).append(plugin_linkcount)
 
     def on_markdown_meta_init(self, meta, **kwargs):
         # pylint: disable=no-self-use
@@ -326,6 +383,13 @@ class TestMarkdown:
     def test_getitem(self, markdown):
         assert markdown["nlinks"] == 0
 
+    @pytest.mark.parametrize("source", ["[x](/y) [link-count]"])
+    @pytest.mark.usefixtures("context", "link_counter_plugin")
+    @pytest.mark.skipif(MISTUNE_VERSION.startswith("0."), reason="mistune0")
+    def test_linkcount_plugin(self, markdown):
+        assert markdown["nlinks"] == 1
+        assert re.search(r"<code>1</code>", markdown.html)
+
     @pytest.mark.usefixtures("context")
     def test_str(self, markdown):
         assert str(markdown).rstrip() == "<p>text</p>"
@@ -378,6 +442,18 @@ def _normalize_html(output: Union[str, Markup]) -> str:
         ("![](x&amp;y.gif)", r'.*<img\b[^>]* src="x&amp;y.gif"'),
         # FIXME: which of these is right?
         ("![](x<br>y.gif)", r'.*<img\b[^>]* src="x(&lt;br&gt;|%3Cbr%3E)y.gif"'),
+        # Autolink
+        ("autolink: <http://example.org>", r'.*<a href="http://example\.org"'),
+        #################
+        # Extra features enabled by default in mistune 0.8.4, but which require
+        # plugins to be enabled in mistune 2
+        ("strikethrough: ~~stricken~~ foo", r".*<del>stricken</del> foo"),
+        (
+            "footnotes[^note]\n\n[^note]: comment",
+            r'(?s).*<a href="#fn-([^"]+)">.*<li id="fn-\1">',
+        ),
+        ("| Table Header |\n| -------|\n| Cell |\n", r"(?s).*<tr>"),
+        ("raw URL - http://example.net/ foo", r'.*<a href="http://example\.net/"'),
     ],
 )
 @pytest.mark.usefixtures("context")
