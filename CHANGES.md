@@ -4,6 +4,15 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.4.0b3 (unreleased)
 
+### Features
+
+#### Mistune
+
+- When configuring `mistune` plugins (from a Lektor plugin), allow
+  for specifying third-party plugins as a a string in the format
+  `"<module.name>:attr"`. (Plugins which are listed in the
+  `mistune.PLUGINS` map may be listed by their key.) ([#1074][])
+
 ### Deprecations
 
 - Remove support for the `--build-flag` option to `lektor build` and
@@ -12,6 +21,12 @@ These are all the changes in Lektor since the first public release.
 ### Bugs
 
 - Fix spelling of `typing-inspect` in dependencies. ([#1058][], continued)
+
+#### Mistune
+
+- When using `mistune>=2`, enable the `url`, `strikethrough`,
+  `footnotes`, and `table` plugins for feature parity with
+  `mistune==0.*`. ([#1074][])
 
 #### Admin Server
 
@@ -25,6 +40,7 @@ These are all the changes in Lektor since the first public release.
 
 - Disuse `pkg_resources` in favor of `importlib.metadata`. ([#1061][], [#1073][])
 - Update frontend dependencies, including upgrade to React version 18. ([#1063][])
+- Remove pin on transitive dependency `typing-inspect`.
 
 #### Packaging
 
@@ -37,6 +53,7 @@ These are all the changes in Lektor since the first public release.
 [#1064]: https://github.com/lektor/lektor/pull/1064
 [#1066]: https://github.com/lektor/lektor/pull/1066
 [#1073]: https://github.com/lektor/lektor/pull/1073
+[#1074]: https://github.com/lektor/lektor/pull/1074
 
 ## 3.4.0b2 (2022-08-31)
 
