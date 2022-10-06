@@ -28,13 +28,20 @@ For installation instructions head to the official documentation:
 
 ## Want to develop on Lektor?
 
-This gets you started (assuming you have Python, pip, Make and pre-commit
-installed):
+These must be installed on your computer:
+
+ - Python
+ - Pip
+ - Make
+ - pre-commit
+ - imagemagick
+
+You run these commands step by step to make development on lektor:
 
 ```
 $ git clone https://github.com/lektor/lektor
 $ cd lektor
-$ virtualenv venv
+$ pip3 -m venv venv
 $ . venv/bin/activate
 $ pip install --editable .
 $ make build-js
