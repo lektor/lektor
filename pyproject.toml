@@ -104,7 +104,7 @@ dependencies = [
 [tool.hatch.envs.default.scripts]
 test-python = [
     "python -V",
-    "pip freeze | python -c 'import sys; print(\",\".join(_.rstrip() for _ in sys.stdin))'",
+    "pip freeze | python -c \"import sys; print(','.join(_.rstrip() for _ in sys.stdin))\"",
     "coverage run -m pytest tests",
 ]
 cover-clean = [
