@@ -466,7 +466,7 @@ def test_GithubPagesPublisher_publish(
     ghp_publisher, output_path, mocker, target_url, publish_args, warns
 ):
     GitRepo = mocker.patch("lektor.publisher.GitRepo", spec_set=True)
-    repo = mocker.Mock(spec_set=GitRepo)
+    repo = mocker.Mock(spec_set=dir(GitRepo))
     repo.publish_ghpages.return_value = iter(["Published!"])
     GitRepo.return_value.__enter__.return_value = repo
 
