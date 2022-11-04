@@ -2,6 +2,12 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.8 (unreleased)
+
+Test under python 3.11. ([#1084][])
+
+[#1084]: https://github.com/lektor/lektor/pull/1084
+
 ## 3.3.7 (2022-09-21)
 
 ### Bugs
