@@ -6,7 +6,24 @@ These are all the changes in Lektor since the first public release.
 
 Test under python 3.11. ([#1084][])
 
+### Features
+
+#### Dev Server
+
+- Add live-reloading of pages when they are rebuilt. ([#1027][])
+
+### Bugs
+
+#### Plugins
+
+- `PluginController.emit` would, under certain circumstances, silently
+  ignore `TypeError`s thrown by plugin hook methods. ([#1086][],
+  [#1085][])
+
+[#1027]: https://github.com/lektor/lektor/pull/1027
 [#1084]: https://github.com/lektor/lektor/pull/1084
+[#1085]: https://github.com/lektor/lektor/issues/1085
+[#1086]: https://github.com/lektor/lektor/pull/1086
 
 ## 3.4.0b3 (2022-10-19)
 
