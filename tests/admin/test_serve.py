@@ -12,10 +12,12 @@ import pytest
 from werkzeug.exceptions import NotFound
 
 from lektor.admin.context import LektorContext
+from lektor.admin.modules import livereload
 from lektor.admin.modules import serve
 from lektor.admin.webui import LektorApp
 from lektor.admin.webui import LektorInfo
 from lektor.assets import Asset
+from lektor.builder import Artifact
 from lektor.buildfailures import FailureController
 from lektor.db import Record
 from lektor.environment import Environment
@@ -24,7 +26,9 @@ from lektor.project import Project
 
 @pytest.fixture(scope="session")
 def dummy_app():
-    return flask.Flask("lektor.admin")
+    app = flask.Flask("lektor.admin")
+    app.config["SERVER_NAME"] = "example.org"
+    return app
 
 
 @pytest.fixture
@@ -61,29 +65,68 @@ def test_rewrite_html_for_editing(html_text, expect_at_tail):
 
 
 @pytest.mark.usefixtures("dummy_app_context")
-def test_send_html_for_editing(tmp_path):
-    html_file = tmp_path / "test.html"
-    html_file.write_text("<html><head></head><body></body></html>")
-    resp = serve._send_html_for_editing(html_file, "EDIT_URL")
+def test_rewrite_html_for_editing_adds_livereload(dummy_app):
+    dummy_app.register_blueprint(livereload.bp)
+    assert b"ARTIFACT_NAME" in serve._rewrite_html_for_editing(
+        html=b"", edit_url="EDIT_URL", artifact_name="ARTIFACT_NAME"
+    )
+
+
+@pytest.fixture
+def make_dummy_artifact(tmp_path):
+    def make_dummy_artifact(
+        artifact_name="test",
+        content="<html><head></head><body></body></html>",
+    ):
+        path = tmp_path / f"{artifact_name}.html"
+        if content is not None:
+            path.write_text(content)
+        return Artifact(
+            build_state=None,  # bogus
+            artifact_name=artifact_name,
+            dst_filename=str(path),
+            sources=[],
+        )
+
+    return make_dummy_artifact
+
+
+@pytest.mark.usefixtures("dummy_app_context")
+def test_send_html_for_editing(tmp_path, make_dummy_artifact):
+    artifact = make_dummy_artifact()
+    resp = serve._send_html_for_editing(artifact, "EDIT_URL")
     assert resp.mimetype == "text/html"
     # pylint: disable=unsupported-membership-test
     assert "EDIT_URL" in resp.get_data(True)
 
 
 @pytest.mark.usefixtures("dummy_app_context")
-def test_send_html_for_editing_etag_depends_on_edit_url(tmp_path):
-    html_file = tmp_path / "test.html"
-    html_file.write_text("<html><head></head><body></body></html>")
-    resp1 = serve._send_html_for_editing(html_file, "EDIT_URL1")
-    resp2 = serve._send_html_for_editing(html_file, "EDIT_URL2")
+def test_send_html_for_editing_etag_depends_on_edit_url(tmp_path, make_dummy_artifact):
+    artifact = make_dummy_artifact()
+    resp1 = serve._send_html_for_editing(artifact, "EDIT_URL1")
+    resp2 = serve._send_html_for_editing(artifact, "EDIT_URL2")
     assert resp2.headers["ETag"] != resp1.headers["ETag"]
-    resp3 = serve._send_html_for_editing(html_file, "EDIT_URL1")
+    resp3 = serve._send_html_for_editing(artifact, "EDIT_URL1")
     assert resp3.headers["ETag"] == resp1.headers["ETag"]
 
 
-def test_send_html_for_editing_raises_404(tmp_path):
+@pytest.mark.usefixtures("dummy_app_context")
+def test_send_html_for_editing_etag_depends_on_artifact_name(
+    tmp_path, make_dummy_artifact
+):
+    artifact1 = make_dummy_artifact("test1")
+    artifact2 = make_dummy_artifact("test2")
+    resp1 = serve._send_html_for_editing(artifact1, "EDIT_URL")
+    resp2 = serve._send_html_for_editing(artifact2, "EDIT_URL")
+    assert resp2.headers["ETag"] != resp1.headers["ETag"]
+    resp3 = serve._send_html_for_editing(artifact1, "EDIT_URL")
+    assert resp3.headers["ETag"] == resp1.headers["ETag"]
+
+
+def test_send_html_for_editing_raises_404(tmp_path, make_dummy_artifact):
+    artifact = make_dummy_artifact(content=None)
     with pytest.raises(NotFound):
-        serve._send_html_for_editing(tmp_path / "missing.html", "EDIT_URL")
+        serve._send_html_for_editing(artifact, "EDIT_URL")
 
 
 @pytest.mark.parametrize(

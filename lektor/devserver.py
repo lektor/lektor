@@ -77,6 +77,7 @@ def run_server(
     ui_lang="en",
     browse=False,
     extra_flags=None,
+    reload=True,
 ):
     """This runs a server but also spawns a background process.  It's
     not safe to call this more than once per python process!
@@ -108,6 +109,7 @@ def run_server(
         debug=lektor_dev,
         ui_lang=ui_lang,
         extra_flags=extra_flags,
+        reload=reload,
     )
 
     if browse:

@@ -22,6 +22,8 @@ def describe_build_func(func):
 
 
 class Reporter:
+    _change_callbacks = set()
+
     def __init__(self, env, verbosity=0):
         self.env = env
         self.verbosity = verbosity
@@ -97,6 +99,14 @@ class Reporter:
             self.builder_stack.pop()
             self.finish_build(activity, now)
 
+    @contextmanager
+    def on_build_change(self, callback):
+        self._change_callbacks.add(callback)
+        try:
+            yield
+        finally:
+            self._change_callbacks.discard(callback)
+
     def start_build(self, activity):
         pass
 
@@ -112,8 +122,15 @@ class Reporter:
         try:
             yield
         finally:
+            self.report_artifact_built(artifact, is_current)
             self.finish_artifact_build(now)
             self.artifact_stack.pop()
+
+    def report_artifact_built(self, artifact, is_current):
+        if is_current:
+            return
+        for callback in self._change_callbacks:
+            callback(artifact)
 
     def start_artifact_build(self, is_current):
         pass

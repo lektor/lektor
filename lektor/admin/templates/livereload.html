@@ -1,0 +1,32 @@
+<script type="text/javascript">
+  (function () {
+    if (window.self !== window.top) {
+      return;
+    } // We do not enable livereloading inside an iframe.
+    if (!window.SharedWorker || !window.BroadcastChannel) {
+      console.debug("😭 live-reload cannot work in this browser.");
+      return;
+    }
+    const workerScriptPath = "{{ url_for('livereload.worker_script') }}";
+    const eventsPath = "{{ url_for('livereload.events') }}";
+    const currentFile = {{ artifact_name|tojson }};
+    if (!currentFile) {
+      return;
+    }
+
+    const params = new URLSearchParams(location.search);
+    if (/^(false|no|0)$/i.test(params.get('livereload'))) {
+      return;
+    }
+
+    const channel = new BroadcastChannel("live-reload");
+    channel.addEventListener("message", (event) => {
+      const { type, path } = event.data;
+      if (type === "restart" || type === "reload" && path === currentFile) {
+        location.reload();
+      }
+    });
+
+    new SharedWorker(workerScriptPath, { name: "live-reload" });
+  })();
+</script>

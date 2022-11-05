@@ -11,6 +11,7 @@ from lektor.admin.context import LektorApp
 from lektor.admin.context import LektorInfo
 from lektor.admin.modules import api
 from lektor.admin.modules import dash
+from lektor.admin.modules import livereload
 from lektor.admin.modules import serve
 from lektor.environment import Environment
 
@@ -32,6 +33,7 @@ def make_app(
     ui_lang: str = "en",
     verbosity: int = 0,
     extra_flags: Optional[Sequence[str]] = None,
+    reload: bool = True,
     *,
     admin_path: str = "/admin",
 ) -> LektorApp:
@@ -55,6 +57,9 @@ def make_app(
     # Serve static files from top-level app
     app = LektorApp(lektor_info, static_url_path=f"{admin_path}/static")
     _common_configuration(app, debug=debug)
+    app.config["ENABLE_LIVERELOAD"] = reload
+    if reload:
+        app.register_blueprint(livereload.bp, url_prefix="/__reload__")
     app.register_blueprint(serve.bp)
 
     # Pass requests for /admin/... to the admin app

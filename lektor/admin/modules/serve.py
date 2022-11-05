@@ -38,31 +38,35 @@ bp = Blueprint("serve", __name__)
 Filename = Union[str, os.PathLike]
 
 
-def _rewrite_html_for_editing(html: bytes, edit_url: str) -> bytes:
+def _rewrite_html_for_editing(
+    html: bytes, edit_url: str, artifact_name: Optional[str] = None
+) -> bytes:
     """Adds an "edit pencil" button to the text of an HTML page.
 
     The pencil will link to ``edit_url``.
     """
-    button_script = render_template("edit-button.html", edit_url=edit_url)
+    button = render_template("edit-button.html", edit_url=edit_url)
+    if "livereload" in current_app.blueprints:
+        button += render_template("livereload.html", artifact_name=artifact_name)
 
-    def button(m: Match[bytes]) -> bytes:
-        return button_script.encode("utf-8") + m.group(0)
+    def extras(m: Match[bytes]) -> bytes:
+        return button.encode("utf-8") + m.group(0)
 
-    return re.sub(rb"(?i)</\s*head\s*>|\Z", button, html, count=1)
+    return re.sub(rb"(?i)</\s*head\s*>|\Z", extras, html, count=1)
 
 
 def _send_html_for_editing(
-    filename: Filename, edit_url: str, mimetype: str = "text/html"
+    artifact: Artifact, edit_url: str, mimetype: str = "text/html"
 ) -> Response:
     """Serve an HTML file, after mangling it to add an "edit pencil" button."""
     try:
-        with open(filename, "rb") as fp:
+        with open(artifact.dst_filename, "rb") as fp:
             html = fp.read()
             st = os.stat(fp.fileno())
     except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
-    html = _rewrite_html_for_editing(html, edit_url)
-    check = adler32(f"{filename}\0{edit_url}".encode("utf-8")) & 0xFFFFFFFF
+    html = _rewrite_html_for_editing(html, edit_url, artifact.artifact_name)
+    check = adler32(f"{artifact.dst_filename}\0{edit_url}".encode("utf-8")) & 0xFFFFFFFF
     resp = Response(html, mimetype=mimetype)
     resp.set_etag(f"{st.st_mtime}-{st.st_size}-{check}")
     return resp
@@ -206,7 +210,7 @@ class ArtifactServer:
 
         mimetype = _deduce_mimetype(artifact.dst_filename)
         if mimetype == "text/html" and edit_url is not None:
-            return _send_html_for_editing(artifact.dst_filename, edit_url, mimetype)
+            return _send_html_for_editing(artifact, edit_url, mimetype)
         return _checked_send_file(artifact.dst_filename, mimetype=mimetype)
 
 
