@@ -48,6 +48,13 @@ class DummyPlugin(Plugin):
         self.calls.append({"event": "legacy-event"})
         return "legacy-event return value"
 
+    def on_one_type_error(self, **kwargs):
+        """Raises TypeError only on the first call."""
+        self.calls.append({"event": "one-type-error"})
+        if len(self.calls) == 1:
+            raise TypeError("test")
+        return "one-type-error return value"
+
 
 @pytest.fixture(autouse=True)
 def dummy_plugin_calls(monkeypatch):
@@ -330,6 +337,13 @@ class TestPluginController:
         with pytest.deprecated_call():
             rv = plugin_controller.emit("legacy-event")
         assert rv == {dummy_plugin.id: "legacy-event return value"}
+
+    def test_emit_is_not_confused_by_type_error(self, plugin_controller, dummy_plugin):
+        # Excercises https://github.com/lektor/lektor/issues/1085
+        with pytest.raises(TypeError):
+            plugin_controller.emit("one-type-error")
+        rv = plugin_controller.emit("one-type-error")
+        assert rv == {dummy_plugin.id: "one-type-error return value"}
 
 
 @pytest.mark.usefixtures("dummy_plugin_distribution")
