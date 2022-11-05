@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import os
 import sys
 import warnings
@@ -188,24 +189,31 @@ class PluginController:
         return self.env.plugins.values()
 
     def emit(self, event, **kwargs):
+        """Invoke event hook for all plugins that support it.
 
+        Any ``kwargs`` are passed to the hook methods.
+
+        Returns a dict mapping plugin ids to hook method return values.
+        """
         rv = {}
-        kwargs["extra_flags"] = process_extra_flags(self.extra_flags)
+        extra_flags = process_extra_flags(self.extra_flags)
         funcname = "on_" + event.replace("-", "_")
         for plugin in self.iter_plugins():
             handler = getattr(plugin, funcname, None)
             if handler is not None:
+                kw = {**kwargs, "extra_flags": extra_flags}
                 try:
-                    rv[plugin.id] = handler(**kwargs)
+                    inspect.signature(handler).bind(**kw)
                 except TypeError:
-                    old_style_kwargs = kwargs.copy()
-                    old_style_kwargs.pop("extra_flags")
-                    rv[plugin.id] = handler(**old_style_kwargs)
+                    del kw["extra_flags"]
+                rv[plugin.id] = handler(**kw)
+                if "extra_flags" not in kw:
                     warnings.warn(
-                        'The plugin "{}" function "{}" does not accept extra_flags. '
+                        f"The plugin {plugin.id!r} function {funcname!r} does not "
+                        "accept extra_flags. "
                         "It should be updated to accept `**extra` so that it will "
                         "not break if new parameters are passed to it by newer "
-                        "versions of Lektor.".format(plugin.id, funcname),
+                        "versions of Lektor.",
                         DeprecationWarning,
                     )
         return rv
