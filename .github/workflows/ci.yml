@@ -34,12 +34,22 @@ jobs:
           python-version: "3.9"
           cache: "pip"
           cache-dependency-path: "**/setup.cfg"
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Install python dependencies
-        run: python -m pip install tox
+        id: pip
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox pre-commit
+          python -m pip freeze --local
       - name: Run pylint
         run: tox -e lint
       - name: Run pre-commit
-        uses: pre-commit/action@v2.0.3
+        # run pre-commit check even if pylint check fails
+        if: steps.pip.outcome == 'success'
+        run: pre-commit run --show-diff-on-failure --color=always --all-files
 
   ############################################################################
   # Node tests
