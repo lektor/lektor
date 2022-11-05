@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.4.0b4 (unreleased)
+## 3.4.0b4 (2022-11-05)
 
 Test under python 3.11. ([#1084][])
 
