@@ -1078,7 +1078,7 @@ class Query:
         """Returns the order that should be used."""
         if self._order_by is not None:
             return self._order_by
-        base_record = self.pad.get(self.path, self.alt)
+        base_record = self.pad.get(self.path, alt=self.alt)
         if base_record is not None:
             if self._include_attachments and not self._include_pages:
                 return base_record.datamodel.attachment_config.order_by
