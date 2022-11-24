@@ -763,7 +763,9 @@ class Attachment(Record):
     def parent(self):
         """The associated record for this attachment."""
         return self.pad.get(
-            self._data["_attachment_for"], persist=self.pad.cache.is_persistent(self)
+            self._data["_attachment_for"],
+            alt=self.alt,
+            persist=self.pad.cache.is_persistent(self)
         )
 
     @cached_property
