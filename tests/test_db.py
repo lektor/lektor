@@ -350,7 +350,7 @@ def test_default_order_by(scratch_project, scratch_env):
     with open(
         os.path.join(tree, "content", "myobj", "contents.lr"), "w", encoding="utf-8"
     ) as f:
-        f.write("_model: mymodel\n" "---\n" "title: My Test Object\n")
+        f.write("_model: mymodel\n---\ntitle: My Test Object\n")
 
     pad = Database(scratch_env).new_pad()
     myobj = pad.get("/myobj")
@@ -419,7 +419,7 @@ def primary_alt_is_prefixed(scratch_project_data):
             project_file,
             content.replace(
                 "[alternatives.en]\n",
-                ("[alternatives.en]\n" "url_prefix = /en/\n"),
+                ("[alternatives.en]\nurl_prefix = /en/\n"),
             ),
         )
     )

@@ -82,11 +82,11 @@ def _require_ctx(record):
     ctx = get_ctx()
     if ctx is None:
         raise RuntimeError(
-            "This operation requires a context but none was " "on the stack."
+            "This operation requires a context but none was on the stack."
         )
     if ctx.pad is not record.pad:
         raise RuntimeError(
-            "The context on the stack does not match the " "pad of the record."
+            "The context on the stack does not match the pad of the record."
         )
     return ctx
 
@@ -867,7 +867,7 @@ def require_ffmpeg(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         return Undefined(
-            "Unable to locate ffmpeg or ffprobe executable. Is " "it installed?"
+            "Unable to locate ffmpeg or ffprobe executable. Is it installed?"
         )
 
     return wrapper
@@ -1508,7 +1508,7 @@ class Database:
                 return datamodel
 
         raise AssertionError(
-            "Did not find an appropriate datamodel.  " "That should never happen."
+            "Did not find an appropriate datamodel. That should never happen."
         )
 
     def get_attachment_type(self, path):
@@ -1650,7 +1650,7 @@ class Pad:
             return url_join(self.db.config.base_path, url.lstrip("/"))
         if base_url is None:
             raise RuntimeError(
-                "Cannot calculate a relative URL if no base " "URL has been provided."
+                "Cannot calculate a relative URL if no base URL has been provided."
             )
         return make_relative_url(base_url, url)
 

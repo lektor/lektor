@@ -42,7 +42,7 @@ def add_package_to_project(project, req):
         raise RuntimeError("The package was already added to the project.")
 
     for choice in name, "lektor-" + name:
-        rv = requests.get("https://pypi.python.org/pypi/%s/json" % choice)
+        rv = requests.get(f"https://pypi.python.org/pypi/{choice}/json", timeout=10)
         if rv.status_code != 200:
             continue
 
@@ -53,7 +53,7 @@ def add_package_to_project(project, req):
         version_info = data["releases"].get(version)
         if version_info is None:
             raise RuntimeError(
-                "Latest requested version (%s) could not " "be found" % version_hint
+                f"Latest requested version ({version_hint}) could not be found"
             )
 
         cfg["packages.%s" % canonical_name] = version

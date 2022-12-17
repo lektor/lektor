@@ -513,7 +513,7 @@ def plugins_remove_cmd(ctx, name):
     else:
         if old_info is None:
             click.echo(
-                "Package was not registered with the project.  " "Nothing was removed."
+                "Package was not registered with the project. Nothing was removed."
             )
         else:
             click.echo(

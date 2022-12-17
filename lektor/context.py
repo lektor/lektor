@@ -74,7 +74,7 @@ class Context:
         if pad is None:
             if artifact is None:
                 raise TypeError(
-                    "Either artifact or pad is needed to " "construct a context."
+                    "Either artifact or pad is needed to construct a context."
                 )
             pad = artifact.build_state.pad
 
