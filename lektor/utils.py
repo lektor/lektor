@@ -551,7 +551,7 @@ def get_relative_path(source, target):
     """
 
     if not source.is_absolute() and target.is_absolute():
-        raise ValueError("Cannot navigate from a relative path" " to an absolute one")
+        raise ValueError("Cannot navigate from a relative path to an absolute one")
 
     if source.is_absolute() and not target.is_absolute():
         # nothing to do

@@ -36,21 +36,22 @@ exclude_lines = [
 #
 # pylint
 #
-[tool.pylint.MASTER]
+[tool.pylint.main]
 ignore = [".git"]
+load-plugins = "pylint.extensions.no_self_use"
 
-[tool.pylint.FORMAT]
+[tool.pylint.format]
 max-line-length = 91
 max-module-lines = 2000
 
-[tool.pylint.DESIGN]
+[tool.pylint.design]
 max-attributes = 20
 max-locals = 30
 max-branches = 20
 max-nested-blocks = 8
 max-returns = 8
 
-[tool.pylint.'MESSAGES CONTROL']
+[tool.pylint."messages control"]
 disable = [
     "redundant-u-string-prefix",
     "consider-using-f-string",
@@ -66,6 +67,7 @@ disable = [
     "too-few-public-methods",
     "too-many-public-methods",
     "duplicate-code",
+    "unnecessary-dunder-call",
 ]
 
 [tool.mypy]

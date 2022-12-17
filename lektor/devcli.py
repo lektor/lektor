@@ -21,11 +21,11 @@ except ImportError:
 def ensure_plugin():
     here = os.getcwd()
     if not os.path.isfile(os.path.join(here, "setup.py")):
-        raise click.UsageError("This command must be run in a " "Lektor plugin folder")
+        raise click.UsageError("This command must be run in a Lektor plugin folder")
     info = get_package_info(here)
     if not info["name"].lower().startswith("lektor-"):
         raise click.UsageError(
-            "Python package is misnamed. Needs to start " "with lektor-"
+            "Python package is misnamed. Needs to start with lektor-"
         )
     return info
 

@@ -71,7 +71,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
         # XXX: what about changing the datamodel after the fact?
         if datamodel is not None:
             raise BadEdit(
-                "When editing an existing record, a datamodel " "must not be provided."
+                "When editing an existing record, a datamodel must not be provided."
             )
         datamodel = pad.db.get_datamodel_for_raw_data(all_data, pad)
     else:
@@ -312,7 +312,7 @@ class EditorSession:
             return
         if self._master_delete:
             raise BadDelete(
-                "Master deletes of pages require that recursive " "deleting is enabled."
+                "Master deletes of pages require that recursive deleting is enabled."
             )
 
         for fn in self.fs_path, directory:
