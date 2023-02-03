@@ -314,7 +314,13 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
     help="Increases the verbosity of the logging.",
 )
 @extraflag
-@click.option("--browse", is_flag=True)
+@click.option("--browse", is_flag=True, help="open homepage in browser on startup")
+@click.option(
+    "--browse-subpage",
+    default=None,
+    help="open a specific subpage in browser on startup. "
+    "example: --browse-subpage /admin/edit",
+)
 @click.option(
     "--no-reload",
     "reload",
@@ -325,7 +331,16 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
 )
 @pass_context
 def server_cmd(
-    ctx, host, port, output_path, prune, verbosity, extra_flags, browse, reload
+    ctx,
+    host,
+    port,
+    output_path,
+    prune,
+    verbosity,
+    extra_flags,
+    browse,
+    browse_subpage,
+    reload,
 ):
     """The server command will launch a local server for development.
 
@@ -351,6 +366,7 @@ def server_cmd(
         extra_flags=extra_flags,
         lektor_dev=os.environ.get("LEKTOR_DEV") == "1",
         browse=browse,
+        browse_subpage=browse_subpage,
         reload=reload,
     )
 
