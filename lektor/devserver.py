@@ -60,7 +60,7 @@ def browse_to_address(addr, subpage=None):
 
     def browse():
         time.sleep(1)
-        if subpage:
+        if subpage is not None:
             addr_with_subpage = addr + (subpage,)
             webbrowser.open("http://%s:%s/%s" % addr_with_subpage)
         else:
