@@ -27,6 +27,7 @@ DEFAULT_CONFIG = {
         ".jpg": "image",
         ".jpeg": "image",
         ".png": "image",
+        ".webp": "image",
         ".gif": "image",
         ".svg": "image",
         ".avi": "video",
