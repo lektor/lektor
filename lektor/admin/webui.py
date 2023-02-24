@@ -36,6 +36,7 @@ def make_app(
     reload: bool = True,
     *,
     admin_path: str = "/admin",
+    static_folder: Optional[Union[str, "os.PathLike[Any]"]] = "static",  # testing
 ) -> LektorApp:
     if output_path is None:
         output_path = env.project.get_output_path()
@@ -55,7 +56,9 @@ def make_app(
     admin_app.register_blueprint(api.bp, url_prefix="/api")
 
     # Serve static files from top-level app
-    app = LektorApp(lektor_info, static_url_path=f"{admin_path}/static")
+    app = LektorApp(
+        lektor_info, static_url_path=f"{admin_path}/static", static_folder=static_folder
+    )
     _common_configuration(app, debug=debug)
     app.config["ENABLE_LIVERELOAD"] = reload
     if reload:

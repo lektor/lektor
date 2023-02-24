@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 import flask
 import pytest
 
@@ -15,23 +12,26 @@ def output_path(tmp_path):
 
 
 @pytest.fixture
-def test_client(env, output_path):
-    app = lektor.admin.webui.make_app(env, output_path=output_path)
+def static_folder(tmp_path) -> str:
+    scratch_folder = tmp_path / "static"
+    scratch_folder.mkdir()
+    return scratch_folder
+
+
+@pytest.fixture
+def test_client(env, static_folder, output_path):
+    app = lektor.admin.webui.make_app(
+        env, output_path=output_path, static_folder=static_folder
+    )
     with app.test_client() as client:
         yield client
 
 
 @pytest.fixture
-def app_static_dummy_txt():
+def app_static_dummy_txt(static_folder):
     """Create a dummy file in the Flask apps static directory."""
-    static_dir = Path(lektor.admin.webui.__file__).parent / "static"
-    static_dir.mkdir(exist_ok=True)
-    dummy_txt = static_dir / "dummy.txt"
+    dummy_txt = static_folder / "dummy.txt"
     dummy_txt.touch()
-    try:
-        yield
-    finally:
-        os.remove(dummy_txt)
 
 
 ################################################################
