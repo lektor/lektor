@@ -2,6 +2,7 @@ import fnmatch
 import os
 import uuid
 from functools import update_wrapper
+from typing import TYPE_CHECKING
 
 import jinja2
 from babel import dates
@@ -29,6 +30,10 @@ from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
 
+if TYPE_CHECKING:
+    from typing import Literal
+
+
 def _pass_locale(func):
     def new_func(*args, **kwargs):
         if kwargs.get("locale", None) is None:
@@ -36,6 +41,25 @@ def _pass_locale(func):
         return func(*args, **kwargs)
 
     return update_wrapper(new_func, func)
+
+
+@jinja2.pass_context
+def _markdown_filter(
+    _jinja_context: jinja2.runtime.Context,
+    source: str,
+    *,
+    resolve_links: "Literal['always', 'never', 'when-possible', None]" = None,
+    **kw: str
+) -> Markdown:
+    """A jinja filter that converts markdown text to HTML."""
+    # By default Jinja treats filters as pure functions, and will memoize
+    # their results. Since here we depend on global context, we mark the filter
+    # as a "context filter" to prevent memoization.
+    ctx = get_ctx()
+    source_obj = ctx.source if ctx is not None else None
+    return Markdown(
+        source, source_obj, field_options={**kw, "resolve_links": resolve_links}
+    )
 
 
 # Special files that should always be ignored.
@@ -135,7 +159,7 @@ class Environment:
             # context filter so that jinja2 will not inline it.
             url=jinja2.pass_context(lambda ctx, *a, **kw: url_to(*a, **kw)),
             asseturl=jinja2.pass_context(lambda ctx, *a, **kw: get_asset_url(*a, **kw)),
-            markdown=jinja2.pass_context(lambda ctx, *a, **kw: Markdown(*a, **kw)),
+            markdown=_markdown_filter,
         )
         self.jinja_env.globals.update(
             F=F,
