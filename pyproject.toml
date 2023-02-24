@@ -20,6 +20,17 @@ markers = [
 #
 # coverage
 #
+[tool.coverage.run]
+source_pkgs = [
+    "lektor",
+]
+omit = [
+    # test_pluginsystem.py has a test that installs a Lektor plugin from PyPI
+    # into a pytest temporary directory
+    "*/pytest-*/*",
+]
+parallel = true
+
 [tool.coverage.paths]
 paths = [
     "lektor",
