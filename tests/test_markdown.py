@@ -56,10 +56,10 @@ def base_url(record):
 
 
 @pytest.fixture
-def context(record, base_url):
+def context(pad, record, base_url):
     if base_url is None:
         base_url = record.url_path
-    with Context(pad=record.pad) as ctx:
+    with Context(pad=pad) as ctx:
         with ctx.changed_base_url(base_url):
             yield ctx
 
@@ -121,6 +121,23 @@ def test_RendererHelper_resolve_url_raises_when_not_resolvable():
     with pytest.raises(RuntimeError) as exc_info:
         helper.resolve_url("missing")
     assert re.search(r"Can not resolve .*missing", str(exc_info.value))
+
+
+@pytest.mark.parametrize("record, base_url", [(None, "/")])
+@pytest.mark.usefixtures("renderer_context")
+def test_RendererHelper_resolve_url_no_record():
+    helper = RendererHelper()
+    assert helper.resolve_url("foo/bar") == "foo/bar"
+
+
+@pytest.mark.parametrize("resolve_links", ["always"])
+@pytest.mark.parametrize("record, base_url", [(None, "/")])
+@pytest.mark.usefixtures("renderer_context")
+def test_RendererHelper_resolve_url_raises_if_no_record():
+    helper = RendererHelper()
+    with pytest.raises(RuntimeError) as exc_info:
+        helper.resolve_url(".")
+    assert re.search(r"\bsource object\b.*\brequired\b", str(exc_info.value))
 
 
 @pytest.fixture
@@ -347,6 +364,10 @@ class TestMarkdown:
 
     def test_record(self, markdown, record):
         assert markdown.record is record
+
+    @pytest.mark.parametrize("record", [None])
+    def test_record_none(self, markdown):
+        assert markdown.record is None
 
     def test_record_gone_away(self, field_options, mocker):
         markdown = Markdown("text", mocker.Mock(name="record"), field_options)

@@ -45,7 +45,7 @@ def require_ctx() -> Context:
 class RendererContext(NamedTuple):
     """Extra data used during Markdown rendering."""
 
-    record: SourceObject
+    record: Optional[SourceObject]
     meta: Meta
     field_options: FieldOptions
 
@@ -68,7 +68,7 @@ class RendererHelper:
     """Various helpers used by our markdown renderer subclasses."""
 
     @property
-    def record(self) -> SourceObject:
+    def record(self) -> Optional[SourceObject]:
         """The record that owns the markdown field being rendered.
 
         This is used as the base for resolving relative URLs in the Markdown text.
@@ -116,6 +116,12 @@ class RendererHelper:
         # Default is to resolve links to Lektor source objects when possible
         # This is a change from previous versions where we never resolved
         # links in Markdown.
+        record = self.record
+        if record is None:
+            if resolve_links == "always":
+                raise RuntimeError("A source object is required to resolve URLs")
+            return url
+
         resolve = strict_resolve = None
         if resolve_links == "always":
             strict_resolve = True
@@ -163,7 +169,7 @@ class MarkdownController(ABC):
         return ctx.base_url
 
     def render(
-        self, source: str, record: SourceObject, field_options: FieldOptions
+        self, source: str, record: Optional[SourceObject], field_options: FieldOptions
     ) -> RenderResult:
         """Render markdown string"""
         meta: Meta = {}

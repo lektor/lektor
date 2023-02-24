@@ -1,6 +1,7 @@
 from typing import Any
 from typing import Dict
 from typing import Hashable
+from typing import Optional
 from typing import Type
 from typing import TYPE_CHECKING
 from weakref import ref as weakref
@@ -48,10 +49,10 @@ def markdown_to_html(
 
 class Markdown:
     def __init__(
-        self, source: str, record: SourceObject, field_options: FieldOptions
+        self, source: str, record: Optional[SourceObject], field_options: FieldOptions
     ) -> None:
         self.source = source
-        self.__record = weakref(record)
+        self.__record = weakref(record) if record is not None else None
         self.__field_options = field_options
         self.__cache: Dict[Hashable, RenderResult] = {}
 
@@ -62,7 +63,10 @@ class Markdown:
 
     @property
     def record(self) -> SourceObject:
-        record = self.__record()
+        ref = self.__record
+        if ref is None:
+            return None
+        record = ref()
         if record is None:
             raise RuntimeError("Record has gone away")
         return record
