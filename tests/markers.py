@@ -1,15 +1,13 @@
 import pytest
 
-from lektor.imagetools import find_imagemagick
-
-
 try:
-    im_path = find_imagemagick()
-except RuntimeError:
-    im_path = None
+    import PIL
+except ModuleNotFoundError:
+    PIL = None
 
 
+# FIXME: rename
 imagemagick = pytest.mark.skipif(
-    not im_path,
-    reason="imagemagick required but not found",
+    PIL is None,
+    reason="Pillow required but not found",
 )

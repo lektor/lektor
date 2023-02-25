@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-import decimal
+from __future__ import annotations
+
+import io
 import os
 import posixpath
 import re
@@ -7,16 +9,30 @@ import struct
 import warnings
 from datetime import datetime
 from enum import Enum
+from typing import Any
+from typing import BinaryIO
+from typing import Mapping
+from typing import NamedTuple
+from typing import Type
 from xml.etree import ElementTree as etree
 
 import exifread
 import filetype
 
-from lektor.reporter import reporter
 from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
-from lektor.utils import locate_executable
-from lektor.utils import portable_popen
+
+try:
+    import PIL.Image
+    import PIL.ImageCms
+    import PIL.ImageOps
+
+    HAVE_PILLOW = True
+except ModuleNotFoundError:
+    HAVE_PILLOW = False
+else:
+    SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
+    SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
 
 
 # yay shitty library
@@ -430,113 +446,199 @@ def is_rotated(fp):
     return EXIFInfo(exif).is_rotated
 
 
-def find_imagemagick(im=None):
-    """Finds imagemagick and returns the path to it."""
-    # If it's provided explicitly and it's valid, we go with that one.
-    if im is not None and os.path.isfile(im):
-        return im
-
-    # On windows, imagemagick was renamed to magick, because
-    # convert is system utility for fs manipulation.
-    imagemagick_exe = "convert" if os.name != "nt" else "magick"
-
-    rv = locate_executable(imagemagick_exe)
-    if rv is not None:
-        return rv
-
-    # Give up.
-    raise RuntimeError("Could not locate imagemagick.")
+class ImageSize(NamedTuple):
+    width: int
+    height: int
 
 
-def get_thumbnail_ext(source_filename):
-    ext = source_filename.rsplit(".", 1)[-1].lower()
-    # if the extension is already of a format that a browser understands
-    # we will roll with it.
-    if ext.lower() in ("png", "jpg", "jpeg", "gif"):
-        return None
-    # Otherwise we roll with JPEG as default.
-    return ".jpeg"
+class CropBox(NamedTuple):
+    # field names taken from
+    # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.crop
+    left: int
+    upper: int
+    right: int
+    lower: int
 
 
-def get_quality(source_filename):
-    ext = source_filename.rsplit(".", 1)[-1].lower()
-    if ext.lower() == "png":
-        return 75
-    return 85
+def _scale(x: int, num: int, denom: int) -> int:
+    """Compute x * num / denom, rounded to integer.
+
+    ``x``, ``num``, and ``denom`` should all be positive integers.
+
+    Rounds 0.5 up to be consistent with imagemagick.
+    """
+    return (x * num + denom // 2) // denom
 
 
-def compute_dimensions(width, height, source_width, source_height):
-    """computes the bounding dimensions"""
-    computed_width, computed_height = width, height
+def compute_dimensions(
+    width: int | None, height: int | None, source_width: int, source_height: int
+) -> ImageSize:
+    """Compute "fit"-mode dimensions of thumbnail.
 
-    width, height, source_width, source_height = (
-        None if v is None else float(v)
-        for v in (width, height, source_width, source_height)
-    )
+    Returns the maximum size of a thumbnail with that has (nearly) the same aspect ratio
+    as the source and whose maximum size is set by ``width`` and ``height``.
 
-    source_ratio = source_width / source_height
-
-    def _round(x):
-        # make sure things get top-rounded, to be consistent with imagemagick
-        return int(decimal.Decimal(x).to_integral(decimal.ROUND_HALF_UP))
-
-    if width is None or (height is not None and width / height > source_ratio):
-        computed_width = _round(height * source_ratio)
-    else:
-        computed_height = _round(width / source_ratio)
-
-    return computed_width, computed_height
-
-
-def process_image(
-    ctx,
-    source_image,
-    dst_filename,
-    width=None,
-    height=None,
-    mode=ThumbnailMode.DEFAULT,
-    quality=None,
-):
-    """Build image from source image, optionally compressing and resizing.
-
-    "source_image" is the absolute path of the source in the content directory,
-    "dst_filename" is the absolute path of the target in the output directory.
+    One, but not both, of ``width`` or ``height`` can be ``None``.
     """
     if width is None and height is None:
-        raise ValueError("Must specify at least one of width or height.")
+        raise ValueError("width and height may not both be None")
 
-    im = find_imagemagick(ctx.build_state.config["IMAGEMAGICK_EXECUTABLE"])
-
-    if quality is None:
-        quality = get_quality(source_image)
-
-    resize_key = ""
     if width is not None:
-        resize_key += str(width)
-    if height is not None:
-        resize_key += "x" + str(height)
+        size = ImageSize(width, _scale(width, source_height, source_width))
+    if height is not None and (width is None or height < size.height):
+        size = ImageSize(_scale(height, source_width, source_height), height)
+    return size
 
-    if mode == ThumbnailMode.STRETCH:
-        resize_key += "!"
 
-    cmdline = [im, source_image, "-auto-orient"]
-    if mode == ThumbnailMode.CROP:
-        cmdline += [
-            "-resize",
-            resize_key + "^",
-            "-gravity",
-            "Center",
-            "-extent",
-            resize_key,
-        ]
+def _compute_cropbox(size: ImageSize, source_width: int, source_height: int) -> CropBox:
+    """Compute "crop"-mode crop-box to be applied to the source image before
+    it is scaled to the final thumbnail dimensions.
+
+    """
+    use_width = min(source_width, _scale(source_height, size.width, size.height))
+    use_height = min(source_height, _scale(source_width, size.height, size.width))
+    crop_l = (source_width - use_width) // 2
+    crop_t = (source_height - use_height) // 2
+    return CropBox(crop_l, crop_t, crop_l + use_width, crop_t + use_height)
+
+
+class _SaveImage:
+    format: str
+    params: Mapping[str, Any]
+    image_info_params: tuple[str, ...] = ()
+
+    def __init__(self, quality: int | None = None):
+        pass
+
+    def __call__(self, im: PIL.Image.Image, fp: BinaryIO) -> None:
+        im.save(fp, self.format, **self.get_params(im))
+
+    def get_params(self, im: PIL.Image.Image) -> dict[str, Any]:
+        params = {k: im.info[k] for k in self.image_info_params if k in im.info}
+        params.update(self.params)
+        return params
+
+    @classmethod
+    def get_subclass(cls: Type[_SaveImage], format: str) -> Type[_SaveImage] | None:
+        """Get subclass to handle saving image in specified format."""
+        format = format.upper()
+        for subclass in cls.__subclasses__():
+            if subclass.format == format:
+                return subclass
+        return None
+
+
+class _SavePNG(_SaveImage):
+    format = "PNG"
+    image_info_params = ("icc_profile",)
+
+    def __init__(self, quality: int | None = None):
+        if quality is None:
+            compress_level = 7
+        else:
+            compress_level = max(9, min(0, quality // 10))
+        self.params = {"compress_level": compress_level}
+
+
+class _SaveGIF(_SaveImage):
+    format = "GIF"
+
+    def __init__(self, quality: int | None = None):
+        self.params = {"optimize": True}
+
+
+class _SaveJPEG(_SaveImage):
+    format = "JPEG"
+    image_info_params = ("icc_profile",)
+
+    def __init__(self, quality: int | None = None):
+        if quality is None:
+            # could use quality = "keep" to keep the quality of the source image
+            quality = 85
+        self.params = {"quality": quality}
+
+
+def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
+    """Convert image color profile to sRGB.
+
+    The image is modified **in place**.
+
+    If the original image has no embedded color profile is it set to sRGB.
+    """
+    # XXX: Did the old imagemagick code actually do any colorspace conversion,
+    # or did it just strip the old profile and add sRGB profile?
+    if "icc_profile" in im.info:
+        profile = PIL.ImageCms.getOpenProfile(io.BytesIO(im.info["icc_profile"]))
+        profile_name = PIL.ImageCms.getProfileName(profile)
+        # FIXME: is there a better way to tell if input already sRGB?
+        # Is there even a well-defined single "sRGB" profile?
+        # (See https://ninedegreesbelow.com/photography/srgb-profile-comparison.html)
+        if profile_name.strip() not in ("sRGB", "sRGB IEC61966-2.1", "sRGB built-in"):
+            PIL.ImageCms.profileToProfile(im, profile, SRGB_PROFILE, inPlace=True)
     else:
-        cmdline += ["-resize", resize_key]
+        im.info["icc_profile"] = SRGB_PROFILE_BYTES
 
-    cmdline += ["-strip", "-colorspace", "sRGB"]
-    cmdline += ["-quality", str(quality), dst_filename]
 
-    reporter.report_debug_info("imagemagick cmd line", cmdline)
-    portable_popen(cmdline).wait()
+def _compute_thumbnail(
+    infp: BinaryIO,
+    outfp: BinaryIO,
+    size: ImageSize,
+    format: str,
+    quality: int | None = None,
+    crop: bool = False,
+) -> None:
+    if not HAVE_PILLOW:
+        raise RuntimeError("Thumbnail support requires Pillow to be installed")
+
+    image_saver = _SaveImage.get_subclass(format)
+    if image_saver is None:
+        raise ValueError(f"unrecognized format ({format!r})")
+    save_image = image_saver(quality=quality)
+
+    # XXX: use Image.thumbnail sometimes? (Is it more efficient?)
+    # XXX: does passing explicit `formats` to Image.open make it any faster?
+    source = PIL.Image.open(infp)
+    # transpose according to EXIF Orientation
+    source = PIL.ImageOps.exif_transpose(source)
+
+    resize_params: dict[str, Any] = {"reducing_gap": 3.0}
+    if crop:
+        resize_params["box"] = _compute_cropbox(size, source.width, source.height)
+    thumb = source.resize(size, **resize_params)
+
+    _convert_color_profile_to_srgb(thumb)
+
+    # remove EXIF and other metadata from image, in place
+    # XXX: what about jfif_density, jfif_unit, dpi?
+    for key in (
+        "adobe",  # JPEG
+        "adobe_transform",  # JPEG
+        "comment",  # JPEG, GIF
+        "exif",  # JPEG
+        "extension",  # GIF
+    ):
+        thumb.info.pop(key, None)
+
+    save_image(thumb, outfp)
+
+
+def _get_thumbnail_url_path(
+    source_url_path: str,
+    source_filename: str,
+    format: str,
+    suffix: str,
+) -> str:
+    extensions_by_format = {
+        "PNG": (".png",),
+        "GIF": (".gif",),
+        "JPEG": (".jpeg", ".jpg"),
+    }
+    extensions = extensions_by_format[format.upper()]
+
+    source_ext = os.path.splitext(source_filename)[1]
+    # leave ext unchanged from source if valid for the thumbnail format
+    ext = source_ext if source_ext.lower() in extensions else extensions[0]
+    return get_dependent_url(source_url_path, suffix, ext=ext)
 
 
 def make_image_thumbnail(
@@ -569,51 +671,49 @@ def make_image_thumbnail(
         upscale = True
 
     with open(source_image, "rb") as f:
-        format, source_width, source_height = get_image_info(f)
+        source_format, source_width, source_height = get_image_info(f)
 
-    if format is None:
+    if source_format is None:
         raise RuntimeError("Cannot process unknown images")
 
     # If we are dealing with an actual svg image, we do not actually
     # resize anything, we just return it. This is not ideal but it's
     # better than outright failing.
-    if format == "svg":
+    if source_format == "svg":
+        # XXX: this is pretty broken.
+        # (Deal with scaling mode properly?)
         return Thumbnail(source_url_path, width, height)
 
     if mode == ThumbnailMode.FIT:
-        computed_width, computed_height = compute_dimensions(
-            width, height, source_width, source_height
-        )
+        size = compute_dimensions(width, height, source_width, source_height)
     else:
-        computed_width, computed_height = width, height
+        size = ImageSize(width, height)
 
-    would_upscale = computed_width > source_width or computed_height > source_height
-
+    would_upscale = size.width > source_width or size.height > source_height
     if would_upscale and not upscale:
         return Thumbnail(source_url_path, source_width, source_height)
 
     suffix = get_suffix(width, height, mode, quality=quality)
-    dst_url_path = get_dependent_url(
-        source_url_path, suffix, ext=get_thumbnail_ext(source_image)
+
+    thumbnail_format = source_format.upper()
+    dst_url_path = _get_thumbnail_url_path(
+        source_url_path, source_image, thumbnail_format, suffix
     )
 
+    thumbnail_params = {
+        "size": size,
+        "format": thumbnail_format,
+        "quality": quality,
+        "crop": mode == ThumbnailMode.CROP,
+    }
+
+    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
     def build_thumbnail_artifact(artifact):
-        artifact.ensure_dir()
-        process_image(
-            ctx,
-            source_image,
-            artifact.dst_filename,
-            width,
-            height,
-            mode,
-            quality=quality,
-        )
+        with open(source_image, "rb") as infp:
+            with artifact.open("wb") as outfp:
+                _compute_thumbnail(infp, outfp, **thumbnail_params)
 
-    ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])(
-        build_thumbnail_artifact
-    )
-
-    return Thumbnail(dst_url_path, computed_width, computed_height)
+    return Thumbnail(dst_url_path, size.width, size.height)
 
 
 class Thumbnail:

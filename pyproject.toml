@@ -58,6 +58,9 @@ optional-dependencies.ipython = [
     "ipython",
     "traitlets",
 ]
+optional-dependencies.thumbnails = [
+    "Pillow>=6",
+]
 
 [project.scripts]
 lektor = "lektor.cli:main"
