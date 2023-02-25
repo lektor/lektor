@@ -7,6 +7,7 @@ import posixpath
 import re
 import struct
 import warnings
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -712,16 +713,13 @@ def make_image_thumbnail(
     return Thumbnail(dst_url_path, size.width, size.height)
 
 
+@dataclass
 class Thumbnail:
     """Holds information about a thumbnail."""
 
-    def __init__(self, url_path, width, height=None):
-        #: the `width` of the thumbnail in pixels.
-        self.width = width
-        #: the `height` of the thumbnail in pixels.
-        self.height = height
-        #: the URL path of the image.
-        self.url_path = url_path
+    url_path: str
+    width: int
+    height: int
 
     def __str__(self):
         return posixpath.basename(self.url_path)
