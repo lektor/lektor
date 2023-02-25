@@ -14,16 +14,10 @@ from lektor.utils import secure_url
 
 
 DEFAULT_CONFIG = {
-    "IMAGEMAGICK_EXECUTABLE": None,
     "EPHEMERAL_RECORD_CACHE_SIZE": 500,
     "ATTACHMENT_TYPES": {
         # Only enable image formats here that we can handle in imagetools.
-        # Right now this is limited to jpg, png and gif because this is
-        # the only thing we compile into imagemagick on OS X distributions
-        # as those are what browsers also support.  Thers is no point in
-        # adding others here as we do not force convert images (yet?) but
-        # only use it for thumbnailing.  However an image should be
-        # visible even without thumbnailing.
+        # Right now this is limited to jpg, png and gif.
         ".jpg": "image",
         ".jpeg": "image",
         ".png": "image",
@@ -61,15 +55,6 @@ DEFAULT_CONFIG = {
 
 
 def update_config_from_ini(config, inifile):
-    def set_simple(target, source_path):
-        rv = config.get(source_path)
-        if rv is not None:
-            config[target] = rv
-
-    set_simple(
-        target="IMAGEMAGICK_EXECUTABLE", source_path="env.imagemagick_executable"
-    )
-
     for section_name in ("ATTACHMENT_TYPES", "PROJECT", "PACKAGES", "THEME_SETTINGS"):
         section_config = inifile.section_as_dict(section_name.lower())
         config[section_name].update(section_config)

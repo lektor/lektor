@@ -99,6 +99,7 @@ norecursedirs = ["venv", ".tox", ".git", "node_modules"]
 addopts = "--strict-markers"
 markers = [
     "requiresinternet: marks tests requiring an internet connection",
+    "requirespillow: marks tests that require Pillow to be installed",
 ]
 
 
