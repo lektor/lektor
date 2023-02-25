@@ -203,8 +203,6 @@ def test_thumbnail_quality(builder):
     assert image_size < 9200
 
 
-# TODO: delete this when the thumbnails backwards-compatibility period ends
-@pytest.mark.skip(reason="future behaviour")
 def test_large_thumbnail_returns_original(builder):
     builder.build_all()
     with open(
@@ -212,7 +210,7 @@ def test_large_thumbnail_returns_original(builder):
     ) as f:
         html = f.read()
 
-    assert '<img alt="original" src="./test.jpg" width="384" height="512">' in html
+    assert '<img alt="original" src="test.jpg" width="384" height="512">' in html
 
 
 def test_dimensions():
