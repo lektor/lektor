@@ -69,7 +69,6 @@ def update_config_from_ini(config, inifile):
     set_simple(
         target="IMAGEMAGICK_EXECUTABLE", source_path="env.imagemagick_executable"
     )
-    set_simple(target="LESSC_EXECUTABLE", source_path="env.lessc_executable")
 
     for section_name in ("ATTACHMENT_TYPES", "PROJECT", "PACKAGES", "THEME_SETTINGS"):
         section_config = inifile.section_as_dict(section_name.lower())
