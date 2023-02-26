@@ -111,20 +111,24 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: "pip"
           cache-dependency-path: "**/setup.cfg"
+
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux' && matrix.install-ffmpeg
+        run: sudo apt-get -y install ffmpeg
+
       - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos') && matrix.install-ffmpeg
+        if: runner.os == 'macOS' && matrix.install-ffmpeg
         run: brew install ffmpeg
 
       - name: Install Windows system dependencies
-        if: startsWith(runner.os, 'windows') && matrix.install-ffmpeg
-        run: |
-          choco install --no-progress --timeout 600 ffmpeg
+        if: runner.os == 'Windows' && matrix.install-ffmpeg
+        run: choco install --no-progress --timeout 600 ffmpeg
         continue-on-error: true
       - name: Workaround for UnicodeDecodeError from tox on Windows
         # Refs:
         #   https://github.com/lektor/lektor/pull/933#issuecomment-923107580
         #   https://github.com/tox-dev/tox/issues/1550
-        if: startsWith(runner.os, 'windows')
+        if: runner.os == 'Windows'
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python dependencies
