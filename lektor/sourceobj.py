@@ -56,10 +56,6 @@ class SourceObject:
         # pylint: disable=no-self-use
         return ()
 
-    def iter_virtual_sources(self):
-        # pylint: disable=no-self-use
-        return ()
-
     @property
     def url_path(self):
         """The URL path of this source object if available."""
@@ -279,6 +275,3 @@ class VirtualSourceObject(DBSourceObject):
         # the parent record, it may make sense to override this to
         # return an empty (or some other) list of file names.
         return self.record.iter_source_filenames()
-
-    def iter_virtual_sources(self):
-        yield self
