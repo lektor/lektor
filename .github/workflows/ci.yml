@@ -103,7 +103,7 @@ jobs:
             python: "3.10"
         include:
           - python: "3.11"
-            install-imagemagick: true
+            install-ffmpeg: true
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -112,26 +112,13 @@ jobs:
           cache: "pip"
           cache-dependency-path: "**/setup.cfg"
       - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos') && matrix.install-imagemagick
-        run: brew install imagemagick ffmpeg
+        if: startsWith(runner.os, 'macos') && matrix.install-ffmpeg
+        run: brew install ffmpeg
 
       - name: Install Windows system dependencies
-        if: startsWith(runner.os, 'windows') && matrix.install-imagemagick
+        if: startsWith(runner.os, 'windows') && matrix.install-ffmpeg
         run: |
-          choco install --no-progress --timeout 600 imagemagick.app ffmpeg
-          # The imagemagick.app package, for whatever reason, installs
-          # magick.exe into a directory which is not in the default
-          # search path. Currently, it seems to get installed in a
-          # directory named something like:
-          #
-          # "C:\Program Files\ImageMagick-7.1.0-Q16-HDRI"
-          $ImDirs = (
-            Get-ChildItem $env:ProgramFiles 'ImageMagick*' -Directory
-            | Select-Object -ExpandProperty FullName
-          )
-          if ($ImDirs.Length -eq 0) { Throw "Could not find path to ImageMagick" }
-          $ImDirs | Out-File $env:GITHUB_PATH utf8 -Append
-          $ImDirs | % { "::notice title=ImageMagick::ImageMagick installed at $_" }
+          choco install --no-progress --timeout 600 ffmpeg
         continue-on-error: true
       - name: Workaround for UnicodeDecodeError from tox on Windows
         # Refs:
