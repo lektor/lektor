@@ -46,7 +46,7 @@ class ThumbnailMode(Enum):
 
     DEFAULT = "fit"
 
-    @property  # type: ignore[misc] # https://github.com/python/mypy/issues/1362
+    @property
     @deprecated("Use ThumbnailMode.value instead", version="3.3.0")
     def label(self):
         """The mode's label as used in templates."""
@@ -85,11 +85,11 @@ def _parse_svg_units_px(length):
     match = _parse_svg_units_re.match(length)
     if not match:
         return None
-    match = match.groupdict()
-    if match["unit"] and match["unit"] != "px":
+    groups = match.groupdict()
+    if groups["unit"] and groups["unit"] != "px":
         return None
     try:
-        return float(match["value"])
+        return float(groups["value"])
     except ValueError:
         return None
 
