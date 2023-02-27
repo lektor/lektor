@@ -90,7 +90,6 @@ class BuildState:
     def __init__(self, builder, path_cache):
         self.builder = builder
 
-        self.named_temporaries = set()
         self.updated_artifacts = []
         self.failed_artifacts = []
         self.path_cache = path_cache
@@ -110,19 +109,6 @@ class BuildState:
         """The config for this buildstate."""
         return self.builder.pad.db.config
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, tb):
-        self.close()
-
-    def close(self):
-        for fn in self.named_temporaries:
-            try:
-                os.remove(fn)
-            except OSError:
-                pass
-
     def notify_failure(self, artifact, exc_info):
         """Notify about a failure.  This marks a failed artifact and stores
         a failure.
@@ -130,23 +116,6 @@ class BuildState:
         self.failed_artifacts.append(artifact)
         self.builder.failure_controller.store_failure(artifact.artifact_name, exc_info)
         reporter.report_failure(artifact, exc_info)
-
-    def make_named_temporary(self, identifier=None):
-        """Creates a named temporary file and returns the filename for it.
-        This can be usedful in some scenarious when building with external
-        tools.
-        """
-        tmpdir = os.path.join(self.builder.meta_path, "tmp")
-        try:
-            os.makedirs(tmpdir)
-        except OSError:
-            pass
-        fn = os.path.join(
-            dir,
-            "nt-%s-%s.tmp" % (identifier or "generic", os.urandom(20).encode("hex")),
-        )
-        self.named_temporaries.add(fn)
-        return fn
 
     def get_file_info(self, filename):
         if filename:
@@ -1179,43 +1148,44 @@ class Builder:
         correspond to known artifacts.
         """
         path_cache = PathCache(self.env)
+        build_state = self.new_build_state(path_cache=path_cache)
         with reporter.build(all and "clean" or "prune", self):
             self.env.plugin_controller.emit("before-prune", builder=self, all=all)
-            with self.new_build_state(path_cache=path_cache) as build_state:
-                for aft in build_state.iter_unreferenced_artifacts(all=all):
-                    reporter.report_pruned_artifact(aft)
-                    filename = build_state.get_destination_filename(aft)
-                    prune_file_and_folder(filename, self.destination_path)
-                    build_state.remove_artifact(aft)
-                build_state.prune_source_infos()
 
+            for aft in build_state.iter_unreferenced_artifacts(all=all):
+                reporter.report_pruned_artifact(aft)
+                filename = build_state.get_destination_filename(aft)
+                prune_file_and_folder(filename, self.destination_path)
+                build_state.remove_artifact(aft)
+
+            build_state.prune_source_infos()
             if all:
                 build_state.vacuum()
             self.env.plugin_controller.emit("after-prune", builder=self, all=all)
 
     def build(self, source, path_cache=None):
         """Given a source object, builds it."""
-        with self.new_build_state(path_cache=path_cache) as build_state:
-            with reporter.process_source(source):
-                prog = self.get_build_program(source, build_state)
-                self.env.plugin_controller.emit(
-                    "before-build",
-                    builder=self,
-                    build_state=build_state,
-                    source=source,
-                    prog=prog,
-                )
-                prog.build()
-                if build_state.updated_artifacts:
-                    self.update_source_info(prog, build_state)
-                self.env.plugin_controller.emit(
-                    "after-build",
-                    builder=self,
-                    build_state=build_state,
-                    source=source,
-                    prog=prog,
-                )
-                return prog, build_state
+        build_state = self.new_build_state(path_cache=path_cache)
+        with reporter.process_source(source):
+            prog = self.get_build_program(source, build_state)
+            self.env.plugin_controller.emit(
+                "before-build",
+                builder=self,
+                build_state=build_state,
+                source=source,
+                prog=prog,
+            )
+            prog.build()
+            if build_state.updated_artifacts:
+                self.update_source_info(prog, build_state)
+            self.env.plugin_controller.emit(
+                "after-build",
+                builder=self,
+                build_state=build_state,
+                source=source,
+                prog=prog,
+            )
+            return prog, build_state
 
     def get_initial_build_queue(self):
         """Returns the initial build queue as deque."""
@@ -1253,19 +1223,19 @@ class Builder:
         """Fast way to update all source infos without having to build
         everything.
         """
+        build_state = self.new_build_state()
         # We keep a dummy connection here that does not do anything which
         # helps us with the WAL handling.  See #144
         con = self.connect_to_database()
         try:
             with reporter.build("source info update", self):
-                with self.new_build_state() as build_state:
-                    to_build = self.get_initial_build_queue()
-                    while to_build:
-                        source = to_build.popleft()
-                        with reporter.process_source(source):
-                            prog = self.get_build_program(source, build_state)
-                            self.update_source_info(prog, build_state)
-                        self.extend_build_queue(to_build, prog)
+                to_build = self.get_initial_build_queue()
+                while to_build:
+                    source = to_build.popleft()
+                    with reporter.process_source(source):
+                        prog = self.get_build_program(source, build_state)
+                        self.update_source_info(prog, build_state)
+                    self.extend_build_queue(to_build, prog)
                 build_state.prune_source_infos()
         finally:
             con.close()
