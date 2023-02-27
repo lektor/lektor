@@ -379,13 +379,7 @@ class BuildState:
                 if info is None:
                     return False
 
-                if isinstance(info, VirtualSourceInfo):
-                    new_vinfo = self.get_virtual_source_info(info.path, info.alt)
-                    if not info.unchanged(new_vinfo):
-                        return False
-
-                # If the file info is different, then it clearly changed.
-                elif not info.unchanged(self.get_file_info(info.filename)):
+                if info.is_changed(self):
                     return False
 
             return True
@@ -494,7 +488,18 @@ def _describe_fs_path_for_checksum(path):
     return b"\x00"
 
 
-class FileInfo:
+class _ArtifactSourceInfo:
+    """Base for classes that contain freshness data about artifact sources.
+
+    Concrete subclasses include FileInfo and VirtualSourceInfo.
+    """
+
+    def is_changed(self, build_state: BuildState) -> bool:
+        """Determine whether source has changed."""
+        raise NotImplementedError()
+
+
+class FileInfo(_ArtifactSourceInfo):
     """A file info object holds metainformation of a file so that changes
     can be detected easily.
     """
@@ -607,6 +612,10 @@ class FileInfo:
 
         return self.checksum == other.checksum
 
+    def is_changed(self, build_state: BuildState) -> bool:
+        other = build_state.get_file_info(self.filename)
+        return not self.unchanged(other)
+
 
 def _pack_virtual_source_path(path, alt):
     """Pack VirtualSourceObject's path and alt into a single string.
@@ -639,7 +648,7 @@ def _unpack_virtual_source_path(packed):
 
 
 @dataclass
-class VirtualSourceInfo:
+class VirtualSourceInfo(_ArtifactSourceInfo):
     path: str
     alt: str | None
     mtime: int | None = None
@@ -656,6 +665,10 @@ class VirtualSourceInfo:
             )
 
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
+
+    def is_changed(self, build_state: BuildState) -> bool:
+        other = build_state.get_virtual_source_info(self.path, self.alt)
+        return not self.unchanged(other)
 
 
 artifacts_row = namedtuple(
