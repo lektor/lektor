@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import os
 import shutil
@@ -8,6 +10,7 @@ import tempfile
 from collections import deque
 from collections import namedtuple
 from contextlib import contextmanager
+from dataclasses import dataclass
 from itertools import chain
 
 import click
@@ -635,12 +638,12 @@ def _unpack_virtual_source_path(packed):
     return path, alt
 
 
+@dataclass
 class VirtualSourceInfo:
-    def __init__(self, path, alt, mtime=None, checksum=None):
-        self.path = path
-        self.alt = alt
-        self.mtime = mtime
-        self.checksum = checksum
+    path: str
+    alt: str | None
+    mtime: int | None = None
+    checksum: str | None = None
 
     def unchanged(self, other):
         if not isinstance(other, VirtualSourceInfo):
@@ -653,12 +656,6 @@ class VirtualSourceInfo:
             )
 
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
-
-    def __repr__(self):
-        return (
-            f"{self.__class__.__name__}"
-            f"({self.path!r}, {self.alt!r}, {self.mtime!r}, {self.checksum!r})"
-        )
 
 
 artifacts_row = namedtuple(
