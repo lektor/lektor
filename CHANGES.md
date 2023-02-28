@@ -14,9 +14,14 @@ Test under python 3.11. ([#1084][])
   ignore `TypeError`s thrown by plugin hook methods. ([#1086][],
   [#1085][])
 
+#### Packaging
+
+- List all directly imported packages as dependencies. Fixes [#1109][].
+
 [#1084]: https://github.com/lektor/lektor/pull/1084
 [#1085]: https://github.com/lektor/lektor/issues/1085
 [#1086]: https://github.com/lektor/lektor/pull/1086
+[#1109]: https://github.com/lektor/lektor/issues/1109
 
 ## 3.3.7 (2022-09-21)
 
