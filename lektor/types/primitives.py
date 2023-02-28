@@ -1,9 +1,9 @@
+import re
 from datetime import date
 from datetime import datetime
 
 from babel.dates import get_timezone
 from markupsafe import Markup
-from pytz import FixedOffset
 
 from lektor.constants import PRIMARY_ALT
 from lektor.i18n import get_i18n_block
@@ -117,25 +117,61 @@ class DateTimeType(SingleInputType):
     def value_from_raw(self, raw):
         if raw.value is None:
             return raw.missing_value("Missing datetime")
+
+        # The previous version of this code allowed a time zonename, followed by a zone
+        # offset. In that case the zone name would be ignored (unless the combined zone
+        # name, including the offset matched an IANA zone key). For the sake of
+        # backwards compatibility we do the same here.
+        m = re.match(
+            r"""
+            (?P<datetime>
+                \d{4} - \d\d? - \d\d?  # YY-MM-DD
+                \s+ \d\d? : \d\d (?P<seconds> :\d\d )? # HH:MM[:SS]
+            )
+            (?: \s+
+                (?P<timezone>
+                    # Long timezone keys, and — on Windows — names containing
+                    # certain characters (those that are not allowed in filenames)
+                    # give zoneinfo gas.
+                    # https://github.com/python/cpython/issues/96463
+                    [^<>:"|?*\x00-\x1f]{,100}?
+                    (?P<zoneoffset> [-+] \d\d (?: :? \d\d ){1,2} )?  # ±HHMM[SS]
+                )
+            )?
+            \Z""",
+            raw.value.strip(),
+            re.DOTALL | re.VERBOSE,
+        )
+        if m is None:
+            return raw.bad_value("Bad datetime format")
+        timezone, zoneoffset = m.group("timezone", "zoneoffset")
+        tz = None
+        if timezone is not None:
+            try:
+                tz = get_timezone(timezone)
+                zoneoffset = None
+            except LookupError:
+                if zoneoffset is None:
+                    return raw.bad_value(f"Unknown timezone {timezone!r}")
+
+        dt = m["datetime"]
+        fmt = "%Y-%m-%d %H:%M"
+        if m["seconds"] is not None:
+            fmt += ":%S"
+        if zoneoffset is not None:
+            dt += f" {zoneoffset}"
+            fmt += " %z"
         try:
-            chunks = raw.value.split(" ")
-            date_info = [int(bit) for bit in chunks[0].split("-")]
-            time_info = [int(bit) for bit in chunks[1].split(":")]
-            datetime_info = date_info + time_info
-            result = datetime(*datetime_info)
+            result = datetime.strptime(dt, fmt)
+        except ValueError:
+            return raw.bad_value("Invalid datetime")
 
-            if len(chunks) > 2:
-                try:
-                    tz = get_timezone(chunks[-1])
-                except LookupError:
-                    if len(chunks[-1]) > 5:
-                        chunks[-1] = chunks[-1][-5:]
-                    delta = int(chunks[-1][1:3]) * 60 + int(chunks[-1][3:])
-                    if chunks[-1][0] == "-":
-                        delta *= -1
-                    tz = FixedOffset(delta)
-                return tz.localize(result)
-
+        if tz is None:
             return result
-        except Exception:
-            return raw.bad_value("Bad date format")
+
+        # as of babel 2.12, get_timezone can return either a pytz timezone
+        # or a zoneinfo timezone
+        assert result.tzinfo is None
+        if hasattr(tz, "localize"):  # pytz
+            return tz.localize(result)
+        return result.replace(tzinfo=tz)

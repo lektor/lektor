@@ -3,7 +3,6 @@ import re
 import warnings
 
 import pytest
-from babel.dates import get_timezone
 from markupsafe import escape
 from markupsafe import Markup
 
@@ -217,161 +216,89 @@ def test_boolean(env, pad):
             assert rv is False
 
 
-def test_datetime(env, pad):
-    field = make_field(env, "datetime")
-
-    with Context(pad=pad):
-        # default
-        rv = field.deserialize_value("2016-04-30 01:02:03", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo is None
-
-        # It is not datetime, it is None
-        rv = field.deserialize_value(None, pad=pad)
-        assert isinstance(rv, Undefined)
-
-        # It is not datetime, it is empty string
-        rv = field.deserialize_value("", pad=pad)
-        assert isinstance(rv, BadValue)
-
-        # It is not datetime, it is date
-        rv = field.deserialize_value("2016-04-30", pad=pad)
-        assert isinstance(rv, BadValue)
+dt = datetime.datetime
 
 
-def test_datetime_timezone_utc(env, pad):
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("2016-04-30 01:02:03", dt(2016, 4, 30, 1, 2, 3)),
+        ("1970-1-1 12:34", dt(1970, 1, 1, 12, 34)),
+        ("1970-01-02 12:34", dt(1970, 1, 2, 12, 34)),
+        ("2020-02-03 01:02:03", dt(2020, 2, 3, 1, 2, 3)),
+    ],
+)
+def test_datetime_no_timezone(env, pad, value, expected):
     field = make_field(env, "datetime")
     with Context(pad=pad):
+        rv = field.deserialize_value(value, pad=pad)
+
+    assert rv.replace(tzinfo=None) == expected
+    assert rv.tzinfo is None
+
+
+def utc(*args):
+    return datetime.datetime(*args, tzinfo=datetime.timezone.utc)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
         # Known timezone name, UTC
-        rv = field.deserialize_value("2016-04-30 01:02:03 UTC", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo is get_timezone("UTC")
-
-
-def test_datetime_timezone_est(env, pad):
-    field = make_field(env, "datetime")
-    with Context(pad=pad):
+        ("2016-04-30 01:02:03 UTC", utc(2016, 4, 30, 1, 2, 3)),
         # Known timezone name, EST
-        rv = field.deserialize_value("2016-04-30 01:02:03 EST", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo is get_timezone("EST")
-
-
-def test_datetime_timezone_location(env, pad):
-    field = make_field(env, "datetime")
-    with Context(pad=pad):
+        ("2016-04-30 01:02:03 EST", utc(2016, 4, 30, 6, 2, 3)),
         # Known location name, Asia/Seoul
-        rv = field.deserialize_value("2016-04-30 01:02:03 Asia/Seoul", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        tzinfos = get_timezone("Asia/Seoul")._tzinfos  # pylint: disable=no-member
-        assert rv.tzinfo in tzinfos.values()
-
-
-def test_datetime_timezone_kst(env, pad):
-    field = make_field(env, "datetime")
-    with Context(pad=pad):
+        ("2016-04-30 01:02:03 Asia/Seoul", utc(2016, 4, 29, 16, 2, 3)),
         # KST - http://www.timeanddate.com/time/zones/kst
-        rv = field.deserialize_value("2016-04-30 01:02:03 +0900", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
-
-
-def test_datetime_timezone_acst(env, pad):
-    field = make_field(env, "datetime")
-    with Context(pad=pad):
+        ("2016-04-30 01:02:03 +0900", utc(2016, 4, 29, 16, 2, 3)),
         # ACST - http://www.timeanddate.com/time/zones/acst
-        rv = field.deserialize_value("2016-04-30 01:02:03 +0930", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, (9 * 60 + 30) * 60)
-
-
-def test_datetime_timezone_mst(env, pad):
-    field = make_field(env, "datetime")
-    with Context(pad=pad):
+        ("2016-04-30 01:02:03 +0930", utc(2016, 4, 29, 15, 32, 3)),
         # MST - http://www.timeanddate.com/time/zones/mst
-        rv = field.deserialize_value("2016-04-30 01:02:03 -0700", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, -7 * 60 * 60)
-
-
-def test_datetime_timezone_mart(env, pad):
-    field = make_field(env, "datetime")
-    with Context(pad=pad):
+        ("2016-04-30 01:02:03 -0700", utc(2016, 4, 30, 8, 2, 3)),
         # MART - http://www.timeanddate.com/time/zones/mart
-        rv = field.deserialize_value("2016-04-30 01:02:03 -0930", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, -(9 * 60 + 30) * 60)
-
-
-def test_datetime_timezone_name(env, pad):
+        ("2016-04-30 01:02:03 -0930", utc(2016, 4, 30, 10, 32, 3)),
+        # with (ignored) timezone name (case 1)
+        ("2016-04-30 01:02:03 KST +0900", utc(2016, 4, 29, 16, 2, 3)),
+        # with (ignored) timezone name (case 2)
+        ("2016-04-30 01:02:03 KST+0900", utc(2016, 4, 29, 16, 2, 3)),
+    ],
+)
+def test_datetime_timezone(env, pad, value, expected):
     field = make_field(env, "datetime")
     with Context(pad=pad):
-        # with timezone name (case 1)
-        rv = field.deserialize_value("2016-04-30 01:02:03 KST +0900", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+        rv = field.deserialize_value(value, pad=pad)
+    assert rv.astimezone(expected.tzinfo) == expected
 
-        # with timezone name (case 2)
-        rv = field.deserialize_value("2016-04-30 01:02:03 KST+0900", pad=pad)
-        assert isinstance(rv, datetime.datetime)
-        assert rv.year == 2016
-        assert rv.month == 4
-        assert rv.day == 30
-        assert rv.hour == 1
-        assert rv.minute == 2
-        assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "",
+        "197",
+        "1970",
+        "1970-01",
+        "1970-01-01",
+        "1970-01-01 12",
+        "1970-01-01 12.23",
+        "1970-01 01:02:03",
+        "1970-01-01 12:34 *0800",
+        "1970-01-01 12:34 -081",
+        "1970-01-01 12:34 a\\b",
+        "1970-01-01 12:34 very/unknown/timezone",
+        "1970-01-01 12:34 very/long/timezone" + "e" * 1024,
+    ],
+)
+def test_datetime_invalid(env, pad, value):
+    field = make_field(env, "datetime")
+    with Context(pad=pad):
+        rv = field.deserialize_value(value, pad=pad)
+    assert isinstance(rv, BadValue)
+
+
+def test_datetime_missing(env, pad):
+    field = make_field(env, "datetime")
+    with Context(pad=pad):
+        rv = field.deserialize_value(None, pad=pad)
+    assert isinstance(rv, Undefined)
+    assert "Missing value" in rv._undefined_hint
