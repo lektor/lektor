@@ -125,13 +125,14 @@ class BuildState:
     def to_source_filename(self, filename):
         return self.path_cache.to_source_filename(filename)
 
-    def get_virtual_source_info(self, virtual_source_path):
-        virtual_source = self.pad.get(virtual_source_path)
-        if not virtual_source:
-            return VirtualSourceInfo(virtual_source_path, None, None)
-        mtime = virtual_source.get_mtime(self.path_cache)
-        checksum = virtual_source.get_checksum(self.path_cache)
-        return VirtualSourceInfo(virtual_source_path, mtime, checksum)
+    def get_virtual_source_info(self, virtual_source_path, alt=None):
+        virtual_source = self.pad.get(virtual_source_path, alt=alt)
+        if virtual_source is not None:
+            mtime = virtual_source.get_mtime(self.path_cache)
+            checksum = virtual_source.get_checksum(self.path_cache)
+        else:
+            mtime = checksum = None
+        return VirtualSourceInfo(virtual_source_path, alt, mtime, checksum)
 
     def connect_to_database(self):
         """Returns a database connection for the build state db."""
@@ -200,7 +201,8 @@ class BuildState:
         found = set()
         for path, mtime, size, checksum, is_dir in rv:
             if "@" in path:
-                yield path, VirtualSourceInfo(path, mtime, checksum)
+                vpath, alt = _unpack_virtual_source_path(path)
+                yield path, VirtualSourceInfo(vpath, alt, mtime, checksum)
             else:
                 file_info = FileInfo(
                     self.env, path, mtime, size, checksum, bool(is_dir)
@@ -344,7 +346,7 @@ class BuildState:
                     return False
 
                 if isinstance(info, VirtualSourceInfo):
-                    new_vinfo = self.get_virtual_source_info(info.path)
+                    new_vinfo = self.get_virtual_source_info(info.path, info.alt)
                     if not info.unchanged(new_vinfo):
                         return False
 
@@ -572,9 +574,40 @@ class FileInfo:
         return self.checksum == other.checksum
 
 
+def _pack_virtual_source_path(path, alt):
+    """Pack VirtualSourceObject's path and alt into a single string.
+
+    The full identity key for a VirtualSourceObject is its ``path`` along with its ``alt``.
+    (Two VirtualSourceObjects with differing alts are not the same object.)
+
+    This functions packs the (path, alt) pair into a single string for storage
+    in the ``artifacts.path`` of the buildstate database.
+
+    Note that if alternatives are not configured for the current site, there is
+    only one alt, so we safely omit the alt from the packed path.
+    """
+    if alt is None or alt == PRIMARY_ALT:
+        return path
+    return f"{alt}@{path}"
+
+
+def _unpack_virtual_source_path(packed):
+    """Unpack VirtualSourceObject's path and alt from packed path.
+
+    This is the inverse of _pack_virtual_source_path.
+    """
+    alt, sep, path = packed.partition("@")
+    if not sep:
+        raise ValueError("A packed virtual source path must include at least one '@'")
+    if "@" not in path:
+        path, alt = packed, None
+    return path, alt
+
+
 class VirtualSourceInfo:
-    def __init__(self, path, mtime=None, checksum=None):
+    def __init__(self, path, alt, mtime=None, checksum=None):
         self.path = path
+        self.alt = alt
         self.mtime = mtime
         self.checksum = checksum
 
@@ -582,7 +615,7 @@ class VirtualSourceInfo:
         if not isinstance(other, VirtualSourceInfo):
             raise TypeError("'other' must be a VirtualSourceInfo, not %r" % other)
 
-        if self.path != other.path:
+        if (self.path, self.alt) != (other.path, other.alt):
             raise ValueError(
                 "trying to compare mismatched virtual paths: "
                 "%r.unchanged(%r)" % (self, other)
@@ -591,7 +624,10 @@ class VirtualSourceInfo:
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
 
     def __repr__(self):
-        return "VirtualSourceInfo(%r, %r, %r)" % (self.path, self.mtime, self.checksum)
+        return (
+            f"{self.__class__.__name__}"
+            f"({self.path!r}, {self.alt!r}, {self.mtime!r}, {self.checksum!r})"
+        )
 
 
 artifacts_row = namedtuple(
@@ -609,7 +645,12 @@ artifacts_row = namedtuple(
 
 
 class Artifact:
-    """This class represents a build artifact."""
+    """This class represents a build artifact.
+
+    :param sources: The _primary sources_ for the artifact.
+        If none of the primary sources for an artifact exist, the artifact
+        will be considered obsolete and will be deleted at the next pruning.
+    """
 
     def __init__(
         self,
@@ -752,7 +793,7 @@ class Artifact:
                 rows.append(
                     artifacts_row(
                         artifact=self.artifact_name,
-                        source=v_source.path,
+                        source=_pack_virtual_source_path(v_source.path, v_source.alt),
                         source_mtime=mtime,
                         source_size=None,
                         source_checksum=checksum,
@@ -879,8 +920,11 @@ class Artifact:
         """
         ctx = self.begin_update()
         try:
+            if self.source_obj:
+                # Record dependencies on all sources and datamodel
+                ctx.track_source_dependency(self.source_obj)
             yield ctx
-        except:  # pylint: disable=bare-except  # noqa
+        except BaseException:
             exc_info = sys.exc_info()
             self.finish_update(ctx, exc_info)
         else:
@@ -945,7 +989,7 @@ class Artifact:
         if exc_info is None:
             self._memorize_dependencies(
                 ctx.referenced_dependencies,
-                ctx.referenced_virtual_dependencies.values(),
+                ctx.referenced_virtual_dependencies,
             )
             self._commit()
             return
@@ -961,7 +1005,7 @@ class Artifact:
         # use a new database connection that immediately commits.
         self._memorize_dependencies(
             ctx.referenced_dependencies,
-            ctx.referenced_virtual_dependencies.values(),
+            ctx.referenced_virtual_dependencies,
             for_failure=True,
         )
 

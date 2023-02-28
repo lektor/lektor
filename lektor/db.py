@@ -27,13 +27,14 @@ from lektor.context import get_ctx
 from lektor.databags import Databags
 from lektor.datamodel import load_datamodels
 from lektor.datamodel import load_flowblocks
+from lektor.editor import implied_keys as IMPLIED_KEYS  # FIXME: refactor
 from lektor.editor import make_editor_session
 from lektor.filecontents import FileContents
 from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import read_exif
 from lektor.imagetools import ThumbnailMode
-from lektor.sourceobj import SourceObject
+from lektor.sourceobj import DBSourceObject
 from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
@@ -271,7 +272,7 @@ class _ContainmentExpr(Expression):
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
-            item = item["_id"]
+            item = item._data["_id"]
         return item in seq
 
 
@@ -302,12 +303,12 @@ class _RecordQueryProxy:
 F = _RecordQueryProxy()
 
 
-class Record(SourceObject):
+class Record(DBSourceObject):
     source_classification = "record"
     supports_pagination = False
 
     def __init__(self, pad, data, page_num=None):
-        SourceObject.__init__(self, pad)
+        super().__init__(pad)
         self._data = data
         self._bound_data = {}
         if page_num is not None and not self.supports_pagination:
@@ -332,7 +333,7 @@ class Record(SourceObject):
     @property
     def alt(self):
         """Returns the alt of this source object."""
-        return self["_alt"]
+        return self._data["_alt"]
 
     @property
     def is_hidden(self):
@@ -367,12 +368,14 @@ class Record(SourceObject):
 
     @cached_property
     def contents(self):
+        # FIXME: unused. Deprecate?
         return FileContents(self.source_filename)
 
     def get_fallback_record_label(self, lang):
-        if not self["_id"]:
+        id_ = self._data["_id"]
+        if not id_:
             return "(Index)"
-        return self["_id"].replace("-", " ").replace("_", " ").title()
+        return id_.replace("-", " ").replace("_", " ").title()
 
     def get_record_label_i18n(self):
         rv = {}
@@ -436,7 +439,7 @@ class Record(SourceObject):
 
     @property
     def path(self):
-        return self["_path"]
+        return self._data["_path"]
 
     def get_sort_key(self, fields):
         """Returns a sort key for the given field specifications specific
@@ -461,6 +464,15 @@ class Record(SourceObject):
         return name in self._data and not is_undefined(self._data[name])
 
     def __getitem__(self, name):
+        if name in IMPLIED_KEYS:
+            # These are always stored as plain strings in the raw _data.
+            # Furthermore, these values do not come form the ``.lr`` files, so
+            # accessing them should not result in tracking dependency on the record.
+            return self._data[name]
+
+        ctx = get_ctx()
+        if ctx is not None:
+            ctx.track_source_dependency(self)
         rv = self._bound_data.get(name, Ellipsis)
         if rv is not Ellipsis:
             return rv
@@ -470,21 +482,11 @@ class Record(SourceObject):
         self._bound_data[name] = rv
         return rv
 
-    def __eq__(self, other):
-        if self is other:
-            return True
-        if self.__class__ != other.__class__:
-            return False
-        return self["_path"] == other["_path"]
-
-    def __hash__(self):
-        return hash(self.path)
-
     def __repr__(self):
         return "<%s model=%r path=%r%s%s>" % (
             self.__class__.__name__,
-            self["_model"],
-            self["_path"],
+            self._data["_model"],
+            self._data["_path"],
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
             self.page_num is not None and " page_num=%r" % self.page_num or "",
         )
@@ -512,23 +514,13 @@ class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
         return self._next_page
 
     def iter_source_filenames(self):
-        for page in self._prev_page, self._next_page:
-            if page:
-                yield page.source_filename
-
-    def _file_infos(self, path_cache):
-        for page in self._prev_page, self._next_page:
-            if page:
-                yield path_cache.get_file_info(page.source_filename)
-
-    def get_mtime(self, path_cache):
-        mtimes = [i.mtime for i in self._file_infos(path_cache)]
-        return max(mtimes) if mtimes else None
+        return ()
 
     def get_checksum(self, path_cache):
-        sums = "|".join(i.filename_and_checksum for i in self._file_infos(path_cache))
+        def path(page):
+            return page.path if page is not None else ""
 
-        return sums or None
+        return f"{path(self._prev_page)}|{path(self._next_page)}"
 
 
 def siblings_resolver(node, url_path):
@@ -543,7 +535,7 @@ class Page(Record):
 
     @cached_property
     def path(self):
-        rv = self["_path"]
+        rv = self._data["_path"]
         if self.page_num is not None:
             rv = "%s@%s" % (rv, self.page_num)
         return rv
@@ -553,21 +545,16 @@ class Page(Record):
         if self.page_num is None:
             return self
         return self.pad.get(
-            self["_path"], persist=self.pad.cache.is_persistent(self), alt=self.alt
+            self._data["_path"],
+            persist=self.pad.cache.is_persistent(self),
+            alt=self.alt,
         )
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            return os.path.join(
-                self.pad.db.to_fs_path(self["_path"]), "contents+%s.lr" % self.alt
-            )
-        return os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
-
     def iter_source_filenames(self):
-        yield self.source_filename
+        fs_path = self.pad.db.to_fs_path(self._data["_path"])
         if self.alt != PRIMARY_ALT:
-            yield os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
+            yield os.path.join(fs_path, f"contents+{self.alt}.lr")
+        yield os.path.join(fs_path, "contents.lr")
 
     @property
     def url_path(self):
@@ -663,12 +650,12 @@ class Page(Record):
         repl_query = self.datamodel.get_child_replacements(self)
         if repl_query is not None:
             return repl_query.include_undiscoverable(False)
-        return Query(path=self["_path"], pad=self.pad, alt=self.alt)
+        return Query(path=self._data["_path"], pad=self.pad, alt=self.alt)
 
     @property
     def attachments(self):
         """Returns a query for the attachments of this record."""
-        return AttachmentsQuery(path=self["_path"], pad=self.pad, alt=self.alt)
+        return AttachmentsQuery(path=self._data["_path"], pad=self.pad, alt=self.alt)
 
     def has_prev(self):
         return self.get_siblings().prev_page is not None
@@ -684,7 +671,7 @@ class Page(Record):
         siblings = Siblings(self, *self._siblings)
         ctx = get_ctx()
         if ctx:
-            ctx.pad.db.track_record_dependency(siblings)
+            ctx.track_source_dependency(siblings)
         return siblings
 
     @cached_property
@@ -721,14 +708,6 @@ class Attachment(Record):
 
     is_attachment = True
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            suffix = "+%s.lr" % self.alt
-        else:
-            suffix = ".lr"
-        return self.pad.db.to_fs_path(self["_path"]) + suffix
-
     def _is_considered_hidden(self):
         # Attachments are only considered hidden if they have been
         # configured as such.  This means that even if a record itself is
@@ -744,7 +723,7 @@ class Attachment(Record):
 
     @property
     def attachment_filename(self):
-        return self.pad.db.to_fs_path(self["_path"])
+        return self.pad.db.to_fs_path(self._data["_path"])
 
     @property
     def parent(self):
@@ -758,13 +737,14 @@ class Attachment(Record):
         return FileContents(self.attachment_filename)
 
     def get_fallback_record_label(self, lang):
-        return self["_id"]
+        return self._data["_id"]
 
     def iter_source_filenames(self):
-        yield self.source_filename
+        attachment_filename = self.attachment_filename
         if self.alt != PRIMARY_ALT:
-            yield self.pad.db.to_fs_path(self["_path"]) + ".lr"
-        yield self.attachment_filename
+            yield f"{attachment_filename}+{self.alt}.lr"
+        yield f"{attachment_filename}.lr"
+        yield attachment_filename
 
     @property
     def url_path(self):
@@ -1027,18 +1007,18 @@ class Query:
 
     def _iterate(self):
         """Low level record iteration."""
-        # If we iterate over children we also need to track those
-        # dependencies.  There are two ways in which we track them.  The
-        # first is through the start record of the query.  If that does
-        # not work for whatever reason (because it does not exist for
-        # instance).
-        self_record = self.pad.get(self.path, alt=self.alt)
-        if self_record is not None:
-            self.pad.db.track_record_dependency(self_record)
-
-        # We also always want to record the path itself as dependency.
         ctx = get_ctx()
         if ctx is not None:
+            # If we iterate over children we also need to track those
+            # dependencies.  There are two ways in which we track
+            # them.  The first is through the start record of the
+            # query.  If that does not work for whatever reason
+            # (because it does not exist for instance).
+            self_record = self.pad.get(self.path, alt=self.alt)
+            if self_record is not None:
+                ctx.track_source_dependency(self_record)
+
+            # We also always want to record the path itself as dependency.
             ctx.record_dependency(self.pad.db.to_fs_path(self.path))
 
         for name, _, is_attachment in self.pad.db.iter_items(self.path, alt=self.alt):
@@ -1502,27 +1482,12 @@ class Database:
         """Gets the attachment type for a path."""
         return self.config["ATTACHMENT_TYPES"].get(posixpath.splitext(path)[1].lower())
 
-    def track_record_dependency(self, record):
+    # FIXME: deprecate this method
+    @staticmethod
+    def track_record_dependency(record):
         ctx = get_ctx()
         if ctx is not None:
-            for filename in record.iter_source_filenames():
-                if isinstance(record, Attachment):
-                    # For Attachments, the actually attachment data
-                    # does not affect the URL of the attachment.
-                    affects_url = filename != record.attachment_filename
-                else:
-                    affects_url = True
-                ctx.record_dependency(filename, affects_url=affects_url)
-            for virtual_source in record.iter_virtual_sources():
-                ctx.record_virtual_dependency(virtual_source)
-            if getattr(record, "datamodel", None) and record.datamodel.filename:
-                ctx.record_dependency(record.datamodel.filename)
-                for dep_model in self.iter_dependent_models(record.datamodel):
-                    if dep_model.filename:
-                        ctx.record_dependency(dep_model.filename)
-            # XXX: In the case that our datamodel is implied, then the
-            # datamodel depends on the datamodel(s) of our parent(s).
-            # We do not currently record that.
+            ctx.track_source_dependency(record)
         return record
 
     def process_data(self, data, datamodel, pad):
@@ -1733,7 +1698,7 @@ class Pad:
         if pieces[0].isdigit():
             if len(pieces) == 1:
                 return self.get(
-                    record["_path"], alt=record.alt, page_num=int(pieces[0])
+                    record._data["_path"], alt=record.alt, page_num=int(pieces[0])
                 )
             return None
 
@@ -1777,24 +1742,25 @@ class Pad:
             virtual_path = str(page_num)
 
         rv = self.cache.get(path, alt, virtual_path)
-        if rv is not Ellipsis:
-            if rv is not None:
-                self.db.track_record_dependency(rv)
-            return rv
-
-        raw_data = self.db.load_raw_data(path, alt=alt)
-        if raw_data is None:
-            self.cache.remember_as_missing(path, alt, virtual_path)
+        if rv is None:
             return None
+        if rv is Ellipsis:
+            raw_data = self.db.load_raw_data(path, alt=alt)
+            if raw_data is None:
+                self.cache.remember_as_missing(path, alt, virtual_path)
+                return None
 
-        rv = self.instance_from_data(raw_data, page_num=page_num)
+            rv = self.instance_from_data(raw_data, page_num=page_num)
 
-        if persist:
-            self.cache.persist(rv)
-        else:
-            self.cache.remember(rv)
+            if persist:
+                self.cache.persist(rv)
+            else:
+                self.cache.remember(rv)
 
-        return self.db.track_record_dependency(rv)
+        ctx = get_ctx()
+        if ctx is not None:
+            ctx.track_source_dependency(rv)
+        return rv
 
     def alt_exists(self, path, alt=PRIMARY_ALT, fallback=False):
         """Checks if an alt exists."""
@@ -1806,10 +1772,10 @@ class Pad:
         # the right source alt.
         rv = self.get(path, alt)
         if rv is not None:
-            if rv["_source_alt"] == alt:
+            if rv._data["_source_alt"] == alt:
                 return True
             if fallback or (
-                rv["_source_alt"] == PRIMARY_ALT
+                rv._data["_source_alt"] == PRIMARY_ALT
                 and alt == self.config.primary_alternative
             ):
                 return True

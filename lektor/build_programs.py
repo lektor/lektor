@@ -176,9 +176,8 @@ class PageBuildProgram(BuildProgram):
             )
 
     def build_artifact(self, artifact):
-        # Record dependecies on all our sources and datamodel
-        self.source.pad.db.track_record_dependency(self.source)
-
+        # FIXME: This check should probably be moved into Artifact so that it
+        # is applied for all artifacts, not just those built from Pages.
         try:
             self.source.url_path.encode("ascii")
         except UnicodeError as error:
