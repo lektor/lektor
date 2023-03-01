@@ -33,7 +33,7 @@ jobs:
         with:
           python-version: "3.9"
           cache: "pip"
-          cache-dependency-path: "**/setup.cfg"
+          cache-dependency-path: "**/pyproject.toml"
       - uses: actions/cache@v3
         with:
           path: ~/.cache/pre-commit
@@ -110,7 +110,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: "pip"
-          cache-dependency-path: "**/setup.cfg"
+          cache-dependency-path: "**/pyproject.toml"
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux' && matrix.install-ffmpeg

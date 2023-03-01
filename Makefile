@@ -39,9 +39,9 @@ test-all: test-js
 	tox
 
 # This creates source distribution and a wheel.
-dist: build-js setup.cfg MANIFEST.in
+dist: pyproject.toml
 	rm -rf build dist
-	python -m build
+	HATCH_BUILD_CLEAN=true python -m build
 
 # Before making a release, CHANGES.md needs to be updated and
 # a tag should be created (and pushed with `git push --tags`).

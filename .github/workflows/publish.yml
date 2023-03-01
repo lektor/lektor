@@ -16,8 +16,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "lts/*"
-      - name: Build frontend
-        run: make
       - name: Install dependencies
         run: python -m pip install tox twine
       - name: Build release artefacts

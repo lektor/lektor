@@ -1,8 +1,91 @@
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm>=6.2"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.13.0,<2.0.0", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
+[project]
+name = "Lektor"
+description = "A static content management system."
+dynamic = ["version"]
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Armin Ronacher", email = "armin.ronacher@active-4.com" },
+]
+urls.Homepage = "https://www.getlektor.com/"
+urls.Source = "https://github.com/lektor/lektor/"
+urls.Documentation = "https://www.getlektor.com/docs/"
+urls.Changelog = "https://github.com/lektor/lektor/blob/master/CHANGES.md"
+classifiers = [
+    "Framework :: Lektor",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+requires-python = ">=3.7"
+dependencies = [
+    "Babel",
+    "click>=6.0",
+    "EXIFRead",
+    "filetype>=1.0.7",
+    "Flask",
+    "importlib_metadata; python_version<'3.8'",
+    "inifile>=0.4.1",
+    "Jinja2>=3.0",
+    "MarkupSafe",
+    "marshmallow",
+    "marshmallow_dataclass>=8.5.9",
+    "mistune>=0.7.0,<3",
+    "pip",
+    "python-slugify",
+    "pytz; python_version<'3.9'",  # favor zoneinfo for python>=3.9
+    "requests",
+    "tzdata; python_version>='3.9' and sys_platform == 'win32'",
+    "watchdog",
+    "Werkzeug>=2.1.0,<3",
+]
+optional-dependencies.ipython = [
+    "ipython",
+    "traitlets",
+]
+
+[project.scripts]
+lektor = "lektor.cli:main"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+include = [
+    "/lektor",
+]
+artifacts = [
+    "/lektor/admin/static",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/lektor",
+    "/build_frontend.py",
+    "/CHANGES.md",
+    "/tests",
+    "/tox.ini",
+]
+
+[tool.hatch.build.hooks.custom]
+path = "build_frontend.py"
+
+
 
 ################################################################
 #
