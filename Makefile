@@ -37,14 +37,3 @@ test: lint test-python test-js
 test-all: test-js
 	pre-commit run -a
 	tox
-
-# This creates source distribution and a wheel.
-dist: pyproject.toml
-	rm -rf build dist
-	HATCH_BUILD_CLEAN=true python -m build
-
-# Before making a release, CHANGES.md needs to be updated and
-# a tag should be created (and pushed with `git push --tags`).
-.PHONY: upload
-upload: dist
-	twine upload dist/*
