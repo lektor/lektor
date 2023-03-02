@@ -165,6 +165,12 @@ jobs:
           HATCH_BUILD_CLEAN: "true"
         run: python -m build
 
+      - name: Save release artifacts (for inspection)
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/*
+
       - name: Publish release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@release/v1
