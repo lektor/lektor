@@ -118,9 +118,9 @@ class DateTimeType(SingleInputType):
         if raw.value is None:
             return raw.missing_value("Missing datetime")
 
-        # The previous version of this code allowed a time zonename, followed by a zone
+        # The previous version of this code allowed a timezone name, followed by a zone
         # offset. In that case the zone name would be ignored (unless the combined zone
-        # name, including the offset matched an IANA zone key). For the sake of
+        # name, including the offset, matched an IANA zone key). For the sake of
         # backwards compatibility we do the same here.
         m = re.match(
             r"""
