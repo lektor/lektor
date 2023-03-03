@@ -35,12 +35,12 @@ else:  # pragma: no cover
 get_controller = ControllerCache(controller_class)
 
 
-@deprecated
+@deprecated(version="3.4.0")
 def make_markdown(env: "Environment") -> Any:  # (Environment) -> mistune.Markdown
     return get_controller(env).make_parser()
 
 
-@deprecated
+@deprecated(version="3.4.0")
 def markdown_to_html(
     text: str, record: SourceObject, field_options: FieldOptions
 ) -> RenderResult:

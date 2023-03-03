@@ -13,6 +13,7 @@ import exifread
 import filetype
 
 from lektor.reporter import reporter
+from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
@@ -29,24 +30,19 @@ class ThumbnailMode(Enum):
 
     DEFAULT = "fit"
 
-    @property
+    @property  # type: ignore[misc] # https://github.com/python/mypy/issues/1362
+    @deprecated("Use ThumbnailMode.value instead", version="3.3.0")
     def label(self):
         """The mode's label as used in templates."""
-        warnings.warn(
-            "ThumbnailMode.label is deprecated. (Use ThumbnailMode.value instead.)",
-            DeprecationWarning,
-        )
         return self.value
 
     @classmethod
+    @deprecated(
+        "Use the ThumbnailMode constructor, e.g. 'ThumbnailMode(label)', instead",
+        version="3.3.0",
+    )
     def from_label(cls, label):
         """Looks up the thumbnail mode by its textual representation."""
-        warnings.warn(
-            "ThumbnailMode.from_label is deprecated. "
-            "Use the ThumbnailMode constructor, "
-            'e.g. "ThumbnailMode(label)", instead.',
-            DeprecationWarning,
-        )
         return cls(label)
 
 

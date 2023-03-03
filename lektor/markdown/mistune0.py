@@ -24,12 +24,12 @@ class ImprovedRenderer(
     lektor: ClassVar = RendererHelper()
 
     @property  # type: ignore[misc] # https://github.com/python/mypy/issues/1362
-    @deprecated("Use ImprovedRenderer.lektor.record instead.")
+    @deprecated("Use ImprovedRenderer.lektor.record instead.", version="3.4.0")
     def record(self) -> SourceObject:
         return self.lektor.record
 
     @property  # type: ignore[misc]
-    @deprecated("Use ImprovedRenderer.lektor.meta instead.")
+    @deprecated("Use ImprovedRenderer.lektor.meta instead.", version="3.4.0")
     def meta(self) -> Meta:
         return self.lektor.meta
 
