@@ -5,12 +5,12 @@ from typing import List
 from typing import Optional
 
 import mistune  # type: ignore[import]
-from deprecated import deprecated
 
 from lektor.markdown.controller import MarkdownController
 from lektor.markdown.controller import Meta  # FIXME: move this?
 from lektor.markdown.controller import RendererHelper
 from lektor.sourceobj import SourceObject
+from lektor.utils import deprecated
 
 
 def _escape(text: str) -> str:

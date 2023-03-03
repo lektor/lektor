@@ -1,7 +1,9 @@
-# coding: utf-8
+from contextlib import contextmanager
+
 import pytest
 
 from lektor.utils import build_url
+from lektor.utils import deprecated
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 from lektor.utils import magic_split_ext
@@ -140,3 +142,70 @@ def test_make_relative_url_relative_source_absolute_target():
 )
 def test_unique_everseen(seq, expected):
     assert tuple(unique_everseen(seq)) == expected
+
+
+@contextmanager
+def _local_deprecated_call(match=None):
+    """Like pytest.deprecated_call, but also check that all warnings
+    are attributed to this file.
+    """
+    with pytest.deprecated_call(match=match) as warnings:
+        yield warnings
+    assert all(w.filename == __file__ for w in warnings)
+
+
+@pytest.mark.parametrize(
+    "kwargs, match",
+    [
+        ({}, r"^'f' is deprecated$"),
+        ({"reason": "testing"}, r"^'f' is deprecated \(testing\)$"),
+        (
+            {"reason": "testing", "version": "1.2.3"},
+            r"^'f' is deprecated \(testing\) since version 1.2.3$",
+        ),
+    ],
+)
+def test_deprecated_function(kwargs, match):
+    @deprecated(**kwargs)
+    def f():
+        return 42
+
+    with _local_deprecated_call(match=match):
+        assert f() == 42
+
+
+def test_deprecated_method():
+    class Cls:
+        @deprecated
+        def f(self):  # pylint: disable=no-self-use
+            return 42
+
+        @deprecated
+        def g(self):
+            return self.f()
+
+    with _local_deprecated_call(match=r"^'g' is deprecated$") as warnings:
+        assert Cls().g() == 42
+    assert len(warnings) == 1
+
+
+def test_deprecated_classmethod():
+    class Cls:
+        @classmethod
+        @deprecated
+        def f(cls):
+            return 42
+
+        @classmethod
+        @deprecated
+        def g(cls):
+            return cls.f()
+
+    with _local_deprecated_call(match=r"^'g' is deprecated$") as warnings:
+        assert Cls().g() == 42
+    assert len([w.message for w in warnings]) == 1
+
+
+def test_deprecated_raises_type_error():
+    with pytest.raises(TypeError):
+        deprecated(0)

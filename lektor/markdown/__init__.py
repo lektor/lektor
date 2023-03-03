@@ -6,7 +6,6 @@ from typing import Type
 from typing import TYPE_CHECKING
 from weakref import ref as weakref
 
-from deprecated import deprecated
 from markupsafe import Markup
 
 from lektor.compat import importlib_metadata as metadata
@@ -16,6 +15,7 @@ from lektor.markdown.controller import MarkdownController
 from lektor.markdown.controller import Meta
 from lektor.markdown.controller import RenderResult
 from lektor.sourceobj import SourceObject
+from lektor.utils import deprecated
 
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
