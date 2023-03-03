@@ -37,6 +37,7 @@ from lektor.sourceobj import SourceObject
 from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
+from lektor.utils import deprecated
 from lektor.utils import fs_enc
 from lektor.utils import locate_executable
 from lektor.utils import make_relative_url
@@ -366,6 +367,7 @@ class Record(SourceObject):
         return self.datamodel.pagination_config.get_pagination_controller(self)
 
     @cached_property
+    @deprecated(version="3.4.0", stacklevel=2)
     def contents(self):
         return FileContents(self.source_filename)
 
@@ -754,6 +756,7 @@ class Attachment(Record):
         )
 
     @cached_property
+    @deprecated(version="3.4.0", stacklevel=2)
     def contents(self):
         return FileContents(self.attachment_filename)
 

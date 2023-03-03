@@ -4,8 +4,11 @@ import hashlib
 import mimetypes
 import os
 
+from lektor.utils import deprecated
+
 
 class FileContents:
+    @deprecated(name="FileContents", version="3.4.0")
     def __init__(self, filename):
         self.filename = filename
         self._md5 = None
