@@ -209,6 +209,7 @@ class PluginController:
                 rv[plugin.id] = handler(**kw)
                 if "extra_flags" not in kw:
                     warnings.warn(
+                        # deprecated since 3.2.0
                         f"The plugin {plugin.id!r} function {funcname!r} does not "
                         "accept extra_flags. "
                         "It should be updated to accept `**extra` so that it will "

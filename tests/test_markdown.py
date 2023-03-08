@@ -227,16 +227,20 @@ def improved_renderer():
 @pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
 @pytest.mark.usefixtures("renderer_context")
 def test_ImprovedRenderer_record(record, improved_renderer):
-    with pytest.deprecated_call() as warnings:
+    with pytest.deprecated_call(
+        match=r"Use .*Renderer\.lektor.record instead"
+    ) as warnings:
         assert improved_renderer.record is record
-    assert re.search(r"Use .*Renderer\.lektor.record instead", str(warnings[0].message))
+    assert all(w.filename == __file__ for w in warnings)
 
 
 @pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
 def test_ImprovedRenderer_meta(renderer_context, improved_renderer):
-    with pytest.deprecated_call() as warnings:
+    with pytest.deprecated_call(
+        match=r"Use .*Renderer\.lektor.meta instead"
+    ) as warnings:
         assert improved_renderer.meta is renderer_context.meta
-    assert re.search(r"Use .*Renderer\.lektor.meta instead", str(warnings[0].message))
+    assert all(w.filename == __file__ for w in warnings)
 
 
 @pytest.mark.parametrize(
@@ -288,15 +292,17 @@ def test_ImprovedRenderer_image(src, title, alt, expected, improved_renderer):
 
 
 def test_make_markdown(env):
-    with pytest.deprecated_call():
+    with pytest.deprecated_call() as warnings:
         md = make_markdown(env)
+    assert all(w.filename == __file__ for w in warnings)
     assert md("foo").strip() == "<p>foo</p>"
 
 
 @pytest.mark.usefixtures("context")
 def test_markdown_to_html(record, field_options):
-    with pytest.deprecated_call():
+    with pytest.deprecated_call() as warnings:
         result = markdown_to_html("goober", record, field_options)
+    assert all(w.filename == __file__ for w in warnings)
     assert result.html.rstrip() == "<p>goober</p>"
 
 

@@ -5,12 +5,12 @@ from typing import List
 from typing import Optional
 
 import mistune  # type: ignore[import]
-from deprecated import deprecated
 
 from lektor.markdown.controller import MarkdownController
 from lektor.markdown.controller import Meta  # FIXME: move this?
 from lektor.markdown.controller import RendererHelper
 from lektor.sourceobj import SourceObject
+from lektor.utils import deprecated
 
 
 def _escape(text: str) -> str:
@@ -24,12 +24,12 @@ class ImprovedRenderer(
     lektor: ClassVar = RendererHelper()
 
     @property  # type: ignore[misc] # https://github.com/python/mypy/issues/1362
-    @deprecated("Use ImprovedRenderer.lektor.record instead.")
+    @deprecated("Use ImprovedRenderer.lektor.record instead.", version="3.4.0")
     def record(self) -> SourceObject:
         return self.lektor.record
 
     @property  # type: ignore[misc]
-    @deprecated("Use ImprovedRenderer.lektor.meta instead.")
+    @deprecated("Use ImprovedRenderer.lektor.meta instead.", version="3.4.0")
     def meta(self) -> Meta:
         return self.lektor.meta
 

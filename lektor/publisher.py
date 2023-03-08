@@ -836,6 +836,7 @@ class GithubPagesPublisher(Publisher):
                     " ".join(
                         cleandoc(self._DEFAULT_BRANCH_DEPRECATION_MSG).splitlines()
                     ),
+                    # deprecated in version 3.4.0
                     category=DeprecationWarning,
                 )
                 branch = "master"
@@ -872,7 +873,7 @@ class GithubPagesPublisher(Publisher):
     Currently, by default, Lektor pushes to the 'master' branch when
     deploying to GitHub pages repositories.  In a future version of
     Lektor, the default branch will GitHub's new default, 'main'.
-    It is suggest that you explicitly set which branch to push to.
+    It is suggested that you explicitly set which branch to push to.
     """
 
     @staticmethod
