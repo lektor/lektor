@@ -991,7 +991,7 @@ class Artifact:
         if exc_info is None:
             self._memorize_dependencies(
                 ctx.referenced_dependencies,
-                ctx.referenced_virtual_dependencies.values(),
+                ctx.referenced_virtual_dependencies,
             )
             self._commit()
             return
@@ -1007,7 +1007,7 @@ class Artifact:
         # use a new database connection that immediately commits.
         self._memorize_dependencies(
             ctx.referenced_dependencies,
-            ctx.referenced_virtual_dependencies.values(),
+            ctx.referenced_virtual_dependencies,
             for_failure=True,
         )
 

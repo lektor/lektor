@@ -33,7 +33,7 @@ from lektor.imagetools import get_image_info
 from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import read_exif
 from lektor.imagetools import ThumbnailMode
-from lektor.sourceobj import SourceObject
+from lektor.sourceobj import DBSourceObject
 from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
@@ -303,12 +303,12 @@ class _RecordQueryProxy:
 F = _RecordQueryProxy()
 
 
-class Record(SourceObject):
+class Record(DBSourceObject):
     source_classification = "record"
     supports_pagination = False
 
     def __init__(self, pad, data, page_num=None):
-        SourceObject.__init__(self, pad)
+        super().__init__(pad)
         self._data = data
         self._bound_data = {}
         if page_num is not None and not self.supports_pagination:
@@ -333,7 +333,7 @@ class Record(SourceObject):
     @property
     def alt(self):
         """Returns the alt of this source object."""
-        return self["_alt"]
+        return self._data["_alt"]
 
     @property
     def is_hidden(self):
@@ -438,7 +438,7 @@ class Record(SourceObject):
 
     @property
     def path(self):
-        return self["_path"]
+        return self._data["_path"]
 
     def get_sort_key(self, fields):
         """Returns a sort key for the given field specifications specific
@@ -472,21 +472,11 @@ class Record(SourceObject):
         self._bound_data[name] = rv
         return rv
 
-    def __eq__(self, other):
-        if self is other:
-            return True
-        if self.__class__ != other.__class__:
-            return False
-        return self["_path"] == other["_path"]
-
-    def __hash__(self):
-        return hash(self.path)
-
     def __repr__(self):
         return "<%s model=%r path=%r%s%s>" % (
             self.__class__.__name__,
-            self["_model"],
-            self["_path"],
+            self._data["_model"],
+            self._data["_path"],
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
             self.page_num is not None and " page_num=%r" % self.page_num or "",
         )
@@ -545,7 +535,7 @@ class Page(Record):
 
     @cached_property
     def path(self):
-        rv = self["_path"]
+        rv = self._data["_path"]
         if self.page_num is not None:
             rv = "%s@%s" % (rv, self.page_num)
         return rv
@@ -555,21 +545,16 @@ class Page(Record):
         if self.page_num is None:
             return self
         return self.pad.get(
-            self["_path"], persist=self.pad.cache.is_persistent(self), alt=self.alt
+            self._data["_path"],
+            persist=self.pad.cache.is_persistent(self),
+            alt=self.alt,
         )
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            return os.path.join(
-                self.pad.db.to_fs_path(self["_path"]), "contents+%s.lr" % self.alt
-            )
-        return os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
-
     def iter_source_filenames(self):
-        yield self.source_filename
+        fs_path = self.pad.db.to_fs_path(self._data["_path"])
         if self.alt != PRIMARY_ALT:
-            yield os.path.join(self.pad.db.to_fs_path(self["_path"]), "contents.lr")
+            yield os.path.join(fs_path, f"contents+{self.alt}.lr")
+        yield os.path.join(fs_path, "contents.lr")
 
     @property
     def url_path(self):
@@ -665,12 +650,12 @@ class Page(Record):
         repl_query = self.datamodel.get_child_replacements(self)
         if repl_query is not None:
             return repl_query.include_undiscoverable(False)
-        return Query(path=self["_path"], pad=self.pad, alt=self.alt)
+        return Query(path=self._data["_path"], pad=self.pad, alt=self.alt)
 
     @property
     def attachments(self):
         """Returns a query for the attachments of this record."""
-        return AttachmentsQuery(path=self["_path"], pad=self.pad, alt=self.alt)
+        return AttachmentsQuery(path=self._data["_path"], pad=self.pad, alt=self.alt)
 
     def has_prev(self):
         return self.get_siblings().prev_page is not None
@@ -723,14 +708,6 @@ class Attachment(Record):
 
     is_attachment = True
 
-    @property
-    def source_filename(self):
-        if self.alt != PRIMARY_ALT:
-            suffix = "+%s.lr" % self.alt
-        else:
-            suffix = ".lr"
-        return self.pad.db.to_fs_path(self["_path"]) + suffix
-
     def _is_considered_hidden(self):
         # Attachments are only considered hidden if they have been
         # configured as such.  This means that even if a record itself is
@@ -746,7 +723,7 @@ class Attachment(Record):
 
     @property
     def attachment_filename(self):
-        return self.pad.db.to_fs_path(self["_path"])
+        return self.pad.db.to_fs_path(self._data["_path"])
 
     @property
     def parent(self):
@@ -764,10 +741,11 @@ class Attachment(Record):
         return self["_id"]
 
     def iter_source_filenames(self):
-        yield self.source_filename
+        attachment_filename = self.attachment_filename
         if self.alt != PRIMARY_ALT:
-            yield self.pad.db.to_fs_path(self["_path"]) + ".lr"
-        yield self.attachment_filename
+            yield f"{attachment_filename}+{self.alt}.lr"
+        yield f"{attachment_filename}.lr"
+        yield attachment_filename
 
     @property
     def url_path(self):
@@ -1736,7 +1714,7 @@ class Pad:
         if pieces[0].isdigit():
             if len(pieces) == 1:
                 return self.get(
-                    record["_path"], alt=record.alt, page_num=int(pieces[0])
+                    record._data["_path"], alt=record.alt, page_num=int(pieces[0])
                 )
             return None
 

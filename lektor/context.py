@@ -93,7 +93,7 @@ class Context:
 
         # Processing information
         self.referenced_dependencies = set()
-        self.referenced_virtual_dependencies = {}
+        self.referenced_virtual_dependencies = set()
         self.sub_artifacts = []
 
         self.flow_block_render_stack = []
@@ -241,8 +241,7 @@ class Context:
 
     def record_virtual_dependency(self, virtual_source):
         """Records a dependency from processing."""
-        path = virtual_source.path
-        self.referenced_virtual_dependencies[path] = virtual_source
+        self.referenced_virtual_dependencies.add(virtual_source)
         for coll in self._dependency_collectors:
             coll(virtual_source)
 

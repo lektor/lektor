@@ -27,7 +27,13 @@ class SourceObject:
 
     @property
     def source_filename(self):
-        """The primary source filename of this source object."""
+        """The primary source filename of this source object.
+
+        In general, subclasses should implement/override ``iter_source_filenames``
+        rather than this property.
+        """
+        source_filenames = self.iter_source_filenames()
+        return next(iter(source_filenames), None)
 
     is_hidden = False
     is_discoverable = True
@@ -43,13 +49,16 @@ class SourceObject:
         return not self.is_discoverable
 
     def iter_source_filenames(self):
-        fn = self.source_filename
-        if fn is not None:
-            yield self.source_filename
+        """An iterable of the source filenames for this source object.
+
+        The first returned filename should be the "primary" one.
+        """
+        # pylint: disable=no-self-use
+        return ()
 
     def iter_virtual_sources(self):
         # pylint: disable=no-self-use
-        return []
+        return ()
 
     @property
     def url_path(self):
@@ -205,13 +214,43 @@ class SourceObject:
         return resolved.geturl()
 
 
-class VirtualSourceObject(SourceObject):
+class DBSourceObject(SourceObject):
+    """This is the base class for objects that live in the lektor db.
+
+    I.e. this is the type of object returned by pad.get().
+
+    """
+
+    @property
+    def path(self):
+        """Return the full database path to the source object.
+
+        All DBSourceObjects must have paths.
+        """
+        raise NotImplementedError()
+
+    # XXX: move SourceObject.url_to here?
+
+    def __eq__(self, other):
+        if other is self:
+            return True  # optimization
+        if other.__class__ is not self.__class__:
+            return False  # optimization
+        return (
+            other.alt == self.alt and other.path == self.path and other.pad == self.pad
+        )
+
+    def __hash__(self):
+        return hash((self.path, self.alt))
+
+
+class VirtualSourceObject(DBSourceObject):
     """Virtual source objects live below a parent record but do not
     originate from the source tree with a separate file.
     """
 
     def __init__(self, record):
-        SourceObject.__init__(self, record.pad)
+        super().__init__(record.pad)
         self.record = record
 
     @property
@@ -234,9 +273,12 @@ class VirtualSourceObject(SourceObject):
     def alt(self):
         return self.record.alt
 
-    @property
-    def source_filename(self):
-        return self.record.source_filename
+    def iter_source_filenames(self):
+        # This is a default.  However, if artifacts produced from a
+        # particular virtual source type do not explicitly vary with
+        # the parent record, it may make sense to override this to
+        # return an empty (or some other) list of file names.
+        return self.record.iter_source_filenames()
 
     def iter_virtual_sources(self):
         yield self
