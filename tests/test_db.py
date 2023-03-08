@@ -12,6 +12,7 @@ from lektor.db import get_alts
 from lektor.db import Image
 from lektor.db import Query
 from lektor.db import Video
+from lektor.filecontents import FileContents
 
 
 def test_root(pad):
@@ -522,3 +523,16 @@ def test_Page_url_path_raise_error_if_paginated_and_dotted(scratch_pad):
 def test_Attachment_url_path_is_for_primary_alt(scratch_pad, alt):
     attachment = scratch_pad.get("/test.txt")
     assert attachment.url_path == "/en/test.txt"
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/",  # Page
+        "hello.txt",  # Attachment
+    ],
+)
+def test_Record_contents_is_deprecated(pad, path):
+    with pytest.deprecated_call(match=r"contents") as warnings:
+        assert isinstance(pad.get(path).contents, FileContents)
+    assert all(w.filename == __file__ for w in warnings)

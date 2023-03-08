@@ -1,4 +1,6 @@
+import warnings
 from contextlib import contextmanager
+from itertools import islice
 
 import pytest
 
@@ -163,6 +165,7 @@ def _local_deprecated_call(match=None):
             {"reason": "testing", "version": "1.2.3"},
             r"^'f' is deprecated \(testing\) since version 1.2.3$",
         ),
+        ({"name": "oldfunc"}, r"^'oldfunc' is deprecated$"),
     ],
 )
 def test_deprecated_function(kwargs, match):
@@ -209,3 +212,22 @@ def test_deprecated_classmethod():
 def test_deprecated_raises_type_error():
     with pytest.raises(TypeError):
         deprecated(0)
+
+
+def test_deprecated_stacklevel():
+    @deprecated(stacklevel=2)
+    def f():
+        return 42
+
+    def g():
+        return f()
+
+    with _local_deprecated_call(match=r"^'f' is deprecated$") as warnings:
+        assert g() == 42
+    assert "assert g() == 42" in _warning_line(warnings[0])
+
+
+def _warning_line(warning: warnings.WarningMessage) -> str:
+    """Get the text of the line for which warning was issued."""
+    with open(warning.filename, "r", encoding="utf-8") as fp:
+        return next(islice(fp, warning.lineno - 1, None), None)
