@@ -3,6 +3,8 @@ from pathlib import Path
 import pytest
 from markers import imagemagick
 
+from lektor.reporter import NullReporter
+
 
 def get_child_sources(prog):
     return sorted(list(prog.iter_child_sources()), key=lambda x: x["_id"])
@@ -354,3 +356,35 @@ def test_prune_all(builder):
     pad.cache.flush()
     builder.prune(all=True)
     assert not Path(artifact.dst_filename).is_file()
+
+
+class AssertBuildsNothingReporter(NullReporter):
+    """Reporter to collect source objects which are built during a build cycle."""
+
+    def __init__(self):
+        super().__init__(env=None)
+
+    def start_artifact_build(self, is_current):
+        assert is_current
+
+
+def test_second_build_all_builds_nothing(scratch_builder, scratch_project_data):
+    # This excercises a bug having to do with not properly tracking the alt
+    # of virtual source object dependencies.  See #1108 (and #1007, #959).
+
+    # The project should have multiple alts configured. (Scratch_project does.)
+
+    # Add child pages to scratch_project
+    for child in "child1", "child2":
+        child_lr = scratch_project_data / "content" / child / "contents.lr"
+        child_lr.parent.mkdir()
+        child_lr.write_text("_template: child.html\n")
+    # Reference siblings
+    scratch_project_data.joinpath("templates/child.html").write_text(
+        "{{ this.get_siblings() }}"
+    )
+
+    scratch_builder.build_all()
+
+    with AssertBuildsNothingReporter():
+        scratch_builder.build_all()

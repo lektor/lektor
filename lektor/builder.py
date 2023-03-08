@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import os
 import shutil
@@ -8,6 +10,7 @@ import tempfile
 from collections import deque
 from collections import namedtuple
 from contextlib import contextmanager
+from dataclasses import dataclass
 from itertools import chain
 
 import click
@@ -125,13 +128,14 @@ class BuildState:
     def to_source_filename(self, filename):
         return self.path_cache.to_source_filename(filename)
 
-    def get_virtual_source_info(self, virtual_source_path):
-        virtual_source = self.pad.get(virtual_source_path)
-        if not virtual_source:
-            return VirtualSourceInfo(virtual_source_path, None, None)
-        mtime = virtual_source.get_mtime(self.path_cache)
-        checksum = virtual_source.get_checksum(self.path_cache)
-        return VirtualSourceInfo(virtual_source_path, mtime, checksum)
+    def get_virtual_source_info(self, virtual_source_path, alt=None):
+        virtual_source = self.pad.get(virtual_source_path, alt=alt)
+        if virtual_source is not None:
+            mtime = virtual_source.get_mtime(self.path_cache)
+            checksum = virtual_source.get_checksum(self.path_cache)
+        else:
+            mtime = checksum = None
+        return VirtualSourceInfo(virtual_source_path, alt, mtime, checksum)
 
     def connect_to_database(self):
         """Returns a database connection for the build state db."""
@@ -200,7 +204,8 @@ class BuildState:
         found = set()
         for path, mtime, size, checksum, is_dir in rv:
             if "@" in path:
-                yield path, VirtualSourceInfo(path, mtime, checksum)
+                vpath, alt = _unpack_virtual_source_path(path)
+                yield path, VirtualSourceInfo(vpath, alt, mtime, checksum)
             else:
                 file_info = FileInfo(
                     self.env, path, mtime, size, checksum, bool(is_dir)
@@ -343,13 +348,7 @@ class BuildState:
                 if info is None:
                     return False
 
-                if isinstance(info, VirtualSourceInfo):
-                    new_vinfo = self.get_virtual_source_info(info.path)
-                    if not info.unchanged(new_vinfo):
-                        return False
-
-                # If the file info is different, then it clearly changed.
-                elif not info.unchanged(self.get_file_info(info.filename)):
+                if info.is_changed(self):
                     return False
 
             return True
@@ -458,7 +457,18 @@ def _describe_fs_path_for_checksum(path):
     return b"\x00"
 
 
-class FileInfo:
+class _ArtifactSourceInfo:
+    """Base for classes that contain freshness data about artifact sources.
+
+    Concrete subclasses include FileInfo and VirtualSourceInfo.
+    """
+
+    def is_changed(self, build_state: BuildState) -> bool:
+        """Determine whether source has changed."""
+        raise NotImplementedError()
+
+
+class FileInfo(_ArtifactSourceInfo):
     """A file info object holds metainformation of a file so that changes
     can be detected easily.
     """
@@ -571,18 +581,53 @@ class FileInfo:
 
         return self.checksum == other.checksum
 
+    def is_changed(self, build_state: BuildState) -> bool:
+        other = build_state.get_file_info(self.filename)
+        return not self.unchanged(other)
 
-class VirtualSourceInfo:
-    def __init__(self, path, mtime=None, checksum=None):
-        self.path = path
-        self.mtime = mtime
-        self.checksum = checksum
+
+def _pack_virtual_source_path(path, alt):
+    """Pack VirtualSourceObject's path and alt into a single string.
+
+    The full identity key for a VirtualSourceObject is its ``path`` along with its ``alt``.
+    (Two VirtualSourceObjects with differing alts are not the same object.)
+
+    This functions packs the (path, alt) pair into a single string for storage
+    in the ``artifacts.path`` of the buildstate database.
+
+    Note that if alternatives are not configured for the current site, there is
+    only one alt, so we safely omit the alt from the packed path.
+    """
+    if alt is None or alt == PRIMARY_ALT:
+        return path
+    return f"{alt}@{path}"
+
+
+def _unpack_virtual_source_path(packed):
+    """Unpack VirtualSourceObject's path and alt from packed path.
+
+    This is the inverse of _pack_virtual_source_path.
+    """
+    alt, sep, path = packed.partition("@")
+    if not sep:
+        raise ValueError("A packed virtual source path must include at least one '@'")
+    if "@" not in path:
+        path, alt = packed, None
+    return path, alt
+
+
+@dataclass
+class VirtualSourceInfo(_ArtifactSourceInfo):
+    path: str
+    alt: str | None
+    mtime: int | None = None
+    checksum: str | None = None
 
     def unchanged(self, other):
         if not isinstance(other, VirtualSourceInfo):
             raise TypeError("'other' must be a VirtualSourceInfo, not %r" % other)
 
-        if self.path != other.path:
+        if (self.path, self.alt) != (other.path, other.alt):
             raise ValueError(
                 "trying to compare mismatched virtual paths: "
                 "%r.unchanged(%r)" % (self, other)
@@ -590,8 +635,9 @@ class VirtualSourceInfo:
 
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
 
-    def __repr__(self):
-        return "VirtualSourceInfo(%r, %r, %r)" % (self.path, self.mtime, self.checksum)
+    def is_changed(self, build_state: BuildState) -> bool:
+        other = build_state.get_virtual_source_info(self.path, self.alt)
+        return not self.unchanged(other)
 
 
 artifacts_row = namedtuple(
@@ -752,7 +798,7 @@ class Artifact:
                 rows.append(
                     artifacts_row(
                         artifact=self.artifact_name,
-                        source=v_source.path,
+                        source=_pack_virtual_source_path(v_source.path, v_source.alt),
                         source_mtime=mtime,
                         source_size=None,
                         source_checksum=checksum,
