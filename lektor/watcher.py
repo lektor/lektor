@@ -18,8 +18,21 @@ class EventHandler(FileSystemEventHandler):
         super().__init__()
         self.queue = queue.Queue()
 
+    # Generally we only care about changes (modification, creation, deletion) to files
+    # within the monitored tree. Changes in directories do not directly affect Lektor
+    # output. So, in general, we ignore directory events.
+    #
+    # However, the "efficient" (i.e. non-polling) observers do not seem to generate
+    # events for files contained in directories that are moved out of the watched tree.
+    # The only events generated in that case are for the directory — generally a
+    # DirDeletedEvent is generated — so we can't ignore those.
+    #
+    # (Moving/renaming a directory does not seem to reliably generate a DirMovedEvent,
+    # but we might as well track those, too.)
+
     def on_created(self, event):
-        self.queue.put((time.time(), event.event_type, event.src_path))
+        if not event.is_directory:
+            self.queue.put((time.time(), event.event_type, event.src_path))
 
     def on_deleted(self, event):
         self.queue.put((time.time(), event.event_type, event.src_path))
