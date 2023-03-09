@@ -28,17 +28,24 @@ For installation instructions head to the official documentation:
 
 ## Want to develop on Lektor?
 
-This gets you started (assuming you have Python, pip, Make and pre-commit
+This gets you started (assuming you have Python, pip, npm, and pre-commit
 installed):
 
-```
+```bash
 $ git clone https://github.com/lektor/lektor
 $ cd lektor
-$ virtualenv venv
-$ . venv/bin/activate
+$ python -m venv _venv
+$ . _venv/bin/activate
+
+# pip>=21.3 is required for PEP 610 support
+$ pip install -U "pip>=21.3"
+
 $ pip install --editable .
-$ make build-js
+
+# If you plan on committing:
 $ pre-commit install
+
+# Run the Lektor server
 $ export LEKTOR_DEV=1
 $ cp -r example example-project
 $ lektor --project example-project server
@@ -46,6 +53,6 @@ $ lektor --project example-project server
 
 If you want to run the test suite (you'll need tox installed):
 
-```
+```sh
 $ tox
 ```
