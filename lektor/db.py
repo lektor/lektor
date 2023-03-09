@@ -1494,8 +1494,8 @@ class Database:
                 else:
                     affects_url = True
                 ctx.record_dependency(filename, affects_url=affects_url)
-            for virtual_source in record.iter_virtual_sources():
-                ctx.record_virtual_dependency(virtual_source)
+            if isinstance(record, VirtualSourceObject):
+                ctx.record_virtual_dependency(record)
             if getattr(record, "datamodel", None) and record.datamodel.filename:
                 ctx.record_dependency(record.datamodel.filename)
                 for dep_model in self.iter_dependent_models(record.datamodel):
