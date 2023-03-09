@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import hashlib
 import os
 import sys
+from enum import Enum
+from pathlib import Path
 
 from inifile import IniFile
 from werkzeug.utils import cached_property
@@ -111,13 +115,25 @@ class Project:
 
         return os.path.join(get_cache_dir(), "builds", self.id)
 
-    def get_package_cache_path(self):
+    class PackageCacheType(Enum):
+        VENV = "venv"  # The new virtual environment-based package cache
+        FLAT = "flat"  # No longer used flat-directory package cache
+
+    def get_package_cache_path(
+        self, cache_type: PackageCacheType = PackageCacheType.VENV
+    ) -> Path:
         """The path where plugin packages are stored."""
+        if cache_type is self.PackageCacheType.FLAT:
+            cache_name = "packages"
+        else:
+            cache_name = "venvs"
+
         h = hashlib.md5()
         h.update(self.id.encode("utf-8"))
         h.update(sys.version.encode("utf-8"))
         h.update(sys.prefix.encode("utf-8"))
-        return os.path.join(get_cache_dir(), "packages", h.hexdigest())
+
+        return Path(get_cache_dir(), cache_name, h.hexdigest())
 
     def content_path_from_filename(self, filename):
         """Given a filename returns the content path or None if
@@ -166,6 +182,7 @@ class Project:
             "project_file": self.project_file,
             "project_path": self.project_path,
             "default_output_path": self.get_output_path(),
+            "package_cache_path": str(self.get_package_cache_path()),
             "id": self.id,
             "tree": self.tree,
         }

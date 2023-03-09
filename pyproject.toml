@@ -83,7 +83,7 @@ disable = [
 ]
 
 [tool.mypy]
-files = "$MYPY_CONFIG_FILE_DIR/lektor"
+files = ["$MYPY_CONFIG_FILE_DIR/lektor"]
 
 plugins = [
     "marshmallow_dataclass.mypy",
@@ -107,9 +107,18 @@ ignore_errors = true
 # Packages and modules we want to check
 module = [
     "lektor.constants",
+    "lektor.packages",
     "lektor.admin.*",
+    "test_packages",
 ]
 ignore_errors = false
+
+[[tool.mypy.overrides]]
+module = [
+    "lektor.packages",
+]
+disallow_untyped_defs = false
+disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = [

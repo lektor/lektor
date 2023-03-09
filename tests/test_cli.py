@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -34,9 +35,9 @@ def test_alias(project_cli_runner):
 
 
 def test_dev_cmd_alias(isolated_cli_runner):
-    result = isolated_cli_runner.invoke(cli, ["dev", "p"])  # short for 'publish-plugin'
+    result = isolated_cli_runner.invoke(cli, ["dev", "s"])  # short for 'shell'
     assert result.exit_code == 2
-    assert "Error: This command must be run in a Lektor plugin folder" in result.output
+    assert "Error: Could not automatically discover project" in result.output
 
 
 def test_alias_multiple_matches(project_cli_runner):
@@ -94,21 +95,44 @@ def test_deploy_extra_flag(project_cli_runner, mocker):
     assert mock_publish.call_args[1]["extra_flags"] == ("draft",)
 
 
-@pytest.mark.parametrize(
-    "flag, expect",
-    [
-        ("--name", "Demo Project"),
-        ("--project-file", "{tree_dir}{os.sep}Website.lektorproject"),
-        ("--tree", "{tree_dir}"),
-        ("--output-path", "{output_path}"),
-    ],
-)
-def test_project_info_path_flags(project_cli_runner, flag, expect):
+@pytest.fixture
+def project_info_data(project_cli_runner):
     tree_dir = os.getcwd()
+    project = Project.from_path(tree_dir)
+    return {
+        "name": "Demo Project",
+        "project_file": os.path.join(tree_dir, "Website.lektorproject"),
+        "tree": tree_dir,
+        # punt on computing these independently
+        "output_path": project.get_output_path(),
+        "package_cache": str(project.get_package_cache_path()),
+    }
+
+
+def test_project_info(project_cli_runner, project_info_data):
+    result = project_cli_runner.invoke(cli, ["project-info"])
+    for heading, key in [
+        ("Name", "name"),
+        ("File", "project_file"),
+        ("Tree", "tree"),
+        ("Output", "output_path"),
+        ("Package Cache", "package_cache"),
+    ]:
+        assert f"{heading}: {project_info_data[key]}\n" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "flag",
+    ["--name", "--project-file", "--tree", "--output-path", "--package-cache"],
+)
+def test_project_info_path_flags(project_cli_runner, flag, project_info_data):
+    info_key = flag.lstrip("-").replace("-", "_")
     result = project_cli_runner.invoke(cli, ["project-info", flag])
     assert result.exit_code == 0
-    assert result.stdout.rstrip() == expect.format(
-        tree_dir=tree_dir,
-        output_path=Project.from_path(tree_dir).get_output_path(),
-        os=os,
-    )
+    assert result.stdout.rstrip() == project_info_data[info_key]
+
+
+def test_project_info_json(project_cli_runner):
+    project = Project.from_path(os.getcwd())
+    result = project_cli_runner.invoke(cli, ["project-info", "--json"])
+    assert json.loads(result.stdout) == project.to_json()

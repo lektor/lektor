@@ -1,5 +1,4 @@
-dist
-build
-*.pyc
-*.pyo
+/dist
+/build
+__pycache__
 *.egg-info

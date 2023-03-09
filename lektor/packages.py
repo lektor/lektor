@@ -1,19 +1,32 @@
-import errno
+from __future__ import annotations
+
+import hashlib
 import os
 import shutil
 import site
+import subprocess
 import sys
-import tempfile
-from subprocess import PIPE
+import sysconfig
+from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Iterator
+from typing import Optional
+from typing import Set
+from typing import Sized
+from typing import TYPE_CHECKING
+from venv import EnvBuilder
 
 import click
 import requests
 
-from lektor.utils import portable_popen
 
-
-class PackageException(Exception):
-    pass
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+    from lektor.environment import Environment  # circ dependency
+else:
+    StrPath = object
 
 
 def _get_package_version_from_project(cfg, name):
@@ -25,7 +38,7 @@ def _get_package_version_from_project(cfg, name):
 
 
 def add_package_to_project(project, req):
-    """Given a pacakge requirement this returns the information about this
+    """Given a package requirement this returns the information about this
     plugin.
     """
     if "@" in req:
@@ -74,251 +87,205 @@ def remove_package_from_project(project, name):
     return None
 
 
-def download_and_install_package(
-    package_root, package=None, version=None, requirements_file=None
-):
-    """This downloads and installs a specific version of a package."""
-    # XXX: windows
-    env = dict(os.environ)
+class VirtualEnv:
+    """A helper for manipulating our private package cache virtual environment.
 
-    args = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--target",
-        package_root,
-    ]
+    Parameters:
 
-    if package is not None:
-        args.append("%s%s%s" % (package, version and "==" or "", version or ""))
-    if requirements_file is not None:
-        args.extend(("-r", requirements_file))
+    path — The path to the virtual environment to manage.  This can be an existing
+    environment or not.
 
-    rv = portable_popen(args, env=env).wait()
-    if rv != 0:
-        raise RuntimeError("Failed to install dependency package.")
-
-
-def install_local_package(package_root, path):
-    """This installs a local dependency of a package."""
-    # XXX: windows
-    env = dict(os.environ)
-    env["PYTHONPATH"] = package_root
-
-    # Step 1: generate egg info and link us into the target folder.
-    rv = portable_popen(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--editable",
-            path,
-            "--install-option=--install-dir=%s" % package_root,
-            "--no-deps",
-        ],
-        env=env,
-    ).wait()
-    if rv != 0:
-        raise RuntimeError("Failed to install local package")
-
-    # Step 2: generate the egg info into a temp folder to find the
-    # requirements.
-    tmp = tempfile.mkdtemp()
-    try:
-        rv = portable_popen(
-            [
-                sys.executable,
-                "setup.py",
-                "--quiet",
-                "egg_info",
-                "--quiet",
-                "--egg-base",
-                tmp,
-            ],
-            cwd=path,
-        ).wait()
-        dirs = os.listdir(tmp)
-        if rv != 0 or len(dirs) != 1:
-            raise RuntimeError("Failed to create egg info for local package.")
-        requires = os.path.join(tmp, dirs[0], "requires.txt")
-
-        # We have dependencies, install them!
-        if os.path.isfile(requires):
-            download_and_install_package(package_root, requirements_file=requires)
-    finally:
-        shutil.rmtree(tmp)
-
-
-def get_package_info(path):
-    """Returns the name of a package at a path."""
-    rv = (
-        portable_popen(
-            [
-                sys.executable,
-                "setup.py",
-                "--quiet",
-                "--name",
-                "--author",
-                "--author-email",
-                "--license",
-                "--url",
-            ],
-            cwd=path,
-            stdout=PIPE,
-        )
-        .communicate()[0]
-        .splitlines()
-    )
-
-    def _process(value):
-        value = value.strip()
-        if value == "UNKNOWN":
-            return None
-        return value.decode("utf-8", "replace")
-
-    return {
-        "name": _process(rv[0]),
-        "author": _process(rv[1]),
-        "author_email": _process(rv[2]),
-        "license": _process(rv[3]),
-        "url": _process(rv[4]),
-        "path": path,
-    }
-
-
-def register_package(path):
-    """Registers the plugin at the given path."""
-    portable_popen([sys.executable, "setup.py", "register"], cwd=path).wait()
-
-
-def publish_package(path):
-    """Registers the plugin at the given path."""
-    portable_popen(
-        [sys.executable, "setup.py", "sdist", "bdist_wheel", "upload"], cwd=path
-    ).wait()
-
-
-def load_manifest(filename):
-    rv = {}
-    try:
-        with open(filename, encoding="utf-8") as f:
-            for line in f:
-                if line[:1] == "@":
-                    rv[line.strip()] = None
-                    continue
-                line = line.strip().split("=", 1)
-                if len(line) == 2:
-                    key = line[0].strip()
-                    value = line[1].strip()
-                    rv[key] = value
-    except IOError as e:
-        if e.errno != errno.ENOENT:
-            raise
-    return rv
-
-
-def write_manifest(filename, packages):
-    with open(filename, "w", encoding="utf-8") as f:
-        for package, version in sorted(packages.items()):
-            if package[:1] == "@":
-                f.write("%s\n" % package)
-            else:
-                f.write("%s=%s\n" % (package, version))
-
-
-def list_local_packages(path):
-    """Lists all local packages below a path that could be installed."""
-    rv = []
-    try:
-        for filename in os.listdir(path):
-            if os.path.isfile(os.path.join(path, filename, "setup.py")):
-                rv.append("@" + filename)
-    except OSError:
-        pass
-    return rv
-
-
-def update_cache(package_root, remote_packages, local_package_path, refresh=False):
-    """Updates the package cache at package_root for the given dictionary
-    of packages as well as packages in the given local package path.
     """
-    requires_wipe = False
-    if refresh:
-        click.echo("Force package cache refresh.")
-        requires_wipe = True
 
-    manifest_file = os.path.join(package_root, "lektor-packages.manifest")
-    local_packages = list_local_packages(local_package_path)
+    def __init__(self, path: StrPath):
+        self.path = Path(path)
 
-    old_manifest = load_manifest(manifest_file)
-    to_install = []
+    def create(self, with_pip: bool = True, upgrade_deps: bool = True) -> None:
+        """(Re-)Create a new virtual environment.
 
-    all_packages = dict(remote_packages)
-    all_packages.update((x, None) for x in local_packages)
+        This will remove any existing virtual environment and create a new one.
 
-    # step 1: figure out which remote packages to install.
+        The parameters ``with_pip`` and ``upgrade_deps`` should probably be left at
+        their default values in normal usage.  They are provided here mostly for use in
+        tests. They work as described for ``venv.EnvBuilder`` from the standard library.
+        (Though ``upgrade_deps`` is only supported by EnvBuilder`` in py39+, here we
+        emulate it's behavior if running under older pythons.)
+
+        """
+        # Right now, by default, we always install and upgrade pip to
+        # the latest available version.
+        #
+        # We could optimize by not installing (and not upgrading) pip if
+        # the system pip is sufficient to our needs.
+        #
+        # Note that, e.g., pip>=21.3 is required to support PEP660 editable
+        # installs.
+        options: Dict[str, Any] = {"clear": True, "with_pip": with_pip}
+        if sys.version_info >= (3, 9):
+            EnvBuilder(upgrade_deps=upgrade_deps, **options).create(self.path)
+        else:
+            EnvBuilder(**options).create(self.path)
+            if upgrade_deps:
+                self.run_pip_install("--upgrade", "pip", "setuptools")
+
+    def addsitedir(self, sitedir: str) -> None:
+        """Add an additional sitedir to sys.path for virtual environment.
+
+        Packages installed in ``sitedir`` will be made available to any invocations
+        of python running within the virtual environment.
+        """
+        with Path(self.site_packages, "_lektor.pth").open("a", encoding="utf-8") as fp:
+            fp.write(f"import site; site.addsitedir({sitedir!r})\n")
+
+    def run_pip_install(self, *args: str) -> None:
+        """Run `pip install` in the virtual environment.
+
+        ``Args`` are appended to the command line (following ``pip install``). They
+        should specify how and which packages to install.
+
+        """
+        try:
+            subprocess.run((self.executable, "-m", "pip", "install", *args), check=True)
+        except subprocess.CalledProcessError as exc:
+            raise RuntimeError("Failed to install dependency package.") from exc
+
+    @property
+    def site_packages(self) -> str:
+        """The path to the virtual environments ``site-packages`` directory."""
+        return self._get_path("purelib")
+
+    @property
+    def executable(self) -> str:
+        """The path to the python interpreter for the virtual environment."""
+        script_path = Path(self._get_path("scripts"))
+        executable_name = Path(sys.executable).name
+        return os.fspath(script_path / executable_name)
+
+    def _get_path(self, name: str) -> str:
+        vars = {"base": os.fspath(self.path)}
+        return sysconfig.get_path(name, vars=vars)
+
+
+class Requirements(Iterable[str], Sized):
+    """Manage package requirements."""
+
+    requirements: Set[str]
+
+    def __init__(self) -> None:
+        self.requirements = set()
+
+    def __len__(self) -> int:
+        return len(self.requirements)
+
+    def __iter__(self) -> Iterator[str]:
+        """The requirements.
+
+        These requirements are in the form of arguments that can be passed to ``pip
+        install``.
+        """
+        return iter(self.requirements)
+
+    def add_requirement(self, package: str, version: Optional[str] = None) -> None:
+        """Add a (remote) distribution to the requirements."""
+        self.requirements.add(f"{package}=={version}" if version else f"{package}")
+
+    def add_local_requirement(self, path: StrPath) -> None:
+        """Add a local distribution source directory to the requirements.
+
+        The distribution source at ``path`` (which should be a legacy `setup.py` or
+        modern PEP660-compatible project) will be installed in editable mode.
+
+        """
+        srcdir = os.fspath(Path(path).resolve())
+        self.requirements.add(f"--editable={srcdir}")
+
+    _DIST_FILES = ("setup.py", "pyproject.toml")
+
+    def add_local_requirements_from(self, packages_path: StrPath) -> None:
+        """Add sub-directories of path that look like local distribution sources.
+
+        Any direct sub-directories of ``packages_path`` which appear to be distribution
+        source code will be added to the requirements in local (editable) mode.
+
+        """
+        try:
+            for path in Path(packages_path).iterdir():
+                if any(path.joinpath(fn).is_file() for fn in self._DIST_FILES):
+                    self.add_local_requirement(path)
+        except OSError:
+            pass
+
+    def hash(self) -> str:
+        """Compute a hash of the requirement set."""
+        hash = hashlib.sha1()
+        for requirement in sorted(self.requirements):
+            hash.update(requirement.encode("utf-8"))
+            hash.update(b"\0")
+        return hash.hexdigest()
+
+
+def update_cache(
+    venv_path: Path,
+    remote_packages: dict[str, str],
+    local_package_path: Path,
+) -> None:
+    """Ensure the package cache at venv_path is up-to-date.
+
+    ``Remote_packages`` is a dictionary (mapping package names to required versions)
+    that specifies remote packages (to be installed from PyPI).
+
+    ``Local_package_page`` is a path to a directory whose sub-directories may contain
+    local plugin source.  Any such source directories will be installed in "editable"
+    mode.
+
+    """
+    requirements = Requirements()
     for package, version in remote_packages.items():
-        old_version = old_manifest.pop(package, None)
-        if old_version is None:
-            to_install.append((package, version))
-        elif old_version != version:
-            requires_wipe = True
+        requirements.add_requirement(package, version)
+    requirements.add_local_requirements_from(local_package_path)
 
-    # step 2: figure out which local packages to install
-    for package in local_packages:
-        if old_manifest.pop(package, False) is False:
-            to_install.append((package, None))
-
-    # Bad news, we need to wipe everything
-    if requires_wipe or old_manifest:
+    if len(requirements) == 0:
+        shutil.rmtree(venv_path, ignore_errors=True)
+    else:
+        hash_file = venv_path / "lektor-requirements-hash.txt"
         try:
-            shutil.rmtree(package_root)
-        except OSError:
-            pass
-        to_install = all_packages.items()
+            is_stale = hash_file.read_text().strip() != requirements.hash()
+        except FileNotFoundError:
+            is_stale = True
 
-    if to_install:
-        click.echo("Updating packages in %s for project" % package_root)
-        try:
-            os.makedirs(package_root)
-        except OSError:
-            pass
-        for package, version in to_install:
-            if package[:1] == "@":
-                install_local_package(
-                    package_root, os.path.join(local_package_path, package[1:])
-                )
-            else:
-                download_and_install_package(package_root, package, version)
-        write_manifest(manifest_file, all_packages)
+        if is_stale:
+            venv = VirtualEnv(venv_path)
+            venv.create()
+            # Add our site-packages to venv's sys.path
+            our_site_packages = sysconfig.get_path("purelib")
+            venv.addsitedir(our_site_packages)
+
+            venv.run_pip_install(*requirements)
+            hash_file.write_text(f"{requirements.hash()}\n", encoding="ascii")
 
 
-def load_packages(env, reinstall=False):
-    """This loads all the packages of a project.  What this does is updating
-    the current cache in ``root/package-cache`` and then add the Python
-    modules there to the load path as a site directory and register it
-    appropriately with pkg_resource's workingset.
+def load_packages(env: "Environment", reinstall: bool = False) -> None:
+    """Import all of our managed plugins into our ``sys.path``
 
-    Afterwards all entry points should function as expected and imports
-    should be possible.
+    This first ensures that our private package cache is up-to-date, then
+    adds it to ``sys.path``.
+
+    After ``load_packages`` is called, the entry points defined in by
+    plugins that we manage will be available.
     """
+    if reinstall:
+        click.echo("Force package cache refresh.")
+        wipe_package_cache(env)
+
     config = env.load_config()
-    package_root = env.project.get_package_cache_path()
-    update_cache(
-        package_root,
-        config["PACKAGES"],
-        os.path.join(env.root_path, "packages"),
-        refresh=reinstall,
-    )
-    site.addsitedir(package_root)
+    venv_path = env.project.get_package_cache_path()
+    update_cache(venv_path, config["PACKAGES"], Path(env.root_path, "packages"))
+    site.addsitedir(VirtualEnv(venv_path).site_packages)
 
 
-def wipe_package_cache(env):
-    """Wipes the entire package cache."""
-    package_root = env.project.get_package_cache_path()
-    try:
-        shutil.rmtree(package_root)
-    except (OSError, IOError):
-        pass
+def wipe_package_cache(env: "Environment") -> None:
+    """Remove the entire package cache."""
+    project = env.project
+    # Remove the legacy flat package cache, too
+    for cache_type in project.PackageCacheType:
+        shutil.rmtree(project.get_package_cache_path(cache_type), ignore_errors=True)

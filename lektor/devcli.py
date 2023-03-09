@@ -7,27 +7,12 @@ import click
 from lektor.cli_utils import AliasedGroup
 from lektor.cli_utils import extraflag
 from lektor.cli_utils import pass_context
-from lektor.packages import get_package_info
-from lektor.packages import publish_package
-from lektor.packages import register_package
 
 try:
     from IPython import embed
     from traitlets.config.loader import Config
 except ImportError:
     pass  # fallback to normal Python InteractiveConsole
-
-
-def ensure_plugin():
-    here = os.getcwd()
-    if not os.path.isfile(os.path.join(here, "setup.py")):
-        raise click.UsageError("This command must be run in a Lektor plugin folder")
-    info = get_package_info(here)
-    if not info["name"].lower().startswith("lektor-"):
-        raise click.UsageError(
-            "Python package is misnamed. Needs to start with lektor-"
-        )
-    return info
 
 
 @click.group(cls=AliasedGroup, short_help="Development commands.")
@@ -90,23 +75,6 @@ def shell_cmd(ctx, extra_flags):
         embed(config=c, user_ns=ns)
     except NameError:  # No IPython
         code.interact(banner=banner, local=ns)
-
-
-@cli.command("publish-plugin", short_help="Publish a plugin to PyPI.")
-def publish_plugin_cmd():
-    """Publishes the current version of the plugin in the current folder.
-
-    This generally requires that your setup.py has at least the bare minimum
-    configuration for valid publishing to PyPI.
-    """
-    info = ensure_plugin()
-    for key in "author", "author_email", "license", "url":
-        if not info[key]:
-            raise click.UsageError(
-                "Cannot publish plugin without setting " '"%s" in setup.py.' % key
-            )
-    register_package(info["path"])
-    publish_package(info["path"])
 
 
 @cli.command("new-plugin", short_help="Creates a new plugin")

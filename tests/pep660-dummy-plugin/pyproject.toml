@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lektor-dummy-plugin"
+description = "PEP660 test plugin"
+version = "0.1a42"
+
+[project.entry-points."lektor.plugins"]
+dummy = "lektor_dummy_plugin:DummyPlugin"
+
+[tool.setuptools]
+py-modules = ["lektor_dummy_plugin"]
