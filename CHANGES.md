@@ -2,6 +2,104 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b5 (unreleased)
+
+### Breaking Changes
+
+- Removed the `lektor dev publish-plugin` command. (To publish a
+  plugin to PyPI, use [twine].) ([#1065])
+
+- Removed `SourceObject.iter_virtual_sources()` from our API. ([#1106])
+
+- Removed support for `config["LESSC_EXECUTABLE"]`. (There is no sign
+  that it has ever been used.) ([edb35f9])
+
+- Removed support for `BuildState.make_named_temporary` method. It has
+  been totally broken for awhile — so clearly it is not used.<br>
+  Also remove _context manager_ protocol support from `BuildState` — it was
+  only there to support `BuildState.make_named_temporary`. ([6f11bad])
+
+### Bugs Fixed
+
+- Fix several issues involving the installation of local plugin packages.
+  We now install plugins into a _bone fide_ virtual environment, rather
+  than using pip’s `--target` parameter. ([#1065], [#1028], [#865])
+
+- Fix template `markdown` filter (broken in [#992]). ([#1102] [#1100])
+
+- Fix dependency tracking to record the `alt` of _virtual sources_ as
+  well as their `path`. ([#1108], [#1007], [#959])
+
+- Fix equality semantics for `Record` and `VirtualSourceObject`. These
+  are now considered “equal” only if their _path_ (including _page
+  number_, in the case of pages), _alt_, and _pad_ all match.
+  Previously (for the most part) only _path_ (without page number) was
+  being checked in `Record.__eq__`. ([#1105], [#1101])
+
+### Cleanup
+
+- Implement our own `@deprecated` decorator, used to mark functions and methods
+  as being deprecated. Remove dependency on `deprecated` package. ([#1113])
+
+- Remove (direct) dependency on [pytz]. Since the inclusion of the
+  `zoneinfo` module in Python>=3.9 (see [PEP 615]), `pytz` is no long
+  necessary. Recent releases of [Babel][babel-2.12] will work with
+  either `pytz` or `zoneinfo` (depending on what is available) — now
+  we will, too. ([#1110])
+
+### Deprecations
+
+- Deprecate the `Record.contents` property and the use of the
+  `lektor.filecontents.FileContents` class. These are unused by
+  Lektor itself. While they are in use by at least one other project
+  (see [#1026]), the semantics of the `.contents` property is quite
+  unclear when _alts_ are in use. ([#1114])
+
+### Packaging
+
+- Use [hatchling] as our PEP 517 build engine. Among other things, this allows
+  for installing Lektor directly from a git repository — so long as `npm` is installed
+  locally, installing, using `pip` from the git repo will now build the frontend
+  JS and CSS, thus resulting in a working installation of Lektor. ([#1112], [#1081])
+
+### Tests
+
+- Require `tox >= 4.1`.
+
+- Disuse `pytest-cov` — just run `coverage` directly.
+
+### Bit-Rot
+
+- Audit and adjust metadata to ensure that we declare all direct dependencies. ([26e700e])
+
+- Update frontend npm dependencies.
+
+- Fix tox config for tox 4.\*.
+
+[26e700e]: https://github.com/lektor/lektor/commit/26e700e62b3c02a18761cfd7cc7f274ee171dd89
+[6f11bad]: https://github.com/lektor/lektor/commit/6f11bad5844d73c0ba8f5bb74c1e69f6c78650fc
+[edb35f9]: https://github.com/lektor/lektor/commit/edb35f9c1fae1f4e4ae45b51175cdad5e3a52ecd
+[#1114]: https://github.com/lektor/lektor/pull/1114
+[#1113]: https://github.com/lektor/lektor/pull/1113
+[#1112]: https://github.com/lektor/lektor/pull/1112
+[#1108]: https://github.com/lektor/lektor/pull/1108
+[#1106]: https://github.com/lektor/lektor/pull/1106
+[#1105]: https://github.com/lektor/lektor/pull/1105
+[#1102]: https://github.com/lektor/lektor/pull/1102
+[#1101]: https://github.com/lektor/lektor/issues/1101
+[#1100]: https://github.com/lektor/lektor/issues/1100
+[#1081]: https://github.com/lektor/lektor/issues/1081
+[#1065]: https://github.com/lektor/lektor/pull/1065
+[#1028]: https://github.com/lektor/lektor/issues/1028
+[#1026]: https://github.com/lektor/lektor/issues/1026
+[#1007]: https://github.com/lektor/lektor/pull/1007
+[#959]: https://github.com/lektor/lektor/pull/959
+[#865]: https://github.com/lektor/lektor/issues/865
+[babel-2.12]: https://github.com/python-babel/babel/blob/master/CHANGES.rst#version-2120
+[hatchling]: https://pypi.org/project/hatchling/
+[pytz]: https://pypi.org/project/pytz/
+[pep 615]: https://peps.python.org/pep-0615/
+
 ## 3.4.0b4 (2022-11-05)
 
 Test under python 3.11. ([#1084][])
