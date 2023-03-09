@@ -222,7 +222,6 @@ def test_BasicWatcher_sees_directory_moved_out(
         orig_dir_path.rename(final_dir_path)
 
 
-@pytest.mark.xfail(reason="FIXME!")
 def test_BasicWatcher_ignores_opened_file(watcher_test: WatcherTest) -> None:
     file_path = watcher_test.watched_path / "file"
     file_path.touch()

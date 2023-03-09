@@ -5,8 +5,6 @@ from collections import OrderedDict
 from itertools import zip_longest
 
 import click
-from watchdog.events import DirModifiedEvent
-from watchdog.events import FileMovedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from watchdog.observers.api import DEFAULT_OBSERVER_TIMEOUT
@@ -20,13 +18,20 @@ class EventHandler(FileSystemEventHandler):
         super().__init__()
         self.queue = queue.Queue()
 
-    def on_any_event(self, event):
-        if not isinstance(event, DirModifiedEvent):
-            if isinstance(event, FileMovedEvent):
-                path = event.dest_path
-            else:
-                path = event.src_path
-            self.queue.put((time.time(), event.event_type, path))
+    def on_created(self, event):
+        self.queue.put((time.time(), event.event_type, event.src_path))
+
+    def on_deleted(self, event):
+        self.queue.put((time.time(), event.event_type, event.src_path))
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            self.queue.put((time.time(), event.event_type, event.src_path))
+
+    def on_moved(self, event):
+        time_ = time.time()
+        for path in event.src_path, event.dest_path:
+            self.queue.put((time_, event.event_type, path))
 
 
 def _fullname(cls):
