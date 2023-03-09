@@ -9,6 +9,7 @@ from watchdog.events import DirModifiedEvent
 from watchdog.events import FileMovedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.api import DEFAULT_OBSERVER_TIMEOUT
 from watchdog.observers.polling import PollingObserver
 
 from lektor.utils import get_cache_dir
@@ -39,10 +40,16 @@ def _unique_everseen(seq):
 
 
 class BasicWatcher:
-    def __init__(self, paths, observer_classes=(Observer, PollingObserver)):
+    def __init__(
+        self,
+        paths,
+        observer_classes=(Observer, PollingObserver),
+        observer_timeout=DEFAULT_OBSERVER_TIMEOUT,  # testing
+    ):
         self.event_handler = EventHandler()
         self.paths = paths
         self.observer_classes = observer_classes
+        self.observer_timeout = observer_timeout
         self.observer = None
 
     def start(self):
@@ -82,7 +89,7 @@ class BasicWatcher:
     def _start_observer(self, observer_class=Observer):
         if self.observer is not None:
             raise RuntimeError("Watcher already started.")
-        observer = observer_class()
+        observer = observer_class(timeout=self.observer_timeout)
         for path in self.paths:
             observer.schedule(self.event_handler, path, recursive=True)
         observer.daemon = True

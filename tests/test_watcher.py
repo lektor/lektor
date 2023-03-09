@@ -81,7 +81,10 @@ class WatcherTest:
 
         kwargs: dict[str, Any] = {}
         if observer_class is not None:
-            kwargs["observer_classes"] = (observer_class,)
+            kwargs.update(
+                observer_classes=(observer_class,),
+                observer_timeout=0.1,  # fast polling timer to speed tests
+            )
 
         with BasicWatcher([os.fspath(self.watched_path)], **kwargs) as watcher:
             event = threading.Event()
