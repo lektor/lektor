@@ -48,7 +48,11 @@ def cli(ctx, project=None, language=None):
 
 @cli.command("build")
 @click.option(
-    "-O", "--output-path", type=click.Path(), default=None, help="The output path."
+    "-O",
+    "--output-path",
+    type=click.Path(resolve_path=True),
+    default=None,
+    help="The output path.",
 )
 @click.option(
     "--watch",
@@ -159,7 +163,11 @@ def build_cmd(
 
 @cli.command("clean")
 @click.option(
-    "-O", "--output-path", type=click.Path(), default=None, help="The output path."
+    "-O",
+    "--output-path",
+    type=click.Path(resolve_path=True),
+    default=None,
+    help="The output path.",
 )
 @click.option(
     "-v",
@@ -195,7 +203,11 @@ def clean_cmd(ctx, output_path, verbosity, extra_flags):
 @cli.command("deploy", short_help="Deploy the website.")
 @click.argument("server", required=False)
 @click.option(
-    "-O", "--output-path", type=click.Path(), default=None, help="The output path."
+    "-O",
+    "--output-path",
+    type=click.Path(resolve_path=True),
+    default=None,
+    help="The output path.",
 )
 @click.option(
     "--username",
@@ -300,7 +312,7 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
 @click.option(
     "-O",
     "--output-path",
-    type=click.Path(),
+    type=click.Path(resolve_path=True),
     default=None,
     help="The dev server will build into the same folder as "
     "the build command by default.",
