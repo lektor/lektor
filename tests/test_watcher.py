@@ -4,7 +4,6 @@ import functools
 import os
 import shutil
 import sys
-import threading
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -88,29 +87,19 @@ class WatcherTest:
             )
 
         with BasicWatcher([os.fspath(self.watched_path)], **kwargs) as watcher:
-            event = threading.Event()
-
-            class WatcherWatcher(threading.Thread):
-                # iterate watcher in a separate thread
-                def run(self):
-                    for _ in watcher:
-                        event.set()
-
-            WatcherWatcher(daemon=True).start()
-
             if sys.platform == "darwin":
                 # The FSEventObserver (used on macOS) seems to send events for things that
                 # happened before is was started.  Here, we wait a little bit for things to
                 # start, then discard any pre-existing events.
                 time.sleep(0.1)
-                event.clear()
+                watcher.event.clear()
 
             yield self.watched_path
 
             if should_set_event:
-                assert event.wait(timeout)
+                assert watcher.event.wait(timeout=timeout)
             else:
-                assert not event.wait(timeout)
+                assert not watcher.event.wait(timeout=timeout)
 
 
 @pytest.fixture(
@@ -253,14 +242,13 @@ def test_is_interesting(env):
 
 
 def test_watch(env, mocker):
+    # just here for coverage
     Watcher = mocker.patch("lektor.watcher.Watcher")
-    event1 = mocker.sentinel.event1
-
-    def events():
-        yield event1
-        raise KeyboardInterrupt()
-
     watcher = Watcher.return_value.__enter__.return_value
-    watcher.__iter__.return_value = events()
+    watcher.wait.side_effect = [True, KeyboardInterrupt()]
 
-    assert list(watch(env)) == [event1]
+    now = time.time()
+    events = list(watch(env))
+    assert len(events) == 1
+    time_, _event_type, _path = events[0]
+    assert time_ == pytest.approx(now, abs=0.1)

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import os
-import queue
+import threading
 import time
 from collections import OrderedDict
+from contextlib import suppress
 from itertools import zip_longest
 
 import click
@@ -14,9 +17,14 @@ from lektor.utils import get_cache_dir
 
 
 class EventHandler(FileSystemEventHandler):
-    def __init__(self):
+    def __init__(self, is_interesting):
         super().__init__()
-        self.queue = queue.Queue()
+        self.is_interesting = is_interesting
+        self.event = threading.Event()
+
+    def _check(self, path):
+        if self.is_interesting(None, None, path):
+            self.event.set()
 
     # Generally we only care about changes (modification, creation, deletion) to files
     # within the monitored tree. Changes in directories do not directly affect Lektor
@@ -32,19 +40,18 @@ class EventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         if not event.is_directory:
-            self.queue.put((time.time(), event.event_type, event.src_path))
+            self._check(event.src_path)
 
     def on_deleted(self, event):
-        self.queue.put((time.time(), event.event_type, event.src_path))
+        self._check(event.src_path)
 
     def on_modified(self, event):
         if not event.is_directory:
-            self.queue.put((time.time(), event.event_type, event.src_path))
+            self._check(event.src_path)
 
     def on_moved(self, event):
-        time_ = time.time()
-        for path in event.src_path, event.dest_path:
-            self.queue.put((time_, event.event_type, path))
+        self._check(event.src_path)
+        self._check(event.dest_path)
 
 
 def _fullname(cls):
@@ -64,7 +71,7 @@ class BasicWatcher:
         observer_classes=(Observer, PollingObserver),
         observer_timeout=DEFAULT_OBSERVER_TIMEOUT,  # testing
     ):
-        self.event_handler = EventHandler()
+        self.event_handler = EventHandler(self.is_interesting)
         self.paths = paths
         self.observer_classes = observer_classes
         self.observer_timeout = observer_timeout
@@ -118,11 +125,24 @@ class BasicWatcher:
         # pylint: disable=no-self-use
         return True
 
-    def __iter__(self):
-        while 1:
-            time_, event_type, path = self.event_handler.queue.get()
-            if self.is_interesting(time_, event_type, path):
-                yield time_, event_type, path
+    @property
+    def event(self):
+        return self.event_handler.event
+
+    def wait(self, timeout: float | None = None):
+        """Wait for watched filesystem change.
+
+        This waits for a “new” non-ignored filesystem change.  Here “new” means that
+        the change happened since the last return from ``wait``.
+
+        Waits a maximum of ``timeout`` seconds (or forever if ``timeout`` is ``None``).
+
+        Returns ``True`` if a change occurred, ``False`` on timeout.
+        """
+        if not self.event.wait(timeout=timeout):
+            return False
+        self.event.clear()
+        return True
 
 
 class Watcher(BasicWatcher):
@@ -148,9 +168,7 @@ class Watcher(BasicWatcher):
 
 def watch(env):
     """Returns a generator of file system events in the environment."""
-    with Watcher(env) as watcher:
-        try:
-            for event in watcher:
-                yield event
-        except KeyboardInterrupt:
-            pass
+    with Watcher(env) as watcher, suppress(KeyboardInterrupt):
+        while True:
+            watcher.wait()
+            yield time.time(), None, None

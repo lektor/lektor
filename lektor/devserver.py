@@ -26,7 +26,6 @@ class BackgroundBuilder(threading.Thread):
         self.output_path = output_path
         self.prune = prune
         self.verbosity = verbosity
-        self.last_build = time.time()
         self.extra_flags = extra_flags
 
     def build(self, update_source_info_first=False):
@@ -42,16 +41,14 @@ class BackgroundBuilder(threading.Thread):
                 builder.prune()
         except Exception:
             traceback.print_exc()
-        else:
-            self.last_build = time.time()
 
     def run(self):
         with CliReporter(self.env, verbosity=self.verbosity):
-            self.build(update_source_info_first=True)
             with Watcher(self.env, self.output_path) as watcher:
-                for ts, _, _ in watcher:
-                    if self.last_build is None or ts > self.last_build:
-                        self.build()
+                self.build(update_source_info_first=True)
+                while True:
+                    watcher.wait()
+                    self.build()
 
 
 def browse_to_address(addr):
