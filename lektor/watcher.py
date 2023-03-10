@@ -23,8 +23,9 @@ class EventHandler(FileSystemEventHandler):
         self.event = threading.Event()
 
     def _check(self, path):
-        if self.is_interesting(None, None, path):
-            self.event.set()
+        if not self.event.is_set():
+            if self.is_interesting(None, None, path):
+                self.event.set()
 
     # Generally we only care about changes (modification, creation, deletion) to files
     # within the monitored tree. Changes in directories do not directly affect Lektor
