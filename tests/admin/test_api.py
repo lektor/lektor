@@ -469,7 +469,7 @@ def test_missing_files(test_client, url):
         ("/admin/api/rawrecord", {"GET", "PUT"}),
     ],
 )
-@pytest.mark.parametrize("method", {"GET", "POST", "PUT"})
+@pytest.mark.parametrize("method", ["GET", "POST", "PUT"])
 def test_allowed_methods(test_client, method, url, allowed):
     if method not in allowed:
         extra_allowed = {"OPTIONS", "HEAD"} if "GET" in allowed else {"OPTIONS"}
