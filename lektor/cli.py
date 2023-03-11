@@ -11,6 +11,7 @@ from lektor.cli_utils import echo_json
 from lektor.cli_utils import extraflag
 from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
+from lektor.cli_utils import ResolvedPath
 from lektor.cli_utils import validate_language
 from lektor.compat import importlib_metadata as metadata
 from lektor.project import Project
@@ -50,7 +51,7 @@ def cli(ctx, project=None, language=None):
 @click.option(
     "-O",
     "--output-path",
-    type=click.Path(resolve_path=True),
+    type=ResolvedPath(),
     default=None,
     help="The output path.",
 )
@@ -165,7 +166,7 @@ def build_cmd(
 @click.option(
     "-O",
     "--output-path",
-    type=click.Path(resolve_path=True),
+    type=ResolvedPath(),
     default=None,
     help="The output path.",
 )
@@ -205,7 +206,7 @@ def clean_cmd(ctx, output_path, verbosity, extra_flags):
 @click.option(
     "-O",
     "--output-path",
-    type=click.Path(resolve_path=True),
+    type=ResolvedPath(),
     default=None,
     help="The output path.",
 )
@@ -312,7 +313,7 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
 @click.option(
     "-O",
     "--output-path",
-    type=click.Path(resolve_path=True),
+    type=ResolvedPath(),
     default=None,
     help="The dev server will build into the same folder as "
     "the build command by default.",
