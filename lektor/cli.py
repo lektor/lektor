@@ -24,7 +24,9 @@ version = metadata.version("Lektor")
 
 @click.group(cls=AliasedGroup)
 @click.option(
-    "--project", type=click.Path(), help="The path to the lektor project to work with."
+    "--project",
+    type=click.Path(exists=True),
+    help="The path to the lektor project to work with.",
 )
 @click.option(
     "--language",
@@ -51,7 +53,7 @@ def cli(ctx, project=None, language=None):
 @click.option(
     "-O",
     "--output-path",
-    type=ResolvedPath(),
+    type=ResolvedPath(writable=True, file_okay=False),
     default=None,
     help="The output path.",
 )
@@ -80,7 +82,7 @@ def cli(ctx, project=None, language=None):
 )
 @click.option(
     "--buildstate-path",
-    type=click.Path(),
+    type=click.Path(writable=True, file_okay=False),
     default=None,
     help="Path to a directory that Lektor will use for coordinating "
     "the state of the build. Defaults to a directory named "
@@ -166,7 +168,7 @@ def build_cmd(
 @click.option(
     "-O",
     "--output-path",
-    type=ResolvedPath(),
+    type=ResolvedPath(writable=True, file_okay=False),
     default=None,
     help="The output path.",
 )
@@ -206,7 +208,7 @@ def clean_cmd(ctx, output_path, verbosity, extra_flags):
 @click.option(
     "-O",
     "--output-path",
-    type=ResolvedPath(),
+    type=ResolvedPath(writable=True, file_okay=False),
     default=None,
     help="The output path.",
 )
@@ -313,7 +315,7 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
 @click.option(
     "-O",
     "--output-path",
-    type=ResolvedPath(),
+    type=ResolvedPath(writable=True, file_okay=False),
     default=None,
     help="The dev server will build into the same folder as "
     "the build command by default.",
@@ -426,7 +428,7 @@ def project_info_cmd(ctx, as_json, **opts):
     "content-file-info", short_help="Provides information for " "a set of lektor files."
 )
 @click.option("as_json", "--json", is_flag=True, help="Prints out the data as json.")
-@click.argument("files", nargs=-1, type=click.Path())
+@click.argument("files", nargs=-1, type=click.Path(dir_okay=False))
 @pass_context
 def content_file_info_cmd(ctx, files, as_json):
     """Given a list of files this returns the information for those files
@@ -617,7 +619,11 @@ def plugins_reinstall_cmd(ctx):
 
 @cli.command("quickstart", short_help="Starts a new empty project.")
 @click.option("--name", help="The name of the project.")
-@click.option("--path", type=click.Path(), help="Output directory")
+@click.option(
+    "--path",
+    type=click.Path(file_okay=False, dir_okay=False, writable=True),
+    help="Output directory",
+)
 @pass_context
 def quickstart_cmd(ctx, **options):
     """Starts a new empty project with a minimum boilerplate."""
