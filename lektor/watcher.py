@@ -5,7 +5,9 @@ import threading
 import time
 from collections import OrderedDict
 from contextlib import suppress
+from dataclasses import dataclass
 from itertools import zip_longest
+from typing import Callable
 
 import click
 from watchdog.events import FileSystemEventHandler
@@ -16,22 +18,12 @@ from watchdog.observers.polling import PollingObserver
 from lektor.utils import get_cache_dir
 
 
+@dataclass(frozen=True)
 class EventHandler(FileSystemEventHandler):
-    def __init__(self, is_interesting):
-        super().__init__()
-        self.is_interesting = is_interesting
-        self.semaphore = threading.BoundedSemaphore(1)
-        # pylint: disable=consider-using-with
-        assert self.semaphore.acquire(blocking=False)
+    notify: Callable[[str], None]
 
-    def _check(self, path):
-        # pylint: disable=consider-using-with
-        if self.semaphore.acquire(blocking=False):
-            # was set (unread change pending): set it again
-            self.semaphore.release()
-        elif self.is_interesting(None, None, path):
-            # was not set, but got an change event, set it
-            self.semaphore.release()
+    def __post_init__(self):
+        super().__init__()
 
     # Generally we only care about changes (modification, creation, deletion) to files
     # within the monitored tree. Changes in directories do not directly affect Lektor
@@ -47,18 +39,18 @@ class EventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         if not event.is_directory:
-            self._check(event.src_path)
+            self.notify(event.src_path)
 
     def on_deleted(self, event):
-        self._check(event.src_path)
+        self.notify(event.src_path)
 
     def on_modified(self, event):
         if not event.is_directory:
-            self._check(event.src_path)
+            self.notify(event.src_path)
 
     def on_moved(self, event):
-        self._check(event.src_path)
-        self._check(event.dest_path)
+        self.notify(event.src_path)
+        self.notify(event.dest_path)
 
 
 def _fullname(cls):
@@ -78,11 +70,13 @@ class BasicWatcher:
         observer_classes=(Observer, PollingObserver),
         observer_timeout=DEFAULT_OBSERVER_TIMEOUT,  # testing
     ):
-        self.event_handler = EventHandler(self.is_interesting)
         self.paths = paths
         self.observer_classes = observer_classes
         self.observer_timeout = observer_timeout
         self.observer = None
+        self.semaphore = threading.BoundedSemaphore(1)
+        # pylint: disable=consider-using-with
+        assert self.semaphore.acquire(blocking=False)
 
     def start(self):
         # Remove duplicates since there is no point in trying a given
@@ -122,8 +116,9 @@ class BasicWatcher:
         if self.observer is not None:
             raise RuntimeError("Watcher already started.")
         observer = observer_class(timeout=self.observer_timeout)
+        event_handler = EventHandler(self._notify)
         for path in self.paths:
-            observer.schedule(self.event_handler, path, recursive=True)
+            observer.schedule(event_handler, path, recursive=True)
         observer.daemon = True
         observer.start()
         self.observer = observer
@@ -131,6 +126,16 @@ class BasicWatcher:
     def is_interesting(self, time, event_type, path):
         # pylint: disable=no-self-use
         return True
+
+    def _notify(self, path):
+        """Called by EventHandler when file change event is received."""
+        # pylint: disable=consider-using-with
+        if self.semaphore.acquire(blocking=False):
+            # was set (unread change pending): just put it back
+            self.semaphore.release()
+        elif self.is_interesting(None, None, path):
+            # was not set, but got an change event, set it
+            self.semaphore.release()
 
     def wait(self, blocking: bool = True, timeout: float | None = None):
         """Wait for watched filesystem change.
@@ -142,8 +147,7 @@ class BasicWatcher:
 
         Returns ``True`` if a change occurred, ``False`` on timeout.
         """
-        semaphore = self.event_handler.semaphore
-        return semaphore.acquire(blocking, timeout)
+        return self.semaphore.acquire(blocking, timeout)
 
 
 class Watcher(BasicWatcher):
