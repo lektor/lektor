@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import os
 import threading
-import time
 from collections import OrderedDict
-from contextlib import suppress
 from dataclasses import dataclass
 from itertools import zip_longest
 from typing import Callable
@@ -169,11 +167,3 @@ class Watcher(BasicWatcher):
         ):
             return False
         return True
-
-
-def watch(env):
-    """Returns a generator of file system events in the environment."""
-    with Watcher(env) as watcher, suppress(KeyboardInterrupt):
-        while True:
-            watcher.wait()
-            yield time.time(), None, None

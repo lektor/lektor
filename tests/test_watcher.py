@@ -18,7 +18,6 @@ from watchdog.observers.polling import PollingObserver
 
 from lektor import utils
 from lektor.watcher import BasicWatcher
-from lektor.watcher import watch
 from lektor.watcher import Watcher
 
 
@@ -236,16 +235,3 @@ def test_is_interesting(env):
 
     w.output_path = None
     assert is_interesting(str(build_dir / "output.file"))
-
-
-def test_watch(env, mocker):
-    # just here for coverage
-    Watcher = mocker.patch("lektor.watcher.Watcher")
-    watcher = Watcher.return_value.__enter__.return_value
-    watcher.wait.side_effect = [True, KeyboardInterrupt()]
-
-    now = time.time()
-    events = list(watch(env))
-    assert len(events) == 1
-    time_, _event_type, _path = events[0]
-    assert time_ == pytest.approx(now, abs=0.1)
