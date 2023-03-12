@@ -92,14 +92,14 @@ class WatcherTest:
                 # happened before is was started.  Here, we wait a little bit for things to
                 # start, then discard any pre-existing events.
                 time.sleep(0.1)
-                watcher.event.clear()
+                watcher.wait(blocking=False)
 
             yield self.watched_path
 
             if should_set_event:
-                assert watcher.event.wait(timeout=timeout)
+                assert watcher.wait(timeout=timeout)
             else:
-                assert not watcher.event.wait(timeout=timeout)
+                assert not watcher.wait(timeout=timeout)
 
 
 @pytest.fixture(

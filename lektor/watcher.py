@@ -20,12 +20,18 @@ class EventHandler(FileSystemEventHandler):
     def __init__(self, is_interesting):
         super().__init__()
         self.is_interesting = is_interesting
-        self.event = threading.Event()
+        self.semaphore = threading.BoundedSemaphore(1)
+        # pylint: disable=consider-using-with
+        assert self.semaphore.acquire(blocking=False)
 
     def _check(self, path):
-        if not self.event.is_set():
-            if self.is_interesting(None, None, path):
-                self.event.set()
+        # pylint: disable=consider-using-with
+        if self.semaphore.acquire(blocking=False):
+            # was set (unread change pending): set it again
+            self.semaphore.release()
+        elif self.is_interesting(None, None, path):
+            # was not set, but got an change event, set it
+            self.semaphore.release()
 
     # Generally we only care about changes (modification, creation, deletion) to files
     # within the monitored tree. Changes in directories do not directly affect Lektor
@@ -126,11 +132,7 @@ class BasicWatcher:
         # pylint: disable=no-self-use
         return True
 
-    @property
-    def event(self):
-        return self.event_handler.event
-
-    def wait(self, timeout: float | None = None):
+    def wait(self, blocking: bool = True, timeout: float | None = None):
         """Wait for watched filesystem change.
 
         This waits for a “new” non-ignored filesystem change.  Here “new” means that
@@ -140,10 +142,8 @@ class BasicWatcher:
 
         Returns ``True`` if a change occurred, ``False`` on timeout.
         """
-        if not self.event.wait(timeout=timeout):
-            return False
-        self.event.clear()
-        return True
+        semaphore = self.event_handler.semaphore
+        return semaphore.acquire(blocking, timeout)
 
 
 class Watcher(BasicWatcher):
