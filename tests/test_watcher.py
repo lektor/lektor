@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 import os
 import shutil
 import sys
@@ -228,9 +227,7 @@ def test_is_interesting(env):
     build_dir = py.path.local("build")
 
     w = Watcher(env, str(build_dir))
-
-    # This partial makes the testing code shorter
-    is_interesting = functools.partial(w.is_interesting, 0, "generic")
+    is_interesting = w.is_interesting
 
     assert is_interesting("a.file")
     assert not is_interesting(".file")

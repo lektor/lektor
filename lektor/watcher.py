@@ -123,7 +123,7 @@ class BasicWatcher:
         observer.start()
         self.observer = observer
 
-    def is_interesting(self, time, event_type, path):
+    def is_interesting(self, path: str) -> bool:
         # pylint: disable=no-self-use
         return True
 
@@ -133,7 +133,7 @@ class BasicWatcher:
         if self.semaphore.acquire(blocking=False):
             # was set (unread change pending): just put it back
             self.semaphore.release()
-        elif self.is_interesting(None, None, path):
+        elif self.is_interesting(path):
             # was not set, but got an change event, set it
             self.semaphore.release()
 
@@ -157,7 +157,7 @@ class Watcher(BasicWatcher):
         self.output_path = output_path
         self.cache_dir = os.path.abspath(get_cache_dir())
 
-    def is_interesting(self, time, event_type, path):
+    def is_interesting(self, path: str) -> bool:
         path = os.path.abspath(path)
 
         if self.env.is_uninteresting_source_name(os.path.basename(path)):
