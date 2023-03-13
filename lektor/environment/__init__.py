@@ -4,8 +4,8 @@ import uuid
 from functools import update_wrapper
 from typing import TYPE_CHECKING
 
+import babel.dates
 import jinja2
-from babel import dates
 from jinja2.loaders import split_template_path
 
 from lektor.constants import PRIMARY_ALT
@@ -34,13 +34,56 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-def _pass_locale(func):
-    def new_func(*args, **kwargs):
-        if kwargs.get("locale", None) is None:
-            kwargs["locale"] = get_locale("en_US")
-        return func(*args, **kwargs)
+def _dates_filter(name, wrapped):
+    """Wrap one of the babel.dates.format_* functions for use as a jinja filter.
 
-    return update_wrapper(new_func, func)
+    This will create a jinja filter that will:
+
+    - Check for *undefined* date/time input (and, in that case, return an empty string).
+
+    - Check that the ``format`` and ``locale`` parameters, if provided, have the correct
+      types, otherwise raising ``TypeError``.
+
+    - Raise ``TypeError`` with a somewhat informative message if the wrapped formatting
+      function raises an unexpected exception.  Such an exception is most likely due to
+      being passed an unsupported date/time time.  (The Babel formatting functions
+      accept a fairly wide range of input types — and that range might potentially vary
+      between releases — so we do not explicitly check the input type before passing it
+      on to Babel.)
+
+    If `locale` is not specified, we fill it in based on the current *alt*.
+
+    """
+
+    @jinja2.pass_context  # prevent inlining
+    def wrapper(_jinja_ctx, arg, format="medium", **kwargs):
+        if isinstance(arg, jinja2.Undefined):
+            # This will typically return an empty string, though it depends on the
+            # specific type of undefined instance.  E.g. if arg is a DebugUndefined, it
+            # will return a more descriptive message, and if arg is a StrictUndefined,
+            # an UndefinedError will be raised.
+            return str(arg)
+
+        if not isinstance(format, str):
+            raise TypeError(
+                f"The 'format' parameter to '{name}' should be a str, not {format!r}"
+            )
+
+        locale = kwargs.get("locale")
+        if locale is None:
+            kwargs["locale"] = get_locale("en_US")
+
+        try:
+            return wrapped(arg, format, **kwargs)
+        except (TypeError, ValueError):
+            raise
+        except Exception as exc:
+            raise TypeError(
+                f"While evaluating filter '{name}', an unexpected exception was raised. "
+                "This is likely caused by an input or parameter of an unsupported type."
+            ) from exc
+
+    return update_wrapper(wrapper, wrapped)
 
 
 @jinja2.pass_context
@@ -49,12 +92,13 @@ def _markdown_filter(
     source: str,
     *,
     resolve_links: "Literal['always', 'never', 'when-possible', None]" = None,
-    **kw: str
+    **kw: str,
 ) -> Markdown:
     """A jinja filter that converts markdown text to HTML."""
-    # By default Jinja treats filters as pure functions, and will memoize
-    # their results. Since here we depend on global context, we mark the filter
-    # as a "context filter" to prevent memoization.
+    # By default Jinja treats filters as pure functions. The template compiler
+    # will inline filters applied to compile-time constant expressions.
+    # Since here we depend on global context, we mark the filter
+    # as a "context filter" to prevent inlining.
     ctx = get_ctx()
     source_obj = ctx.source if ctx is not None else None
     return Markdown(
@@ -171,9 +215,9 @@ class Environment:
             get_random_id=lambda: uuid.uuid4().hex,
         )
         self.jinja_env.filters.update(
-            datetimeformat=_pass_locale(dates.format_datetime),
-            dateformat=_pass_locale(dates.format_date),
-            timeformat=_pass_locale(dates.format_time),
+            dateformat=_dates_filter("dateformat", babel.dates.format_date),
+            datetimeformat=_dates_filter("datetimeformat", babel.dates.format_datetime),
+            timeformat=_dates_filter("timeformat", babel.dates.format_time),
         )
 
         # pylint: disable=import-outside-toplevel

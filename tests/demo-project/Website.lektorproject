@@ -7,11 +7,13 @@ included_assets = _*
 name = English
 name[de] = Englisch
 primary = yes
+locale = en_US
 
 [alternatives.de]
 name = German
 name[de] = Deutsch
 url_prefix = /de/
+locale = de_DE
 
 [servers.production]
 enabled = yes
