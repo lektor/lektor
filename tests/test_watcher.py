@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import os
 import shutil
+import sys
 import threading
 import time
 from contextlib import contextmanager
@@ -97,11 +98,12 @@ class WatcherTest:
 
             WatcherWatcher(daemon=True).start()
 
-            # The FSEventObserver (used on macOS) seems to send events for things that
-            # happened before is was started.  Here, we wait a little bit for things to
-            # start, then discard any pre-existing events.
-            time.sleep(0.01)
-            event.clear()
+            if sys.platform == "darwin":
+                # The FSEventObserver (used on macOS) seems to send events for things that
+                # happened before is was started.  Here, we wait a little bit for things to
+                # start, then discard any pre-existing events.
+                time.sleep(0.1)
+                event.clear()
 
             yield self.watched_path
 
