@@ -6,12 +6,18 @@ These are all the changes in Lektor since the first public release.
 
 ### Bugs
 
+- Implement better input validation for the date/time-formatting jinja
+  filters. Prior to this, passing a `jinja2.Undefined` value to the
+  `date`, `time`, or `datetime` filters would elicit an assertion
+  error. ([#1122], [#1121])
 - Fix for spurious rebuilds. Recent versions of watchdog (>=2.3.0)
   enabled tracking of IN_OPEN events. These fire when a file is opened
   — even just for reading. Now we're pickier about only responding to
   events that indicate file modifications. ([#1117])
 
 [#1117]: https://github.com/lektor/lektor/pull/1117
+[#1121]: https://github.com/lektor/lektor/issues/1121
+[#1122]: https://github.com/lektor/lektor/pull/1122
 
 ## 3.3.8 (2023-02-28)
 

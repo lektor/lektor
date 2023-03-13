@@ -3,8 +3,8 @@ import os
 import uuid
 from functools import update_wrapper
 
+import babel.dates
 import jinja2
-from babel import dates
 from jinja2.loaders import split_template_path
 
 from lektor.constants import PRIMARY_ALT
@@ -29,13 +29,83 @@ from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
 
-def _pass_locale(func):
-    def new_func(*args, **kwargs):
-        if kwargs.get("locale", None) is None:
-            kwargs["locale"] = get_locale("en_US")
-        return func(*args, **kwargs)
+def _prevent_inlining(wrapped):
+    """Ensure wrapped jinja filter does not get inlined by the template compiler.
 
-    return update_wrapper(new_func, func)
+    The jinja compiler normally assumes that filters are pure functions (whose
+    result depends only on their parameters) and will inline filter calls that
+    are applied to compile-time constants.
+
+    E.g.
+
+        'say {{ "foo" | upper }}'
+
+    will be compiled to
+
+        "say Foo"
+
+    Many of our filters depend on global state (e..g the Lektor build context).
+
+    Applying this decorator to them will ensure they are not inlined.
+    """
+    # the use of @pass_context will prevent inlining
+    @jinja2.pass_context
+    def wrapper(_jinja_ctx, *args, **kwargs):
+        return wrapped(*args, **kwargs)
+
+    return update_wrapper(wrapper, wrapped)
+
+
+def _dates_filter(name, wrapped):
+    """Wrap one of the babel.dates.format_* functions for use as a jinja filter.
+
+    This will create a jinja filter that will:
+
+    - Check for *undefined* date/time input (and, in that case, return an empty string).
+
+    - Check that the ``format`` and ``locale`` parameters, if provided, have the correct
+      types, otherwise raising ``TypeError``.
+
+    - Raise ``TypeError`` with a somewhat informative message if the wrapped formatting
+      function raises an unexpected exception.  Such an exception is most likely due to
+      being passed an unsupported date/time time.  (The Babel formatting functions
+      accept a fairly wide range of input types — and that range might potentially vary
+      between releases — so we do not explicitly check the input type before passing it
+      on to Babel.)
+
+    If `locale` is not specified, we fill it in based on the current *alt*.
+
+    """
+
+    @_prevent_inlining
+    def wrapper(arg, format="medium", **kwargs):
+        if isinstance(arg, jinja2.Undefined):
+            # This will typically return an empty string, though it depends on the
+            # specific type of undefined instance.  E.g. if arg is a DebugUndefined, it
+            # will return a more descriptive message, and if arg is a StrictUndefined,
+            # an UndefinedError will be raised.
+            return str(arg)
+
+        if not isinstance(format, str):
+            raise TypeError(
+                f"The 'format' parameter to '{name}' should be a str, not {format!r}"
+            )
+
+        locale = kwargs.get("locale")
+        if locale is None:
+            kwargs["locale"] = get_locale("en_US")
+
+        try:
+            return wrapped(arg, format, **kwargs)
+        except (TypeError, ValueError):
+            raise
+        except Exception as exc:
+            raise TypeError(
+                f"While evaluating filter '{name}', an unexpected exception was raised. "
+                "This is likely caused by an input or parameter of an unsupported type."
+            ) from exc
+
+    return update_wrapper(wrapper, wrapped)
 
 
 # Special files that should always be ignored.
@@ -130,12 +200,9 @@ class Environment:
             latformat=lambda x, secs=True: format_lat_long(lat=x, secs=secs),
             longformat=lambda x, secs=True: format_lat_long(long=x, secs=secs),
             latlongformat=lambda x, secs=True: format_lat_long(secs=secs, *x),
-            # By default filters need to be side-effect free.  This is not
-            # the case for this one, so we need to make it as a dummy
-            # context filter so that jinja2 will not inline it.
-            url=jinja2.pass_context(lambda ctx, *a, **kw: url_to(*a, **kw)),
-            asseturl=jinja2.pass_context(lambda ctx, *a, **kw: get_asset_url(*a, **kw)),
-            markdown=jinja2.pass_context(lambda ctx, *a, **kw: Markdown(*a, **kw)),
+            url=_prevent_inlining(url_to),
+            asseturl=_prevent_inlining(get_asset_url),
+            markdown=_prevent_inlining(Markdown),
         )
         self.jinja_env.globals.update(
             F=F,
@@ -147,9 +214,9 @@ class Environment:
             get_random_id=lambda: uuid.uuid4().hex,
         )
         self.jinja_env.filters.update(
-            datetimeformat=_pass_locale(dates.format_datetime),
-            dateformat=_pass_locale(dates.format_date),
-            timeformat=_pass_locale(dates.format_time),
+            dateformat=_dates_filter("dateformat", babel.dates.format_date),
+            datetimeformat=_dates_filter("datetimeformat", babel.dates.format_datetime),
+            timeformat=_dates_filter("timeformat", babel.dates.format_time),
         )
 
         # pylint: disable=import-outside-toplevel

@@ -66,15 +66,24 @@ def save_sys_path(monkeypatch):
     # modules loaded during the test so that they can be re-loaded for
     # the next test.  This is not guaranteed to work, since there are
     # numerous ways that a reference to a loaded module may still be held.
-    monkeypatch.setattr(sys, "modules", sys.modules.copy())
+
+    # NB: some modules (e.g. pickle) appear to hold a reference to sys.modules,
+    # so we have to be careful to manipulate sys.modules in place, rather than
+    # using monkeypatch to swap it out.
+    saved_modules = sys.modules.copy()
 
     # While pkg_resources.__getstate__ and pkg_resources.__setstate__
     # do not appear to be a documented part of the pkg_resources API,
     # they are used in setuptools' own tests, and appear to have been
     # a stable feature since 2011.
     saved_state = pkg_resources.__getstate__()
-    yield
-    pkg_resources.__setstate__(saved_state)
+    try:
+        yield
+    finally:
+        for name in set(sys.modules).difference(saved_modules):
+            del sys.modules[name]
+        sys.modules.update(saved_modules)
+        pkg_resources.__setstate__(saved_state)
 
 
 @pytest.fixture(scope="function")
