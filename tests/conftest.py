@@ -77,10 +77,21 @@ def save_sys_path(monkeypatch):
     # modules loaded during the test so that they can be re-loaded for
     # the next test.  This is not guaranteed to work, since there are
     # numerous ways that a reference to a loaded module may still be held.
-    monkeypatch.setattr(sys, "modules", sys.modules.copy())
+
+    # NB: some modules (e.g. pickle) appear to hold a reference to sys.modules,
+    # so we have to be careful to manipulate sys.modules in place, rather than
+    # using monkeypatch to swap it out.
+    saved_modules = sys.modules.copy()
 
     # It's not clear that this is necessary, but it probably won't hurt.
     importlib.invalidate_caches()
+
+    try:
+        yield
+    finally:
+        for name in set(sys.modules).difference(saved_modules):
+            del sys.modules[name]
+        sys.modules.update(saved_modules)
 
 
 @pytest.fixture(scope="function")
