@@ -34,6 +34,33 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
+def _prevent_inlining(wrapped):
+    """Ensure wrapped jinja filter does not get inlined by the template compiler.
+
+    The jinja compiler normally assumes that filters are pure functions (whose
+    result depends only on their parameters) and will inline filter calls that
+    are applied to compile-time constants.
+
+    E.g.
+
+        'say {{ "foo" | upper }}'
+
+    will be compiled to
+
+        "say Foo"
+
+    Many of our filters depend on global state (e..g the Lektor build context).
+
+    Applying this decorator to them will ensure they are not inlined.
+    """
+    # the use of @pass_context will prevent inlining
+    @jinja2.pass_context
+    def wrapper(_jinja_ctx, *args, **kwargs):
+        return wrapped(*args, **kwargs)
+
+    return update_wrapper(wrapper, wrapped)
+
+
 def _dates_filter(name, wrapped):
     """Wrap one of the babel.dates.format_* functions for use as a jinja filter.
 
@@ -55,8 +82,8 @@ def _dates_filter(name, wrapped):
 
     """
 
-    @jinja2.pass_context  # prevent inlining
-    def wrapper(_jinja_ctx, arg, format="medium", **kwargs):
+    @_prevent_inlining
+    def wrapper(arg, format="medium", **kwargs):
         if isinstance(arg, jinja2.Undefined):
             # This will typically return an empty string, though it depends on the
             # specific type of undefined instance.  E.g. if arg is a DebugUndefined, it
@@ -86,19 +113,14 @@ def _dates_filter(name, wrapped):
     return update_wrapper(wrapper, wrapped)
 
 
-@jinja2.pass_context
+@_prevent_inlining
 def _markdown_filter(
-    _jinja_context: jinja2.runtime.Context,
     source: str,
     *,
     resolve_links: "Literal['always', 'never', 'when-possible', None]" = None,
     **kw: str,
 ) -> Markdown:
     """A jinja filter that converts markdown text to HTML."""
-    # By default Jinja treats filters as pure functions. The template compiler
-    # will inline filters applied to compile-time constant expressions.
-    # Since here we depend on global context, we mark the filter
-    # as a "context filter" to prevent inlining.
     ctx = get_ctx()
     source_obj = ctx.source if ctx is not None else None
     return Markdown(
@@ -198,11 +220,8 @@ class Environment:
             latformat=lambda x, secs=True: format_lat_long(lat=x, secs=secs),
             longformat=lambda x, secs=True: format_lat_long(long=x, secs=secs),
             latlongformat=lambda x, secs=True: format_lat_long(secs=secs, *x),
-            # By default filters need to be side-effect free.  This is not
-            # the case for this one, so we need to make it as a dummy
-            # context filter so that jinja2 will not inline it.
-            url=jinja2.pass_context(lambda ctx, *a, **kw: url_to(*a, **kw)),
-            asseturl=jinja2.pass_context(lambda ctx, *a, **kw: get_asset_url(*a, **kw)),
+            url=_prevent_inlining(url_to),
+            asseturl=_prevent_inlining(get_asset_url),
             markdown=_markdown_filter,
         )
         self.jinja_env.globals.update(
