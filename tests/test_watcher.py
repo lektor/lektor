@@ -1,6 +1,17 @@
+from __future__ import annotations
+
 import functools
-import queue
+import os
+import shutil
+import sys
 import threading
+import time
+from contextlib import contextmanager
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+from typing import Generator
+from typing import Type
 
 import py
 import pytest
@@ -11,40 +22,6 @@ from lektor import utils
 from lektor.watcher import BasicWatcher
 from lektor.watcher import watch
 from lektor.watcher import Watcher
-
-
-class IterateInThread(threading.Thread):
-    """Iterate iterable in a separate thread.
-
-    This is a iterator which yields the results of the iterable.
-    I.e. mostly, it's transparent.
-
-    The results are passed back to the calling thread via a queue.  If
-    the queue remains empty for a bit of time a `Timeout` exception
-    will be raised.
-
-    The timeout prevents the test from getting hung when expected
-    results are not forthcoming.
-
-    """
-
-    timeout = 2.0
-
-    def __init__(self, it):
-        threading.Thread.__init__(self, daemon=True)
-        self.it = it
-        self.queue = queue.Queue()
-        self.start()
-
-    def run(self):
-        for item in self.it:
-            self.queue.put(item)
-
-    def __next__(self):
-        try:
-            return self.queue.get(timeout=self.timeout)
-        except queue.Empty:
-            return pytest.fail("Timed out waiting for iterator")
 
 
 class BrokenObserver(PollingObserver):
@@ -90,37 +67,170 @@ class TestBasicWatcher:
             with pytest.raises(RuntimeError, match="already started"):
                 watcher.start()
 
-    def test_iter(self, tmp_path):
-        file1 = tmp_path / "file1"
-        file1.touch()
 
-        with BasicWatcher([str(tmp_path)]) as watcher:
-            it = IterateInThread(watcher)
+@dataclass
+class WatcherTest:
+    watched_path: Path
 
-            file2 = tmp_path / "file2"
-            file2.touch()
-            # Check that we get notified about file2
-            _, event_type, path = next(it)
-            print(event_type, path)
-            while path != str(file2):
-                # On MacOS, for whatever reason, we get events about
-                # the creation of tmp_path and file1.  Skip them.
-                _, event_type, path = next(it)
-                print(event_type, path)
+    @contextmanager
+    def __call__(
+        self,
+        observer_class: Type[BaseObserver] | None = None,
+        should_set_event: bool = True,
+        timeout: float = 1.2,
+    ) -> Generator[Path, None, None]:
 
-            file1_renamed = tmp_path / "file1_renamed"
-            file1.rename(file1_renamed)
-            # Check for notification of renamed file.
-            while path != str(file1_renamed):
-                # Depending on platform, we may get more than one
-                # event for file1. (E.g. on Linux we get both a
-                # 'created' and a 'closed' event.)
-                # (Also, on MacOS, for reasons not understood,
-                # we appear to get a 'created' event for file1.)
-                _, event_type, path = next(it)
-                print(event_type, path)
+        kwargs: dict[str, Any] = {}
+        if observer_class is not None:
+            kwargs.update(
+                observer_classes=(observer_class,),
+                observer_timeout=0.1,  # fast polling timer to speed tests
+            )
 
-            assert it.queue.empty()
+        with BasicWatcher([os.fspath(self.watched_path)], **kwargs) as watcher:
+            event = threading.Event()
+
+            class WatcherWatcher(threading.Thread):
+                # iterate watcher in a separate thread
+                def run(self):
+                    for _ in watcher:
+                        event.set()
+
+            WatcherWatcher(daemon=True).start()
+
+            if sys.platform == "darwin":
+                # The FSEventObserver (used on macOS) seems to send events for things that
+                # happened before is was started.  Here, we wait a little bit for things to
+                # start, then discard any pre-existing events.
+                time.sleep(0.1)
+                event.clear()
+
+            yield self.watched_path
+
+            if should_set_event:
+                assert event.wait(timeout)
+            else:
+                assert not event.wait(timeout)
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(None, id="default observer"),
+        PollingObserver,
+    ]
+)
+def observer_class(request: pytest.FixtureRequest) -> bool:
+    return request.param
+
+
+@pytest.fixture
+def watcher_test(tmp_path: Path) -> WatcherTest:
+    watched_path = tmp_path / "watched_path"
+    watched_path.mkdir()
+    return WatcherTest(watched_path)
+
+
+def test_watcher_test(watcher_test: WatcherTest) -> None:
+    with watcher_test(should_set_event=False, timeout=0.2):
+        pass
+
+
+def test_BasicWatcher_sees_created_file(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None
+) -> None:
+    with watcher_test(observer_class=observer_class) as watched_path:
+        Path(watched_path, "created").touch()
+
+
+def test_BasicWatcher_sees_deleted_file(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None
+) -> None:
+    deleted_path = watcher_test.watched_path / "deleted"
+    deleted_path.touch()
+
+    with watcher_test(observer_class=observer_class):
+        deleted_path.unlink()
+
+
+def test_BasicWatcher_sees_modified_file(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None
+) -> None:
+    modified_path = watcher_test.watched_path / "modified"
+    modified_path.touch()
+
+    with watcher_test(observer_class=observer_class):
+        with modified_path.open("a") as fp:
+            fp.write("addition")
+
+
+def test_BasicWatcher_sees_file_moved_in(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None, tmp_path: Path
+) -> None:
+    orig_path = tmp_path / "orig_path"
+    orig_path.touch()
+    final_path = watcher_test.watched_path / "final_path"
+
+    with watcher_test(observer_class=observer_class):
+        orig_path.rename(final_path)
+
+
+def test_BasicWatcher_sees_file_moved_out(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None, tmp_path: Path
+) -> None:
+    orig_path = watcher_test.watched_path / "orig_path"
+    orig_path.touch()
+    final_path = tmp_path / "final_path"
+
+    with watcher_test(observer_class=observer_class):
+        orig_path.rename(final_path)
+
+
+def test_BasicWatcher_sees_deleted_directory(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None
+) -> None:
+    # We only really care about deleted directories that contain at least a file.
+    deleted_path = watcher_test.watched_path / "deleted"
+    deleted_path.mkdir()
+    watched_file = deleted_path / "file"
+    watched_file.touch()
+
+    with watcher_test(observer_class=observer_class):
+        shutil.rmtree(deleted_path)
+
+
+def test_BasicWatcher_sees_file_in_directory_moved_in(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None, tmp_path: Path
+) -> None:
+    # We only really care about directories that contain at least a file.
+    orig_dir_path = tmp_path / "orig_dir_path"
+    orig_dir_path.mkdir()
+    Path(orig_dir_path, "file").touch()
+    final_dir_path = watcher_test.watched_path / "final_dir_path"
+
+    with watcher_test(observer_class=observer_class):
+        orig_dir_path.rename(final_dir_path)
+
+
+def test_BasicWatcher_sees_directory_moved_out(
+    watcher_test: WatcherTest, observer_class: Type[BaseObserver] | None, tmp_path: Path
+) -> None:
+    # We only really care about directories that contain at least one file.
+    orig_dir_path = watcher_test.watched_path / "orig_dir_path"
+    orig_dir_path.mkdir()
+    Path(orig_dir_path, "file").touch()
+    final_dir_path = tmp_path / "final_dir_path"
+
+    with watcher_test(observer_class=observer_class):
+        orig_dir_path.rename(final_dir_path)
+
+
+def test_BasicWatcher_ignores_opened_file(watcher_test: WatcherTest) -> None:
+    file_path = watcher_test.watched_path / "file"
+    file_path.touch()
+
+    with watcher_test(should_set_event=False):
+        with file_path.open() as fp:
+            fp.read()
 
 
 def test_is_interesting(env):

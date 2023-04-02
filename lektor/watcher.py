@@ -5,10 +5,9 @@ from collections import OrderedDict
 from itertools import zip_longest
 
 import click
-from watchdog.events import DirModifiedEvent
-from watchdog.events import FileMovedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.api import DEFAULT_OBSERVER_TIMEOUT
 from watchdog.observers.polling import PollingObserver
 
 from lektor.utils import get_cache_dir
@@ -19,13 +18,33 @@ class EventHandler(FileSystemEventHandler):
         super().__init__()
         self.queue = queue.Queue()
 
-    def on_any_event(self, event):
-        if not isinstance(event, DirModifiedEvent):
-            if isinstance(event, FileMovedEvent):
-                path = event.dest_path
-            else:
-                path = event.src_path
-            self.queue.put((time.time(), event.event_type, path))
+    # Generally we only care about changes (modification, creation, deletion) to files
+    # within the monitored tree. Changes in directories do not directly affect Lektor
+    # output. So, in general, we ignore directory events.
+    #
+    # However, the "efficient" (i.e. non-polling) observers do not seem to generate
+    # events for files contained in directories that are moved out of the watched tree.
+    # The only events generated in that case are for the directory — generally a
+    # DirDeletedEvent is generated — so we can't ignore those.
+    #
+    # (Moving/renaming a directory does not seem to reliably generate a DirMovedEvent,
+    # but we might as well track those, too.)
+
+    def on_created(self, event):
+        if not event.is_directory:
+            self.queue.put((time.time(), event.event_type, event.src_path))
+
+    def on_deleted(self, event):
+        self.queue.put((time.time(), event.event_type, event.src_path))
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            self.queue.put((time.time(), event.event_type, event.src_path))
+
+    def on_moved(self, event):
+        time_ = time.time()
+        for path in event.src_path, event.dest_path:
+            self.queue.put((time_, event.event_type, path))
 
 
 def _fullname(cls):
@@ -39,10 +58,16 @@ def _unique_everseen(seq):
 
 
 class BasicWatcher:
-    def __init__(self, paths, observer_classes=(Observer, PollingObserver)):
+    def __init__(
+        self,
+        paths,
+        observer_classes=(Observer, PollingObserver),
+        observer_timeout=DEFAULT_OBSERVER_TIMEOUT,  # testing
+    ):
         self.event_handler = EventHandler()
         self.paths = paths
         self.observer_classes = observer_classes
+        self.observer_timeout = observer_timeout
         self.observer = None
 
     def start(self):
@@ -82,7 +107,7 @@ class BasicWatcher:
     def _start_observer(self, observer_class=Observer):
         if self.observer is not None:
             raise RuntimeError("Watcher already started.")
-        observer = observer_class()
+        observer = observer_class(timeout=self.observer_timeout)
         for path in self.paths:
             observer.schedule(self.event_handler, path, recursive=True)
         observer.daemon = True
