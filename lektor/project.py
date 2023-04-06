@@ -108,12 +108,13 @@ class Project:
 
     def get_output_path(self):
         """The path where output files are stored."""
-        config = self.open_config()
+        config = self.open_config()  # raises if no project_file
         output_path = config.get("project.output_path")
         if output_path:
-            return os.path.join(self.tree, os.path.normpath(output_path))
-
-        return os.path.join(get_cache_dir(), "builds", self.id)
+            path = Path(config.filename).parent / output_path
+        else:
+            path = Path(get_cache_dir(), "builds", self.id)
+        return str(path)
 
     class PackageCacheType(Enum):
         VENV = "venv"  # The new virtual environment-based package cache

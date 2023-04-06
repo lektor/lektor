@@ -1,6 +1,10 @@
 # pylint: disable=import-outside-toplevel
+from __future__ import annotations
+
 import json
 import os
+from pathlib import Path
+from typing import Any
 
 import click
 
@@ -127,3 +131,26 @@ def validate_language(ctx, param, value):
     if value is not None and not is_valid_language(value):
         raise click.BadParameter('Unsupported language "%s".' % value)
     return value
+
+
+class ResolvedPath(click.Path):
+    """A click paramter type for a resolved path.
+
+    We could just use ``click.Path(resolve_path=True)`` except that that
+    fails sometimes under Windows running python <= 3.9.
+
+    See https://github.com/pallets/click/issues/2466
+    """
+
+    def __init__(self, writable=False, file_okay=True):
+        super().__init__(
+            resolve_path=True, allow_dash=False, writable=writable, file_okay=file_okay
+        )
+
+    def convert(
+        self, value: Any, param: click.Parameter | None, ctx: click.Context | None
+    ) -> Any:
+        abspath = Path(value).absolute()
+        # fsdecode to ensure that the return value is a str.
+        # (with click<8.0.3 Path.convert will return Path if passed a Path)
+        return os.fsdecode(super().convert(abspath, param, ctx))

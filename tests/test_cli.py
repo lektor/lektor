@@ -1,12 +1,17 @@
+import inspect
 import json
 import os
 import re
+from pathlib import Path
 
 import pytest
 from markers import imagemagick
 
+from lektor.builder import Builder
 from lektor.cli import cli
+from lektor.devserver import run_server
 from lektor.project import Project
+from lektor.publisher import publish
 
 
 def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
@@ -136,3 +141,50 @@ def test_project_info_json(project_cli_runner):
     project = Project.from_path(os.getcwd())
     result = project_cli_runner.invoke(cli, ["project-info", "--json"])
     assert json.loads(result.stdout) == project.to_json()
+
+
+@pytest.fixture
+def deployable_project_data(scratch_project_data):
+    project_file = next(scratch_project_data.glob("*.lektorproject"))
+    with project_file.open("a") as fp:
+        fp.write(
+            inspect.cleandoc(
+                """[servers.default]
+                name = Default
+                target = rsync://example.net/
+                """
+            )
+        )
+    return scratch_project_data
+
+
+@pytest.mark.parametrize(
+    "subcommand, to_mock, param_name",
+    [
+        ("build", Builder, "destination_path"),
+        ("clean", Builder, "destination_path"),
+        ("deploy", publish, "output_path"),
+        ("server", run_server, "output_path"),
+    ],
+)
+def test_build_output_path_relative_to_cwd(
+    project_cli_runner,
+    deployable_project_data,
+    mocker,
+    subcommand,
+    to_mock,
+    param_name,
+):
+    mock = mocker.patch(f"{to_mock.__module__}.{to_mock.__qualname__}", autospec=True)
+    args = [
+        f"--project={deployable_project_data}",
+        subcommand,
+        "--output-path=htdocs",
+    ]
+    project_cli_runner.invoke(cli, args, input="y\n")
+
+    args, kwargs = mock.call_args
+    bound_args = inspect.signature(to_mock).bind(*args, **kwargs).arguments
+    output_path = bound_args[param_name]
+    # NB: os.path.realpath does not resolve symlinks on Windows with Python==3.7
+    assert output_path == os.path.join(Path().resolve(), "htdocs")
