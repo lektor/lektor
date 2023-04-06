@@ -2,6 +2,48 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b6 (unreleased)
+
+### Possibly Breaking Changes
+
+- Interpret relative paths passed via the `--output-path` command-line
+  parameter relative to the current working directory. Interpret
+  relative paths configured for `output_path` in the _project file_
+  relative to the directory containing the project file (as the
+  [docs](https://www.getlektor.com/docs/project/file/#project) claim
+  should happen). Previously, both paths were interpreted —
+  incorrectly, in both cases — relative to the _project directory_.
+  ([#1103], [#1120])
+
+- The (undocumented, internal) API to the code in `lektor.watcher` has been
+  changed a bit. ([#1118])
+
+### Bugs Fixed
+
+- Tighten filters on what sort of filesystem change events trigger
+  rebuilds. This fixes sporadic spurious rebuilds when running with
+  `watchdog>=2.3.0`. ([#1117])
+
+- Better input validation and error reporting for the `dateformat`,
+  `timeformat` and `datetimeformat` jinja filters. Previously, these
+  filters did not handle unexpected input types gracefully. ([#1122],
+  [#1121])
+
+### Other Changes
+
+- Tighten [click] constraints on Path parameters. This results in
+  better and earlier error messages when, e.g., a readable file is
+  expected, but a path to a directory is passed. ([#1124])
+
+[#1103]: https://github.com/lektor/lektor/issues/1103
+[#1117]: https://github.com/lektor/lektor/pull/1117
+[#1118]: https://github.com/lektor/lektor/pull/1118
+[#1120]: https://github.com/lektor/lektor/pull/1120
+[#1121]: https://github.com/lektor/lektor/issues/1121
+[#1122]: https://github.com/lektor/lektor/pull/1122
+[#1124]: https://github.com/lektor/lektor/pull/1124
+[click]: https://pypi.org/project/click/
+
 ## 3.4.0b5 (2023-03-08)
 
 ### Breaking Changes
