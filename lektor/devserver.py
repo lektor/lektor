@@ -54,13 +54,17 @@ class BackgroundBuilder(threading.Thread):
                         self.build()
 
 
-def browse_to_address(addr):
+def browse_to_address(addr, subpage=None):
     # pylint: disable=import-outside-toplevel
     import webbrowser
 
     def browse():
         time.sleep(1)
-        webbrowser.open("http://%s:%s" % addr)
+        if subpage is not None:
+            addr_with_subpage = addr + (subpage,)
+            webbrowser.open("http://%s:%s/%s" % addr_with_subpage)
+        else:
+            webbrowser.open("http://%s:%s" % addr)
 
     t = threading.Thread(target=browse)
     t.daemon = True
@@ -76,6 +80,7 @@ def run_server(
     lektor_dev=False,
     ui_lang="en",
     browse=False,
+    browse_subpage=None,
     extra_flags=None,
     reload=True,
 ):
@@ -114,6 +119,9 @@ def run_server(
 
     if browse:
         browse_to_address(bindaddr)
+
+    if browse_subpage:
+        browse_to_address(bindaddr, browse_subpage.lstrip("/"))
 
     try:
         return run_simple(

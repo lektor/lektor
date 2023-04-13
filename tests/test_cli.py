@@ -23,6 +23,13 @@ def test_build_abort_in_existing_nonempty_dir(project_cli_runner):
     assert result.exit_code == 1
 
 
+def test_server_browse_subpage_requires_subpage(project_cli_runner):
+    """ensure server fails when no argument supplied to --browse-subpage"""
+    result = project_cli_runner.invoke(cli, ["server", "--browse-subpage"])
+    assert "requires an argument" in result.output
+    assert result.exit_code == 2
+
+
 @imagemagick
 def test_build_continue_in_existing_nonempty_dir(project_cli_runner):
     os.mkdir("build_dir")
