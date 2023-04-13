@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import dataclasses
 import io
 import os
 import posixpath
 import re
 import struct
 import warnings
-from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -505,7 +505,7 @@ class _SaveImage:
     image_info_params: tuple[str, ...] = ()
 
     def __init__(self, quality: int | None = None):
-        pass
+        raise NotImplementedError()
 
     def __call__(self, im: PIL.Image.Image, fp: BinaryIO) -> None:
         im.save(fp, self.format, **self.get_params(im))
@@ -533,7 +533,7 @@ class _SavePNG(_SaveImage):
         if quality is None:
             compress_level = 7
         else:
-            compress_level = max(9, min(0, quality // 10))
+            compress_level = min(9, max(0, quality // 10))
         self.params = {"compress_level": compress_level}
 
 
@@ -562,8 +562,14 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
 
     If the original image has no embedded color profile is it set to sRGB.
     """
-    # XXX: Did the old imagemagick code actually do any colorspace conversion,
-    # or did it just strip the old profile and add sRGB profile?
+    # XXX: The old imagemagick code (which ran `convert` with `-strip -colorspace sRGB`)
+    # did not attempt any colorspace conversion.  It simply stripped and ignored any
+    # color profile in the input image (causing the resulting thumbnail to be
+    # interpreted as if it were in sRGB even though its not.)
+    #
+    # Here we attempt to convert from any embedded colorspace in the source image
+    # to sRGB.
+    #
     if "icc_profile" in im.info:
         profile = PIL.ImageCms.getOpenProfile(io.BytesIO(im.info["icc_profile"]))
         profile_name = PIL.ImageCms.getProfileName(profile)
@@ -696,24 +702,40 @@ def make_image_thumbnail(
     dst_url_path = _get_thumbnail_url_path(
         source_url_path, source_image, thumbnail_format, suffix
     )
+    thumbnail_build_func = ThumbnailBuildFunc(
+        source_image=source_image,
+        size=size,
+        format=thumbnail_format,
+        quality=quality,
+        crop=mode == ThumbnailMode.CROP,
+    )
 
-    thumbnail_params = {
-        "size": size,
-        "format": thumbnail_format,
-        "quality": quality,
-        "crop": mode == ThumbnailMode.CROP,
-    }
-
-    @ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_image])
-    def build_thumbnail_artifact(artifact):
-        with open(source_image, "rb") as infp:
-            with artifact.open("wb") as outfp:
-                _compute_thumbnail(infp, outfp, **thumbnail_params)
+    ctx.add_sub_artifact(
+        artifact_name=dst_url_path,
+        sources=[source_image],
+        build_func=thumbnail_build_func,
+    )
 
     return Thumbnail(dst_url_path, size.width, size.height)
 
 
-@dataclass
+@dataclasses.dataclass
+class ThumbnailBuildFunc:
+    source_image: str
+
+    size: ImageSize
+    format: str
+    quality: int | None = None
+    crop: bool = False
+
+    def __call__(self, artifact):
+        params = dataclasses.asdict(self)
+        source_image = params.pop("source_image")
+        with open(source_image, "rb") as infp, artifact.open("wb") as outfp:
+            _compute_thumbnail(infp, outfp, **params)
+
+
+@dataclasses.dataclass
 class Thumbnail:
     """Holds information about a thumbnail."""
 
