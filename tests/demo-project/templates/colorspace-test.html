@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h1>{{ this.title }}</h1>
+  {{ this.body }}
+  {% for img in this.attachments.images %}
+    <dl>
+      <dt>Thumbnail</dt>
+      <dd><img src="{{ img.thumbnail(150)|url }}"></dd>
+      <dt>Original</dt>
+      <dd><img src="{{ img|url }}" style="max-width: 150px;"></dd>
+    </dl>
+  {% endfor %}
+{% endblock %}
