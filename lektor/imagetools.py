@@ -354,7 +354,7 @@ def get_image_info(fp):
     head = fp.read(32)
     fp.seek(0)
     if len(head) < 24:
-        return "unknown", None, None
+        return None, None, None
 
     magic_bytes = b"<?xml", b"<svg"
     if any(map(head.strip().startswith, magic_bytes)):
