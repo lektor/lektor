@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import textwrap
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -52,8 +53,8 @@ def temporary_lektor_cache(tmp_path_factory):
     mp.undo()
 
 
-@pytest.fixture
-def save_sys_path(monkeypatch):
+@contextmanager
+def restore_import_state():
     """Save `sys.path`, and `sys.modules` state on test
     entry, restore after test completion.
 
@@ -71,7 +72,8 @@ def save_sys_path(monkeypatch):
     package caches.
 
     """
-    monkeypatch.setattr(sys, "path", sys.path.copy())
+    save_path = sys.path
+    sys.path = save_path.copy()
 
     # Restoring `sys.modules` is an attempt to unload any
     # modules loaded during the test so that they can be re-loaded for
@@ -92,9 +94,16 @@ def save_sys_path(monkeypatch):
         for name in set(sys.modules).difference(saved_modules):
             del sys.modules[name]
         sys.modules.update(saved_modules)
+        sys.path = save_path
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
+def save_sys_path():
+    with restore_import_state():
+        yield
+
+
+@pytest.fixture(scope="session")
 def project(data_path):
     return Project.from_path(data_path / "demo-project")
 
@@ -188,6 +197,16 @@ def builder(tmp_path, pad):
     output_path = tmp_path / "output"
     output_path.mkdir()
     return Builder(pad, str(output_path))
+
+
+@pytest.fixture(scope="session")
+def built_demo(tmp_path_factory, project):
+    output_path = tmp_path_factory.mktemp("demo-output")
+    with restore_import_state():
+        env = Environment(project)
+        builder = Builder(env.new_pad(), os.fspath(output_path))
+        builder.build_all()
+    return output_path
 
 
 @pytest.fixture(scope="function")

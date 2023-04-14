@@ -3,6 +3,7 @@ import warnings
 from datetime import datetime
 from hashlib import md5
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 from markers import imagemagick
@@ -146,70 +147,49 @@ _THUMBNAILS = _SIMILAR_THUMBNAILS.copy()
 _THUMBNAILS.update(_DIFFERING_THUMBNAILS)
 
 
-def test_thumbnail_dimensions_reported(builder):
-    builder.build_all()
-    with open(
-        os.path.join(builder.destination_path, "index.html"), encoding="utf-8"
-    ) as f:
-        html = f.read()
-
+def test_thumbnail_dimensions_reported(built_demo):
+    html = Path(built_demo, "index.html").read_text("utf-8")
     for t, (w, h) in _THUMBNAILS.items():
         assert '<img src="%s" width="%s" height="%s">' % (t, w, h) in html
 
 
 @imagemagick
-def test_thumbnail_dimensions_real(builder):
-    builder.build_all()
+def test_thumbnail_dimensions_real(built_demo):
     for t, dimensions in _THUMBNAILS.items():
-        image_file = os.path.join(builder.destination_path, t)
-        with open(image_file, "rb") as f:
+        with open(built_demo / t, "rb") as f:
             _format, width, height = get_image_info(f)
-            assert (width, height) == dimensions
+        assert (width, height) == dimensions
 
 
 @imagemagick
-def test_thumbnails_similar(builder):
-    builder.build_all()
-    hashes = []
-    for t in _SIMILAR_THUMBNAILS:
-        image_file = os.path.join(builder.destination_path, t)
-        with open(image_file, "rb") as f:
-            hashes.append(md5(f.read()).hexdigest())
-    for i in range(1, len(hashes)):
-        assert hashes[i] == hashes[0]
+def test_thumbnails_similar(built_demo):
+    hashes = {
+        md5(Path(built_demo, t).read_bytes()).hexdigest() for t in _SIMILAR_THUMBNAILS
+    }
+    assert len(hashes) == 1
 
 
 @imagemagick
-def test_thumbnails_differing(builder):
-    builder.build_all()
-    hashes = []
-    for t in _DIFFERING_THUMBNAILS:
-        image_file = os.path.join(builder.destination_path, t)
-        with open(image_file, "rb") as f:
-            hashes.append(md5(f.read()).hexdigest())
-    for i in range(1, len(hashes)):
-        assert hashes[i] != hashes[0]
+def test_thumbnails_differing(built_demo):
+    hashes = {
+        md5(Path(built_demo, t).read_bytes()).hexdigest() for t in _DIFFERING_THUMBNAILS
+    }
+    assert len(hashes) == len(_DIFFERING_THUMBNAILS)
 
 
 @imagemagick
-def test_thumbnail_quality(builder):
-    builder.build_all()
-    image_file = os.path.join(builder.destination_path, "test@192x256_q20.jpg")
+def test_thumbnail_quality(built_demo):
+    image_file = built_demo / "test@192x256_q20.jpg"
     # See if the image file with said quality suffix exists
-    assert os.path.isfile(image_file)
+    assert image_file.is_file()
 
     image_size = os.path.getsize(image_file)
     # And the filesize is less than 9200 bytes
     assert image_size < 9200
 
 
-def test_large_thumbnail_returns_original(builder):
-    builder.build_all()
-    with open(
-        os.path.join(builder.destination_path, "index.html"), encoding="utf-8"
-    ) as f:
-        html = f.read()
-
+def test_large_thumbnail_returns_original(built_demo):
+    html = built_demo.joinpath("index.html").read_text("utf-8")
     assert '<img alt="original" src="test.jpg" width="384" height="512">' in html
 
 
