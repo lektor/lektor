@@ -560,7 +560,8 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
 
     The image is modified **in place**.
 
-    If the original image has no embedded color profile is it set to sRGB.
+    After conversion, any embedded color profile is removed. (The default color
+    space for the web is "sRGB", so we don't need to embed it.)
     """
     # XXX: The old imagemagick code (which ran `convert` with `-strip -colorspace sRGB`)
     # did not attempt any colorspace conversion.  It simply stripped and ignored any
@@ -569,7 +570,6 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
     #
     # Here we attempt to convert from any embedded colorspace in the source image
     # to sRGB.
-    #
     if "icc_profile" in im.info:
         profile = PIL.ImageCms.getOpenProfile(io.BytesIO(im.info["icc_profile"]))
         profile_name = PIL.ImageCms.getProfileName(profile)
@@ -578,8 +578,7 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
         # (See https://ninedegreesbelow.com/photography/srgb-profile-comparison.html)
         if profile_name.strip() not in ("sRGB", "sRGB IEC61966-2.1", "sRGB built-in"):
             PIL.ImageCms.profileToProfile(im, profile, SRGB_PROFILE, inPlace=True)
-    else:
-        im.info["icc_profile"] = SRGB_PROFILE_BYTES
+        im.info.pop("icc_profile")
 
 
 def _compute_thumbnail(

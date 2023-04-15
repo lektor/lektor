@@ -1,6 +1,5 @@
 import io
 import os
-import re
 from pathlib import Path
 from unittest import mock
 
@@ -106,15 +105,14 @@ def test_convert_color_profile_to_srgb():
     _convert_color_profile_to_srgb(im)
     # Top center of image is red after color transform
     assert im.getpixel((im.width // 2, 0)) == approx((255, 0, 0), abs=10)
+    assert "icc_profile" not in im.info
 
 
 @pytest.mark.requirespillow
-def test_convert_color_profile_to_srgb_add_profile():
+def test_convert_color_profile_to_srgb_no_profile():
     im = PIL.Image.new("RGB", (100, 100), "#999")
     _convert_color_profile_to_srgb(im)
-    profile = PIL.ImageCms.getOpenProfile(io.BytesIO(im.info["icc_profile"]))
-    profile_name = PIL.ImageCms.getProfileName(profile)
-    assert re.match(r"sRGB\b", profile_name)
+    assert "icc_profile" not in im.info
 
 
 @pytest.mark.requirespillow
