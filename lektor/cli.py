@@ -1,8 +1,8 @@
 # pylint: disable=import-outside-toplevel
 import os
 import sys
-import time
 import warnings
+from contextlib import suppress
 
 import click
 
@@ -154,14 +154,13 @@ def build_cmd(
         if not watch:
             return sys.exit(0 if success else 1)
 
-        from lektor.watcher import watch
+        from lektor.watcher import Watcher
 
         click.secho("Watching for file system changes", fg="cyan")
-        last_build = time.time()
-        for ts, _, _ in watch(env):
-            if ts > last_build:
+        with Watcher(env) as watcher, suppress(KeyboardInterrupt):
+            while True:
+                watcher.wait()
                 _build()
-                last_build = time.time()
 
 
 @cli.command("clean")

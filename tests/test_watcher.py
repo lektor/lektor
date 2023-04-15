@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import functools
 import os
 import shutil
 import sys
-import threading
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -20,7 +18,6 @@ from watchdog.observers.polling import PollingObserver
 
 from lektor import utils
 from lektor.watcher import BasicWatcher
-from lektor.watcher import watch
 from lektor.watcher import Watcher
 
 
@@ -88,29 +85,19 @@ class WatcherTest:
             )
 
         with BasicWatcher([os.fspath(self.watched_path)], **kwargs) as watcher:
-            event = threading.Event()
-
-            class WatcherWatcher(threading.Thread):
-                # iterate watcher in a separate thread
-                def run(self):
-                    for _ in watcher:
-                        event.set()
-
-            WatcherWatcher(daemon=True).start()
-
             if sys.platform == "darwin":
                 # The FSEventObserver (used on macOS) seems to send events for things that
                 # happened before is was started.  Here, we wait a little bit for things to
                 # start, then discard any pre-existing events.
                 time.sleep(0.1)
-                event.clear()
+                watcher.wait(blocking=False)
 
             yield self.watched_path
 
             if should_set_event:
-                assert event.wait(timeout)
+                assert watcher.wait(timeout=timeout)
             else:
-                assert not event.wait(timeout)
+                assert not watcher.wait(timeout=timeout)
 
 
 @pytest.fixture(
@@ -239,9 +226,7 @@ def test_is_interesting(env):
     build_dir = py.path.local("build")
 
     w = Watcher(env, str(build_dir))
-
-    # This partial makes the testing code shorter
-    is_interesting = functools.partial(w.is_interesting, 0, "generic")
+    is_interesting = w.is_interesting
 
     assert is_interesting("a.file")
     assert not is_interesting(".file")
@@ -250,17 +235,3 @@ def test_is_interesting(env):
 
     w.output_path = None
     assert is_interesting(str(build_dir / "output.file"))
-
-
-def test_watch(env, mocker):
-    Watcher = mocker.patch("lektor.watcher.Watcher")
-    event1 = mocker.sentinel.event1
-
-    def events():
-        yield event1
-        raise KeyboardInterrupt()
-
-    watcher = Watcher.return_value.__enter__.return_value
-    watcher.__iter__.return_value = events()
-
-    assert list(watch(env)) == [event1]
