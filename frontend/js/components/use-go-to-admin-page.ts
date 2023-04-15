@@ -19,7 +19,7 @@ export function adminPath(
   if (alt !== "_primary") {
     params.set("alt", alt);
   }
-  return `${$LEKTOR_CONFIG.admin_root}/${page}?${params}`;
+  return `/${page}?${params}`;
 }
 
 /**

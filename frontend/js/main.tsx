@@ -1,8 +1,9 @@
 import React, { StrictMode, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  BrowserRouter,
   Navigate,
+  RouterProvider,
+  createBrowserRouter,
   useLocation,
   useMatch,
 } from "react-router-dom";
@@ -37,8 +38,7 @@ function Page({ page }: { page: PageName }) {
 }
 
 function Main() {
-  const root = $LEKTOR_CONFIG.admin_root;
-  const page = useMatch(`${root}/:page`)?.params.page;
+  const page = useMatch(":page")?.params.page;
   if (!isPageName(page)) {
     return <Navigate to={adminPath("edit", "/", "_primary")} />;
   }
@@ -50,11 +50,25 @@ if (dash) {
   setCurrentLanguage($LEKTOR_CONFIG.lang);
 
   const root = createRoot(dash);
+  const router = createBrowserRouter(
+    [
+      {
+        path: "/",
+        element: <Navigate to={adminPath("edit", "/", "_primary")} />,
+      },
+      {
+        path: "/:page",
+        element: <Main />,
+      },
+    ],
+    {
+      basename: $LEKTOR_CONFIG.admin_root,
+    }
+  );
+
   root.render(
     <StrictMode>
-      <BrowserRouter>
-        <Main />
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </StrictMode>
   );
 }

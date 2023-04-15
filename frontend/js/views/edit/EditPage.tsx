@@ -1,9 +1,7 @@
 import React, {
   FormEvent,
-  RefObject,
   SetStateAction,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -24,9 +22,7 @@ import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { useRecord } from "../../context/record-context";
-import { UNSAFE_NavigationContext } from "react-router-dom";
-
-import type { History } from "history";
+import { unstable_usePrompt } from "react-router-dom";
 
 export type RawRecordInfo = {
   alt: string;
@@ -142,36 +138,6 @@ function getValues({
   return rv;
 }
 
-/**
- * Block navigation.
- *
- * To ensure that we can both enable the "blocker" on re-renders and also get the correct
- * state of the pendingChanges variable, we need both the state value and the ref.
- */
-function useBlockNavigation(
-  hasPendingChanges: boolean,
-  pendingChanges: RefObject<boolean>
-) {
-  const { navigator } = useContext(UNSAFE_NavigationContext);
-  const blockNavigator = navigator as History;
-
-  useEffect(() => {
-    if (!hasPendingChanges) {
-      return;
-    }
-    const unblock = blockNavigator.block((tx) => {
-      if (
-        !pendingChanges.current ||
-        window.confirm(trans("UNLOAD_ACTIVE_TAB"))
-      ) {
-        unblock();
-        tx.retry();
-      }
-    });
-    return unblock;
-  }, [blockNavigator, hasPendingChanges, pendingChanges]);
-}
-
 function EditPage(): JSX.Element | null {
   const { path, alt } = useRecord();
 
@@ -182,19 +148,14 @@ function EditPage(): JSX.Element | null {
     useState<RecordDataModel | null>(null);
   const [recordInfo, setRecordnfo] = useState<RawRecordInfo | null>(null);
 
-  // We need both a ref and a state for this to access it in renders while still
-  // ensuring that we can read its value in separate callbacks that were rendered at
-  // the same time.
-  const pendingChanges = useRef(false);
-  const [hasPendingChanges, rawSetHasPendingChanges] = useState(false);
-  const setHasPendingChanges = useCallback((v: boolean) => {
-    rawSetHasPendingChanges(v);
-    pendingChanges.current = v;
-  }, []);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   const goToAdminPage = useGoToAdminPage();
 
-  useBlockNavigation(hasPendingChanges, pendingChanges);
+  unstable_usePrompt({
+    when: hasPendingChanges,
+    message: trans("UNLOAD_ACTIVE_TAB"),
+  });
 
   useEffect(() => {
     let ignore = false;
