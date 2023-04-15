@@ -4,7 +4,7 @@ import dataclasses
 import io
 import posixpath
 import re
-import struct
+from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from functools import partial
@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING
 from xml.etree import ElementTree as etree
 
 import exifread
-import filetype
 import PIL.Image
 import PIL.ImageCms
 import PIL.ImageOps
@@ -110,24 +109,6 @@ def _combine_make(make, model):
     if make and model.startswith(make):
         return model
     return " ".join([make, model]).strip()
-
-
-_parse_svg_units_re = re.compile(
-    r"(?P<value>[+-]?(?:\d+)(?:\.\d+)?)\s*(?P<unit>\D+)?", flags=re.IGNORECASE
-)
-
-
-def _parse_svg_units_px(length):
-    match = _parse_svg_units_re.match(length)
-    if not match:
-        return None
-    groups = match.groupdict()
-    if groups["unit"] and groups["unit"] != "px":
-        return None
-    try:
-        return float(groups["value"])
-    except ValueError:
-        return None
 
 
 class EXIFInfo:
@@ -344,135 +325,74 @@ class EXIFInfo:
         return self._get_int("Image Orientation") in {5, 6, 7, 8}
 
 
+def _parse_svg_units_px(length):
+    match = re.match(
+        r"\d+(?: \.\d* )? (?= (?: \s*px )? \Z)", length.strip(), re.VERBOSE
+    )
+    if match:
+        return float(match.group())
+    return None
+
+
 def get_svg_info(fp):
-    _, svg = next(etree.iterparse(fp, ["start"]), (None, None))
-    fp.seek(0)
-    width, height = None, None
-    if svg is not None and svg.tag == "{http://www.w3.org/2000/svg}svg":
-        width = _parse_svg_units_px(svg.attrib.get("width", ""))
-        height = _parse_svg_units_px(svg.attrib.get("height", ""))
+    try:
+        _, svg = next(etree.iterparse(fp, events=["start"]))
+    except (etree.ParseError, StopIteration):
+        return None, None, None
+    if svg.tag != "{http://www.w3.org/2000/svg}svg":
+        return None, None, None
+    width = _parse_svg_units_px(svg.attrib.get("width", ""))
+    height = _parse_svg_units_px(svg.attrib.get("height", ""))
     return "svg", width, height
 
 
-# see http://www.w3.org/Graphics/JPEG/itu-t81.pdf
-# Table B.1 – Marker code assignments (page 32/36)
-_JPEG_SOF_MARKERS = (
-    # non-differential, Hufmann-coding
-    0xC0,
-    0xC1,
-    0xC2,
-    0xC3,
-    # differential, Hufmann-coding
-    0xC5,
-    0xC6,
-    0xC7,
-    # non-differential, arithmetic-coding
-    0xC9,
-    0xCA,
-    0xCB,
-    # differential, arithmetic-coding
-    0xCD,
-    0xCE,
-    0xCF,
-)
+def _PIL_image_info(
+    image: PIL.Image.Image,
+) -> tuple[str, int, int] | tuple[None, None, None]:
+    """Determine image format and dimensions for PIL Image"""
+
+    FORMATS = {"PNG": "png", "GIF": "gif", "JPEG": "jpeg"}
+    TRANSPOSED_ORIENTATIONS = {5, 6, 7, 8}
+
+    if image.format not in FORMATS:
+        return None, None, None
+
+    fmt = FORMATS[image.format]
+    width = image.width
+    height = image.height
+
+    exif = image.getexif()
+    orientation = exif.get(0x0112)
+    if orientation in TRANSPOSED_ORIENTATIONS:
+        width, height = height, width
+
+    return fmt, width, height
 
 
-class BadImageFile(Exception):
-    """Raised when an image file can not be decoded."""
+@contextmanager
+def _save_position(fp):
+    position = fp.tell()
+    try:
+        yield fp
+    finally:
+        fp.seek(position)
 
 
 def get_image_info(fp):
     """Reads some image info from a file descriptor."""
-    head = fp.read(32)
-    fp.seek(0)
-    if len(head) < 24:
-        return None, None, None
-
-    magic_bytes = b"<?xml", b"<svg"
-    if any(map(head.strip().startswith, magic_bytes)):
+    try:
+        with _save_position(fp) as fp_:
+            image = PIL.Image.open(fp_)
+    except PIL.UnidentifiedImageError:
         return get_svg_info(fp)
 
-    _type = filetype.image_match(bytearray(head))
-    fmt = _type.mime.split("/")[1] if _type else None
-
-    width = None
-    height = None
-    if fmt == "png":
-        check = struct.unpack(">i", head[4:8])[0]
-        if check == 0x0D0A1A0A:
-            width, height = struct.unpack(">ii", head[16:24])
-    elif fmt == "gif":
-        width, height = struct.unpack("<HH", head[6:10])
-    elif fmt == "jpeg":
-        # specification available under
-        # http://www.w3.org/Graphics/JPEG/itu-t81.pdf
-        # Annex B (page 31/35)
-
-        # we are looking for a SOF marker ("start of frame").
-        # skip over the "start of image" marker
-        # (filetype detection took care of that).
-        fp.seek(2)
-
-        while True:
-            byte = fp.read(1)
-
-            # "All markers are assigned two-byte codes: an X’FF’ byte
-            # followed by a byte which is not equal to 0 or X’FF’."
-            if not byte or ord(byte) != 0xFF:
-                raise BadImageFile("Malformed JPEG image.")
-
-            # "Any marker may optionally be preceded by any number
-            # of fill bytes, which are bytes assigned code X’FF’."
-            while ord(byte) == 0xFF:
-                byte = fp.read(1)
-
-            if ord(byte) not in _JPEG_SOF_MARKERS:
-                # header length parameter takes 2 bytes for all markers
-                length = struct.unpack(">H", fp.read(2))[0]
-                fp.seek(length - 2, 1)
-                continue
-
-            # else...
-            # see Figure B.3 – Frame header syntax (page 35/39) and
-            # Table B.2 – Frame header parameter sizes and values
-            # (page 36/40)
-            fp.seek(3, 1)  # skip header length and precision parameters
-            height, width = struct.unpack(">HH", fp.read(4))
-
-            if height == 0:
-                # "Value 0 indicates that the number of lines shall be
-                # defined by the DNL marker [...]"
-                #
-                # DNL is not supported by most applications,
-                # so we won't support it either.
-                raise BadImageFile("JPEG with DNL not supported.")
-
-            break
-
-        # if the file is rotated, we want, for all intents and purposes,
-        # to return the dimensions swapped. (all client apps will display
-        # the image rotated, and any template computations are likely to want
-        # to make decisions based on the "visual", not the "real" dimensions.
-        # thumbnail code also depends on this behaviour.)
-        fp.seek(0)
-        if is_rotated(fp):
-            width, height = height, width
-    else:
-        fmt = None
-
-    return fmt, width, height
+    return _PIL_image_info(image)
 
 
 def read_exif(fp):
     """Reads exif data from a file pointer of an image and returns it."""
     exif = exifread.process_file(fp)
     return EXIFInfo(exif)
-
-
-def is_rotated(fp):
-    """Fast version of read_exif(fp).is_rotated, using an exif header subset."""
-    exif = exifread.process_file(fp, stop_tag="Orientation", details=False)
-    return EXIFInfo(exif).is_rotated
 
 
 class ImageSize(NamedTuple):

@@ -22,12 +22,12 @@ from lektor.imagetools import _create_artifact
 from lektor.imagetools import _create_thumbnail
 from lektor.imagetools import _get_thumbnail_url_path
 from lektor.imagetools import _parse_svg_units_px
+from lektor.imagetools import _save_position
 from lektor.imagetools import compute_dimensions
 from lektor.imagetools import CropBox
 from lektor.imagetools import EXIFInfo
 from lektor.imagetools import get_image_info
 from lektor.imagetools import ImageSize
-from lektor.imagetools import is_rotated
 from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import read_exif
 from lektor.imagetools import Thumbnail
@@ -173,20 +173,6 @@ def test_EXIFInfo_altitude(exif_data, expected):
 
 
 @pytest.mark.parametrize(
-    "image_name, expected",
-    [
-        ("test.jpg", True),
-        ("test-sof-last.jpg", True),
-        ("test-progressive.jpg", False),
-    ],
-)
-def test_is_rotated(image_name, expected):
-    image_path = DEMO_PROJECT / image_name
-    with image_path.open("rb") as fp:
-        assert is_rotated(fp) == expected
-
-
-@pytest.mark.parametrize(
     "dimension, pixels",
     [
         ("123", 123),
@@ -260,27 +246,24 @@ class DummyFile:
         (DummyImage(10, 20, "GIF"), ("gif", 10, 20)),
         (DummyImage(10, 20, "PNG"), ("png", 10, 20)),
         (DummyImage(10, 20, "JPEG", orientation=5), ("jpeg", 20, 10)),
-        pytest.param(
-            DummyImage(10, 20, "PNG", orientation=7),
-            ("png", 20, 10),
-            id="rotated PNG",
-            marks=pytest.mark.xfail(reason="FIXME"),
-        ),
+        (DummyImage(10, 20, "PNG", orientation=7), ("png", 20, 10)),
         (DummyImage(10, 20, "PPM"), (None, None, None)),
         (DummySVGImage("10px", "20px"), ("svg", 10, 20)),
         (DummySVGImage("10", "20", xml_decl=None), ("svg", 10, 20)),
         (DummySVGImage(None, None), ("svg", None, None)),
         (DummySVGImage("invalid-width", "invalid-height"), ("svg", None, None)),
-        pytest.param(
-            DummySVGImage("10px", "10px", xmlns=None),
-            (None, None, None),
-            id="SVG without namespaced <svg>",
-            marks=pytest.mark.xfail(reason="FIXME"),
-        ),
+        (DummySVGImage("10px", "10px", xmlns=None), (None, None, None)),
     ],
 )
 def test_get_image_info(image, expected):
     assert get_image_info(image.open()) == expected
+
+
+def test_save_position():
+    fp = io.BytesIO(b"data")
+    with _save_position(fp) as infp:
+        assert infp.read() == b"data"
+    assert fp.read() == b"data"
 
 
 def test_ThumbnailParams_unrecognized_format():

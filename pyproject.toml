@@ -37,7 +37,6 @@ dependencies = [
     "Babel",
     "click>=6.0",
     "EXIFRead",
-    "filetype>=1.0.7",
     "Flask",
     "inifile>=0.4.1",
     "Jinja2>=3.0",
@@ -188,12 +187,6 @@ strict = true
 # by default. (This can be disabled on a per-package or per-module
 # basis in the overrides.)
 ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = [
-    "filetype",
-]
-ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # Packages and modules we want to check
