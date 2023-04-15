@@ -20,20 +20,6 @@ from lektor.reporter import BufferReporter
 from lektor.utils import locate_executable
 
 
-try:
-    importlib.import_module("PIL.Image")
-    have_pillow = True
-except ModuleNotFoundError:
-    have_pillow = False
-
-
-def pytest_runtest_setup(item: pytest.Item):
-    # skip tests marked with requirespillow if Pillow is not installed
-    if not have_pillow:
-        if item.get_closest_marker("requirespillow") is not None:
-            pytest.skip("test requires Pillow")
-
-
 @pytest.fixture(scope="session")
 def data_path():
     """Path to directory which contains test data.

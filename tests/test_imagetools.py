@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from unittest import mock
 
+import PIL
 import pytest
 from pytest import approx
 
@@ -18,11 +19,6 @@ from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import Thumbnail
 from lektor.imagetools import ThumbnailBuildFunc
 from lektor.imagetools import ThumbnailMode
-
-try:
-    import PIL
-except ModuleNotFoundError:
-    PIL = None
 
 
 @pytest.mark.parametrize(
@@ -64,7 +60,6 @@ def dummy_image():
 
 
 @pytest.mark.parametrize("format", ["PNG", "GIF", "JPEG"])
-@pytest.mark.requirespillow
 def test_SaveImage_call(format, dummy_image, tmp_path):
     outpath = tmp_path / "image"
     save_image = _SaveImage.get_subclass(format)()
@@ -95,7 +90,6 @@ def test_SavePNG_compress_level(quality, compress_level):
     assert save_image.params["compress_level"] == compress_level
 
 
-@pytest.mark.requirespillow
 def test_convert_color_profile_to_srgb():
     demo_project = Path(__file__).parent / "demo-project"
     im = PIL.Image.open(demo_project / "content/colorspace-test/rgb-to-gbr-test.jpg")
@@ -108,14 +102,12 @@ def test_convert_color_profile_to_srgb():
     assert "icc_profile" not in im.info
 
 
-@pytest.mark.requirespillow
 def test_convert_color_profile_to_srgb_no_profile():
     im = PIL.Image.new("RGB", (100, 100), "#999")
     _convert_color_profile_to_srgb(im)
     assert "icc_profile" not in im.info
 
 
-@pytest.mark.requirespillow
 def test_compute_thumbnail(dummy_image):
     infp = io.BytesIO()
     dummy_image.save(infp, "PNG")
@@ -128,16 +120,9 @@ def test_compute_thumbnail(dummy_image):
     assert thumb.getpixel((5, 7)) == approx((153, 153, 153), abs=5)
 
 
-@pytest.mark.requirespillow
 def test_compute_thumbnail_unrecognized_format():
     with pytest.raises(ValueError, match="unrecognized format"):
         _compute_thumbnail(io.BytesIO(), io.BytesIO(), ImageSize(10, 10), "UNKNOWN")
-
-
-def test_compute_thumbnail_no_pillow(monkeypatch):
-    monkeypatch.setattr("lektor.imagetools.HAVE_PILLOW", False)
-    with pytest.raises(RuntimeError, match="(?i)requires Pillow"):
-        _compute_thumbnail(io.BytesIO(), io.BytesIO(), ImageSize(10, 10), "PNG")
 
 
 @pytest.mark.parametrize(
@@ -185,7 +170,6 @@ def dummy_jpg_path(tmp_path_factory):
         ),
     ],
 )
-@pytest.mark.requirespillow
 def test_make_image_thumbnail(
     source_url_path, kwargs, expected_size, thumbnail_url_path, dummy_jpg_path
 ):
@@ -195,7 +179,6 @@ def test_make_image_thumbnail(
     assert thumbnail.url_path == thumbnail_url_path
 
 
-@pytest.mark.requirespillow
 def test_make_image_thumbnail_fallback_to_fit_mode(dummy_jpg_path):
     ctx = mock.Mock(name="ctx")
     with pytest.warns(UserWarning, match=r"(?i)falling back to .*\bfit\b.* mode"):
@@ -206,7 +189,6 @@ def test_make_image_thumbnail_fallback_to_fit_mode(dummy_jpg_path):
     assert thumbnail.url_path == "/test@80.jpg"
 
 
-@pytest.mark.requirespillow
 def test_make_image_thumbnail_no_dims(dummy_jpg_path):
     ctx = mock.Mock(name="ctx")
     with pytest.raises(ValueError, match="at least one of width or height"):
@@ -234,7 +216,6 @@ def test_make_image_thumbnail_svg(tmp_path):
     assert thumbnail.url_path == "/urlpath/dummy.svg"
 
 
-@pytest.mark.requirespillow
 def test_ThumbnailBuildFunc(dummy_jpg_path, tmp_path):
     artifact = tmp_path / "thumb.png"
     build_func = ThumbnailBuildFunc(

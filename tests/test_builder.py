@@ -9,7 +9,6 @@ def get_child_sources(prog):
     return sorted(list(prog.iter_child_sources()), key=lambda x: x["_id"])
 
 
-@pytest.mark.requirespillow
 def test_basic_build(pad, builder):
     root = pad.root
 

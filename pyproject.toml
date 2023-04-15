@@ -46,6 +46,7 @@ dependencies = [
     "marshmallow",
     "marshmallow_dataclass>=8.5.9",
     "mistune>=0.7.0,<3",
+    "Pillow>=6",
     "pip",
     "python-slugify",
     "pytz; python_version<'3.9'",  # favor zoneinfo for python>=3.9
@@ -57,9 +58,6 @@ dependencies = [
 optional-dependencies.ipython = [
     "ipython",
     "traitlets",
-]
-optional-dependencies.thumbnails = [
-    "Pillow>=6",
 ]
 
 [project.scripts]
@@ -99,7 +97,6 @@ norecursedirs = ["venv", ".tox", ".git", "node_modules"]
 addopts = "--strict-markers"
 markers = [
     "requiresinternet: marks tests requiring an internet connection",
-    "requirespillow: marks tests that require Pillow to be installed",
 ]
 
 

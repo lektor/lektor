@@ -19,21 +19,15 @@ from xml.etree import ElementTree as etree
 
 import exifread
 import filetype
+import PIL.Image
+import PIL.ImageCms
+import PIL.ImageOps
 
 from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
 
-try:
-    import PIL.Image
-    import PIL.ImageCms
-    import PIL.ImageOps
-
-    HAVE_PILLOW = True
-except ModuleNotFoundError:
-    HAVE_PILLOW = False
-else:
-    SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
-    SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
+SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
+SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
 
 
 class ThumbnailMode(Enum):
@@ -589,9 +583,6 @@ def _compute_thumbnail(
     quality: int | None = None,
     crop: bool = False,
 ) -> None:
-    if not HAVE_PILLOW:
-        raise RuntimeError("Thumbnail support requires Pillow to be installed")
-
     image_saver = _SaveImage.get_subclass(format)
     if image_saver is None:
         raise ValueError(f"unrecognized format ({format!r})")

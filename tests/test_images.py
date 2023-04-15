@@ -152,7 +152,6 @@ def test_thumbnail_dimensions_reported(built_demo):
         assert '<img src="%s" width="%s" height="%s">' % (t, w, h) in html
 
 
-@pytest.mark.requirespillow
 def test_thumbnail_dimensions_real(built_demo):
     for t, dimensions in _THUMBNAILS.items():
         with open(built_demo / t, "rb") as f:
@@ -160,7 +159,6 @@ def test_thumbnail_dimensions_real(built_demo):
         assert (width, height) == dimensions
 
 
-@pytest.mark.requirespillow
 def test_thumbnails_similar(built_demo):
     hashes = {
         md5(Path(built_demo, t).read_bytes()).hexdigest() for t in _SIMILAR_THUMBNAILS
@@ -168,7 +166,6 @@ def test_thumbnails_similar(built_demo):
     assert len(hashes) == 1
 
 
-@pytest.mark.requirespillow
 def test_thumbnails_differing(built_demo):
     hashes = {
         md5(Path(built_demo, t).read_bytes()).hexdigest() for t in _DIFFERING_THUMBNAILS
@@ -176,7 +173,6 @@ def test_thumbnails_differing(built_demo):
     assert len(hashes) == len(_DIFFERING_THUMBNAILS)
 
 
-@pytest.mark.requirespillow
 def test_thumbnail_quality(built_demo):
     image_file = built_demo / "test@192x256_q20.jpg"
     # See if the image file with said quality suffix exists
