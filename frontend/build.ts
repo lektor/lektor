@@ -2,7 +2,7 @@
  * An esbuild-powered script to build Lektor's admin frontend.
  */
 
-import { build, Plugin } from "esbuild";
+import { context, Plugin } from "esbuild";
 import fg from "fast-glob";
 import { resolve, dirname, join } from "path";
 import { argv } from "process";
@@ -33,8 +33,7 @@ const sassPlugin: Plugin = {
  * @param dev - Whether to generate sourcemaps and watch for changes.
  */
 async function runBuild(dev: boolean) {
-  console.log("starting build");
-  await build({
+  const ctx = await context({
     entryPoints: [join(__dirname, "js", "main.tsx")],
     outfile: join(__dirname, "..", "lektor", "admin", "static", "app.js"),
     format: "iife",
@@ -55,10 +54,16 @@ async function runBuild(dev: boolean) {
     // identifiers). This keeps the bundle size a bit larger but still very
     // readable.
     minifySyntax: !dev,
-    // For dev builds, watch source files and rebuild.
-    watch: dev ? { onRebuild: () => console.log("finished rebuild") } : false,
   });
+  console.log("starting build");
+  await ctx.rebuild();
   console.log("finished build");
+  if (!dev) {
+    await ctx.dispose();
+  } else {
+    console.log("starting watch mode");
+    ctx.watch();
+  }
 }
 
 if (require.main === module) {
