@@ -43,12 +43,7 @@ from lektor.imagetools import ThumbnailMode
         ("Frobnotz", "Frobnicator v42", "Frobnotz Frobnicator v42"),
         ("Frobnotz", None, "Frobnotz"),
         (None, "Frobnicator v42", "Frobnicator v42"),
-        pytest.param(
-            "Frobnotz",
-            "Frobnotz Frobnicator v42",
-            "Frobnotz Frobnicator v42",
-            marks=pytest.mark.xfail(reason="FIXME: ?"),
-        ),
+        ("Frobnotz", "Frobnotz Frobnicator v42", "Frobnotz Frobnicator v42"),
         (None, None, ""),
     ],
 )

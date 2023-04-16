@@ -63,7 +63,7 @@ def _combine_make(make, model):
     make = make or ""
     model = model or ""
     if make and model.startswith(make):
-        return make
+        return model
     return " ".join([make, model]).strip()
 
 
