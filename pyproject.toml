@@ -96,6 +96,7 @@ norecursedirs = ["venv", ".tox", ".git", "node_modules"]
 addopts = "--strict-markers"
 markers = [
     "requiresinternet: marks tests requiring an internet connection",
+    "slowtest: marks particularly slow tests that do not need to be run for every testenv variant",
 ]
 
 

@@ -34,6 +34,7 @@ def module(request):
     return request.param
 
 
+@pytest.mark.slowtest
 def test_import(module):
     python = sys.executable
     assert run([python, "-c", f"import {module}"], check=False).returncode == 0

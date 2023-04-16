@@ -54,6 +54,7 @@ def test_VirtualEnv_addsitedir(nested_venv: VirtualEnv) -> None:
 
 
 @pytest.mark.requiresinternet
+@pytest.mark.slowtest
 def test_VirtualEnv_run_pip_install(tmp_path: Path) -> None:
     # XXX: slow test
     venv = VirtualEnv(tmp_path)

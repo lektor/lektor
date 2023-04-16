@@ -97,6 +97,7 @@ def test_initialize_aborts_if_no_source(frontend_build_hook, mocker):
 
 @pytest.mark.skipif(shutil.which("npm") is None, reason="npm not installed")
 @pytest.mark.requiresinternet
+@pytest.mark.slowtest
 @pytest.mark.usefixtures("frontend_src")
 def test_initialize_builds_frontend(frontend_build_hook, tmp_root):
     frontend_build_hook.initialize("standard", build_data={})
