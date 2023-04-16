@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.3.9 (unreleased)
+## 3.3.9 (2023-04-16)
 
 ### Bit-Rot
 
