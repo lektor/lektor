@@ -39,14 +39,17 @@ async function runBuild(dev: boolean) {
     format: "iife",
     bundle: true,
     loader: {
-      ".eot": "file",
-      ".ttf": "file",
-      ".svg": "file",
-      ".woff": "file",
+      ".eot": "empty",
+      ".ttf": "empty",
+      ".svg": "empty",
+      ".woff": "empty",
+      // Only keep the modern small woff2 font files
       ".woff2": "file",
     },
     plugins: [sassPlugin],
+    // Always produce sourcemaps, but only include the full source in dev.
     sourcemap: true,
+    sourcesContent: dev,
     // The following options differ between dev and prod builds.
     // For prod builds, we want to use React's prod build and minify.
     define: { "process.env.NODE_ENV": dev ? '"development"' : '"production"' },
