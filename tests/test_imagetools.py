@@ -5,24 +5,28 @@ import datetime
 import html.parser
 import io
 from contextlib import contextmanager
+from fractions import Fraction
 from pathlib import Path
 from unittest import mock
 from xml.sax import saxutils
 
 import PIL
 import pytest
-from exifread.utils import Ratio
 from pytest import approx
 
 from lektor.imagetools import _combine_make
 from lektor.imagetools import _compute_cropbox
 from lektor.imagetools import _convert_color_profile_to_srgb
-from lektor.imagetools import _convert_gps
 from lektor.imagetools import _create_artifact
 from lektor.imagetools import _create_thumbnail
 from lektor.imagetools import _get_thumbnail_url_path
 from lektor.imagetools import _parse_svg_units_px
 from lektor.imagetools import _save_position
+from lektor.imagetools import _to_degrees
+from lektor.imagetools import _to_flash_description
+from lektor.imagetools import _to_float
+from lektor.imagetools import _to_focal_length
+from lektor.imagetools import _to_string
 from lektor.imagetools import compute_dimensions
 from lektor.imagetools import CropBox
 from lektor.imagetools import EXIFInfo
@@ -58,6 +62,39 @@ def test_combine_make(make, model, expected):
 
 
 @pytest.mark.parametrize(
+    "value, expected",
+    [
+        (0x41, "Flash fired, red-eye reduction mode"),
+        (0x100, "Flash did not fire (256)"),
+        (0x101, "Flash fired (257)"),
+        (-1, "Flash fired (-1)"),
+    ],
+)
+def test_to_flash_description(value, expected):
+    assert _to_flash_description(value) == expected
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("a b", "a b"),
+        ("a\xc2\xa0b", "a\xa0b"),
+        ("a\xa0b", "a\xa0b"),
+    ],
+)
+def test_to_string(value, expected):
+    assert _to_string(value) == expected
+
+
+def test_to_float():
+    assert _to_float(Fraction("22/3")) == approx(7.3333, rel=1e-8)
+
+
+def test_to_focal_length():
+    assert _to_focal_length(Fraction("45/2")) == "22.5mm"
+
+
+@pytest.mark.parametrize(
     "coords, hemisphere, expected",
     [
         (("45", "15", "30"), "N", approx(45.2583333)),
@@ -66,44 +103,116 @@ def test_combine_make(make, model, expected):
         (("45/2", "0", "0"), "E", 22.5),
     ],
 )
-def test_convert_gps(coords, hemisphere, expected):
-    assert _convert_gps(tuple(Ratio(coord) for coord in coords), hemisphere) == expected
+def test_to_degrees(coords, hemisphere, expected):
+    assert (
+        _to_degrees(tuple(Fraction(coord) for coord in coords), hemisphere) == expected
+    )
 
 
-def test_exif(pad):
-    expected = {
-        "altitude": approx(779.0293),
-        "aperture": approx(2.275),
-        "artist": None,
-        "camera": "Apple iPhone 6",
-        "camera_make": "Apple",
-        "camera_model": "iPhone 6",
-        "copyright": None,
-        "created_at": datetime.datetime(2015, 12, 6, 11, 37, 38),
-        "exposure_time": "1/33",
-        "f": "ƒ/2.2",
-        "f_num": approx(2.2),
+TEST_JPG_EXIF_INFO = {
+    "altitude": approx(779.0293),
+    "aperture": approx(2.275),
+    "artist": None,
+    "camera": "Apple iPhone 6",
+    "camera_make": "Apple",
+    "camera_model": "iPhone 6",
+    "copyright": None,
+    "created_at": datetime.datetime(2015, 12, 6, 11, 37, 38),
+    "exposure_time": "1/33",
+    "f": "ƒ/2.2",
+    "f_num": approx(2.2),
+    "flash_info": "Flash did not fire, compulsory flash mode",
+    "focal_length": "4.2mm",
+    "focal_length_35mm": "29mm",
+    "iso": 160,
+    "latitude": approx(46.633833),
+    "lens": "Apple iPhone 6 back camera 4.15mm f/2.2",
+    "lens_make": "Apple",
+    "lens_model": "iPhone 6 back camera 4.15mm f/2.2",
+    "longitude": approx(13.404833),
+    "location": approx((46.633833, 13.404833)),
+    "shutter_speed": "1/33",
+    "documentname": "testName",
+    "description": "testDescription",
+    "is_rotated": True,
+}
+
+# This is the default ExifINFO for images without EXIF data
+NULL_EXIF_INFO = {
+    "altitude": None,
+    "aperture": None,
+    "artist": None,
+    "camera": "",
+    "camera_make": None,
+    "camera_model": None,
+    "copyright": None,
+    "created_at": None,
+    "description": None,
+    "documentname": None,
+    "exposure_time": None,
+    "f": None,
+    "f_num": None,
+    "flash_info": None,
+    "focal_length": None,
+    "focal_length_35mm": None,
+    "is_rotated": False,
+    "iso": None,
+    "latitude": None,
+    "lens": "",
+    "lens_make": None,
+    "lens_model": None,
+    "location": None,
+    "longitude": None,
+    "shutter_speed": None,
+}
+
+TEST_IMAGE_EXIF_INFO = {
+    DEMO_PROJECT / "test.jpg": TEST_JPG_EXIF_INFO,
+    DEMO_PROJECT / "test-sof-last.jpg": TEST_JPG_EXIF_INFO,
+    DEMO_PROJECT / "test-progressive.jpg": NULL_EXIF_INFO,
+    HERE / "exif-test-2.gif": NULL_EXIF_INFO,
+    (HERE / "exif-test-1.jpg"): {
+        "altitude": None,
+        "aperture": None,
+        "artist": "Geoffrey T. Dairiki",
+        "camera": "NIKON CORPORATION NIKON D7100",
+        "camera_make": "NIKON CORPORATION",
+        "camera_model": "NIKON D7100",
+        "copyright": "2015",
+        "created_at": datetime.datetime(2022, 10, 22, 9, 20, 56),
+        "description": None,
+        "documentname": None,
+        "exposure_time": "1/400",
+        "f": "ƒ/4.5",
+        "f_num": 4.5,
         "flash_info": "Flash did not fire, compulsory flash mode",
-        "focal_length": "4.2mm",
-        "focal_length_35mm": "29mm",
-        "iso": 160,
-        "latitude": approx(46.633833),
-        "lens": "Apple iPhone 6 back camera 4.15mm f/2.2",
-        "lens_make": "Apple",
-        "lens_model": "iPhone 6 back camera 4.15mm f/2.2",
-        "longitude": approx(13.404833),
-        "location": approx((46.633833, 13.404833)),
-        "shutter_speed": "1/33",
-        "documentname": "testName",
-        "description": "testDescription",
-        "is_rotated": True,
-    }
+        "focal_length": "86mm",
+        "focal_length_35mm": "129mm",
+        "is_rotated": False,
+        "iso": 1250,
+        "latitude": None,
+        "lens": "",
+        "lens_make": None,
+        "lens_model": None,
+        "location": None,
+        "longitude": None,
+        "shutter_speed": None,
+    },
+}
 
-    image = pad.root.attachments.images.get("test.jpg")
-    assert image.exif
-    for key, value in expected.items():
-        assert getattr(image.exif, key) == value
-    assert image.exif.to_dict() == expected
+
+@pytest.mark.parametrize(
+    "path, attr, expected",
+    [
+        (path, attr, expected)
+        for path, tags in TEST_IMAGE_EXIF_INFO.items()
+        for attr, expected in tags.items()
+    ],
+)
+def test_read_exif_attr(path, attr, expected):
+    with path.open("rb") as fp:
+        exif = read_exif(fp)
+    assert getattr(exif, attr) == expected
 
 
 def test_read_exif_unrecognized_image():
@@ -111,64 +220,38 @@ def test_read_exif_unrecognized_image():
     assert not exif_info
 
 
-@pytest.mark.parametrize(
-    "attr, expected",
-    [
-        ("altitude", None),
-        ("aperture", None),
-        ("artist", None),
-        ("camera", ""),
-        ("camera_make", None),
-        ("camera_model", None),
-        ("copyright", None),
-        ("created_at", None),
-        ("description", None),
-        ("documentname", None),
-        ("exposure_time", None),
-        pytest.param("f", None, marks=pytest.mark.xfail(reason="FIXME")),
-        ("f_num", None),
-        ("flash_info", None),
-        ("focal_length", None),
-        ("focal_length_35mm", None),
-        ("is_rotated", False),
-        ("iso", None),
-        ("latitude", None),
-        ("lens", ""),
-        ("lens_make", None),
-        ("lens_model", None),
-        ("location", None),
-        ("longitude", None),
-        ("shutter_speed", None),
-    ],
-)
-def test_null_EXIFInfo(attr, expected):
-    exif_info = EXIFInfo({})
-    assert not exif_info
-    assert getattr(exif_info, attr) == expected
+def make_exif(gps_data):
+    """Construct a PIL.Image.Exif instance from GPS IFD data"""
+    ifd0 = PIL.Image.Exif()
+    ifd0[PIL.ExifTags.IFD.GPSInfo] = dict(gps_data)
+    exif = PIL.Image.Exif()
+    exif.load(ifd0.tobytes())
+    return exif
 
 
 @pytest.mark.parametrize(
-    "exif_data, expected",
+    "gps_data, expected",
     [
         (
             {
-                "GPS GPSAltitude": mock.Mock(values=[Ratio("1234/10")]),
-                "GPS GPSAltitudeRef": mock.Mock(values=[0]),
+                PIL.ExifTags.GPS.GPSAltitude: Fraction("1234/10"),
+                PIL.ExifTags.GPS.GPSAltitudeRef: b"\x00",
             },
             approx(123.4),
         ),
         (
             {
-                "GPS GPSAltitude": mock.Mock(values=[Ratio("123/10")]),
-                "GPS GPSAltitudeRef": mock.Mock(values=[1]),
+                PIL.ExifTags.GPS.GPSAltitude: Fraction("123/10"),
+                PIL.ExifTags.GPS.GPSAltitudeRef: b"\x01",
             },
             approx(-12.3),
         ),
-        ({"GPS GPSAltitude": mock.Mock(values=[Ratio("1234/10")])}, approx(123.4)),
+        ({PIL.ExifTags.GPS.GPSAltitude: Fraction("1234/10")}, approx(123.4)),
     ],
 )
-def test_EXIFInfo_altitude(exif_data, expected):
-    exif_info = EXIFInfo(exif_data)
+def test_EXIFInfo_altitude(gps_data, expected):
+    exif = make_exif(gps_data)
+    exif_info = EXIFInfo(exif)
     assert exif_info.altitude == expected
 
 
@@ -625,16 +708,29 @@ class TestFunctional:
         assert large_thumb in built_demo_img_tags
 
 
-@pytest.mark.parametrize(
-    "image_name",
-    [
+@pytest.fixture(
+    params=[
         "test.jpg",  # base image, exif-rotated
         "test-sof-last.jpg",  # same image but with SOF marker last
         "test-progressive.jpg",  # with progressive encoding, rotated in place
-    ],
+    ]
 )
-def test_image_attributes(pad, image_name):
-    image = pad.root.attachments.images.get(image_name)
-    assert image.width == 384
-    assert image.height == 512
-    assert image.format == "jpeg"
+def demo_test_jpg(request, pad):
+    return pad.root.attachments.images.get(request.param)
+
+
+def test_image_attributes(demo_test_jpg):
+    assert demo_test_jpg.width == 384
+    assert demo_test_jpg.height == 512
+    assert demo_test_jpg.format == "jpeg"
+
+
+def test_exif(demo_test_jpg):
+    name = demo_test_jpg.path.lstrip("/")
+    expected = TEST_IMAGE_EXIF_INFO[DEMO_PROJECT / name]
+
+    assert demo_test_jpg.exif.to_dict() == expected
+    if expected == NULL_EXIF_INFO:
+        assert not demo_test_jpg.exif
+    else:
+        assert demo_test_jpg.exif

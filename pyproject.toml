@@ -36,7 +36,6 @@ requires-python = ">=3.8"
 dependencies = [
     "Babel",
     "click>=6.0",
-    "EXIFRead",
     "Flask",
     "inifile>=0.4.1",
     "Jinja2>=3.0",

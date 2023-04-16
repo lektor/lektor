@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from functools import wraps
 from pathlib import Path
 from typing import Any
 from typing import BinaryIO
@@ -20,10 +21,10 @@ from typing import Sequence
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as etree
 
-import exifread
 import PIL.Image
 import PIL.ImageCms
 import PIL.ImageOps
+from PIL import ExifTags
 
 from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
@@ -34,7 +35,7 @@ if TYPE_CHECKING:
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
 
 if PILLOW_VERSION_INFO >= (8, 0):
-    from PIL.ImageOps import exif_transpose
+    exif_transpose = PIL.ImageOps.exif_transpose
 else:
     # Exif_transpose is broken in older versions of Pillow
     # (It has trouble updating EXIF tags in some cases.)
@@ -100,12 +101,6 @@ class ThumbnailMode(Enum):
         return cls(label)
 
 
-def _convert_gps(coords, hem):
-    deg, min, sec = (float(x.num) / float(x.den) for x in coords)
-    sign = -1 if hem in "SW" else 1
-    return sign * (deg + min / 60.0 + sec / 3600.0)
-
-
 def _combine_make(make, model):
     make = make or ""
     model = model or ""
@@ -114,14 +109,96 @@ def _combine_make(make, model):
     return " ".join([make, model]).strip()
 
 
+# Interpretation of the Exif Flash tag value
+#
+# See: https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/exif/flash.html
+#
+# Code copied from
+# https://github.com/ianare/exif-py/blob/51d5c5adf638219632dd755c6b7a4ce2535ada62/exifread/tags/exif.py#L318-L341
+#
+_EXIF_FLASH_VALUES = {
+    0: "Flash did not fire",
+    1: "Flash fired",
+    5: "Strobe return light not detected",
+    7: "Strobe return light detected",
+    9: "Flash fired, compulsory flash mode",
+    13: "Flash fired, compulsory flash mode, return light not detected",
+    15: "Flash fired, compulsory flash mode, return light detected",
+    16: "Flash did not fire, compulsory flash mode",
+    24: "Flash did not fire, auto mode",
+    25: "Flash fired, auto mode",
+    29: "Flash fired, auto mode, return light not detected",
+    31: "Flash fired, auto mode, return light detected",
+    32: "No flash function",
+    65: "Flash fired, red-eye reduction mode",
+    69: "Flash fired, red-eye reduction mode, return light not detected",
+    71: "Flash fired, red-eye reduction mode, return light detected",
+    73: "Flash fired, compulsory flash mode, red-eye reduction mode",
+    77: (
+        "Flash fired, compulsory flash mode, red-eye reduction mode, "
+        "return light not detected"
+    ),
+    79: (
+        "Flash fired, compulsory flash mode, red-eye reduction mode, "
+        "return light detected"
+    ),
+    89: "Flash fired, auto mode, red-eye reduction mode",
+    93: "Flash fired, auto mode, return light not detected, red-eye reduction mode",
+    95: "Flash fired, auto mode, return light detected, red-eye reduction mode",
+}
+
+
+def _to_flash_description(value):
+    desc = _EXIF_FLASH_VALUES.get(value)
+    if desc is None:
+        desc = f"{_EXIF_FLASH_VALUES[int(value) & 1]} ({value})"
+    return desc
+
+
+def _to_string(value):
+    # XXX: By spec, strings in EXIF tags are in ASCII, however some tools
+    # that handle EXIF tags support UTF-8.
+    # PIL seems to return strings decoded as iso-8859-1, which is rarely, if ever,
+    # right.  Attempt re-decoding as UTF-8.
+    try:
+        return value.encode("iso-8859-1").decode("utf-8")
+    except UnicodeDecodeError:
+        return value
+
+
+def _to_float(value, precision=4):
+    return round(float(value), precision)
+
+
+def _to_focal_length(value):
+    return f"{float(value):g}mm"
+
+
+def _to_degrees(coords, hemisphere):
+    degrees, minutes, seconds = coords
+    degrees = float(degrees) + minutes / 60 + seconds / 3600
+    if hemisphere in {"S", "W"}:
+        degrees = -degrees
+    return degrees
+
+
+def _default_none(wrapped):
+    @wraps(wrapped)
+    def wrapper(self):
+        try:
+            return wrapped(self)
+        except LookupError:
+            return None
+
+    return wrapper
+
+
 class EXIFInfo:
-    def __init__(self, d):
-        self._mapping = d
+    def __init__(self, exif: PIL.Image.Exif):
+        self._exif = exif
 
     def __bool__(self):
-        return bool(self._mapping)
-
-    __nonzero__ = __bool__
+        return bool(self._exif)
 
     def to_dict(self):
         rv = {}
@@ -130,175 +207,151 @@ class EXIFInfo:
                 rv[key] = getattr(self, key)
         return rv
 
-    def _get_string(self, key):
-        try:
-            value = self._mapping[key].values
-        except KeyError:
-            return None
-        if isinstance(value, str):
-            return value
-        return value.decode("utf-8", "replace")
-
-    def _get_int(self, key):
-        try:
-            return self._mapping[key].values[0]
-        except LookupError:
-            return None
-
-    def _get_float(self, key, precision=4):
-        try:
-            val = self._mapping[key].values[0]
-            if isinstance(val, int):
-                return float(val)
-            return round(float(val.num) / float(val.den), precision)
-        except LookupError:
-            return None
-
-    def _get_frac_string(self, key):
-        try:
-            val = self._mapping[key].values[0]
-            return f"{val.num}/{val.den}"
-        except LookupError:
-            return None
+    @property
+    def _ifd0(self):
+        return self._exif
 
     @property
+    def _exif_ifd(self):
+        return self._exif.get_ifd(ExifTags.IFD.Exif)
+
+    @property
+    def _gpsinfo_ifd(self):
+        return self._exif.get_ifd(ExifTags.IFD.GPSInfo)
+
+    @property
+    @_default_none
     def artist(self):
-        return self._get_string("Image Artist")
+        return _to_string(self._ifd0[ExifTags.Base.Artist])
 
     @property
+    @_default_none
     def copyright(self):
-        return self._get_string("Image Copyright")
+        return _to_string(self._ifd0[ExifTags.Base.Copyright])
 
     @property
+    @_default_none
     def camera_make(self):
-        return self._get_string("Image Make")
+        return _to_string(self._ifd0[ExifTags.Base.Make])
 
     @property
+    @_default_none
     def camera_model(self):
-        return self._get_string("Image Model")
+        return _to_string(self._ifd0[ExifTags.Base.Model])
 
     @property
     def camera(self):
         return _combine_make(self.camera_make, self.camera_model)
 
     @property
+    @_default_none
     def lens_make(self):
-        return self._get_string("EXIF LensMake")
+        return _to_string(self._exif_ifd[ExifTags.Base.LensMake])
 
     @property
+    @_default_none
     def lens_model(self):
-        return self._get_string("EXIF LensModel")
+        return _to_string(self._exif_ifd[ExifTags.Base.LensModel])
 
     @property
     def lens(self):
         return _combine_make(self.lens_make, self.lens_model)
 
     @property
+    @_default_none
     def aperture(self):
-        return self._get_float("EXIF ApertureValue")
+        return _to_float(self._exif_ifd[ExifTags.Base.ApertureValue])
 
     @property
+    @_default_none
     def f_num(self):
-        return self._get_float("EXIF FNumber")
+        return _to_float(self._exif_ifd[ExifTags.Base.FNumber])
 
     @property
+    @_default_none
     def f(self):
-        return "ƒ/%s" % self.f_num
+        value = self._exif_ifd[ExifTags.Base.FNumber]
+        return f"ƒ/{float(value):g}"
 
     @property
+    @_default_none
     def exposure_time(self):
-        return self._get_frac_string("EXIF ExposureTime")
+        value = self._exif_ifd[ExifTags.Base.ExposureTime]
+        return f"{value.numerator}/{value.denominator}"
 
     @property
+    @_default_none
     def shutter_speed(self):
-        val = self._get_float("EXIF ShutterSpeedValue")
-        if val is not None:
-            return "1/%d" % round(
-                1 / (2**-val)  # pylint: disable=invalid-unary-operand-type
-            )
-        return None
+        value = self._exif_ifd[ExifTags.Base.ShutterSpeedValue]
+        return f"1/{2 ** value:.0f}"
 
     @property
+    @_default_none
     def focal_length(self):
-        val = self._get_float("EXIF FocalLength")
-        if val is not None:
-            return "%smm" % val
-        return None
+        return _to_focal_length(self._exif_ifd[ExifTags.Base.FocalLength])
 
     @property
+    @_default_none
     def focal_length_35mm(self):
-        val = self._get_float("EXIF FocalLengthIn35mmFilm")
-        if val is not None:
-            return "%dmm" % val
-        return None
+        return _to_focal_length(self._exif_ifd[ExifTags.Base.FocalLengthIn35mmFilm])
 
     @property
+    @_default_none
     def flash_info(self):
-        try:
-            value = self._mapping["EXIF Flash"].printable
-        except KeyError:
-            return None
-        if isinstance(value, str):
-            return value
-        return value.decode("utf-8")
+        return _to_flash_description(self._exif_ifd[ExifTags.Base.Flash])
 
     @property
+    @_default_none
     def iso(self):
-        val = self._get_int("EXIF ISOSpeedRatings")
-        if val is not None:
-            return val
-        return None
+        return self._exif_ifd[ExifTags.Base.ISOSpeedRatings]
 
     @property
+    @_default_none
     def created_at(self):
         date_tags = (
-            "GPS GPSDate",
-            "Image DateTimeOriginal",
-            "EXIF DateTimeOriginal",
-            "EXIF DateTimeDigitized",
-            "Image DateTime",
+            # XXX: GPSDateStamp includes just the date
+            # https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/gps/gpsdatestamp.html
+            (self._gpsinfo_ifd, ExifTags.GPS.GPSDateStamp),
+            # XXX: DateTimeOriginal is an EXIF tag, not and IFD0 tag
+            (self._ifd0, ExifTags.Base.DateTimeOriginal),
+            (self._exif_ifd, ExifTags.Base.DateTimeOriginal),
+            (self._exif_ifd, ExifTags.Base.DateTimeDigitized),
+            (self._ifd0, ExifTags.Base.DateTime),
         )
-        for tag in date_tags:
+        for ifd, tag in date_tags:
             try:
-                return datetime.strptime(
-                    self._mapping[tag].printable, "%Y:%m:%d %H:%M:%S"
-                )
-            except (KeyError, ValueError):
+                return datetime.strptime(ifd[tag], "%Y:%m:%d %H:%M:%S")
+            except (LookupError, ValueError):
                 continue
         return None
 
     @property
+    @_default_none
     def longitude(self):
-        try:
-            return _convert_gps(
-                self._mapping["GPS GPSLongitude"].values,
-                self._mapping["GPS GPSLongitudeRef"].printable,
-            )
-        except KeyError:
-            return None
+        gpsinfo_ifd = self._gpsinfo_ifd
+        return _to_degrees(
+            gpsinfo_ifd[ExifTags.GPS.GPSLongitude],
+            gpsinfo_ifd[ExifTags.GPS.GPSLongitudeRef],
+        )
 
     @property
+    @_default_none
     def latitude(self):
-        try:
-            return _convert_gps(
-                self._mapping["GPS GPSLatitude"].values,
-                self._mapping["GPS GPSLatitudeRef"].printable,
-            )
-        except KeyError:
-            return None
+        gpsinfo_ifd = self._gpsinfo_ifd
+        return _to_degrees(
+            gpsinfo_ifd[ExifTags.GPS.GPSLatitude],
+            gpsinfo_ifd[ExifTags.GPS.GPSLatitudeRef],
+        )
 
     @property
+    @_default_none
     def altitude(self):
-        val = self._get_float("GPS GPSAltitude")
-        if val is not None:
-            try:
-                ref = self._mapping["GPS GPSAltitudeRef"].values[0]
-            except LookupError:
-                ref = 0
-            if ref == 1:
-                val *= -1
-            return val
-        return None
+        gpsinfo_ifd = self._gpsinfo_ifd
+        value = _to_float(gpsinfo_ifd[ExifTags.GPS.GPSAltitude])
+        ref = gpsinfo_ifd.get(ExifTags.GPS.GPSAltitudeRef)
+        if ref == b"\x01":
+            value = -value
+        return value
 
     @property
     def location(self):
@@ -309,12 +362,14 @@ class EXIFInfo:
         return None
 
     @property
+    @_default_none
     def documentname(self):
-        return self._get_string("Image DocumentName")
+        return _to_string(self._ifd0[ExifTags.Base.DocumentName])
 
     @property
+    @_default_none
     def description(self):
-        return self._get_string("Image ImageDescription")
+        return _to_string(self._ifd0[ExifTags.Base.ImageDescription])
 
     @property
     def is_rotated(self):
@@ -325,7 +380,10 @@ class EXIFInfo:
         (rotated 90deg left, right, and mirrored versions of those), i.e.,
         the image is rotated.
         """
-        return self._get_int("Image Orientation") in {5, 6, 7, 8}
+        try:
+            return self._ifd0[ExifTags.Base.Orientation] in {5, 6, 7, 8}
+        except LookupError:
+            return False
 
 
 def _parse_svg_units_px(length):
@@ -365,7 +423,7 @@ def _PIL_image_info(
     height = image.height
 
     exif = image.getexif()
-    orientation = exif.get(0x0112)
+    orientation = exif.get(ExifTags.Base.Orientation)
     if orientation in TRANSPOSED_ORIENTATIONS:
         width, height = height, width
 
@@ -394,7 +452,10 @@ def get_image_info(fp):
 
 def read_exif(fp):
     """Reads exif data from a file pointer of an image and returns it."""
-    exif = exifread.process_file(fp)
+    try:
+        exif = PIL.Image.open(fp).getexif()
+    except UnidentifiedImageError:
+        exif = PIL.Image.Exif()
     return EXIFInfo(exif)
 
 
