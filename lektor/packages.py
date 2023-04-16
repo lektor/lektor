@@ -3,7 +3,6 @@ import os
 import shutil
 import site
 import sys
-import tempfile
 from subprocess import PIPE
 
 import click
@@ -104,52 +103,20 @@ def download_and_install_package(
 def install_local_package(package_root, path):
     """This installs a local dependency of a package."""
     # XXX: windows
-    env = dict(os.environ)
-    env["PYTHONPATH"] = package_root
-
-    # Step 1: generate egg info and link us into the target folder.
     rv = portable_popen(
         [
             sys.executable,
             "-m",
             "pip",
             "install",
+            "--target",
+            package_root,
             "--editable",
             path,
-            "--install-option=--install-dir=%s" % package_root,
-            "--no-deps",
         ],
-        env=env,
     ).wait()
     if rv != 0:
         raise RuntimeError("Failed to install local package")
-
-    # Step 2: generate the egg info into a temp folder to find the
-    # requirements.
-    tmp = tempfile.mkdtemp()
-    try:
-        rv = portable_popen(
-            [
-                sys.executable,
-                "setup.py",
-                "--quiet",
-                "egg_info",
-                "--quiet",
-                "--egg-base",
-                tmp,
-            ],
-            cwd=path,
-        ).wait()
-        dirs = os.listdir(tmp)
-        if rv != 0 or len(dirs) != 1:
-            raise RuntimeError("Failed to create egg info for local package.")
-        requires = os.path.join(tmp, dirs[0], "requires.txt")
-
-        # We have dependencies, install them!
-        if os.path.isfile(requires):
-            download_and_install_package(package_root, requirements_file=requires)
-    finally:
-        shutil.rmtree(tmp)
 
 
 def get_package_info(path):
