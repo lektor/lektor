@@ -6,7 +6,7 @@
     "node": ">=14"
   },
   "dependencies": {
-    "@openfonts/roboto-slab_all": "^1.0.1"
+    "@fontsource/roboto-slab": "^4.5.11"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.1",

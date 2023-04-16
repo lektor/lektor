@@ -13,7 +13,11 @@ import { RecordContext, RecordPathDetails } from "./context/record-context";
 import App from "./views/App";
 import { adminPath } from "./components/use-go-to-admin-page";
 
+/** Fonts */
 import "font-awesome/css/font-awesome.css";
+import "@fontsource/roboto-slab/400.css";
+import "@fontsource/roboto-slab/700.css";
+
 import "../scss/main.scss";
 import { PageContext, PageName, isPageName } from "./context/page-context";
 import { trimSlashes } from "./utils";
