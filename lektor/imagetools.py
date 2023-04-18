@@ -10,11 +10,16 @@ import struct
 import warnings
 from datetime import datetime
 from enum import Enum
+from functools import partial
+from pathlib import Path
 from typing import Any
 from typing import BinaryIO
+from typing import ClassVar
+from typing import Iterable
+from typing import Iterator
 from typing import Mapping
 from typing import NamedTuple
-from typing import Type
+from typing import TYPE_CHECKING
 from xml.etree import ElementTree as etree
 
 import exifread
@@ -25,6 +30,9 @@ import PIL.ImageOps
 
 from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
+
+if TYPE_CHECKING:
+    from lektor.builder import Artifact
 
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
 
@@ -490,6 +498,78 @@ class CropBox(NamedTuple):
     lower: int
 
 
+class _FormatInfo:
+    format: ClassVar[str]
+    default_save_params: ClassVar[dict[str, Any]] = {}
+
+    @classmethod
+    def get_save_params(cls, thumbnail_params: "ThumbnailParams") -> dict[str, Any]:
+        params = dict(cls.default_save_params)
+        params.update(cls._extra_save_params(thumbnail_params))
+        params["format"] = cls.format
+        return params
+
+    @staticmethod
+    def _extra_save_params(
+        thumbnail_params: "ThumbnailParams",
+    ) -> Mapping[str, Any] | Iterable[tuple[str, Any]]:
+        return {}
+
+
+class _GifFormatInfo(_FormatInfo):
+    format = "GIF"
+
+
+class _PngFormatInfo(_FormatInfo):
+    format = "PNG"
+    default_save_params = {"compress_level": 7}
+
+    @staticmethod
+    def _extra_save_params(
+        thumbnail_params: "ThumbnailParams",
+    ) -> Iterator[tuple[str, Any]]:
+        quality = thumbnail_params.quality
+        if quality is not None:
+            yield "compress_level", min(9, max(0, quality // 10))
+
+
+class _JpegFormatInfo(_FormatInfo):
+    format = "JPEG"
+    default_save_params = {"quality": 85}
+
+    @staticmethod
+    def _extra_save_params(
+        thumbnail_params: "ThumbnailParams",
+    ) -> Iterator[tuple[str, Any]]:
+        quality = thumbnail_params.quality
+        if quality is not None:
+            yield "quality", quality
+
+
+@dataclasses.dataclass
+class ThumbnailParams:
+    """Encapsulates the parameters necessary to generate a thumbnail."""
+
+    size: ImageSize
+    format: str
+    quality: int | None = None
+    crop: bool = False
+
+    # save_image: _SaveImage = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        format = self.format.upper()
+        for format_info_cls in _FormatInfo.__subclasses__():
+            if format_info_cls.format == format:
+                break
+        else:
+            raise ValueError(f"unrecognized format ({self.format!r})")
+        self.format_info = format_info_cls
+
+    def get_save_params(self) -> Mapping[str, Any]:
+        return self.format_info.get_save_params(self)
+
+
 def _scale(x: int, num: int, denom: int) -> int:
     """Compute x * num / denom, rounded to integer.
 
@@ -532,62 +612,6 @@ def _compute_cropbox(size: ImageSize, source_width: int, source_height: int) -> 
     return CropBox(crop_l, crop_t, crop_l + use_width, crop_t + use_height)
 
 
-class _SaveImage:
-    format: str
-    params: Mapping[str, Any]
-    image_info_params: tuple[str, ...] = ()
-
-    def __init__(self, quality: int | None = None):
-        raise NotImplementedError()
-
-    def __call__(self, im: PIL.Image.Image, fp: BinaryIO) -> None:
-        im.save(fp, self.format, **self.get_params(im))
-
-    def get_params(self, im: PIL.Image.Image) -> dict[str, Any]:
-        params = {k: im.info[k] for k in self.image_info_params if k in im.info}
-        params.update(self.params)
-        return params
-
-    @classmethod
-    def get_subclass(cls: Type[_SaveImage], format: str) -> Type[_SaveImage] | None:
-        """Get subclass to handle saving image in specified format."""
-        format = format.upper()
-        for subclass in cls.__subclasses__():
-            if subclass.format == format:
-                return subclass
-        return None
-
-
-class _SavePNG(_SaveImage):
-    format = "PNG"
-    image_info_params = ("icc_profile",)
-
-    def __init__(self, quality: int | None = None):
-        if quality is None:
-            compress_level = 7
-        else:
-            compress_level = min(9, max(0, quality // 10))
-        self.params = {"compress_level": compress_level}
-
-
-class _SaveGIF(_SaveImage):
-    format = "GIF"
-
-    def __init__(self, quality: int | None = None):
-        self.params = {"optimize": True}
-
-
-class _SaveJPEG(_SaveImage):
-    format = "JPEG"
-    image_info_params = ("icc_profile",)
-
-    def __init__(self, quality: int | None = None):
-        if quality is None:
-            # could use quality = "keep" to keep the quality of the source image
-            quality = 85
-        self.params = {"quality": quality}
-
-
 def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
     """Convert image color profile to sRGB.
 
@@ -614,36 +638,31 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
         im.info.pop("icc_profile")
 
 
-def _compute_thumbnail(
-    infp: BinaryIO,
-    outfp: BinaryIO,
-    size: ImageSize,
-    format: str,
-    quality: int | None = None,
-    crop: bool = False,
-) -> None:
-    image_saver = _SaveImage.get_subclass(format)
-    if image_saver is None:
-        raise ValueError(f"unrecognized format ({format!r})")
-    save_image = image_saver(quality=quality)
-
+def _create_thumbnail(
+    image: PIL.Image.Image, params: ThumbnailParams
+) -> PIL.Image.Image:
     # XXX: use Image.thumbnail sometimes? (Is it more efficient?)
-    # XXX: does passing explicit `formats` to Image.open make it any faster?
-    source = PIL.Image.open(infp)
+
     # transpose according to EXIF Orientation
-    source = exif_transpose(source)
+    source = exif_transpose(image)
 
-    resize_params: dict[str, Any] = {}
-    if PILLOW_VERSION_INFO >= (7, 0):
-        resize_params["reducing_gap"] = 3.0
-    if crop:
-        resize_params["box"] = _compute_cropbox(size, source.width, source.height)
-    thumb = source.resize(size, **resize_params)
+    resize_params: dict[str, Any] = {"reducing_gap": 3.0}
+    if params.crop:
+        resize_params["box"] = _compute_cropbox(
+            params.size, source.width, source.height
+        )
 
-    _convert_color_profile_to_srgb(thumb)
+    if PILLOW_VERSION_INFO < (7, 0):
+        del resize_params["reducing_gap"]  # not supported in older Pillow
+
+    thumbnail = source.resize(params.size, **resize_params)
+
+    _convert_color_profile_to_srgb(thumbnail)
 
     # remove EXIF and other metadata from image, in place
-    # XXX: what about jfif_density, jfif_unit, dpi?
+    # FIXME: I don't think this is necessary
+    # I think these all have to be passed as explicit arguments to Image.save() to
+    # be propagated to the output file.
     for key in (
         "adobe",  # JPEG
         "adobe_transform",  # JPEG
@@ -651,9 +670,23 @@ def _compute_thumbnail(
         "exif",  # JPEG
         "extension",  # GIF
     ):
-        thumb.info.pop(key, None)
+        thumbnail.info.pop(key, None)
 
-    save_image(thumb, outfp)
+    return thumbnail
+
+
+def _create_artifact(
+    source_image: str | Path | BinaryIO,
+    thumbnail_params: ThumbnailParams,
+    artifact: Artifact,
+) -> None:
+    """Create artifact by computing thumbnail for source image."""
+    # XXX: would passing explicit `formats` to Image.open make it any faster?
+    with PIL.Image.open(source_image) as image:
+        thumbnail = _create_thumbnail(image, thumbnail_params)
+        save_params = thumbnail_params.get_save_params()
+    with artifact.open("wb") as fp:
+        thumbnail.save(fp, **save_params)
 
 
 def _get_thumbnail_url_path(
@@ -727,46 +760,27 @@ def make_image_thumbnail(
     if would_upscale and not upscale:
         return Thumbnail(source_url_path, source_width, source_height)
 
+    thumbnail_params = ThumbnailParams(
+        size=size,
+        format=source_format.upper(),
+        quality=quality,
+        crop=mode == ThumbnailMode.CROP,
+    )
     suffix = get_suffix(width, height, mode, quality=quality)
-
     thumbnail_format = source_format.upper()
     dst_url_path = _get_thumbnail_url_path(
         source_url_path, source_image, thumbnail_format, suffix
     )
-    thumbnail_build_func = ThumbnailBuildFunc(
-        source_image=source_image,
-        size=size,
-        format=thumbnail_format,
-        quality=quality,
-        crop=mode == ThumbnailMode.CROP,
-    )
-
     ctx.add_sub_artifact(
         artifact_name=dst_url_path,
         sources=[source_image],
-        build_func=thumbnail_build_func,
+        build_func=partial(_create_artifact, source_image, thumbnail_params),
     )
 
     return Thumbnail(dst_url_path, size.width, size.height)
 
 
-@dataclasses.dataclass
-class ThumbnailBuildFunc:
-    source_image: str
-
-    size: ImageSize
-    format: str
-    quality: int | None = None
-    crop: bool = False
-
-    def __call__(self, artifact):
-        params = dataclasses.asdict(self)
-        source_image = params.pop("source_image")
-        with open(source_image, "rb") as infp, artifact.open("wb") as outfp:
-            _compute_thumbnail(infp, outfp, **params)
-
-
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Thumbnail:
     """Holds information about a thumbnail."""
 

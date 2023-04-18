@@ -18,12 +18,12 @@ from pytest import approx
 
 from lektor.imagetools import _combine_make
 from lektor.imagetools import _compute_cropbox
-from lektor.imagetools import _compute_thumbnail
 from lektor.imagetools import _convert_color_profile_to_srgb
 from lektor.imagetools import _convert_gps
+from lektor.imagetools import _create_artifact
+from lektor.imagetools import _create_thumbnail
 from lektor.imagetools import _get_thumbnail_url_path
 from lektor.imagetools import _parse_svg_units_px
-from lektor.imagetools import _SaveImage
 from lektor.imagetools import compute_dimensions
 from lektor.imagetools import CropBox
 from lektor.imagetools import EXIFInfo
@@ -33,8 +33,8 @@ from lektor.imagetools import is_rotated
 from lektor.imagetools import make_image_thumbnail
 from lektor.imagetools import read_exif
 from lektor.imagetools import Thumbnail
-from lektor.imagetools import ThumbnailBuildFunc
 from lektor.imagetools import ThumbnailMode
+from lektor.imagetools import ThumbnailParams
 
 
 EXIF_ORIENTATION_TAG = 0x0112
@@ -280,6 +280,30 @@ def test_get_image_info(image, expected):
     assert get_image_info(image.open()) == expected
 
 
+def test_ThumbnailParams_unrecognized_format():
+    with pytest.raises(ValueError, match="unrecognized format"):
+        ThumbnailParams(ImageSize(80, 60), "UNKNOWNFORMAT")
+
+
+@pytest.mark.parametrize(
+    "format, quality, expected",
+    [
+        ("GIF", None, {"format": "GIF"}),
+        ("gif", 99, {"format": "GIF"}),
+        ("JPEG", None, {"format": "JPEG", "quality": 85}),
+        ("JPEG", 95, {"format": "JPEG", "quality": 95}),
+        ("PNG", None, {"format": "PNG", "compress_level": 7}),
+        ("PNG", 92, {"format": "PNG", "compress_level": 9}),
+        ("PNG", 180, {"format": "PNG", "compress_level": 9}),
+        ("PNG", 75, {"format": "PNG", "compress_level": 7}),
+        ("PNG", -10, {"format": "PNG", "compress_level": 0}),
+    ],
+)
+def test_ThumbnailParams_get_save_params(format, quality, expected):
+    thumbnail_params = ThumbnailParams(ImageSize(10, 10), format, quality)
+    assert thumbnail_params.get_save_params() == expected
+
+
 @pytest.mark.parametrize(
     "width, height, source_width, source_height, expected",
     [
@@ -346,37 +370,6 @@ def dummy_image():
     return PIL.Image.new("RGB", (100, 100), "#999")
 
 
-@pytest.mark.parametrize("format", ["PNG", "GIF", "JPEG"])
-def test_SaveImage_call(format, dummy_image, tmp_path):
-    outpath = tmp_path / "image"
-    save_image = _SaveImage.get_subclass(format)()
-    with outpath.open("wb") as fp:
-        save_image(dummy_image, fp)
-    image = PIL.Image.open(outpath)
-    assert image.width == dummy_image.width
-    assert image.height == dummy_image.height
-    assert image.format == format
-
-
-def test_SaveImage_get_subclass_unknown():
-    assert _SaveImage.get_subclass("UNKNOWN") is None
-
-
-@pytest.mark.parametrize(
-    "quality, compress_level",
-    [
-        (None, 7),
-        (92, 9),
-        (150, 9),
-        (75, 7),
-        (-10, 0),
-    ],
-)
-def test_SavePNG_compress_level(quality, compress_level):
-    save_image = _SaveImage.get_subclass("PNG")(quality=quality)
-    assert save_image.params["compress_level"] == compress_level
-
-
 def test_convert_color_profile_to_srgb():
     demo_project = Path(__file__).parent / "demo-project"
     im = PIL.Image.open(demo_project / "content/colorspace-test/rgb-to-gbr-test.jpg")
@@ -395,21 +388,21 @@ def test_convert_color_profile_to_srgb_no_profile():
     assert "icc_profile" not in im.info
 
 
-def test_compute_thumbnail(dummy_image):
-    infp = io.BytesIO()
-    dummy_image.save(infp, "PNG")
-    infp.seek(0)
-    outfp = io.BytesIO()
-    _compute_thumbnail(infp, outfp, ImageSize(10, 15), "JPEG", crop=True)
-    outfp.seek(0)
-    thumb = PIL.Image.open(outfp)
-    assert thumb.width == 10 and thumb.height == 15
-    assert thumb.getpixel((5, 7)) == approx((153, 153, 153), abs=5)
+def test_create_thumbnail(dummy_image):
+    thumbnail_params = ThumbnailParams(ImageSize(80, 60), "PNG")
+    thumb = _create_thumbnail(dummy_image, thumbnail_params)
+    assert thumb.width == 80 and thumb.height == 60
+    assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
 
 
-def test_compute_thumbnail_unrecognized_format():
-    with pytest.raises(ValueError, match="unrecognized format"):
-        _compute_thumbnail(io.BytesIO(), io.BytesIO(), ImageSize(10, 10), "UNKNOWN")
+def test_create_artifact(dummy_jpg_path, tmp_path):
+    out_path = tmp_path / "thumb.jpg"
+    artifact = mock.Mock("Artifact", open=out_path.open)
+    thumbnail_params = ThumbnailParams(ImageSize(80, 60), "JPEG")
+    _create_artifact(dummy_jpg_path, thumbnail_params, artifact)
+    with PIL.Image.open(out_path) as thumb:
+        assert thumb.width == 80 and thumb.height == 60
+        assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
 
 
 @pytest.mark.parametrize(
@@ -533,19 +526,6 @@ def test_make_image_thumbnail_svg(tmp_path):
     )
     assert (thumbnail.width, thumbnail.height) == (80, 60)
     assert thumbnail.url_path == "/urlpath/dummy.svg"
-
-
-def test_ThumbnailBuildFunc(dummy_jpg_path, tmp_path):
-    artifact = tmp_path / "thumb.png"
-    build_func = ThumbnailBuildFunc(
-        source_image=dummy_jpg_path,
-        size=ImageSize(80, 60),
-        format="PNG",
-    )
-    build_func(artifact)
-    im = PIL.Image.open(artifact)
-    assert im.width == 80 and im.height == 60
-    assert im.format == "PNG"
 
 
 def test_Thumbnail_str():
