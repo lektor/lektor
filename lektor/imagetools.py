@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import dataclasses
 import io
+import numbers
 import posixpath
 import re
 from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
+from enum import IntEnum
+from fractions import Fraction
 from functools import partial
 from functools import wraps
 from pathlib import Path
+from types import ModuleType
+from types import SimpleNamespace
 from typing import Any
 from typing import BinaryIO
 from typing import ClassVar
@@ -21,10 +26,10 @@ from typing import Sequence
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as etree
 
+import PIL.ExifTags
 import PIL.Image
 import PIL.ImageCms
 import PIL.ImageOps
-from PIL import ExifTags
 
 from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
@@ -33,6 +38,21 @@ if TYPE_CHECKING:
     from lektor.builder import Artifact
 
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
+
+if PILLOW_VERSION_INFO >= (9, 4):
+    ExifTags: ModuleType | SimpleNamespace = PIL.ExifTags
+else:
+
+    def _reverse_map(mapping: Mapping[int, str]) -> dict[str, int]:
+        return dict(map(reversed, mapping.items()))  # type: ignore[arg-type]
+
+    ExifTags = SimpleNamespace(
+        Base=IntEnum("Base", _reverse_map(PIL.ExifTags.TAGS)),
+        GPS=IntEnum("GPS", _reverse_map(PIL.ExifTags.GPSTAGS)),
+        IFD=IntEnum("IFD", [("Exif", 34665), ("GPSInfo", 34853)]),
+        TAGS=PIL.ExifTags.TAGS,
+        GPSTAGS=PIL.ExifTags.GPSTAGS,
+    )
 
 if PILLOW_VERSION_INFO >= (8, 0):
     exif_transpose = PIL.ImageOps.exif_transpose
@@ -63,7 +83,7 @@ else:
 
         """
         exif = image.getexif()
-        orientation = exif.get(0x0112)
+        orientation = exif.get(ExifTags.Base.Orientation)
         if orientation not in _TRANSPOSE_FOR_ORIENTATION:
             return image.copy()
         transposed_image = image.transpose(_TRANSPOSE_FOR_ORIENTATION[orientation])
@@ -166,20 +186,39 @@ def _to_string(value):
         return value
 
 
-def _to_float(value, precision=4):
-    return round(float(value), precision)
+def _to_rational(value):
+    # NB: Older versions of Pillow return (numerator, denominator) tuples
+    # for EXIF rational numbers.  New version return a Fraction instance.
+    if isinstance(value, numbers.Rational):
+        return value
+    if isinstance(value, tuple) and len(value) == 2:
+        return Fraction(*value)
+    raise ValueError(f"Can not convert {value!r} to Rational")
+
+
+def _to_float(value):
+    if not isinstance(value, numbers.Real):
+        value = _to_rational(value)
+    return float(value)
 
 
 def _to_focal_length(value):
-    return f"{float(value):g}mm"
+    return f"{_to_float(value):g}mm"
 
 
 def _to_degrees(coords, hemisphere):
-    degrees, minutes, seconds = coords
-    degrees = float(degrees) + minutes / 60 + seconds / 3600
+    degrees, minutes, seconds = map(_to_float, coords)
+    degrees = degrees + minutes / 60 + seconds / 3600
     if hemisphere in {"S", "W"}:
         degrees = -degrees
     return degrees
+
+
+def _to_altitude(altitude, altitude_ref):
+    value = _to_float(altitude)
+    if altitude_ref == b"\x01":
+        value = -value
+    return value
 
 
 def _default_none(wrapped):
@@ -217,6 +256,14 @@ class EXIFInfo:
 
     @property
     def _gpsinfo_ifd(self):
+        # On older Pillow versions, get_ifd(GPSinfo) returns None.
+        # Prior to somewhere around Pillow 8.2.0, the GPS IFD was accessible at
+        # the top level. Try that first.
+        #
+        # https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
+        gps_ifd = self._exif.get(ExifTags.IFD.GPSInfo)
+        if isinstance(gps_ifd, dict):
+            return gps_ifd
         return self._exif.get_ifd(ExifTags.IFD.GPSInfo)
 
     @property
@@ -260,29 +307,29 @@ class EXIFInfo:
     @property
     @_default_none
     def aperture(self):
-        return _to_float(self._exif_ifd[ExifTags.Base.ApertureValue])
+        return round(_to_float(self._exif_ifd[ExifTags.Base.ApertureValue]), 4)
 
     @property
     @_default_none
     def f_num(self):
-        return _to_float(self._exif_ifd[ExifTags.Base.FNumber])
+        return round(_to_float(self._exif_ifd[ExifTags.Base.FNumber]), 4)
 
     @property
     @_default_none
     def f(self):
-        value = self._exif_ifd[ExifTags.Base.FNumber]
-        return f"ƒ/{float(value):g}"
+        value = _to_float(self._exif_ifd[ExifTags.Base.FNumber])
+        return f"ƒ/{value:g}"
 
     @property
     @_default_none
     def exposure_time(self):
-        value = self._exif_ifd[ExifTags.Base.ExposureTime]
+        value = _to_rational(self._exif_ifd[ExifTags.Base.ExposureTime])
         return f"{value.numerator}/{value.denominator}"
 
     @property
     @_default_none
     def shutter_speed(self):
-        value = self._exif_ifd[ExifTags.Base.ShutterSpeedValue]
+        value = _to_float(self._exif_ifd[ExifTags.Base.ShutterSpeedValue])
         return f"1/{2 ** value:.0f}"
 
     @property
@@ -303,7 +350,7 @@ class EXIFInfo:
     @property
     @_default_none
     def iso(self):
-        return self._exif_ifd[ExifTags.Base.ISOSpeedRatings]
+        return _to_float(self._exif_ifd[ExifTags.Base.ISOSpeedRatings])
 
     @property
     @_default_none

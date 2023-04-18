@@ -22,14 +22,15 @@ from lektor.imagetools import _create_thumbnail
 from lektor.imagetools import _get_thumbnail_url_path
 from lektor.imagetools import _parse_svg_units_px
 from lektor.imagetools import _save_position
+from lektor.imagetools import _to_altitude
 from lektor.imagetools import _to_degrees
 from lektor.imagetools import _to_flash_description
 from lektor.imagetools import _to_float
 from lektor.imagetools import _to_focal_length
+from lektor.imagetools import _to_rational
 from lektor.imagetools import _to_string
 from lektor.imagetools import compute_dimensions
 from lektor.imagetools import CropBox
-from lektor.imagetools import EXIFInfo
 from lektor.imagetools import get_image_info
 from lektor.imagetools import ImageSize
 from lektor.imagetools import make_image_thumbnail
@@ -62,51 +63,59 @@ def test_combine_make(make, model, expected):
 
 
 @pytest.mark.parametrize(
-    "value, expected",
+    "coerce, value, expected",
     [
-        (0x41, "Flash fired, red-eye reduction mode"),
-        (0x100, "Flash did not fire (256)"),
-        (0x101, "Flash fired (257)"),
-        (-1, "Flash fired (-1)"),
+        (_to_string, "a b", "a b"),
+        (_to_string, "a\xc2\xa0b", "a\xa0b"),
+        (_to_string, "a\xa0b", "a\xa0b"),
+        #
+        (_to_rational, 42, 42),
+        (_to_rational, Fraction("22/7"), Fraction("22/7")),
+        (_to_rational, (3, 2), Fraction("3/2")),
+        #
+        (_to_float, 42, 42),
+        (_to_float, 1.5, 1.5),
+        (_to_float, Fraction("22/7"), approx(3.142857)),
+        (_to_float, (7, 4), 1.75),
+        #
+        (_to_flash_description, 0x41, "Flash fired, red-eye reduction mode"),
+        (_to_flash_description, 0x100, "Flash did not fire (256)"),
+        (_to_flash_description, 0x101, "Flash fired (257)"),
+        (_to_flash_description, -1, "Flash fired (-1)"),
+        #
+        (_to_focal_length, Fraction("45/2"), "22.5mm"),
+        (_to_focal_length, (521, 10), "52.1mm"),
     ],
 )
-def test_to_flash_description(value, expected):
-    assert _to_flash_description(value) == expected
-
-
-@pytest.mark.parametrize(
-    "value, expected",
-    [
-        ("a b", "a b"),
-        ("a\xc2\xa0b", "a\xa0b"),
-        ("a\xa0b", "a\xa0b"),
-    ],
-)
-def test_to_string(value, expected):
-    assert _to_string(value) == expected
-
-
-def test_to_float():
-    assert _to_float(Fraction("22/3")) == approx(7.3333, rel=1e-8)
-
-
-def test_to_focal_length():
-    assert _to_focal_length(Fraction("45/2")) == "22.5mm"
+def test_coersion(coerce, value, expected):
+    assert coerce(value) == expected
 
 
 @pytest.mark.parametrize(
     "coords, hemisphere, expected",
     [
-        (("45", "15", "30"), "N", approx(45.2583333)),
-        (("45", "61/2", "0"), "S", approx(-45.5083333)),
-        (("122", "0", "0"), "W", -122),
-        (("45/2", "0", "0"), "E", 22.5),
+        ((Fraction(45), Fraction(15), Fraction(30)), "N", approx(45.2583333)),
+        ((Fraction(45), Fraction(61, 2), Fraction(0)), "S", approx(-45.5083333)),
+        ((122, 0, 0), "W", -122),
+        ((Fraction("45/2"), 0, 0), "E", 22.5),
+        (((45, 2), (30, 1), (0, 1)), "N", approx(23)),
     ],
 )
 def test_to_degrees(coords, hemisphere, expected):
-    assert (
-        _to_degrees(tuple(Fraction(coord) for coord in coords), hemisphere) == expected
-    )
+    assert _to_degrees(coords, hemisphere) == expected
+
+
+@pytest.mark.parametrize(
+    "altitude, altitude_ref, expected",
+    [
+        (Fraction("1234/10"), b"\x00", approx(123.4)),
+        (Fraction("1234/10"), None, approx(123.4)),
+        ((1234, 10), b"\x00", approx(123.4)),
+        (Fraction("123/10"), b"\x01", approx(-12.3)),
+    ],
+)
+def test_to_altitude(altitude, altitude_ref, expected):
+    assert _to_altitude(altitude, altitude_ref) == expected
 
 
 TEST_JPG_EXIF_INFO = {
@@ -198,6 +207,8 @@ TEST_IMAGE_EXIF_INFO = {
         "longitude": None,
         "shutter_speed": None,
     },
+    HERE / "exif-test-3.jpg": {"altitude": approx(-85.9)},  # negative altitude
+    HERE / "exif-test-4.jpg": {"altitude": approx(85.9)},  # This no GPSAltitudeRef tag:
 }
 
 
@@ -218,41 +229,6 @@ def test_read_exif_attr(path, attr, expected):
 def test_read_exif_unrecognized_image():
     exif_info = read_exif(io.BytesIO(b"unrecognized-image"))
     assert not exif_info
-
-
-def make_exif(gps_data):
-    """Construct a PIL.Image.Exif instance from GPS IFD data"""
-    ifd0 = PIL.Image.Exif()
-    ifd0[PIL.ExifTags.IFD.GPSInfo] = dict(gps_data)
-    exif = PIL.Image.Exif()
-    exif.load(ifd0.tobytes())
-    return exif
-
-
-@pytest.mark.parametrize(
-    "gps_data, expected",
-    [
-        (
-            {
-                PIL.ExifTags.GPS.GPSAltitude: Fraction("1234/10"),
-                PIL.ExifTags.GPS.GPSAltitudeRef: b"\x00",
-            },
-            approx(123.4),
-        ),
-        (
-            {
-                PIL.ExifTags.GPS.GPSAltitude: Fraction("123/10"),
-                PIL.ExifTags.GPS.GPSAltitudeRef: b"\x01",
-            },
-            approx(-12.3),
-        ),
-        ({PIL.ExifTags.GPS.GPSAltitude: Fraction("1234/10")}, approx(123.4)),
-    ],
-)
-def test_EXIFInfo_altitude(gps_data, expected):
-    exif = make_exif(gps_data)
-    exif_info = EXIFInfo(exif)
-    assert exif_info.altitude == expected
 
 
 @pytest.mark.parametrize(
