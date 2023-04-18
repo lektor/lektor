@@ -37,6 +37,9 @@ from lektor.imagetools import ThumbnailBuildFunc
 from lektor.imagetools import ThumbnailMode
 
 
+EXIF_ORIENTATION_TAG = 0x0112
+
+
 @pytest.mark.parametrize(
     "make, model, expected",
     [
@@ -205,7 +208,7 @@ class DummyImage:
         image = PIL.Image.new("RGB", (self.width, self.height), "#999")
         exif = image.getexif()
         if self.orientation is not None:
-            exif[PIL.ExifTags.Base.Orientation] = self.orientation
+            exif[EXIF_ORIENTATION_TAG] = self.orientation
         image.save(fp, self.format, exif=exif)
         fp.seek(0)
         return fp

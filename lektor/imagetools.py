@@ -26,6 +26,45 @@ import PIL.ImageOps
 from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
 
+PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
+
+if PILLOW_VERSION_INFO >= (8, 0):
+    from PIL.ImageOps import exif_transpose
+else:
+    # Exif_transpose is broken in older versions of Pillow
+    # (It has trouble updating EXIF tags in some cases.)
+    #
+    # Ref: https://github.com/python-pillow/Pillow/issues/4896
+    #
+    _TRANSPOSE_FOR_ORIENTATION: dict[int, Any] = {
+        2: PIL.Image.FLIP_LEFT_RIGHT,
+        3: PIL.Image.ROTATE_180,
+        4: PIL.Image.FLIP_TOP_BOTTOM,
+        5: PIL.Image.TRANSPOSE,
+        6: PIL.Image.ROTATE_270,
+        7: PIL.Image.TRANSVERSE,
+        8: PIL.Image.ROTATE_90,
+    }
+
+    def exif_transpose(image: PIL.Image.Image) -> PIL.Image.Image:
+        """If an image has an EXIF Orientation tag, return a new image that is
+        transposed accordingly.
+
+        If the image has no Orientation tag, a copy of the original is returned.
+
+        NOTE: Contrary to what ``PIL.ImageOps.exif_transpose`` does, this version simply
+        deletes all EXIF tags from the transposed image.
+
+        """
+        exif = image.getexif()
+        orientation = exif.get(0x0112)
+        if orientation not in _TRANSPOSE_FOR_ORIENTATION:
+            return image.copy()
+        transposed_image = image.transpose(_TRANSPOSE_FOR_ORIENTATION[orientation])
+        del transposed_image.info["exif"]
+        return transposed_image
+
+
 SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
 SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
 
@@ -592,9 +631,11 @@ def _compute_thumbnail(
     # XXX: does passing explicit `formats` to Image.open make it any faster?
     source = PIL.Image.open(infp)
     # transpose according to EXIF Orientation
-    source = PIL.ImageOps.exif_transpose(source)
+    source = exif_transpose(source)
 
-    resize_params: dict[str, Any] = {"reducing_gap": 3.0}
+    resize_params: dict[str, Any] = {}
+    if PILLOW_VERSION_INFO >= (7, 0):
+        resize_params["reducing_gap"] = 3.0
     if crop:
         resize_params["box"] = _compute_cropbox(size, source.width, source.height)
     thumb = source.resize(size, **resize_params)
