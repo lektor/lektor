@@ -35,10 +35,6 @@ else:
     SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
 
 
-# yay shitty library
-datetime.strptime("", "")
-
-
 class ThumbnailMode(Enum):
     FIT = "fit"
     CROP = "crop"
