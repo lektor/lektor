@@ -70,6 +70,9 @@ else:
         return transposed_image
 
 
+UnidentifiedImageError = getattr(PIL, "UnidentifiedImageError", OSError)
+
+
 SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
 SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
 
@@ -383,7 +386,7 @@ def get_image_info(fp):
     try:
         with _save_position(fp) as fp_:
             image = PIL.Image.open(fp_)
-    except PIL.UnidentifiedImageError:
+    except UnidentifiedImageError:
         return get_svg_info(fp)
 
     return _PIL_image_info(image)
