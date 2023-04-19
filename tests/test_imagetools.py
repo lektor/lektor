@@ -2,11 +2,8 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-import hashlib
 import html.parser
 import io
-import os
-from collections import defaultdict
 from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
@@ -432,18 +429,20 @@ def test_create_artifact_strips_metadata():
 
 
 @pytest.mark.parametrize(
-    "source_url_path, format, thumbnail_url_path",
+    "source_url_path, size, format, expected",
     [
-        ("/urlpath/foo.bar.JPG", "JPEG", "/urlpath/foo.bar@suffix.JPG"),
-        ("/urlpath/foo.bar", "JPEG", "/urlpath/foo@suffix.jpeg"),
+        (
+            "/urlpath/foo.bar.JPG",
+            ImageSize(10, 20),
+            "JPEG",
+            "/urlpath/foo.bar@10x20.JPG",
+        ),
+        ("/urlpath/foo.bar", ImageSize(10, 20), "JPEG", "/urlpath/foo@10x20.jpeg"),
     ],
 )
-def test_get_thumbnail_url_path(source_url_path, format, thumbnail_url_path):
-    source_filename = os.fspath(Path("/fspath") / Path(source_url_path).name)
-    assert (
-        _get_thumbnail_url_path(source_url_path, source_filename, format, "suffix")
-        == thumbnail_url_path
-    )
+def test_get_thumbnail_url_path(source_url_path, size, format, expected):
+    thumbnail_params = ThumbnailParams(size, format)
+    assert _get_thumbnail_url_path(source_url_path, thumbnail_params) == expected
 
 
 @pytest.fixture(scope="session")
@@ -459,14 +458,14 @@ def dummy_jpg_path(tmp_path_factory):
     "source_url_path, kwargs, expected_size, thumbnail_url_path",
     [
         # ThumbnailMode.FIT
-        ("/test.jpg", {"width": 80, "height": 80}, (80, 60), "/test@80x80.jpg"),
-        ("/test.jpg", {"width": 80}, (80, 60), "/test@80.jpg"),
-        ("/test.jpg", {"height": 90, "quality": 85}, (120, 90), "/test@x90_q85.jpg"),
+        ("/test.jpg", {"width": 80, "height": 80}, (80, 60), "/test@80x60.jpg"),
+        ("/test.jpg", {"width": 80}, (80, 60), "/test@80x60.jpg"),
+        ("/test.jpg", {"height": 90, "quality": 85}, (120, 90), "/test@120x90_q85.jpg"),
         (
             "/test.jpg",
             {"width": 80, "mode": ThumbnailMode.FIT},
             (80, 60),
-            "/test@80.jpg",
+            "/test@80x60.jpg",
         ),
         # ThumbnailMode.CROP
         (
@@ -486,16 +485,16 @@ def dummy_jpg_path(tmp_path_factory):
             "/test.jpg",
             {"width": 80, "height": 80, "mode": ThumbnailMode.STRETCH},
             (80, 80),
-            "/test@80x80_stretch.jpg",
+            "/test@80x80.jpg",
         ),
         (
             "/test.jpg",
             {"width": 800, "height": 800, "mode": ThumbnailMode.STRETCH},
             (800, 800),
-            "/test@800x800_stretch.jpg",
+            "/test@800x800.jpg",
         ),
         # explicit upscale
-        ("/test.jpg", {"width": 440, "upscale": True}, (440, 330), "/test@440.jpg"),
+        ("/test.jpg", {"width": 440, "upscale": True}, (440, 330), "/test@440x330.jpg"),
         # explicit upscale=False
         ("/test.jpg", {"width": 440, "upscale": False}, (400, 300), "/test.jpg"),
         # implicit upscale
@@ -556,8 +555,8 @@ def test_Thumbnail_str():
 
 @dataclasses.dataclass
 class DemoThumbnail:
-    size: tuple[int, int]
-    eq_class: str  # thumbnails with the same eq_class should be identical
+    width: int
+    height: int
     max_size: int | None = None
 
 
@@ -577,16 +576,11 @@ class TestFunctional:
     @pytest.fixture
     def thumbnails(self):
         return {
-            # _SIMILAR_THUMBNAILS
             # original dimensions = 384 x 512
-            "test@192.jpg": DemoThumbnail((192, 256), "A"),
-            "test@x256.jpg": DemoThumbnail((192, 256), "A"),
-            "test@256x256.jpg": DemoThumbnail((192, 256), "A"),
-            # _DIFFERING_THUMBNAILS
-            "test@300x100_crop.jpg": DemoThumbnail((300, 100), "B"),
-            "test@300x100_stretch.jpg": DemoThumbnail((300, 100), "C"),
-            # test_thumbnail_quality
-            "test@192x256_q20.jpg": DemoThumbnail((192, 256), "D", 9200),
+            "test@192x256.jpg": DemoThumbnail(192, 256),
+            "test@300x100_crop.jpg": DemoThumbnail(300, 100),
+            "test@300x100.jpg": DemoThumbnail(300, 100),
+            "test@192x256_q20.jpg": DemoThumbnail(192, 256, 9200),
         }
 
     @pytest.fixture
@@ -623,26 +617,20 @@ class TestFunctional:
             seen.add(img.src)
             thumb = thumbnails.get(img.src)
             if thumb is not None:
-                assert (img.width, img.height) == thumb.size
+                assert (img.width, img.height) == (thumb.width, thumb.height)
         assert seen >= set(thumbnails)
 
     def test_thumbnail_dimensions(self, built_demo, thumbnails):
         for name, thumb in thumbnails.items():
             with open(built_demo / name, "rb") as fp:
                 _format, width, height = get_image_info(fp)
-            assert (width, height) == thumb.size
+            assert (width, height) == (thumb.width, thumb.height)
 
-    def test_equality(self, built_demo, thumbnails):
-        hashes_by_eq_class = defaultdict(set)
-        distinct = set()
-
-        for name, thumb in thumbnails.items():
-            h = hashlib.md5(Path(built_demo / name).read_bytes()).hexdigest()
-            hashes_by_eq_class[thumb.eq_class].add(h)
-            distinct.add(h)
-
-        assert all(len(v) == 1 for v in hashes_by_eq_class.values())
-        assert len(distinct) == len(hashes_by_eq_class)
+    def test_thumbnails_distinct(self, built_demo, thumbnails):
+        images = set()
+        for name in thumbnails:
+            images.add(Path(built_demo / name).read_bytes())
+        assert len(images) == len(thumbnails)
 
     def test_max_size(self, built_demo, thumbnails):
         for name, thumb in thumbnails.items():

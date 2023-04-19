@@ -116,7 +116,7 @@ def mock_build_context(mocker, pad):
 def test_url_to_thumbnail(pad, mock_build_context):
     extra_de = pad.get("/extra", alt="de")
     thumbnail = pad.get("/test.jpg").thumbnail(42)
-    assert extra_de.url_to(thumbnail) == "../../test@42.jpg"
+    assert extra_de.url_to(thumbnail) == "../../test@42x56.jpg"
 
 
 @pytest.fixture

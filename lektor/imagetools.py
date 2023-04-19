@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import dataclasses
 import io
-import os
 import posixpath
 import re
 import struct
@@ -18,6 +17,7 @@ from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import NamedTuple
+from typing import Sequence
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as etree
 
@@ -345,17 +345,6 @@ class EXIFInfo:
         return self._get_int("Image Orientation") in {5, 6, 7, 8}
 
 
-def get_suffix(width, height, mode, quality=None):
-    suffix = "" if width is None else str(width)
-    if height is not None:
-        suffix += "x%s" % height
-    if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.value
-    if quality is not None:
-        suffix += "_q%s" % quality
-    return suffix
-
-
 def get_svg_info(fp):
     _, svg = next(etree.iterparse(fp, ["start"]), (None, None))
     fp.seek(0)
@@ -500,13 +489,40 @@ class CropBox(NamedTuple):
 class _FormatInfo:
     format: ClassVar[str]
     default_save_params: ClassVar[dict[str, Any]] = {}
+    extensions: ClassVar[Sequence[str]]
 
     @classmethod
     def get_save_params(cls, thumbnail_params: "ThumbnailParams") -> dict[str, Any]:
+        """Compute kwargs to be passed to Image.save() when writing the thumbnail."""
         params = dict(cls.default_save_params)
         params.update(cls._extra_save_params(thumbnail_params))
         params["format"] = cls.format
         return params
+
+    @classmethod
+    def get_thumbnail_tag(cls, thumbnail_params: "ThumbnailParams") -> str:
+        """Get a string which serializes the thumbnail_params.
+
+        This is value is used as a suffix when generating the file name for the
+        thumbnail.
+        """
+        width, height = thumbnail_params.size
+        bits = [f"{width}x{height}"]
+        if thumbnail_params.crop:
+            bits.append("crop")
+        bits.extend(cls._extra_tag_bits(thumbnail_params))
+        return "_".join(bits)
+
+    @classmethod
+    def get_ext(cls, proposed_ext: str | None = None) -> str:
+        """Get file extension suitable for image format.
+
+        If proposed_ext is an acceptable extension for the format, return that.
+        Otherwise return the default extension for the format.
+        """
+        if proposed_ext is not None and proposed_ext.lower() in cls.extensions:
+            return proposed_ext
+        return cls.extensions[0]
 
     @staticmethod
     def _extra_save_params(
@@ -514,14 +530,20 @@ class _FormatInfo:
     ) -> Mapping[str, Any] | Iterable[tuple[str, Any]]:
         return {}
 
+    @staticmethod
+    def _extra_tag_bits(thumbnail_params: "ThumbnailParams") -> Iterable[str]:
+        return ()
+
 
 class _GifFormatInfo(_FormatInfo):
     format = "GIF"
+    extensions = (".gif",)
 
 
 class _PngFormatInfo(_FormatInfo):
     format = "PNG"
     default_save_params = {"compress_level": 7}
+    extensions = (".png",)
 
     @staticmethod
     def _extra_save_params(
@@ -531,10 +553,17 @@ class _PngFormatInfo(_FormatInfo):
         if quality is not None:
             yield "compress_level", min(9, max(0, quality // 10))
 
+    @classmethod
+    def _extra_tag_bits(cls, thumbnail_params: "ThumbnailParams") -> Iterable[str]:
+        for key, value in cls._extra_save_params(thumbnail_params):
+            assert key == "compress_level"
+            yield f"q{value}"
+
 
 class _JpegFormatInfo(_FormatInfo):
     format = "JPEG"
     default_save_params = {"quality": 85}
+    extensions = (".jpeg", ".jpg")
 
     @staticmethod
     def _extra_save_params(
@@ -543,6 +572,12 @@ class _JpegFormatInfo(_FormatInfo):
         quality = thumbnail_params.quality
         if quality is not None:
             yield "quality", quality
+
+    @classmethod
+    def _extra_tag_bits(cls, thumbnail_params: "ThumbnailParams") -> Iterable[str]:
+        for key, value in cls._extra_save_params(thumbnail_params):
+            assert key == "quality"
+            yield f"q{value}"
 
 
 @dataclasses.dataclass
@@ -566,7 +601,24 @@ class ThumbnailParams:
         self.format_info = format_info_cls
 
     def get_save_params(self) -> Mapping[str, Any]:
+        """Get kwargs to pass to Image.save() when writing the thumbnail."""
         return self.format_info.get_save_params(self)
+
+    def get_ext(self, proposed_ext: str | None = None) -> str:
+        """Get file extension for thumbnail.
+
+        If proposed_ext is an acceptable extension for the thumbnail, return that.
+        Otherwise return the default extension for the thumbnail format.
+        """
+        return self.format_info.get_ext(proposed_ext)
+
+    def get_tag(self) -> str:
+        """Get a string which serializes the thumbnail_params.
+
+        This is value is used as a suffix when generating the file name for the
+        thumbnail.
+        """
+        return self.format_info.get_thumbnail_tag(self)
 
 
 def _scale(x: int, num: int, denom: int) -> int:
@@ -679,21 +731,12 @@ def _create_artifact(
 
 
 def _get_thumbnail_url_path(
-    source_url_path: str,
-    source_filename: str,
-    format: str,
-    suffix: str,
+    source_url_path: str, thumbnail_params: ThumbnailParams
 ) -> str:
-    extensions_by_format = {
-        "PNG": (".png",),
-        "GIF": (".gif",),
-        "JPEG": (".jpeg", ".jpg"),
-    }
-    extensions = extensions_by_format[format.upper()]
-
-    source_ext = os.path.splitext(source_filename)[1]
+    source_ext = posixpath.splitext(source_url_path)[1]
     # leave ext unchanged from source if valid for the thumbnail format
-    ext = source_ext if source_ext.lower() in extensions else extensions[0]
+    ext = thumbnail_params.get_ext(source_ext)
+    suffix = thumbnail_params.get_tag()
     return get_dependent_url(source_url_path, suffix, ext=ext)
 
 
@@ -749,11 +792,8 @@ def make_image_thumbnail(
         quality=quality,
         crop=mode == ThumbnailMode.CROP,
     )
-    suffix = get_suffix(width, height, mode, quality=quality)
-    thumbnail_format = source_format.upper()
-    dst_url_path = _get_thumbnail_url_path(
-        source_url_path, source_image, thumbnail_format, suffix
-    )
+    dst_url_path = _get_thumbnail_url_path(source_url_path, thumbnail_params)
+
     ctx.add_sub_artifact(
         artifact_name=dst_url_path,
         sources=[source_image],
