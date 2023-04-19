@@ -659,18 +659,8 @@ def _create_thumbnail(
 
     _convert_color_profile_to_srgb(thumbnail)
 
-    # remove EXIF and other metadata from image, in place
-    # FIXME: I don't think this is necessary
-    # I think these all have to be passed as explicit arguments to Image.save() to
-    # be propagated to the output file.
-    for key in (
-        "adobe",  # JPEG
-        "adobe_transform",  # JPEG
-        "comment",  # JPEG, GIF
-        "exif",  # JPEG
-        "extension",  # GIF
-    ):
-        thumbnail.info.pop(key, None)
+    # Do not propate comment tag to thumbnail
+    thumbnail.info.pop("comment", None)
 
     return thumbnail
 

@@ -7,6 +7,7 @@ import html.parser
 import io
 import os
 from collections import defaultdict
+from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
 from xml.sax import saxutils
@@ -36,6 +37,11 @@ from lektor.imagetools import Thumbnail
 from lektor.imagetools import ThumbnailMode
 from lektor.imagetools import ThumbnailParams
 
+
+HERE = Path(__file__).parent
+DEMO_PROJECT = HERE / "demo-project/content"
+COLORSPACE_TEST_JPG = DEMO_PROJECT / "colorspace-test/rgb-to-gbr-test.jpg"
+NONIMAGE_FILE_PATH = Path(__file__)  # we are not an image
 
 EXIF_ORIENTATION_TAG = 0x0112
 
@@ -178,7 +184,7 @@ def test_EXIFInfo_altitude(exif_data, expected):
     ],
 )
 def test_is_rotated(image_name, expected):
-    image_path = Path(__file__).parent / "demo-project/content" / image_name
+    image_path = DEMO_PROJECT / image_name
     with image_path.open("rb") as fp:
         assert is_rotated(fp) == expected
 
@@ -371,8 +377,7 @@ def dummy_image():
 
 
 def test_convert_color_profile_to_srgb():
-    demo_project = Path(__file__).parent / "demo-project"
-    im = PIL.Image.open(demo_project / "content/colorspace-test/rgb-to-gbr-test.jpg")
+    im = PIL.Image.open(COLORSPACE_TEST_JPG)
     # Top center of image is blue before color transform
     assert im.getpixel((im.width // 2, 0)) == approx((0, 0, 255), abs=10)
 
@@ -395,14 +400,35 @@ def test_create_thumbnail(dummy_image):
     assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
 
 
-def test_create_artifact(dummy_jpg_path, tmp_path):
-    out_path = tmp_path / "thumb.jpg"
-    artifact = mock.Mock("Artifact", open=out_path.open)
+class DummyArtifact:
+    image = None
+
+    @contextmanager
+    def open(self, _mode):
+        fp = io.BytesIO()
+        yield fp
+        fp.seek(0)
+        self.image = PIL.Image.open(fp)
+
+
+def test_create_artifact(dummy_jpg_path):
     thumbnail_params = ThumbnailParams(ImageSize(80, 60), "JPEG")
+    artifact = DummyArtifact()
     _create_artifact(dummy_jpg_path, thumbnail_params, artifact)
-    with PIL.Image.open(out_path) as thumb:
-        assert thumb.width == 80 and thumb.height == 60
-        assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
+    thumb = artifact.image
+    assert thumb.width == 80 and thumb.height == 60
+    assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
+
+
+def test_create_artifact_strips_metadata():
+    # this image has comment, dpi, exif, icc_profile, and photoshop data
+    source_image = COLORSPACE_TEST_JPG
+    jfif_info_keys = {"jfif", "jfif_density", "jfif_unit", "jfif_version"}
+    thumbnail_params = ThumbnailParams(ImageSize(80, 60), "JPEG")
+    artifact = DummyArtifact()
+    _create_artifact(source_image, thumbnail_params, artifact)
+    metadata_keys = set(artifact.image.info) - jfif_info_keys
+    assert not metadata_keys
 
 
 @pytest.mark.parametrize(
@@ -509,9 +535,8 @@ def test_make_image_thumbnail_no_dims(dummy_jpg_path):
 
 def test_make_image_thumbnail_unknown_image_format(tmp_path):
     ctx = mock.Mock(name="ctx")
-    not_an_image = __file__  # we are not an image
     with pytest.raises(RuntimeError, match="unknown"):
-        make_image_thumbnail(ctx, not_an_image, "/test.jpg", width=80)
+        make_image_thumbnail(ctx, NONIMAGE_FILE_PATH, "/test.jpg", width=80)
     assert len(ctx.mock_calls) == 0
 
 
