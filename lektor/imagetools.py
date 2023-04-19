@@ -7,7 +7,6 @@ import os
 import posixpath
 import re
 import struct
-import warnings
 from datetime import datetime
 from enum import Enum
 from functools import partial
@@ -713,16 +712,10 @@ def make_image_thumbnail(
     """
     if width is None and height is None:
         raise ValueError("Must specify at least one of width or height.")
-
-    # temporarily fallback to "fit" in case of erroneous arguments
-    # to preserve backward-compatibility.
-    # this needs to change to an exception in the future.
     if mode != ThumbnailMode.FIT and (width is None or height is None):
-        warnings.warn(
-            f'"{mode.value}" mode requires both `width` and `height` '
-            'to be specified. Falling back to "fit" mode.'
+        raise ValueError(
+            f'"{mode.value}" mode requires both `width` and `height` to be specified.'
         )
-        mode = ThumbnailMode.FIT
 
     if upscale is None and mode in (ThumbnailMode.CROP, ThumbnailMode.STRETCH):
         upscale = True

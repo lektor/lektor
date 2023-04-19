@@ -515,21 +515,17 @@ def test_make_image_thumbnail(
         assert len(ctx.mock_calls) == 0  # no implicit upscale
 
 
-def test_make_image_thumbnail_fallback_to_fit_mode(dummy_jpg_path):
+@pytest.mark.parametrize(
+    "params, match",
+    [
+        ({}, "at least one of width or height"),
+        ({"width": 8, "mode": ThumbnailMode.CROP}, "requires both"),
+    ],
+)
+def test_make_image_thumbnail_invalid_params(params, match, dummy_jpg_path):
     ctx = mock.Mock(name="ctx")
-    with pytest.warns(UserWarning, match=r"(?i)falling back to .*\bfit\b.* mode"):
-        thumbnail = make_image_thumbnail(
-            ctx, dummy_jpg_path, "/test.jpg", width=80, mode=ThumbnailMode.CROP
-        )
-    assert (thumbnail.width, thumbnail.height) == (80, 60)
-    assert thumbnail.url_path == "/test@80.jpg"
-    assert ctx.add_sub_artifact.call_count == 1
-
-
-def test_make_image_thumbnail_no_dims(dummy_jpg_path):
-    ctx = mock.Mock(name="ctx")
-    with pytest.raises(ValueError, match="at least one of width or height"):
-        make_image_thumbnail(ctx, dummy_jpg_path, "/test.jpg")
+    with pytest.raises(ValueError, match=match):
+        make_image_thumbnail(ctx, dummy_jpg_path, "/test.jpg", **params)
     assert len(ctx.mock_calls) == 0
 
 
