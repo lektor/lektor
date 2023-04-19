@@ -43,16 +43,65 @@ export const defaultShortcutKeyMap: ShortcutKeyMap = new Map([
   [ShortcutAction.Search, mod("G")],
 ]);
 
+// These keys are never treated as shortcut keys
+//
+// For a possibly complete list of named keys, see
+// https://www.w3.org/TR/uievents-key/#named-key-attribute-values
+//
+const ignoredKeys = new Set([
+  "Unidentified",
+  // Modifier Keys
+  "Alt",
+  "AltGraph",
+  "CapsLock",
+  "Control",
+  "Fn",
+  "FnLock",
+  "Meta",
+  "NumLock",
+  "ScrollLock",
+  "Shift",
+  "Symbol",
+  "SymbolLock",
+  "Hyper",
+  "Super",
+  // Legacy Modifier Keys
+  "Hyper",
+  "Super",
+]);
+
+// These are keys that are used in the preferences dialog
+// to erase the currently set hotkey.
+export const eraseHotkeyKeys = new Set([
+  "Backspace",
+  "Delete",
+  " ", // space key
+]);
+
+function isPrintingKey(key: string) {
+  return key.length === 1 || key == "Enter" || key == "Tab";
+}
+
+const modifierKeys: Array<ModifierKey> = ["Meta", "Control", "Alt", "Shift"];
+
 export function getShortcutKey(
   event: KeyboardEvent | React.KeyboardEvent
 ): ShortcutKey | null {
-  const mods: Array<ModifierKey> = ["Meta", "Control", "Alt", "Shift"];
-  if (!mods.every((mod) => event.key !== mod)) {
+  const nativeEvent = event instanceof Event ? event : event.nativeEvent;
+  if (nativeEvent.isComposing || ignoredKeys.has(event.key)) {
     return null;
   }
-  const activeMods = mods.filter((mod) => event.getModifierState(mod));
-  if (activeMods.length === 0) {
+  const activeMods = modifierKeys.filter((mod) => event.getModifierState(mod));
+  if (activeMods.length === 0 && eraseHotkeyKeys.has(event.key)) {
     return null;
+  }
+  if (isPrintingKey(event.key)) {
+    const haveNonShiftMod = activeMods.some((mod) => mod != "Shift");
+    if (!haveNonShiftMod) {
+      // Printing keys are not accepted as a shortcut key
+      // unless combined with a modifier (other than Shift).
+      return null;
+    }
   }
   const key = event.key.length == 1 ? event.key.toUpperCase() : event.key;
   return [...activeMods, key].join("+") as ShortcutKey;

@@ -2,6 +2,7 @@ import React, { useCallback, useState, Dispatch, SetStateAction } from "react";
 import SlideDialog from "../components/SlideDialog";
 import { trans } from "../i18n";
 import {
+  eraseHotkeyKeys,
   getShortcutKey,
   ShortcutAction,
   ShortcutKey,
@@ -135,7 +136,7 @@ function ShortcutKeyInputWidget({
       onChange={() => null /* prevent warning from React Developer Tools */}
       onKeyDown={(event) => {
         const key = getShortcutKey(event);
-        const doUnset = ["Backspace", "Delete", " "].includes(event.key);
+        const doUnset = eraseHotkeyKeys.has(event.key);
         if (key || doUnset) {
           event.preventDefault();
           event.stopPropagation();
