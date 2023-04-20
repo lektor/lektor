@@ -5,6 +5,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
+import { unstable_usePrompt } from "react-router-dom";
 
 import { get, put } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
@@ -20,7 +22,6 @@ import { EditPageActions } from "./EditPageActions";
 import ToggleGroup from "../../components/ToggleGroup";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { useRecord } from "../../context/record-context";
-import { unstable_usePrompt } from "react-router-dom";
 import { setShortcutHandler, ShortcutAction } from "../../shortcut-keys";
 
 export type RawRecordInfo = {
@@ -202,7 +203,9 @@ function EditPage(): JSX.Element | null {
     if (hasPendingChanges) {
       const data = getValues({ recordDataModel, recordInfo, recordData });
       return put("/rawrecord", { data, path, alt }).then(() => {
-        setHasPendingChanges(false);
+        // flushSync to ensure our usePrompt gets updated before returning
+        // to avoid spurious "You have unsaved information" dialog
+        flushSync(() => setHasPendingChanges(false));
       }, showErrorDialog);
     } else {
       return Promise.resolve();

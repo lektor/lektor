@@ -12,7 +12,7 @@ import DeletePage from "./delete/DeletePage";
 import PreviewPage from "./PreviewPage";
 import AddChildPage from "./add-child-page/AddChildPage";
 import AddAttachmentPage from "./AddAttachmentPage";
-import { PageContext } from "../context/page-context";
+import { PageContext, PageName } from "../context/page-context";
 import { useRecord } from "../context/record-context";
 
 import {
@@ -48,16 +48,18 @@ export default function App() {
   }, [appSettings]);
 
   useEffect(() => {
-    const cleanup = [
-      setShortcutHandler(ShortcutAction.Edit, () =>
-        goToAdminPage("edit", path, alt)
-      ),
-      setShortcutHandler(ShortcutAction.Preview, () =>
-        goToAdminPage("preview", path, alt)
-      ),
+    const shortcuts: Array<{ action: ShortcutAction; target: PageName }> = [
+      { action: ShortcutAction.Edit, target: "edit" },
+      { action: ShortcutAction.Preview, target: "preview" },
     ];
+    const cleanup = shortcuts
+      .filter(({ target }) => target != page)
+      .map(({ action, target }) =>
+        setShortcutHandler(action, () => goToAdminPage(target, path, alt))
+      );
+
     return () => cleanup.forEach((cb) => cb());
-  }, [path, alt, goToAdminPage]);
+  }, [page, path, alt, goToAdminPage]);
 
   return (
     <AppSettingsContext.Provider value={appSettings}>
