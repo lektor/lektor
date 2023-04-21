@@ -5,6 +5,7 @@ import pytest
 from lektor.context import _ctx_stack
 from lektor.context import Context
 from lektor.environment import Environment
+from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
 
@@ -194,6 +195,8 @@ def _id_for_dict(value):
         ("../wolf/.", {}, "./"),
         ("../slave", {}, "../slave/"),
         ("../wolf/../slave/", {}, "../slave/"),
+        ("/", {}, "../../"),
+        ("/extra", {}, "../../extra/"),
         ("/projects/wolf", {}, "./"),
         ("/projects/slave", {}, "../slave/"),
         # Test alt
@@ -354,3 +357,28 @@ def test_file_record_url(pad):
 def test_url_with_slash_slug(pad):
     record = pad.get("/extra/slash-slug")
     assert record.url_path == "/extra/long/path/"
+
+
+class DummyVirtualSource(VirtualSourceObject):
+    url_path = None  # mask inherited property
+
+    def __init__(self, record, url_path):
+        super().__init__(record)
+        self.url_path = url_path
+
+    @property
+    def path(self):
+        return f"{self.record.path}@virtual"
+
+
+@pytest.mark.parametrize(
+    "path, url_path, expected",
+    [
+        ("/", "/path/virtual/", "../../"),
+        ("/index.html", "/path/virtual/", "../../index.html"),
+        ("rel", "/path/virtual/", "rel"),
+    ],
+)
+def test_url_from_virtual(pad, path, url_path, expected):
+    virtual = DummyVirtualSource(pad.get("/extra"), url_path)
+    assert virtual.url_to(path) == expected

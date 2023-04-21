@@ -25,6 +25,12 @@ from lektor.utils import unique_everseen
         ("a@b", "@c", "a@c"),
         ("a@b/c", "a@b", "a/a@b"),
         #
+        ("/a", "/", "/"),
+        ("/a", "/b", "/b"),
+        ("a@b", "/", "/"),
+        ("a@b", "/c", "/c"),
+        ("a@b", "/c@d", "/c@d"),
+        #
         ("blog@archive", "2015", "blog@archive/2015"),
         ("blog@archive/2015", "..", "blog@archive"),
         ("blog@archive/2015", "@archive", "blog@archive"),
