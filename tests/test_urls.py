@@ -4,8 +4,30 @@ import pytest
 
 from lektor.context import _ctx_stack
 from lektor.context import Context
+from lektor.environment import Environment
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
+
+# noreorder
+from conftest import restore_import_state  # pylint: disable=wrong-import-order
+
+
+@pytest.fixture(scope="module")
+def pad(project):
+    # Use a module-scoped pad to speed tests
+    with restore_import_state():
+        return Environment(project).new_pad()
+
+
+@pytest.fixture
+def config(pad, monkeypatch):
+    """Patch a function-scoped config into our session-scoped pad.
+
+    (For those tests/fixtures that want to mangle the config.)
+    """
+    config = pad.db.env.load_config()
+    monkeypatch.setattr(pad.db, "config", config)
+    return config
 
 
 @pytest.mark.parametrize(
@@ -120,8 +142,8 @@ def test_url_to_thumbnail(pad, mock_build_context):
 
 
 @pytest.fixture
-def external_url(pad):
-    pad.config.values["PROJECT"]["url"] = "http://example.org/site/"
+def external_url(config):
+    config.values["PROJECT"]["url"] = "http://example.org/site/"
 
 
 @pytest.mark.parametrize(
