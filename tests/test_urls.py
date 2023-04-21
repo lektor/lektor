@@ -5,6 +5,7 @@ import pytest
 from lektor.context import _ctx_stack
 from lektor.context import Context
 from lektor.environment import Environment
+from lektor.reporter import BufferReporter
 from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
@@ -367,6 +368,15 @@ class DummyVirtualSource(VirtualSourceObject):
         self.url_path = url_path
 
     @property
+    def url_content_path(self):
+        # This is a url_content_path that is appropriate for a
+        # source object that can contain other child source objects
+        if self.url_path.endswith("/"):
+            return self.url_path
+        head, sep, tail = self.url_path.rpartition("/")
+        return f"{head}{sep}_{tail}/"
+
+    @property
     def path(self):
         return f"{self.record.path}@virtual"
 
@@ -409,3 +419,11 @@ def test_url_from_page_with_dotted_name(pad, path, expected):
 def test_url_from_attachment(pad, path, expected):
     record = pad.get("/extra/hello.txt")
     assert record.url_to(path) == expected
+
+
+def test_url_from_attachment_issues_warning(pad):
+    record = pad.get("/extra/hello.txt")
+    with BufferReporter(pad.env) as reporter:
+        assert record.url_to("a") == "a"
+    message = next(filter(None, (extra.get("message") for _, extra in reporter.buffer)))
+    assert re.match(r"(?i)Suspicious use of relative URL", message)
