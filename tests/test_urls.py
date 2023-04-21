@@ -377,8 +377,35 @@ class DummyVirtualSource(VirtualSourceObject):
         ("/", "/path/virtual/", "../../"),
         ("/index.html", "/path/virtual/", "../../index.html"),
         ("rel", "/path/virtual/", "rel"),
+        ("rel", "/path/virtual.html", "_virtual.html/rel"),
     ],
 )
 def test_url_from_virtual(pad, path, url_path, expected):
     virtual = DummyVirtualSource(pad.get("/extra"), url_path)
     assert virtual.url_to(path) == expected
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("a", "_file.ext/a"),
+        ("/", "../"),
+        ("/projects", "../projects/"),
+    ],
+)
+def test_url_from_page_with_dotted_name(pad, path, expected):
+    record = pad.get("/extra/file.ext")
+    assert record.url_to(path) == expected
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("a", "a"),
+        ("/", "../"),
+        ("/projects", "../projects/"),
+    ],
+)
+def test_url_from_attachment(pad, path, expected):
+    record = pad.get("/extra/hello.txt")
+    assert record.url_to(path) == expected
