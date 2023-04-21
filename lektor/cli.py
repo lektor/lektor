@@ -42,7 +42,8 @@ def cli(ctx, project=None, language=None):
     This command can invoke lektor locally and serve up the website.  It's
     intended for local development of websites.
     """
-    warnings.simplefilter("default")
+    if not sys.warnoptions:
+        warnings.simplefilter("default")
     if language is not None:
         ctx.ui_lang = language
     if project is not None:
