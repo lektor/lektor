@@ -15,32 +15,36 @@ from lektor.utils import slugify
 from lektor.utils import unique_everseen
 
 
-def test_join_path():
-
-    assert join_path("a", "b") == "a/b"
-    assert join_path("/a", "b") == "/a/b"
-    assert join_path("a@b", "c") == "a@b/c"
-    assert join_path("a@b", "") == "a@b"
-    assert join_path("a@b", "@c") == "a@c"
-    assert join_path("a@b/c", "a@b") == "a/a@b"
-
-    assert join_path("blog@archive", "2015") == "blog@archive/2015"
-    assert join_path("blog@archive/2015", "..") == "blog@archive"
-    assert join_path("blog@archive/2015", "@archive") == "blog@archive"
-    assert join_path("blog@archive", "..") == "blog"
-    assert join_path("blog@archive", ".") == "blog@archive"
-    assert join_path("blog@archive", "") == "blog@archive"
-
-    # special behavior: parent of pagination paths is always the actual
-    # page parent.
-    assert join_path("/blog@1", "..") == "/"
-    assert join_path("/blog@2", "..") == "/"
-
-    # But joins on the same level keep the path
-    assert join_path("/blog@1", ".") == "/blog@1"
-    assert join_path("/blog@2", ".") == "/blog@2"
-    assert join_path("/blog@1", "") == "/blog@1"
-    assert join_path("/blog@2", "") == "/blog@2"
+@pytest.mark.parametrize(
+    "head, tail, expected",
+    [
+        ("a", "b", "a/b"),
+        ("/a", "b", "/a/b"),
+        ("a@b", "c", "a@b/c"),
+        ("a@b", "", "a@b"),
+        ("a@b", "@c", "a@c"),
+        ("a@b/c", "a@b", "a/a@b"),
+        #
+        ("blog@archive", "2015", "blog@archive/2015"),
+        ("blog@archive/2015", "..", "blog@archive"),
+        ("blog@archive/2015", "@archive", "blog@archive"),
+        ("blog@archive", "..", "blog"),
+        ("blog@archive", ".", "blog@archive"),
+        ("blog@archive", "", "blog@archive"),
+        #
+        # special behavior: parent of pagination paths is always the actual
+        # page parent.
+        ("/blog@1", "..", "/"),
+        ("/blog@2", "..", "/"),
+        # But joins on the same level keep the path
+        ("/blog@1", ".", "/blog@1"),
+        ("/blog@2", ".", "/blog@2"),
+        ("/blog@1", "", "/blog@1"),
+        ("/blog@2", "", "/blog@2"),
+    ],
+)
+def test_join_path(head, tail, expected):
+    assert join_path(head, tail) == expected
 
 
 def test_is_path_child_of():
