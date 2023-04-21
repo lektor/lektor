@@ -61,6 +61,18 @@ def _norm_join(a, b):
 
 
 def join_path(a, b):
+    """Join two DB-paths.
+
+    It is assumed that both paths are already normalized in that
+    neither contains an extra "." or ".." components, double-slashes,
+    etc.
+    """
+    # NB: This function is really only during URL resolution.  The only
+    # place that references it is lektor.source.SourceObject._resolve_url.
+
+    if posixpath.isabs(b):
+        return b
+
     a_p, a_v = split_virtual_path(a)
     b_p, b_v = split_virtual_path(b)
 
