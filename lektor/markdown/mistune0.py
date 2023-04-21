@@ -13,7 +13,7 @@ from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
 
 
-def _escape(text: str) -> str:
+def escape(text: str) -> str:
     return mistune.escape(text, quote=True)
 
 
@@ -36,14 +36,14 @@ class ImprovedRenderer(
     def link(self, link: str, title: Optional[str], text: str) -> str:
         url = self.lektor.resolve_url(link)
         if not title:
-            return f'<a href="{_escape(url)}">{text}</a>'
-        return f'<a href="{_escape(url)}" title="{_escape(title)}">{text}</a>'
+            return f'<a href="{escape(url)}">{text}</a>'
+        return f'<a href="{escape(url)}" title="{escape(title)}">{text}</a>'
 
     def image(self, src: str, title: Optional[str], text: str) -> str:
-        url = _escape(self.lektor.resolve_url(src))
+        url = escape(self.lektor.resolve_url(src))
         if not title:
-            return f'<img src="{url}" alt="{_escape(text)}">'
-        return f'<img src="{url}" alt="{_escape(text)}" title="{_escape(title)}">'
+            return f'<img src="{url}" alt="{escape(text)}">'
+        return f'<img src="{url}" alt="{escape(text)}" title="{escape(title)}">'
 
 
 class MarkdownConfig:

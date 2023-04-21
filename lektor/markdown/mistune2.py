@@ -11,7 +11,7 @@ from typing import List
 from typing import Optional
 from typing import Sequence
 
-import mistune  # type: ignore[import]
+import mistune.util
 
 from lektor.markdown.controller import MarkdownController
 from lektor.markdown.controller import RendererHelper
@@ -19,8 +19,21 @@ from lektor.markdown.controller import UnknownPluginError
 from lektor.utils import unique_everseen
 
 
+def escape(text: str) -> str:
+    # This is only here to provide the implementation for the
+    # deprecated lektor.markdown.escape method.
+    #
+    # (We don't use it below and it can be deleted once access
+    # to lektor.markdown.escape is removed.)
+    return mistune.util.escape(text, quote=True)
+
+
 class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
     lektor: ClassVar = RendererHelper()
+
+    # The deprecated .record and .meta attributes are not made available here, since old
+    # renderer mixins (written for Lektor<3.4 and mistune 0.x) are not going to work
+    # with mistune 2.x anyway.
 
     def link(
         self, link: str, text: Optional[str] = None, title: Optional[str] = None
