@@ -216,7 +216,7 @@ def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
 @pytest.mark.parametrize(
     "disable_alternatives, path, order_by, expect",
     [
-        (False, "/", None, ["blog", "extra", "projects"]),
+        (False, "/", None, ["blog", "colorspace-test", "extra", "projects"]),
         (False, "/blog", ("-pub_date",), ["post2", "post1", "dummy.xml"]),
         (
             False,
@@ -252,7 +252,7 @@ def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
                 "zaun",
             ],
         ),
-        (True, "/", None, ["blog", "extra", "projects"]),
+        (True, "/", None, ["blog", "colorspace-test", "extra", "projects"]),
         (True, "/blog", ("-pub_date",), ["post2", "post1", "dummy.xml"]),
     ],
 )

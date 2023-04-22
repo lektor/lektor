@@ -262,7 +262,7 @@ def project_cli_runner(isolated_cli_runner, project, save_sys_path):
 @pytest.fixture
 def no_utils(monkeypatch):
     """Monkeypatch $PATH to hide any installed external utilities
-    (e.g. git, imagemagick)."""
+    (e.g. git, ffmpeg)."""
     monkeypatch.setitem(os.environ, "PATH", "/dev/null")
     locate_executable.cache_clear()
     try:

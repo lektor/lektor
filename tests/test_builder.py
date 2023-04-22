@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-from markers import imagemagick
 
 from lektor.reporter import NullReporter
 
@@ -10,7 +9,6 @@ def get_child_sources(prog):
     return sorted(list(prog.iter_child_sources()), key=lambda x: x["_id"])
 
 
-@imagemagick
 def test_basic_build(pad, builder):
     root = pad.root
 

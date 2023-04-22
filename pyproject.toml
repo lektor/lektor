@@ -46,6 +46,7 @@ dependencies = [
     "marshmallow",
     "marshmallow_dataclass>=8.5.9",
     "mistune>=0.7.0,<3",
+    "Pillow>=6",
     "pip",
     "python-slugify",
     "pytz; python_version<'3.9'",  # favor zoneinfo for python>=3.9
@@ -187,11 +188,18 @@ strict = true
 ignore_errors = true
 
 [[tool.mypy.overrides]]
+module = [
+    "filetype",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 # Packages and modules we want to check
 module = [
     "lektor.constants",
     "lektor.packages",
     "lektor.admin.*",
+    "lektor.imagetools",
     "test_packages",
 ]
 ignore_errors = false
@@ -206,6 +214,13 @@ disallow_untyped_calls = false
 [[tool.mypy.overrides]]
 module = [
     "lektor.admin.*",
+    "lektor.imagetools",
 ]
 disallow_untyped_calls = false
 warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = [
+    "lektor.imagetools",
+]
+disallow_untyped_defs = false
