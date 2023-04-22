@@ -5,7 +5,6 @@ import { trans } from "../i18n";
 import { getPlatform } from "../utils";
 import { post } from "../fetch";
 import { showErrorDialog } from "../error-dialog";
-import AdminLinkWithHotkey from "../components/AdminLinkWithHotkey";
 import AdminLink from "../components/AdminLink";
 
 const getBrowseButtonTitle = () => {
@@ -39,8 +38,6 @@ function BrowseFSLink() {
   );
 }
 
-const editKey = { key: "Control+e", mac: "Meta+e", preventDefault: true };
-
 function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
   const { path, alt } = useRecord();
 
@@ -53,14 +50,9 @@ function PageActions({ recordInfo }: { recordInfo: RecordInfo }) {
       </h3>
       <ul className="nav">
         <li key="edit">
-          <AdminLinkWithHotkey
-            page="edit"
-            path={path}
-            alt={alt}
-            shortcut={editKey}
-          >
+          <AdminLink page="edit" path={path} alt={alt}>
             {recordInfo.is_attachment ? trans("EDIT_METADATA") : trans("EDIT")}
-          </AdminLinkWithHotkey>
+          </AdminLink>
         </li>
         {recordInfo.can_be_deleted && (
           <li key="delete">

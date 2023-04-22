@@ -1,14 +1,26 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import FindFiles from "../dialogs/find-files/FindFiles";
+import Preferences from "../dialogs/Preferences";
 import Publish from "../dialogs/Publish";
 import Refresh from "../dialogs/Refresh";
 import { LektorEvents, subscribe, unsubscribe } from "../events";
+import { AppSettings } from "../context/appsettings-context";
 
 type DialogDetails = LektorEvents["lektor-dialog"];
 
 type DialogState = (DialogDetails & { preventNavigation?: boolean }) | null;
 
-export default function DialogSlot(): JSX.Element | null {
+export default function DialogSlot({
+  setAppSettings,
+}: {
+  setAppSettings: Dispatch<SetStateAction<AppSettings>>;
+}): JSX.Element | null {
   const [dialog, setDialog] = useState<DialogState>(null);
 
   const dismiss = useCallback(
@@ -38,6 +50,8 @@ export default function DialogSlot(): JSX.Element | null {
     return <Refresh dismiss={dismiss} preventNavigation={prevent} />;
   } else if (dialog.type === "publish") {
     return <Publish dismiss={dismiss} preventNavigation={prevent} />;
+  } else if (dialog.type === "preferences") {
+    return <Preferences setAppSettings={setAppSettings} dismiss={dismiss} />;
   }
   const exhaustiveCheck: never = dialog.type;
   throw new Error(exhaustiveCheck);

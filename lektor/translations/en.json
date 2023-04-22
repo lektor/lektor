@@ -127,5 +127,12 @@
   "EXPAND": "Expand",
   "TRISTATE_CHECKBOX_TOOLTIP": "Tri-state checkbox: use <del> or <backspace> to revert to unset",
   "AUTOSIZE_TEXTAREA": "Autosize textarea",
-  "SHRINK_TEXTAREA": "Shrink textarea"
+  "SHRINK_TEXTAREA": "Shrink textarea",
+  "PREFERENCES": "Preferences",
+  "RESET": "Reset",
+  "RESET_TO_DEFAULTS": "Reset to defaults",
+  "EDIT_SHORTCUT": "Edit",
+  "SAVE_SHORTCUT": "Save",
+  "PREVIEW_SHORTCUT": "(Save &) Preview",
+  "SEARCH_SHORTCUT": "Search"
 }
