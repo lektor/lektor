@@ -63,7 +63,6 @@ export function useChangedFlag(): [boolean, () => void, typeof setClean] {
   useEffect(() => {
     changesRef.current = state.changes;
   }, [state]);
-  console.log(state);
 
   const hasPendingChanges = state.changes != state.flushed;
 
