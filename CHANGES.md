@@ -6,6 +6,17 @@ These are all the changes in Lektor since the first public release.
 
 ### Possibly Breaking Changes
 
+- Our Publisher API has changed. This will eventually require updates
+  to any custom Publisher classes provided by Lektor
+  plugins. Previously, the `publish` method of `Publisher` subclasses
+  was passed a `werkzeug.urls.URL` instance as its `target_url`
+  argument. Werkzeug has deprecated the `URL` class, so now the
+  `target_url` will be passed as a string. (The publishers are now
+  responsible for was parsing the target URL themselves.) For the
+  interim, in an effort to avoid immediately breaking existing
+  plugins, we pass a fancy subclass of `str` that implements most of
+  the attributes and methods of `werkzeug.urls.URL`. ([#1143], [#1142])
+
 - Interpret relative paths passed via the `--output-path` command-line
   parameter relative to the current working directory. Interpret
   relative paths configured for `output_path` in the _project file_
@@ -15,34 +26,99 @@ These are all the changes in Lektor since the first public release.
   incorrectly, in both cases — relative to the _project directory_.
   ([#1103], [#1120])
 
-- The (undocumented, internal) API to the code in `lektor.watcher` has been
-  changed a bit. ([#1118])
+- The `query` attribute of fields of type `"url"` now returns the
+  IRI-encoded (internationalized) version of the URL query. (This
+  matches the existing behavior of the `host`, `path`, and `anchor`
+  attributes.) ([#1143])
+
+### Deprecations
+
+- The (unused) `lektor.db.Pad.make_absolute_url` method is deprecated. ([#1143])
+
+### Features
+
+- We now use [Pillow] (instead of ImageMagick) to generate image
+  thumbnails. Installation of ImageMagick was a significant pain-point
+  for some. In addition the Pillow-based thumbnailing code appears to
+  be noticeably faster than the ImageMagick version. ([#1104])
+
+- A _Preferences Dialog_ has been added to the admin GUI that allows
+  customization of which hotkeys trigger the _Save_, _Edit_,
+  _(Save &) Preview_, and _Search_ actions. ([#1052])
 
 ### Bugs Fixed
 
-- Tighten filters on what sort of filesystem change events trigger
-  rebuilds. This fixes sporadic spurious rebuilds when running with
-  `watchdog>=2.3.0`. ([#1117])
+- Re-export `ImprovedRenderer`, `MarkdownConfig`, and `escape` from
+  `lektor.markdown`. These were removed in [#992] when support for
+  mistune 2.x was added. Restoring them allows most older plugins
+  written for Lektor<3.4 to work, so long as mistune is pinned to
+  version 0.x. ([#1134])
 
 - Better input validation and error reporting for the `dateformat`,
   `timeformat` and `datetimeformat` jinja filters. Previously, these
   filters did not handle unexpected input types gracefully. ([#1122],
   [#1121])
 
+- Allow the user to customize the python [warnings filter] when
+  running the CLI. Previously, Lektor unconditionally set the
+  warnings filter to `"default"` (enabling one-shot display of _all_
+  warning types.) Now, if the warnings filter has been explicitly set
+  (via [PYTHONWARNINGS] or [-W][python-W]) it is left
+  alone. ([e2d0274])
+- DB-path URL resolution of relative paths from _virtual source objects_. ([#1133])
+
+- Relative URL-path resolution from pages with "." in their slug. ([#1133])
+
+- Avoid the use of `warnings.catch_warnings` which was introduced in
+  [#1113]. Its use resets the warnings registry resulting in undesired
+  repition of seen warnings. ([#1135]).
+
+### Bit-Rot
+
+- Update frontend npm dependencies. ([#1126])
+
 ### Other Changes
+
+- Use [watchfiles] instead of `watchdog` when monitoring for file changes. ([#1136])
+
+- Optimization: Thumbnail file names are now generated based on the
+  final thumbnail parameters (e.g. their actual dimensions, rather than
+  their requested dimensions.) This minimizes the possibility of generating
+  multiple identical thumbnails with different file names. ([#1139])
 
 - Tighten [click] constraints on Path parameters. This results in
   better and earlier error messages when, e.g., a readable file is
   expected, but a path to a directory is passed. ([#1124])
 
+- We reduced the size of our distribution wheel and sdist files by
+  roughly factor of two by omitting all but the `.woff2` variants of
+  the fonts for the frontend, and by excluding [sourcesContent] from
+  the JS and CSS sourcemaps. ([#1130], [#1115])
+
+[e2d0274]: https://github.com/lektor/lektor/commit/e2d02746a488e4a4d05ba8a01443e7a90315a2fb
+[#1052]: https://github.com/lektor/lektor/pull/1052
 [#1103]: https://github.com/lektor/lektor/issues/1103
-[#1117]: https://github.com/lektor/lektor/pull/1117
-[#1118]: https://github.com/lektor/lektor/pull/1118
+[#1104]: https://github.com/lektor/lektor/pull/1104
+[#1115]: https://github.com/lektor/lektor/issues/1115
 [#1120]: https://github.com/lektor/lektor/pull/1120
 [#1121]: https://github.com/lektor/lektor/issues/1121
 [#1122]: https://github.com/lektor/lektor/pull/1122
 [#1124]: https://github.com/lektor/lektor/pull/1124
+[#1126]: https://github.com/lektor/lektor/pull/1126
+[#1130]: https://github.com/lektor/lektor/pull/1130
+[#1133]: https://github.com/lektor/lektor/pull/1133
+[#1134]: https://github.com/lektor/lektor/pull/1134
+[#1136]: https://github.com/lektor/lektor/pull/1136
+[#1139]: https://github.com/lektor/lektor/pull/1139
+[#1142]: https://github.com/lektor/lektor/issues/1142
+[#1143]: https://github.com/lektor/lektor/pull/1143
 [click]: https://pypi.org/project/click/
+[warnings filter]: https://docs.python.org/3/library/warnings.html#the-warnings-filter
+[PYTHONWARNINGS]: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONWARNINGS
+[python-W]: https://docs.python.org/3/using/cmdline.html#cmdoption-W
+[Pillow]: https://pillow.readthedocs.io/en/stable/
+[sourcesContent]: https://esbuild.github.io/api/#sources-content
+[watchfiles]: https://github.com/samuelcolvin/watchfiles
 
 ## 3.4.0b5 (2023-03-08)
 
