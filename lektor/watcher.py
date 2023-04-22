@@ -25,7 +25,7 @@ def watch_project(
     deemed not to be Lektor source files.
 
     """
-    watch_paths = [env.root_path, *env.theme_paths]
+    watch_paths = [env.root_path, env.project.project_file, *env.theme_paths]
     ignore_paths = [os.path.abspath(p) for p in (get_cache_dir(), output_path)]
     watch_filter = WatchFilter(env, ignore_paths=ignore_paths)
 
