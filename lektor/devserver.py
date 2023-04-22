@@ -2,6 +2,7 @@ import os
 import threading
 import time
 import traceback
+from itertools import chain
 
 from werkzeug.serving import run_simple
 from werkzeug.serving import WSGIRequestHandler
@@ -11,7 +12,7 @@ from lektor.builder import Builder
 from lektor.db import Database
 from lektor.reporter import CliReporter
 from lektor.utils import process_extra_flags
-from lektor.watcher import Watcher
+from lektor.watcher import watch_project
 
 
 class SilentWSGIRequestHandler(WSGIRequestHandler):
@@ -43,12 +44,10 @@ class BackgroundBuilder(threading.Thread):
             traceback.print_exc()
 
     def run(self):
+        builds = chain(["first"], watch_project(self.env, self.output_path))
         with CliReporter(self.env, verbosity=self.verbosity):
-            with Watcher(self.env, self.output_path) as watcher:
-                self.build(update_source_info_first=True)
-                while True:
-                    watcher.wait()
-                    self.build()
+            for n, _ in enumerate(builds):
+                self.build(update_source_info_first=n == 0)
 
 
 def browse_to_address(addr):

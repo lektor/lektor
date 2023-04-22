@@ -52,7 +52,7 @@ dependencies = [
     "pytz; python_version<'3.9'",  # favor zoneinfo for python>=3.9
     "requests",
     "tzdata; python_version>='3.9' and sys_platform == 'win32'",
-    "watchdog",
+    "watchfiles",
     "Werkzeug>=2.1.0,<3",
 ]
 optional-dependencies.ipython = [

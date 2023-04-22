@@ -2,7 +2,7 @@
 import os
 import sys
 import warnings
-from contextlib import suppress
+from itertools import chain
 
 import click
 
@@ -151,17 +151,19 @@ def build_cmd(
 
     reporter = CliReporter(env, verbosity=verbosity)
     with reporter:
-        success = _build()
-        if not watch:
-            return sys.exit(0 if success else 1)
+        builds = ["first"]
+        if watch:
+            from lektor.watcher import watch_project
 
-        from lektor.watcher import Watcher
+            click.secho("Watching for file system changes", fg="cyan")
+            builds = chain(
+                builds, watch_project(env, output_path, raise_interrupt=False)
+            )
 
-        click.secho("Watching for file system changes", fg="cyan")
-        with Watcher(env) as watcher, suppress(KeyboardInterrupt):
-            while True:
-                watcher.wait()
-                _build()
+        success = False
+        for _ in builds:
+            success = _build()
+        return sys.exit(0 if success else 1)
 
 
 @cli.command("clean")
