@@ -130,27 +130,7 @@ def build_cmd(
 
     env = ctx.get_env()
 
-    def _build():
-        builder = Builder(
-            env.new_pad(),
-            output_path,
-            buildstate_path=buildstate_path,
-            extra_flags=extra_flags,
-        )
-        if source_info_only:
-            builder.update_all_source_infos()
-            return True
-
-        if profile:
-            failures = profile_func(builder.build_all)
-        else:
-            failures = builder.build_all()
-        if prune:
-            builder.prune()
-        return failures == 0
-
-    reporter = CliReporter(env, verbosity=verbosity)
-    with reporter:
+    with CliReporter(env, verbosity=verbosity):
         builds = ["first"]
         if watch:
             from lektor.watcher import watch_project
@@ -162,7 +142,24 @@ def build_cmd(
 
         success = False
         for _ in builds:
-            success = _build()
+            builder = Builder(
+                env.new_pad(),
+                output_path,
+                buildstate_path=buildstate_path,
+                extra_flags=extra_flags,
+            )
+            if source_info_only:
+                builder.update_all_source_infos()
+                success = True
+            else:
+                if profile:
+                    failures = profile_func(builder.build_all)
+                else:
+                    failures = builder.build_all()
+                if prune:
+                    builder.prune()
+                success = failures == 0
+
         return sys.exit(0 if success else 1)
 
 

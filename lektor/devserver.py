@@ -47,7 +47,8 @@ class BackgroundBuilder(threading.Thread):
         builds = chain(["first"], watch_project(self.env, self.output_path))
         with CliReporter(self.env, verbosity=self.verbosity):
             for n, _ in enumerate(builds):
-                self.build(update_source_info_first=n == 0)
+                is_first_build = n == 0
+                self.build(update_source_info_first=is_first_build)
 
 
 def browse_to_address(addr):
