@@ -28,7 +28,7 @@ def project_path(tmp_path_factory, data_path):
 
 
 @pytest.fixture
-def pad(project_path):
+def pad(project_path, save_sys_path):
     return Project.from_path(project_path).make_env().new_pad()
 
 

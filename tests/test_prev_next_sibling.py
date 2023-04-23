@@ -21,7 +21,7 @@ def pntest_project(tmp_path, data_path):
 
 
 @pytest.fixture
-def pntest_env(pntest_project):
+def pntest_env(pntest_project, save_sys_path):
     return Environment(pntest_project)
 
 

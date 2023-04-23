@@ -243,7 +243,7 @@ def scratch_builder(tmp_path, scratch_pad):
 # Builder for child-sources-test-project, a project to test that child sources
 # are built even if they're filtered out by a pagination query.
 @pytest.fixture(scope="function")
-def child_sources_test_project_builder(tmp_path, data_path):
+def child_sources_test_project_builder(tmp_path, data_path, save_sys_path):
     output_path = tmp_path / "output"
     output_path.mkdir()
     project = Project.from_path(data_path / "child-sources-test-project")
