@@ -1,4 +1,5 @@
 import inspect
+import os
 import shutil
 
 import pytest
@@ -9,10 +10,6 @@ from lektor.project import Project
 def write_text(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(inspect.cleandoc(text))
-
-
-def _fixme(*args):
-    return pytest.param(*args, marks=pytest.mark.xfail(reason="FIXME"))
 
 
 @pytest.fixture(scope="module")
@@ -106,6 +103,13 @@ def test_asset_get_child(asset, name, from_url, child_name):
         assert asset.get_child(name, from_url).name == child_name
 
 
+fs_ignores_case = all(os.path.exists(fn) for fn in (__file__.upper(), __file__.lower()))
+xfail_if_fs_cs = pytest.mark.xfail(
+    not fs_ignores_case,
+    reason="FIXME: fails on case-sensitive filesystems",
+)
+
+
 @pytest.mark.parametrize(
     "asset_path, url_path, expected",
     [
@@ -115,7 +119,7 @@ def test_asset_get_child(asset, name, from_url, child_name):
         ("/", ("foo-prefix-makes-me-excluded",), None),
         ("/", ("foo-prefix-makes-me-excluded", "static"), None),
         ("/static", ("demo.css",), "/static/demo.css"),
-        _fixme("/", ("TEST.txt",), "/TEST.txt"),
+        pytest.param("/", ("TEST.txt",), "/TEST.txt", marks=xfail_if_fs_cs),
     ],
 )
 def test_resolve_url_path(asset, url_path, expected):
