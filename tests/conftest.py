@@ -106,6 +106,21 @@ def restore_import_state():
         sys.path_importer_cache.clear()
 
 
+_initial_path_key = object()
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    item.stash[_initial_path_key] = sys.path.copy()
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_teardown(item):
+    # Check that tests don't alter sys.path
+    initial_path = item.stash[_initial_path_key]
+    assert sys.path == initial_path
+
+
 @pytest.fixture
 def save_sys_path():
     with restore_import_state():
