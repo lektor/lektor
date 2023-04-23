@@ -558,3 +558,49 @@ def test_deprecated_markdown_to_html(record, field_options):
         result = markdown_to_html("goober", record, field_options)
     assert all(w.filename == __file__ for w in warnings)
     assert result.html.rstrip() == "<p>goober</p>"
+
+
+@pytest.mark.skipif(
+    not MISTUNE_VERSION.startswith("0."),
+    reason="Legacy renderer mixins will only work with mistune 0.x",
+)
+@pytest.mark.usefixtures("context")
+def test_legacy_plugin(env, record, field_options):
+    # Test that Lektor<3.4 style plugin works
+
+    class LegacyPlugin(Plugin):
+        """A legacy, Lektor<3.4, mistune 0.x style plugin."""
+
+        name = "legacy-plugin"
+
+        def on_markdown_config(self, config, **extra):
+            # pylint: disable-next=import-outside-toplevel,no-name-in-module
+            from lektor.markdown import escape
+
+            class LegacyRendererMixin:
+                def link(self, link, title, text):
+                    self.meta["links"].append(link)
+                    self.meta["record"] = self.record
+                    return f'<a href="{escape(link)}">{text}</a>'
+
+            config.renderer_mixins.append(LegacyRendererMixin)
+
+        @staticmethod
+        def on_markdown_meta_init(meta, **extra):
+            meta["links"] = []
+
+        @staticmethod
+        def on_markdown_meta_postprocess(meta, **extra):
+            meta["nlinks"] = len(meta["links"])
+
+    env.plugin_controller.instanciate_plugin("legacy-plugin", LegacyPlugin)
+
+    source = "[`foo`](https://example.org/)"
+    markdown = Markdown(source, record, field_options)
+
+    with pytest.deprecated_call():
+        assert markdown["record"] is record
+    assert markdown["links"] == ["https://example.org/"]
+    assert markdown["nlinks"] == 1
+    html = markdown.__html__().rstrip()
+    assert html == '<p><a href="https://example.org/"><code>foo</code></a></p>'
