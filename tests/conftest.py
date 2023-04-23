@@ -72,9 +72,10 @@ def restore_import_state():
     package caches.
 
     """
-    save_path = sys.path
-    sys.path = save_path.copy()
+    path = sys.path.copy()
     meta_path = sys.meta_path.copy()
+    path_hooks = sys.path_hooks.copy()
+    modules = sys.modules.copy()
 
     # Importlib_metadata, when it is imported, cripples the stdlib distribution finder
     # by deleting its find_distributions method.
@@ -89,27 +90,20 @@ def restore_import_state():
         for finder in meta_path
     ]
 
-    # Restoring `sys.modules` is an attempt to unload any
-    # modules loaded during the test so that they can be re-loaded for
-    # the next test.  This is not guaranteed to work, since there are
-    # numerous ways that a reference to a loaded module may still be held.
-
-    # NB: some modules (e.g. pickle) appear to hold a reference to sys.modules,
-    # so we have to be careful to manipulate sys.modules in place, rather than
-    # using monkeypatch to swap it out.
-    saved_modules = sys.modules.copy()
-
-    # It's not clear that this is necessary, but it probably won't hurt.
-    importlib.invalidate_caches()
-
     try:
         yield
     finally:
-        for name in set(sys.modules).difference(saved_modules):
-            del sys.modules[name]
-        sys.modules.update(saved_modules)
-        sys.path = save_path
+        importlib.invalidate_caches()
+
+        # NB: Restore sys.modules, sys.path, et. all. in place. (Some modules may hold
+        # references to these — e.g. pickle appears to hold a reference to sys.modules.)
+        for module in set(sys.modules).difference(modules):
+            del sys.modules[module]
+        sys.modules.update(modules)
+        sys.path[:] = path
         sys.meta_path[:] = meta_path
+        sys.path_hooks[:] = path_hooks
+        sys.path_importer_cache.clear()
 
 
 @pytest.fixture
