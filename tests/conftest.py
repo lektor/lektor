@@ -74,6 +74,20 @@ def restore_import_state():
     """
     save_path = sys.path
     sys.path = save_path.copy()
+    meta_path = sys.meta_path.copy()
+
+    # Importlib_metadata, when it is imported, cripples the stdlib distribution finder
+    # by deleting its find_distributions method.
+    #
+    # https://github.com/python/importlib_metadata/blob/705a7571ec7c5abec4d4b008da3a58df7e5c94e7/importlib_metadata/_compat.py#L31
+    #
+    def clone_class(cls):
+        return type(cls)(cls.__name__, cls.__bases__, cls.__dict__.copy())
+
+    sys.meta_path[:] = [
+        clone_class(finder) if isinstance(finder, type) else finder
+        for finder in meta_path
+    ]
 
     # Restoring `sys.modules` is an attempt to unload any
     # modules loaded during the test so that they can be re-loaded for
@@ -95,6 +109,7 @@ def restore_import_state():
             del sys.modules[name]
         sys.modules.update(saved_modules)
         sys.path = save_path
+        sys.meta_path[:] = meta_path
 
 
 @pytest.fixture
