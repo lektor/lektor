@@ -114,7 +114,7 @@ class DummyPluginFinder(metadata.DistributionFinder):
 
 
 @pytest.fixture
-def dummy_plugin_distribution(save_sys_path, monkeypatch):
+def dummy_plugin_distribution(save_sys_path):
     """Add a dummy plugin distribution to the current working_set."""
     dist = DummyDistribution(
         {
@@ -123,7 +123,8 @@ def dummy_plugin_distribution(save_sys_path, monkeypatch):
         }
     )
     finder = DummyPluginFinder(__name__, dist)
-    monkeypatch.setattr("sys.meta_path", [finder] + sys.meta_path)
+    # The save_sys_path fixture will restore meta_path at end of test
+    sys.meta_path.insert(0, finder)
     return dist
 
 

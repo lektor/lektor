@@ -49,7 +49,7 @@ def theme_project(theme_project_tmpdir, request):
 
 
 @pytest.fixture(scope="function")
-def theme_env(theme_project):
+def theme_env(theme_project, save_sys_path):
 
     return Environment(theme_project)
 

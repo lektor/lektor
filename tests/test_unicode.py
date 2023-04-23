@@ -7,7 +7,7 @@ from lektor.reporter import BufferReporter
 
 
 @pytest.fixture
-def pad(data_path):
+def pad(data_path, save_sys_path):
     proj = Project.from_path(data_path / "ünicöde-project")
     return proj.make_env().new_pad()
 

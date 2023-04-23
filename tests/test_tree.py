@@ -9,6 +9,9 @@ from lektor.constants import PRIMARY_ALT
 from lektor.db import Tree
 from lektor.project import Project
 
+# pylint: disable-next=wrong-import-order
+from conftest import restore_import_state  # noreorder
+
 
 @pytest.fixture(scope="session")
 def no_alt_pad(tmp_path_factory, data_path):
@@ -29,7 +32,8 @@ def no_alt_pad(tmp_path_factory, data_path):
                 child.unlink()
 
     project = Project.from_path(no_alt_project)
-    return project.make_env().new_pad()
+    with restore_import_state():
+        return project.make_env().new_pad()
 
 
 @pytest.fixture(params=[False, True])

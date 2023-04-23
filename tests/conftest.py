@@ -72,29 +72,53 @@ def restore_import_state():
     package caches.
 
     """
-    save_path = sys.path
-    sys.path = save_path.copy()
+    path = sys.path.copy()
+    meta_path = sys.meta_path.copy()
+    path_hooks = sys.path_hooks.copy()
+    modules = sys.modules.copy()
 
-    # Restoring `sys.modules` is an attempt to unload any
-    # modules loaded during the test so that they can be re-loaded for
-    # the next test.  This is not guaranteed to work, since there are
-    # numerous ways that a reference to a loaded module may still be held.
+    # Importlib_metadata, when it is imported, cripples the stdlib distribution finder
+    # by deleting its find_distributions method.
+    #
+    # https://github.com/python/importlib_metadata/blob/705a7571ec7c5abec4d4b008da3a58df7e5c94e7/importlib_metadata/_compat.py#L31
+    #
+    def clone_class(cls):
+        return type(cls)(cls.__name__, cls.__bases__, cls.__dict__.copy())
 
-    # NB: some modules (e.g. pickle) appear to hold a reference to sys.modules,
-    # so we have to be careful to manipulate sys.modules in place, rather than
-    # using monkeypatch to swap it out.
-    saved_modules = sys.modules.copy()
-
-    # It's not clear that this is necessary, but it probably won't hurt.
-    importlib.invalidate_caches()
+    sys.meta_path[:] = [
+        clone_class(finder) if isinstance(finder, type) else finder
+        for finder in meta_path
+    ]
 
     try:
         yield
     finally:
-        for name in set(sys.modules).difference(saved_modules):
-            del sys.modules[name]
-        sys.modules.update(saved_modules)
-        sys.path = save_path
+        importlib.invalidate_caches()
+
+        # NB: Restore sys.modules, sys.path, et. all. in place. (Some modules may hold
+        # references to these — e.g. pickle appears to hold a reference to sys.modules.)
+        for module in set(sys.modules).difference(modules):
+            del sys.modules[module]
+        sys.modules.update(modules)
+        sys.path[:] = path
+        sys.meta_path[:] = meta_path
+        sys.path_hooks[:] = path_hooks
+        sys.path_importer_cache.clear()
+
+
+_initial_path_key = object()
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    item.stash[_initial_path_key] = sys.path.copy()
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_teardown(item):
+    # Check that tests don't alter sys.path
+    initial_path = item.stash[_initial_path_key]
+    assert sys.path == initial_path
 
 
 @pytest.fixture
@@ -219,7 +243,7 @@ def scratch_builder(tmp_path, scratch_pad):
 # Builder for child-sources-test-project, a project to test that child sources
 # are built even if they're filtered out by a pagination query.
 @pytest.fixture(scope="function")
-def child_sources_test_project_builder(tmp_path, data_path):
+def child_sources_test_project_builder(tmp_path, data_path, save_sys_path):
     output_path = tmp_path / "output"
     output_path.mkdir()
     project = Project.from_path(data_path / "child-sources-test-project")
