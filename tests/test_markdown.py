@@ -5,6 +5,7 @@ from typing import Union
 import pytest
 from markupsafe import Markup
 
+import lektor.markdown
 from lektor.context import Context
 from lektor.markdown import controller_class
 from lektor.markdown import get_controller
@@ -224,25 +225,6 @@ def improved_renderer():
     return ImprovedRenderer()
 
 
-@pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
-@pytest.mark.usefixtures("renderer_context")
-def test_ImprovedRenderer_record(record, improved_renderer):
-    with pytest.deprecated_call(
-        match=r"Use .*Renderer\.lektor.record instead"
-    ) as warnings:
-        assert improved_renderer.record is record
-    assert all(w.filename == __file__ for w in warnings)
-
-
-@pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
-def test_ImprovedRenderer_meta(renderer_context, improved_renderer):
-    with pytest.deprecated_call(
-        match=r"Use .*Renderer\.lektor.meta instead"
-    ) as warnings:
-        assert improved_renderer.meta is renderer_context.meta
-    assert all(w.filename == __file__ for w in warnings)
-
-
 @pytest.mark.parametrize(
     "link, title, text, expected",
     [
@@ -289,21 +271,6 @@ def test_ImprovedRenderer_image(src, title, alt, expected, improved_renderer):
     else:
         result = improved_renderer.image(src, title, alt)
     assert re.match(expected, result.rstrip())
-
-
-def test_make_markdown(env):
-    with pytest.deprecated_call() as warnings:
-        md = make_markdown(env)
-    assert all(w.filename == __file__ for w in warnings)
-    assert md("foo").strip() == "<p>foo</p>"
-
-
-@pytest.mark.usefixtures("context")
-def test_markdown_to_html(record, field_options):
-    with pytest.deprecated_call() as warnings:
-        result = markdown_to_html("goober", record, field_options)
-    assert all(w.filename == __file__ for w in warnings)
-    assert result.html.rstrip() == "<p>goober</p>"
 
 
 def plugin_linkcount(md):
@@ -496,3 +463,144 @@ def test_field_options_integration(record, field_options):
     two_links = "[one](x.html), [two](y.html)"
     markdown = Markdown(two_links, record, field_options)
     assert markdown.meta["nlinks"] == 22
+
+
+################################################################
+#
+# Tests for the bits that are provided for backward compatibility
+# with plugins written for Lektor < 3.4.
+#
+def test_deprecated_ImprovedRenderer(improved_renderer):
+    with pytest.deprecated_call(
+        match=r"lektor\.markdown\.ImprovedRenderer\b.* deprecated"
+    ) as warnings:
+        # pylint: disable-next=import-outside-toplevel,no-name-in-module
+        from lektor.markdown import ImprovedRenderer
+    assert all(w.filename == __file__ for w in warnings)
+    assert ImprovedRenderer is type(improved_renderer)
+
+
+@pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
+@pytest.mark.usefixtures("renderer_context")
+def test_deprecated_ImprovedRenderer_record(record):
+    with pytest.deprecated_call():
+        # pylint: disable-next=import-outside-toplevel,no-name-in-module
+        from lektor.markdown import ImprovedRenderer
+    improved_renderer = ImprovedRenderer()
+
+    with pytest.deprecated_call(
+        match=r"Use .*Renderer\.lektor\.record instead"
+    ) as warnings:
+        assert improved_renderer.record is record
+    assert all(w.filename == __file__ for w in warnings)
+
+
+@pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
+def test_deprecated_ImprovedRenderer_meta(renderer_context):
+    with pytest.deprecated_call():
+        # pylint: disable-next=import-outside-toplevel,no-name-in-module
+        from lektor.markdown import ImprovedRenderer
+    improved_renderer = ImprovedRenderer()
+
+    with pytest.deprecated_call(
+        match=r"Use .*Renderer\.lektor\.meta instead"
+    ) as warnings:
+        assert improved_renderer.meta is renderer_context.meta
+    assert all(w.filename == __file__ for w in warnings)
+
+
+def test_deprecated_MarkdownConfig(improved_renderer):
+    with pytest.deprecated_call(
+        match=r"lektor\.markdown\.MarkdownConfig\b.* deprecated"
+    ) as warnings:
+        config = lektor.markdown.MarkdownConfig()
+    assert all(w.filename == __file__ for w in warnings)
+    assert config.renderer_base is type(improved_renderer)
+
+
+def test_deprecated_escape(improved_renderer):
+    with pytest.deprecated_call(
+        match=r"lektor\.markdown\.escape\b.* deprecated"
+    ) as warnings:
+        assert lektor.markdown.escape("<") == "&lt;"
+    assert all(w.filename == __file__ for w in warnings)
+
+
+def test_getattr_raises():
+    with pytest.raises(AttributeError, match="no attribute 'goober'"):
+        lektor.markdown.goober  # pylint: disable=pointless-statement
+
+
+def test_dir():
+    expected = {
+        "MISTUNE_VERSION",
+        "Markdown",
+        "get_controller",
+        "escape",
+        "ImprovedRenderer",
+        "MarkdownConfig",
+        "make_markdown",
+        "markdown_to_html",
+    }
+    assert expected.issubset(dir(lektor.markdown))
+
+
+def test_deprecated_make_markdown(env):
+    with pytest.deprecated_call() as warnings:
+        md = make_markdown(env)
+    assert all(w.filename == __file__ for w in warnings)
+    assert md("foo").strip() == "<p>foo</p>"
+
+
+@pytest.mark.usefixtures("context")
+def test_deprecated_markdown_to_html(record, field_options):
+    with pytest.deprecated_call() as warnings:
+        result = markdown_to_html("goober", record, field_options)
+    assert all(w.filename == __file__ for w in warnings)
+    assert result.html.rstrip() == "<p>goober</p>"
+
+
+@pytest.mark.skipif(
+    not MISTUNE_VERSION.startswith("0."),
+    reason="Legacy renderer mixins will only work with mistune 0.x",
+)
+@pytest.mark.usefixtures("context")
+def test_legacy_plugin(env, record, field_options):
+    # Test that Lektor<3.4 style plugin works
+
+    class LegacyPlugin(Plugin):
+        """A legacy, Lektor<3.4, mistune 0.x style plugin."""
+
+        name = "legacy-plugin"
+
+        def on_markdown_config(self, config, **extra):
+            # pylint: disable-next=import-outside-toplevel,no-name-in-module
+            from lektor.markdown import escape
+
+            class LegacyRendererMixin:
+                def link(self, link, title, text):
+                    self.meta["links"].append(link)
+                    self.meta["record"] = self.record
+                    return f'<a href="{escape(link)}">{text}</a>'
+
+            config.renderer_mixins.append(LegacyRendererMixin)
+
+        @staticmethod
+        def on_markdown_meta_init(meta, **extra):
+            meta["links"] = []
+
+        @staticmethod
+        def on_markdown_meta_postprocess(meta, **extra):
+            meta["nlinks"] = len(meta["links"])
+
+    env.plugin_controller.instanciate_plugin("legacy-plugin", LegacyPlugin)
+
+    source = "[`foo`](https://example.org/)"
+    markdown = Markdown(source, record, field_options)
+
+    with pytest.deprecated_call():
+        assert markdown["record"] is record
+    assert markdown["links"] == ["https://example.org/"]
+    assert markdown["nlinks"] == 1
+    html = markdown.__html__().rstrip()
+    assert html == '<p><a href="https://example.org/"><code>foo</code></a></p>'

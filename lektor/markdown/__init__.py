@@ -1,3 +1,5 @@
+import sys
+import warnings
 from typing import Any
 from typing import Dict
 from typing import Hashable
@@ -16,12 +18,13 @@ from lektor.markdown.controller import Meta
 from lektor.markdown.controller import RenderResult
 from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
+from lektor.utils import DeprecatedWarning
 
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
 
-
 controller_class: Type[MarkdownController]
+
 
 MISTUNE_VERSION = metadata.version("mistune")
 if MISTUNE_VERSION.startswith("0."):
@@ -33,18 +36,6 @@ else:  # pragma: no cover
 
 
 get_controller = ControllerCache(controller_class)
-
-
-@deprecated(version="3.4.0")
-def make_markdown(env: "Environment") -> Any:  # (Environment) -> mistune.Markdown
-    return get_controller(env).make_parser()
-
-
-@deprecated(version="3.4.0")
-def markdown_to_html(
-    text: str, record: SourceObject, field_options: FieldOptions
-) -> RenderResult:
-    return get_controller().render(text, record, field_options)
 
 
 class Markdown:
@@ -103,3 +94,41 @@ class Markdown:
 
     def __html__(self) -> Markup:
         return self.html
+
+
+# Deprecated methods and attributes follow
+#
+# It is hoped that these are sufficient that most plugins that extend
+# the markdown processing will continue to work (so long as mistune is
+# pinned to 0.x).
+_deprecated_moved_to_submodule = {"escape", "ImprovedRenderer", "MarkdownConfig"}
+
+
+def __getattr__(name):
+    """Access to ``escape``, ``ImprovedRenderer``, and ``MarkdownConfig``.
+
+    These are imported from from either our .mistune0 or .mistune2 modules,
+    as appropriate for the installed version of mistune.
+    """
+    if name not in _deprecated_moved_to_submodule:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    message = DeprecatedWarning(f"{__name__}.{name}", version="3.4.0")
+    warnings.warn(message, stacklevel=2)
+    mistune_module = sys.modules[controller_class.__module__]
+    return getattr(mistune_module, name)
+
+
+def __dir__():
+    return sorted(set(globals().keys()) | _deprecated_moved_to_submodule)
+
+
+@deprecated(version="3.4.0")
+def make_markdown(env: "Environment") -> Any:  # (Environment) -> mistune.Markdown
+    return get_controller(env).make_parser()
+
+
+@deprecated(version="3.4.0")
+def markdown_to_html(
+    text: str, record: SourceObject, field_options: FieldOptions
+) -> RenderResult:
+    return get_controller().render(text, record, field_options)
