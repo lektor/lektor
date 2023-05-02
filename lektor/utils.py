@@ -385,7 +385,7 @@ class Url:
         self.ascii_host = u.ascii_host
         self.port = u.port
         self.path = i.path
-        self.query = u.query
+        self.query = i.query
         self.anchor = i.fragment
         self.scheme = u.scheme
 
