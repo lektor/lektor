@@ -1580,6 +1580,7 @@ class Pad:
         """The env for this pad."""
         return self.db.env
 
+    @deprecated("use Pad.make_url instead", version="3.4.0")
     def make_absolute_url(self, url):
         """Given a URL this makes it absolute if this is possible."""
         base_url = self.db.config["PROJECT"].get("url")
