@@ -30,4 +30,4 @@ class UrlType(SingleInputType):
     def value_from_raw(self, raw):
         if raw.value is None:
             return raw.missing_value("Missing URL")
-        return Url(raw.value)
+        return Url.from_string(raw.value)

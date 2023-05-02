@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import posixpath
+import urllib.parse
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
@@ -29,7 +30,7 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 from warnings import warn
 
-from werkzeug import urls
+from werkzeug.datastructures import MultiDict
 
 from lektor.compat import TemporaryDirectory
 from lektor.exception import LektorException
@@ -41,6 +42,18 @@ if TYPE_CHECKING:  # pragma: no cover
     from _typeshed import StrOrBytesPath
     from _typeshed import StrPath
     from lektor.environment import Environment
+
+
+def _decode_query(query: str) -> MultiDict:
+    return MultiDict(urllib.parse.parse_qsl(query, keep_blank_values=True))
+
+
+def _ascii_host(host: str) -> str:
+    """Translate internationalized domain name to IDNA-encoded ASCII."""
+    try:
+        return host.encode("idna").decode("ascii")
+    except UnicodeError:
+        return host
 
 
 @contextmanager
@@ -274,7 +287,7 @@ class Publisher:
 
     def publish(
         self,
-        target_url: urls.URL,
+        target_url: urllib.parse.SplitResult,
         credentials: Optional[Mapping[str, str]] = None,
         **extra: Any,
     ) -> Iterator[str]:
@@ -289,7 +302,7 @@ class RsyncPublisher(Publisher):
         target = []
         env = {}
 
-        options = target_url.decode_query()
+        options = _decode_query(target_url.query)
         exclude = options.getlist("exclude")
         for file in exclude:
             argline.extend(("--exclude", file))
@@ -306,8 +319,8 @@ class RsyncPublisher(Publisher):
             if username:
                 target.append(username + "@")
 
-            if target_url.ascii_host is not None:
-                target.append(target_url.ascii_host)
+            if target_url.hostname is not None:
+                target.append(_ascii_host(target_url.hostname))
                 target.append(":")
             target.append(target_url.path.rstrip("/") + "/")
 
@@ -347,12 +360,14 @@ class FtpConnection:
                 yield line.rstrip()
 
     def connect(self):
-        options = self.url.decode_query()
+        options = _decode_query(self.url.query)
+        host = _ascii_host(self.url.hostname)
+        port = self.url.port or 21
 
         log = self.log_buffer
         log.append("000 Connecting to server ...")
         try:
-            log.append(self.con.connect(self.url.ascii_host, self.url.port or 21))
+            log.append(self.con.connect(host, port))
         except Exception as e:
             log.append("000 Could not connect.")
             log.append(str(e))
@@ -789,7 +804,7 @@ class GithubPagesPublisher(Publisher):
 
     def publish(
         self,
-        target_url: urls.URL,
+        target_url: urllib.parse.SplitResult,
         credentials: Optional[Mapping[str, str]] = None,
         **extra: Any,
     ) -> Iterator[str]:
@@ -811,16 +826,16 @@ class GithubPagesPublisher(Publisher):
             yield from repo.publish_ghpages(push_url, branch, cname, preserve_history)
 
     def _parse_url(
-        self, target_url: urls.URL
+        self, target_url: urllib.parse.SplitResult
     ) -> Tuple[str, str, Optional[str], bool, Sequence[str]]:
-        if not target_url.host:
+        if not target_url.hostname:
             self.fail("github owner missing from target URL")
-        gh_owner = target_url.host.lower()
+        gh_owner = target_url.hostname.lower()
         gh_project = target_url.path.strip("/").lower()
         if not gh_project:
             self.fail("github project missing from target URL")
 
-        params = target_url.decode_query()
+        params = _decode_query(target_url.query)
         cname = params.get("cname")
         branch = params.get("branch")
         preserve_history = bool_from_string(params.get("preserve_history"), True)
@@ -878,7 +893,7 @@ class GithubPagesPublisher(Publisher):
 
     @staticmethod
     def _parse_credentials(
-        credentials: Optional[Mapping[str, str]], target_url: urls.URL
+        credentials: Optional[Mapping[str, str]], target_url: urllib.parse.SplitResult
     ) -> Mapping[str, str]:
         creds = dict(credentials or {})
         # Fill in default username/password from target url
@@ -902,7 +917,7 @@ builtin_publishers = {
 
 
 def publish(env, target, output_path, credentials=None, **extra):
-    url = urls.url_parse(str(target))
+    url = urllib.parse.urlsplit(str(target))
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)

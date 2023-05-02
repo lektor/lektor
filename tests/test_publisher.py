@@ -13,9 +13,9 @@ from subprocess import CalledProcessError
 from subprocess import DEVNULL
 from subprocess import PIPE
 from subprocess import run
+from urllib.parse import urlsplit
 
 import pytest
-from werkzeug.urls import url_parse
 
 from lektor.publisher import _ssh_command
 from lektor.publisher import _ssh_key_file
@@ -470,7 +470,7 @@ def test_GithubPagesPublisher_publish(
     repo.publish_ghpages.return_value = iter(["Published!"])
     GitRepo.return_value.__enter__.return_value = repo
 
-    url = url_parse(target_url)
+    url = urlsplit(target_url)
     with ExitStack() as stack:
         if warns:
             stack.enter_context(pytest.deprecated_call())
@@ -490,7 +490,7 @@ def test_GithubPagesPublisher_publish(
 
 @pytest.mark.usefixtures("no_utils")
 def test_GithubPagesPublisher_publish_fails_if_no_git(ghp_publisher):
-    url = url_parse("ghpages://owner/project")
+    url = urlsplit("ghpages://owner/project")
     with pytest.raises(PublishError) as exc_info:
         list(ghp_publisher.publish(url))
     assert re.search(r"git.*not found", str(exc_info.value))
@@ -544,12 +544,12 @@ def test_GithubPagesPublisher_publish_fails_if_no_git(ghp_publisher):
     ],
 )
 def test_GithubPagesPublisher_parse_url(ghp_publisher, target_url, expected):
-    url = url_parse(target_url)
+    url = urlsplit(target_url)
     assert ghp_publisher._parse_url(url) == expected
 
 
 def test_GithubPagesPublisher_parse_url_warns_on_default_master_branch(ghp_publisher):
-    url = url_parse("ghpages://owner/owner.github.io")
+    url = urlsplit("ghpages://owner/owner.github.io")
     with pytest.deprecated_call():
         push_url, branch, cname, preserve_history, warnings = ghp_publisher._parse_url(
             url
@@ -574,7 +574,7 @@ def test_GithubPagesPublisher_parse_url_warns_on_default_master_branch(ghp_publi
     ],
 )
 def test_GithubPagesPublisher_parse_url_failures(ghp_publisher, target_url, expected):
-    url = url_parse(target_url)
+    url = urlsplit(target_url)
     with pytest.raises(PublishError) as exc_info:
         ghp_publisher._parse_url(url)
     assert expected in str(exc_info.value)
@@ -606,7 +606,7 @@ def test_GithubPagesPublisher_parse_url_failures(ghp_publisher, target_url, expe
 def test_GithubPagesPublisher_parse_credentials(
     ghp_publisher, credentials, target_url, expected
 ):
-    url = url_parse(target_url)
+    url = urlsplit(target_url)
     assert ghp_publisher._parse_credentials(credentials, url) == expected
 
 
@@ -615,7 +615,7 @@ def test_publish(env, output_path, mocker):
     env.add_publisher("publishtest", Publisher)
     credentials = {"foo": "bar"}
     rv = publish(env, "publishtest://host/path", output_path, credentials)
-    url = url_parse("publishtest://host/path")
+    url = urlsplit("publishtest://host/path")
     assert Publisher.mock_calls == [
         mocker.call(env, output_path),
         mocker.call().publish(url, credentials),
