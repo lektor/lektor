@@ -3,7 +3,6 @@ import hashlib
 import io
 import os
 import posixpath
-import urllib.parse
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
@@ -28,6 +27,8 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import TYPE_CHECKING
+from urllib.parse import parse_qsl
+from urllib.parse import urlsplit
 from warnings import warn
 
 from werkzeug.datastructures import MultiDict
@@ -45,7 +46,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 def _decode_query(query: str) -> MultiDict:
-    return MultiDict(urllib.parse.parse_qsl(query, keep_blank_values=True))
+    return MultiDict(parse_qsl(query, keep_blank_values=True))
 
 
 def _ascii_host(host: str) -> str:
@@ -287,7 +288,7 @@ class Publisher:
 
     def publish(
         self,
-        target_url: urllib.parse.SplitResult,
+        target_url: str,
         credentials: Optional[Mapping[str, str]] = None,
         **extra: Any,
     ) -> Iterator[str]:
@@ -302,7 +303,8 @@ class RsyncPublisher(Publisher):
         target = []
         env = {}
 
-        options = _decode_query(target_url.query)
+        url = urlsplit(target_url)
+        options = _decode_query(url.query)
         exclude = options.getlist("exclude")
         for file in exclude:
             argline.extend(("--exclude", file))
@@ -311,18 +313,18 @@ class RsyncPublisher(Publisher):
         if delete:
             argline.append("--delete-after")
 
-        with _ssh_command(credentials, target_url.port) as ssh_command:
+        with _ssh_command(credentials, url.port) as ssh_command:
             if ssh_command:
                 argline.extend(("-e", ssh_command))
 
-            username = credentials.get("username") or target_url.username
+            username = credentials.get("username") or url.username
             if username:
                 target.append(username + "@")
 
-            if target_url.hostname is not None:
-                target.append(_ascii_host(target_url.hostname))
+            if url.hostname is not None:
+                target.append(_ascii_host(url.hostname))
                 target.append(":")
-            target.append(target_url.path.rstrip("/") + "/")
+            target.append(url.path.rstrip("/") + "/")
 
             argline.append(self.output_path.rstrip("/\\") + "/")
             argline.append("".join(target))
@@ -334,8 +336,13 @@ class RsyncPublisher(Publisher):
 
 
 class FtpConnection:
-    def __init__(self, url, credentials=None):
+    def __init__(self, target_url, credentials=None):
         credentials = credentials or {}
+        url = urlsplit(target_url)
+        if url.hostname is None:
+            raise PublishError(
+                "No host name was specified in the target URL ({target_url})"
+            )
         self.con = self.make_connection()
         self.url = url
         self.username = credentials.get("username") or url.username
@@ -361,6 +368,7 @@ class FtpConnection:
 
     def connect(self):
         options = _decode_query(self.url.query)
+        assert self.url.hostname is not None
         host = _ascii_host(self.url.hostname)
         port = self.url.port or 21
 
@@ -804,7 +812,7 @@ class GithubPagesPublisher(Publisher):
 
     def publish(
         self,
-        target_url: urllib.parse.SplitResult,
+        target_url: str,
         credentials: Optional[Mapping[str, str]] = None,
         **extra: Any,
     ) -> Iterator[str]:
@@ -826,16 +834,17 @@ class GithubPagesPublisher(Publisher):
             yield from repo.publish_ghpages(push_url, branch, cname, preserve_history)
 
     def _parse_url(
-        self, target_url: urllib.parse.SplitResult
+        self, target_url: str
     ) -> Tuple[str, str, Optional[str], bool, Sequence[str]]:
-        if not target_url.hostname:
+        url = urlsplit(target_url)
+        if not url.hostname:
             self.fail("github owner missing from target URL")
-        gh_owner = target_url.hostname.lower()
-        gh_project = target_url.path.strip("/").lower()
+        gh_owner = url.hostname.lower()
+        gh_project = url.path.strip("/").lower()
         if not gh_project:
             self.fail("github project missing from target URL")
 
-        params = _decode_query(target_url.query)
+        params = _decode_query(url.query)
         cname = params.get("cname")
         branch = params.get("branch")
         preserve_history = bool_from_string(params.get("preserve_history"), True)
@@ -858,13 +867,13 @@ class GithubPagesPublisher(Publisher):
             else:
                 branch = "gh-pages"
 
-        if target_url.scheme in ("ghpages", "ghpages+ssh"):
+        if url.scheme in ("ghpages", "ghpages+ssh"):
             push_url = f"ssh://git@github.com/{gh_owner}/{gh_project}.git"
             default_port = 22
         else:
             push_url = f"https://github.com/{gh_owner}/{gh_project}.git"
             default_port = 443
-        if target_url.port and target_url.port != default_port:
+        if url.port and url.port != default_port:
             self.fail("github does not support pushing to non-standard ports")
 
         return push_url, branch, cname, preserve_history, warnings
@@ -893,13 +902,14 @@ class GithubPagesPublisher(Publisher):
 
     @staticmethod
     def _parse_credentials(
-        credentials: Optional[Mapping[str, str]], target_url: urllib.parse.SplitResult
+        credentials: Optional[Mapping[str, str]], target_url: str
     ) -> Mapping[str, str]:
+        url = urlsplit(target_url)
         creds = dict(credentials or {})
         # Fill in default username/password from target url
         for key, default in [
-            ("username", target_url.username),
-            ("password", target_url.password),
+            ("username", url.username),
+            ("password", url.password),
         ]:
             if not creds.get(key) and default:
                 creds[key] = default
@@ -917,8 +927,9 @@ builtin_publishers = {
 
 
 def publish(env, target, output_path, credentials=None, **extra):
-    url = urllib.parse.urlsplit(str(target))
+    target_url = str(target)
+    url = urlsplit(target_url)
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)
-    return publisher(env, output_path).publish(url, credentials, **extra)
+    return publisher(env, output_path).publish(target_url, credentials, **extra)
