@@ -401,11 +401,8 @@ class Url:
         self.anchor = i.fragment
         self.scheme = u.scheme
 
-    def __unicode__(self):
-        return self.url
-
     def __str__(self):
-        return self.ascii_url
+        return self.url
 
 
 def is_unsafe_to_delete(path, base):

@@ -957,8 +957,6 @@ class VideoFrame:
             "frames directly, use .thumbnail()."
         )
 
-    __unicode__ = __str__
-
     @require_ffmpeg
     def thumbnail(self, width=None, height=None, mode=None, upscale=None, quality=None):
         """Utility to create thumbnails."""
