@@ -130,7 +130,8 @@ class _CompatURL(urllib.parse.SplitResult):
         charset: str = "utf-8",
         include_empty: bool = True,
         errors: str = "replace",
-        separator: str = "&",
+        # parse_qsl does not support the separator parameter in python < 3.7.10.
+        # separator: str = "&",
     ) -> MultiDict:
         return MultiDict(
             urllib.parse.parse_qsl(
@@ -138,7 +139,7 @@ class _CompatURL(urllib.parse.SplitResult):
                 keep_blank_values=include_empty,
                 encoding=charset,
                 errors=errors,
-                separator=separator,
+                # separator=separator,
             )
         )
 
