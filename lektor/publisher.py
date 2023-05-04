@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import errno
 import hashlib
 import io
 import os
 import posixpath
+import urllib.parse
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
@@ -27,13 +30,13 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import TYPE_CHECKING
-from urllib.parse import parse_qsl
 from urllib.parse import urlsplit
 from warnings import warn
 
 from werkzeug.datastructures import MultiDict
 
 from lektor.compat import TemporaryDirectory
+from lektor.compat import werkzeug_urls_URL
 from lektor.exception import LektorException
 from lektor.utils import bool_from_string
 from lektor.utils import locate_executable
@@ -45,16 +48,13 @@ if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
 
 
-def _decode_query(query: str) -> MultiDict:
-    return MultiDict(parse_qsl(query, keep_blank_values=True))
+def _parse_query(query: str, **kwargs: Any) -> MultiDict:
+    return MultiDict(urllib.parse.parse_qsl(query, **kwargs))
 
 
 def _ascii_host(host: str) -> str:
     """Translate internationalized domain name to IDNA-encoded ASCII."""
-    try:
-        return host.encode("idna").decode("ascii")
-    except UnicodeError:
-        return host
+    return host.encode("idna").decode("ascii")
 
 
 @contextmanager
@@ -304,7 +304,7 @@ class RsyncPublisher(Publisher):
         env = {}
 
         url = urlsplit(target_url)
-        options = _decode_query(url.query)
+        options = _parse_query(url.query, keep_blank_values=True)
         exclude = options.getlist("exclude")
         for file in exclude:
             argline.extend(("--exclude", file))
@@ -367,7 +367,7 @@ class FtpConnection:
                 yield line.rstrip()
 
     def connect(self):
-        options = _decode_query(self.url.query)
+        options = _parse_query(self.url.query, keep_blank_values=True)
         assert self.url.hostname is not None
         host = _ascii_host(self.url.hostname)
         port = self.url.port or 21
@@ -844,7 +844,7 @@ class GithubPagesPublisher(Publisher):
         if not gh_project:
             self.fail("github project missing from target URL")
 
-        params = _decode_query(url.query)
+        params = _parse_query(url.query, keep_blank_values=True)
         cname = params.get("cname")
         branch = params.get("branch")
         preserve_history = bool_from_string(params.get("preserve_history"), True)
@@ -927,9 +927,56 @@ builtin_publishers = {
 
 
 def publish(env, target, output_path, credentials=None, **extra):
-    target_url = str(target)
+    target_url = _CompatURLStr(target)
     url = urlsplit(target_url)
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)
     return publisher(env, output_path).publish(target_url, credentials, **extra)
+
+
+class _CompatURLStr(str):
+    """A string that provides some features of the werkzeug.urls.URL split URL class.
+
+    We used to pass a ``werkzeug.urls.URL`` instance as the ``target_url`` argument to
+    the ``Publisher.publish`` method.  Werkzeug has deprecated the ``URL`` class, so
+    now we've changed our API to just pass a ``str`` for ``target_url``.
+
+    There are however, Lektor plugins out in the wild that provide their own custom
+    Publisher classes, and they expect a ``URL`` instance for ``target_url``.
+
+    Here we provide most of the methods and attributes of ``URL`` that might be of use
+    to a publisher, so as to try not to break all those existing plugins.
+
+    .. tip::
+       New plugins may preserve compatibility with older versions of Lektor by
+       first coercing their ``target_url`` parameter to a ``str`` before use.
+       (This works because ``werkzeug.urls.URL.__str__`` returns the reassembled URL.)
+       E.g. using ``urllib.parse.urlsplit`` to parse the URL:
+
+       .. code:: python
+         from urllib.parse import urlsplit
+
+         class CustomPublisher(Publisher):
+             def publish(self, target_url, credentials=None, **extra):
+                 url = urlsplit(str(target_url))
+                 host = url.hostname
+                 ...
+    """
+
+    def __getattr__(self, name: str):
+        if name.startswith("_"):
+            raise AttributeError(name)
+        url = werkzeug_urls_URL(*urlsplit(self))
+        rv = getattr(url, name)
+        warn(
+            "Since Lektor version 3.4, the 'target_url' parameter to the "
+            "'Publisher.publish' method is now a string rather than a "
+            "werkzeug.urls.URL instance.  To ease the transition, some "
+            "methods and attributes of werkzeugs.urls.URL are being emulated, "
+            "however that will not last forever. The plugin should be updated "
+            "to treat 'target_url' as a string.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return rv

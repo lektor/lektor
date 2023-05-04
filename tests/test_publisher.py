@@ -16,12 +16,14 @@ from subprocess import run
 
 import pytest
 
+from lektor.publisher import _CompatURLStr
 from lektor.publisher import _ssh_command
 from lektor.publisher import _ssh_key_file
 from lektor.publisher import Command
 from lektor.publisher import GithubPagesPublisher
 from lektor.publisher import GitRepo
 from lektor.publisher import publish
+from lektor.publisher import Publisher
 from lektor.publisher import PublishError
 from lektor.utils import locate_executable
 
@@ -622,3 +624,37 @@ def test_publish_unknown_scheme(env, output_path):
     with pytest.raises(PublishError) as exc_info:
         publish(env, "unknownscheme://host/path", output_path)
     assert "unknown scheme" in str(exc_info.value)
+
+
+def test_publish_old_plugin(env, output_path, mocker):
+    target_url = "publishtest://Bücher.example/?foo=bar"
+
+    class OldPublisher(Publisher):
+        # pylint: disable=signature-differs
+        def publish(self, target_url, credentials, **extra):
+            return target_url
+
+    env.add_publisher("publishtest", OldPublisher)
+    compat_url = publish(env, target_url, output_path, credentials={})
+
+    assert isinstance(compat_url, _CompatURLStr)
+
+
+def test_CompatURLStr_is_str():
+    url = _CompatURLStr(" scheme://example.org/ ")
+    assert isinstance(url, str)
+    assert str(url) == " scheme://example.org/ "
+
+
+def test_CompatURLStr_raises_attribute_error():
+    url = _CompatURLStr("scheme://example.org/")
+    with pytest.raises(AttributeError):
+        url._replace()
+
+
+def test_CompatURLStr_works_as_URL():
+    url = _CompatURLStr("scheme:///path?foo=bar")
+    with pytest.deprecated_call() as w:
+        warnings.filterwarnings("ignore", "'werkzeug", DeprecationWarning)
+        assert dict(url.decode_query()) == {"foo": "bar"}
+    assert w[0].filename == __file__
