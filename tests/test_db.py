@@ -487,3 +487,30 @@ def test_Page_url_path_raise_error_if_paginated_and_dotted(scratch_pad):
 def test_Attachment_url_path_is_for_primary_alt(scratch_pad, alt):
     attachment = scratch_pad.get("/test.txt")
     assert attachment.url_path == "/en/test.txt"
+
+
+@pytest.mark.parametrize(
+    "url, base_url, absolute, external, project_url, expected",
+    [
+        ("/a/b.html", "/a/", None, None, None, "b.html"),
+        ("/a/b/", "/a/", None, None, None, "b/"),
+        ("/a/b/", "/a", None, None, None, "a/b/"),
+        ("/a/b/", "/a", True, None, None, "/a/b/"),
+        ("/a/b/", "/a", True, None, "https://example.net/pfx/", "/pfx/a/b/"),
+        ("/a/b/", "/a", None, True, "https://example.org", "https://example.org/a/b/"),
+    ],
+)
+def test_Pad_make_url(url, base_url, absolute, external, project_url, expected, pad):
+    if project_url is not None:
+        pad.db.config.values["PROJECT"]["url"] = project_url
+    assert pad.make_url(url, base_url, absolute, external) == expected
+
+
+def test_Pad_make_url_raises_runtime_error_if_no_project_url(pad):
+    with pytest.raises(RuntimeError, match="(?i)configure the url in the project"):
+        pad.make_url("/a/b", external=True)
+
+
+def test_Pad_make_url_raises_runtime_error_if_no_base_url(pad):
+    with pytest.raises(RuntimeError, match="(?i)no base url"):
+        pad.make_url("/a/b")

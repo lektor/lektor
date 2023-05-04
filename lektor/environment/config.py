@@ -2,9 +2,9 @@ import copy
 import os
 import re
 from collections import OrderedDict
+from urllib.parse import urlsplit
 
 from inifile import IniFile
-from werkzeug.urls import url_parse
 from werkzeug.utils import cached_property
 
 from lektor.constants import PRIMARY_ALT
@@ -273,7 +273,7 @@ class Config:
     def base_url(self):
         """The external base URL."""
         url = self.values["PROJECT"].get("url")
-        if url and url_parse(url).scheme:
+        if url and urlsplit(url).scheme:
             return url.rstrip("/") + "/"
         return None
 
@@ -282,7 +282,7 @@ class Config:
         """The base path of the URL."""
         url = self.values["PROJECT"].get("url")
         if url:
-            return url_parse(url).path.rstrip("/") + "/"
+            return urlsplit(url).path.rstrip("/") + "/"
         return "/"
 
     @cached_property

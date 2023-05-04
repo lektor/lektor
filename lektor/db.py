@@ -11,12 +11,12 @@ from collections import OrderedDict
 from datetime import timedelta
 from itertools import islice
 from operator import methodcaller
+from urllib.parse import urljoin
 
 from jinja2 import is_undefined
 from jinja2 import Undefined
 from jinja2.exceptions import UndefinedError
 from jinja2.utils import LRUCache
-from werkzeug.urls import url_join
 from werkzeug.utils import cached_property
 
 from lektor import metaformat
@@ -1626,7 +1626,7 @@ class Pad:
                 "To use absolute URLs you need to configure "
                 "the URL in the project config."
             )
-        return url_join(base_url.rstrip("/") + "/", url.lstrip("/"))
+        return urljoin(base_url.rstrip("/") + "/", url.lstrip("/"))
 
     def make_url(self, url, base_url=None, absolute=None, external=None):
         """Helper method that creates a finalized URL based on the parameters
@@ -1644,9 +1644,9 @@ class Pad:
                     "To use absolute URLs you need to "
                     "configure the URL in the project config."
                 )
-            return url_join(external_base_url, url.lstrip("/"))
+            return urljoin(external_base_url, url.lstrip("/"))
         if absolute:
-            return url_join(self.db.config.base_path, url.lstrip("/"))
+            return urljoin(self.db.config.base_path, url.lstrip("/"))
         if base_url is None:
             raise RuntimeError(
                 "Cannot calculate a relative URL if no base " "URL has been provided."
