@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import errno
 import hashlib
 import io
 import os
 import posixpath
+import urllib.parse
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
@@ -27,11 +30,13 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import TYPE_CHECKING
+from urllib.parse import urlsplit
 from warnings import warn
 
-from werkzeug import urls
+from werkzeug.datastructures import MultiDict
 
 from lektor.compat import TemporaryDirectory
+from lektor.compat import werkzeug_urls_URL
 from lektor.exception import LektorException
 from lektor.utils import bool_from_string
 from lektor.utils import locate_executable
@@ -41,6 +46,15 @@ if TYPE_CHECKING:  # pragma: no cover
     from _typeshed import StrOrBytesPath
     from _typeshed import StrPath
     from lektor.environment import Environment
+
+
+def _parse_query(query: str, **kwargs: Any) -> MultiDict:
+    return MultiDict(urllib.parse.parse_qsl(query, **kwargs))
+
+
+def _ascii_host(host: str) -> str:
+    """Translate internationalized domain name to IDNA-encoded ASCII."""
+    return host.encode("idna").decode("ascii")
 
 
 @contextmanager
@@ -274,7 +288,7 @@ class Publisher:
 
     def publish(
         self,
-        target_url: urls.URL,
+        target_url: str,
         credentials: Optional[Mapping[str, str]] = None,
         **extra: Any,
     ) -> Iterator[str]:
@@ -289,7 +303,8 @@ class RsyncPublisher(Publisher):
         target = []
         env = {}
 
-        options = target_url.decode_query()
+        url = urlsplit(target_url)
+        options = _parse_query(url.query, keep_blank_values=True)
         exclude = options.getlist("exclude")
         for file in exclude:
             argline.extend(("--exclude", file))
@@ -298,18 +313,18 @@ class RsyncPublisher(Publisher):
         if delete:
             argline.append("--delete-after")
 
-        with _ssh_command(credentials, target_url.port) as ssh_command:
+        with _ssh_command(credentials, url.port) as ssh_command:
             if ssh_command:
                 argline.extend(("-e", ssh_command))
 
-            username = credentials.get("username") or target_url.username
+            username = credentials.get("username") or url.username
             if username:
                 target.append(username + "@")
 
-            if target_url.ascii_host is not None:
-                target.append(target_url.ascii_host)
+            if url.hostname is not None:
+                target.append(_ascii_host(url.hostname))
                 target.append(":")
-            target.append(target_url.path.rstrip("/") + "/")
+            target.append(url.path.rstrip("/") + "/")
 
             argline.append(self.output_path.rstrip("/\\") + "/")
             argline.append("".join(target))
@@ -321,8 +336,13 @@ class RsyncPublisher(Publisher):
 
 
 class FtpConnection:
-    def __init__(self, url, credentials=None):
+    def __init__(self, target_url, credentials=None):
         credentials = credentials or {}
+        url = urlsplit(target_url)
+        if url.hostname is None:
+            raise PublishError(
+                "No host name was specified in the target URL ({target_url})"
+            )
         self.con = self.make_connection()
         self.url = url
         self.username = credentials.get("username") or url.username
@@ -347,12 +367,15 @@ class FtpConnection:
                 yield line.rstrip()
 
     def connect(self):
-        options = self.url.decode_query()
+        options = _parse_query(self.url.query, keep_blank_values=True)
+        assert self.url.hostname is not None
+        host = _ascii_host(self.url.hostname)
+        port = self.url.port or 21
 
         log = self.log_buffer
         log.append("000 Connecting to server ...")
         try:
-            log.append(self.con.connect(self.url.ascii_host, self.url.port or 21))
+            log.append(self.con.connect(host, port))
         except Exception as e:
             log.append("000 Could not connect.")
             log.append(str(e))
@@ -789,7 +812,7 @@ class GithubPagesPublisher(Publisher):
 
     def publish(
         self,
-        target_url: urls.URL,
+        target_url: str,
         credentials: Optional[Mapping[str, str]] = None,
         **extra: Any,
     ) -> Iterator[str]:
@@ -811,16 +834,17 @@ class GithubPagesPublisher(Publisher):
             yield from repo.publish_ghpages(push_url, branch, cname, preserve_history)
 
     def _parse_url(
-        self, target_url: urls.URL
+        self, target_url: str
     ) -> Tuple[str, str, Optional[str], bool, Sequence[str]]:
-        if not target_url.host:
+        url = urlsplit(target_url)
+        if not url.hostname:
             self.fail("github owner missing from target URL")
-        gh_owner = target_url.host.lower()
-        gh_project = target_url.path.strip("/").lower()
+        gh_owner = url.hostname.lower()
+        gh_project = url.path.strip("/").lower()
         if not gh_project:
             self.fail("github project missing from target URL")
 
-        params = target_url.decode_query()
+        params = _parse_query(url.query, keep_blank_values=True)
         cname = params.get("cname")
         branch = params.get("branch")
         preserve_history = bool_from_string(params.get("preserve_history"), True)
@@ -843,13 +867,13 @@ class GithubPagesPublisher(Publisher):
             else:
                 branch = "gh-pages"
 
-        if target_url.scheme in ("ghpages", "ghpages+ssh"):
+        if url.scheme in ("ghpages", "ghpages+ssh"):
             push_url = f"ssh://git@github.com/{gh_owner}/{gh_project}.git"
             default_port = 22
         else:
             push_url = f"https://github.com/{gh_owner}/{gh_project}.git"
             default_port = 443
-        if target_url.port and target_url.port != default_port:
+        if url.port and url.port != default_port:
             self.fail("github does not support pushing to non-standard ports")
 
         return push_url, branch, cname, preserve_history, warnings
@@ -878,13 +902,14 @@ class GithubPagesPublisher(Publisher):
 
     @staticmethod
     def _parse_credentials(
-        credentials: Optional[Mapping[str, str]], target_url: urls.URL
+        credentials: Optional[Mapping[str, str]], target_url: str
     ) -> Mapping[str, str]:
+        url = urlsplit(target_url)
         creds = dict(credentials or {})
         # Fill in default username/password from target url
         for key, default in [
-            ("username", target_url.username),
-            ("password", target_url.password),
+            ("username", url.username),
+            ("password", url.password),
         ]:
             if not creds.get(key) and default:
                 creds[key] = default
@@ -902,8 +927,56 @@ builtin_publishers = {
 
 
 def publish(env, target, output_path, credentials=None, **extra):
-    url = urls.url_parse(str(target))
+    target_url = _CompatURLStr(target)
+    url = urlsplit(target_url)
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
         raise PublishError('"%s" is an unknown scheme.' % url.scheme)
-    return publisher(env, output_path).publish(url, credentials, **extra)
+    return publisher(env, output_path).publish(target_url, credentials, **extra)
+
+
+class _CompatURLStr(str):
+    """A string that provides some features of the werkzeug.urls.URL split URL class.
+
+    We used to pass a ``werkzeug.urls.URL`` instance as the ``target_url`` argument to
+    the ``Publisher.publish`` method.  Werkzeug has deprecated the ``URL`` class, so
+    now we've changed our API to just pass a ``str`` for ``target_url``.
+
+    There are however, Lektor plugins out in the wild that provide their own custom
+    Publisher classes, and they expect a ``URL`` instance for ``target_url``.
+
+    Here we provide most of the methods and attributes of ``URL`` that might be of use
+    to a publisher, so as to try not to break all those existing plugins.
+
+    .. tip::
+       New plugins may preserve compatibility with older versions of Lektor by
+       first coercing their ``target_url`` parameter to a ``str`` before use.
+       (This works because ``werkzeug.urls.URL.__str__`` returns the reassembled URL.)
+       E.g. using ``urllib.parse.urlsplit`` to parse the URL:
+
+       .. code:: python
+         from urllib.parse import urlsplit
+
+         class CustomPublisher(Publisher):
+             def publish(self, target_url, credentials=None, **extra):
+                 url = urlsplit(str(target_url))
+                 host = url.hostname
+                 ...
+    """
+
+    def __getattr__(self, name: str):
+        if name.startswith("_"):
+            raise AttributeError(name)
+        url = werkzeug_urls_URL(*urlsplit(self))
+        rv = getattr(url, name)
+        warn(
+            "Since Lektor version 3.4, the 'target_url' parameter to the "
+            "'Publisher.publish' method is now a string rather than a "
+            "werkzeug.urls.URL instance.  To ease the transition, some "
+            "methods and attributes of werkzeugs.urls.URL are being emulated, "
+            "however that will not last forever. The plugin should be updated "
+            "to treat 'target_url' as a string.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return rv

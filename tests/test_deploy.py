@@ -2,7 +2,6 @@ from os.path import dirname
 from os.path import join
 
 import pytest
-from werkzeug.urls import url_parse
 
 from lektor.publisher import RsyncPublisher
 
@@ -18,7 +17,7 @@ def test_get_server(env):
 def test_rsync_command_credentials(tmpdir, mocker, env):
     output_path = tmpdir.mkdir("output")
     publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse("http://example.com")
+    target_url = "http://example.com"
     credentials = {
         "username": "fakeuser",
         "password": "fakepass",
@@ -159,7 +158,6 @@ output_path = join(dirname(__file__), "OUTPUT_PATH")
 )
 def test_rsync_publisher(target_url, called_command, tmpdir, mocker, env):
     publisher = RsyncPublisher(env, str(output_path))
-    target_url = url_parse(target_url)
     mock_popen = mocker.patch("lektor.publisher.portable_popen")
     with publisher.get_command(target_url, credentials=None):
         assert mock_popen.called

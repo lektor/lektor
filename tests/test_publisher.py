@@ -15,14 +15,15 @@ from subprocess import PIPE
 from subprocess import run
 
 import pytest
-from werkzeug.urls import url_parse
 
+from lektor.publisher import _CompatURLStr
 from lektor.publisher import _ssh_command
 from lektor.publisher import _ssh_key_file
 from lektor.publisher import Command
 from lektor.publisher import GithubPagesPublisher
 from lektor.publisher import GitRepo
 from lektor.publisher import publish
+from lektor.publisher import Publisher
 from lektor.publisher import PublishError
 from lektor.utils import locate_executable
 
@@ -470,11 +471,10 @@ def test_GithubPagesPublisher_publish(
     repo.publish_ghpages.return_value = iter(["Published!"])
     GitRepo.return_value.__enter__.return_value = repo
 
-    url = url_parse(target_url)
     with ExitStack() as stack:
         if warns:
             stack.enter_context(pytest.deprecated_call())
-        output = list(ghp_publisher.publish(url))
+        output = list(ghp_publisher.publish(target_url))
 
     GitRepo.assert_called_once_with(output_path)
     if "+https:" in target_url:
@@ -490,9 +490,9 @@ def test_GithubPagesPublisher_publish(
 
 @pytest.mark.usefixtures("no_utils")
 def test_GithubPagesPublisher_publish_fails_if_no_git(ghp_publisher):
-    url = url_parse("ghpages://owner/project")
+    target_url = "ghpages://owner/project"
     with pytest.raises(PublishError) as exc_info:
-        list(ghp_publisher.publish(url))
+        list(ghp_publisher.publish(target_url))
     assert re.search(r"git.*not found", str(exc_info.value))
 
 
@@ -544,15 +544,14 @@ def test_GithubPagesPublisher_publish_fails_if_no_git(ghp_publisher):
     ],
 )
 def test_GithubPagesPublisher_parse_url(ghp_publisher, target_url, expected):
-    url = url_parse(target_url)
-    assert ghp_publisher._parse_url(url) == expected
+    assert ghp_publisher._parse_url(target_url) == expected
 
 
 def test_GithubPagesPublisher_parse_url_warns_on_default_master_branch(ghp_publisher):
-    url = url_parse("ghpages://owner/owner.github.io")
+    target_url = "ghpages://owner/owner.github.io"
     with pytest.deprecated_call():
         push_url, branch, cname, preserve_history, warnings = ghp_publisher._parse_url(
-            url
+            target_url
         )
     assert (push_url, branch, cname, preserve_history) == (
         "ssh://git@github.com/owner/owner.github.io.git",
@@ -574,9 +573,8 @@ def test_GithubPagesPublisher_parse_url_warns_on_default_master_branch(ghp_publi
     ],
 )
 def test_GithubPagesPublisher_parse_url_failures(ghp_publisher, target_url, expected):
-    url = url_parse(target_url)
     with pytest.raises(PublishError) as exc_info:
-        ghp_publisher._parse_url(url)
+        ghp_publisher._parse_url(target_url)
     assert expected in str(exc_info.value)
 
 
@@ -606,8 +604,7 @@ def test_GithubPagesPublisher_parse_url_failures(ghp_publisher, target_url, expe
 def test_GithubPagesPublisher_parse_credentials(
     ghp_publisher, credentials, target_url, expected
 ):
-    url = url_parse(target_url)
-    assert ghp_publisher._parse_credentials(credentials, url) == expected
+    assert ghp_publisher._parse_credentials(credentials, target_url) == expected
 
 
 def test_publish(env, output_path, mocker):
@@ -615,10 +612,10 @@ def test_publish(env, output_path, mocker):
     env.add_publisher("publishtest", Publisher)
     credentials = {"foo": "bar"}
     rv = publish(env, "publishtest://host/path", output_path, credentials)
-    url = url_parse("publishtest://host/path")
+    target_url = "publishtest://host/path"
     assert Publisher.mock_calls == [
         mocker.call(env, output_path),
-        mocker.call().publish(url, credentials),
+        mocker.call().publish(target_url, credentials),
     ]
     assert rv is Publisher.return_value.publish.return_value
 
@@ -627,3 +624,37 @@ def test_publish_unknown_scheme(env, output_path):
     with pytest.raises(PublishError) as exc_info:
         publish(env, "unknownscheme://host/path", output_path)
     assert "unknown scheme" in str(exc_info.value)
+
+
+def test_publish_old_plugin(env, output_path, mocker):
+    target_url = "publishtest://Bücher.example/?foo=bar"
+
+    class OldPublisher(Publisher):
+        # pylint: disable=signature-differs
+        def publish(self, target_url, credentials, **extra):
+            return target_url
+
+    env.add_publisher("publishtest", OldPublisher)
+    compat_url = publish(env, target_url, output_path, credentials={})
+
+    assert isinstance(compat_url, _CompatURLStr)
+
+
+def test_CompatURLStr_is_str():
+    url = _CompatURLStr(" scheme://example.org/ ")
+    assert isinstance(url, str)
+    assert str(url) == " scheme://example.org/ "
+
+
+def test_CompatURLStr_raises_attribute_error():
+    url = _CompatURLStr("scheme://example.org/")
+    with pytest.raises(AttributeError):
+        url._replace()
+
+
+def test_CompatURLStr_works_as_URL():
+    url = _CompatURLStr("scheme:///path?foo=bar")
+    with pytest.deprecated_call() as w:
+        warnings.filterwarnings("ignore", "'werkzeug", DeprecationWarning)
+        assert dict(url.decode_query()) == {"foo": "bar"}
+    assert w[0].filename == __file__

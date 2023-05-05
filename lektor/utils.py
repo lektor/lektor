@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unicodedata
+import urllib.parse
 import uuid
 import warnings
 from contextlib import contextmanager
@@ -23,14 +24,13 @@ from typing import Hashable
 from typing import Iterable
 from typing import overload
 from typing import TypeVar
-from urllib.parse import urlsplit
 
 from jinja2 import is_undefined
 from markupsafe import Markup
 from slugify import slugify as _slugify
-from werkzeug import urls
 from werkzeug.http import http_date
-from werkzeug.urls import url_parse
+from werkzeug.urls import iri_to_uri
+from werkzeug.urls import uri_to_iri
 
 
 is_windows = os.name == "nt"
@@ -98,7 +98,7 @@ def cleanup_url_path(url_path):
     Raises ValueError if the path contains a _scheme_
     which is neither ``http`` nor ``https``, or a _netloc_.
     """
-    scheme, netloc, path, _, _ = urlsplit(url_path, scheme="http")
+    scheme, netloc, path, _, _ = urllib.parse.urlsplit(url_path, scheme="http")
     if scheme not in ("http", "https"):
         raise ValueError(f"Invalid scheme: {url_path!r}")
     if netloc:
@@ -375,25 +375,87 @@ def tojson_filter(obj, **kwargs):
     return Markup(htmlsafe_json_dump(obj, **kwargs))
 
 
-class Url:
-    def __init__(self, value):
-        self.url = value
-        u = url_parse(value)
-        i = u.to_iri_tuple()
-        self.ascii_url = str(u)
-        self.host = i.host
-        self.ascii_host = u.ascii_host
-        self.port = u.port
-        self.path = i.path
-        self.query = u.query
-        self.anchor = i.fragment
-        self.scheme = u.scheme
+class Url(urllib.parse.SplitResult):
+    """Make various parts of a URL accessible.
 
-    def __unicode__(self):
+    This is the type of the values exposed by Lektor record fields of type "url".
+
+    Since Lektor 3.4.0, this is essentially a `urllib.parse.SplitResult` as obtained by
+    calling `urlsplit` on the URL normalized to an IRI.
+
+    Generally, attributes such as ``netloc``, ``host``, ``path``, ``query``, and
+    ``fragment`` return the IRI (internationalied) versions of those components.
+
+    The URI (ASCII-encoded) version of the URL is available from the `ascii_url`
+    attribute.
+
+    NB: Changed in 3.4.0: The ``query`` attribute used to return the URI
+    (ASCII-encoded) version of the query — I'm not sure why. Now it returns
+    the IRI (internationalized) version of the query.
+
+    """
+
+    def __new__(cls, value: str):
+        # XXX: deprecate use of constructor so that eventually we can make its signature
+        # match that of the SplitResult base class.
+        warnings.warn(
+            DeprecatedWarning(
+                "Url",
+                reason=(
+                    "Direct construction of a Url instance is deprecated. "
+                    "Use the Url.from_string classmethod instead."
+                ),
+                version="3.4.0",
+            )
+        )
+        return cls.from_string(value)
+
+    @classmethod
+    def from_string(cls, value: str) -> Url:
+        """Construct instance from URL string.
+
+        The input URL can be a URI (all ASCII) or an IRI (internationalized).
+        """
+        # The iri_to_uri operation is nominally idempotent — it can be passed either an
+        # IRI or a URI (or something inbetween) and will return a URI.  So to fully
+        # normalize input which can be either an IRI or a URI, first convert to URI,
+        # then to IRI.
+        iri = uri_to_iri(iri_to_uri(value))
+        obj = cls._make(urllib.parse.urlsplit(iri))
+        obj.url = value
+        return obj
+
+    def __str__(self) -> str:
+        """The original un-normalized URL string."""
         return self.url
 
-    def __str__(self):
-        return self.ascii_url
+    @property
+    def ascii_url(self) -> str:
+        """The URL encoded to an all-ASCII URI."""
+        return iri_to_uri(self.geturl())
+
+    @property
+    def ascii_host(self) -> str | None:
+        """The hostname part of the URL IDNA-encoded to ASCII."""
+        return urllib.parse.urlsplit(self.ascii_url).hostname
+
+    @property
+    def host(self) -> str | None:
+        """The IRI (internationalized) version of the hostname.
+
+        This attribute is provided for backwards-compatibility.  New code should use the
+        ``hostname`` attribute instead.
+        """
+        return self.hostname
+
+    @property
+    def anchor(self) -> str:
+        """The IRI (internationalized) version of the "anchor" part of the URL.
+
+        This attribute is provided for backwards-compatibility.  New code should use the
+        ``fragment`` attribute instead.
+        """
+        return self.fragment
 
 
 def is_unsafe_to_delete(path, base):
@@ -499,17 +561,12 @@ def is_valid_id(value):
     )
 
 
-def secure_url(url):
-    url = urls.url_parse(url)
-    if url.password is not None:
-        url = url.replace(
-            netloc="%s@%s"
-            % (
-                url.username,
-                url.netloc.split("@")[-1],
-            )
-        )
-    return url.to_url()
+def secure_url(url: str) -> str:
+    parts = urllib.parse.urlsplit(url)
+    if parts.password is not None:
+        _, _, host_port = parts.netloc.rpartition("@")
+        parts = parts._replace(netloc=f"{parts.username}@{host_port}")
+    return parts.geturl()
 
 
 def bool_from_string(val, default=None):
