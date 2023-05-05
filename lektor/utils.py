@@ -18,14 +18,15 @@ from functools import lru_cache
 from pathlib import PurePosixPath
 from queue import Queue
 from threading import Thread
+from urllib.parse import urlsplit
 
 import click
 from jinja2 import is_undefined
 from markupsafe import Markup
 from slugify import slugify as _slugify
-from werkzeug import urls
 from werkzeug.http import http_date
-from werkzeug.urls import url_parse
+from werkzeug.urls import iri_to_uri
+from werkzeug.urls import uri_to_iri
 
 
 is_windows = os.name == "nt"
@@ -388,24 +389,21 @@ class WorkerPool:
 
 
 class Url:
-    def __init__(self, value):
+    def __init__(self, value: str):
         self.url = value
-        u = url_parse(value)
-        i = u.to_iri_tuple()
-        self.ascii_url = str(u)
-        self.host = i.host
-        self.ascii_host = u.ascii_host
+        u = urlsplit(value)
+        i = urlsplit(uri_to_iri(u.geturl()))
+        self.ascii_url = iri_to_uri(u.geturl())
+        self.host = i.hostname
+        self.ascii_host = urlsplit(self.ascii_url).hostname
         self.port = u.port
         self.path = i.path
         self.query = u.query
         self.anchor = i.fragment
         self.scheme = u.scheme
 
-    def __unicode__(self):
-        return self.url
-
     def __str__(self):
-        return self.ascii_url
+        return self.url
 
 
 def is_unsafe_to_delete(path, base):
@@ -511,17 +509,12 @@ def is_valid_id(value):
     )
 
 
-def secure_url(url):
-    url = urls.url_parse(url)
-    if url.password is not None:
-        url = url.replace(
-            netloc="%s@%s"
-            % (
-                url.username,
-                url.netloc.split("@")[-1],
-            )
-        )
-    return url.to_url()
+def secure_url(url: str) -> str:
+    parts = urlsplit(url)
+    if parts.password is not None:
+        _, _, host_port = parts.netloc.rpartition("@")
+        parts = parts._replace(netloc=f"{parts.username}@{host_port}")
+    return parts.geturl()
 
 
 def bool_from_string(val, default=None):

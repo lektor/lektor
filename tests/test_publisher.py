@@ -42,6 +42,7 @@ def test_Command_triggers_no_warnings():
     which("rsync") is None, reason="rsync is not available on this system"
 )
 @pytest.mark.parametrize("delete", ["yes", "no"])
+@pytest.mark.filterwarnings(r"ignore:'werkzeug\.urls:DeprecationWarning")
 def test_RsyncPublisher_integration(env, tmp_path, delete):
     # Integration test of local rsync deployment
     # Ensures that RsyncPublisher can successfully invoke rsync

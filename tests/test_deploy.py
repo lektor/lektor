@@ -9,6 +9,9 @@ from lektor.publisher import GithubPagesPublisher
 from lektor.publisher import RsyncPublisher
 
 
+pytestmark = pytest.mark.filterwarnings(r"ignore:'werkzeug\.urls:DeprecationWarning")
+
+
 def test_get_server(env):
     server = env.load_config().get_server("production")
     assert server.name == "Production"
