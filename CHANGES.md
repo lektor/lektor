@@ -2,6 +2,18 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.10 (2023-05-05)
+
+- Address recent deprecations of various bits of `werkzeug.urls`,
+  avoiding use of the deprecated functions where possible. ([#1144], [#1142])
+
+- Pin `werkzeug<2.41`. Since the deprecated `werkzeug.urls.URL` is
+  part of our Publisher API, we can not disuse that without changing
+  public API. ([#1144])
+
+[#1142]: https://github.com/lektor/lektor/issues/1142
+[#1144]: https://github.com/lektor/lektor/pull/1144
+
 ## 3.3.9 (2023-04-16)
 
 ### Bit-Rot
