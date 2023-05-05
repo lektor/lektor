@@ -6,6 +6,7 @@ from weakref import ref as weakref
 
 from lektor.constants import PRIMARY_ALT
 from lektor.context import ignore_url_unaffecting_dependencies
+from lektor.reporter import reporter
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
@@ -152,10 +153,10 @@ class SourceObject:
             # XXX: error if used with explicit alt?
             if resolve:
                 raise RuntimeError("Resolve=True is incompatible with '!' prefix.")
-            url_path = posixpath.join(self.url_path, path[1:])
+            url_path = _join_url_path(self, path[1:])
         elif resolve is not None and not resolve:
             # XXX: error if used with explicit alt?
-            url_path = posixpath.join(self.url_path, path)
+            url_path = _join_url_path(self, path)
         else:
             with ignore_url_unaffecting_dependencies():
                 return self._resolve_url(
@@ -200,7 +201,7 @@ class SourceObject:
                 raise RuntimeError(f"Can not resolve link {_url!r}")
             else:
                 # Fall back to interpreting path as (possibly relative) URL path
-                url_path = posixpath.join(self.url_path, url.path)
+                url_path = _join_url_path(self, url.path)
                 query = url.query
 
             result = self.pad.make_url(
@@ -208,6 +209,35 @@ class SourceObject:
             )
             resolved = urlsplit(result)._replace(query=query, fragment=url.fragment)
         return resolved.geturl()
+
+    @property
+    def url_content_path(self):
+        """URL path to the directory that contains children of this source object.
+
+        For container types, the record's ``url_content_path`` is often
+        the same as its ``url_path``. The exception to this is when
+        the page's slug contains a dot (".").
+        See https://www.getlektor.com/docs/content/urls/#content-below-dotted-slugs
+
+        The ``url_content_path`` should be ``None`` for attachments and other
+        SourceObject types that can not contain child source objects.
+        """
+        return None
+
+
+def _join_url_path(source, path):
+    """Join possibly relative url path relative to source.url_content_path."""
+    if posixpath.isabs(path):
+        return path
+    content_path = source.url_content_path
+    if content_path is None:
+        # Source is not a container type (e.g. it is an attachment).
+        # Punt and treat path as relative to the source's containing directory.
+        content_path = posixpath.dirname(source.url_path) or "/"
+        reporter.report_generic(
+            f"Suspicious use of relative URL {path!r} from non-container source {source!r}"
+        )
+    return posixpath.join(content_path, path)
 
 
 class DBSourceObject(SourceObject):

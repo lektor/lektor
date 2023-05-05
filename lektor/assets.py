@@ -129,6 +129,10 @@ class Directory(Asset):
             path += "/"
         return path
 
+    @property
+    def url_content_path(self):
+        return self.url_path
+
 
 class File(Asset):
     """Represents a static asset file."""

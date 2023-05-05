@@ -4,8 +4,32 @@ import pytest
 
 from lektor.context import _ctx_stack
 from lektor.context import Context
+from lektor.environment import Environment
+from lektor.reporter import BufferReporter
+from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
+
+# noreorder
+from conftest import restore_import_state  # pylint: disable=wrong-import-order
+
+
+@pytest.fixture(scope="module")
+def pad(project):
+    # Use a module-scoped pad to speed tests
+    with restore_import_state():
+        return Environment(project).new_pad()
+
+
+@pytest.fixture
+def config(pad, monkeypatch):
+    """Patch a function-scoped config into our session-scoped pad.
+
+    (For those tests/fixtures that want to mangle the config.)
+    """
+    config = pad.db.env.load_config()
+    monkeypatch.setattr(pad.db, "config", config)
+    return config
 
 
 @pytest.mark.parametrize(
@@ -120,8 +144,8 @@ def test_url_to_thumbnail(pad, mock_build_context):
 
 
 @pytest.fixture
-def external_url(pad):
-    pad.config.values["PROJECT"]["url"] = "http://example.org/site/"
+def external_url(config):
+    config.values["PROJECT"]["url"] = "http://example.org/site/"
 
 
 @pytest.mark.parametrize(
@@ -172,6 +196,8 @@ def _id_for_dict(value):
         ("../wolf/.", {}, "./"),
         ("../slave", {}, "../slave/"),
         ("../wolf/../slave/", {}, "../slave/"),
+        ("/", {}, "../../"),
+        ("/extra", {}, "../../extra/"),
         ("/projects/wolf", {}, "./"),
         ("/projects/slave", {}, "../slave/"),
         # Test alt
@@ -332,3 +358,72 @@ def test_file_record_url(pad):
 def test_url_with_slash_slug(pad):
     record = pad.get("/extra/slash-slug")
     assert record.url_path == "/extra/long/path/"
+
+
+class DummyVirtualSource(VirtualSourceObject):
+    url_path = None  # mask inherited property
+
+    def __init__(self, record, url_path):
+        super().__init__(record)
+        self.url_path = url_path
+
+    @property
+    def url_content_path(self):
+        # This is a url_content_path that is appropriate for a
+        # source object that can contain other child source objects
+        if self.url_path.endswith("/"):
+            return self.url_path
+        head, sep, tail = self.url_path.rpartition("/")
+        return f"{head}{sep}_{tail}/"
+
+    @property
+    def path(self):
+        return f"{self.record.path}@virtual"
+
+
+@pytest.mark.parametrize(
+    "path, url_path, expected",
+    [
+        ("/", "/path/virtual/", "../../"),
+        ("/index.html", "/path/virtual/", "../../index.html"),
+        ("rel", "/path/virtual/", "rel"),
+        ("rel", "/path/virtual.html", "_virtual.html/rel"),
+    ],
+)
+def test_url_from_virtual(pad, path, url_path, expected):
+    virtual = DummyVirtualSource(pad.get("/extra"), url_path)
+    assert virtual.url_to(path) == expected
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("a", "_file.ext/a"),
+        ("/", "../"),
+        ("/projects", "../projects/"),
+    ],
+)
+def test_url_from_page_with_dotted_name(pad, path, expected):
+    record = pad.get("/extra/file.ext")
+    assert record.url_to(path) == expected
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("a", "a"),
+        ("/", "../"),
+        ("/projects", "../projects/"),
+    ],
+)
+def test_url_from_attachment(pad, path, expected):
+    record = pad.get("/extra/hello.txt")
+    assert record.url_to(path) == expected
+
+
+def test_url_from_attachment_issues_warning(pad):
+    record = pad.get("/extra/hello.txt")
+    with BufferReporter(pad.env) as reporter:
+        assert record.url_to("a") == "a"
+    message = next(filter(None, (extra.get("message") for _, extra in reporter.buffer)))
+    assert re.match(r"(?i)Suspicious use of relative URL", message)

@@ -574,6 +574,17 @@ class Page(Record):
             return path.rstrip("/") + "/"
         return f"{path.rstrip('/')}/{pg.url_suffix.strip('/')}/{self.page_num:d}/"
 
+    @property
+    def url_content_path(self):
+        """URL path to the directory that contains children of this record."""
+        url_path = self.url_path
+        if url_path.endswith("/"):
+            return url_path
+        # See https://www.getlektor.com/docs/content/urls/#content-below-dotted-slugs
+        head, sep, tail = url_path.rpartition("/")
+        assert "." in tail
+        return f"{head}{sep}_{tail}/"
+
     def resolve_url_path(self, url_path):
         pg = self.datamodel.pagination_config
 
