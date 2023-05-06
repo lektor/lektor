@@ -2,6 +2,12 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b7 (unreleased)
+
+### Bugs Fixed
+
+- Pin `watchfiles>=0.12`. (Our tests use the `stop_event` parameter of `watchfiles.watch`.)
+
 ## 3.4.0b6 (2023-05-05)
 
 ### Possibly Breaking Changes
