@@ -2,7 +2,7 @@
 import os
 import sys
 import warnings
-from contextlib import suppress
+from itertools import chain
 
 import click
 
@@ -130,38 +130,37 @@ def build_cmd(
 
     env = ctx.get_env()
 
-    def _build():
-        builder = Builder(
-            env.new_pad(),
-            output_path,
-            buildstate_path=buildstate_path,
-            extra_flags=extra_flags,
-        )
-        if source_info_only:
-            builder.update_all_source_infos()
-            return True
+    with CliReporter(env, verbosity=verbosity):
+        builds = ["first"]
+        if watch:
+            from lektor.watcher import watch_project
 
-        if profile:
-            failures = profile_func(builder.build_all)
-        else:
-            failures = builder.build_all()
-        if prune:
-            builder.prune()
-        return failures == 0
+            click.secho("Watching for file system changes", fg="cyan")
+            builds = chain(
+                builds, watch_project(env, output_path, raise_interrupt=False)
+            )
 
-    reporter = CliReporter(env, verbosity=verbosity)
-    with reporter:
-        success = _build()
-        if not watch:
-            return sys.exit(0 if success else 1)
+        success = False
+        for _ in builds:
+            builder = Builder(
+                env.new_pad(),
+                output_path,
+                buildstate_path=buildstate_path,
+                extra_flags=extra_flags,
+            )
+            if source_info_only:
+                builder.update_all_source_infos()
+                success = True
+            else:
+                if profile:
+                    failures = profile_func(builder.build_all)
+                else:
+                    failures = builder.build_all()
+                if prune:
+                    builder.prune()
+                success = failures == 0
 
-        from lektor.watcher import Watcher
-
-        click.secho("Watching for file system changes", fg="cyan")
-        with Watcher(env) as watcher, suppress(KeyboardInterrupt):
-            while True:
-                watcher.wait()
-                _build()
+        return sys.exit(0 if success else 1)
 
 
 @cli.command("clean")
