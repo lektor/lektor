@@ -853,55 +853,49 @@ def require_ffmpeg(f):
 class Video(Attachment):
     """Specific class for video attachments."""
 
-    def __init__(self, pad, data, page_num=None):
-        Attachment.__init__(self, pad, data, page_num)
-        self._video_info = None
-
-    def _get_video_info(self):
-        if self._video_info is None:
-            try:
-                self._video_info = get_video_info(self.attachment_filename)
-            except RuntimeError:
-                # A falsy value ensures we don't retry this video again
-                self._video_info = False
-        return self._video_info
+    @cached_property
+    def _video_info(self):
+        try:
+            return get_video_info(self.attachment_filename)
+        except RuntimeError:
+            return {}
 
     @property
     @require_ffmpeg
     def width(self):
         """Returns the width of the video if possible to determine."""
-        rv = self._get_video_info()
-        if rv:
-            return rv["width"]
-        return Undefined("The width of the video could not be determined.")
+        try:
+            return self._video_info["width"]
+        except KeyError:
+            return Undefined("The width of the video could not be determined.")
 
     @property
     @require_ffmpeg
     def height(self):
         """Returns the height of the video if possible to determine."""
-        rv = self._get_video_info()
-        if rv:
-            return rv["height"]
-        return Undefined("The height of the video could not be determined.")
+        try:
+            return self._video_info["height"]
+        except KeyError:
+            return Undefined("The height of the video could not be determined.")
 
     @property
     @require_ffmpeg
     def duration(self):
         """Returns the duration of the video if possible to determine."""
-        rv = self._get_video_info()
-        if rv:
-            return rv["duration"]
-        return Undefined("The duration of the video could not be determined.")
+        try:
+            return self._video_info["duration"]
+        except KeyError:
+            return Undefined("The duration of the video could not be determined.")
 
     @require_ffmpeg
     def frame(self, seek=None):
         """Returns a VideoFrame object that is thumbnailable like an Image."""
-        rv = self._get_video_info()
-        if not rv:
+        duration = self.duration
+        if is_undefined(duration):
             return Undefined("Unable to get video properties.")
 
         if seek is None:
-            seek = rv["duration"] / 2
+            seek = duration / 2
         return VideoFrame(self, seek)
 
 
