@@ -244,32 +244,46 @@ def test_parse_svg_units_px(dimension, pixels):
     assert _parse_svg_units_px(dimension) == pixels
 
 
+class DummyFileBase:
+    def write(self, fp):
+        raise NotImplementedError()
+
+    def open(self):
+        fp = io.BytesIO()
+        self.write(fp)
+        fp.seek(0)
+        return fp
+
+    def path(self, tmp_path: Path) -> Path:
+        path = tmp_path / "dummy"
+        with path.open("wb") as fp:
+            self.write(fp)
+        return path
+
+
 @dataclasses.dataclass
-class DummyImage:
+class DummyImage(DummyFileBase):
     width: int
     height: int
     format: str = "PNG"
     orientation: int | None = None
 
-    def open(self):
-        fp = io.BytesIO()
+    def write(self, fp):
         image = PIL.Image.new("RGB", (self.width, self.height), "#999")
         exif = image.getexif()
         if self.orientation is not None:
             exif[EXIF_ORIENTATION_TAG] = self.orientation
         image.save(fp, self.format, exif=exif)
-        fp.seek(0)
-        return fp
 
 
 @dataclasses.dataclass
-class DummySVGImage:
+class DummySVGImage(DummyFileBase):
     width: int | str | None = None
     height: int | str | None = None
     xmlns: str | None = "http://www.w3.org/2000/svg"
     xml_decl: str | None = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
 
-    def open(self):
+    def write(self, fp):
         values = dataclasses.asdict(self)
         svg_attrs = "".join(
             f" {key}={saxutils.quoteattr(str(values[key]))}"
@@ -285,15 +299,15 @@ class DummySVGImage:
             '<path stroke="black" d="M30 70 l30 0" stroke-width="5"/>'
             "</svg>"
         )
-        return io.BytesIO(svg.encode("utf-8"))
+        fp.write(svg.encode("utf-8"))
 
 
 @dataclasses.dataclass
-class DummyFile:
+class DummyFile(DummyFileBase):
     content: bytes = b""
 
-    def open(self):
-        return io.BytesIO(self.content)
+    def write(self, fp):
+        fp.write(self.content)
 
 
 @pytest.mark.parametrize(
@@ -315,8 +329,17 @@ class DummyFile:
         (DummySVGImage("10px", "10px", xmlns=None), (None, None, None)),
     ],
 )
-def test_get_image_info(image, expected):
-    assert get_image_info(image.open()) == expected
+def test_get_image_info(image, expected, tmp_path):
+    image_path = tmp_path / "test-image"
+    with image_path.open("wb") as fp:
+        image.write(fp)
+    assert get_image_info(image_path) == expected
+
+
+def test_get_image_info_fp_deprecated():
+    image = DummyImage(10, 20, "JPEG")
+    with pytest.deprecated_call():
+        assert get_image_info(image.open()) == ("jpeg", 10, 20)
 
 
 def test_save_position():
@@ -709,8 +732,7 @@ class TestFunctional:
 
     def test_thumbnail_dimensions(self, built_demo, thumbnails):
         for name, thumb in thumbnails.items():
-            with open(built_demo / name, "rb") as fp:
-                _format, width, height = get_image_info(fp)
+            _format, width, height = get_image_info(built_demo / name)
             assert (width, height) == (thumb.width, thumb.height)
 
     def test_thumbnails_distinct(self, built_demo, thumbnails):

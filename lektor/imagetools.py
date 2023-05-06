@@ -7,6 +7,7 @@ import numbers
 import posixpath
 import re
 import sys
+import warnings
 from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
@@ -614,14 +615,24 @@ def _save_position(fp: BinaryIO) -> Generator[BinaryIO, None, None]:
         fp.seek(position)
 
 
-def get_image_info(fp: BinaryIO) -> ImageInfo:
+def get_image_info(source: str | Path | BinaryIO) -> ImageInfo:
     """Determine type and dimensions of an image file."""
     try:
-        with _save_position(fp) as fp_:
-            with PIL.Image.open(fp_) as image:
+        if isinstance(source, (str, Path)):
+            with PIL.Image.open(source) as image:
                 return _PIL_image_info(image)
+        else:
+            warnings.warn(
+                "Passing a file object to 'get_image_info' is deprecated "
+                "since version 3.4.0. Pass a file path instead.",
+                DeprecationWarning,
+            )
+            with _save_position(source) as fp_:
+                with PIL.Image.open(fp_) as image:
+                    return _PIL_image_info(image)
+
     except UnidentifiedImageError:
-        return get_svg_info(fp)
+        return get_svg_info(source)
 
 
 def read_exif(source: str | Path | SupportsRead[bytes]) -> EXIFInfo:
@@ -810,7 +821,6 @@ def compute_dimensions(
     """
     if width is None and height is None:
         raise ValueError("width and height may not both be None")
-
     if width is not None:
         size = ImageSize(width, _scale(width, source_height, source_width))
     if height is not None and (width is None or height < size.height):
@@ -947,8 +957,7 @@ def make_image_thumbnail(
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
-    with open(source_image, "rb") as fp:
-        image_info = get_image_info(fp)
+    image_info = get_image_info(source_image)
     if isinstance(image_info, UnknownImageInfo):
         raise RuntimeError("Cannot process unknown images")
 

@@ -776,29 +776,19 @@ class Attachment(Record):
 class Image(Attachment):
     """Specific class for image attachments."""
 
-    def __init__(self, pad, data, page_num=None):
-        Attachment.__init__(self, pad, data, page_num)
-        self._image_info = None
-        self._exif_cache = None
+    @cached_property
+    def _image_info(self):
+        return get_image_info(self.attachment_filename)
 
-    def _get_image_info(self):
-        if self._image_info is None:
-            with open(self.attachment_filename, "rb") as f:
-                self._image_info = get_image_info(f)
-        return self._image_info
-
-    @property
+    @cached_property
     def exif(self):
         """Provides access to the exif data."""
-        if self._exif_cache is None:
-            with open(self.attachment_filename, "rb") as f:
-                self._exif_cache = read_exif(f)
-        return self._exif_cache
+        return read_exif(self.attachment_filename)
 
     @property
     def width(self):
         """The width of the image if possible to determine."""
-        rv = self._get_image_info()[1]
+        rv = self._image_info[1]
         if rv is not None:
             return rv
         return Undefined("Width of image could not be determined.")
@@ -806,7 +796,7 @@ class Image(Attachment):
     @property
     def height(self):
         """The height of the image if possible to determine."""
-        rv = self._get_image_info()[2]
+        rv = self._image_info[2]
         if rv is not None:
             return rv
         return Undefined("Height of image could not be determined.")
@@ -814,7 +804,7 @@ class Image(Attachment):
     @property
     def format(self):
         """Returns the format of the image."""
-        rv = self._get_image_info()[0]
+        rv = self._image_info[0]
         if rv is not None:
             return rv
         return Undefined("The format of the image could not be determined.")
