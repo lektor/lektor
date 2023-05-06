@@ -272,7 +272,7 @@ class DummySVGImage:
     def open(self):
         values = dataclasses.asdict(self)
         svg_attrs = "".join(
-            f" {key}={saxutils.quoteattr(values[key])}"
+            f" {key}={saxutils.quoteattr(str(values[key]))}"
             for key in ("width", "height", "xmlns")
             if values[key] is not None
         )
@@ -347,6 +347,42 @@ def test_ThumbnailParams_unrecognized_format():
 def test_ThumbnailParams_get_save_params(format, quality, expected):
     thumbnail_params = ThumbnailParams(ImageSize(10, 10), format, quality)
     assert thumbnail_params.get_save_params() == expected
+
+
+@pytest.mark.parametrize(
+    "format, proposed_ext, expected",
+    [
+        ("GIF", ".gif", ".gif"),
+        ("GIF", ".gIf", ".gIf"),
+        ("GIF", ".bad", ".gif"),
+        ("GIF", "GIF", ".gif"),
+        ("JPEG", ".jpg", ".jpg"),
+        ("JPEG", ".JPEG", ".JPEG"),
+        ("JPEG", ".j", ".jpeg"),
+        ("PNG", ".x", ".png"),
+        ("PNG", ".PNG", ".PNG"),
+    ],
+)
+def test_ThumbnailParams_get_ext(format, proposed_ext, expected):
+    thumbnail_params = ThumbnailParams(ImageSize(10, 20), format)
+    assert thumbnail_params.get_ext(proposed_ext) == expected
+
+
+@pytest.mark.parametrize(
+    "format, width, height, quality, crop, expected",
+    [
+        ("GIF", 10, 20, None, False, "10x20"),
+        ("gif", 10, 20, 92, False, "10x20"),
+        ("GIF", 10, 20, None, True, "10x20_crop"),
+        ("JPEG", 200, 300, 92, False, "200x300_q92"),
+        ("JPEG", 200, 300, None, True, "200x300_crop"),
+        ("PNG", 1, 2, 92, True, "1x2_crop_q9"),
+        ("PNG", 4, 5, None, False, "4x5"),
+    ],
+)
+def test_ThumbnailParams_get_tag(format, width, height, quality, crop, expected):
+    thumbnail_params = ThumbnailParams(ImageSize(width, height), format, quality, crop)
+    assert thumbnail_params.get_tag() == expected
 
 
 @pytest.mark.parametrize(
@@ -579,15 +615,23 @@ def test_make_image_thumbnail_unknown_image_format(tmp_path):
 
 def test_make_image_thumbnail_svg(tmp_path):
     dummy_svg = tmp_path / "dummy.svg"
-    dummy_svg.write_text(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="400px" height="300px"></svg>'
-    )
+    with dummy_svg.open("wb") as fp:
+        DummySVGImage(width="400px", height="300px").write(fp)
     ctx = mock.Mock(name="ctx")
     thumbnail = make_image_thumbnail(
         ctx, dummy_svg, "/urlpath/dummy.svg", width=80, height=60
     )
     assert (thumbnail.width, thumbnail.height) == (80, 60)
     assert thumbnail.url_path == "/urlpath/dummy.svg"
+
+
+def test_make_image_thumbnail_svg_fit_mode_fails_if_missing_dim(tmp_path):
+    dummy_svg = tmp_path / "dummy.svg"
+    with dummy_svg.open("wb") as fp:
+        DummySVGImage(width="400px", height=None).write(fp)
+    ctx = mock.Mock(name="ctx")
+    with pytest.raises(ValueError, match="Cannot determine aspect ratio"):
+        make_image_thumbnail(ctx, dummy_svg, "/urlpath/dummy.svg", width=80, height=60)
 
 
 def test_Thumbnail_str():

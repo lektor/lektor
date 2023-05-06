@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import dataclasses
 import io
+import math
 import numbers
 import posixpath
 import re
+import sys
 from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
@@ -17,13 +19,18 @@ from types import ModuleType
 from types import SimpleNamespace
 from typing import Any
 from typing import BinaryIO
+from typing import Callable
 from typing import ClassVar
+from typing import Generator
 from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import NamedTuple
 from typing import Sequence
+from typing import Tuple
 from typing import TYPE_CHECKING
+from typing import TypeVar
+from typing import Union
 from xml.etree import ElementTree as etree
 
 import PIL.ExifTags
@@ -35,7 +42,16 @@ from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
 
 if TYPE_CHECKING:
+    from typing import Literal
+    from _typeshed import SupportsRead
     from lektor.builder import Artifact
+    from lektor.context import Context
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+
 
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
 
@@ -107,8 +123,9 @@ class ThumbnailMode(Enum):
 
     @property
     @deprecated("Use ThumbnailMode.value instead", version="3.3.0")
-    def label(self):
+    def label(self) -> str:
         """The mode's label as used in templates."""
+        assert isinstance(self.value, str)
         return self.value
 
     @classmethod
@@ -116,12 +133,12 @@ class ThumbnailMode(Enum):
         "Use the ThumbnailMode constructor, e.g. 'ThumbnailMode(label)', instead",
         version="3.3.0",
     )
-    def from_label(cls, label):
+    def from_label(cls, label: str) -> ThumbnailMode:
         """Looks up the thumbnail mode by its textual representation."""
         return cls(label)
 
 
-def _combine_make(make, model):
+def _combine_make(make: str | None, model: str | None) -> str:
     make = make or ""
     model = model or ""
     if make and model.startswith(make):
@@ -168,27 +185,35 @@ _EXIF_FLASH_VALUES = {
 }
 
 
-def _to_flash_description(value):
+def _to_flash_description(value: int) -> str:
     desc = _EXIF_FLASH_VALUES.get(value)
     if desc is None:
         desc = f"{_EXIF_FLASH_VALUES[int(value) & 1]} ({value})"
     return desc
 
 
-def _to_string(value):
+def _to_string(value: str) -> str:
     # XXX: By spec, strings in EXIF tags are in ASCII, however some tools
     # that handle EXIF tags support UTF-8.
     # PIL seems to return strings decoded as iso-8859-1, which is rarely, if ever,
     # right.  Attempt re-decoding as UTF-8.
+    if not isinstance(value, str):
+        raise ValueError(f"Value {value!r} is not a string")
     try:
         return value.encode("iso-8859-1").decode("utf-8")
     except UnicodeDecodeError:
         return value
 
 
-def _to_rational(value):
+# NB: Older versions of Pillow return (numerator, denominator) tuples
+# for EXIF rational numbers.  New versions return a Fraction instance.
+ExifRational: TypeAlias = Union[numbers.Rational, Tuple[int, int]]
+ExifReal: TypeAlias = Union[numbers.Real, Tuple[int, int]]
+
+
+def _to_rational(value: ExifRational) -> numbers.Rational:
     # NB: Older versions of Pillow return (numerator, denominator) tuples
-    # for EXIF rational numbers.  New version return a Fraction instance.
+    # for EXIF rational numbers.  New versions return a Fraction instance.
     if isinstance(value, numbers.Rational):
         return value
     if isinstance(value, tuple) and len(value) == 2:
@@ -196,17 +221,19 @@ def _to_rational(value):
     raise ValueError(f"Can not convert {value!r} to Rational")
 
 
-def _to_float(value):
+def _to_float(value: ExifReal) -> float:
     if not isinstance(value, numbers.Real):
         value = _to_rational(value)
     return float(value)
 
 
-def _to_focal_length(value):
+def _to_focal_length(value: ExifReal) -> str:
     return f"{_to_float(value):g}mm"
 
 
-def _to_degrees(coords, hemisphere):
+def _to_degrees(
+    coords: tuple[ExifReal, ExifReal, ExifReal], hemisphere: Literal["E", "W", "N", "S"]
+) -> float:
     degrees, minutes, seconds = map(_to_float, coords)
     degrees = degrees + minutes / 60 + seconds / 3600
     if hemisphere in {"S", "W"}:
@@ -214,16 +241,29 @@ def _to_degrees(coords, hemisphere):
     return degrees
 
 
-def _to_altitude(altitude, altitude_ref):
+def _to_altitude(altitude: ExifReal, altitude_ref: Literal[b"\x00", b"\x01"]) -> float:
     value = _to_float(altitude)
     if altitude_ref == b"\x01":
         value = -value
     return value
 
 
-def _default_none(wrapped):
+_T = TypeVar("_T")
+
+
+def _default_none(wrapped: Callable[[EXIFInfo], _T]) -> Callable[[EXIFInfo], _T | None]:
+    """Return ``None`` if wrapped getter raises a ``LookupError``.
+
+    This is a decorator intended for use on property getters for the EXIFInfo class.
+
+    If the wrapped getter raises a ``LookupError`` (as might happen if it tries to
+    access a non-existent value in one of the EXIF tables, the wrapper will return
+    ``None`` rather than propagating the exception.
+
+    """
+
     @wraps(wrapped)
-    def wrapper(self):
+    def wrapper(self: EXIFInfo) -> _T | None:
         try:
             return wrapped(self)
         except LookupError:
@@ -233,13 +273,22 @@ def _default_none(wrapped):
 
 
 class EXIFInfo:
+    """Adapt Exif tags to more user-friendly values.
+
+    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to certain
+    Exif tags more user-friendly.
+
+    """
+
     def __init__(self, exif: PIL.Image.Exif):
         self._exif = exif
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """True if any Exif data exists."""
         return bool(self._exif)
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str | float | tuple[float, float] | None]:
+        """Return a dict containing the values of all known Exif tags."""
         rv = {}
         for key, value in self.__class__.__dict__.items():
             if key[:1] != "_" and isinstance(value, property):
@@ -247,15 +296,35 @@ class EXIFInfo:
         return rv
 
     @property
-    def _ifd0(self):
+    def _ifd0(self) -> Mapping[int, Any]:
+        """The main "Image File Directory" (IFD0).
+
+        This mapping contains the basic Exif tags applying to the main image.  Keys are
+        the Exif tag number, values are typing strings, ints, floats, or rationals.
+
+        References
+        ----------
+
+        - https://www.media.mit.edu/pia/Research/deepview/exif.html#ExifTags
+        - https://www.awaresystems.be/imaging/tiff/tifftags/baseline.html
+
+        """
         return self._exif
 
     @property
-    def _exif_ifd(self):
-        return self._exif.get_ifd(ExifTags.IFD.Exif)
+    def _exif_ifd(self) -> Mapping[int, Any]:
+        """The Exif SubIFD.
+
+        - https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/exif.html
+        """
+        return self._exif.get_ifd(ExifTags.IFD.Exif)  # type: ignore[no-any-return]
 
     @property
-    def _gpsinfo_ifd(self):
+    def _gpsinfo_ifd(self) -> Mapping[int, Any]:
+        """The GPS IFD
+
+        - https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/gps.html
+        """
         # On older Pillow versions, get_ifd(GPSinfo) returns None.
         # Prior to somewhere around Pillow 8.2.0, the GPS IFD was accessible at
         # the top level. Try that first.
@@ -264,97 +333,96 @@ class EXIFInfo:
         gps_ifd = self._exif.get(ExifTags.IFD.GPSInfo)
         if isinstance(gps_ifd, dict):
             return gps_ifd
-        return self._exif.get_ifd(ExifTags.IFD.GPSInfo)
+        return self._exif.get_ifd(ExifTags.IFD.GPSInfo)  # type: ignore[no-any-return]
 
     @property
     @_default_none
-    def artist(self):
+    def artist(self) -> str:
         return _to_string(self._ifd0[ExifTags.Base.Artist])
 
     @property
     @_default_none
-    def copyright(self):
+    def copyright(self) -> str:
         return _to_string(self._ifd0[ExifTags.Base.Copyright])
 
     @property
     @_default_none
-    def camera_make(self):
+    def camera_make(self) -> str:
         return _to_string(self._ifd0[ExifTags.Base.Make])
 
     @property
     @_default_none
-    def camera_model(self):
+    def camera_model(self) -> str:
         return _to_string(self._ifd0[ExifTags.Base.Model])
 
     @property
-    def camera(self):
+    def camera(self) -> str:
         return _combine_make(self.camera_make, self.camera_model)
 
     @property
     @_default_none
-    def lens_make(self):
+    def lens_make(self) -> str:
         return _to_string(self._exif_ifd[ExifTags.Base.LensMake])
 
     @property
     @_default_none
-    def lens_model(self):
+    def lens_model(self) -> str:
         return _to_string(self._exif_ifd[ExifTags.Base.LensModel])
 
     @property
-    def lens(self):
+    def lens(self) -> str:
         return _combine_make(self.lens_make, self.lens_model)
 
     @property
     @_default_none
-    def aperture(self):
+    def aperture(self) -> float:
         return round(_to_float(self._exif_ifd[ExifTags.Base.ApertureValue]), 4)
 
     @property
     @_default_none
-    def f_num(self):
+    def f_num(self) -> float:
         return round(_to_float(self._exif_ifd[ExifTags.Base.FNumber]), 4)
 
     @property
     @_default_none
-    def f(self):
+    def f(self) -> str:
         value = _to_float(self._exif_ifd[ExifTags.Base.FNumber])
         return f"ƒ/{value:g}"
 
     @property
     @_default_none
-    def exposure_time(self):
+    def exposure_time(self) -> str:
         value = _to_rational(self._exif_ifd[ExifTags.Base.ExposureTime])
         return f"{value.numerator}/{value.denominator}"
 
     @property
     @_default_none
-    def shutter_speed(self):
+    def shutter_speed(self) -> str:
         value = _to_float(self._exif_ifd[ExifTags.Base.ShutterSpeedValue])
         return f"1/{2 ** value:.0f}"
 
     @property
     @_default_none
-    def focal_length(self):
+    def focal_length(self) -> str:
         return _to_focal_length(self._exif_ifd[ExifTags.Base.FocalLength])
 
     @property
     @_default_none
-    def focal_length_35mm(self):
+    def focal_length_35mm(self) -> str:
         return _to_focal_length(self._exif_ifd[ExifTags.Base.FocalLengthIn35mmFilm])
 
     @property
     @_default_none
-    def flash_info(self):
+    def flash_info(self) -> str:
         return _to_flash_description(self._exif_ifd[ExifTags.Base.Flash])
 
     @property
     @_default_none
-    def iso(self):
+    def iso(self) -> float:
         return _to_float(self._exif_ifd[ExifTags.Base.ISOSpeedRatings])
 
     @property
-    @_default_none
-    def created_at(self):
+    def created_at(self) -> datetime | None:
         date_tags = (
             # XXX: GPSDateStamp includes just the date
             # https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/gps/gpsdatestamp.html
@@ -374,7 +442,7 @@ class EXIFInfo:
 
     @property
     @_default_none
-    def longitude(self):
+    def longitude(self) -> float:
         gpsinfo_ifd = self._gpsinfo_ifd
         return _to_degrees(
             gpsinfo_ifd[ExifTags.GPS.GPSLongitude],
@@ -383,7 +451,7 @@ class EXIFInfo:
 
     @property
     @_default_none
-    def latitude(self):
+    def latitude(self) -> float:
         gpsinfo_ifd = self._gpsinfo_ifd
         return _to_degrees(
             gpsinfo_ifd[ExifTags.GPS.GPSLatitude],
@@ -392,7 +460,7 @@ class EXIFInfo:
 
     @property
     @_default_none
-    def altitude(self):
+    def altitude(self) -> float:
         gpsinfo_ifd = self._gpsinfo_ifd
         value = _to_float(gpsinfo_ifd[ExifTags.GPS.GPSAltitude])
         ref = gpsinfo_ifd.get(ExifTags.GPS.GPSAltitudeRef)
@@ -401,7 +469,7 @@ class EXIFInfo:
         return value
 
     @property
-    def location(self):
+    def location(self) -> tuple[float, float] | None:
         lat = self.latitude
         long = self.longitude
         if lat is not None and long is not None:
@@ -410,16 +478,16 @@ class EXIFInfo:
 
     @property
     @_default_none
-    def documentname(self):
+    def documentname(self) -> str:
         return _to_string(self._ifd0[ExifTags.Base.DocumentName])
 
     @property
     @_default_none
-    def description(self):
+    def description(self) -> str:
         return _to_string(self._ifd0[ExifTags.Base.ImageDescription])
 
     @property
-    def is_rotated(self):
+    def is_rotated(self) -> bool:
         """Return if the image is rotated according to the Orientation header.
 
         The Orientation header in EXIF stores an integer value between
@@ -433,7 +501,28 @@ class EXIFInfo:
             return False
 
 
-def _parse_svg_units_px(length):
+class SvgImageInfo(NamedTuple):
+    format: Literal["svg"] = "svg"
+    width: float | None = None
+    height: float | None = None
+
+
+class PILImageInfo(NamedTuple):
+    format: str
+    width: int
+    height: int
+
+
+class UnknownImageInfo(NamedTuple):
+    format: None = None
+    width: None = None
+    height: None = None
+
+
+ImageInfo: TypeAlias = Union[PILImageInfo, SvgImageInfo, UnknownImageInfo]
+
+
+def _parse_svg_units_px(length: str) -> float | None:
     match = re.match(
         r"\d+(?: \.\d* )? (?= (?: \s*px )? \Z)", length.strip(), re.VERBOSE
     )
@@ -442,28 +531,30 @@ def _parse_svg_units_px(length):
     return None
 
 
-def get_svg_info(fp):
+def get_svg_info(
+    source: str | Path | SupportsRead[bytes],
+) -> SvgImageInfo | UnknownImageInfo:
     try:
-        _, svg = next(etree.iterparse(fp, events=["start"]))
+        _, svg = next(etree.iterparse(source, events=["start"]))
     except (etree.ParseError, StopIteration):
-        return None, None, None
+        return UnknownImageInfo()
     if svg.tag != "{http://www.w3.org/2000/svg}svg":
-        return None, None, None
+        return UnknownImageInfo()
     width = _parse_svg_units_px(svg.attrib.get("width", ""))
     height = _parse_svg_units_px(svg.attrib.get("height", ""))
-    return "svg", width, height
+    return SvgImageInfo("svg", width, height)
 
 
 def _PIL_image_info(
     image: PIL.Image.Image,
-) -> tuple[str, int, int] | tuple[None, None, None]:
+) -> PILImageInfo | UnknownImageInfo:
     """Determine image format and dimensions for PIL Image"""
 
     FORMATS = {"PNG": "png", "GIF": "gif", "JPEG": "jpeg"}
     TRANSPOSED_ORIENTATIONS = {5, 6, 7, 8}
 
     if image.format not in FORMATS:
-        return None, None, None
+        return UnknownImageInfo()
 
     fmt = FORMATS[image.format]
     width = image.width
@@ -474,11 +565,11 @@ def _PIL_image_info(
     if orientation in TRANSPOSED_ORIENTATIONS:
         width, height = height, width
 
-    return fmt, width, height
+    return PILImageInfo(fmt, width, height)
 
 
 @contextmanager
-def _save_position(fp):
+def _save_position(fp: BinaryIO) -> Generator[BinaryIO, None, None]:
     position = fp.tell()
     try:
         yield fp
@@ -486,21 +577,21 @@ def _save_position(fp):
         fp.seek(position)
 
 
-def get_image_info(fp):
-    """Reads some image info from a file descriptor."""
+def get_image_info(fp: BinaryIO) -> ImageInfo:
+    """Determine type and dimensions of an image file."""
     try:
         with _save_position(fp) as fp_:
-            image = PIL.Image.open(fp_)
+            with PIL.Image.open(fp_) as image:
+                return _PIL_image_info(image)
     except UnidentifiedImageError:
         return get_svg_info(fp)
 
-    return _PIL_image_info(image)
 
-
-def read_exif(fp):
-    """Reads exif data from a file pointer of an image and returns it."""
+def read_exif(source: str | Path | SupportsRead[bytes]) -> EXIFInfo:
+    """Reads exif data from an image file."""
     try:
-        exif = PIL.Image.open(fp).getexif()
+        with PIL.Image.open(source) as image:
+            exif = image.getexif()
     except UnidentifiedImageError:
         exif = PIL.Image.Exif()
     return EXIFInfo(exif)
@@ -623,9 +714,7 @@ class ThumbnailParams:
     quality: int | None = None
     crop: bool = False
 
-    # save_image: _SaveImage = dataclasses.field(init=False)
-
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         format = self.format.upper()
         for format_info_cls in _FormatInfo.__subclasses__():
             if format_info_cls.format == format:
@@ -655,18 +744,25 @@ class ThumbnailParams:
         return self.format_info.get_thumbnail_tag(self)
 
 
-def _scale(x: int, num: int, denom: int) -> int:
+def _scale(x: int, num: float, denom: float) -> int:
     """Compute x * num / denom, rounded to integer.
 
-    ``x``, ``num``, and ``denom`` should all be positive integers.
+    ``x``, ``num``, and ``denom`` should all be positive.
 
     Rounds 0.5 up to be consistent with imagemagick.
+
     """
-    return (x * num + denom // 2) // denom
+    if isinstance(num, int) and isinstance(denom, int):
+        # If all arguments are integers, carry out the computation using integer math to
+        # ensure that 0.5 rounds up.
+        return (x * num + denom // 2) // denom
+    # If floats are involved, we do our best to round 0.5 up, but loss of precision
+    # involved in floating point math makes the idea of "exactly" 0.5 a little fuzzy.
+    return math.trunc((x * num + denom / 2) // denom)
 
 
 def compute_dimensions(
-    width: int | None, height: int | None, source_width: int, source_height: int
+    width: int | None, height: int | None, source_width: float, source_height: float
 ) -> ImageSize:
     """Compute "fit"-mode dimensions of thumbnail.
 
@@ -751,7 +847,7 @@ def _create_thumbnail(
 
 
 def _create_artifact(
-    source_image: str | Path | BinaryIO,
+    source_image: str | Path | SupportsRead[bytes],
     thumbnail_params: ThumbnailParams,
     artifact: Artifact,
 ) -> None:
@@ -771,58 +867,62 @@ def _get_thumbnail_url_path(
     # leave ext unchanged from source if valid for the thumbnail format
     ext = thumbnail_params.get_ext(source_ext)
     suffix = thumbnail_params.get_tag()
-    return get_dependent_url(source_url_path, suffix, ext=ext)
+    return get_dependent_url(  # type: ignore[no-any-return]
+        source_url_path, suffix, ext=ext
+    )
 
 
 def make_image_thumbnail(
-    ctx,
-    source_image,
-    source_url_path,
-    width=None,
-    height=None,
-    mode=ThumbnailMode.DEFAULT,
-    upscale=None,
-    quality=None,
-):
+    ctx: Context,
+    source_image: str | Path,
+    source_url_path: str,
+    width: int | None = None,
+    height: int | None = None,
+    mode: ThumbnailMode = ThumbnailMode.DEFAULT,
+    upscale: bool | None = None,
+    quality: int | None = None,
+) -> Thumbnail:
     """Helper method that can create thumbnails from within the build process
     of an artifact.
     """
-    if width is None and height is None:
-        raise ValueError("Must specify at least one of width or height.")
-    if mode != ThumbnailMode.FIT and (width is None or height is None):
-        raise ValueError(
-            f'"{mode.value}" mode requires both `width` and `height` to be specified.'
-        )
-
-    if upscale is None and mode in (ThumbnailMode.CROP, ThumbnailMode.STRETCH):
-        upscale = True
-
-    with open(source_image, "rb") as f:
-        source_format, source_width, source_height = get_image_info(f)
-
-    if source_format is None:
+    with open(source_image, "rb") as fp:
+        image_info = get_image_info(fp)
+    if isinstance(image_info, UnknownImageInfo):
         raise RuntimeError("Cannot process unknown images")
+
+    if mode == ThumbnailMode.FIT:
+        if width is None and height is None:
+            raise ValueError("Must specify at least one of width or height.")
+        if image_info.width is None or image_info.height is None:
+            assert isinstance(image_info, SvgImageInfo)
+            raise ValueError("Cannot determine aspect ratio of SVG image.")
+        if upscale is None:
+            upscale = False
+        size = compute_dimensions(width, height, image_info.width, image_info.height)
+    else:
+        if width is None or height is None:
+            raise ValueError(
+                f'"{mode.value}" mode requires both `width` and `height` to be specified.'
+            )
+        if upscale is None:
+            upscale = True
+        size = ImageSize(width, height)
 
     # If we are dealing with an actual svg image, we do not actually
     # resize anything, we just return it. This is not ideal but it's
     # better than outright failing.
-    if source_format == "svg":
-        # XXX: this is pretty broken.
-        # (Deal with scaling mode properly?)
-        return Thumbnail(source_url_path, width, height)
+    if isinstance(image_info, SvgImageInfo):
+        # XXX: Since we don't always know the original dimensions,
+        # we currently omit the upscaling check for SVG images.
+        return Thumbnail(source_url_path, size.width, size.height)
 
-    if mode == ThumbnailMode.FIT:
-        size = compute_dimensions(width, height, source_width, source_height)
-    else:
-        size = ImageSize(width, height)
-
-    would_upscale = size.width > source_width or size.height > source_height
+    would_upscale = size.width > image_info.width or size.height > image_info.height
     if would_upscale and not upscale:
-        return Thumbnail(source_url_path, source_width, source_height)
+        return Thumbnail(source_url_path, image_info.width, image_info.height)
 
     thumbnail_params = ThumbnailParams(
         size=size,
-        format=source_format.upper(),
+        format=image_info.format.upper(),
         quality=quality,
         crop=mode == ThumbnailMode.CROP,
     )
@@ -845,5 +945,5 @@ class Thumbnail:
     width: int
     height: int
 
-    def __str__(self):
+    def __str__(self) -> str:
         return posixpath.basename(self.url_path)

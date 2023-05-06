@@ -205,19 +205,18 @@ module = [
     "lektor.packages",
 ]
 disallow_untyped_defs = false
-disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = [
     "lektor.admin.*",
     "lektor.devserver",
     "lektor.imagetools",
+    "lektor.packages",
 ]
 disallow_untyped_calls = false
-warn_return_any = false
 
 [[tool.mypy.overrides]]
 module = [
-    "lektor.imagetools",
+    "lektor.admin.*",
 ]
-disallow_untyped_defs = false
+warn_return_any = false
