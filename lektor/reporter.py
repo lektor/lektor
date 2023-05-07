@@ -13,12 +13,17 @@ _build_buffer_stack = LocalStack()
 
 
 def describe_build_func(func):
-    self = getattr(func, "__self__", None)
-    if self is not None and any(
-        x.__name__ == "BuildProgram" for x in self.__class__.__mro__
-    ):
-        return self.__class__.__module__ + "." + self.__class__.__name__
-    return func.__module__ + "." + func.__name__
+    if hasattr(func, "func"):
+        func = func.func  # unwrap functools.partial
+    try:
+        qualname = func.__qualname__
+        class_name, _, method = qualname.rpartition(".")
+        if class_name and method == "build_artifact":
+            # Strip method name from methods of BuildProgram instances
+            qualname = class_name
+        return f"{func.__module__}.{qualname}"
+    except AttributeError:
+        return repr(func)
 
 
 class Reporter:
