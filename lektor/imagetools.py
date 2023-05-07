@@ -47,6 +47,11 @@ if TYPE_CHECKING:
     from lektor.builder import Artifact
     from lektor.context import Context
 
+if sys.version_info >= (3, 8):
+    from typing import Final
+else:
+    from typing_extensions import Final
+
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
 else:
@@ -70,44 +75,25 @@ else:
         GPSTAGS=PIL.ExifTags.GPSTAGS,
     )
 
-if PILLOW_VERSION_INFO >= (8, 0):
-    exif_transpose = PIL.ImageOps.exif_transpose
-else:
-    # Exif_transpose is broken in older versions of Pillow
-    # (It has trouble updating EXIF tags in some cases.)
-    #
-    # Ref: https://github.com/python-pillow/Pillow/issues/4896
-    #
-    _TRANSPOSE_FOR_ORIENTATION: dict[int, Any] = {
-        2: PIL.Image.FLIP_LEFT_RIGHT,
-        3: PIL.Image.ROTATE_180,
-        4: PIL.Image.FLIP_TOP_BOTTOM,
-        5: PIL.Image.TRANSPOSE,
-        6: PIL.Image.ROTATE_270,
-        7: PIL.Image.TRANSVERSE,
-        8: PIL.Image.ROTATE_90,
-    }
-
-    def exif_transpose(image: PIL.Image.Image) -> PIL.Image.Image:
-        """If an image has an EXIF Orientation tag, return a new image that is
-        transposed accordingly.
-
-        If the image has no Orientation tag, a copy of the original is returned.
-
-        NOTE: Contrary to what ``PIL.ImageOps.exif_transpose`` does, this version simply
-        deletes all EXIF tags from the transposed image.
-
-        """
-        exif = image.getexif()
-        orientation = exif.get(ExifTags.Base.Orientation)
-        if orientation not in _TRANSPOSE_FOR_ORIENTATION:
-            return image.copy()
-        transposed_image = image.transpose(_TRANSPOSE_FOR_ORIENTATION[orientation])
-        del transposed_image.info["exif"]
-        return transposed_image
-
 
 UnidentifiedImageError = getattr(PIL, "UnidentifiedImageError", OSError)
+
+
+class TiffOrientation(IntEnum):
+    """The possible values of the "Exif Orientation" tag."""
+
+    TOPLEFT = 1
+    TOPRIGHT = 2
+    BOTRIGHT = 3
+    BOTLEFT = 4
+    LEFTTOP = 5
+    RIGHTTOP = 6
+    RIGHTBOT = 7
+    LEFTBOT = 8
+
+    def __init__(self, value: int):
+        # True if orientation implies width and height are transposed
+        self.is_transposed = value in {5, 6, 7, 8}
 
 
 SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
@@ -496,9 +482,10 @@ class EXIFInfo:
         the image is rotated.
         """
         try:
-            return self._ifd0[ExifTags.Base.Orientation] in {5, 6, 7, 8}
-        except LookupError:
+            orientation = TiffOrientation(self._ifd0[ExifTags.Base.Orientation])
+        except (LookupError, ValueError):
             return False
+        return orientation.is_transposed
 
 
 class SvgImageInfo(NamedTuple):
@@ -545,27 +532,77 @@ def get_svg_info(
     return SvgImageInfo("svg", width, height)
 
 
+def _get_image_orientation(image: PIL.Image.Image) -> TiffOrientation:
+    """Deduce the orientation of the image.
+
+    Notes
+    -----
+
+    Note that browsers only seem to respect the "Exif" Orientation tag for JPEG images
+    (and probably TIFF images). In particular, it is `typically ignored`__ by
+    browsers when displaying PNG, WEBP and AVIF files (though AVIF files have their own way
+    of indicating orientation — the "irot" and "imir" properties — which are respected.)
+
+    __ https://zpl.fi/exif-orientation-in-different-formats/
+
+    Exif information can be stored in PNG files, however the `spec for Exif in PNG`__
+    does state that the Exif information should be considered "historical", under the
+    assumption that it was probably copied directly from the source image (where it was
+    written by, e.g., the camera). It implies that the "unsafe-to-copy" Exif information
+    (e.g. orientation, size) should be ignored.
+
+    __ https://ftp-osl.osuosl.org/pub/libpng/documents/proposals/eXIf/png-proposed-eXIf-chunk-2017-06-15.html
+
+    Prior to Lektor 3.4, Lektor's ``get_image_info`` only checked the orientation for
+    JPEG images (transposing width↔height when appropriate).  The ``-auto-orient``
+    option to ImageMagick's ``convert`` appears to ignore Exif Orientation in PNG files,
+    too.
+
+    Finally, note that reading Exif information from PNG files using Pillow is a slow
+    operation.  It seems to require loading and decoding the full image.  (Loading Exif
+    information from JPEG files does not require decoding the image, so is much
+    quicker.)
+
+    For all of these reasons, we only check the Exif Orientation tag for JPEGs.
+
+    """  # pylint: disable=line-too-long # noqa: E501
+    if image.format != "JPEG":
+        return TiffOrientation.TOPLEFT
+    exif = image.getexif()
+    try:
+        orientation = exif[ExifTags.Base.Orientation]
+        return TiffOrientation(orientation)
+    except (ValueError, LookupError):
+        return TiffOrientation.TOPLEFT
+
+
+# Mapping from PIL format to Lektor format
+_LEKTOR_FORMATS: Final[Mapping[str, str]] = {
+    "PNG": "png",
+    "GIF": "gif",
+    "JPEG": "jpeg",
+}
+
+
 def _PIL_image_info(
     image: PIL.Image.Image,
 ) -> PILImageInfo | UnknownImageInfo:
     """Determine image format and dimensions for PIL Image"""
 
-    FORMATS = {"PNG": "png", "GIF": "gif", "JPEG": "jpeg"}
-    TRANSPOSED_ORIENTATIONS = {5, 6, 7, 8}
-
-    if image.format not in FORMATS:
+    assert image.format is not None
+    try:
+        lektor_fmt = _LEKTOR_FORMATS[image.format]
+    except LookupError:
         return UnknownImageInfo()
 
-    fmt = FORMATS[image.format]
     width = image.width
     height = image.height
 
-    exif = image.getexif()
-    orientation = exif.get(ExifTags.Base.Orientation)
-    if orientation in TRANSPOSED_ORIENTATIONS:
+    orientation = _get_image_orientation(image)
+    if orientation.is_transposed:
         width, height = height, width
 
-    return PILImageInfo(fmt, width, height)
+    return PILImageInfo(lektor_fmt, width, height)
 
 
 @contextmanager
@@ -819,13 +856,38 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
         im.info.pop("icc_profile")
 
 
+_TRANSPOSE_FOR_ORIENTATION: Final[Mapping[TiffOrientation, int]] = {
+    TiffOrientation.TOPRIGHT: PIL.Image.FLIP_LEFT_RIGHT,
+    TiffOrientation.BOTRIGHT: PIL.Image.ROTATE_180,
+    TiffOrientation.BOTLEFT: PIL.Image.FLIP_TOP_BOTTOM,
+    TiffOrientation.LEFTTOP: PIL.Image.TRANSPOSE,
+    TiffOrientation.RIGHTTOP: PIL.Image.ROTATE_270,
+    TiffOrientation.RIGHTBOT: PIL.Image.TRANSVERSE,
+    TiffOrientation.LEFTBOT: PIL.Image.ROTATE_90,
+}
+
+
+def _auto_orient_image(image: PIL.Image.Image) -> PIL.Image.Image:
+    """Transpose image as indicated by the Exif Orientation tag.
+
+    We only do this for JPEG images.  See _get_image_orientation for notes on why.
+
+    """
+    orientation = _get_image_orientation(image)
+    if orientation in _TRANSPOSE_FOR_ORIENTATION:
+        image = image.transpose(
+            _TRANSPOSE_FOR_ORIENTATION[orientation]  # type: ignore[arg-type]
+        )
+    return image
+
+
 def _create_thumbnail(
     image: PIL.Image.Image, params: ThumbnailParams
 ) -> PIL.Image.Image:
     # XXX: use Image.thumbnail sometimes? (Is it more efficient?)
 
     # transpose according to EXIF Orientation
-    source = exif_transpose(image)
+    source = _auto_orient_image(image)
 
     resize_params: dict[str, Any] = {"reducing_gap": 3.0}
     if params.crop:
