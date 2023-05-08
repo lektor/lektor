@@ -97,10 +97,6 @@ class TiffOrientation(IntEnum):
         self.is_transposed = value in {5, 6, 7, 8}
 
 
-SRGB_PROFILE = PIL.ImageCms.createProfile("sRGB")
-SRGB_PROFILE_BYTES = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
-
-
 class ThumbnailMode(Enum):
     FIT = "fit"
     CROP = "crop"
@@ -840,8 +836,36 @@ def _compute_cropbox(size: ImageSize, source_width: int, source_height: int) -> 
     return CropBox(crop_l, crop_t, crop_l + use_width, crop_t + use_height)
 
 
-def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
-    """Convert image color profile to sRGB.
+SRGB_PROFILE: Final = PIL.ImageCms.createProfile("sRGB")
+SRGB_PROFILE_BYTES: Final = PIL.ImageCms.ImageCmsProfile(SRGB_PROFILE).tobytes()
+
+
+def _get_icc_transform(
+    icc_profile: bytes, inMode: str, outMode: str
+) -> PIL.ImageCms.ImageCmsTransform:
+    """Construct ICC transform mapping icc_profile to sRGB."""
+    profile = PIL.ImageCms.getOpenProfile(io.BytesIO(icc_profile))
+    transform = PIL.ImageCms.buildTransform(profile, SRGB_PROFILE, inMode, outMode)
+    assert isinstance(transform, PIL.ImageCms.ImageCmsTransform)
+    return transform
+
+
+def _convert_to_rgb(image: PIL.Image.Image) -> PIL.Image.Image:
+    # Ensure image is RGB before scaling
+    targetMode = "RGBA" if image.mode.upper().endswith("A") else "RGB"
+    if image.mode != targetMode:
+        icc_profile = image.info.get("icc_profile")
+        if icc_profile is not None:
+            icc_transform = _get_icc_transform(icc_profile, image.mode, targetMode)
+            image = PIL.ImageCms.applyTransform(image, icc_transform)
+            del image.info["icc_profile"]
+        else:
+            image = image.convert(targetMode)
+    return image
+
+
+def _convert_icc_profile_to_srgb(image: PIL.Image.Image) -> None:
+    """Convert image from embedded ICC profile to sRGB.
 
     The image is modified **in place**.
 
@@ -855,15 +879,22 @@ def _convert_color_profile_to_srgb(im: PIL.Image.Image) -> None:
     #
     # Here we attempt to convert from any embedded colorspace in the source image
     # to sRGB.
-    if "icc_profile" in im.info:
-        profile = PIL.ImageCms.getOpenProfile(io.BytesIO(im.info["icc_profile"]))
-        profile_name = PIL.ImageCms.getProfileName(profile)
-        # FIXME: is there a better way to tell if input already sRGB?
-        # Is there even a well-defined single "sRGB" profile?
-        # (See https://ninedegreesbelow.com/photography/srgb-profile-comparison.html)
-        if profile_name.strip() not in ("sRGB", "sRGB IEC61966-2.1", "sRGB built-in"):
-            PIL.ImageCms.profileToProfile(im, profile, SRGB_PROFILE, inPlace=True)
-        im.info.pop("icc_profile")
+    #
+    # Note: _convert_to_rgb may have already done this if the original image was
+    # not in RGB(A) mode.  In that case it should have removed the icc_profile from
+    # the images .info dict.
+    #
+    # XXX: There seems to be no real way to compare to color profiles to see whether
+    # they are the same.  It's not even clear that all "sRGB" profiles are really the
+    # same.  (See
+    # https://ninedegreesbelow.com/photography/srgb-profile-comparison.html.) So we
+    # always convert if the image has a color profile.
+    #
+    icc_profile = image.info.get("icc_profile")
+    if icc_profile is not None and icc_profile != SRGB_PROFILE_BYTES:
+        icc_transform = _get_icc_transform(icc_profile, image.mode, image.mode)
+        PIL.ImageCms.applyTransform(image, icc_transform, inPlace=True)
+        del image.info["icc_profile"]
 
 
 _TRANSPOSE_FOR_ORIENTATION: Final[Mapping[TiffOrientation, int]] = {
@@ -896,21 +927,21 @@ def _create_thumbnail(
 ) -> PIL.Image.Image:
     # XXX: use Image.thumbnail sometimes? (Is it more efficient?)
 
-    # transpose according to EXIF Orientation
-    source = _auto_orient_image(image)
+    # Ensure image is RGB before scaling
+    image = _convert_to_rgb(image)
 
+    # transpose according to EXIF Orientation
+    image = _auto_orient_image(image)
+
+    # resize
     resize_params: dict[str, Any] = {"reducing_gap": 3.0}
     if params.crop:
-        resize_params["box"] = _compute_cropbox(
-            params.size, source.width, source.height
-        )
-
+        resize_params["box"] = _compute_cropbox(params.size, image.width, image.height)
     if PILLOW_VERSION_INFO < (7, 0):
         del resize_params["reducing_gap"]  # not supported in older Pillow
+    thumbnail = image.resize(params.size, **resize_params)
 
-    thumbnail = source.resize(params.size, **resize_params)
-
-    _convert_color_profile_to_srgb(thumbnail)
+    _convert_icc_profile_to_srgb(thumbnail)
 
     # Do not propate comment tag to thumbnail
     thumbnail.info.pop("comment", None)

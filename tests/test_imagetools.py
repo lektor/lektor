@@ -16,7 +16,7 @@ from pytest import approx
 
 from lektor.imagetools import _combine_make
 from lektor.imagetools import _compute_cropbox
-from lektor.imagetools import _convert_color_profile_to_srgb
+from lektor.imagetools import _convert_icc_profile_to_srgb
 from lektor.imagetools import _create_artifact
 from lektor.imagetools import _create_thumbnail
 from lektor.imagetools import _get_thumbnail_url_path
@@ -42,7 +42,8 @@ from lektor.imagetools import ThumbnailParams
 
 HERE = Path(__file__).parent
 DEMO_PROJECT = HERE / "demo-project/content"
-COLORSPACE_TEST_JPG = DEMO_PROJECT / "colorspace-test/rgb-to-gbr-test.jpg"
+ICC_PROFILE_TEST_JPG = DEMO_PROJECT / "icc-profile-test/rgb-to-gbr-test.jpg"
+CMYK_ICC_PROFILE_TEST = DEMO_PROJECT / "icc-profile-test/CGATS001Compat-v2-micro.icc"
 NONIMAGE_FILE_PATH = Path(__file__)  # we are not an image
 
 EXIF_ORIENTATION_TAG = 0x0112
@@ -475,20 +476,20 @@ def dummy_image():
     return PIL.Image.new("RGB", (100, 100), "#999")
 
 
-def test_convert_color_profile_to_srgb():
-    im = PIL.Image.open(COLORSPACE_TEST_JPG)
+def test_convert_icc_profile_to_srgb():
+    im = PIL.Image.open(ICC_PROFILE_TEST_JPG)
     # Top center of image is blue before color transform
     assert im.getpixel((im.width // 2, 0)) == approx((0, 0, 255), abs=10)
 
-    _convert_color_profile_to_srgb(im)
+    _convert_icc_profile_to_srgb(im)
     # Top center of image is red after color transform
     assert im.getpixel((im.width // 2, 0)) == approx((255, 0, 0), abs=10)
     assert "icc_profile" not in im.info
 
 
-def test_convert_color_profile_to_srgb_no_profile():
+def test_convert_icc_profile_to_srgb_no_profile():
     im = PIL.Image.new("RGB", (100, 100), "#999")
-    _convert_color_profile_to_srgb(im)
+    _convert_icc_profile_to_srgb(im)
     assert "icc_profile" not in im.info
 
 
@@ -497,6 +498,36 @@ def test_create_thumbnail(dummy_image):
     thumb = _create_thumbnail(dummy_image, thumbnail_params)
     assert thumb.width == 80 and thumb.height == 60
     assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
+
+
+def test_create_thumbnail_converts_hsv_to_rgb():
+    hsv_image = PIL.Image.new("HSV", (100, 100), "#009")
+    thumb = _create_thumbnail(hsv_image, ThumbnailParams(ImageSize(80, 60), "JPEG"))
+    assert thumb.mode == "RGB"
+    assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
+
+
+def test_create_thumbnail_converts_indexed_to_rgb():
+    image = PIL.Image.new("P", (100, 100), 0)
+    image.putpalette(b"\x10\x20\x30", "RGB")
+    thumb = _create_thumbnail(image, ThumbnailParams(ImageSize(80, 60), "JPEG"))
+    assert thumb.mode == "RGB"
+    assert thumb.getpixel((40, 30)) == approx((16, 32, 48), abs=2)
+
+
+def test_create_thumbnail_converts_cmyk_to_rgb(dummy_image):
+    cmyk_image = dummy_image.convert("CMYK")
+    thumb = _create_thumbnail(cmyk_image, ThumbnailParams(ImageSize(80, 60), "JPEG"))
+    assert thumb.mode == "RGB"
+    assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
+
+
+def test_create_thumbnail_converts_cmyk_to_rgb_via_icc_profile(dummy_image):
+    cmyk_image = dummy_image.convert("CMYK")
+    cmyk_image.info["icc_profile"] = CMYK_ICC_PROFILE_TEST.read_bytes()
+    thumb = _create_thumbnail(cmyk_image, ThumbnailParams(ImageSize(80, 60), "PNG"))
+    assert thumb.mode == "RGB"
+    assert thumb.getpixel((40, 30)) == approx((162, 148, 145), abs=5)
 
 
 class DummyArtifact:
@@ -521,7 +552,7 @@ def test_create_artifact(dummy_jpg_path):
 
 def test_create_artifact_strips_metadata():
     # this image has comment, dpi, exif, icc_profile, and photoshop data
-    source_image = COLORSPACE_TEST_JPG
+    source_image = ICC_PROFILE_TEST_JPG
     jfif_info_keys = {"jfif", "jfif_density", "jfif_unit", "jfif_version"}
     thumbnail_params = ThumbnailParams(ImageSize(80, 60), "JPEG")
     artifact = DummyArtifact()
