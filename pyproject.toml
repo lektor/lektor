@@ -195,7 +195,7 @@ module = [
     "lektor.devserver",
     "lektor.packages",
     "lektor.admin.*",
-    "lektor.imagetools",
+    "lektor.imagetools.*",
     "test_packages",
 ]
 ignore_errors = false
@@ -210,7 +210,7 @@ disallow_untyped_defs = false
 module = [
     "lektor.admin.*",
     "lektor.devserver",
-    "lektor.imagetools",
+    "lektor.imagetools.*",
     "lektor.packages",
 ]
 disallow_untyped_calls = false
