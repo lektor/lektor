@@ -332,9 +332,36 @@ def _auto_orient_image(image: PIL.Image.Image) -> PIL.Image.Image:
 def _create_thumbnail(
     image: PIL.Image.Image, params: ThumbnailParams
 ) -> PIL.Image.Image:
-    # XXX: use Image.thumbnail sometimes? (Is it more efficient?)
+    # XXX: There is an Image.thumbnail() method that can be significantly faster at
+    # down-scaling than Image.resize() in some particular cases. Perhaps we want to use
+    # that. (Image.thumbnail() never upscales, so we can only use it when down-scaling.)
+    #
+    # Image.thumbnail *only* has a possible advantage when down-scaling JPEG images,
+    # where it configures the image loader to help with the down-scaling.  (With other
+    # image types, .thumbnail just loads the image normally then uses .resize.)
+    #
+    # Some tests, downscaling a 5MB 4032x3024 JPEG, using:
+    #
+    #     python -m timeit -s "from PIL import Image" \
+    #       "im = Image.open('in.jpg'); im.thumbnail((W,H)); im.save('out.jpg')"
+    # or
+    #     python -m timeit -s "from PIL import Image" \
+    #       "im = Image.open('in.jpg'); im.resize((W,H)[,reducing_gap=3]).save('out.jpg')"
+    #
+    #         WxH    |  .resize()  |  .thumbnail()  |  .resize(reducing_gap=3)
+    #     ===========|=============|================|===========================
+    #      1024x768  |  117 msec   |   115 msec     |  130 msec
+    #       512x384  |  105 msec   |    51 msec     |   82 msec
+    #       256x192  |  103 msec   |    33 msec     |   63 msec
+    #       120x90   |  100 msec   |    22 msec     |   60 msec
+    #         4x3    |   88 msec   |    22 msec     |   58 msec
+    #
+    # Thumbnail() by default uses reducing_gap=2.
+    #
+    # The big wins for .thumbnail() appear to come when downscaling by a factor of ~8 or
+    # more.
 
-    # Ensure image is RGB before scaling
+    # Ensure image is in RGB (or RGBA) mode before scaling
     image = _convert_to_rgb(image)
 
     # transpose according to EXIF Orientation
@@ -348,6 +375,7 @@ def _create_thumbnail(
         del resize_params["reducing_gap"]  # not supported in older Pillow
     thumbnail = image.resize(params.size, **resize_params)
 
+    # Convert from any embedded ICC color profile to sRGB.
     _convert_icc_profile_to_srgb(thumbnail)
 
     # Do not propate comment tag to thumbnail
@@ -362,7 +390,6 @@ def _create_artifact(
     artifact: Artifact,
 ) -> None:
     """Create artifact by computing thumbnail for source image."""
-    # XXX: would passing explicit `formats` to Image.open make it any faster?
     with PIL.Image.open(source_image) as image:
         thumbnail = _create_thumbnail(image, thumbnail_params)
         save_params = thumbnail_params.get_save_params()
