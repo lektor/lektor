@@ -127,6 +127,7 @@ exclude_lines = [
     "pragma: no cover",
     '^\s*\.\.\.\s*$',
     '^\s*raise\s+NotImplementedError\(\)\s*$',
+    '^if TYPE_CHECKING:\s*',
 ]
 
 ################################################################
