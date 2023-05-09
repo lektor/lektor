@@ -39,7 +39,6 @@ import PIL.Image
 import PIL.ImageCms
 import PIL.ImageOps
 
-from lektor.utils import deprecated
 from lektor.utils import get_dependent_url
 
 if TYPE_CHECKING:
@@ -103,22 +102,6 @@ class ThumbnailMode(Enum):
     STRETCH = "stretch"
 
     DEFAULT = "fit"
-
-    @property
-    @deprecated("Use ThumbnailMode.value instead", version="3.3.0")
-    def label(self) -> str:
-        """The mode's label as used in templates."""
-        assert isinstance(self.value, str)
-        return self.value
-
-    @classmethod
-    @deprecated(
-        "Use the ThumbnailMode constructor, e.g. 'ThumbnailMode(label)', instead",
-        version="3.3.0",
-    )
-    def from_label(cls, label: str) -> ThumbnailMode:
-        """Looks up the thumbnail mode by its textual representation."""
-        return cls(label)
 
 
 def _combine_make(make: str | None, model: str | None) -> str:
