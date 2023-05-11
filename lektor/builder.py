@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
 from itertools import chain
+from itertools import islice
 from operator import attrgetter
 from pathlib import Path
 from pathlib import PurePath
@@ -20,7 +21,10 @@ from pathlib import PurePosixPath
 from typing import Any
 from typing import AbstractSet
 from typing import Callable
+from typing import Generator
 from typing import IO
+from typing import Iterable
+from typing import Iterator
 from typing import NamedTuple
 from typing import NewType
 from typing import TYPE_CHECKING
@@ -130,6 +134,24 @@ def create_tables(con):
         con.close()
 
 
+SQLITE_MAX_VARIABLE_NUMBER = 999  # Default SQLITE_MAX_VARIABLE_NUMBER.
+
+
+def _batched_for_sql(
+    data: Iterable[_T], batch_size: int = SQLITE_MAX_VARIABLE_NUMBER
+) -> Generator[tuple[str, list[_T]], None, None]:
+    """Return an iterable of (placeholders, chunk) pairs suitable for forming SQL queries.
+
+    The number of question marks in placeholders will match the length of chunk.
+    """
+    it = iter(data)
+    batch = list(islice(it, batch_size))
+    while batch:
+        placeholders = ",".join(["?"] * len(batch))
+        yield placeholders, batch
+        batch = list(islice(it, batch_size))
+
+
 class BuildState:
     def __init__(self, builder, path_cache):
         self.builder = builder
@@ -179,9 +201,18 @@ class BuildState:
             mtime = checksum = None
         return VirtualSourceInfo(virtual_source_path, alt, mtime, checksum)
 
+    # FIXME: deprecated
     def connect_to_database(self):
         """Returns a database connection for the build state db."""
         return self.builder.connect_to_database()
+
+    def db_connection(self):
+        """Context manager to manage a database connection.
+
+        When the context exits normally, the connection is committed then closed.
+        If the context exits via exception, the connection is rolled back then closed.
+        """
+        return self.builder.db_connection()
 
     def get_destination_filename(self, artifact_name):
         """Returns the destination filename for an artifact name."""
@@ -223,53 +254,44 @@ class BuildState:
         dst_filename = self.get_destination_filename(artifact_name)
         return os.path.exists(dst_filename)
 
+    # FIXME: unused?
     def get_artifact_dependency_infos(self, artifact_name, sources):
-        con = self.connect_to_database()
-        try:
-            cur = con.cursor()
-            rv = list(self._iter_artifact_dependency_infos(cur, artifact_name, sources))
-        finally:
-            con.close()
-        return rv
+        with self.db_connection() as con, closing(con.cursor()) as cur:
+            return list(
+                self._iter_artifact_dependency_infos(cur, artifact_name, sources)
+            )
 
-    # FIXME: unused? and broken
+    # FIXME: unused? (needs tests)
     def _iter_artifact_dependency_infos(self, cur, artifact_name, sources):
         """This iterates over all dependencies as file info objects."""
+        root_path = Path(self.env.root_path).resolve()
+        path_cache = self.path_cache
         cur.execute(
             """
-            select source, is_dir, source_size, source_mtime, source_checksum
+            select source, source_mtime, source_size, source_checksum, is_dir
             from artifacts
             where artifact = ?
             """,
             [artifact_name],
         )
-        rv = cur.fetchall()
-
-        found = set()
-        for path, mtime, size, checksum, is_dir in rv:
-            if "@" in path:
-                vpath, alt = _unpack_virtual_source_path(path)
-                # FIXME: broken
-                yield path, VirtualSourceInfo(vpath, alt, mtime, checksum)
+        found: list[SourcePath] = []
+        for info in iter(cur.fetchone, None):  # type: _SourceState
+            source_path = info[0]
+            source_info: VirtualSourceInfo | FileInfo
+            if "@" in source_path:
+                source_info = VirtualSourceInfo(*info)
             else:
-                filename = os.path.join(self.env.root_path, path)
-                # FIXME: broken
-                file_info = FileInfo(
-                    self.env, filename, mtime, size, checksum, bool(is_dir)
-                )
-                found.add(filename)
-                # FIXME: first element (filename) unused?
-                # FIXME: filename changed from to_source_info(path) to join(root_path,
-                # path)
-                yield filename, file_info
+                source_info = FileInfo(*info)
+                source_info.filename = os.path.join(root_path, source_path)
+                found.append(source_path)  # type: ignore[arg-type]
+            yield source_path, source_info
 
         # In any case we also iterate over our direct sources, even if the
         # build state does not know about them yet.  This can be caused by
         # an initial build or a change in original configuration.
-        for source in sources:
-            filename = os.path.join(self.env.root_path, source)
-            if filename not in found:
-                yield source, None
+        source_paths = set(map(path_cache.to_source_filename, sources))
+        for source_path in source_paths.difference(found):
+            yield source_path, None
 
     def write_source_info(self, info):
         """Writes the source info into the database.  The source info is
@@ -277,8 +299,7 @@ class BuildState:
         """
         reporter.report_write_source_info(info)
         source = self.to_source_filename(info.filename)
-        con = self.connect_to_database()
-        try:
+        with self.db_connection() as con:
             cur = con.cursor()
             for lang, title in info.title_i18n.items():
                 cur.execute(
@@ -289,60 +310,34 @@ class BuildState:
                 """,
                     [info.path, info.alt, lang, info.type, source, title],
                 )
-            con.commit()
-        finally:
-            con.close()
 
     def prune_source_infos(self):
         """Remove all source infos of files that no longer exist."""
-        MAX_VARS = 999  # Default SQLITE_MAX_VARIABLE_NUMBER.
-        con = self.connect_to_database()
-        to_clean = []
-        try:
-            cur = con.cursor()
-            cur.execute(
-                """
-                select distinct source from source_info
-            """
-            )
-            for (source,) in cur.fetchall():
-                fs_path = os.path.join(self.env.root_path, source)
-                if not os.path.exists(fs_path):
-                    to_clean.append(source)
+        root_path = Path(self.env.root_path)
 
-            if to_clean:
-                for i in range(0, len(to_clean), MAX_VARS):
-                    chunk = to_clean[i : i + MAX_VARS]
-                    cur.execute(
-                        """
-                        delete from source_info
-                         where source in (%s)
-                    """
-                        % ", ".join(["?"] * len(chunk)),
-                        chunk,
-                    )
+        def is_missing(source):
+            return not root_path.joinpath(source).exists()
 
-                con.commit()
-        finally:
-            con.close()
-
+        with self.db_connection() as con, closing(con.cursor()) as cur:
+            cur.execute("select distinct source from source_info")
+            result: Iterable[tuple[SourcePath]] = iter(cur.fetchone, None)
+            to_clean = [source for (source,) in result if is_missing(source)]
+            for placeholders, batch in _batched_for_sql(to_clean):
+                cur.execute(
+                    f"delete from source_info where source in ({placeholders})",
+                    batch,
+                )
         for source in to_clean:
             reporter.report_prune_source_info(source)
 
     def remove_artifact(self, artifact_name):
         """Removes an artifact from the build state."""
-        con = self.connect_to_database()
-        try:
-            cur = con.cursor()
+        # FIXME: should maybe not open a new connection for each removal?
+        with self.db_connection() as con, closing(con.cursor()) as cur:
             cur.execute(
-                """
-                delete from artifacts where artifact = ?
-            """,
+                "delete from artifacts where artifact = ?",
                 [artifact_name],
             )
-            con.commit()
-        finally:
-            con.close()
 
     def _any_sources_are_dirty(self, cur, sources):
         """Given a list of sources this checks if any of them are marked
@@ -352,14 +347,17 @@ class BuildState:
         if not sources:
             return False
 
-        cur.execute(
-            """
-            select source from dirty_sources where source in (%s) limit 1
-        """
-            % ", ".join(["?"] * len(sources)),
-            sources,
-        )
-        return cur.fetchone() is not None
+        for placeholders, batch in _batched_for_sql(sources):
+            cur.execute(
+                f"""
+                select source from dirty_sources
+                where source in ({placeholders}) limit 1
+                """,
+                batch,
+            )
+            if cur.fetchone() is not None:
+                return True
+        return False
 
     @staticmethod
     def _get_artifact_config_hash(cur, artifact_name):
@@ -377,7 +375,7 @@ class BuildState:
     def check_artifact_is_current(self, artifact_name, sources, config_hash):
         con = self.connect_to_database()
         cur = con.cursor()
-        try:
+        with closing(con):
             # The artifact config changed
             if config_hash != self._get_artifact_config_hash(cur, artifact_name):
                 return False
@@ -411,8 +409,6 @@ class BuildState:
             ):
                 return False  # new, unseen source
             return True
-        finally:
-            con.close()
 
     def iter_existing_artifacts(self):
         """Scan output directory for artifacts.
@@ -439,9 +435,6 @@ class BuildState:
             yield from self.iter_existing_artifacts()
             return
 
-        con = self.connect_to_database()
-        cur = con.cursor()
-
         def _is_unreferenced(artifact_name):
             # Check whether any of the primary sources for the artifact
             # exist and — if the source can be resolved to a record —
@@ -454,7 +447,8 @@ class BuildState:
                     AND is_primary_source""",
                 [artifact_name],
             )
-            for source, path, alt in cur.fetchall():
+            result: Iterator[tuple[SourcePath, str, str | None]] = iter(cur.fetchone, None)
+            for source, path, alt in result:
                 if self.get_file_info(source).exists:
                     if path is None:
                         return False  # no record to check
@@ -467,39 +461,26 @@ class BuildState:
             # no sources exist, or those that do belong to hidden records
             return True
 
-        try:
+        with self.db_connection() as con, closing(con.cursor()) as cur:
             yield from filter(_is_unreferenced, self.iter_existing_artifacts())
-        finally:
-            con.close()
 
-    # FIXME: unused? broken
+    # FIXME: unused? (needs tests)
     def iter_artifacts(self):
         """Iterates over all artifact and their file infos.."""
-        con = self.connect_to_database()
-        try:
-            cur = con.cursor()
-            cur.execute(
-                """
-                select distinct artifact from artifacts order by artifact
-            """
-            )
-            rows = cur.fetchall()
-            con.close()
-            for (artifact_name,) in rows:
+        with self.db_connection() as con, closing(con.cursor()) as cur:
+            cur.execute("select distinct artifact from artifacts order by artifact")
+            result: Iterator[tuple[str]] = iter(cur.fetchone, None)
+            for (artifact_name,) in result:
                 path = self.get_destination_filename(artifact_name)
-                info = FileInfo(self.builder.env, path)
+                info = self.path_cache.get_file_info(path)
                 if info.exists:
                     yield artifact_name, info
-        finally:
-            con.close()
 
     def vacuum(self):
         """Vacuums the build db."""
         con = self.connect_to_database()
-        try:
+        with closing(con):
             con.execute("vacuum")
-        finally:
-            con.close()
 
 
 class Artifact:
@@ -550,7 +531,8 @@ class Artifact:
             self.artifact_name, self.sources, self.config_hash
         )
 
-    def get_dependency_infos(self):
+    # FIXME: unused?
+    def UNUSEDget_dependency_infos(self):
         return self.build_state.get_artifact_dependency_infos(
             self.artifact_name, self.sources
         )
@@ -667,17 +649,15 @@ class Artifact:
 
     def clear_dirty_flag(self):
         """Clears the dirty flag for all sources."""
-        sources = set(info.source for info in self._source_infos)
+        source_paths = map(attrgetter("source_path"), self._source_infos)
 
         def operation(con):
             with closing(con.cursor()) as cur:
-                cur.execute(
-                    f"""
-                    delete from dirty_sources where source in
-                        ( {", ".join(["?"] * len(sources))} )
-                    """,
-                    list(sources),
-                )
+                for placeholders, batch in _batched_for_sql(source_paths):
+                    cur.execute(
+                        f"delete from dirty_sources where source in ({placeholders})",
+                        batch,
+                    )
             reporter.report_dirty_flag(False)
 
         self._auto_deferred_update_operation(operation)
@@ -686,13 +666,13 @@ class Artifact:
         """Given a list of artifacts this will mark all of their sources
         as dirty so that they will be rebuilt next time.
         """
-        sources = set(info.source for info in self._source_infos)
+        source_paths = map(attrgetter("source_path"), self._source_infos)
 
         def operation(con):
             with closing(con.cursor()) as cur:
                 cur.executemany(
                     "insert or replace into dirty_sources (source) values (?)",
-                    ((x,) for x in sources),
+                    ((x,) for x in source_paths),
                 )
             reporter.report_dirty_flag(True)
 
@@ -705,13 +685,9 @@ class Artifact:
         if self.in_update_block:
             self._pending_update_ops.append(f)
             return
-        con = self.build_state.connect_to_database()
-        try:
+
+        with self.build_state.db_connection() as con:
             f(con)
-        except:  # noqa
-            con.rollback()
-            raise
-        con.commit()
 
     @contextmanager
     def update(self):
@@ -758,14 +734,14 @@ class Artifact:
             self._pending_update_ops = []
 
             # On error, do not prune old dependencies, just append new ones.
-            with closing(self.build_state.connect_to_database()) as con, con:
+            with self.build_state.db_connection() as con:
                 self._memorize_dependencies(dependency_infos, con)
 
             ctx.exc_info = sys.exc_info()
             self.build_state.notify_failure(self, ctx.exc_info)
 
         else:
-            with closing(self.build_state.connect_to_database()) as con, con:
+            with self.build_state.db_connection() as con:
                 self._prune_old_dependencies(con)
                 self._memorize_dependencies(dependency_infos, con)
 
@@ -886,26 +862,33 @@ class PathCache:
             state = VirtualSourceInfo(packed_path, mtime, 0, checksum)
             return cache.setdefault(packed_path, state)
 
-    def is_changed(self, info: _SourceState) -> bool:
-        source = info[0]
-        if "@" in source:
-            path, alt = _unpack_virtual_source_path(source)
+    def _get_source_info(
+        self, source_path: SourcePath | PackedVirtualSourcePathAndAlt
+    ) -> FileInfo | VirtualSourceInfo:
+        if "@" in source_path:
+            # FIXME: check cache?
+            path, alt = _unpack_virtual_source_path(source_path)  # type: ignore[arg-type]
             virtual_source = self.pad.get(path, alt=alt)
             if virtual_source is None:
-                current_info = VirtualSourceInfo(source)
-            else:
-                current_info = self.get_virtual_source_info(virtual_source)
-        else:
-            current_info = self.get_file_info(source)
-        assert current_info[0] == source
-        return info != current_info
+                return VirtualSourceInfo(source_path)  # missing
+            return self.get_virtual_source_info(virtual_source)
+
+        file_info = self.get_file_info(source_path)
+        assert isinstance(file_info, FileInfo)
+        return file_info
+
+    def is_changed(self, info: _SourceState) -> bool:
+        source_path = info[0]
+        current_info = self._get_source_info(source_path)
+        assert current_info[0] == source_path
+        return current_info != info
 
 
 class _SourceState(NamedTuple):
     """File metadata used to detect changes."""
 
     # This is exactly the data that goes in the `artifacts` sqlite table
-    source: str
+    source_path: SourcePath | PackedVirtualSourcePathAndAlt
     mtime_ns: int = 0  # zero if missing (b/c)
     size: int | None = None
     dir_checksum: str | None = None
@@ -984,11 +967,11 @@ class VirtualSourceInfo(_SourceState):
 
     @property
     def path(self):
-        return _unpack_virtual_source_path(self.source)[0]
+        return _unpack_virtual_source_path(self.source_path)[0]
 
     @property
     def alt(self) -> str | None:
-        return _unpack_virtual_source_path(self.source)[1]
+        return _unpack_virtual_source_path(self.source_path)[1]
 
     @property
     def mtime(self) -> int | None:
@@ -1120,11 +1103,7 @@ class Builder:
         except OSError:
             pass
 
-        con = self.connect_to_database()
-        try:
-            create_tables(con)
-        finally:
-            con.close()
+        create_tables(self.connect_to_database())
 
     @property
     def env(self):
@@ -1139,16 +1118,25 @@ class Builder:
     def connect_to_database(self):
         con = sqlite3.connect(
             self.buildstate_database_filename,
-            isolation_level=None,
+            isolation_level=None,  # FIXME: why?
             timeout=10,
-            check_same_thread=False,
+            check_same_thread=False,  # FIXME: why?
         )
-        cur = con.cursor()
-        cur.execute("pragma journal_mode=WAL")
-        cur.execute("pragma synchronous=NORMAL")
-        con.commit()
-        cur.close()
+        with con, closing(con.cursor()) as cur:
+            cur.execute("pragma journal_mode=WAL")  # FIXME: this is persistent once set
+            cur.execute("pragma synchronous=NORMAL")
         return con
+
+    @contextmanager
+    def db_connection(self):
+        """Context manager to manage a database connection.
+
+        When the context exits normally, the connection is committed then closed.
+        If the context exits via exception, the connection is rolled back then closed.
+        """
+        with closing(self.connect_to_database()) as con:
+            with con:
+                yield con
 
     def touch_site_config(self):
         """Touches the site config which typically will trigger a rebuild."""
@@ -1270,22 +1258,18 @@ class Builder:
         path_cache = PathCache(self.pad)
         # We keep a dummy connection here that does not do anything which
         # helps us with the WAL handling.  See #144
-        con = self.connect_to_database()
-        try:
-            with reporter.build("build", self):
-                self.env.plugin_controller.emit("before-build-all", builder=self)
-                to_build = self.get_initial_build_queue()
-                while to_build:
-                    source = to_build.popleft()
-                    prog, build_state = self.build(source, path_cache=path_cache)
-                    self.extend_build_queue(to_build, prog)
-                    failures += len(build_state.failed_artifacts)
-                self.env.plugin_controller.emit("after-build-all", builder=self)
-                if failures:
-                    reporter.report_build_all_failure(failures)
+        with self.db_connection(), reporter.build("build", self):
+            self.env.plugin_controller.emit("before-build-all", builder=self)
+            to_build = self.get_initial_build_queue()
+            while to_build:
+                source = to_build.popleft()
+                prog, build_state = self.build(source, path_cache=path_cache)
+                self.extend_build_queue(to_build, prog)
+                failures += len(build_state.failed_artifacts)
+            self.env.plugin_controller.emit("after-build-all", builder=self)
+            if failures:
+                reporter.report_build_all_failure(failures)
             return failures
-        finally:
-            con.close()
 
     def update_all_source_infos(self):
         """Fast way to update all source infos without having to build
@@ -1294,16 +1278,12 @@ class Builder:
         build_state = self.new_build_state()
         # We keep a dummy connection here that does not do anything which
         # helps us with the WAL handling.  See #144
-        con = self.connect_to_database()
-        try:
-            with reporter.build("source info update", self):
-                to_build = self.get_initial_build_queue()
-                while to_build:
-                    source = to_build.popleft()
-                    with reporter.process_source(source):
-                        prog = self.get_build_program(source, build_state)
-                        self.update_source_info(prog, build_state)
-                    self.extend_build_queue(to_build, prog)
-                build_state.prune_source_infos()
-        finally:
-            con.close()
+        with self.db_connection(), reporter.build("source info update", self):
+            to_build = self.get_initial_build_queue()
+            while to_build:
+                source = to_build.popleft()
+                with reporter.process_source(source):
+                    prog = self.get_build_program(source, build_state)
+                    self.update_source_info(prog, build_state)
+                self.extend_build_queue(to_build, prog)
+            build_state.prune_source_infos()
