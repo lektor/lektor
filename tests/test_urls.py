@@ -2,7 +2,6 @@ import re
 
 import pytest
 
-from lektor.context import _ctx_stack
 from lektor.context import Context
 from lektor.environment import Environment
 from lektor.reporter import BufferReporter
@@ -128,16 +127,14 @@ def test_url_to_page_with_explicit_alt(pad, alt, expected):
 
 
 @pytest.fixture
-def mock_build_context(mocker, pad):
-    ctx = mocker.Mock(spec=Context, pad=pad)
-    _ctx_stack.push(ctx)
-    try:
+def build_context(builder):
+    build_state = builder.new_build_state()
+    with Context(build_state.new_artifact("dummy-artifact", sources=())) as ctx:
         yield ctx
-    finally:
-        _ctx_stack.pop()
 
 
-def test_url_to_thumbnail(pad, mock_build_context):
+@pytest.mark.usefixtures("build_context")
+def test_url_to_thumbnail(pad):
     extra_de = pad.get("/extra", alt="de")
     thumbnail = pad.get("/test.jpg").thumbnail(42)
     assert extra_de.url_to(thumbnail) == "../../test@42x56.jpg"

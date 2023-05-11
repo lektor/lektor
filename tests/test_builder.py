@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from lektor.builder import FileInfo
 from lektor.reporter import NullReporter
 
 
@@ -399,18 +398,3 @@ def test_Artifact_open_encoding(builder):
         fp.write("Ciarán")
     with artifact.open("r", encoding="iso-8859-1") as fp:
         assert fp.read() == "Ciarán"
-
-
-def test_FileInfo_unchanged(env, tmp_path):
-    file_path = tmp_path / "file"
-    file_path.write_text("foo")
-
-    file_info = FileInfo(env, file_path)
-    # cache size, mtime, but *not* checksum
-    assert file_info.size == 3
-
-    file_path.write_text("foobar")
-    file_info2 = FileInfo(env, file_path)
-    assert file_info2.size != 3
-
-    assert not file_info.unchanged(file_info2)

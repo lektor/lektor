@@ -8,12 +8,23 @@ import stat
 import sys
 import tempfile
 from collections import deque
-from collections import namedtuple
+from contextlib import closing
 from contextlib import contextmanager
+from contextlib import suppress
 from dataclasses import dataclass
 from itertools import chain
+from operator import attrgetter
+from pathlib import Path
+from pathlib import PurePath
+from pathlib import PurePosixPath
 from typing import Any
+from typing import AbstractSet
+from typing import Callable
 from typing import IO
+from typing import NamedTuple
+from typing import NewType
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 import click
 
@@ -22,10 +33,38 @@ from lektor.buildfailures import FailureController
 from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.reporter import reporter
+from lektor.sourceobj import VirtualSourceObject
 from lektor.sourcesearch import find_files
-from lektor.utils import fs_enc
 from lektor.utils import process_extra_flags
 from lektor.utils import prune_file_and_folder
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+    from lektor.db import Pad
+
+_T = TypeVar("_T")
+
+# SourcePath is the normalized path to a source file.
+# - It is always a relative path to a file below Environment.root_path
+# - It always uses POSIX path separators (/), even on Windows
+SourcePath = NewType("SourcePath", str)
+
+
+# VirtualSourcePath is the normalized DB-path to a VirtualSourceObject
+# - It always starts with a '/'
+# - It always includes a single '@' that separates the path to it's parent record
+#   from the virtual path part.
+VirtualSourcePath = NewType("VirtualSourcePath", str)
+
+# PackedVirtualSourcePathAndAlt is a string that contains both a VirtualSourcePath and
+# possible an `alt` for the VirtualSourceObject.  The `alt` and a `@` are prepended to
+# the VirtualSourcePath to form the PackedVirtualSourcePathAndAlt.  If `alt` is `None`,
+# or if alts are not enabled in the current project, nothing is appended — in that case,
+# the PackedVirtualSourcePathAndAlt is the same as the VirtualSourcePath.
+#
+# - It always contains either one or two '@'s
+#
+PackedVirtualSourcePathAndAlt = NewType("PackedVirtualSourcePathAndAlt", str)
 
 
 def create_tables(con):
@@ -130,6 +169,7 @@ class BuildState:
     def to_source_filename(self, filename):
         return self.path_cache.to_source_filename(filename)
 
+    # FIXME: unused? broken
     def get_virtual_source_info(self, virtual_source_path, alt=None):
         virtual_source = self.pad.get(virtual_source_path, alt=alt)
         if virtual_source is not None:
@@ -164,6 +204,8 @@ class BuildState:
         self, artifact_name, sources=None, source_obj=None, extra=None, config_hash=None
     ):
         """Creates a new artifact and returns it."""
+        # FIXME: sources should be required?  (Without sources, artification will be
+        # pruned.)
         dst_filename = self.get_destination_filename(artifact_name)
         key = self.artifact_name_from_destination_filename(dst_filename)
         return Artifact(
@@ -190,15 +232,15 @@ class BuildState:
             con.close()
         return rv
 
+    # FIXME: unused? and broken
     def _iter_artifact_dependency_infos(self, cur, artifact_name, sources):
         """This iterates over all dependencies as file info objects."""
         cur.execute(
             """
-            select source, source_mtime, source_size,
-                   source_checksum, is_dir
+            select source, is_dir, source_size, source_mtime, source_checksum
             from artifacts
             where artifact = ?
-        """,
+            """,
             [artifact_name],
         )
         rv = cur.fetchall()
@@ -207,20 +249,25 @@ class BuildState:
         for path, mtime, size, checksum, is_dir in rv:
             if "@" in path:
                 vpath, alt = _unpack_virtual_source_path(path)
+                # FIXME: broken
                 yield path, VirtualSourceInfo(vpath, alt, mtime, checksum)
             else:
+                filename = os.path.join(self.env.root_path, path)
+                # FIXME: broken
                 file_info = FileInfo(
-                    self.env, path, mtime, size, checksum, bool(is_dir)
+                    self.env, filename, mtime, size, checksum, bool(is_dir)
                 )
-                filename = self.to_source_filename(file_info.filename)
                 found.add(filename)
+                # FIXME: first element (filename) unused?
+                # FIXME: filename changed from to_source_info(path) to join(root_path,
+                # path)
                 yield filename, file_info
 
         # In any case we also iterate over our direct sources, even if the
         # build state does not know about them yet.  This can be caused by
         # an initial build or a change in original configuration.
         for source in sources:
-            filename = self.to_source_filename(source)
+            filename = os.path.join(self.env.root_path, source)
             if filename not in found:
                 yield source, None
 
@@ -342,17 +389,27 @@ class BuildState:
 
             # If we do have an already existing artifact, we need to check if
             # any of the source files we depend on changed.
-            for _, info in self._iter_artifact_dependency_infos(
-                cur, artifact_name, sources
+            cur.execute(
+                """
+                select source, source_mtime, source_size, source_checksum, is_dir
+                from artifacts
+                where artifact = ?
+                """,
+                [artifact_name],
+            )
+            seen_source_paths = set()
+            path_cache = self.path_cache
+            for info in iter(cur.fetchone, None):  # type: _SourceState
+                if path_cache.is_changed(info):
+                    return False
+                source_path = info[0]
+                if "@" not in source_path:
+                    seen_source_paths.add(source_path)
+
+            if not seen_source_paths.issuperset(
+                map(path_cache.to_source_filename, sources)
             ):
-                # if we get a missing source info it means that we never
-                # saw this before.  This means we need to build it.
-                if info is None:
-                    return False
-
-                if info.is_changed(self):
-                    return False
-
+                return False  # new, unseen source
             return True
         finally:
             con.close()
@@ -380,6 +437,7 @@ class BuildState:
         """
         if all:
             yield from self.iter_existing_artifacts()
+            return
 
         con = self.connect_to_database()
         cur = con.cursor()
@@ -414,6 +472,7 @@ class BuildState:
         finally:
             con.close()
 
+    # FIXME: unused? broken
     def iter_artifacts(self):
         """Iterates over all artifact and their file infos.."""
         con = self.connect_to_database()
@@ -443,220 +502,6 @@ class BuildState:
             con.close()
 
 
-def _describe_fs_path_for_checksum(path):
-    """Given a file system path this returns a basic description of what
-    this is.  This is used for checksum hashing on directories.
-    """
-    # This is not entirely correct as it does not detect changes for
-    # contents from alternatives.  However for the moment it's good
-    # enough.
-    if os.path.isfile(path):
-        return b"\x01"
-    if os.path.isfile(os.path.join(path, "contents.lr")):
-        return b"\x02"
-    if os.path.isdir(path):
-        return b"\x03"
-    return b"\x00"
-
-
-class _ArtifactSourceInfo:
-    """Base for classes that contain freshness data about artifact sources.
-
-    Concrete subclasses include FileInfo and VirtualSourceInfo.
-    """
-
-    def is_changed(self, build_state: BuildState) -> bool:
-        """Determine whether source has changed."""
-        raise NotImplementedError()
-
-
-class FileInfo(_ArtifactSourceInfo):
-    """A file info object holds metainformation of a file so that changes
-    can be detected easily.
-    """
-
-    def __init__(
-        self, env, filename, mtime=None, size=None, checksum=None, is_dir=None
-    ):
-        self.env = env
-        self.filename = filename
-        if mtime is not None and size is not None and is_dir is not None:
-            self._stat = (mtime, size, is_dir)
-        else:
-            self._stat = None
-        self._checksum = checksum
-
-    def _get_stat(self):
-        rv = self._stat
-        if rv is not None:
-            return rv
-
-        try:
-            st = os.stat(self.filename)
-            mtime = int(st.st_mtime)
-            if stat.S_ISDIR(st.st_mode):
-                size = len(os.listdir(self.filename))
-                is_dir = True
-            else:
-                size = int(st.st_size)
-                is_dir = False
-            rv = mtime, size, is_dir
-        except OSError:
-            rv = 0, -1, False
-        self._stat = rv
-        return rv
-
-    @property
-    def mtime(self):
-        """The timestamp of the last modification."""
-        return self._get_stat()[0]
-
-    @property
-    def size(self):
-        """The size of the file in bytes.  If the file is actually a
-        dictionary then the size is actually the number of files in it.
-        """
-        return self._get_stat()[1]
-
-    @property
-    def is_dir(self):
-        """Is this a directory?"""
-        return self._get_stat()[2]
-
-    @property
-    def exists(self):
-        return self.size >= 0
-
-    @property
-    def checksum(self):
-        """The checksum of the file or directory."""
-        rv = self._checksum
-        if rv is not None:
-            return rv
-
-        try:
-            h = hashlib.sha1()
-            if os.path.isdir(self.filename):
-                h.update(b"DIR\x00")
-                for filename in sorted(os.listdir(self.filename)):
-                    if self.env.is_uninteresting_source_name(filename):
-                        continue
-                    if isinstance(filename, str):
-                        filename = filename.encode("utf-8")
-                    h.update(filename)
-                    h.update(
-                        _describe_fs_path_for_checksum(
-                            os.path.join(self.filename, filename.decode("utf-8"))
-                        )
-                    )
-                    h.update(b"\x00")
-            else:
-                with open(self.filename, "rb") as f:
-                    while 1:
-                        chunk = f.read(16 * 1024)
-                        if not chunk:
-                            break
-                        h.update(chunk)
-            checksum = h.hexdigest()
-        except (OSError, IOError):
-            checksum = "0" * 40
-        self._checksum = checksum
-        return checksum
-
-    @property
-    def filename_and_checksum(self):
-        """Like 'filename:checksum'."""
-        return "%s:%s" % (self.filename, self.checksum)
-
-    def unchanged(self, other):
-        """Given another file info checks if the are similar enough to
-        not consider it changed.
-        """
-        if not isinstance(other, FileInfo):
-            raise TypeError("'other' must be a FileInfo, not %r" % other)
-
-        if self.mtime != other.mtime or self.size != other.size:
-            return False
-        # If mtime and size match, we skip the checksum comparison which
-        # might require a file read which we do not want in those cases.
-        # (Except if it's a directory, then we won't do that)
-        if not self.is_dir:
-            return True
-        return self.checksum == other.checksum
-
-    def is_changed(self, build_state: BuildState) -> bool:
-        other = build_state.get_file_info(self.filename)
-        return not self.unchanged(other)
-
-
-def _pack_virtual_source_path(path, alt):
-    """Pack VirtualSourceObject's path and alt into a single string.
-
-    The full identity key for a VirtualSourceObject is its ``path`` along with its ``alt``.
-    (Two VirtualSourceObjects with differing alts are not the same object.)
-
-    This functions packs the (path, alt) pair into a single string for storage
-    in the ``artifacts.path`` of the buildstate database.
-
-    Note that if alternatives are not configured for the current site, there is
-    only one alt, so we safely omit the alt from the packed path.
-    """
-    if alt is None or alt == PRIMARY_ALT:
-        return path
-    return f"{alt}@{path}"
-
-
-def _unpack_virtual_source_path(packed):
-    """Unpack VirtualSourceObject's path and alt from packed path.
-
-    This is the inverse of _pack_virtual_source_path.
-    """
-    alt, sep, path = packed.partition("@")
-    if not sep:
-        raise ValueError("A packed virtual source path must include at least one '@'")
-    if "@" not in path:
-        path, alt = packed, None
-    return path, alt
-
-
-@dataclass
-class VirtualSourceInfo(_ArtifactSourceInfo):
-    path: str
-    alt: str | None
-    mtime: int | None = None
-    checksum: str | None = None
-
-    def unchanged(self, other):
-        if not isinstance(other, VirtualSourceInfo):
-            raise TypeError("'other' must be a VirtualSourceInfo, not %r" % other)
-
-        if (self.path, self.alt) != (other.path, other.alt):
-            raise ValueError(
-                "trying to compare mismatched virtual paths: "
-                "%r.unchanged(%r)" % (self, other)
-            )
-
-        return (self.mtime, self.checksum) == (other.mtime, other.checksum)
-
-    def is_changed(self, build_state: BuildState) -> bool:
-        other = build_state.get_virtual_source_info(self.path, self.alt)
-        return not self.unchanged(other)
-
-
-artifacts_row = namedtuple(
-    "artifacts_row",
-    [
-        "artifact",
-        "source",
-        "source_mtime",
-        "source_size",
-        "source_checksum",
-        "is_dir",
-        "is_primary_source",
-    ],
-)
-
-
 class Artifact:
     """This class represents a build artifact."""
 
@@ -679,6 +524,11 @@ class Artifact:
         self.source_obj = source_obj
         self.extra = extra
         self.config_hash = config_hash
+
+        # Get FileInfos of dependencies as early as possible
+        self._source_infos: set[_SourceState] = set(
+            map(build_state.get_file_info, sources)
+        )
 
         self._new_artifact_file = None
         self._pending_update_ops = []
@@ -756,9 +606,16 @@ class Artifact:
         with self.open("wb") as f:
             f.write(rv.encode("utf-8") + b"\n")
 
+    def _prune_old_dependencies(self, con: sqlite3.Connection) -> None:
+        con.execute(
+            "delete from artifacts where artifact = ?", [self.artifact_name]
+        ).close()
+
     def _memorize_dependencies(
-        self, dependencies=None, virtual_dependencies=None, for_failure=False
-    ):
+        self,
+        dependency_infos: AbstractSet[_SourceState],
+        con: sqlite3.Connection,
+    ) -> None:
         """This updates the dependencies recorded for the artifact based
         on the direct sources plus the provided dependencies.  This also
         stores the config hash.
@@ -766,63 +623,28 @@ class Artifact:
         This normally defers the operation until commit but the `for_failure`
         more will immediately commit into a new connection.
         """
-
-        def operation(con):
-            primary_sources = set(
-                self.build_state.to_source_filename(x) for x in self.sources
+        rows = [
+            (
+                self.artifact_name,  # artifact
+                *info,  # source, mtime_ns, size, dir_checksum, is_dir
+                info in self._source_infos,  # is_primary_source
             )
+            for info in self._source_infos.union(dependency_infos)
+        ]
 
-            seen = set()
-            rows = []
-            for source in chain(self.sources, dependencies or ()):
-                source = self.build_state.to_source_filename(source)
-                if source in seen:
-                    continue
-                info = self.build_state.get_file_info(source)
-                rows.append(
-                    artifacts_row(
-                        artifact=self.artifact_name,
-                        source=source,
-                        source_mtime=info.mtime,
-                        source_size=info.size,
-                        source_checksum=info.checksum,
-                        is_dir=info.is_dir,
-                        is_primary_source=source in primary_sources,
-                    )
-                )
+        reporter.report_dependencies(rows)
 
-                seen.add(source)
-
-            for v_source in virtual_dependencies or ():
-                checksum = v_source.get_checksum(self.build_state.path_cache)
-                mtime = v_source.get_mtime(self.build_state.path_cache)
-                rows.append(
-                    artifacts_row(
-                        artifact=self.artifact_name,
-                        source=_pack_virtual_source_path(v_source.path, v_source.alt),
-                        source_mtime=mtime,
-                        source_size=None,
-                        source_checksum=checksum,
-                        is_dir=False,
-                        is_primary_source=False,
-                    )
-                )
-
-            reporter.report_dependencies(rows)
-
-            cur = con.cursor()
-            if not for_failure:
-                cur.execute(
-                    "delete from artifacts where artifact = ?", [self.artifact_name]
-                )
+        with closing(con.cursor()) as cur:
             if rows:
                 cur.executemany(
                     """
                     insert or replace into artifacts (
-                        artifact, source, source_mtime, source_size,
-                        source_checksum, is_dir, is_primary_source)
+                        artifact,
+                        source, source_mtime, source_size, source_checksum, is_dir,
+                        is_primary_source
+                    )
                     values (?, ?, ?, ?, ?, ?, ?)
-                """,
+                    """,
                     rows,
                 )
 
@@ -831,7 +653,7 @@ class Artifact:
                     """
                     delete from artifact_config_hashes
                      where artifact = ?
-                """,
+                    """,
                     [self.artifact_name],
                 )
             else:
@@ -839,39 +661,23 @@ class Artifact:
                     """
                     insert or replace into artifact_config_hashes
                            (artifact, config_hash) values (?, ?)
-                """,
+                    """,
                     [self.artifact_name, self.config_hash],
                 )
 
-            cur.close()
-
-        if for_failure:
-            con = self.build_state.connect_to_database()
-            try:
-                operation(con)
-            except:  # noqa
-                con.rollback()
-                con.close()
-                raise
-            con.commit()
-            con.close()
-        else:
-            self._auto_deferred_update_operation(operation)
-
     def clear_dirty_flag(self):
         """Clears the dirty flag for all sources."""
+        sources = set(info.source for info in self._source_infos)
 
         def operation(con):
-            sources = [self.build_state.to_source_filename(x) for x in self.sources]
-            cur = con.cursor()
-            cur.execute(
-                """
-                delete from dirty_sources where source in (%s)
-            """
-                % ", ".join(["?"] * len(sources)),
-                list(sources),
-            )
-            cur.close()
+            with closing(con.cursor()) as cur:
+                cur.execute(
+                    f"""
+                    delete from dirty_sources where source in
+                        ( {", ".join(["?"] * len(sources))} )
+                    """,
+                    list(sources),
+                )
             reporter.report_dirty_flag(False)
 
         self._auto_deferred_update_operation(operation)
@@ -880,24 +686,14 @@ class Artifact:
         """Given a list of artifacts this will mark all of their sources
         as dirty so that they will be rebuilt next time.
         """
+        sources = set(info.source for info in self._source_infos)
 
         def operation(con):
-            sources = set()
-            for source in self.sources:
-                sources.add(self.build_state.to_source_filename(source))
-
-            if not sources:
-                return
-
-            cur = con.cursor()
-            cur.executemany(
-                """
-                insert or replace into dirty_sources (source) values (?)
-            """,
-                [(x,) for x in sources],
-            )
-            cur.close()
-
+            with closing(con.cursor()) as cur:
+                cur.executemany(
+                    "insert or replace into dirty_sources (source) values (?)",
+                    ((x,) for x in sources),
+                )
             reporter.report_dirty_flag(True)
 
         self._auto_deferred_update_operation(operation)
@@ -924,131 +720,110 @@ class Artifact:
         stays cleared.  The setting of the dirty flag has to be done by the
         caller however based on the `exc_info` on the context.
         """
-        ctx = self.begin_update()
-        try:
-            yield ctx
-        except:  # pylint: disable=bare-except  # noqa
-            exc_info = sys.exc_info()
-            self.finish_update(ctx, exc_info)
-        else:
-            self.finish_update(ctx)
+        build_state = self.build_state
+        path_cache = self.build_state.path_cache
 
-    def begin_update(self):
-        """Begins an update block."""
+        dependency_infos: set[_SourceState] = set()
+
+        def gather_dep(dep: str | VirtualSourceObject) -> None:
+            if isinstance(dep, VirtualSourceObject):
+                source_info = path_cache.get_virtual_source_info(dep)
+            else:
+                source_info = build_state.get_file_info(dep)
+            dependency_infos.add(source_info)
+
         if self.in_update_block:
             raise RuntimeError("Artifact is already open for updates.")
-        self.updated = False
-        ctx = Context(self)
-        ctx.push()
-        self.in_update_block = True
-        self.clear_dirty_flag()
-        return ctx
 
-    def _commit(self):
-        con = None
         try:
-            for op in self._pending_update_ops:
-                if con is None:
-                    con = self.build_state.connect_to_database()
-                op(con)
+            with Context(self) as ctx, ctx.gather_dependencies(gather_dep):
+                self.in_update_block = True
+                self.updated = False
+                self.clear_dirty_flag()
+                try:
+                    yield ctx
+                finally:
+                    self.in_update_block = False
+                    self.updated = True
 
+        except BaseException:
+            # If an error happened we roll back all changes and record the
+            # stacktrace in two locations: we record it on the context so
+            # that a called can respond to our failure, and we also persist
+            # it so that the dev server can render it out later.
             if self._new_artifact_file is not None:
-                os.replace(self._new_artifact_file, self.dst_filename)
+                with suppress(OSError):
+                    os.remove(self._new_artifact_file)
                 self._new_artifact_file = None
+            self._pending_update_ops = []
 
-            if con is not None:
-                con.commit()
-                con.close()
-                con = None
+            # On error, do not prune old dependencies, just append new ones.
+            with closing(self.build_state.connect_to_database()) as con, con:
+                self._memorize_dependencies(dependency_infos, con)
+
+            ctx.exc_info = sys.exc_info()
+            self.build_state.notify_failure(self, ctx.exc_info)
+
+        else:
+            with closing(self.build_state.connect_to_database()) as con, con:
+                self._prune_old_dependencies(con)
+                self._memorize_dependencies(dependency_infos, con)
+
+                for op in self._pending_update_ops:
+                    op(con)
+
+                if self._new_artifact_file is not None:
+                    os.replace(self._new_artifact_file, self.dst_filename)
+                    self._new_artifact_file = None
 
             self.build_state.updated_artifacts.append(self)
             self.build_state.builder.failure_controller.clear_failure(
                 self.artifact_name
             )
-        finally:
-            if con is not None:
-                con.rollback()
-                con.close()
 
-    def _rollback(self):
-        if self._new_artifact_file is not None:
-            try:
-                os.remove(self._new_artifact_file)
-            except OSError:
-                pass
-            self._new_artifact_file = None
-        self._pending_update_ops = []
 
-    def finish_update(self, ctx, exc_info=None):
-        """Finalizes an update block."""
-        if not self.in_update_block:
-            raise RuntimeError("Artifact is not open for updates.")
-        ctx.pop()
-        self.in_update_block = False
-        self.updated = True
-
-        # If there was no error, we memoize the dependencies like normal
-        # and then commit our transaction.
-        if exc_info is None:
-            self._memorize_dependencies(
-                ctx.referenced_dependencies,
-                ctx.referenced_virtual_dependencies,
-            )
-            self._commit()
-            return
-
-        # If an error happened we roll back all changes and record the
-        # stacktrace in two locations: we record it on the context so
-        # that a called can respond to our failure, and we also persist
-        # it so that the dev server can render it out later.
-        self._rollback()
-
-        # This is a special form of dependency memorization where we do
-        # not prune old dependencies and we just append new ones and we
-        # use a new database connection that immediately commits.
-        self._memorize_dependencies(
-            ctx.referenced_dependencies,
-            ctx.referenced_virtual_dependencies,
-            for_failure=True,
-        )
-
-        ctx.exc_info = exc_info
-        self.build_state.notify_failure(self, exc_info)
+class InvalidSourcePath(ValueError):
+    """A source path points to a location outside of the project tree."""
 
 
 class PathCache:
-    def __init__(self, env):
-        self.file_info_cache = {}
-        self.source_filename_cache = {}
-        self.env = env
+    def __init__(self, pad: Pad):
+        self.file_info_cache: dict[Path, FileInfo | NonSourceFileInfo] = {}
+        self.virtual_source_info_cache: dict[str, VirtualSourceInfo] = {}
+        self.source_filename_cache: dict[str, SourcePath] = {}
+        self.pad = pad
+        self.root_path = Path(pad.env.root_path).resolve()
 
-    def to_source_filename(self, filename):
+    def to_source_filename(self, filename: StrPath) -> SourcePath:
         """Given a path somewhere below the environment this will return the
         short source filename that is used internally.  Unlike the given
         path, this identifier is also platform independent.
         """
-        key = filename
-        rv = self.source_filename_cache.get(key)
-        if rv is not None:
-            return rv
-        folder = os.path.abspath(self.env.root_path)
-        if isinstance(folder, str) and not isinstance(filename, str):
-            filename = filename.decode(fs_enc)
-        filename = os.path.normpath(os.path.join(folder, filename))
-        if filename.startswith(folder):
-            filename = filename[len(folder) :].lstrip(os.path.sep)
-            if os.path.altsep:
-                filename = filename.lstrip(os.path.altsep)
-        else:
-            raise ValueError(
-                "The given value (%r) is not below the "
-                "source folder (%r)" % (filename, self.env.root_path)
-            )
-        rv = filename.replace(os.path.sep, "/")
-        self.source_filename_cache[key] = rv
+        # FIXME: this could be cleaned up (with pathlib?)  FIXME: the cache lifetime of
+        # this cache is not right.  It only needs to be invalidated if root_path
+        # changes.  The cache could be tied to the Environment or Project; or maybe a
+        # global lru_cache could be used...
+
+        key = str(filename)
+        cache = self.source_filename_cache
+        try:
+            return cache[key]
+        except KeyError:
+            pass
+        root_path = self.root_path
+        resolved = root_path.joinpath(filename).resolve()
+        try:
+            relative: PurePath = resolved.relative_to(root_path)
+        except ValueError as exc:
+            raise InvalidSourcePath(
+                f"The path ({filename!s}) is outside of the project tree ({root_path!s})"
+            ) from exc
+        if not isinstance(relative, PurePosixPath):
+            relative = PurePosixPath(relative)
+        rv = cache[key] = SourcePath(str(relative))
         return rv
 
-    def get_file_info(self, filename):
+    def get_file_info(self, filename: StrPath) -> FileInfo | NonSourceFileInfo:
         """Returns the file info for a given file.  This will be cached
         on the generator for the lifetime of it.  This means that further
         accesses to this file info will not cause more IO but it might not
@@ -1059,13 +834,259 @@ class PathCache:
         any file on the file system but it should onl be used for source
         files or carefully for other things.
 
+        The filename, if given as a relative path is interpreted relative
+        to the environment's root_path.
+
         The filename given can be a source filename.
         """
-        fn = os.path.join(self.env.root_path, filename)
-        rv = self.file_info_cache.get(fn)
-        if rv is None:
-            self.file_info_cache[fn] = rv = FileInfo(self.env, fn)
-        return rv
+        resolved = self.root_path.joinpath(filename).resolve()
+        source_path: SourcePath | None
+        try:
+            relative: PurePath = resolved.relative_to(self.root_path)
+        except ValueError:
+            # Path points outside of the project tree. Use absolute path as key
+            source_path = None
+        else:
+            if not isinstance(relative, PurePosixPath):
+                relative = PurePosixPath(relative)
+            source_path = SourcePath(str(relative))
+
+        cache = self.file_info_cache
+        try:
+            return cache[resolved]
+        except KeyError:
+            state = _get_path_state(resolved, self.pad.env.is_uninteresting_source_name)
+            is_dir = state.dir_checksum is not None
+            file_info: FileInfo | NonSourceFileInfo
+            if source_path is not None:
+                file_info = FileInfo(
+                    source_path, state.mtime_ns, state.size, state.dir_checksum, is_dir
+                )
+                file_info.filename = str(resolved)
+            else:
+                file_info = NonSourceFileInfo(
+                    str(resolved),
+                    state.mtime_ns,
+                    state.size,
+                    state.dir_checksum,
+                    is_dir,
+                )
+            return cache.setdefault(resolved, file_info)
+
+    def get_virtual_source_info(
+        self, virtual_source: VirtualSourceObject
+    ) -> VirtualSourceInfo:
+        packed_path = _pack_virtual_source_path(virtual_source.path, virtual_source.alt)
+        cache = self.virtual_source_info_cache
+        try:
+            return cache[packed_path]
+        except KeyError:
+            mtime = virtual_source.get_mtime(self)
+            checksum = virtual_source.get_checksum(self)
+            state = VirtualSourceInfo(packed_path, mtime, 0, checksum)
+            return cache.setdefault(packed_path, state)
+
+    def is_changed(self, info: _SourceState) -> bool:
+        source = info[0]
+        if "@" in source:
+            path, alt = _unpack_virtual_source_path(source)
+            virtual_source = self.pad.get(path, alt=alt)
+            if virtual_source is None:
+                current_info = VirtualSourceInfo(source)
+            else:
+                current_info = self.get_virtual_source_info(virtual_source)
+        else:
+            current_info = self.get_file_info(source)
+        assert current_info[0] == source
+        return info != current_info
+
+
+class _SourceState(NamedTuple):
+    """File metadata used to detect changes."""
+
+    # This is exactly the data that goes in the `artifacts` sqlite table
+    source: str
+    mtime_ns: int = 0  # zero if missing (b/c)
+    size: int | None = None
+    dir_checksum: str | None = None
+    is_dir: bool = False
+
+
+class FileInfoMixin:
+    filename: str
+    mtime_ns: int
+    size: int | None
+    dir_checksum: str | None
+    is_dir: bool
+
+    @property
+    def mtime(self) -> int:
+        return int(self.mtime_ns / 1000_000_000)
+
+    @property
+    def exists(self) -> bool:
+        return self.size is not None
+
+    @property
+    def checksum(self) -> str:
+        if self.is_dir:
+            # directories have a checksum that was computed when it was interred in the
+            # PathCache
+            assert self.dir_checksum is not None
+            return self.dir_checksum
+
+        # For regular files, we do not normally keep a checksum, so we need to compute it.
+        # This is here solely for b/c.
+        # FIXME: deprecate?
+        h = hashlib.sha1()
+        try:
+            with open(self.filename, "rb", buffering=0) as fp:
+                chunk = bytearray(16 * 1024)
+                while fp.readinto(chunk):
+                    h.update(chunk)
+        except OSError:
+            return "0" * 40  # File is gone (or was never there)?
+        return h.hexdigest()
+
+    @property
+    def filename_and_checksum(self) -> str:
+        """Like 'filename:checksum'."""
+        # FIXME: deprecate?
+        return f"{self.filename}:{self.checksum}"
+
+
+class FileInfo(_SourceState, FileInfoMixin):
+    source_path: SourcePath
+    # resolved (absolute) path
+    filename: str
+
+
+@dataclass(frozen=True)
+class NonSourceFileInfo(FileInfoMixin):
+    """The "FileInfo" type returned for paths which are outside the project tree."""
+
+    # FIXME: perhaps these should just be deprecated?
+
+    # resolved (absolute) path
+    filename: str
+    mtime_ns: int = 0
+    size: int | None = None
+    dir_checksum: str | None = None
+    is_dir: bool = False
+
+    @property
+    def source(self) -> None:
+        return None
+
+
+class VirtualSourceInfo(_SourceState):
+    source_path: PackedVirtualSourcePathAndAlt
+
+    @property
+    def path(self):
+        return _unpack_virtual_source_path(self.source)[0]
+
+    @property
+    def alt(self) -> str | None:
+        return _unpack_virtual_source_path(self.source)[1]
+
+    @property
+    def mtime(self) -> int | None:
+        if self.mtime_ns is None:
+            return None
+        return int(self.mtime_ns / 1000_000_000)
+
+
+class _PathState(NamedTuple):
+    size: int | None
+    mtime_ns: int
+    dir_checksum: str | None
+
+
+def _get_path_state(
+    path: StrPath, is_uninteresting_source_name: Callable[[str], bool]
+) -> _PathState:
+    # Some failures may be transient, e.g. if a path changed from a directory to a
+    # file between the initial stat and the scandir.  Unlikely, yes. But there's no
+    # harm in trying twice.
+    try:
+        return _get_path_state1(path, is_uninteresting_source_name)
+    except OSError:
+        return _get_path_state1(path, is_uninteresting_source_name)
+
+
+def _get_path_state1(
+    path: StrPath, is_uninteresting_source_name: Callable[[str], bool]
+) -> _PathState:
+    try:
+        st = os.stat(path)
+    except FileNotFoundError:
+        return _PathState(None, 0, None)
+
+    if not stat.S_ISDIR(st.st_mode):
+        return _PathState(st.st_size, st.st_mtime_ns, None)
+
+    def describe_entry(entry: os.DirEntry[str]) -> bytes:
+        """A basic description of what a directory entry is."""
+        # This is not entirely correct as it does not detect changes for
+        # contents from alternatives.  However for the moment it's good
+        # enough.
+        if entry.is_file():
+            return b"\x01"
+        if os.path.isfile(os.path.join(path, entry.name, "contents.lr")):
+            return b"\x02"
+        if entry.is_dir():
+            return b"\x03"
+        return b"\x00"
+
+    with os.scandir(path) as entries:
+        interesting_entries = [
+            entry
+            for entry in entries
+            if not is_uninteresting_source_name(entry.name)
+        ]
+        dirsize = len(interesting_entries)
+        h = hashlib.sha1(b"DIR\0")
+        for entry in sorted(interesting_entries, key=attrgetter("name")):
+            h.update(entry.name.encode())
+            h.update(describe_entry(entry))
+            h.update(b"\0")
+        return _PathState(dirsize, st.st_mtime_ns, h.hexdigest())
+
+
+def _pack_virtual_source_path(
+    path: VirtualSourcePath, alt: str | None
+) -> PackedVirtualSourcePathAndAlt:
+    """Pack VirtualSourceObject's path and alt into a single string.
+
+    The full identity key for a VirtualSourceObject is its ``path`` along with its ``alt``.
+    (Two VirtualSourceObjects with differing alts are not the same object.)
+
+    This functions packs the (path, alt) pair into a single string for storage
+    in the ``artifacts.path`` of the buildstate database.
+
+    Note that if alternatives are not configured for the current site, there is
+    only one alt, so we safely omit the alt from the packed path.
+    """
+    if alt is None or alt == PRIMARY_ALT:
+        return path  # type: ignore[return-value]
+    return f"{alt}@{path}"  # type: ignore[return-value]
+
+
+def _unpack_virtual_source_path(
+    packed: PackedVirtualSourcePathAndAlt,
+) -> tuple[VirtualSourcePath, str | None]:
+    """Unpack VirtualSourceObject's path and alt from packed path.
+
+    This is the inverse of _pack_virtual_source_path.
+    """
+    alt: str | None
+    alt, sep, path = packed.partition("@")
+    if not sep:
+        raise ValueError("A packed virtual source path must include at least one '@'")
+    if "@" not in path:
+        path, alt = packed, None
+    return VirtualSourcePath(path), alt
 
 
 class Builder:
@@ -1147,7 +1168,7 @@ class Builder:
     def new_build_state(self, path_cache=None):
         """Creates a new build state."""
         if path_cache is None:
-            path_cache = PathCache(self.env)
+            path_cache = PathCache(self.pad)
         return BuildState(self, path_cache)
 
     def get_build_program(self, source, build_state):
@@ -1195,11 +1216,10 @@ class Builder:
         """This cleans up data left in the build folder that does not
         correspond to known artifacts.
         """
-        path_cache = PathCache(self.env)
+        path_cache = PathCache(self.pad)
         build_state = self.new_build_state(path_cache=path_cache)
         with reporter.build(all and "clean" or "prune", self):
             self.env.plugin_controller.emit("before-prune", builder=self, all=all)
-
             for aft in build_state.iter_unreferenced_artifacts(all=all):
                 reporter.report_pruned_artifact(aft)
                 filename = build_state.get_destination_filename(aft)
@@ -1247,7 +1267,7 @@ class Builder:
     def build_all(self):
         """Builds the entire tree.  Returns the number of failures."""
         failures = 0
-        path_cache = PathCache(self.env)
+        path_cache = PathCache(self.pad)
         # We keep a dummy connection here that does not do anything which
         # helps us with the WAL handling.  See #144
         con = self.connect_to_database()
