@@ -573,12 +573,13 @@ class FileInfo(_ArtifactSourceInfo):
         if not isinstance(other, FileInfo):
             raise TypeError("'other' must be a FileInfo, not %r" % other)
 
+        if self.mtime != other.mtime or self.size != other.size:
+            return False
         # If mtime and size match, we skip the checksum comparison which
         # might require a file read which we do not want in those cases.
         # (Except if it's a directory, then we won't do that)
-        if not self.is_dir and self.mtime == other.mtime and self.size == other.size:
+        if not self.is_dir:
             return True
-
         return self.checksum == other.checksum
 
     def is_changed(self, build_state: BuildState) -> bool:
