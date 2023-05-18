@@ -1,8 +1,9 @@
-import os
 import threading
 import time
 import traceback
+from contextlib import ExitStack
 
+from werkzeug.serving import is_running_from_reloader
 from werkzeug.serving import run_simple
 from werkzeug.serving import WSGIRequestHandler
 
@@ -20,6 +21,13 @@ class SilentWSGIRequestHandler(WSGIRequestHandler):
 
 
 class BackgroundBuilder(threading.Thread):
+    """Run a thread to watch the project tree and rebuild when changes are noticed.
+
+    This is a contextmanager. On entry, the watcher thread is started, on exit it is
+    stopped.
+
+    """
+
     def __init__(self, env, output_path, prune=True, verbosity=0, extra_flags=None):
         threading.Thread.__init__(self)
         self.env = env
@@ -31,7 +39,11 @@ class BackgroundBuilder(threading.Thread):
         # See https://github.com/samuelcolvin/watchfiles/pull/132
         self.stop_event = threading.Event()
 
-    def stop(self):
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *args: object):
         self.stop_event.set()
 
     def build(self, update_source_info_first=False):
@@ -84,24 +96,10 @@ def run_server(
     """This runs a server but also spawns a background process.  It's
     not safe to call this more than once per python process!
     """
-    wz_as_main = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-    in_main_process = not lektor_dev or wz_as_main
+    in_main_process = is_running_from_reloader() or not lektor_dev
     extra_flags = process_extra_flags(extra_flags)
     if lektor_dev:
         env.jinja_env.add_extension("jinja2.ext.debug")
-
-    if in_main_process:
-        background_builder = BackgroundBuilder(
-            env,
-            output_path=output_path,
-            prune=prune,
-            verbosity=verbosity,
-            extra_flags=extra_flags,
-        )
-        background_builder.start()
-        env.plugin_controller.emit(
-            "server-spawn", bindaddr=bindaddr, extra_flags=extra_flags
-        )
 
     app = WebAdmin(
         env,
@@ -113,10 +111,25 @@ def run_server(
         reload=reload,
     )
 
-    if browse and not wz_as_main:
+    if browse and not is_running_from_reloader():
         browse_to_address(bindaddr)
 
-    try:
+    with ExitStack() as stack:
+        if in_main_process:
+            env.plugin_controller.emit(
+                "server-spawn", bindaddr=bindaddr, extra_flags=extra_flags
+            )
+            stack.callback(env.plugin_controller.emit, "server-stop")
+
+            background_builder = BackgroundBuilder(
+                env,
+                output_path=output_path,
+                prune=prune,
+                verbosity=verbosity,
+                extra_flags=extra_flags,
+            )
+            stack.enter_context(background_builder)
+
         return run_simple(
             bindaddr[0],
             bindaddr[1],
@@ -128,8 +141,3 @@ def run_server(
             if lektor_dev
             else SilentWSGIRequestHandler,
         )
-    finally:
-        if in_main_process:
-            env.plugin_controller.emit("server-stop")
-            background_builder.stop()
-            background_builder.join()
