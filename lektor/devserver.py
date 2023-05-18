@@ -2,7 +2,6 @@ import os
 import threading
 import time
 import traceback
-from itertools import chain
 
 from werkzeug.serving import run_simple
 from werkzeug.serving import WSGIRequestHandler
@@ -29,6 +28,12 @@ class BackgroundBuilder(threading.Thread):
         self.verbosity = verbosity
         self.extra_flags = extra_flags
 
+        # See https://github.com/samuelcolvin/watchfiles/pull/132
+        self.stop_event = threading.Event()
+
+    def stop(self):
+        self.stop_event.set()
+
     def build(self, update_source_info_first=False):
         try:
             db = Database(self.env)
@@ -44,11 +49,11 @@ class BackgroundBuilder(threading.Thread):
             traceback.print_exc()
 
     def run(self):
-        builds = chain(["first"], watch_project(self.env, self.output_path))
+        watch = watch_project(self.env, self.output_path, stop_event=self.stop_event)
         with CliReporter(self.env, verbosity=self.verbosity):
-            for n, _ in enumerate(builds):
-                is_first_build = n == 0
-                self.build(update_source_info_first=is_first_build)
+            self.build(update_source_info_first=True)
+            for _changes in watch:
+                self.build()
 
 
 def browse_to_address(addr):
@@ -93,7 +98,6 @@ def run_server(
             verbosity=verbosity,
             extra_flags=extra_flags,
         )
-        background_builder.daemon = True
         background_builder.start()
         env.plugin_controller.emit(
             "server-spawn", bindaddr=bindaddr, extra_flags=extra_flags
@@ -127,3 +131,5 @@ def run_server(
     finally:
         if in_main_process:
             env.plugin_controller.emit("server-stop")
+            background_builder.stop()
+            background_builder.join()
