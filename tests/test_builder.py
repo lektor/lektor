@@ -392,6 +392,15 @@ def test_second_build_all_builds_nothing(scratch_builder, scratch_project_data):
 ################################################################
 
 
+def test_Artifact_open_encoding(builder):
+    build_state = builder.new_build_state()
+    artifact = build_state.new_artifact("dummy-artifact", sources=())
+    with artifact.open("w", encoding="iso-8859-1") as fp:
+        fp.write("Ciarán")
+    with artifact.open("r", encoding="iso-8859-1") as fp:
+        assert fp.read() == "Ciarán"
+
+
 def test_FileInfo_unchanged(env, tmp_path):
     file_path = tmp_path / "file"
     file_path.write_text("foo")

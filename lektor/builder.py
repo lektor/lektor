@@ -12,6 +12,8 @@ from collections import namedtuple
 from contextlib import contextmanager
 from dataclasses import dataclass
 from itertools import chain
+from typing import Any
+from typing import IO
 
 import click
 
@@ -711,26 +713,26 @@ class Artifact:
         except OSError:
             pass
 
-    def open(self, mode="rb", encoding=None, ensure_dir=None):
+    def open(
+        self, mode: str = "rb", encoding: str | None = None, ensure_dir: bool = True
+    ) -> IO[Any]:
         """Opens the artifact for reading or writing.  This is transaction
         safe by writing into a temporary file and by moving it over the
         actual source in commit.
         """
-        if ensure_dir is None:
-            ensure_dir = "r" not in mode
+        if self._new_artifact_file is not None:
+            return open(self._new_artifact_file, mode, encoding=encoding)
+
+        if "r" in mode:
+            return open(self.dst_filename, mode, encoding=encoding)
+
         if ensure_dir:
             self.ensure_dir()
-        if "r" in mode:
-            fn = self._new_artifact_file or self.dst_filename
-            return open(fn, mode=mode, encoding=encoding)
-        if self._new_artifact_file is None:
-            fd, tmp_filename = tempfile.mkstemp(
-                dir=os.path.dirname(self.dst_filename), prefix=".__trans"
-            )
-            os.chmod(tmp_filename, 0o644)
-            self._new_artifact_file = tmp_filename
-            return os.fdopen(fd, mode)
-        return open(self._new_artifact_file, mode=mode, encoding=encoding)
+        fd, self._new_artifact_file = tempfile.mkstemp(
+            dir=os.path.dirname(self.dst_filename),
+            prefix=".__trans",
+        )
+        return open(fd, mode, encoding=encoding)
 
     def replace_with_file(self, filename, ensure_dir=True, copy=False):
         """This is similar to open but it will move over a given named
