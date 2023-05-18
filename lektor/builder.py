@@ -1131,8 +1131,9 @@ class Builder:
 
     def touch_site_config(self):
         """Touches the site config which typically will trigger a rebuild."""
+        project_file = self.env.project.project_file
         try:
-            os.utime(os.path.join(self.env.root_path, "site.ini"), None)
+            os.utime(project_file)
         except OSError:
             pass
 
