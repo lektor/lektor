@@ -7,6 +7,7 @@ import sqlite3
 import stat
 import sys
 import tempfile
+import threading
 from collections import deque
 from contextlib import closing
 from contextlib import contextmanager
@@ -18,8 +19,8 @@ from operator import attrgetter
 from pathlib import Path
 from pathlib import PurePath
 from pathlib import PurePosixPath
-from typing import Any
 from typing import AbstractSet
+from typing import Any
 from typing import Callable
 from typing import Generator
 from typing import IO
@@ -71,67 +72,64 @@ VirtualSourcePath = NewType("VirtualSourcePath", str)
 PackedVirtualSourcePathAndAlt = NewType("PackedVirtualSourcePathAndAlt", str)
 
 
-def create_tables(con):
+def create_tables(cur: sqlite3.Cursor) -> None:
     can_disable_rowid = (3, 8, 2) <= sqlite3.sqlite_version_info
     if can_disable_rowid:
         without_rowid = "without rowid"
     else:
         without_rowid = ""
 
-    try:
-        con.execute(
-            f"""
-            create table if not exists artifacts (
-                artifact text,
-                source text,
-                source_mtime integer,
-                source_size integer,
-                source_checksum text,
-                is_dir integer,
-                is_primary_source integer,
-                primary key (artifact, source)
-            ) {without_rowid};
+    cur.execute(
+        f"""
+        create table if not exists artifacts (
+            artifact text,
+            source text,
+            source_mtime integer,
+            source_size integer,
+            source_checksum text,
+            is_dir integer,
+            is_primary_source integer,
+            primary key (artifact, source)
+        ) {without_rowid};
         """
-        )
-        con.execute(
-            """
-            create index if not exists artifacts_source on artifacts (
-                source
-            );
+    )
+    cur.execute(
         """
-        )
-        con.execute(
-            f"""
-            create table if not exists artifact_config_hashes (
-                artifact text,
-                config_hash text,
-                primary key (artifact)
-            ) {without_rowid};
+        create index if not exists artifacts_source on artifacts (
+            source
+        );
         """
-        )
-        con.execute(
-            f"""
-            create table if not exists dirty_sources (
-                source text,
-                primary key (source)
-            ) {without_rowid};
+    )
+    cur.execute(
+        f"""
+        create table if not exists artifact_config_hashes (
+            artifact text,
+            config_hash text,
+            primary key (artifact)
+        ) {without_rowid};
         """
-        )
-        con.execute(
-            f"""
-            create table if not exists source_info (
-                path text,
-                alt text,
-                lang text,
-                type text,
-                source text,
-                title text,
-                primary key (path, alt, lang)
-            ) {without_rowid};
+    )
+    cur.execute(
+        f"""
+        create table if not exists dirty_sources (
+            source text,
+            primary key (source)
+        ) {without_rowid};
         """
-        )
-    finally:
-        con.close()
+    )
+    cur.execute(
+        f"""
+        create table if not exists source_info (
+            path text,
+            alt text,
+            lang text,
+            type text,
+            source text,
+            title text,
+            primary key (path, alt, lang)
+        ) {without_rowid};
+        """
+    )
 
 
 SQLITE_MAX_VARIABLE_NUMBER = 999  # Default SQLITE_MAX_VARIABLE_NUMBER.
@@ -152,16 +150,76 @@ def _batched_for_sql(
         batch = list(islice(it, batch_size))
 
 
+class _Connection(sqlite3.Connection):
+    _closed: bool = False
+
+    def close(self):
+        self._closed = True
+        super().close()
+
+
+@dataclass
+class BuildstateDatabase(threading.local):
+    """Manage the buildstate database.
+
+    This manages connections to the buildstate database. The goal here is to provide for
+    one persistent connection per thread.
+    """
+
+    filename: StrPath
+    timeout: int = 10
+    _connection: _Connection | None = None
+
+    # FIXME: cached_property?
+    def connect(self) -> sqlite3.Connection:
+        """Make and return and thread-local connection to the database."""
+
+        if self._connection is None or self._connection._closed:
+            connection = sqlite3.connect(
+                self.filename, timeout=self.timeout, factory=_Connection
+            )
+            assert isinstance(connection, _Connection)
+            self._connection = connection
+
+            with closing(connection.cursor()) as cur:
+                cur.execute("pragma synchronous=NORMAL")
+
+        return self._connection
+
+    @contextmanager
+    def cursor(self) -> Generator[sqlite3.Cursor, None, None]:
+        """A context manager to provide a db cursor.
+
+        At the end of the context, the cursor will be closed and the connection will be
+        either committed or rolled back (depending on whether there was an exception.)
+        """
+        with self.connect() as con, closing(con.cursor()) as cur:
+            yield cur
+
+    def initialize(self) -> None:
+        """Create tables for our schema if they have not yet been created."""
+        with self.cursor() as cur:
+            cur.execute("pragma journal_mode=WAL")
+            create_tables(cur)
+
+
 class BuildState:
-    def __init__(self, builder, path_cache):
+    def __init__(
+        self,
+        builder: Builder,
+        path_cache: PathCache,
+        buildstate_database: BuildstateDatabase,
+    ):
         self.builder = builder
 
-        self.updated_artifacts = []
-        self.failed_artifacts = []
+        self.updated_artifacts: list[Artifact] = []
+        self.failed_artifacts: list[Artifact] = []
         self.path_cache = path_cache
+        self.buildstate_database = buildstate_database
 
     @property
     def pad(self):
+
         """The pad for this buildstate."""
         return self.builder.pad
 
@@ -200,19 +258,6 @@ class BuildState:
         else:
             mtime = checksum = None
         return VirtualSourceInfo(virtual_source_path, alt, mtime, checksum)
-
-    # FIXME: deprecated
-    def connect_to_database(self):
-        """Returns a database connection for the build state db."""
-        return self.builder.connect_to_database()
-
-    def db_connection(self):
-        """Context manager to manage a database connection.
-
-        When the context exits normally, the connection is committed then closed.
-        If the context exits via exception, the connection is rolled back then closed.
-        """
-        return self.builder.db_connection()
 
     def get_destination_filename(self, artifact_name):
         """Returns the destination filename for an artifact name."""
@@ -256,7 +301,7 @@ class BuildState:
 
     # FIXME: unused?
     def get_artifact_dependency_infos(self, artifact_name, sources):
-        with self.db_connection() as con, closing(con.cursor()) as cur:
+        with self.buildstate_database.cursor() as cur:
             return list(
                 self._iter_artifact_dependency_infos(cur, artifact_name, sources)
             )
@@ -299,17 +344,18 @@ class BuildState:
         """
         reporter.report_write_source_info(info)
         source = self.to_source_filename(info.filename)
-        with self.db_connection() as con:
-            cur = con.cursor()
-            for lang, title in info.title_i18n.items():
-                cur.execute(
-                    """
-                    insert or replace into source_info
-                        (path, alt, lang, type, source, title)
-                        values (?, ?, ?, ?, ?, ?)
+        with self.buildstate_database.cursor() as cur:
+            cur.executemany(
+                """
+                insert or replace into source_info
+                    (path, alt, lang, type, source, title)
+                    values (?, ?, ?, ?, ?, ?)
                 """,
-                    [info.path, info.alt, lang, info.type, source, title],
-                )
+                (
+                    [info.path, info.alt, lang, info.type, source, title]
+                    for lang, title in info.title_i18n.items()
+                ),
+            )
 
     def prune_source_infos(self):
         """Remove all source infos of files that no longer exist."""
@@ -318,7 +364,7 @@ class BuildState:
         def is_missing(source):
             return not root_path.joinpath(source).exists()
 
-        with self.db_connection() as con, closing(con.cursor()) as cur:
+        with self.buildstate_database.connect() as con, closing(con.cursor()) as cur:
             cur.execute("select distinct source from source_info")
             result: Iterable[tuple[SourcePath]] = iter(cur.fetchone, None)
             to_clean = [source for (source,) in result if is_missing(source)]
@@ -332,8 +378,7 @@ class BuildState:
 
     def remove_artifact(self, artifact_name):
         """Removes an artifact from the build state."""
-        # FIXME: should maybe not open a new connection for each removal?
-        with self.db_connection() as con, closing(con.cursor()) as cur:
+        with self.buildstate_database.cursor() as cur:
             cur.execute(
                 "delete from artifacts where artifact = ?",
                 [artifact_name],
@@ -373,9 +418,7 @@ class BuildState:
         return rv[0] if rv else None
 
     def check_artifact_is_current(self, artifact_name, sources, config_hash):
-        con = self.connect_to_database()
-        cur = con.cursor()
-        with closing(con):
+        with self.buildstate_database.cursor() as cur:
             # The artifact config changed
             if config_hash != self._get_artifact_config_hash(cur, artifact_name):
                 return False
@@ -447,7 +490,9 @@ class BuildState:
                     AND is_primary_source""",
                 [artifact_name],
             )
-            result: Iterator[tuple[SourcePath, str, str | None]] = iter(cur.fetchone, None)
+            result: Iterator[tuple[SourcePath, str, str | None]] = iter(
+                cur.fetchone, None
+            )
             for source, path, alt in result:
                 if self.get_file_info(source).exists:
                     if path is None:
@@ -461,13 +506,13 @@ class BuildState:
             # no sources exist, or those that do belong to hidden records
             return True
 
-        with self.db_connection() as con, closing(con.cursor()) as cur:
+        with self.buildstate_database.cursor() as cur:
             yield from filter(_is_unreferenced, self.iter_existing_artifacts())
 
     # FIXME: unused? (needs tests)
     def iter_artifacts(self):
         """Iterates over all artifact and their file infos.."""
-        with self.db_connection() as con, closing(con.cursor()) as cur:
+        with self.buildstate_database.cursor() as cur:
             cur.execute("select distinct artifact from artifacts order by artifact")
             result: Iterator[tuple[str]] = iter(cur.fetchone, None)
             for (artifact_name,) in result:
@@ -478,9 +523,8 @@ class BuildState:
 
     def vacuum(self):
         """Vacuums the build db."""
-        con = self.connect_to_database()
-        with closing(con):
-            con.execute("vacuum")
+        with self.buildstate_database.cursor() as cur:
+            cur.execute("vacuum")
 
 
 class Artifact:
@@ -686,7 +730,7 @@ class Artifact:
             self._pending_update_ops.append(f)
             return
 
-        with self.build_state.db_connection() as con:
+        with self.build_state.buildstate_database.connect() as con:
             f(con)
 
     @contextmanager
@@ -734,14 +778,14 @@ class Artifact:
             self._pending_update_ops = []
 
             # On error, do not prune old dependencies, just append new ones.
-            with self.build_state.db_connection() as con:
+            with self.build_state.buildstate_database.connect() as con:
                 self._memorize_dependencies(dependency_infos, con)
 
             ctx.exc_info = sys.exc_info()
             self.build_state.notify_failure(self, ctx.exc_info)
 
         else:
-            with self.build_state.db_connection() as con:
+            with self.build_state.buildstate_database.connect() as con:
                 self._prune_old_dependencies(con)
                 self._memorize_dependencies(dependency_infos, con)
 
@@ -1024,9 +1068,7 @@ def _get_path_state1(
 
     with os.scandir(path) as entries:
         interesting_entries = [
-            entry
-            for entry in entries
-            if not is_uninteresting_source_name(entry.name)
+            entry for entry in entries if not is_uninteresting_source_name(entry.name)
         ]
         dirsize = len(interesting_entries)
         h = hashlib.sha1(b"DIR\0")
@@ -1084,9 +1126,9 @@ class Builder:
         else:
             self.meta_path = os.path.join(self.destination_path, ".lektor")
         self.failure_controller = FailureController(pad, self.destination_path)
-
         try:
             os.makedirs(self.meta_path)
+            # FIXME: this looks suspect
             if os.listdir(self.destination_path) != [".lektor"]:
                 if not click.confirm(
                     click.style(
@@ -1103,40 +1145,15 @@ class Builder:
         except OSError:
             pass
 
-        create_tables(self.connect_to_database())
+        self.buildstate_database = BuildstateDatabase(
+            os.path.join(self.meta_path, "buildstate")
+        )
+        self.buildstate_database.initialize()
 
     @property
     def env(self):
         """The environment backing this generator."""
         return self.pad.db.env
-
-    @property
-    def buildstate_database_filename(self):
-        """The filename for the build state database."""
-        return os.path.join(self.meta_path, "buildstate")
-
-    def connect_to_database(self):
-        con = sqlite3.connect(
-            self.buildstate_database_filename,
-            isolation_level=None,  # FIXME: why?
-            timeout=10,
-            check_same_thread=False,  # FIXME: why?
-        )
-        with con, closing(con.cursor()) as cur:
-            cur.execute("pragma journal_mode=WAL")  # FIXME: this is persistent once set
-            cur.execute("pragma synchronous=NORMAL")
-        return con
-
-    @contextmanager
-    def db_connection(self):
-        """Context manager to manage a database connection.
-
-        When the context exits normally, the connection is committed then closed.
-        If the context exits via exception, the connection is rolled back then closed.
-        """
-        with closing(self.connect_to_database()) as con:
-            with con:
-                yield con
 
     def touch_site_config(self):
         """Touches the site config which typically will trigger a rebuild."""
@@ -1151,13 +1168,13 @@ class Builder:
         the source info is up to date and is primarily used by the admin to
         show files that exist.
         """
-        return find_files(self, query, alt, lang, limit, types)
+        return find_files(self.buildstate_database, query, alt, lang, limit, types)
 
     def new_build_state(self, path_cache=None):
         """Creates a new build state."""
         if path_cache is None:
             path_cache = PathCache(self.pad)
-        return BuildState(self, path_cache)
+        return BuildState(self, path_cache, self.buildstate_database)
 
     def get_build_program(self, source, build_state):
         """Finds the right build function for the given source file."""
@@ -1256,9 +1273,7 @@ class Builder:
         """Builds the entire tree.  Returns the number of failures."""
         failures = 0
         path_cache = PathCache(self.pad)
-        # We keep a dummy connection here that does not do anything which
-        # helps us with the WAL handling.  See #144
-        with self.db_connection(), reporter.build("build", self):
+        with reporter.build("build", self):
             self.env.plugin_controller.emit("before-build-all", builder=self)
             to_build = self.get_initial_build_queue()
             while to_build:
@@ -1276,9 +1291,7 @@ class Builder:
         everything.
         """
         build_state = self.new_build_state()
-        # We keep a dummy connection here that does not do anything which
-        # helps us with the WAL handling.  See #144
-        with self.db_connection(), reporter.build("source info update", self):
+        with reporter.build("source info update", self):
             to_build = self.get_initial_build_queue()
             while to_build:
                 source = to_build.popleft()
