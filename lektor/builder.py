@@ -749,9 +749,7 @@ class Artifact:
             self._new_artifact_file = filename
 
     def render_template_into(self, template_name, this, **extra):
-        """Renders a template into the artifact.  The default behavior is to
-        catch the error and render it into the template with a failure marker.
-        """
+        """Renders a template into the artifact."""
         rv = self.build_state.env.render_template(
             template_name, self.build_state.pad, this=this, **extra
         )
