@@ -113,7 +113,7 @@ def run_server(
         reload=reload,
     )
 
-    if browse:
+    if browse and not wz_as_main:
         browse_to_address(bindaddr)
 
     try:
