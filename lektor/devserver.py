@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import logging
 import threading
 import traceback
 import webbrowser
 from contextlib import ExitStack
 from typing import NamedTuple
+from typing import TYPE_CHECKING
 
 from werkzeug.serving import is_running_from_reloader
 from werkzeug.serving import run_simple
@@ -15,6 +18,10 @@ from lektor.reporter import CliReporter
 from lektor.utils import process_extra_flags
 from lektor.watcher import watch_project
 
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+    from lektor.environment import Environment
+
 
 class BackgroundBuilder(threading.Thread):
     """Run a thread to watch the project tree and rebuild when changes are noticed.
@@ -24,7 +31,14 @@ class BackgroundBuilder(threading.Thread):
 
     """
 
-    def __init__(self, env, output_path, prune=True, verbosity=0, extra_flags=None):
+    def __init__(
+        self,
+        env: Environment,
+        output_path: StrPath,
+        prune: bool = True,
+        verbosity: int = 0,
+        extra_flags: dict[str, str] | None = None,
+    ):
         threading.Thread.__init__(self)
         self.env = env
         self.output_path = output_path
@@ -35,14 +49,14 @@ class BackgroundBuilder(threading.Thread):
         # See https://github.com/samuelcolvin/watchfiles/pull/132
         self.stop_event = threading.Event()
 
-    def __enter__(self):
+    def __enter__(self) -> BackgroundBuilder:
         self.start()
         return self
 
-    def __exit__(self, *args: object):
+    def __exit__(self, *args: object) -> None:
         self.stop_event.set()
 
-    def build(self, update_source_info_first=False):
+    def build(self, update_source_info_first: bool = False) -> None:
         try:
             db = Database(self.env)
             builder = Builder(
@@ -56,7 +70,7 @@ class BackgroundBuilder(threading.Thread):
         except Exception:
             traceback.print_exc()
 
-    def run(self):
+    def run(self) -> None:
         watch = watch_project(self.env, self.output_path, stop_event=self.stop_event)
         with CliReporter(self.env, verbosity=self.verbosity):
             self.build(update_source_info_first=True)
@@ -69,7 +83,7 @@ class BindAddr(NamedTuple):
     port: int
 
 
-def browse_to_address(addr: BindAddr):
+def browse_to_address(addr: BindAddr) -> None:
     timer = threading.Timer(1.0, webbrowser.open, (f"http://{addr.host}:{addr.port}",))
     timer.daemon = True
     timer.start()
@@ -77,16 +91,16 @@ def browse_to_address(addr: BindAddr):
 
 def run_server(
     bindaddr: BindAddr,
-    env,
-    output_path,
-    prune=True,
-    verbosity=0,
-    lektor_dev=False,
-    ui_lang="en",
-    browse=False,
-    extra_flags=None,
-    reload=True,
-):
+    env: Environment,
+    output_path: StrPath,
+    prune: bool = True,
+    verbosity: int = 0,
+    lektor_dev: bool = False,
+    ui_lang: str = "en",
+    browse: bool = False,
+    extra_flags: dict[str, str] | None = None,
+    reload: bool = True,
+) -> None:
     """This runs a server but also spawns a background process.  It's
     not safe to call this more than once per python process!
     """
@@ -128,7 +142,7 @@ def run_server(
             )
             stack.enter_context(background_builder)
 
-        return run_simple(
+        run_simple(
             bindaddr.host,
             bindaddr.port,
             app,

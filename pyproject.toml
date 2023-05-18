@@ -199,6 +199,7 @@ ignore_missing_imports = true
 # Packages and modules we want to check
 module = [
     "lektor.constants",
+    "lektor.devserver",
     "lektor.packages",
     "lektor.admin.*",
     "lektor.imagetools",
@@ -216,6 +217,7 @@ disallow_untyped_calls = false
 [[tool.mypy.overrides]]
 module = [
     "lektor.admin.*",
+    "lektor.devserver",
     "lektor.imagetools",
 ]
 disallow_untyped_calls = false
