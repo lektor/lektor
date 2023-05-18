@@ -626,6 +626,8 @@ class Artifact:
 
     def render_template_into(self, template_name, this, **extra):
         """Renders a template into the artifact."""
+        # FIXME: are there gains to be made by streaming the template directly to a
+        # file?
         rv = self.build_state.env.render_template(
             template_name, self.build_state.pad, this=this, **extra
         )
