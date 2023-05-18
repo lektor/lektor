@@ -1,7 +1,6 @@
-from typing import Optional
-from typing import Sequence
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from typing import Union
 from wsgiref.util import shift_path_info
 
 from flask import Flask
@@ -16,8 +15,7 @@ from lektor.admin.modules import serve
 from lektor.environment import Environment
 
 if TYPE_CHECKING:
-    import os
-    from typing import Any
+    from _typeshed import StrPath
     from _typeshed.wsgi import WSGIApplication
 
 
@@ -29,14 +27,14 @@ def _common_configuration(app: Flask, debug: bool = False) -> None:
 def make_app(
     env: Environment,
     debug: bool = False,
-    output_path: Optional[Union[str, "os.PathLike[Any]"]] = None,
+    output_path: StrPath | None = None,
     ui_lang: str = "en",
     verbosity: int = 0,
-    extra_flags: Optional[Sequence[str]] = None,
+    extra_flags: dict[str, str] | None = None,
     reload: bool = True,
     *,
     admin_path: str = "/admin",
-    static_folder: Optional[Union[str, "os.PathLike[Any]"]] = "static",  # testing
+    static_folder: StrPath | None = "static",  # testing
 ) -> LektorApp:
     if output_path is None:
         output_path = env.project.get_output_path()

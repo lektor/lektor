@@ -1,9 +1,8 @@
+from __future__ import annotations
+
 from typing import Any
 from typing import NamedTuple
-from typing import Optional
-from typing import Sequence
 from typing import TYPE_CHECKING
-from typing import Union
 
 from flask import current_app
 from flask import Flask
@@ -20,14 +19,14 @@ from lektor.environment.config import Config
 from lektor.reporter import CliReporter
 
 if TYPE_CHECKING:
-    import os
+    from _typeshed import StrPath
 
 
 class LektorInfo(NamedTuple):
     env: Environment
-    output_path: Union[str, "os.PathLike[Any]"]
+    output_path: StrPath
     verbosity: int = 0
-    extra_flags: Optional[Sequence[str]] = None
+    extra_flags: dict[str, str] | None = None
 
 
 class LektorContext(LektorInfo):
