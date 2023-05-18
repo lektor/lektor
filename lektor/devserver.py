@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 import traceback
@@ -5,7 +6,6 @@ from contextlib import ExitStack
 
 from werkzeug.serving import is_running_from_reloader
 from werkzeug.serving import run_simple
-from werkzeug.serving import WSGIRequestHandler
 
 from lektor.admin import WebAdmin
 from lektor.builder import Builder
@@ -13,11 +13,6 @@ from lektor.db import Database
 from lektor.reporter import CliReporter
 from lektor.utils import process_extra_flags
 from lektor.watcher import watch_project
-
-
-class SilentWSGIRequestHandler(WSGIRequestHandler):
-    def log(self, type, message, *args):
-        pass
 
 
 class BackgroundBuilder(threading.Thread):
@@ -100,6 +95,8 @@ def run_server(
     extra_flags = process_extra_flags(extra_flags)
     if lektor_dev:
         env.jinja_env.add_extension("jinja2.ext.debug")
+    else:
+        logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
     app = WebAdmin(
         env,
@@ -137,7 +134,4 @@ def run_server(
             use_debugger=True,
             threaded=True,
             use_reloader=lektor_dev,
-            request_handler=WSGIRequestHandler
-            if lektor_dev
-            else SilentWSGIRequestHandler,
         )
