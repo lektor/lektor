@@ -1,8 +1,9 @@
 import logging
 import threading
-import time
 import traceback
+import webbrowser
 from contextlib import ExitStack
+from typing import NamedTuple
 
 from werkzeug.serving import is_running_from_reloader
 from werkzeug.serving import run_simple
@@ -63,21 +64,19 @@ class BackgroundBuilder(threading.Thread):
                 self.build()
 
 
-def browse_to_address(addr):
-    # pylint: disable=import-outside-toplevel
-    import webbrowser
+class BindAddr(NamedTuple):
+    host: str
+    port: int
 
-    def browse():
-        time.sleep(1)
-        webbrowser.open("http://%s:%s" % addr)
 
-    t = threading.Thread(target=browse)
-    t.daemon = True
-    t.start()
+def browse_to_address(addr: BindAddr):
+    timer = threading.Timer(1.0, webbrowser.open, (f"http://{addr.host}:{addr.port}",))
+    timer.daemon = True
+    timer.start()
 
 
 def run_server(
-    bindaddr,
+    bindaddr: BindAddr,
     env,
     output_path,
     prune=True,
@@ -91,6 +90,8 @@ def run_server(
     """This runs a server but also spawns a background process.  It's
     not safe to call this more than once per python process!
     """
+    bindaddr = BindAddr._make(bindaddr)
+
     in_main_process = is_running_from_reloader() or not lektor_dev
     extra_flags = process_extra_flags(extra_flags)
     if lektor_dev:
@@ -128,8 +129,8 @@ def run_server(
             stack.enter_context(background_builder)
 
         return run_simple(
-            bindaddr[0],
-            bindaddr[1],
+            bindaddr.host,
+            bindaddr.port,
             app,
             use_debugger=True,
             threaded=True,
