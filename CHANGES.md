@@ -4,13 +4,28 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.4.0b7 (unreleased)
 
+### Slightly Breaking Changes
+
+- The `--profile` option has been removed from the `lektor build` command. ([#1137])
+
 ### Bugs Fixed
 
 - Pin `watchfiles>=0.12`. (Our tests use the `stop_event` parameter of `watchfiles.watch`.)
-
 - Fix exception from `describe_build_func` when building thumbnails with verbose logging enabled.
-
+- Fix "FATAL: exception not rethrown" message when `lektor server` is stopped. ([#1145])
+- Fix multiple browser new tabs when `lektor server --browse` is used with `LEKTOR_DEV` set ([#1145])
 - Fix mypy errors in `lektor.admin.modules`.
+- Fix `Builder.touch_site_config` so that it actually touches the site
+  config. This fixes the _Refresh Build_ button of the admin
+  UI. ([#1146])
+- Ensure that `Artifact.open` respects the value of its `encoding` argument when opening files. ([#1146])
+- Fix logic flaw in `FileInfo.unchanged` which, under certain
+  circumstances, causes source files to be considered unchanged even
+  if their size (or mtime) is changed. ([#1146])
+
+[#1137]: https://github.com/lektor/lektor/pull/1137
+[#1145]: https://github.com/lektor/lektor/pull/1145
+[#1146]: https://github.com/lektor/lektor/pull/1146
 
 ## 3.4.0b6 (2023-05-05)
 
