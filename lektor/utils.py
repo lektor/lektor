@@ -664,24 +664,6 @@ def get_relative_path(source, target):
     raise AssertionError("This should not happen")
 
 
-def profile_func(func):
-    # pylint: disable=import-outside-toplevel
-
-    from cProfile import Profile
-    from pstats import Stats
-
-    p = Profile()
-    rv = []
-    p.runcall(lambda: rv.append(func()))
-    p.dump_stats("/tmp/lektor-%s.prof" % func.__name__)
-
-    stats = Stats(p, stream=sys.stderr)
-    stats.sort_stats("time", "calls")
-    stats.print_stats()
-
-    return rv[0]
-
-
 def deg_to_dms(deg):
     d = int(deg)
     md = abs(deg - d) * 60

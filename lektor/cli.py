@@ -15,7 +15,6 @@ from lektor.cli_utils import ResolvedPath
 from lektor.cli_utils import validate_language
 from lektor.compat import importlib_metadata as metadata
 from lektor.project import Project
-from lektor.utils import profile_func
 from lektor.utils import secure_url
 
 
@@ -90,7 +89,6 @@ def cli(ctx, project=None, language=None):
     "`.lektor` inside the output path.",
 )
 @extraflag
-@click.option("--profile", is_flag=True, help="Enable build profiler.")
 @pass_context
 def build_cmd(
     ctx,
@@ -100,7 +98,6 @@ def build_cmd(
     verbosity,
     source_info_only,
     buildstate_path,
-    profile,
     extra_flags,
 ):
     """Builds the entire project into the final artifacts.
@@ -152,10 +149,7 @@ def build_cmd(
                 builder.update_all_source_infos()
                 success = True
             else:
-                if profile:
-                    failures = profile_func(builder.build_all)
-                else:
-                    failures = builder.build_all()
+                failures = builder.build_all()
                 if prune:
                     builder.prune()
                 success = failures == 0
