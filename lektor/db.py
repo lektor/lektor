@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-lines
+from __future__ import annotations
+
 import errno
 import functools
 import hashlib
@@ -13,6 +14,7 @@ from itertools import chain
 from itertools import islice
 from operator import methodcaller
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 from jinja2 import is_undefined
@@ -48,6 +50,10 @@ from lektor.utils import split_virtual_path
 from lektor.utils import untrusted_to_os_path
 from lektor.videotools import get_video_info
 from lektor.videotools import make_video_thumbnail
+
+if TYPE_CHECKING:
+    from lektor.environment import Environment
+    from lektor.environment.config import Config
 
 # pylint: disable=no-member
 
@@ -1578,18 +1584,18 @@ def _split_alt_from_url(config, clean_path):
 
 
 class Pad:
-    def __init__(self, db):
+    def __init__(self, db: Database):
         self.db = db
         self.cache = RecordCache(db.config["EPHEMERAL_RECORD_CACHE_SIZE"])
         self.databags = Databags(db.env)
 
     @property
-    def config(self):
+    def config(self) -> Config:
         """The config for this pad."""
         return self.db.config
 
     @property
-    def env(self):
+    def env(self) -> Environment:
         """The env for this pad."""
         return self.db.env
 

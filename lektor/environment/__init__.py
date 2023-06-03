@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import fnmatch
 import os
 import uuid
 from functools import update_wrapper
+from typing import Type
 from typing import TYPE_CHECKING
 
 import babel.dates
@@ -29,9 +32,11 @@ from lektor.publisher import builtin_publishers
 from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
-
 if TYPE_CHECKING:
     from typing import Literal
+    from lektor.assets import Asset
+    from lektor.build_programs import BuildProgram
+    from lektor.sourceobj import SourceObject
 
 
 def _prevent_inlining(wrapped):
@@ -266,6 +271,11 @@ class Environment:
 
         self.virtualpathresolver("siblings")(siblings_resolver)
 
+    root_path: str
+    build_programs: list[tuple[Type[SourceObject], Type[BuildProgram]]]
+    special_file_assets: dict[str, Type[Asset]]
+    special_file_suffixes: dict[str, str]
+
     @property
     def asset_path(self):
         return os.path.join(self.root_path, "assets")
@@ -289,7 +299,7 @@ class Environment:
 
         return Database(self).new_pad()
 
-    def is_uninteresting_source_name(self, filename):
+    def is_uninteresting_source_name(self, filename: str) -> bool:
         """These files are ignored when sources are built into artifacts."""
         fn = filename.lower()
         if fn in SPECIAL_ARTIFACTS:
@@ -363,10 +373,14 @@ class Environment:
 
     # -- methods for the plugin system
 
-    def add_build_program(self, cls, program):
+    def add_build_program(
+        self, cls: Type[SourceObject], program: Type[BuildProgram]
+    ) -> None:
         self.build_programs.append((cls, program))
 
-    def add_asset_type(self, asset_cls, build_program):
+    def add_asset_type(
+        self, asset_cls: Type[Asset], build_program: Type[BuildProgram]
+    ) -> None:
         self.build_programs.append((asset_cls, build_program))
         self.special_file_assets[asset_cls.source_extension] = asset_cls
         if asset_cls.artifact_extension:

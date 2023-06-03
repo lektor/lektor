@@ -198,6 +198,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 # Packages and modules we want to check
 module = [
+    "lektor.assets",
     "lektor.constants",
     "lektor.devserver",
     "lektor.packages",
