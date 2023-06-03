@@ -138,7 +138,7 @@ class ArtifactServer:
         Raise NotFound if no index is found.
         """
         for name in "index.html", "index.htm":
-            index = directory.get_child(name, from_url=True)
+            index = directory.resolve_url_path([name])
             if index is not None:
                 break
         else:

@@ -1,5 +1,4 @@
 import inspect
-import os
 import shutil
 
 import pytest
@@ -109,13 +108,6 @@ def test_asset_get_child(asset, name, from_url, child_name):
         assert asset.get_child(name, from_url).name == child_name
 
 
-fs_ignores_case = all(os.path.exists(fn) for fn in (__file__.upper(), __file__.lower()))
-xfail_if_fs_cs = pytest.mark.xfail(
-    not fs_ignores_case,
-    reason="FIXME: fails on case-sensitive filesystems",
-)
-
-
 @pytest.mark.parametrize(
     "asset_path, url_path, expected",
     [
@@ -125,7 +117,7 @@ xfail_if_fs_cs = pytest.mark.xfail(
         ("/", ("foo-prefix-makes-me-excluded",), None),
         ("/", ("foo-prefix-makes-me-excluded", "static"), None),
         ("/static", ("demo.css",), "/static/demo.css"),
-        pytest.param("/", ("TEST.txt",), "/TEST.txt", marks=xfail_if_fs_cs),
+        ("/", ("TEST.txt",), "/TEST.txt"),
     ],
 )
 def test_resolve_url_path(asset, url_path, expected):

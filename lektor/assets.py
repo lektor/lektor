@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 
 from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
+from lektor.utils import DeprecatedWarning
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -43,6 +44,13 @@ def get_asset(pad: Pad, filename: str, parent: Asset | None = None) -> Asset | N
     else:
         assert pad is parent.pad
     return parent.get_child(filename)
+
+
+_FROM_URL_DEPRECATED = DeprecatedWarning(
+    "from_url",
+    reason="The `from_url` parameter of `Asset.get_child` is now ignored.",
+    version="3.4.0",
+)
 
 
 class Asset(SourceObject):
@@ -94,15 +102,13 @@ class Asset(SourceObject):
 
     # pylint: disable-next=no-self-use,useless-return
     def get_child(self, name: str, from_url: bool = False) -> Asset | None:
+        if from_url:
+            warnings.warn(_FROM_URL_DEPRECATED, stacklevel=2)
         return None
 
     def resolve_url_path(self, url_path: Sequence[str]) -> Asset | None:
-        if not url_path:
+        if len(url_path) == 0:
             return self
-        # pylint: disable=assignment-from-none
-        child = self.get_child(url_path[0], from_url=True)
-        if child is not None:
-            return child.resolve_url_path(url_path[1:])
         return None
 
     def __repr__(self) -> str:
@@ -129,28 +135,8 @@ class Directory(Asset):
                 yield asset
 
     def get_child(self, name: str, from_url: bool = False) -> Asset | None:
-        asset = self._get_child(name)
-        if asset is not None:
-            return asset
-
-        if not from_url:
-            return None
-
-        # At this point it means we did not find a child yet, but we
-        # came from an URL.  We can try to chop off product suffixes to
-        # find the original source asset.  For instance an output file called
-        # foo.less.css may have come from a source file named foo.less.
-        #
-        # XXX: I'm not sure this code is ever used
-        p = PurePosixPath(name)
-        if len(p.suffixes) < 2:
-            return None
-        ext = self.pad.db.env.special_file_suffixes.get("".join(p.suffixes[-2:]))
-        if ext is None:
-            return None
-        return self._get_child(str(p.with_suffix("").with_suffix(ext)))
-
-    def _get_child(self, name: str) -> Asset | None:
+        if from_url:
+            warnings.warn(_FROM_URL_DEPRECATED, stacklevel=2)
         env = self.pad.env
 
         if not _is_valid_path_component(name):
@@ -177,11 +163,34 @@ class Directory(Asset):
         return asset_class(self.pad, parent=self, name=name, paths=(path,))
 
     @property
+    def url_name(self) -> str:
+        return self.name + self.artifact_extension
+
+    @property
     def url_path(self) -> str:
         path = super().url_path
         if not path.endswith("/"):
             path += "/"
         return path
+
+    def resolve_url_path(self, url_path: Sequence[str]) -> Asset | None:
+        if len(url_path) == 0:
+            return self
+
+        # Optimization: try common case where file extension has not been mangled
+        child = self.get_child(url_path[0])
+        if child is not None:
+            return child.resolve_url_path(url_path[1:])
+
+        if len(url_path) == 1:
+            # There are a number of ways a file extension can be mangled to form the
+            # url_path. (See `Asset.url_name`.) It can be lower-cased, and/or it could
+            # have had `artifact_extension` appended.  It's not easy to check all these
+            # cases individually, so we'll just look for a matching child.
+            for child in self.children:
+                if child.url_name == url_path[0]:
+                    return child
+        return None
 
     @property
     def url_content_path(self) -> str:
