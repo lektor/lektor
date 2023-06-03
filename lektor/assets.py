@@ -92,10 +92,6 @@ class Asset(SourceObject):
             return self.parent.artifact_name.rstrip("/") + "/" + self.url_name
         return self.url_path
 
-    def build_asset(self, f) -> None:
-        # FIXME: unused? delete?
-        pass
-
     @property
     def children(self) -> Iterable[Asset]:
         return ()
