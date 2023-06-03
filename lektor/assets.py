@@ -7,6 +7,7 @@ from itertools import takewhile
 from operator import methodcaller
 from pathlib import Path
 from pathlib import PurePosixPath
+from pathlib import PureWindowsPath
 from typing import Generator
 from typing import Iterable
 from typing import Sequence
@@ -152,9 +153,7 @@ class Directory(Asset):
     def _get_child(self, name: str) -> Asset | None:
         env = self.pad.env
 
-        if name in ("..", "."):
-            return None
-        if os.pathsep in name or (os.altsep and os.altsep in name) or ":" in name:
+        if not _is_valid_path_component(name):
             return None
         if env.is_uninteresting_source_name(name):
             return None
@@ -191,3 +190,15 @@ class Directory(Asset):
 
 class File(Asset):
     """Represents a static asset file."""
+
+
+def _is_valid_path_component(comp: str) -> bool:
+    """Determine whether string is a valid component of an asset path."""
+    if comp in ("..", "."):
+        return False
+    # Check for and forbid pathsep, windows drive, reserved names, etc.
+    for path_class in (PurePosixPath, PureWindowsPath):
+        path = path_class(comp)
+        if len(path.parts) != 1 or path.anchor or path.is_reserved():
+            return False
+    return True
