@@ -10,6 +10,8 @@ These are all the changes in Lektor since the first public release.
 
 - Fix exception from `describe_build_func` when building thumbnails with verbose logging enabled.
 
+- Fix mypy errors in `lektor.admin.modules`.
+
 ## 3.4.0b6 (2023-05-05)
 
 ### Possibly Breaking Changes

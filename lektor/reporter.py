@@ -408,6 +408,9 @@ class CliReporter(Reporter):
 null_reporter = NullReporter(None)
 
 
+reporter: Reporter
+
+
 @LocalProxy
 def reporter():
     rv = _reporter_stack.top

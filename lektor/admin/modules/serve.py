@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import mimetypes
 import os
 import re
@@ -5,6 +7,7 @@ from pathlib import Path
 from typing import Match
 from typing import Optional
 from typing import Tuple
+from typing import TYPE_CHECKING
 from typing import Union
 from zlib import adler32
 
@@ -16,7 +19,6 @@ from flask import request
 from flask import Response
 from flask import send_file
 from flask import url_for
-from flask.typing import ResponseReturnValue
 from werkzeug.exceptions import NotFound
 from werkzeug.security import safe_join
 from werkzeug.utils import append_slash_redirect
@@ -26,11 +28,17 @@ from lektor.admin.context import LektorApp
 from lektor.admin.context import LektorContext
 from lektor.assets import Asset
 from lektor.assets import Directory
-from lektor.builder import Artifact
-from lektor.buildfailures import BuildFailure
 from lektor.constants import PRIMARY_ALT
 from lektor.db import Record
-from lektor.sourceobj import SourceObject
+
+if TYPE_CHECKING:
+    from flask.typing import ResponseReturnValue
+    from flask.typing import ResponseValue
+
+    from lektor.builder import Artifact
+    from lektor.buildfailures import BuildFailure
+    from lektor.sourceobj import SourceObject
+
 
 bp = Blueprint("serve", __name__)
 
@@ -57,7 +65,7 @@ def _rewrite_html_for_editing(
 
 def _send_html_for_editing(
     artifact: Artifact, edit_url: str, mimetype: str = "text/html"
-) -> Response:
+) -> ResponseValue:
     """Serve an HTML file, after mangling it to add an "edit pencil" button."""
     try:
         with open(artifact.dst_filename, "rb") as fp:
@@ -79,7 +87,9 @@ def _deduce_mimetype(filename: Filename) -> str:
     return mimetype
 
 
-def _checked_send_file(filename: Filename, mimetype: Optional[str] = None) -> Response:
+def _checked_send_file(
+    filename: Filename, mimetype: Optional[str] = None
+) -> ResponseValue:
     """Same as flask.send_file, except raises NotFound on file errors."""
     # NB: flask.send_file interprets relative paths relative to
     # current_app.root_path. We don't want that.
@@ -178,7 +188,7 @@ class ArtifactServer:
         )
         return url_for("url.edit", path=record.path, alt=alt)
 
-    def serve_artifact(self, url_path: str) -> Response:
+    def serve_artifact(self, url_path: str) -> ResponseValue:
         source = self.resolve_url_path(url_path)
 
         # If the request path does not end with a slash but we
@@ -214,12 +224,12 @@ class ArtifactServer:
         return _checked_send_file(artifact.dst_filename, mimetype=mimetype)
 
 
-def serve_artifact(path: str) -> Response:
+def serve_artifact(path: str) -> ResponseValue:
     lektor_context = get_lektor_context()
     return ArtifactServer(lektor_context).serve_artifact(path)
 
 
-def serve_file(path: str) -> Response:
+def serve_file(path: str) -> ResponseValue:
     """Serve file directly from Lektor's output directory."""
     assert isinstance(current_app, LektorApp)
     output_path = current_app.lektor_info.output_path
@@ -242,7 +252,7 @@ def serve_file(path: str) -> Response:
 
 @bp.route("/", defaults={"path": ""})
 @bp.route("/<path:path>")
-def serve_artifact_or_file(path: str) -> Response:
+def serve_artifact_or_file(path: str) -> ResponseReturnValue:
     try:
         return serve_artifact(path)
     except HiddenRecordException:
