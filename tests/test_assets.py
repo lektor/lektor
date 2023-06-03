@@ -4,6 +4,9 @@ import shutil
 
 import pytest
 
+from lektor.assets import Directory
+from lektor.assets import File
+from lektor.assets import get_asset_root
 from lektor.project import Project
 
 
@@ -74,7 +77,9 @@ def test_asset_children(asset, child_names):
 
 @pytest.mark.parametrize("asset_path", ["/static"])
 def test_asset_children_no_children_if_dir_unreadable(asset):
-    asset._source_filename += "-missing"
+    asset._paths = tuple(
+        path.with_name(path.name + "-missing") for path in asset._paths
+    )
     assert len(set(asset.children)) == 0
 
 
@@ -140,3 +145,55 @@ def test_resolve_url_path(asset, url_path, expected):
 )
 def test_asset_repr(asset, expected):
     assert repr(asset) == expected
+
+
+@pytest.fixture
+def asset_paths(tmp_path):
+    paths = tmp_path / "assets1", tmp_path / "assets2"
+    for path in paths:
+        path.mkdir()
+    return paths
+
+
+@pytest.fixture
+def asset_root(pad, asset_paths):
+    return get_asset_root(pad, asset_paths)
+
+
+def test_directory_merges_subdirectories(asset_root, asset_paths):
+    for n, path in enumerate(asset_paths):
+        subdir = path / "subdir"
+        subdir.mkdir()
+        subdir.joinpath(f"file{n}").touch()
+
+    subdir_asset = asset_root.get_child("subdir")
+    child_names = [child.name for child in subdir_asset.children]
+    child_names.sort()
+    assert child_names == ["file0", "file1"]
+
+
+def test_directory_file_shadows_directory(asset_root, asset_paths):
+    for n, path in enumerate(asset_paths):
+        child_path = path / "child"
+        if n == 0:
+            child_path.touch()
+        else:
+            child_path.mkdir()
+
+    children = list(asset_root.children)
+    assert len(children) == 1
+    assert isinstance(children[0], File)
+    assert children[0].name == "child"
+
+
+def test_directory_directory_conflicts_with_file(asset_root, asset_paths):
+    for n, path in enumerate(asset_paths):
+        child_path = path / "child"
+        if n == 0:
+            child_path.mkdir()
+        else:
+            child_path.touch()
+
+    children = list(asset_root.children)
+    assert len(children) == 1
+    assert all(isinstance(child, Directory) for child in children)
