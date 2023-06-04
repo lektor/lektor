@@ -1689,7 +1689,7 @@ class Pad:
 
     root = property(get_root)
 
-    @property
+    @cached_property
     def asset_root(self):
         """The root of the asset tree.
 

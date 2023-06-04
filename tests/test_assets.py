@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from lektor.assets import _is_valid_path_component
 from lektor.assets import Directory
 from lektor.assets import File
 from lektor.assets import get_asset
@@ -185,46 +184,6 @@ def test_resolve_url_path(asset, url_path, expected):
 )
 def test_asset_repr(asset, expected):
     assert repr(asset) == expected
-
-
-@pytest.mark.parametrize(
-    "comp",
-    [
-        "x",
-        "a.b",
-        "a_b",
-        "a@b",
-    ],
-)
-def test_is_valid_path_component_true(comp):
-    assert _is_valid_path_component(comp)
-
-
-@pytest.mark.parametrize(
-    "comp",
-    [
-        "",
-        ".",
-        "..",
-        "../x",
-        # abspath
-        "/x",
-        "//x",
-        r"\x",
-        r"\\x",
-        # pathsep
-        "x/y",
-        r"x\y",
-        # Windows drive
-        "c:foo",
-        "c:",
-        # Windows restricted file names
-        "nul",
-        "c:nul",
-    ],
-)
-def test_is_valid_path_component_false(comp):
-    assert not _is_valid_path_component(comp)
 
 
 @pytest.fixture

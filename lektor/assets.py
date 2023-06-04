@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-import os
 import posixpath
 import warnings
+from collections import defaultdict
 from contextlib import suppress
 from itertools import takewhile
 from operator import methodcaller
 from pathlib import Path
-from pathlib import PurePosixPath
-from pathlib import PureWindowsPath
 from typing import Generator
 from typing import Iterable
 from typing import Sequence
 from typing import TYPE_CHECKING
+
+from werkzeug.utils import cached_property
 
 from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
@@ -119,45 +119,41 @@ class Directory(Asset):
     """Represents a merged set of asset directories."""
 
     @property
-    def children(self) -> Generator[Asset, None, None]:
-        # XXX: this could probably be made more efficient
-        files = set()
-        for path in self._paths:
-            with suppress(OSError):
-                files.update(os.listdir(path))
-
-        for filename in files:
-            asset = self.get_child(filename)
-            if asset is not None:
-                yield asset
+    def children(self) -> Iterable[Asset]:
+        return self._children_by_name.values()
 
     def get_child(self, name: str, from_url: bool = False) -> Asset | None:
         if from_url:
             warnings.warn(_FROM_URL_DEPRECATED, stacklevel=2)
+        return self._children_by_name.get(name)
+
+    @cached_property
+    def _children_by_name(self) -> dict[str, Asset]:
+        return {asset.name: asset for asset in self._iter_children()}
+
+    def _iter_children(self) -> Generator[Asset, None, None]:
         env = self.pad.env
+        candidates_by_name = defaultdict(list)
+        for path in self._paths:
+            with suppress(OSError):
+                for child in path.iterdir():
+                    if not env.is_uninteresting_source_name(child.name):
+                        candidates_by_name[child.name].append(child)
 
-        if not _is_valid_path_component(name):
-            return None
-        if env.is_uninteresting_source_name(name):
-            return None
-
-        candidates = tuple(
-            path / name for path in self._paths if path.joinpath(name).exists()
-        )
-        if len(candidates) == 0:
-            return None
-        leading_dirs = tuple(takewhile(methodcaller("is_dir"), candidates))
-        if leading_dirs:
-            # Merge directories at the top of the overlay stack.
-            #
-            # Directories overlayed above a non-directory shadow (hide) that
-            # non-directory.  (That non-directory, in turn, shadows anything under
-            # it.)
-            return Directory(self.pad, parent=self, name=name, paths=leading_dirs)
-        # If first candidate is not a directory, it shadows any below it.
-        path = candidates[0]
-        asset_class = env.special_file_assets.get(path.suffix, File)
-        return asset_class(self.pad, parent=self, name=name, paths=(path,))
+        for name, candidates in candidates_by_name.items():
+            leading_dirs = tuple(takewhile(methodcaller("is_dir"), candidates))
+            if leading_dirs:
+                # Merge directories at the top of the overlay stack.
+                #
+                # Directories overlayed above a non-directory shadow (hide) that
+                # non-directory.  (That non-directory, in turn, shadows anything under
+                # it.)
+                yield Directory(self.pad, parent=self, name=name, paths=leading_dirs)
+            else:
+                # If first candidate is not a directory, it shadows any below it.
+                path = candidates[0]
+                asset_class = env.special_file_assets.get(path.suffix, File)
+                yield asset_class(self.pad, parent=self, name=name, paths=(path,))
 
     @property
     def url_name(self) -> str:
@@ -196,15 +192,3 @@ class Directory(Asset):
 
 class File(Asset):
     """Represents a static asset file."""
-
-
-def _is_valid_path_component(comp: str) -> bool:
-    """Determine whether string is a valid component of an asset path."""
-    if comp in ("..", "."):
-        return False
-    # Check for and forbid pathsep, windows drive, reserved names, etc.
-    for path_class in (PurePosixPath, PureWindowsPath):
-        path = path_class(comp)
-        if len(path.parts) != 1 or path.anchor or path.is_reserved():
-            return False
-    return True
