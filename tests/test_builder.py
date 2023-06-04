@@ -2,7 +2,9 @@ from pathlib import Path
 
 import pytest
 
+from lektor.builder import Builder
 from lektor.builder import FileInfo
+from lektor.project import Project
 from lektor.reporter import NullReporter
 
 
@@ -387,6 +389,34 @@ def test_second_build_all_builds_nothing(scratch_builder, scratch_project_data):
 
     with AssertBuildsNothingReporter():
         scratch_builder.build_all()
+
+
+@pytest.mark.parametrize(
+    "param",
+    [
+        "project",
+        pytest.param(
+            "symlinked-project",
+            marks=pytest.mark.xfail(
+                reason="FIXME: PathCache.to_source_filename does not cope with symlinks"
+            ),
+        ),
+    ],
+)
+def test_BuildState_to_source_filename(param, data_path, tmp_path):
+    demo_project = data_path / "demo-project"
+    if "symlink" in param:
+        tree = tmp_path / "tree"
+        try:
+            tree.symlink_to(demo_project, target_is_directory=True)
+        except OSError:
+            pytest.skip("symlinks unsupported?")
+    else:
+        tree = demo_project
+    env = Project.from_path(tree).make_env(load_plugins=False)
+    build_state = Builder(env.new_pad(), tmp_path / "output").new_build_state()
+
+    assert build_state.to_source_filename(str(demo_project / "filename")) == "filename"
 
 
 ################################################################

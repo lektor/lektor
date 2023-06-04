@@ -33,7 +33,7 @@ def get_asset_root(pad: Pad, asset_roots: Iterable[StrPath]) -> Directory:
     are silently ignored.
     """
     root_paths = tuple(
-        Path(root).resolve() for root in asset_roots if Path(root).is_dir()
+        Path(root).absolute() for root in asset_roots if Path(root).is_dir()
     )
     return Directory(pad, parent=None, name="", paths=root_paths)
 
