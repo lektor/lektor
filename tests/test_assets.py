@@ -1,11 +1,13 @@
 import inspect
 import shutil
+from pathlib import Path
 
 import pytest
 
 from lektor.assets import _is_valid_path_component
 from lektor.assets import Directory
 from lektor.assets import File
+from lektor.assets import get_asset
 from lektor.assets import get_asset_root
 from lektor.project import Project
 
@@ -32,9 +34,33 @@ def pad(project_path, save_sys_path):
     return Project.from_path(project_path).make_env().new_pad()
 
 
+@pytest.fixture(params=["/", "/static", "/static/demo.css", "/TEST.TXT"])
+def asset_path(request):
+    return request.param
+
+
 @pytest.fixture
 def asset(pad, asset_path):
     return pad.get_asset(asset_path)
+
+
+@pytest.mark.parametrize(
+    "parent_path, child_name",
+    [
+        (None, "static"),
+        ("/static", "demo.css"),
+    ],
+)
+def test_get_asset(pad, parent_path, child_name):
+    parent = pad.get_asset(parent_path) if parent_path is not None else None
+    with pytest.deprecated_call(match=r"\bget_asset\b.*\bdeprecated\b") as warnings:
+        assert get_asset(pad, child_name, parent=parent).name == child_name
+    assert all(warning.filename == __file__ for warning in warnings)
+
+
+def test_asset_source_filename(asset, pad, asset_path):
+    expected = Path(pad.env.root_path, "assets", asset_path.lstrip("/"))
+    assert asset.source_filename == str(expected)
 
 
 @pytest.mark.parametrize(
@@ -48,6 +74,19 @@ def asset(pad, asset_path):
 )
 def test_asset_url_path(asset, url_path):
     assert asset.url_path == url_path
+
+
+@pytest.mark.parametrize(
+    "asset_path, expected",
+    [
+        ("/", "/"),
+        ("/static", "/static/"),
+        ("/static/demo.css", None),
+        ("/TEST.TXT", None),
+    ],
+)
+def test_asset_url_content_path(asset, expected):
+    assert asset.url_content_path == expected
 
 
 @pytest.mark.parametrize(
@@ -84,28 +123,35 @@ def test_asset_children_no_children_if_dir_unreadable(asset):
 
 
 @pytest.mark.parametrize(
-    "asset_path, name, from_url, child_name",
+    "asset_path, name, child_name",
     [
-        ("/", "empty", False, "empty"),
-        ("/", "missing", False, None),
-        ("/", "foo-prefix-makes-me-excluded", False, None),
+        ("/", "empty", "empty"),
+        ("/", "missing", None),
+        ("/", "foo-prefix-makes-me-excluded", None),
         (
             "/",
             "_include_me_despite_underscore",
-            False,
             "_include_me_despite_underscore",
         ),
-        ("/static", "demo.css", False, "demo.css"),
-        ("/static/demo.css", "x", False, None),
-        ("/empty", "demo.css", False, None),
-        # XXX: The from_url special_file_suffixes logic seems not be be used
+        ("/static", "demo.css", "demo.css"),
+        ("/static/demo.css", "x", None),
+        ("/empty", "demo.css", None),
+        # Invalid child names
+        ("/static", ".", None),
+        ("/", "", None),
     ],
 )
-def test_asset_get_child(asset, name, from_url, child_name):
+def test_asset_get_child(asset, name, child_name):
     if child_name is None:
-        assert asset.get_child(name, from_url) is None
+        assert asset.get_child(name) is None
     else:
-        assert asset.get_child(name, from_url).name == child_name
+        assert asset.get_child(name).name == child_name
+
+
+def test_asset_get_child_from_url_param_deprecated(asset):
+    with pytest.deprecated_call(match=r"\bfrom_url\b.*\bignored\b") as warnings:
+        asset.get_child("name", from_url=True)
+    assert all(warning.filename == __file__ for warning in warnings)
 
 
 @pytest.mark.parametrize(
@@ -113,6 +159,7 @@ def test_asset_get_child(asset, name, from_url, child_name):
     [
         ("/", ("static",), "/static"),
         ("/", ("static", "demo.css"), "/static/demo.css"),
+        ("/", ("static", "demo.css", "parent-not-a-dir"), None),
         ("/", ("missing", "demo.css"), None),
         ("/", ("foo-prefix-makes-me-excluded",), None),
         ("/", ("foo-prefix-makes-me-excluded", "static"), None),

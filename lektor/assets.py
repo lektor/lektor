@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import posixpath
+import warnings
 from contextlib import suppress
 from itertools import takewhile
 from operator import methodcaller
