@@ -12,6 +12,8 @@ from collections import namedtuple
 from contextlib import contextmanager
 from dataclasses import dataclass
 from itertools import chain
+from typing import Any
+from typing import IO
 
 import click
 
@@ -573,12 +575,13 @@ class FileInfo(_ArtifactSourceInfo):
         if not isinstance(other, FileInfo):
             raise TypeError("'other' must be a FileInfo, not %r" % other)
 
+        if self.mtime != other.mtime or self.size != other.size:
+            return False
         # If mtime and size match, we skip the checksum comparison which
         # might require a file read which we do not want in those cases.
         # (Except if it's a directory, then we won't do that)
-        if not self.is_dir and self.mtime == other.mtime and self.size == other.size:
+        if not self.is_dir:
             return True
-
         return self.checksum == other.checksum
 
     def is_changed(self, build_state: BuildState) -> bool:
@@ -710,26 +713,26 @@ class Artifact:
         except OSError:
             pass
 
-    def open(self, mode="rb", encoding=None, ensure_dir=None):
+    def open(
+        self, mode: str = "rb", encoding: str | None = None, ensure_dir: bool = True
+    ) -> IO[Any]:
         """Opens the artifact for reading or writing.  This is transaction
         safe by writing into a temporary file and by moving it over the
         actual source in commit.
         """
-        if ensure_dir is None:
-            ensure_dir = "r" not in mode
+        if self._new_artifact_file is not None:
+            return open(self._new_artifact_file, mode, encoding=encoding)
+
+        if "r" in mode:
+            return open(self.dst_filename, mode, encoding=encoding)
+
         if ensure_dir:
             self.ensure_dir()
-        if "r" in mode:
-            fn = self._new_artifact_file or self.dst_filename
-            return open(fn, mode=mode, encoding=encoding)
-        if self._new_artifact_file is None:
-            fd, tmp_filename = tempfile.mkstemp(
-                dir=os.path.dirname(self.dst_filename), prefix=".__trans"
-            )
-            os.chmod(tmp_filename, 0o644)
-            self._new_artifact_file = tmp_filename
-            return os.fdopen(fd, mode)
-        return open(self._new_artifact_file, mode=mode, encoding=encoding)
+        fd, self._new_artifact_file = tempfile.mkstemp(
+            dir=os.path.dirname(self.dst_filename),
+            prefix=".__trans",
+        )
+        return open(fd, mode, encoding=encoding)
 
     def replace_with_file(self, filename, ensure_dir=True, copy=False):
         """This is similar to open but it will move over a given named
@@ -746,9 +749,7 @@ class Artifact:
             self._new_artifact_file = filename
 
     def render_template_into(self, template_name, this, **extra):
-        """Renders a template into the artifact.  The default behavior is to
-        catch the error and render it into the template with a failure marker.
-        """
+        """Renders a template into the artifact."""
         rv = self.build_state.env.render_template(
             template_name, self.build_state.pad, this=this, **extra
         )
@@ -1130,8 +1131,9 @@ class Builder:
 
     def touch_site_config(self):
         """Touches the site config which typically will trigger a rebuild."""
+        project_file = self.env.project.project_file
         try:
-            os.utime(os.path.join(self.env.root_path, "site.ini"), None)
+            os.utime(project_file)
         except OSError:
             pass
 
