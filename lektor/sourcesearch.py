@@ -1,4 +1,4 @@
-import sqlite3
+from contextlib import closing
 
 from lektor.constants import PRIMARY_ALT
 
@@ -67,7 +67,7 @@ def _build_parent_path(path, mapping, alt, lang):
     return rv
 
 
-def _process_search_results(builder, cur, alt, lang, limit):
+def _process_search_results(cur, alt, lang, limit):
     mapping = _mapping_from_cursor(cur)
     rv = []
 
@@ -104,7 +104,9 @@ def _process_search_results(builder, cur, alt, lang, limit):
     return rv
 
 
-def find_files(builder, query, alt=PRIMARY_ALT, lang=None, limit=50, types=None):
+def find_files(
+    buildstate_database, query, alt=PRIMARY_ALT, lang=None, limit=50, types=None
+):
     if types is None:
         types = ["page"]
     else:
@@ -122,9 +124,7 @@ def find_files(builder, query, alt=PRIMARY_ALT, lang=None, limit=50, types=None)
     title_like = "%" + query + "%"
     path_like = "/%" + query.rstrip("/") + "%"
 
-    con = sqlite3.connect(builder.buildstate_database_filename, timeout=10)
-    try:
-        cur = con.cursor()
+    with buildstate_database.connect() as con, closing(con.cursor()) as cur:
         cur.execute(
             """
             select path, alt, lang, type, title
@@ -144,6 +144,4 @@ def find_files(builder, query, alt=PRIMARY_ALT, lang=None, limit=50, types=None)
             ),
             [title_like, path_like] + languages + alts + types + [limit * 2],
         )
-        return _process_search_results(builder, cur, alt, lang, limit)
-    finally:
-        con.close()
+        return _process_search_results(cur, alt, lang, limit)

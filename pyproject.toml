@@ -198,6 +198,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 # Packages and modules we want to check
 module = [
+    "lektor.builder",
     "lektor.constants",
     "lektor.devserver",
     "lektor.packages",
@@ -209,6 +210,7 @@ ignore_errors = false
 
 [[tool.mypy.overrides]]
 module = [
+    "lektor.builder",
     "lektor.packages",
 ]
 disallow_untyped_defs = false

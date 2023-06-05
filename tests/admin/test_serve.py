@@ -73,7 +73,9 @@ def test_rewrite_html_for_editing_adds_livereload(dummy_app):
 
 
 @pytest.fixture
-def make_dummy_artifact(tmp_path):
+def make_dummy_artifact(builder, tmp_path):
+    build_state = builder.new_build_state()
+
     def make_dummy_artifact(
         artifact_name="test",
         content="<html><head></head><body></body></html>",
@@ -82,7 +84,7 @@ def make_dummy_artifact(tmp_path):
         if content is not None:
             path.write_text(content)
         return Artifact(
-            build_state=None,  # bogus
+            build_state=build_state,
             artifact_name=artifact_name,
             dst_filename=str(path),
             sources=[],
