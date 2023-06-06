@@ -3,6 +3,8 @@ from __future__ import annotations
 import dataclasses
 import html.parser
 import io
+import os
+import shutil
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -11,6 +13,7 @@ import pytest
 from pytest import approx
 
 from lektor.context import Context
+from lektor.db import Image
 from lektor.imagetools.thumbnail import _compute_cropbox
 from lektor.imagetools.thumbnail import _convert_icc_profile_to_srgb
 from lektor.imagetools.thumbnail import _create_artifact
@@ -386,6 +389,68 @@ def test_make_image_thumbnail_svg_fit_mode_fails_if_missing_dim(ctx, dummy_svg_f
 def test_Thumbnail_str():
     thumbnail = Thumbnail("/urlpath/image.jpg", 50, 80)
     assert str(thumbnail) == "image.jpg"
+
+
+class TestArtifactDependencyTracking:
+    @staticmethod
+    @pytest.fixture
+    def scratch_project_data(scratch_project_data):
+        # add two identical thumbnails to the page template
+        page_html = scratch_project_data / "templates/page.html"
+        with page_html.open("a") as fp:
+            fp.write(
+                """
+                {% set im = this.attachments.get('test.jpg') %}
+                <img src="{{ im.thumbnail(20) }}">
+                <img src="{{ im.thumbnail(20) }}">
+                """
+            )
+        shutil.copy(ICC_PROFILE_TEST_JPG, scratch_project_data / "content/test.jpg")
+        return scratch_project_data
+
+    @staticmethod
+    def build_page(builder) -> list[str]:
+        _, build_state = builder.build(builder.pad.root)
+        assert len(build_state.failed_artifacts) == 0
+        return [
+            os.path.basename(artifact.dst_filename)
+            for artifact in build_state.updated_artifacts
+        ]
+
+    def test(self, scratch_builder):
+        built = self.build_page(scratch_builder)
+        assert built == ["index.html", "test@20x20.jpg"]
+
+        # rebuild doesn't rebuild any more artifacts
+        Path(scratch_builder.destination_path, "index.html").unlink()
+        built = self.build_page(scratch_builder)
+        assert built == ["index.html"]
+
+    @pytest.mark.xfail(reason="This will (or should, at least) be fixed by PR #1148")
+    def test_racy_source_changes(self, scratch_builder, monkeypatch):
+        # Modify source image immediately after the first call to Image.thumbnail().
+        # Note that this occurs *before* the thumbnail artifact is built.
+        #
+        # We are doing this to ensure there are no race conditions in
+        # the dependency tracking. Since the source was changed after the thumbnail
+        # parameters were computed, the artifact should be updated at the next build.
+
+        def thumbnail_advice(self, *args, **kwargs):
+            monkeypatch.undo()
+            try:
+                return Image.thumbnail(self, *args, **kwargs)
+            finally:
+                with open(self.attachment_filename, "ab") as fp:
+                    fp.write(b"\0")
+
+        monkeypatch.setattr(Image, "thumbnail", thumbnail_advice)
+
+        built = self.build_page(scratch_builder)
+        assert built == ["index.html", "test@20x20.jpg"]
+
+        Path(scratch_builder.destination_path, "index.html").unlink()
+        built = self.build_page(scratch_builder)
+        assert built == ["index.html", "test@20x20.jpg"]
 
 
 @dataclasses.dataclass
