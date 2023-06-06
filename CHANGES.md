@@ -2,6 +2,20 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b8 (2023-06-06)
+
+### Bugs Fixed
+
+- When there are multiple _asset_ trees being merged (i.e. when
+  _themes_ are in use), avoid building shadowed assets. ([#908],
+  [#1147])
+- Fix asset URL resolution in the dev server when asset extensions
+  differ from that of their source. ([#1111], [#1147])
+
+[#908]: https://github.com/lektor/lektor/issues/908
+[#1111]: https://github.com/lektor/lektor/issues/1111
+[#1147]: https://github.com/lektor/lektor/pull/1147
+
 ## 3.4.0b7 (2023-06-04)
 
 ### Slightly Breaking Changes
