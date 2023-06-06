@@ -4,10 +4,12 @@ import textwrap
 
 import pytest
 
+from lektor.assets import Asset
 from lektor.builder import Builder
 from lektor.db import Database
 from lektor.environment import Environment
 from lektor.project import Project
+from lektor.reporter import Reporter
 
 sep = os.path.sep
 
@@ -204,3 +206,22 @@ def test_theme_templates_loading(theme_env, template_name, found_in):
     assert (found_in == "root") == ("themes" not in path_list)
     assert (found_in == "blog") == ("blog_theme" in path_list)
     assert (found_in == "project") == ("project_theme" in path_list)
+
+
+class BuiltAssetsReporter(Reporter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.built_assets = []
+
+    def start_artifact_build(self, is_current):
+        source_obj = self.current_artifact.source_obj
+        if isinstance(source_obj, Asset):
+            self.built_assets.append(source_obj)
+
+
+def test_build_omits_shadowed_assets(theme_builder, theme_env):
+    with BuiltAssetsReporter(theme_env) as reporter:
+        theme_builder.build_all()
+    asset_urls = [asset.url_path for asset in reporter.built_assets]
+    assert len(asset_urls) > 0
+    assert len(set(asset_urls)) == len(asset_urls)

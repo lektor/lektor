@@ -1,48 +1,76 @@
-import os
+from __future__ import annotations
+
 import posixpath
-import stat
+import warnings
+from collections import defaultdict
+from contextlib import suppress
+from itertools import takewhile
+from operator import methodcaller
+from pathlib import Path
+from typing import Generator
+from typing import Iterable
+from typing import Sequence
+from typing import TYPE_CHECKING
+
+from werkzeug.utils import cached_property
 
 from lektor.sourceobj import SourceObject
+from lektor.utils import deprecated
+from lektor.utils import DeprecatedWarning
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+    from lektor.db import Pad
 
 
-def get_asset(pad, filename, parent=None):
-    env = pad.db.env
+def get_asset_root(pad: Pad, asset_roots: Iterable[StrPath]) -> Directory:
+    """Get the merged asset root.
 
-    if env.is_uninteresting_source_name(filename):
-        return None
+    This represents a logical merging or overlaying of (possibly) multiple asset trees,
+    rooted at directories given by ``asset_roots``.
 
-    try:
-        stat_obj = os.stat(os.path.join(parent._source_filename, filename))
-    except OSError:
-        return None
-    if stat.S_ISDIR(stat_obj.st_mode):
-        return Directory(pad, filename, parent=parent)
+    Any paths listed in ``asset_roots`` that do not refer to a directory
+    are silently ignored.
+    """
+    root_paths = tuple(
+        Path(root).absolute() for root in asset_roots if Path(root).is_dir()
+    )
+    return Directory(pad, parent=None, name="", paths=root_paths)
 
-    ext = os.path.splitext(filename)[1]
-    cls = env.special_file_assets.get(ext, File)
-    return cls(pad, filename, parent=parent)
+
+@deprecated(version="3.4.0")
+def get_asset(pad: Pad, filename: str, parent: Asset | None = None) -> Asset | None:
+    if parent is None:
+        parent = pad.asset_root
+    else:
+        assert pad is parent.pad
+    return parent.get_child(filename)
+
+
+_FROM_URL_DEPRECATED = DeprecatedWarning(
+    "from_url",
+    reason="The `from_url` parameter of `Asset.get_child` is now ignored.",
+    version="3.4.0",
+)
 
 
 class Asset(SourceObject):
     source_classification = "asset"
     artifact_extension = ""
 
-    def __init__(self, pad, name, path=None, parent=None):
-        SourceObject.__init__(self, pad)
-        if parent is not None:
-            if path is None:
-                path = name
-            path = os.path.join(parent._source_filename, path)
-        self._source_filename = path
-
+    def __init__(
+        self, pad: Pad, name: str, parent: Asset | None, paths: tuple[Path, ...]
+    ):
+        super().__init__(pad)
         self.name = name
         self.parent = parent
+        self._paths = paths
 
-    def iter_source_filenames(self):
-        yield self._source_filename
+    def iter_source_filenames(self) -> Generator[str, None, None]:
+        yield from map(str, self._paths)
 
     @property
-    def url_name(self):
+    def url_name(self) -> str:
         name = self.name
         base, ext = posixpath.splitext(name)
 
@@ -54,38 +82,33 @@ class Asset(SourceObject):
         return base + ext + self.artifact_extension
 
     @property
-    def url_path(self):
+    def url_path(self) -> str:
         if self.parent is None:
             return "/" + self.name
         return posixpath.join(self.parent.url_path, self.url_name)
 
     @property
-    def artifact_name(self):
+    def artifact_name(self) -> str:
         if self.parent is not None:
             return self.parent.artifact_name.rstrip("/") + "/" + self.url_name
         return self.url_path
 
-    def build_asset(self, f):
-        pass
-
     @property
-    def children(self):
-        return iter(())
+    def children(self) -> Iterable[Asset]:
+        return ()
 
-    def get_child(self, name, from_url=False):
-        # pylint: disable=no-self-use
+    # pylint: disable-next=no-self-use,useless-return
+    def get_child(self, name: str, from_url: bool = False) -> Asset | None:
+        if from_url:
+            warnings.warn(_FROM_URL_DEPRECATED, stacklevel=2)
         return None
 
-    def resolve_url_path(self, url_path):
-        if not url_path:
+    def resolve_url_path(self, url_path: Sequence[str]) -> Asset | None:
+        if len(url_path) == 0:
             return self
-        # pylint: disable=assignment-from-none
-        child = self.get_child(url_path[0], from_url=True)
-        if child is not None:
-            return child.resolve_url_path(url_path[1:])
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s %r>" % (
             self.__class__.__name__,
             self.artifact_name,
@@ -93,44 +116,77 @@ class Asset(SourceObject):
 
 
 class Directory(Asset):
-    """Represents an asset directory."""
+    """Represents a merged set of asset directories."""
 
     @property
-    def children(self):
-        try:
-            files = os.listdir(self._source_filename)
-        except OSError:
-            return
+    def children(self) -> Iterable[Asset]:
+        return self._children_by_name.values()
 
-        for filename in files:
-            asset = self.get_child(filename)
-            if asset is not None:
-                yield asset
+    def get_child(self, name: str, from_url: bool = False) -> Asset | None:
+        if from_url:
+            warnings.warn(_FROM_URL_DEPRECATED, stacklevel=2)
+        return self._children_by_name.get(name)
 
-    def get_child(self, name, from_url=False):
-        asset = get_asset(self.pad, name, parent=self)
-        if asset is not None or not from_url:
-            return asset
+    @cached_property
+    def _children_by_name(self) -> dict[str, Asset]:
+        return {asset.name: asset for asset in self._iter_children()}
 
-        # At this point it means we did not find a child yet, but we
-        # came from an URL.  We can try to chop off product suffixes to
-        # find the original source asset.  For instance a file called
-        # foo.less.css will be reduced to foo.less.
-        prod_suffix = "." + ".".join(name.rsplit(".", 2)[1:])
-        ext = self.pad.db.env.special_file_suffixes.get(prod_suffix)
-        if ext is not None:
-            return get_asset(self.pad, name[: -len(prod_suffix)] + ext, parent=self)
-        return None
+    def _iter_children(self) -> Generator[Asset, None, None]:
+        env = self.pad.env
+        candidates_by_name = defaultdict(list)
+        for path in self._paths:
+            with suppress(OSError):
+                for child in path.iterdir():
+                    if not env.is_uninteresting_source_name(child.name):
+                        candidates_by_name[child.name].append(child)
+
+        for name, candidates in candidates_by_name.items():
+            leading_dirs = tuple(takewhile(methodcaller("is_dir"), candidates))
+            if leading_dirs:
+                # Merge directories at the top of the overlay stack.
+                #
+                # Directories overlayed above a non-directory shadow (hide) that
+                # non-directory.  (That non-directory, in turn, shadows anything under
+                # it.)
+                yield Directory(self.pad, parent=self, name=name, paths=leading_dirs)
+            else:
+                # If first candidate is not a directory, it shadows any below it.
+                path = candidates[0]
+                asset_class = env.special_file_assets.get(path.suffix, File)
+                yield asset_class(self.pad, parent=self, name=name, paths=(path,))
 
     @property
-    def url_path(self):
+    def url_name(self) -> str:
+        return self.name + self.artifact_extension
+
+    @property
+    def url_path(self) -> str:
         path = super().url_path
         if not path.endswith("/"):
             path += "/"
         return path
 
+    def resolve_url_path(self, url_path: Sequence[str]) -> Asset | None:
+        if len(url_path) == 0:
+            return self
+
+        # Optimization: try common case where file extension has not been mangled
+        child = self.get_child(url_path[0])
+        if child is not None:
+            return child.resolve_url_path(url_path[1:])
+
+        if len(url_path) == 1:
+            # There are a number of ways a file extension can be mangled to form the
+            # url_path. (See `Asset.url_name`.) It can be lower-cased, and/or it could
+            # have had `artifact_extension` appended.  It's not easy to check all these
+            # cases individually, so we'll just look for a matching child.
+            for child in self.children:
+                if child.url_name == url_path[0]:
+                    return child
+        return None
+
     @property
-    def url_content_path(self):
+    def url_content_path(self) -> str:
         return self.url_path
 
 

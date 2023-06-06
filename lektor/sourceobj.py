@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import posixpath
 from typing import Optional
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qsl
 from urllib.parse import urlsplit
 from weakref import ref as weakref
@@ -10,6 +13,9 @@ from lektor.reporter import reporter
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
+if TYPE_CHECKING:
+    from lektor.db import Pad
+
 
 class SourceObject:
     source_classification = "generic"
@@ -18,7 +24,7 @@ class SourceObject:
     # to be from another place.
     __module__ = "db"
 
-    def __init__(self, pad):
+    def __init__(self, pad: Pad):
         self._pad = weakref(pad)
 
     @property
@@ -71,7 +77,7 @@ class SourceObject:
         return None
 
     @property
-    def pad(self):
+    def pad(self) -> Pad:
         """The associated pad of this source object."""
         rv = self._pad()
         if rv is not None:

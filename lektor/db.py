@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-lines
+from __future__ import annotations
+
 import errno
 import functools
 import hashlib
@@ -9,8 +10,11 @@ import posixpath
 from collections import OrderedDict
 from datetime import timedelta
 from functools import total_ordering
+from itertools import chain
 from itertools import islice
 from operator import methodcaller
+from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 from jinja2 import is_undefined
@@ -20,7 +24,7 @@ from jinja2.utils import LRUCache
 from werkzeug.utils import cached_property
 
 from lektor import metaformat
-from lektor.assets import Directory
+from lektor.assets import get_asset_root
 from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.context import get_ctx
@@ -46,6 +50,10 @@ from lektor.utils import split_virtual_path
 from lektor.utils import untrusted_to_os_path
 from lektor.videotools import get_video_info
 from lektor.videotools import make_video_thumbnail
+
+if TYPE_CHECKING:
+    from lektor.environment import Environment
+    from lektor.environment.config import Config
 
 # pylint: disable=no-member
 
@@ -1576,18 +1584,18 @@ def _split_alt_from_url(config, clean_path):
 
 
 class Pad:
-    def __init__(self, db):
+    def __init__(self, db: Database):
         self.db = db
         self.cache = RecordCache(db.config["EPHEMERAL_RECORD_CACHE_SIZE"])
         self.databags = Databags(db.env)
 
     @property
-    def config(self):
+    def config(self) -> Config:
         """The config for this pad."""
         return self.db.config
 
     @property
-    def env(self):
+    def env(self) -> Environment:
         """The env for this pad."""
         return self.db.env
 
@@ -1670,11 +1678,7 @@ class Pad:
                 return rv
 
         if include_assets:
-            for asset_root in [self.asset_root] + self.theme_asset_roots:
-                rv = asset_root.resolve_url_path(pieces)
-                if rv is not None:
-                    break
-            return rv
+            return self.asset_root.resolve_url_path(pieces)
         return None
 
     def get_root(self, alt=None):
@@ -1685,22 +1689,29 @@ class Pad:
 
     root = property(get_root)
 
-    @property
+    @cached_property
     def asset_root(self):
-        """The root of the asset tree."""
-        return Directory(
-            self, name="", path=os.path.join(self.db.env.root_path, "assets")
+        """The root of the asset tree.
+
+        This root represents the logical merging of any theme asset trees with the
+        main project asset tree.
+        """
+        env = self.env
+        asset_paths = (
+            Path(root, "assets") for root in chain([env.root_path], env.theme_paths)
         )
+        return get_asset_root(self, asset_paths)
 
     @property
+    @deprecated(version="3.4.0", stacklevel=2)
     def theme_asset_roots(self):
-        """The root of the asset tree of each theme."""
-        asset_roots = []
-        for theme_path in self.db.env.theme_paths:
-            asset_roots.append(
-                Directory(self, name="", path=os.path.join(theme_path, "assets"))
-            )
-        return asset_roots
+        """The root of the asset tree of each theme.
+
+        As of Lektor 3.4.0, asset trees from any active themes are logically merged
+        into a single tree, accessible via Pad.asset_root. Accordingly, `theme_asset_roots`
+        alway returns an empty list.
+        """
+        return []
 
     def get_all_roots(self):
         """Returns all the roots for building."""
@@ -1714,7 +1725,6 @@ class Pad:
             rv = [self.root]
 
         rv.append(self.asset_root)
-        rv.extend(self.theme_asset_roots)
         return rv
 
     def get_virtual(self, record, virtual_path):
@@ -1813,15 +1823,14 @@ class Pad:
     def get_asset(self, path):
         """Loads an asset by path."""
         clean_path = cleanup_path(path).strip("/")
-        nodes = [self.asset_root] + self.theme_asset_roots
-        for node in nodes:
+
+        asset = self.asset_root
+        if clean_path:
             for piece in clean_path.split("/"):
-                node = node.get_child(piece)
-                if node is None:
-                    break
-            if node is not None:
-                return node
-        return None
+                asset = asset.get_child(piece)
+                if asset is None:
+                    return None
+        return asset
 
     def instance_from_data(self, raw_data, datamodel=None, page_num=None):
         """This creates an instance from the given raw data."""
