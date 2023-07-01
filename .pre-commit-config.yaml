@@ -18,9 +18,11 @@ repos:
         name: eslint
         language: node
         entry: ./frontend/node_modules/eslint/bin/eslint.js --fix --max-warnings 0
+        require_serial: true
         files: \.(ts|tsx)$
       - id: prettier
         name: prettier
         language: node
         entry: ./frontend/node_modules/prettier/bin-prettier.js --write --list-different
+        require_serial: true
         files: \.(ts|tsx|js|less|ya?ml|md)$
