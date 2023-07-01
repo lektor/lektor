@@ -52,7 +52,7 @@ function Sidebar(): JSX.Element | null {
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);
   const [childrenPage, setChildrenPage] = useState(1);
   const [childPosCache] = useState(() => new ChildPosCache());
-  const [updateForced, forceUpdate] = useReducer((x) => x + 1, 0);
+  const [updateForced, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   useEffect(() => {
     const handler = ({ detail }: CustomEvent<string>) => {

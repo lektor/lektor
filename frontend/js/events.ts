@@ -1,10 +1,10 @@
-export type LektorEvents = {
+export interface LektorEvents {
   "lektor-attachments-changed": string;
   "lektor-dialog": {
     type: "find-files" | "refresh" | "publish" | "preferences";
   };
   "lektor-error": { code: string };
-};
+}
 
 /** Dispatch one of the custom events. */
 export function dispatch<T extends keyof LektorEvents>(

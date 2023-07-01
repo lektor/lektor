@@ -110,7 +110,7 @@ function textareaResizeWatcher(textarea: HTMLTextAreaElement): () => void {
 }
 
 // Widget state
-type State = {
+interface State {
   autosized: boolean;
   height: number;
   resizeable: boolean;
@@ -118,7 +118,7 @@ type State = {
   lineHeight: number;
   borderHeight: number;
   decorationHeight: number; // border + padding height
-};
+}
 
 type ResizeAction =
   | { type: "autosize" } // Autosize textarea
@@ -132,10 +132,10 @@ type Action =
   | ({ type: "initialize" } & InitStateArg)
   | { type: "enable-drag-handle" | "disable-drag-handle" };
 
-type InitStateArg = {
+interface InitStateArg {
   textarea: HTMLTextAreaElement;
   replica: HTMLElement;
-};
+}
 
 function initState(arg: null | InitStateArg) {
   const resizeable = shouldEnableDragHandle();

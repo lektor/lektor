@@ -48,7 +48,7 @@ export default function App() {
   }, [appSettings]);
 
   useEffect(() => {
-    const shortcuts: Array<{ action: ShortcutAction; target: PageName }> = [
+    const shortcuts: { action: ShortcutAction; target: PageName }[] = [
       { action: ShortcutAction.Edit, target: "edit" },
       { action: ShortcutAction.Preview, target: "preview" },
     ];

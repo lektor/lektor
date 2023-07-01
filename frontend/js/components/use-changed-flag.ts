@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { flushSync } from "react-dom";
 
-type State = {
+interface State {
   changes: number;
   flushed: number;
-};
+}
 
 function reducer(state: State, flushed: number | null): State {
   if (flushed !== null) {
@@ -14,16 +14,10 @@ function reducer(state: State, flushed: number | null): State {
   }
 }
 
-declare function setClean<T>(
-  cb: () => Promise<T>,
+type SetCleanFunction<T> = (
+  cb: () => T | Promise<T>,
   options?: { sync: boolean }
-): Promise<T>;
-declare function setClean<T>(
-  cb: () => T,
-  options?: { sync: boolean }
-): Promise<T>;
-declare function setClean<T>(cb: T, options?: { sync: boolean }): Promise<T>;
-declare function setClean(): Promise<void>;
+) => Promise<T>;
 
 /**
  * An async-safe "pending changes" flag.
@@ -56,7 +50,11 @@ declare function setClean(): Promise<void>;
  * update the flag state will be wrapped in a call to ReactDOM.flushSync to ensure
  * the state update is rendered immediately.
  */
-export function useChangedFlag(): [boolean, () => void, typeof setClean] {
+export function useChangedFlag<T>(): [
+  boolean,
+  () => void,
+  SetCleanFunction<T>
+] {
   const [state, setFlushed] = useReducer(reducer, { changes: 0, flushed: 0 });
   const changesRef = useRef(state.changes);
 
@@ -70,8 +68,7 @@ export function useChangedFlag(): [boolean, () => void, typeof setClean] {
     setFlushed(null);
   }, [setFlushed]);
   const setClean = useCallback(
-    async (arg?: unknown, options?: { sync: boolean }) => {
-      const cb = typeof arg === "function" ? arg : () => arg;
+    async (cb: () => T | Promise<T>, options?: { sync: boolean }) => {
       const changes = changesRef.current;
       const update = () => setFlushed(changes);
 

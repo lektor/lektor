@@ -66,7 +66,7 @@ export default function PreviewPage(): JSX.Element {
           window.dispatchEvent(clone) || ev.preventDefault();
         });
 
-        const href = contentWindow.location?.href;
+        const href = contentWindow.location.href;
         if (href && href !== previewUrl) {
           // Iframe has been navigated to a new page (e.g. user clicked link)
           if (href.startsWith(`${siteRootUrl}/`)) {

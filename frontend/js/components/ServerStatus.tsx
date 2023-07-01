@@ -2,7 +2,10 @@ import React, { useEffect, useState } from "react";
 import { get } from "../fetch";
 import { trans } from "../i18n";
 
-type State = { serverIsUp: boolean; projectId: string | null };
+interface State {
+  serverIsUp: boolean;
+  projectId: string | null;
+}
 
 export default function ServerStatus(): JSX.Element | null {
   const [state, setState] = useState<State>({

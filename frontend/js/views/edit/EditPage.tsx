@@ -24,7 +24,7 @@ import { useChangedFlag } from "../../components/use-changed-flag";
 import { useRecord } from "../../context/record-context";
 import { setShortcutHandler, ShortcutAction } from "../../shortcut-keys";
 
-export type RawRecordInfo = {
+export interface RawRecordInfo {
   alt: string;
   can_be_deleted: boolean;
   default_template: string;
@@ -37,18 +37,18 @@ export type RawRecordInfo = {
   path: string;
   slug_format: string;
   url_path: string;
-};
+}
 
-type RecordDataModel = {
+interface RecordDataModel {
   alt: string;
   fields: Field[];
-};
+}
 
-export type RawRecord = {
+export interface RawRecord {
   datamodel: RecordDataModel;
   record_info: RawRecordInfo;
   data: Record<string, string>;
-};
+}
 
 function legalFields(
   recordDataModel: Pick<RecordDataModel, "fields">,
@@ -186,7 +186,7 @@ function EditPage(): JSX.Element | null {
         }
       },
       { sync: true }
-    );
+    ).catch(console.error);
 
     return () => {
       ignore = true;
@@ -230,8 +230,12 @@ function EditPage(): JSX.Element | null {
       goToAdminPage("preview", path, alt);
     };
     const cleanup = [
-      setShortcutHandler(ShortcutAction.Save, maybeSaveChanges),
-      setShortcutHandler(ShortcutAction.Preview, saveAndPreview),
+      setShortcutHandler(ShortcutAction.Save, () => {
+        maybeSaveChanges().catch(console.error);
+      }),
+      setShortcutHandler(ShortcutAction.Preview, () => {
+        saveAndPreview().catch(console.error);
+      }),
     ];
     return () => cleanup.forEach((cb) => cb());
   }, [maybeSaveChanges, path, alt, goToAdminPage]);
@@ -283,7 +287,7 @@ function EditPage(): JSX.Element | null {
         ref={form}
         onSubmit={(e) => {
           e.preventDefault();
-          maybeSaveChanges();
+          maybeSaveChanges().catch(console.error);
         }}
       >
         <FieldRows fields={normalFields} renderFunc={renderFormField} />

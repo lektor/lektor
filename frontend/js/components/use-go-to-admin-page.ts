@@ -19,7 +19,7 @@ export function adminPath(
   if (alt !== "_primary") {
     params.set("alt", alt);
   }
-  return `/${page}?${params}`;
+  return `/${page}?${params.toString()}`;
 }
 
 /**

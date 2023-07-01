@@ -108,6 +108,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
 
 export function getWidgetComponent(type: WidgetType): WidgetComponent | null {
   // @ts-expect-error This is hard to type and not typed yet.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return widgetComponents[type.widget] || null;
 }
 
@@ -115,6 +116,7 @@ export function getWidgetComponentWithFallback(
   type: WidgetType
 ): WidgetComponent {
   // @ts-expect-error This is hard to type and not typed yet.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return widgetComponents[type.widget] || FallbackWidget;
 }
 
