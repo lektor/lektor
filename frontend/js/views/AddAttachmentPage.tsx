@@ -67,7 +67,7 @@ function AddAttachmentPage(): JSX.Element | null {
       };
       xhr.send(formData);
     },
-    [path, isUploading]
+    [path, isUploading],
   );
 
   if (!newAttachmentInfo) {

@@ -18,7 +18,7 @@ const renderToggle = () => {
     <ToggleGroup groupTitle={"TITLE"}>
       <div>Rick Astley rulz</div>
     </ToggleGroup>,
-    container
+    container,
   );
   return container;
 };

@@ -25,12 +25,12 @@ export default function DialogSlot({
 
   const dismiss = useCallback(
     () => setDialog((c) => (c?.preventNavigation ? c : null)),
-    []
+    [],
   );
   const prevent = useCallback(
     (preventNavigation: boolean) =>
       setDialog((d) => (d ? { ...d, preventNavigation } : null)),
-    []
+    [],
   );
   useEffect(() => {
     const handler = ({ detail }: CustomEvent<DialogDetails>) => {

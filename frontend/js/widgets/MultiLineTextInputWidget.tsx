@@ -280,7 +280,7 @@ export function MultiLineTextInputWidget({
       // If statically sized to ridiculously large size, reset to autosized
       const reasonableHeight = Math.max(
         getNaturalHeight() + state.lineHeight * config.extraLines,
-        window.innerHeight * config.maxResizeHeight
+        window.innerHeight * config.maxResizeHeight,
       );
       if (state.height > reasonableHeight) {
         dispatch({ type: "autosize" });
@@ -391,7 +391,7 @@ const toggleButtonLabels: Record<string, Readonly<ToggleButtonLabel>> = {
 // Compute action to be dispatched by toggle button
 function getToggleAction(
   state: Readonly<State>,
-  naturalHeight: number // Natural height of textarea
+  naturalHeight: number, // Natural height of textarea
 ): ResizeAction | null {
   // Deduce height to size textarea to if "shrink" button is clicked
   if (!state.resizeable) {
@@ -403,7 +403,7 @@ function getToggleAction(
 
   const targetHeight = Math.min(
     state.height, // last manually set height
-    Math.ceil(window.innerHeight * config.maxTargetHeight)
+    Math.ceil(window.innerHeight * config.maxTargetHeight),
   );
   if (targetHeight < naturalHeight) {
     return { type: "set-height", height: targetHeight };
@@ -412,14 +412,14 @@ function getToggleAction(
   // Can't shrink if target height is bigger than natural height
   // See if we can find a smaller targetHeight
   const lines = Math.round(
-    (naturalHeight - state.decorationHeight) / state.lineHeight
+    (naturalHeight - state.decorationHeight) / state.lineHeight,
   );
   const targetLines = Math.max(
     config.minTargetLines,
-    Math.ceil(lines * config.fallbackShrinkFactor)
+    Math.ceil(lines * config.fallbackShrinkFactor),
   );
   const fallbackHeight = Math.ceil(
-    targetLines * state.lineHeight + state.decorationHeight
+    targetLines * state.lineHeight + state.decorationHeight,
   );
   if (fallbackHeight < naturalHeight) {
     return { type: "set-height", height: fallbackHeight };

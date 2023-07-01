@@ -22,7 +22,7 @@ export default function Refresh({
   }, []);
   useEffect(
     () => preventNavigation(!isSafeToNavigate),
-    [preventNavigation, isSafeToNavigate]
+    [preventNavigation, isSafeToNavigate],
   );
 
   return (

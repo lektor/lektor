@@ -35,7 +35,7 @@ const headers = { "Content-Type": "application/json" };
 function fetchJSON(
   input: string,
   method: "GET" | "POST" | "PUT",
-  json?: unknown
+  json?: unknown,
 ): Promise<unknown> {
   const init: RequestInit =
     json === undefined
@@ -113,7 +113,7 @@ interface PutAPIReturns {
  */
 export function apiUrl(
   endpoint: string,
-  params?: Record<string, string> | null
+  params?: Record<string, string> | null,
 ): string {
   const url = `${$LEKTOR_CONFIG.admin_root}/api${endpoint}`;
   if (params) {
@@ -134,7 +134,7 @@ export function apiUrl(
  */
 export function get<T extends keyof GetAPIReturns>(
   endpoint: T,
-  params: GetAPIParams[T]
+  params: GetAPIParams[T],
 ): Promise<GetAPIReturns[T]> {
   const url = apiUrl(endpoint, params);
   return fetchJSON(url, "GET") as Promise<GetAPIReturns[T]>;
@@ -149,7 +149,7 @@ export function get<T extends keyof GetAPIReturns>(
 export function post<T extends keyof PostAPIReturns>(
   endpoint: T,
   params: PostAPIParams[T],
-  json?: unknown
+  json?: unknown,
 ): Promise<PostAPIReturns[T]> {
   const url = apiUrl(endpoint, params);
   return fetchJSON(url, "POST", json) as Promise<PostAPIReturns[T]>;
@@ -162,7 +162,7 @@ export function post<T extends keyof PostAPIReturns>(
  */
 export function put<T extends keyof PutAPIReturns>(
   endpoint: T,
-  json: PutAPIData[T]
+  json: PutAPIData[T],
 ): Promise<PutAPIReturns[T]> {
   const url = apiUrl(endpoint);
   return fetchJSON(url, "PUT", json);

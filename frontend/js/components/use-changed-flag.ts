@@ -16,7 +16,7 @@ function reducer(state: State, flushed: number | null): State {
 
 type SetCleanFunction<T> = (
   cb: () => T | Promise<T>,
-  options?: { sync: boolean }
+  options?: { sync: boolean },
 ) => Promise<T>;
 
 /**
@@ -53,7 +53,7 @@ type SetCleanFunction<T> = (
 export function useChangedFlag<T>(): [
   boolean,
   () => void,
-  SetCleanFunction<T>
+  SetCleanFunction<T>,
 ] {
   const [state, setFlushed] = useReducer(reducer, { changes: 0, flushed: 0 });
   const changesRef = useRef(state.changes);
@@ -76,7 +76,7 @@ export function useChangedFlag<T>(): [
       options?.sync ? flushSync(update) : update();
       return result;
     },
-    [setFlushed]
+    [setFlushed],
   );
 
   return [hasPendingChanges, setDirty, setClean];

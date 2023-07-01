@@ -13,7 +13,7 @@ import { RecordAlternative, RecordPath } from "../context/record-context";
 export function adminPath(
   page: PageName,
   path: RecordPath,
-  alt: RecordAlternative
+  alt: RecordAlternative,
 ): string {
   const params = new URLSearchParams({ path });
   if (alt !== "_primary") {
@@ -34,6 +34,6 @@ export function useGoToAdminPage() {
     (name: PageName, path: RecordPath, alt: RecordAlternative) => {
       navigate(adminPath(name, path, alt));
     },
-    [navigate]
+    [navigate],
   );
 }

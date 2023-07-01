@@ -90,10 +90,10 @@ function ShortcutKeyPrefs({
             Array.from(keyMap.entries(), ([a, k]) => [
               a,
               a === action ? key : k !== key ? k : null,
-            ])
-          )
+            ]),
+          ),
       ),
-    [setKeyMap]
+    [setKeyMap],
   );
 
   return (

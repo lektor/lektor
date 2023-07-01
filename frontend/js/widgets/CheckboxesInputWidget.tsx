@@ -45,13 +45,13 @@ export function CheckboxesInputWidget({
               disabled={disabled}
               checked={checkboxIsActive(
                 key,
-                deserializedValue ?? deserializedPlaceholder
+                deserializedValue ?? deserializedPlaceholder,
               )}
               onChange={(ev) => {
                 const newValue = flipSetValue(
                   deserializedValue || [],
                   key,
-                  ev.target.checked
+                  ev.target.checked,
                 );
                 onChange(newValue.join(", "));
               }}

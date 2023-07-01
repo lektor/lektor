@@ -60,7 +60,7 @@ function BreadCrumbs(): JSX.Element {
   const { path, alt } = useRecord();
 
   const [segments, setSegments] = useState<RecordPathInfoSegment[] | null>(
-    null
+    null,
   );
 
   useEffect(() => {

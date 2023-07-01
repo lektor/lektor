@@ -73,7 +73,7 @@ function AddChildPage(): JSX.Element | null {
           goToAdminPage("edit", path, alt);
         }
       },
-      showErrorDialog
+      showErrorDialog,
     );
   }, [
     alt,

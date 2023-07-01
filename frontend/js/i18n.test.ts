@@ -10,7 +10,7 @@ it("i18n: imports translations for all languages", () => {
     (allTranslations) =>
       strictEqual(
         allTranslations.filter((s) => s.endsWith(".json")).length,
-        Object.keys(translations).length
-      )
+        Object.keys(translations).length,
+      ),
   );
 });

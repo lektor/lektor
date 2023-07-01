@@ -32,7 +32,7 @@ it("metaformat: serialize simple string values", () => {
       ["test", "test"],
       ["test", "test"],
     ]),
-    ["test: test\n", "---\n", "test: test\n"]
+    ["test: test\n", "---\n", "test: test\n"],
   );
 });
 
@@ -73,11 +73,11 @@ it("metaformat: tokenize string values containing newlines or dashes", () => {
   ]);
   deepStrictEqual(
     tokenize(["---\n", "test:\n", "\n", "tes\n", "----\n", "t\n"]),
-    [["test", ["tes\n", "---\n", "t"]]]
+    [["test", ["tes\n", "---\n", "t"]]],
   );
   deepStrictEqual(
     tokenize(["---\n \n", "test:\n", "\n", "tes\n", "----\n", "t\n"]),
-    [["test", ["tes\n", "---\n", "t"]]]
+    [["test", ["tes\n", "---\n", "t"]]],
   );
   deepStrictEqual(tokenize(["test:\n", "\n", "tes\n", "----\n", "t\n"]), [
     ["test", ["tes\n", "---\n", "t"]],

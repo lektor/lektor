@@ -22,7 +22,7 @@ const shortcutKeyRegexp = new RegExp(
     "(?:Meta\\+)?(?:Control\\+)?(?:Alt\\+)?(?:Shift\\+)?",
     "(?<=\\+)[A-Z]\\w*",
     "$",
-  ].join("")
+  ].join(""),
 );
 
 function isValidShortcutKey(value: unknown): value is ShortcutKey {
@@ -85,7 +85,7 @@ function isPrintingKey(key: string) {
 const modifierKeys: ModifierKey[] = ["Meta", "Control", "Alt", "Shift"];
 
 export function getShortcutKey(
-  event: KeyboardEvent | React.KeyboardEvent
+  event: KeyboardEvent | React.KeyboardEvent,
 ): ShortcutKey | null {
   const nativeEvent = event instanceof Event ? event : event.nativeEvent;
   if (nativeEvent.isComposing || ignoredKeys.has(event.key)) {
@@ -111,7 +111,7 @@ const shortcutHandlers = new Map<ShortcutAction, () => void>();
 
 export function setShortcutHandler(
   action: ShortcutAction,
-  handler: () => void
+  handler: () => void,
 ): () => void {
   const prevHandler = shortcutHandlers.get(action);
   shortcutHandlers.set(action, handler);
@@ -133,7 +133,7 @@ export function installShortcutKeyListener(keymap: ShortcutKeyMap) {
   const actionForKey = new Map(
     Array.from(keymap.entries())
       .filter(([, key]) => key)
-      .map(([action, key]) => [key, action])
+      .map(([action, key]) => [key, action]),
   );
 
   const keydownListener = (event: KeyboardEvent) => {
@@ -151,7 +151,7 @@ export function installShortcutKeyListener(keymap: ShortcutKeyMap) {
 
 export function serializeShortcutKeyMap(keymap: ShortcutKeyMap) {
   return Object.fromEntries(
-    Array.from(keymap.entries()).filter(([, key]) => key)
+    Array.from(keymap.entries()).filter(([, key]) => key),
   );
 }
 
@@ -164,6 +164,6 @@ export function deserializeShortcutKeyMap(obj: unknown): ShortcutKeyMap {
         throw new Error("Invalid value for ShortcutKey in serialized keymap");
       }
       return [action, key];
-    })
+    }),
   );
 }

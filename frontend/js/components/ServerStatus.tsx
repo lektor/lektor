@@ -20,12 +20,12 @@ export default function ServerStatus(): JSX.Element | null {
           setState(({ projectId }) =>
             projectId === null
               ? { projectId: project_id, serverIsUp: true }
-              : { projectId, serverIsUp: projectId === project_id }
+              : { projectId, serverIsUp: projectId === project_id },
           );
         },
         () => {
           setState((s) => ({ ...s, serverIsUp: false }));
-        }
+        },
       );
     };
     const id = window.setInterval(onInterval, 2000);

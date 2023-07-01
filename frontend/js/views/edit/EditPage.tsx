@@ -52,7 +52,7 @@ export interface RawRecord {
 
 function legalFields(
   recordDataModel: Pick<RecordDataModel, "fields">,
-  recordInfo: Pick<RawRecordInfo, "is_attachment">
+  recordInfo: Pick<RawRecordInfo, "is_attachment">,
 ) {
   function isLegalField(field: Field): boolean {
     switch (field.name) {
@@ -75,7 +75,7 @@ function legalFields(
 function getPlaceholderForField(
   recordInfo: RawRecordInfo,
   Widget: WidgetComponent,
-  field: Field
+  field: Field,
 ): string | null {
   if (field.default !== null) {
     if (Widget.deserializeValue) {
@@ -95,7 +95,7 @@ function getPlaceholderForField(
 function getValueForField(
   recordData: Record<string, string>,
   Widget: WidgetComponent,
-  field: Field
+  field: Field,
 ) {
   let value = recordData[field.name];
   if (value === undefined) {
@@ -177,7 +177,7 @@ function EditPage(): JSX.Element | null {
     setClean(
       async () => {
         const rawrecord = await get("/rawrecord", { path, alt }).catch(
-          showErrorDialog
+          showErrorDialog,
         );
         if (!ignore) {
           setRecordData(getRecordData(rawrecord));
@@ -185,7 +185,7 @@ function EditPage(): JSX.Element | null {
           setRecordInfo(rawrecord.record_info);
         }
       },
-      { sync: true }
+      { sync: true },
     ).catch(console.error);
 
     return () => {
@@ -201,7 +201,7 @@ function EditPage(): JSX.Element | null {
       }));
       setDirty();
     },
-    [setDirty]
+    [setDirty],
   );
 
   const maybeSaveChanges = useCallback(async () => {
@@ -211,7 +211,7 @@ function EditPage(): JSX.Element | null {
           const data = getValues({ recordDataModel, recordInfo, recordData });
           await put("/rawrecord", { data, path, alt }).catch(showErrorDialog);
         },
-        { sync: true }
+        { sync: true },
       );
     }
   }, [
@@ -263,7 +263,7 @@ function EditPage(): JSX.Element | null {
         />
       );
     },
-    [recordData, recordInfo, setFieldValue]
+    [recordData, recordInfo, setFieldValue],
   );
 
   if (!recordInfo || !recordDataModel) {

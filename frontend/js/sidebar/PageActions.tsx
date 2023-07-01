@@ -29,7 +29,7 @@ function BrowseFSLink() {
         }
       }, showErrorDialog);
     },
-    [record]
+    [record],
   );
   return (
     <a href="#" onClick={fsOpen}>

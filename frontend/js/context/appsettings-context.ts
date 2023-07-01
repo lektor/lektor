@@ -29,7 +29,7 @@ function serializeAppSettings(settings: AppSettings) {
 
 function hasAttribute<Obj, Attr extends string>(
   obj: Obj,
-  attr: Attr
+  attr: Attr,
 ): obj is Obj & Record<Attr, unknown> {
   return typeof obj === "object" && obj !== null && attr in obj;
 }
@@ -60,6 +60,6 @@ export function loadAppSettings(): AppSettings {
 export function saveAppSettings(settings: AppSettings): void {
   localStorage.setItem(
     appSettingsKey,
-    JSON.stringify(serializeAppSettings(settings))
+    JSON.stringify(serializeAppSettings(settings)),
   );
 }

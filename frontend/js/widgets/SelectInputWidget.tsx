@@ -3,7 +3,7 @@ import { trans_obj } from "../i18n";
 import { getInputClass, MultiWidgetType, WidgetProps } from "./types";
 
 export function SelectInputWidget(
-  props: WidgetProps<string, MultiWidgetType>
+  props: WidgetProps<string, MultiWidgetType>,
 ): JSX.Element {
   const { type, value, placeholder, onChange, disabled } = props;
 

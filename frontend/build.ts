@@ -8,6 +8,8 @@ import { resolve, dirname, join } from "path";
 import { argv } from "process";
 import { compile } from "sass";
 
+import { compilerOptions } from "./tsconfig.json";
+
 // A simple esbuild plugin to compile sass.
 const sassPlugin: Plugin = {
   name: "sass",
@@ -38,6 +40,7 @@ async function runBuild(dev: boolean) {
     outfile: join(__dirname, "..", "lektor", "admin", "static", "app.js"),
     format: "iife",
     bundle: true,
+    target: compilerOptions.target,
     loader: {
       ".eot": "empty",
       ".ttf": "empty",
