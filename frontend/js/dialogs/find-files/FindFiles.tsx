@@ -48,7 +48,7 @@ function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
           setSelected((selected) => Math.min(selected, results.length - 1));
         }
       },
-      showErrorDialog
+      showErrorDialog,
     );
     return () => {
       ignore = true;
@@ -63,7 +63,7 @@ function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
       } else if (event.key === "ArrowUp") {
         event.preventDefault();
         setSelected(
-          (selected) => (selected - 1 + results.length) % results.length
+          (selected) => (selected - 1 + results.length) % results.length,
         );
       } else if (event.key === "Enter") {
         const item = results[selected];
@@ -73,7 +73,7 @@ function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
         }
       }
     },
-    [alt, dismiss, goToAdminPage, results, selected, target]
+    [alt, dismiss, goToAdminPage, results, selected, target],
   );
 
   return (

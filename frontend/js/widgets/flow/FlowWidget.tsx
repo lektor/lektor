@@ -100,7 +100,7 @@ export interface FlowBlockData {
 function deserializeFlowBlock(
   model: FlowBlockModel,
   lines: string[],
-  localId: number
+  localId: number,
 ): FlowBlockData {
   const data: Record<string, string> = {};
   const rawData: Record<string, string> = {};
@@ -126,7 +126,7 @@ function deserializeFlowBlock(
 
 function serializeFlowBlock(
   flockBlockModel: FlowBlockModel,
-  data: Record<string, string>
+  data: Record<string, string>,
 ) {
   const rv: [string, string][] = [];
   flockBlockModel.fields.forEach((field) => {
@@ -149,7 +149,7 @@ function serializeFlowBlock(
 }
 
 export function FlowWidget(
-  props: WidgetProps<readonly FlowBlockData[], FlowBlockWidgetType>
+  props: WidgetProps<readonly FlowBlockData[], FlowBlockWidgetType>,
 ): JSX.Element {
   const { value, onChange } = props;
 
@@ -167,7 +167,7 @@ export function FlowWidget(
         return newValue;
       });
     },
-    [onChange]
+    [onChange],
   );
 
   const removeBlock = useCallback(
@@ -176,7 +176,7 @@ export function FlowWidget(
         onChange((v) => v.filter((item, i) => i !== idx));
       }
     },
-    [onChange]
+    [onChange],
   );
 
   const addNewBlock = useCallback(
@@ -191,7 +191,7 @@ export function FlowWidget(
         return [...prevValue, newBlock];
       });
     },
-    [onChange]
+    [onChange],
   );
 
   const renderFormField = useCallback(
@@ -226,7 +226,7 @@ export function FlowWidget(
         />
       );
     },
-    [onChange]
+    [onChange],
   );
 
   const { flowblock_order, flowblocks } = props.type;
@@ -254,7 +254,7 @@ export function FlowWidget(
 
 FlowWidget.deserializeValue = (
   value: string,
-  { flowblocks }: FlowBlockWidgetType
+  { flowblocks }: FlowBlockWidgetType,
 ): FlowBlockData[] => {
   let blockId = 0;
   const blocks: FlowBlockData[] = [];
@@ -272,6 +272,6 @@ FlowWidget.serializeValue = (value: FlowBlockData[]) => {
     value.map(({ model: flowBlockModel, data }) => [
       flowBlockModel.id,
       serializeFlowBlock(flowBlockModel, data),
-    ])
+    ]),
   );
 };

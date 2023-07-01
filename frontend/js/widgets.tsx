@@ -70,7 +70,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
 
   const onChange = useCallback(
     (value: SetStateAction<string>) => setFieldValue(field.name, value),
-    [field, setFieldValue]
+    [field, setFieldValue],
   );
   const className = `col-md-${getFieldColumns(field)}`;
 
@@ -113,7 +113,7 @@ export function getWidgetComponent(type: WidgetType): WidgetComponent | null {
 }
 
 export function getWidgetComponentWithFallback(
-  type: WidgetType
+  type: WidgetType,
 ): WidgetComponent {
   // @ts-expect-error This is hard to type and not typed yet.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return

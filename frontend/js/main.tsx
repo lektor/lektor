@@ -67,12 +67,12 @@ if (dash) {
     ],
     {
       basename: $LEKTOR_CONFIG.admin_root,
-    }
+    },
   );
 
   root.render(
     <StrictMode>
       <RouterProvider router={router} />
-    </StrictMode>
+    </StrictMode>,
   );
 }

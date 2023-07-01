@@ -104,7 +104,7 @@ function Publish({
       setState("PUBLISH");
 
       const eventSource = new EventSource(
-        apiUrl("/publish", { server: activeTarget })
+        apiUrl("/publish", { server: activeTarget }),
       );
       eventSource.addEventListener("message", (event: MessageEvent<string>) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

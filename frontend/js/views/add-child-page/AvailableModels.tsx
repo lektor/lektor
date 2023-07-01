@@ -15,7 +15,7 @@ export default function AvailableModels({
   setSelected: (s: string) => void;
 }): JSX.Element {
   const available = Object.values(newChildInfo.available_models).sort((a, b) =>
-    a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
   );
 
   return (

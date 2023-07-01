@@ -24,7 +24,7 @@ export default function DeleteAllAltsChoice({
             {trans(
               isAttachment
                 ? "DELETE_ALL_ATTACHMENT_ALTS"
-                : "DELETE_ALL_PAGE_ALTS"
+                : "DELETE_ALL_PAGE_ALTS",
             )}
           </label>
         </li>
@@ -38,7 +38,7 @@ export default function DeleteAllAltsChoice({
             {trans(
               isAttachment
                 ? "DELETE_ONLY_PRIMARY_ATTACHMENT_ALT"
-                : "DELETE_ONLY_PRIMARY_PAGE_ALT"
+                : "DELETE_ONLY_PRIMARY_PAGE_ALT",
             )}
           </label>
         </li>

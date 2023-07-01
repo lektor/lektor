@@ -68,7 +68,7 @@ export function trans_obj(translation_object: Translatable): string {
  */
 export function trans_fallback(
   translation_object: Translatable | undefined,
-  fallback: string
+  fallback: string,
 ): string {
   if (!translation_object) {
     return fallback;
@@ -83,7 +83,7 @@ export function trans_fallback(
  */
 export function trans_format(
   key: TranslationEntry,
-  replacement: string
+  replacement: string,
 ): string {
   const translation = trans(key);
   return translation.replace("%s", replacement);

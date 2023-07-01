@@ -26,7 +26,7 @@ export default function InputWidgetBase({
       }
       onChange(value);
     },
-    [onChange, postprocessValue]
+    [onChange, postprocessValue],
   );
 
   const failure = validate ? validate(value) : null;

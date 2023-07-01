@@ -27,7 +27,7 @@ export function validateDate(value: string): string | null {
     isValidDate(
       parseInteger(groups.year),
       parseInteger(groups.month),
-      parseInteger(groups.day)
+      parseInteger(groups.day),
     )
   ) {
     return null;

@@ -21,7 +21,7 @@ export default function ChildActions({
 
   const shownChildren = allChildren.slice(
     (page - 1) * CHILDREN_PER_PAGE,
-    page * CHILDREN_PER_PAGE
+    page * CHILDREN_PER_PAGE,
   );
 
   return (
