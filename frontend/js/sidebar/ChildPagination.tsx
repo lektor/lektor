@@ -30,7 +30,7 @@ export default function ChildPagination({
       ) : (
         <em>«</em>
       )}
-      <span className="page">{page + " / " + pages}</span>
+      <span className="page">{`${page} / ${pages}`}</span>
       {page < pages ? (
         <a
           href="#"

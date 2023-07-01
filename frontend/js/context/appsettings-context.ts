@@ -6,9 +6,9 @@ import {
   ShortcutKeyMap,
 } from "../shortcut-keys";
 
-export type AppSettings = {
+export interface AppSettings {
   shortcutKeyMap: ShortcutKeyMap;
-};
+}
 
 export const defaultAppSettings: AppSettings = {
   shortcutKeyMap: defaultShortcutKeyMap,

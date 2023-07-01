@@ -82,7 +82,7 @@ function isPrintingKey(key: string) {
   return key.length === 1 || key == "Enter" || key == "Tab";
 }
 
-const modifierKeys: Array<ModifierKey> = ["Meta", "Control", "Alt", "Shift"];
+const modifierKeys: ModifierKey[] = ["Meta", "Control", "Alt", "Shift"];
 
 export function getShortcutKey(
   event: KeyboardEvent | React.KeyboardEvent

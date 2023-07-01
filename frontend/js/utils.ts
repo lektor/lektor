@@ -43,12 +43,12 @@ export function getCanonicalUrl(localPath: string): string {
 
 export function getPlatform(): "windows" | "mac" | "linux" | null {
   try {
-    const appVersion = navigator?.appVersion;
-    if (appVersion?.match(/Win/)) {
+    const appVersion = navigator.appVersion;
+    if (appVersion.match(/Win/)) {
       return "windows";
-    } else if (appVersion?.match(/\bMac/)) {
+    } else if (appVersion.match(/\bMac/)) {
       return "mac";
-    } else if (appVersion?.match(/\b(X11|Linux)/)) {
+    } else if (appVersion.match(/\b(X11|Linux)/)) {
       return "linux";
     }
     return null;

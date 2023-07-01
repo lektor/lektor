@@ -45,7 +45,7 @@ function fetchJSON(
 }
 
 /** Required URL parameters for GET API endpoints. */
-type GetAPIParams = {
+interface GetAPIParams {
   "/matchurl": { url_path: string };
   "/newattachment": { path: RecordPath };
   "/newrecord": { path: RecordPath; alt?: RecordAlternative };
@@ -55,10 +55,10 @@ type GetAPIParams = {
   "/rawrecord": RecordPathDetails;
   "/recordinfo": { path: RecordPath };
   "/servers": null;
-};
+}
 
 /** Type of the returned JSON for GET API endpoints. */
-type GetAPIReturns = {
+interface GetAPIReturns {
   "/matchurl": RecordPathDetails & { exists: boolean };
   "/newattachment": { label: string; can_upload: boolean };
   "/newrecord": NewRecordInfo;
@@ -68,42 +68,42 @@ type GetAPIReturns = {
   "/rawrecord": RawRecord;
   "/recordinfo": RecordInfo;
   "/servers": { servers: Server[] };
-};
+}
 
 /**
  * Required URL parameters for POST API endpoints.
  * Currently one endpoint (newrecord) has the data sent as JSON which isn't typed yet.
  */
-type PostAPIParams = {
+interface PostAPIParams {
   "/browsefs": RecordPathDetails;
   "/build": null;
   "/clean": null;
   "/deleterecord": RecordPathDetails & { delete_master: "1" | "0" };
   "/find": { q: string; alt: RecordAlternative; lang: string };
   "/newrecord": null; // it's all in the JSON request.
-};
+}
 
 /** Type of the returned JSON for POST API endpoints. `unknown` in case that it isn't used */
-type PostAPIReturns = {
+interface PostAPIReturns {
   "/browsefs": { okay: boolean };
   "/build": unknown;
   "/clean": unknown;
   "/deleterecord": unknown;
   "/find": { results: SearchResult[] };
   "/newrecord": { valid_id: boolean; exists: boolean; path: RecordPath };
-};
+}
 
 /**
  * Required JSON data for PUT API endpoints.
  */
-type PutAPIData = {
+interface PutAPIData {
   "/rawrecord": RecordPathDetails & { data: Record<string, string | null> };
-};
+}
 
 /** Type of the returned JSON for PUT API endpoints. `unknown` in case that it isn't used */
-type PutAPIReturns = {
+interface PutAPIReturns {
   "/rawrecord": unknown;
-};
+}
 
 /**
  * URL to one of Lektor's API endpoints with query string.

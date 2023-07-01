@@ -10,7 +10,7 @@ export function processBuf(buf: string[]): string[] {
   }
   const lines = buf.map((line) => (lineIsDashes(line) ? line.substr(1) : line));
   const lastLine = lines[lines.length - 1];
-  if (lastLine[lastLine.length - 1] === "\n") {
+  if (lastLine.endsWith("\n")) {
     // trim newline at the end of the last line.
     lines[lines.length - 1] = lastLine.substr(0, lastLine.length - 1);
   }

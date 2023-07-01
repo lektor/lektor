@@ -65,7 +65,7 @@ async function runBuild(dev: boolean) {
     await ctx.dispose();
   } else {
     console.log("starting watch mode");
-    ctx.watch();
+    await ctx.watch();
   }
 }
 

@@ -15,11 +15,11 @@ import ResultRow from "./ResultRow";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 import { PageContext } from "../../context/page-context";
 
-export type SearchResult = {
+export interface SearchResult {
   parents: { title: string }[];
   path: RecordPath;
   title: string;
-};
+}
 
 function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
   const alt = useRecordAlt();

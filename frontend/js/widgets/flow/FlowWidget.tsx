@@ -70,7 +70,7 @@ export function serializeFlowFormat(blocks: Block[]): string {
   /* we need to chop of the last newline if it exists because this would
      otherwise add a newline to the last block.  This is just a side effect
      of how we serialize the meta format internally */
-  return rv[rv.length - 1] === "\n" ? rv.substr(0, rv.length - 1) : rv;
+  return rv.endsWith("\n") ? rv.substr(0, rv.length - 1) : rv;
 }
 
 export interface FlowBlockModel {

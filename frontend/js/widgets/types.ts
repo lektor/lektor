@@ -29,13 +29,13 @@ export interface Field {
   alts_enabled: boolean | null;
 }
 
-export type WidgetProps<V = string, W = WidgetType> = {
+export interface WidgetProps<V = string, W = WidgetType> {
   value: V;
   type: W;
   placeholder?: V;
   onChange: (value: SetStateAction<V>) => void;
   disabled?: boolean;
-};
+}
 
 interface SerializableWidget {
   deserializeValue?: (value: string, type: WidgetType) => string;
