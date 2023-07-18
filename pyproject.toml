@@ -161,6 +161,7 @@ disable = [
     "fixme",
     "broad-except",
     "redefined-builtin",
+    "no-member",
     "too-many-arguments",
     "too-few-public-methods",
     "too-many-public-methods",
