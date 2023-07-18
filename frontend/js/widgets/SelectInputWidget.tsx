@@ -18,7 +18,9 @@ export function SelectInputWidget(
       <select
         className={getInputClass(type)}
         value={value || placeholder || ""}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value);
+        }}
         disabled={disabled}
       >
         <option key="" value="">

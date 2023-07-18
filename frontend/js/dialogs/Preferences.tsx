@@ -58,7 +58,9 @@ export default function Preferences({
             type="button"
             className="btn btn-secondary border me-2"
             disabled={state === defaultAppSettings}
-            onClick={() => setState(defaultAppSettings)}
+            onClick={() => {
+              setState(defaultAppSettings);
+            }}
           >
             {trans("RESET_TO_DEFAULTS")}
           </button>
@@ -83,7 +85,7 @@ function ShortcutKeyPrefs({
   setKeyMap: Dispatch<SetStateAction<ShortcutKeyMap>>;
 }): JSX.Element {
   const setShortcut = useCallback(
-    (action: ShortcutAction, key: ShortcutKey | null) =>
+    (action: ShortcutAction, key: ShortcutKey | null) => {
       setKeyMap(
         (keyMap) =>
           new Map(
@@ -92,7 +94,8 @@ function ShortcutKeyPrefs({
               a === action ? key : k !== key ? k : null,
             ]),
           ),
-      ),
+      );
+    },
     [setKeyMap],
   );
 
@@ -107,7 +110,9 @@ function ShortcutKeyPrefs({
           <div className="col-sm-4">
             <ShortcutKeyInputWidget
               value={key}
-              onValueChange={(key) => setShortcut(action, key)}
+              onValueChange={(key) => {
+                setShortcut(action, key);
+              }}
               className="form-control"
               id={action}
             />

@@ -69,7 +69,9 @@ export const FieldBox = React.memo(function FieldBox(props: {
   const { field, value, placeholder, disabled, setFieldValue } = props;
 
   const onChange = useCallback(
-    (value: SetStateAction<string>) => setFieldValue(field.name, value),
+    (value: SetStateAction<string>) => {
+      setFieldValue(field.name, value);
+    },
     [field, setFieldValue],
   );
   const className = `col-md-${getFieldColumns(field)}`;

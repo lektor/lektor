@@ -7,10 +7,18 @@ import { showErrorDialog } from "../error-dialog";
 import { dispatch } from "../events";
 import { setShortcutHandler, ShortcutAction } from "../shortcut-keys";
 
-const findFiles = () => dispatch("lektor-dialog", { type: "find-files" });
-const refresh = () => dispatch("lektor-dialog", { type: "refresh" });
-const publish = () => dispatch("lektor-dialog", { type: "publish" });
-const preferences = () => dispatch("lektor-dialog", { type: "preferences" });
+const findFiles = () => {
+  dispatch("lektor-dialog", { type: "find-files" });
+};
+const refresh = () => {
+  dispatch("lektor-dialog", { type: "refresh" });
+};
+const publish = () => {
+  dispatch("lektor-dialog", { type: "publish" });
+};
+const preferences = () => {
+  dispatch("lektor-dialog", { type: "preferences" });
+};
 
 export default function GlobalActions(): JSX.Element {
   const record = useRecord();

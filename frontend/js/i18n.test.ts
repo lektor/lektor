@@ -7,10 +7,11 @@ const { readdir } = promises;
 
 it("i18n: imports translations for all languages", () => {
   return readdir(join(__dirname, "..", "..", "lektor", "translations")).then(
-    (allTranslations) =>
+    (allTranslations) => {
       strictEqual(
         allTranslations.filter((s) => s.endsWith(".json")).length,
         Object.keys(translations).length,
-      ),
+      );
+    },
   );
 });

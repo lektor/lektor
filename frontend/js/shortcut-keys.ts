@@ -146,7 +146,9 @@ export function installShortcutKeyListener(keymap: ShortcutKeyMap) {
     }
   };
   window.addEventListener("keydown", keydownListener);
-  return () => window.removeEventListener("keydown", keydownListener);
+  return () => {
+    window.removeEventListener("keydown", keydownListener);
+  };
 }
 
 export function serializeShortcutKeyMap(keymap: ShortcutKeyMap) {

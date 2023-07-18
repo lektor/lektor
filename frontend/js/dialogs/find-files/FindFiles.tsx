@@ -83,7 +83,9 @@ function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
         autoFocus
         className="form-control"
         value={query}
-        onChange={(ev) => setQuery(ev.target.value)}
+        onChange={(ev) => {
+          setQuery(ev.target.value);
+        }}
         onKeyDown={onInputKey}
         placeholder={trans("FIND_FILES_PLACEHOLDER")}
       />

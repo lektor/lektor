@@ -29,7 +29,9 @@ export default function ServerStatus(): JSX.Element | null {
       );
     };
     const id = window.setInterval(onInterval, 2000);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+    };
   }, []);
 
   if (state.serverIsUp) {

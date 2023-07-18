@@ -70,7 +70,9 @@ export function useChangedFlag<T>(): [
   const setClean = useCallback(
     async (cb: () => T | Promise<T>, options?: { sync: boolean }) => {
       const changes = changesRef.current;
-      const update = () => setFlushed(changes);
+      const update = () => {
+        setFlushed(changes);
+      };
 
       const result = await cb();
       options?.sync ? flushSync(update) : update();
