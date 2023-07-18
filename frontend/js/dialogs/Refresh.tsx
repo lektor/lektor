@@ -20,10 +20,9 @@ export default function Refresh({
       setState("DONE");
     }, showErrorDialog);
   }, []);
-  useEffect(
-    () => preventNavigation(!isSafeToNavigate),
-    [preventNavigation, isSafeToNavigate],
-  );
+  useEffect(() => {
+    preventNavigation(!isSafeToNavigate);
+  }, [preventNavigation, isSafeToNavigate]);
 
   return (
     <SlideDialog

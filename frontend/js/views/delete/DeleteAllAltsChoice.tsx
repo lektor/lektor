@@ -19,7 +19,9 @@ export default function DeleteAllAltsChoice({
             <input
               type="radio"
               checked={deleteMasterRecord}
-              onChange={() => setDeleteMasterRecord(true)}
+              onChange={() => {
+                setDeleteMasterRecord(true);
+              }}
             />{" "}
             {trans(
               isAttachment
@@ -33,7 +35,9 @@ export default function DeleteAllAltsChoice({
             <input
               type="radio"
               checked={!deleteMasterRecord}
-              onChange={() => setDeleteMasterRecord(false)}
+              onChange={() => {
+                setDeleteMasterRecord(false);
+              }}
             />{" "}
             {trans(
               isAttachment

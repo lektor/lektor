@@ -20,7 +20,9 @@ export default function SlideDialog({
       }
     };
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
   }, [dismiss]);
 
   useEffect(() => {

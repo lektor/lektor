@@ -237,7 +237,11 @@ function EditPage(): JSX.Element | null {
         saveAndPreview().catch(console.error);
       }),
     ];
-    return () => cleanup.forEach((cb) => cb());
+    return () => {
+      cleanup.forEach((cb) => {
+        cb();
+      });
+    };
   }, [maybeSaveChanges, path, alt, goToAdminPage]);
 
   const renderFormField = useCallback(

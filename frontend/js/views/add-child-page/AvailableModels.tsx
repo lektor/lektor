@@ -27,7 +27,9 @@ export default function AvailableModels({
             <select
               value={selected}
               className="form-control"
-              onChange={(event) => setSelected(event.target.value)}
+              onChange={(event) => {
+                setSelected(event.target.value);
+              }}
             >
               {available.map((model) => (
                 <option value={model.id} key={model.id}>

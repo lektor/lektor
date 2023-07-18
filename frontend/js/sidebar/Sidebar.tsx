@@ -61,7 +61,9 @@ function Sidebar(): JSX.Element | null {
       }
     };
     subscribe("lektor-attachments-changed", handler);
-    return () => unsubscribe("lektor-attachments-changed", handler);
+    return () => {
+      unsubscribe("lektor-attachments-changed", handler);
+    };
   }, [path]);
 
   useEffect(() => {

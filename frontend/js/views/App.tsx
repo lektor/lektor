@@ -55,10 +55,16 @@ export default function App() {
     const cleanup = shortcuts
       .filter(({ target }) => target != page)
       .map(({ action, target }) =>
-        setShortcutHandler(action, () => goToAdminPage(target, path, alt)),
+        setShortcutHandler(action, () => {
+          goToAdminPage(target, path, alt);
+        }),
       );
 
-    return () => cleanup.forEach((cb) => cb());
+    return () => {
+      cleanup.forEach((cb) => {
+        cb();
+      });
+    };
   }, [page, path, alt, goToAdminPage]);
 
   return (

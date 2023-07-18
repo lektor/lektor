@@ -25,7 +25,9 @@ export default function AddFlowBlockButtons({
             <button
               type="button"
               className="btn btn-secondary border"
-              onClick={() => addBlock(model)}
+              onClick={() => {
+                addBlock(model);
+              }}
               title={trans_obj(model.name_i18n)}
               key={model.id}
             >

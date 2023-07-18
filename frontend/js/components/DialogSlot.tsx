@@ -23,22 +23,21 @@ export default function DialogSlot({
 }): JSX.Element | null {
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  const dismiss = useCallback(
-    () => setDialog((c) => (c?.preventNavigation ? c : null)),
-    [],
-  );
-  const prevent = useCallback(
-    (preventNavigation: boolean) =>
-      setDialog((d) => (d ? { ...d, preventNavigation } : null)),
-    [],
-  );
+  const dismiss = useCallback(() => {
+    setDialog((c) => (c?.preventNavigation ? c : null));
+  }, []);
+  const prevent = useCallback((preventNavigation: boolean) => {
+    setDialog((d) => (d ? { ...d, preventNavigation } : null));
+  }, []);
   useEffect(() => {
     const handler = ({ detail }: CustomEvent<DialogDetails>) => {
       // Only change dialog if there is no dialog yet.
       setDialog((current) => current ?? detail);
     };
     subscribe("lektor-dialog", handler);
-    return () => unsubscribe("lektor-dialog", handler);
+    return () => {
+      unsubscribe("lektor-dialog", handler);
+    };
   }, []);
 
   if (!dialog) {

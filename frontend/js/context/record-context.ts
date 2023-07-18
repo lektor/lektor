@@ -6,12 +6,12 @@ export type RecordPath = `/${string}`;
 export type RecordAlternative = string;
 
 /** Details about the path to a Lektor record. */
-export interface RecordPathDetails {
+export type RecordPathDetails = {
   /** Path of the current record (Lektor db path). */
   path: RecordPath;
   /** The alternative of the record. */
   alt: RecordAlternative;
-}
+};
 
 export const RecordContext = createContext<RecordPathDetails>({
   path: "/",
