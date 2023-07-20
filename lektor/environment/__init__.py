@@ -182,9 +182,11 @@ class CustomJinjaEnvironment(jinja2.Environment):
             raise
 
 
-def lookup_from_bag(*args):
+@jinja2.pass_context
+def lookup_from_bag(jinja_ctx, *args):
     pieces = ".".join(x for x in args if x)
-    return site_proxy.databags.lookup(pieces)
+    site = jinja_ctx.get("site", default=site_proxy)
+    return site.databags.lookup(pieces)
 
 
 class Environment:
