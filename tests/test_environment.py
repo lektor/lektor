@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 import lektor.context
+from lektor.db import Pad
 from lektor.environment import Environment
 
 
@@ -17,6 +18,11 @@ def scratch_project_data(scratch_project_data):
     subpage_lr = scratch_project_data / "content/sub-page/contents.lr"
     subpage_lr.parent.mkdir()
     subpage_lr.write_text("".join(lektor.metaformat.serialize(data.items())))
+
+    testbag_ini = scratch_project_data / "databags/testbag.ini"
+    testbag_ini.parent.mkdir()
+    testbag_ini.write_text("foo = bar")
+
     return scratch_project_data
 
 
@@ -185,3 +191,18 @@ def test_dates_format_filter_raises_type_error_on_bad_kwarg(
     template = env.jinja_env.from_string("{{ now | %s(%s=42) }}" % (dates_filter, arg))
     with pytest.raises(TypeError):
         template.render(now=datetime.datetime.now())
+
+
+def test_bag_gets_site_from_jinja_context(
+    scratch_env: Environment, scratch_pad: Pad
+) -> None:
+    template = scratch_env.jinja_env.from_string("{{ bag('testbag.foo') }}")
+    assert template.render(site=scratch_pad) == "bar"
+
+
+def test_bag_gets_site_from_lektor_context(
+    scratch_env: Environment, scratch_pad: Pad
+) -> None:
+    template = scratch_env.jinja_env.from_string("{{ bag('testbag.foo') }}")
+    with lektor.context.Context(pad=scratch_pad):
+        assert template.render() == "bar"
