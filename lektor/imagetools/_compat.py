@@ -4,11 +4,13 @@ from __future__ import annotations
 from enum import IntEnum
 from types import ModuleType
 from types import SimpleNamespace
+from typing import Iterable
 from typing import Mapping
 
 import PIL.ExifTags
+import PIL.Image
 
-__all__ = ["ExifTags", "UnidentifiedImageError"]
+__all__ = ["ExifTags", "Transpose", "UnidentifiedImageError"]
 
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
 
@@ -27,6 +29,29 @@ else:
         IFD=IntEnum("IFD", [("Exif", 34665), ("GPSInfo", 34853)]),
         TAGS=PIL.ExifTags.TAGS,
         GPSTAGS=PIL.ExifTags.GPSTAGS,
+    )
+
+
+if hasattr(PIL.Image, "Transpose"):
+    # pillow >= 9.1
+    Transpose = PIL.Image.Transpose
+else:
+
+    def _make_enum(name: str, members: Iterable[str]) -> IntEnum:
+        items = ((member, getattr(PIL.Image, member)) for member in members)
+        return IntEnum(name, items)
+
+    Transpose = _make_enum(  # type: ignore[misc, assignment]
+        "Transpose",
+        (
+            "FLIP_LEFT_RIGHT",
+            "FLIP_TOP_BOTTOM",
+            "ROTATE_90",
+            "ROTATE_180",
+            "ROTATE_270",
+            "TRANSPOSE",
+            "TRANSVERSE",
+        ),
     )
 
 

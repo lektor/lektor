@@ -23,6 +23,7 @@ import PIL.ImageCms
 
 from ..utils import get_dependent_url
 from ._compat import PILLOW_VERSION_INFO
+from ._compat import Transpose  # PIL.Image.Transpose
 from .image_info import get_image_info
 from .image_info import get_image_orientation
 from .image_info import SvgImageInfo
@@ -305,13 +306,13 @@ def _convert_icc_profile_to_srgb(image: PIL.Image.Image) -> None:
 
 
 _TRANSPOSE_FOR_ORIENTATION: Final[Mapping[TiffOrientation, int]] = {
-    TiffOrientation.TOPRIGHT: PIL.Image.FLIP_LEFT_RIGHT,
-    TiffOrientation.BOTRIGHT: PIL.Image.ROTATE_180,
-    TiffOrientation.BOTLEFT: PIL.Image.FLIP_TOP_BOTTOM,
-    TiffOrientation.LEFTTOP: PIL.Image.TRANSPOSE,
-    TiffOrientation.RIGHTTOP: PIL.Image.ROTATE_270,
-    TiffOrientation.RIGHTBOT: PIL.Image.TRANSVERSE,
-    TiffOrientation.LEFTBOT: PIL.Image.ROTATE_90,
+    TiffOrientation.TOPRIGHT: Transpose.FLIP_LEFT_RIGHT,
+    TiffOrientation.BOTRIGHT: Transpose.ROTATE_180,
+    TiffOrientation.BOTLEFT: Transpose.FLIP_TOP_BOTTOM,
+    TiffOrientation.LEFTTOP: Transpose.TRANSPOSE,
+    TiffOrientation.RIGHTTOP: Transpose.ROTATE_270,
+    TiffOrientation.RIGHTBOT: Transpose.TRANSVERSE,
+    TiffOrientation.LEFTBOT: Transpose.ROTATE_90,
 }
 
 
