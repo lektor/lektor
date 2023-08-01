@@ -7,6 +7,8 @@ import re
 import sys
 import warnings
 from contextlib import contextmanager
+from contextlib import ExitStack
+from contextlib import suppress
 from pathlib import Path
 from typing import BinaryIO
 from typing import Generator
@@ -127,15 +129,19 @@ def _parse_svg_units_px(length: str) -> float | None:
     return None
 
 
-def get_svg_info(
+class BadSvgFile(Exception):
+    """Exception raised when SVG file can not be parsed."""
+
+
+def _get_svg_info(
     source: str | Path | SupportsRead[bytes],
 ) -> SvgImageInfo | UnknownImageInfo:
     try:
         _, svg = next(etree.iterparse(source, events=["start"]))
-    except (etree.ParseError, StopIteration):
-        return UnknownImageInfo()
+    except (etree.ParseError, StopIteration) as exc:
+        raise BadSvgFile("can not parse SVG file") from exc
     if svg.tag != "{http://www.w3.org/2000/svg}svg":
-        return UnknownImageInfo()
+        raise BadSvgFile("unknown tag in SVG file")
     width = _parse_svg_units_px(svg.attrib.get("width", ""))
     height = _parse_svg_units_px(svg.attrib.get("height", ""))
     return SvgImageInfo("svg", width, height)
@@ -181,20 +187,22 @@ def _save_position(fp: BinaryIO) -> Generator[BinaryIO, None, None]:
 
 def get_image_info(source: str | Path | BinaryIO) -> ImageInfo:
     """Determine type and dimensions of an image file."""
-    try:
-        if isinstance(source, (str, Path)):
-            with PIL.Image.open(source) as image:
-                return _PIL_image_info(image)
-        else:
+    with suppress(UnidentifiedImageError), ExitStack() as stack:
+        if not isinstance(source, (str, Path)):
             warnings.warn(
                 "Passing a file object to 'get_image_info' is deprecated "
                 "since version 3.4.0. Pass a file path instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            with _save_position(source) as fp_:
-                with PIL.Image.open(fp_) as image:
-                    return _PIL_image_info(image)
+            stack.enter_context(_save_position(source))
 
-    except UnidentifiedImageError:
-        return get_svg_info(source)
+        image = stack.enter_context(PIL.Image.open(source))
+        return _PIL_image_info(image)
+
+    with suppress(BadSvgFile), ExitStack() as stack:
+        if not isinstance(source, (str, Path)):
+            stack.enter_context(_save_position(source))
+        return _get_svg_info(source)
+
+    return UnknownImageInfo()
