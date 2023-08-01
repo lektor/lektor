@@ -10,6 +10,7 @@ import nl from "../../lektor/translations/nl.json";
 import pl from "../../lektor/translations/pl.json";
 import pt from "../../lektor/translations/pt.json";
 import ru from "../../lektor/translations/ru.json";
+import tr from "../../lektor/translations/tr.json";
 import zh from "../../lektor/translations/zh.json";
 
 type LektorTranslations = typeof en;
@@ -28,6 +29,7 @@ export const translations: Record<string, Partial<LektorTranslations>> = {
   pl,
   pt,
   ru,
+  tr,
   zh,
 };
 
