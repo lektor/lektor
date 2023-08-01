@@ -187,10 +187,10 @@ def test_create_thumbnail(dummy_image):
 
 
 def test_create_thumbnail_converts_hsv_to_rgb():
-    hsv_image = PIL.Image.new("HSV", (100, 100), "#009")
+    hsv_image = PIL.Image.new("HSV", (100, 100), (0, 0, 153))
     thumb = _create_thumbnail(hsv_image, ThumbnailParams(ImageSize(80, 60), "JPEG"))
     assert thumb.mode == "RGB"
-    assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=5)
+    assert thumb.getpixel((40, 30)) == approx((153, 153, 153), abs=2)
 
 
 def test_create_thumbnail_converts_indexed_to_rgb():
