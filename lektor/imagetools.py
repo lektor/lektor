@@ -378,6 +378,10 @@ _JPEG_SOF_MARKERS = (
 )
 
 
+class BadImageFile(Exception):
+    """Raised when an image file can not be decoded."""
+
+
 def get_image_info(fp):
     """Reads some image info from a file descriptor."""
     head = fp.read(32)
@@ -416,7 +420,7 @@ def get_image_info(fp):
             # "All markers are assigned two-byte codes: an X’FF’ byte
             # followed by a byte which is not equal to 0 or X’FF’."
             if not byte or ord(byte) != 0xFF:
-                raise Exception("Malformed JPEG image.")
+                raise BadImageFile("Malformed JPEG image.")
 
             # "Any marker may optionally be preceded by any number
             # of fill bytes, which are bytes assigned code X’FF’."
@@ -442,7 +446,7 @@ def get_image_info(fp):
                 #
                 # DNL is not supported by most applications,
                 # so we won't support it either.
-                raise Exception("JPEG with DNL not supported.")
+                raise BadImageFile("JPEG with DNL not supported.")
 
             break
 

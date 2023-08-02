@@ -439,7 +439,7 @@ def trigger_clean(ctx: LektorContext) -> Response:
 
 @dataclass
 class _PublishBuildParams:
-    server_info: ServerInfo = field(metadata=dict(data_key="server"))
+    server_info: ServerInfo = field(metadata={"data_key": "server"})
 
 
 @bp.route("/publish")
