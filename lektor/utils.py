@@ -14,6 +14,7 @@ import urllib.parse
 import uuid
 import warnings
 from contextlib import contextmanager
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
@@ -533,18 +534,16 @@ def atomic_open(filename, mode="r", encoding=None):
         f.close()
         _exc_type, exc_value, tb = sys.exc_info()
         if tmp_filename is not None:
-            try:
+            with suppress(OSError):
                 os.remove(tmp_filename)
-            except OSError:
-                pass
 
         if exc_value.__traceback__ is not tb:
             raise exc_value.with_traceback(tb) from e
         raise exc_value from e
-    else:
-        f.close()
-        if tmp_filename is not None:
-            os.replace(tmp_filename, filename)
+
+    f.close()
+    if tmp_filename is not None:
+        os.replace(tmp_filename, filename)
 
 
 def portable_popen(cmd, *args, **kwargs):

@@ -476,48 +476,48 @@ def datamodel_data_from_ini(id, inifile):
             return None
         return [x for x in [x.strip() for x in value.strip().split(",")] if x]
 
-    return dict(
-        filename=inifile.filename,
-        id=id,
-        parent=inifile.get("model.inherits"),
-        name_i18n=get_i18n_block(inifile, "model.name"),
-        label_i18n=get_i18n_block(inifile, "model.label"),
-        primary_field=inifile.get("model.primary_field"),
-        hidden=inifile.get_bool("model.hidden", default=None),
-        protected=inifile.get_bool("model.protected", default=None),
-        child_config=dict(
-            enabled=inifile.get_bool("children.enabled", default=None),
-            slug_format=inifile.get("children.slug_format"),
-            model=inifile.get("children.model"),
-            order_by=_parse_order(inifile.get("children.order_by")),
-            replaced_with=inifile.get("children.replaced_with"),
-            hidden=inifile.get_bool("children.hidden", default=None),
-        ),
-        attachment_config=dict(
-            enabled=inifile.get_bool("attachments.enabled", default=None),
-            model=inifile.get("attachments.model"),
-            order_by=_parse_order(inifile.get("attachments.order_by")),
-            hidden=inifile.get_bool("attachments.hidden", default=None),
-        ),
-        pagination_config=dict(
-            enabled=inifile.get_bool("pagination.enabled", default=None),
-            per_page=inifile.get_int("pagination.per_page"),
-            url_suffix=inifile.get("pagination.url_suffix"),
-            items=inifile.get("pagination.items"),
-        ),
-        fields=fielddata_from_ini(inifile),
-    )
+    return {
+        "filename": inifile.filename,
+        "id": id,
+        "parent": inifile.get("model.inherits"),
+        "name_i18n": get_i18n_block(inifile, "model.name"),
+        "label_i18n": get_i18n_block(inifile, "model.label"),
+        "primary_field": inifile.get("model.primary_field"),
+        "hidden": inifile.get_bool("model.hidden", default=None),
+        "protected": inifile.get_bool("model.protected", default=None),
+        "child_config": {
+            "enabled": inifile.get_bool("children.enabled", default=None),
+            "slug_format": inifile.get("children.slug_format"),
+            "model": inifile.get("children.model"),
+            "order_by": _parse_order(inifile.get("children.order_by")),
+            "replaced_with": inifile.get("children.replaced_with"),
+            "hidden": inifile.get_bool("children.hidden", default=None),
+        },
+        "attachment_config": {
+            "enabled": inifile.get_bool("attachments.enabled", default=None),
+            "model": inifile.get("attachments.model"),
+            "order_by": _parse_order(inifile.get("attachments.order_by")),
+            "hidden": inifile.get_bool("attachments.hidden", default=None),
+        },
+        "pagination_config": {
+            "enabled": inifile.get_bool("pagination.enabled", default=None),
+            "per_page": inifile.get_int("pagination.per_page"),
+            "url_suffix": inifile.get("pagination.url_suffix"),
+            "items": inifile.get("pagination.items"),
+        },
+        "fields": fielddata_from_ini(inifile),
+    }
 
 
 def flowblock_data_from_ini(id, inifile):
-    return dict(
-        filename=inifile.filename,
-        id=id,
-        name_i18n=get_i18n_block(inifile, "block.name"),
-        fields=fielddata_from_ini(inifile),
-        order=inifile.get_int("block.order"),
-        button_label=inifile.get("block.button_label"),
-    )
+    return {
+        "filename": inifile.filename,
+        "id": id,
+        "name_i18n": get_i18n_block(inifile, "block.name"),
+        "fields": fielddata_from_ini(inifile),
+        "order": inifile.get_int("block.order"),
+        "button_label": inifile.get("block.button_label"),
+    }
 
 
 def fields_from_data(env, data, parent_fields=None):
