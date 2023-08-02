@@ -58,7 +58,6 @@ def test_join_path(head, tail, expected):
 
 
 def test_is_path_child_of():
-
     assert not is_path_child_of("a/b", "a/b")
     assert is_path_child_of("a/b", "a/b", strict=False)
     assert is_path_child_of("a/b/c", "a")
@@ -73,7 +72,6 @@ def test_is_path_child_of():
 
 
 def test_magic_split_ext():
-
     assert magic_split_ext("wow") == ("wow", "")
     assert magic_split_ext("aaa.jpg") == ("aaa", "jpg")
     assert magic_split_ext("aaa. jpg") == ("aaa. jpg", "")
@@ -82,7 +80,6 @@ def test_magic_split_ext():
 
 
 def test_slugify():
-
     assert slugify("w o w") == "w-o-w"
     assert slugify("Șö prĕtty") == "so-pretty"
     assert slugify("im age.jpg") == "im-age.jpg"
@@ -186,7 +183,6 @@ def test_secure_url(url, expected):
 
 
 def test_url_builder():
-
     assert build_url([]) == "/"
     assert build_url(["a", "b/c"]) == "/a/b/c/"
     assert build_url(["a", "b/c"], trailing_slash=False) == "/a/b/c"
@@ -196,7 +192,6 @@ def test_url_builder():
 
 
 def test_parse_path():
-
     assert parse_path("") == []
     assert parse_path("/") == []
     assert parse_path("/foo") == ["foo"]
