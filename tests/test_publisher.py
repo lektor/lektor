@@ -191,7 +191,7 @@ def test_Command_triggers_no_warnings():
             gc.collect()
 
     if client_is_alive():
-        warnings.warn(
+        warnings.warn(  # noqa: B028
             "Unable to trigger garbage collection of Command instance, "
             "so unable to check for warnings issued during finalization."
         )

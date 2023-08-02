@@ -223,5 +223,6 @@ class PluginController:
                         "not break if new parameters are passed to it by newer "
                         "versions of Lektor.",
                         DeprecationWarning,
+                        stacklevel=2,
                     )
         return rv

@@ -9,6 +9,7 @@ from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import ValuesView
+from contextlib import suppress
 from functools import wraps
 from itertools import chain
 
@@ -116,6 +117,7 @@ def _deprecated_data_proxy(wrapped):
             f"EditorSession.{name} has been deprecated as of Lektor 3.3.2. "
             f"Please use EditorSession.data.{newname} instead.",
             DeprecationWarning,
+            stacklevel=2,
         )
         return wrapped(self, *args, **kwargs)
 
@@ -305,10 +307,8 @@ class EditorSession:
         directory = os.path.dirname(self.fs_path)
 
         if self._recursive_delete:
-            try:
+            with suppress(OSError):
                 shutil.rmtree(directory)
-            except (OSError, IOError):
-                pass
             return
         if self._master_delete:
             raise BadDelete(

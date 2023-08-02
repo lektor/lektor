@@ -113,7 +113,7 @@ class WatcherTest:
                 pass
             if not change_seen:
                 break
-            warnings.warn(f"macOS settle loop {n}: {change_seen}")
+            warnings.warn(f"macOS settle loop {n}: {change_seen}")  # noqa: B028
 
 
 @pytest.fixture

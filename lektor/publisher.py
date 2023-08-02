@@ -592,7 +592,7 @@ class FtpPublisher(Publisher):
         for artifact_name in current_artifacts.keys():
             known_folders.add(posixpath.dirname(artifact_name))
 
-        for artifact_name, checksum in server_artifacts.items():
+        for artifact_name, _checksum in server_artifacts.items():
             if artifact_name not in current_artifacts:
                 con.log_buffer.append("000 Deleting %s" % artifact_name)
                 con.delete_file(artifact_name)
