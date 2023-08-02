@@ -1469,12 +1469,11 @@ class Database:
         """Looks up a datamodel based on the information about the parent
         of a model.
         """
-        dm_name = datamodel
+        model = datamodel
 
         # Only look for a datamodel if there was not defined.
-        if dm_name is None:
+        if model is None:
             parent = posixpath.dirname(path)
-            dm_name = None
 
             # If we hit the root, and there is no model defined we need
             # to make sure we do not recurse onto ourselves.
@@ -1484,11 +1483,11 @@ class Database:
                 parent_obj = pad.get(parent)
                 if parent_obj is not None:
                     if is_attachment:
-                        dm_name = parent_obj.datamodel.attachment_config.model
+                        model = parent_obj.datamodel.attachment_config.model
                     else:
-                        dm_name = parent_obj.datamodel.child_config.model
+                        model = parent_obj.datamodel.child_config.model
 
-        for dm_name in _iter_datamodel_choices(dm_name, path, is_attachment):
+        for dm_name in _iter_datamodel_choices(model, path, is_attachment):
             # If that datamodel exists, let's roll with it.
             datamodel = self.datamodels.get(dm_name)
             if datamodel is not None:

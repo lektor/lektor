@@ -84,6 +84,6 @@ def test_failure_controller_fs_exceptions(failure_controller):
         failure_controller.clear_failure("broken")
     with pytest.raises(OSError):
         try:
-            assert False
+            raise RuntimeError("test exception")
         except Exception:
             failure_controller.store_failure("broken", sys.exc_info())

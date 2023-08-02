@@ -21,7 +21,7 @@ def load_databag(filename):
             return decode_flat_data(IniFile(filename).items(), dict_cls=OrderedDict)
         else:
             return None
-    except (OSError, IOError) as e:
+    except OSError as e:
         if e.errno != errno.ENOENT:
             raise
         return None

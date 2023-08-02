@@ -223,11 +223,15 @@ class Environment:
 
         from lektor.db import F, get_alts  # pylint: disable=import-outside-toplevel
 
+        def latlongformat(latlong, secs=True):
+            lat, lon = latlong
+            return format_lat_long(lat=lat, long=lon, secs=secs)
+
         self.jinja_env.filters.update(
             tojson=tojson_filter,
             latformat=lambda x, secs=True: format_lat_long(lat=x, secs=secs),
             longformat=lambda x, secs=True: format_lat_long(long=x, secs=secs),
-            latlongformat=lambda x, secs=True: format_lat_long(secs=secs, *x),
+            latlongformat=latlongformat,
             url=_prevent_inlining(url_to),
             asseturl=_prevent_inlining(get_asset_url),
             markdown=_markdown_filter,

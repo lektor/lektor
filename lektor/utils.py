@@ -421,7 +421,8 @@ class Url(urllib.parse.SplitResult):
                     "Use the Url.from_string classmethod instead."
                 ),
                 version="3.4.0",
-            )
+            ),
+            stacklevel=2,
         )
         return cls.from_string(value)
 

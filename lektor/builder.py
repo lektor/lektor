@@ -558,7 +558,7 @@ class FileInfo(_ArtifactSourceInfo):
                             break
                         h.update(chunk)
             checksum = h.hexdigest()
-        except (OSError, IOError):
+        except OSError:
             checksum = "0" * 40
         self._checksum = checksum
         return checksum

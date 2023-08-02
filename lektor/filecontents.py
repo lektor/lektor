@@ -39,7 +39,7 @@ class FileContents:
     def bytes(self):
         try:
             return os.stat(self.filename).st_size
-        except (OSError, IOError):
+        except OSError:
             return 0
 
     def as_data_url(self, mediatype=None):
