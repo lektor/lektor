@@ -52,7 +52,7 @@ class _ServerInfoField(marshmallow.fields.String):
         value: str,
         attr: Optional[str],
         data: Optional[Mapping[str, Any]],
-        **kwargs: Any
+        **kwargs: Any,
     ) -> ServerInfo:
         lektor_config = self.context["lektor_config"]
         server_id = super()._deserialize(value, attr, data, **kwargs)

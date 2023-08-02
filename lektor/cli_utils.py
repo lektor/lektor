@@ -38,7 +38,6 @@ def extraflag(cli):
 
 
 class AliasedGroup(click.Group):
-
     # pylint: disable=inconsistent-return-statements
     def get_command(self, ctx, cmd_name):
         rv = click.Group.get_command(self, ctx, cmd_name)

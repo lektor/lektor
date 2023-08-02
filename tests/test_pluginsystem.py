@@ -64,7 +64,6 @@ def dummy_plugin_calls(monkeypatch):
 
 
 class DummyDistribution(metadata.Distribution):
-
     _files = {
         "top_level.txt": f"{__name__}\n",
         "entry_points.txt": inspect.cleandoc(
