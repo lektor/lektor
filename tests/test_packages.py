@@ -108,9 +108,10 @@ def test_VirtualEnv_site_packages(tmp_path: Path) -> None:
 
 
 def test_VirtualEnv_executable(tmp_path: Path) -> None:
-    executable = VirtualEnv(tmp_path).executable
-    relpath = os.fspath(Path(executable).relative_to(tmp_path))
-    assert re.match(r"(?i)(?:bin|Scripts)[/\\]python(?:\.\w*)?\Z", relpath)
+    executable = Path(VirtualEnv(tmp_path).executable)
+    scripts_dir = os.fspath(executable.parent.relative_to(tmp_path))
+    assert scripts_dir in {"bin", "Scripts"}
+    assert executable.name == Path(sys.executable).name
 
 
 def test_Requirements_add_requirement() -> None:
