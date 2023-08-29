@@ -87,6 +87,12 @@ def remove_package_from_project(project, name):
     return None
 
 
+if os.name == "nt":
+    _default_venv_symlinks = False
+else:
+    _default_venv_symlinks = True
+
+
 class VirtualEnv:
     """A helper for manipulating our private package cache virtual environment.
 
@@ -100,7 +106,12 @@ class VirtualEnv:
     def __init__(self, path: StrPath):
         self.path = Path(path)
 
-    def create(self, with_pip: bool = True, upgrade_deps: bool = True) -> None:
+    def create(
+        self,
+        with_pip: bool = True,
+        upgrade_deps: bool = True,
+        symlinks: bool = _default_venv_symlinks,
+    ) -> None:
         """(Re-)Create a new virtual environment.
 
         This will remove any existing virtual environment and create a new one.
@@ -120,7 +131,11 @@ class VirtualEnv:
         #
         # Note that, e.g., pip>=21.3 is required to support PEP660 editable
         # installs.
-        options: Dict[str, Any] = {"clear": True, "with_pip": with_pip}
+        options: Dict[str, Any] = {
+            "clear": True,
+            "with_pip": with_pip,
+            "symlinks": symlinks,
+        }
         if sys.version_info >= (3, 9):
             EnvBuilder(upgrade_deps=upgrade_deps, **options).create(self.path)
         else:
