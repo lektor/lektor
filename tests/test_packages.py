@@ -53,6 +53,12 @@ def test_VirtualEnv_addsitedir(nested_venv: VirtualEnv) -> None:
     assert proc.returncode == 0
 
 
+@pytest.mark.skipif(os.name == "nt", reason="Windows")
+def test_VirtualEnv_uses_symlinks(nested_venv: VirtualEnv) -> None:
+    executable = Path(nested_venv.executable)
+    assert executable.resolve(strict=True).parent != executable.parent
+
+
 @pytest.mark.requiresinternet
 @pytest.mark.slowtest
 def test_VirtualEnv_run_pip_install(tmp_path: Path) -> None:
