@@ -60,6 +60,7 @@ async function runBuild(dev: boolean) {
     // identifiers). This keeps the bundle size a bit larger but still very
     // readable.
     minifySyntax: !dev,
+    logLevel: dev ? "info" : "warning",
   });
   console.log("starting build");
   await ctx.rebuild();
