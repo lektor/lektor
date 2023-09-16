@@ -70,9 +70,9 @@ if (dash) {
     },
   );
 
-  root.render(
-    <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>,
-  );
+  let app = <RouterProvider router={router} />;
+  if (process.env.NODE_ENV !== "production") {
+    app = <StrictMode>{app}</StrictMode>;
+  }
+  root.render(app);
 }
