@@ -1,0 +1,18 @@
+title: to_json
+---
+signature: pad, record=None, alt='_primary'
+---
+summary: Returns the type information as JSON.
+---
+template_var: 
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+This method is used to export a type definition to JSON.  Primarily this is
+used to drive some more special widgets for the admin UI.  For the moment this
+is largely undocumented as widgets are not yet customizable.  For more
+information you will need to read the Lektor docs.

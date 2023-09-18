@@ -1,0 +1,29 @@
+title: float
+---
+type: type
+---
+summary: A type that can store floating point numbers.
+---
+body:
+
+The `float` type is similar to the [integer :ref](../integer/) one but it
+can store floating points instead of just integer values.
+
+## Field Usage
+
+```ini
+[fields.percentage]
+label = Percentage
+type = float
+description = Just a percentage of a progress bar.
+addon_label = %
+```
+
+## Template Usage
+
+```html+jinja
+<div class="progress-bar">
+  <span class="progress" style="width: {{ this.percentage }}%"></span>
+  <span class="label">{{ this.percentage }}%</span>
+</div>
+```

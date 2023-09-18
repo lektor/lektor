@@ -1,0 +1,25 @@
+title: parse_path
+---
+module: lektor.utils
+---
+summary: Parses a path into components.
+---
+type: function
+---
+version_added: 2.0
+---
+body:
+
+This function parses a path into the individual components it's made from.
+The path is always assumed to be absolute and made absolute if it's not yet
+so.  The root path is the empty list.
+
+## Example
+
+```pycon
+>>> from lektor.utils import parse_path
+>>> parse_path('/foo/bar')
+['foo', 'bar']
+>>> parse_path('/')
+[]
+```
