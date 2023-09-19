@@ -31,7 +31,6 @@ def make_app(
     ui_lang: str = "en",
     verbosity: int = 0,
     extra_flags: dict[str, str] | None = None,
-    reload: bool = True,
     *,
     admin_path: str = "/admin",
     static_folder: StrPath | None = "static",  # testing
@@ -58,9 +57,7 @@ def make_app(
         lektor_info, static_url_path=f"{admin_path}/static", static_folder=static_folder
     )
     _common_configuration(app, debug=debug)
-    app.config["ENABLE_LIVERELOAD"] = reload
-    if reload:
-        app.register_blueprint(livereload.bp, url_prefix="/__reload__")
+    app.register_blueprint(livereload.bp, url_prefix="/__reload__")
     app.register_blueprint(serve.bp)
 
     # Pass requests for /admin/... to the admin app
