@@ -151,6 +151,109 @@ def test_basic_query_syntax_template(pad, eval_expr):
     assert [x["name"] for x in encumbered] == ["Master", "Slave"]
 
 
+def test_isin_syntax(pad):
+    projects = pad.get("/projects")
+
+    encumbered = (
+        projects.children.filter(
+            F.name.isin(["Master", "Slave", "Coffee", "not-a-name"])
+        )
+        .order_by("name")
+        .all()
+    )
+
+    assert len(encumbered) == 3
+    assert [x["name"] for x in encumbered] == ["Coffee", "Master", "Slave"]
+
+
+def test_isin_generator_query(pad):
+    projects = pad.get("/projects")
+
+    query1 = projects.children.filter(
+        (F._slug == "master") | (F._slug == "slave")
+    ).all()
+
+    query2 = projects.children.filter(F.name.isin(r["name"] for r in query1))
+    assert query2.all() == query1
+
+
+def test_isin_isnotin_complementarity(pad):
+    projects = pad.get("/projects")
+    names = ["Master", "Slave", "Wolf"]
+    isnotin = projects.children.filter(F.name.isnotin(names))
+    isin = projects.children.filter(F.name.isin(names))
+    qs = isin.all() + isnotin.all()
+    qa = projects.children.all()
+    assert sorted(qs, key=lambda r: r["name"]) == sorted(qa, key=lambda r: r["name"])
+
+
+def test_isin_false_isnotin(pad):
+    projects = pad.get("/projects")
+    names = ["Master", "Slave", "Wolf"]
+    isnotin = projects.children.filter(F.name.isnotin(names))
+    isin_false = projects.children.filter(F.name.isin(names).false())
+    assert isnotin.all() == isin_false.all()
+
+
+def test_isin_template_generator_expr(pad, eval_expr):
+    projects = pad.get("/projects")
+
+    query1 = projects.children.filter((F.name == "Wolf") | (F.name == "Coffee"))
+
+    query2 = eval_expr(
+        """
+        this.children.filter(
+            F.name.isin(
+                this.children.filter(
+                    (F.name == "Wolf").or(F.name == "Coffee")
+                ) | map(attribute="name")
+            )
+        )
+        """,
+        pad=pad,
+        this=projects,
+    )
+    assert query2.all() == query1.all()
+
+
+def test_isin_template_ids_are_special(pad, eval_expr):
+    projects = pad.get("/projects")
+
+    query1 = projects.children.filter((F.name == "Wolf") | (F.name == "Coffee"))
+
+    query2 = eval_expr(
+        """
+        this.children.filter(
+            F._id.isin(
+                this.children.filter((F.name == "Wolf").or(F.name == "Coffee"))
+            )
+        )
+        """,
+        pad=pad,
+        this=projects,
+    )
+    assert query2.all() == query1.all()
+
+
+def test_isin_template_generator_subquery(pad, eval_expr):
+    projects = pad.get("/projects")
+
+    query = eval_expr(
+        """
+        this.children.filter(
+            F.seq.isin(
+                site.get("/blog").children.filter(
+                    F.tags.contains("tag1")
+                ) | map(attribute="tags") | map("length")
+            )
+        )
+        """,
+        pad=pad,
+        this=projects,
+    )
+    assert [r["name"] for r in query] == ["Slave"]
+
+
 def test_is_child_of(pad):
     projects = pad.get("/projects")
     assert projects.is_child_of(projects)

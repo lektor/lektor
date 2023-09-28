@@ -8,6 +8,7 @@ import operator
 import os
 import posixpath
 from collections import OrderedDict
+from collections.abc import Collection
 from datetime import timedelta
 from functools import total_ordering
 from itertools import chain
@@ -193,6 +194,12 @@ class Expression:
     def contains(self, item):
         return _ContainmentExpr(self, _auto_wrap_expr(item))
 
+    def isin(self, seq):
+        return _ContainmentExpr(_SeqExpr(seq), self)
+
+    def isnotin(self, seq):
+        return _ContainmentExpr(_SeqExpr(seq), self, True)
+
     def startswith(self, other):
         return _BinExpr(
             self,
@@ -261,6 +268,25 @@ class _Literal(Expression):
         return self.__value
 
 
+class _SeqExpr(Expression):
+    def __init__(self, value):
+        if not isinstance(value, Collection):
+            try:
+                value = list(value)
+            except TypeError:
+                value = [value]
+        self.__value = value
+
+    def __eval__(self, record):
+        for item in self.__value:
+            if isinstance(item, Record):
+                yield item["_id"]
+            elif isinstance(item, Expression):
+                yield item.__eval__(record)
+            else:
+                yield item
+
+
 class _BinExpr(Expression):
     def __init__(self, left, right, op):
         self.__left = left
@@ -272,15 +298,18 @@ class _BinExpr(Expression):
 
 
 class _ContainmentExpr(Expression):
-    def __init__(self, seq, item):
+    def __init__(self, seq, item, negate=False):
         self.__seq = seq
         self.__item = item
+        self.__negate = negate
 
     def __eval__(self, record):
         seq = self.__seq.__eval__(record)
         item = self.__item.__eval__(record)
         if isinstance(item, Record):
             item = item["_id"]
+        if self.__negate:
+            return item not in seq
         return item in seq
 
 
@@ -297,7 +326,7 @@ class _RecordQueryField(Expression):
 
 class _RecordQueryProxy:
     def __getattr__(self, name):
-        if name[:2] != "__":
+        if not name.startswith("__"):
             return _RecordQueryField(name)
         raise AttributeError(name)
 
@@ -1126,7 +1155,7 @@ class Query:
         return rv
 
     def limit(self, limit):
-        """Sets the ordering of the query."""
+        """Sets the limit of the query."""
         rv = self._clone(mark_dirty=True)
         rv._limit = limit
         return rv
