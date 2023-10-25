@@ -1,38 +1,43 @@
 import ToggleGroup from "./ToggleGroup";
 import React from "react";
-import { render } from "react-dom";
-import ReactTestUtils from "react-dom/test-utils";
+import { Simulate, act } from "react-dom/test-utils";
 import { JSDOM } from "jsdom";
 import { ok } from "assert";
+import { createRoot } from "react-dom/client";
 
-const jsdom = new JSDOM(`<!DOCTYPE html>`);
-// @ts-expect-error Assigning jsdom.window to window fails
-global.window = jsdom.window;
-const document = window.document;
+before(() => {
+  const jsdom = new JSDOM(`<!DOCTYPE html>`);
+  // @ts-expect-error Assigning jsdom.window to window fails
+  global.window = jsdom.window;
+  global.document = window.document;
+  // @ts-expect-error To get Reacts act() to work
+  global.IS_REACT_ACT_ENVIRONMENT = true;
+});
 
 const renderToggle = () => {
-  document.body.innerHTML = "";
   const container = document.createElement("div");
-  document.body.appendChild(container);
-  render(
+  const root = createRoot(container);
+  root.render(
     <ToggleGroup groupTitle={"TITLE"}>
       <div>Rick Astley rulz</div>
     </ToggleGroup>,
-    container,
   );
   return container;
 };
 
 describe("ToggleGroup", () => {
-  it("renders a closed toggle group", () => {
-    const container = renderToggle();
+  it("renders a closed toggle group", async () => {
+    const container = await act(() => renderToggle());
     ok(container.innerHTML.includes("closed"));
   });
 
-  it("renders an open toggle group when toggled", () => {
-    const container = renderToggle();
-    const el = document.querySelector(".toggle-group h4");
-    el && ReactTestUtils.Simulate.click(el);
+  it("renders an open toggle group when toggled", async () => {
+    const container = await act(() => renderToggle());
+    const el = container.querySelector("h4");
+    ok(el);
+    act(() => {
+      Simulate.click(el);
+    });
     ok(!container.innerHTML.includes("closed"));
   });
 });
