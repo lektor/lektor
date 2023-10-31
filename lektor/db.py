@@ -481,7 +481,7 @@ class Record(DBSourceObject):
         return rv
 
     def __repr__(self):
-        return "<%s model=%r path=%r%s%s>" % (
+        return "<{} model={!r} path={!r}{}{}>".format(
             self.__class__.__name__,
             self._data["_model"],
             self._data["_path"],
@@ -545,7 +545,7 @@ class Page(Record):
     def path(self):
         rv = self._data["_path"]
         if self.page_num is not None:
-            rv = "%s@%s" % (rv, self.page_num)
+            rv = f"{rv}@{self.page_num}"
         return rv
 
     @cached_property
@@ -1010,7 +1010,7 @@ class Query:
         if page_num is Ellipsis:
             page_num = self._page_num
         return self.pad.get(
-            "%s/%s" % (self.path, id), persist=persist, alt=self.alt, page_num=page_num
+            f"{self.path}/{id}", persist=persist, alt=self.alt, page_num=page_num
         )
 
     def _matches(self, record):
@@ -1183,11 +1183,10 @@ class Query:
                 (self._offset or 0) + self._limit if self._limit else None,
             )
 
-        for item in iterable:
-            yield item
+        yield from iterable
 
     def __repr__(self):
-        return "<%s %r%s>" % (
+        return "<{} {!r}{}>".format(
             self.__class__.__name__,
             self.path,
             self.alt and " alt=%r" % self.alt or "",
@@ -1423,7 +1422,7 @@ class Database:
                             # fallback here.
                             if single_alt:
                                 break
-            except IOError as e:
+            except OSError as e:
                 if e.errno != errno.ENOENT:
                     raise
                 continue
@@ -1966,11 +1965,11 @@ class TreeItem:
         db = self.tree.pad.db
         keep_attachments = include_attachments and self.can_have_attachments
         keep_pages = include_pages and self.can_have_children
-        names = set(
+        names = {
             name
             for name, _, is_attachment in db.iter_items(self.path, alt=None)
             if (keep_attachments if is_attachment else keep_pages)
-        )
+        }
         return sorted(names, key=lambda name: name.lower())
 
     def iter_children(
@@ -2043,7 +2042,7 @@ class TreeItem:
         return self._primary_record.get_sort_key(order_by)
 
     def __repr__(self):
-        return "<TreeItem %r%s>" % (
+        return "<TreeItem {!r}{}>".format(
             self.path,
             self.is_attachment and " attachment" or "",
         )
@@ -2058,7 +2057,7 @@ class Alt:
         self.exists = record is not None and os.path.isfile(record.source_filename)
 
     def __repr__(self):
-        return "<Alt %r%s>" % (self.id, self.exists and "*" or "")
+        return "<Alt {!r}{}>".format(self.id, self.exists and "*" or "")
 
 
 class Tree:

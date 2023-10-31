@@ -334,5 +334,5 @@ def test_deprecated_stacklevel():
 
 def _warning_line(warning: warnings.WarningMessage) -> str:
     """Get the text of the line for which warning was issued."""
-    with open(warning.filename, "r", encoding="utf-8") as fp:
+    with open(warning.filename, encoding="utf-8") as fp:
         return next(islice(fp, warning.lineno - 1, None), None)

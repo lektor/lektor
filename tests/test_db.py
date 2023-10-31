@@ -237,15 +237,15 @@ def test_distinct(pad):
     posts = pad.query("blog")
     distinct_categories = posts.distinct("category")
     assert isinstance(distinct_categories, set)
-    assert distinct_categories == set(["My Category"])
+    assert distinct_categories == {"My Category"}
     distinct_tags = posts.distinct("tags")
     assert isinstance(distinct_tags, set)
-    assert distinct_tags == set(["tag1", "tag2", "tag3"])
+    assert distinct_tags == {"tag1", "tag2", "tag3"}
     distinct_pub_dates = posts.distinct("pub_date")
-    assert distinct_pub_dates == set([date(2015, 12, 12), date(2015, 12, 13)])
+    assert distinct_pub_dates == {date(2015, 12, 12), date(2015, 12, 13)}
     assert posts.distinct("foo") == set()
     # Post 2 has no summary; check we don't include Undefined in distinct().
-    assert posts.distinct("summary") == set(["hello"])
+    assert posts.distinct("summary") == {"hello"}
 
 
 def test_root_pagination(scratch_project, scratch_env):

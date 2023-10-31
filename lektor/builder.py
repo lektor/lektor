@@ -566,7 +566,7 @@ class FileInfo(_ArtifactSourceInfo):
     @property
     def filename_and_checksum(self):
         """Like 'filename:checksum'."""
-        return "%s:%s" % (self.filename, self.checksum)
+        return f"{self.filename}:{self.checksum}"
 
     def unchanged(self, other):
         """Given another file info checks if the are similar enough to
@@ -684,7 +684,7 @@ class Artifact:
         self._pending_update_ops = []
 
     def __repr__(self):
-        return "<%s %r>" % (
+        return "<{} {!r}>".format(
             self.__class__.__name__,
             self.dst_filename,
         )
@@ -768,9 +768,9 @@ class Artifact:
         """
 
         def operation(con):
-            primary_sources = set(
+            primary_sources = {
                 self.build_state.to_source_filename(x) for x in self.sources
-            )
+            }
 
             seen = set()
             rows = []

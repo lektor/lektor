@@ -53,7 +53,7 @@ def test_rewrite_html_for_editing(html_text, expect_at_tail):
     eof_mark = "---EOF---"
     edit_url = "http://example.com/EDIT_URL"
     rewritten = serve._rewrite_html_for_editing(
-        f"{html_text}{eof_mark}".encode("utf-8"), edit_url
+        f"{html_text}{eof_mark}".encode(), edit_url
     )
     html, _, tail = rewritten.decode("utf-8").rpartition(eof_mark)
     if expect_at_tail:

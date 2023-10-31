@@ -4,7 +4,6 @@ import fnmatch
 import os
 import uuid
 from functools import update_wrapper
-from typing import Type
 from typing import TYPE_CHECKING
 
 import babel.dates
@@ -123,7 +122,7 @@ def _dates_filter(name, wrapped):
 def _markdown_filter(
     source: str,
     *,
-    resolve_links: "Literal['always', 'never', 'when-possible', None]" = None,
+    resolve_links: Literal["always", "never", "when-possible", None] = None,
     **kw: str,
 ) -> Markdown:
     """A jinja filter that converts markdown text to HTML."""
@@ -279,8 +278,8 @@ class Environment:
         self.virtualpathresolver("siblings")(siblings_resolver)
 
     root_path: str
-    build_programs: list[tuple[Type[SourceObject], Type[BuildProgram]]]
-    special_file_assets: dict[str, Type[Asset]]
+    build_programs: list[tuple[type[SourceObject], type[BuildProgram]]]
+    special_file_assets: dict[str, type[Asset]]
     special_file_suffixes: dict[str, str]
 
     @property
@@ -381,12 +380,12 @@ class Environment:
     # -- methods for the plugin system
 
     def add_build_program(
-        self, cls: Type[SourceObject], program: Type[BuildProgram]
+        self, cls: type[SourceObject], program: type[BuildProgram]
     ) -> None:
         self.build_programs.append((cls, program))
 
     def add_asset_type(
-        self, asset_cls: Type[Asset], build_program: Type[BuildProgram]
+        self, asset_cls: type[Asset], build_program: type[BuildProgram]
     ) -> None:
         self.build_programs.append((asset_cls, build_program))
         self.special_file_assets[asset_cls.source_extension] = asset_cls

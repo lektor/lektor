@@ -567,13 +567,13 @@ def plugins_list_cmd(ctx, as_json, verbosity):
 
     if verbosity == 0:
         for plugin in plugins:
-            click.echo("%s (version %s)" % (plugin.id, plugin.version))
+            click.echo(f"{plugin.id} (version {plugin.version})")
         return
 
     for idx, plugin in enumerate(plugins):
         if idx:
             click.echo()
-        click.echo("%s (%s)" % (plugin.name, plugin.id))
+        click.echo(f"{plugin.name} ({plugin.id})")
         for line in plugin.description.splitlines():
             click.echo("  %s" % line)
         if plugin.path is not None:

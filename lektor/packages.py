@@ -9,11 +9,8 @@ import sys
 import sysconfig
 from pathlib import Path
 from typing import Any
-from typing import Dict
 from typing import Iterable
 from typing import Iterator
-from typing import Optional
-from typing import Set
 from typing import Sized
 from typing import TYPE_CHECKING
 from venv import EnvBuilder
@@ -131,7 +128,7 @@ class VirtualEnv:
         #
         # Note that, e.g., pip>=21.3 is required to support PEP660 editable
         # installs.
-        options: Dict[str, Any] = {
+        options: dict[str, Any] = {
             "clear": True,
             "with_pip": with_pip,
             "symlinks": symlinks,
@@ -184,7 +181,7 @@ class VirtualEnv:
 class Requirements(Iterable[str], Sized):
     """Manage package requirements."""
 
-    requirements: Set[str]
+    requirements: set[str]
 
     def __init__(self) -> None:
         self.requirements = set()
@@ -200,7 +197,7 @@ class Requirements(Iterable[str], Sized):
         """
         return iter(self.requirements)
 
-    def add_requirement(self, package: str, version: Optional[str] = None) -> None:
+    def add_requirement(self, package: str, version: str | None = None) -> None:
         """Add a (remote) distribution to the requirements."""
         self.requirements.add(f"{package}=={version}" if version else f"{package}")
 
@@ -279,7 +276,7 @@ def update_cache(
             hash_file.write_text(f"{requirements.hash()}\n", encoding="ascii")
 
 
-def load_packages(env: "Environment", reinstall: bool = False) -> None:
+def load_packages(env: Environment, reinstall: bool = False) -> None:
     """Import all of our managed plugins into our ``sys.path``
 
     This first ensures that our private package cache is up-to-date, then
@@ -298,7 +295,7 @@ def load_packages(env: "Environment", reinstall: bool = False) -> None:
     site.addsitedir(VirtualEnv(venv_path).site_packages)
 
 
-def wipe_package_cache(env: "Environment") -> None:
+def wipe_package_cache(env: Environment) -> None:
     """Remove the entire package cache."""
     project = env.project
     # Remove the legacy flat package cache, too

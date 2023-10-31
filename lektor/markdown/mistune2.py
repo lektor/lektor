@@ -4,8 +4,6 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Callable
 from typing import ClassVar
-from typing import List
-from typing import Optional
 from typing import Sequence
 from typing import TypedDict
 
@@ -33,13 +31,11 @@ class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
     # renderer mixins (written for Lektor<3.4 and mistune 0.x) are not going to work
     # with mistune 2.x anyway.
 
-    def link(
-        self, link: str, text: Optional[str] = None, title: Optional[str] = None
-    ) -> str:
+    def link(self, link: str, text: str | None = None, title: str | None = None) -> str:
         link = self.lektor.resolve_url(link)
         return super().link(link, text, title)
 
-    def image(self, src: str, alt: str = "", title: Optional[str] = None) -> str:
+    def image(self, src: str, alt: str = "", title: str | None = None) -> str:
         src = self.lektor.resolve_url(src)
         return super().image(src, alt, title)
 
@@ -64,7 +60,7 @@ class MarkdownConfig:
             "allow_harmful_protocols": True,
         }
         self.renderer_base = ImprovedRenderer
-        self.renderer_mixins: List[type] = []
+        self.renderer_mixins: list[type] = []
         self.parser_options: ParserConfigDict = {
             "plugins": list(self.DEFAULT_PLUGINS),
         }
