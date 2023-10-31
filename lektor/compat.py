@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from werkzeug import urls as werkzeug_urls
 from werkzeug.datastructures import MultiDict
 
-__all__ = ["TemporaryDirectory", "importlib_metadata", "werkzeug_urls_URL"]
+__all__ = ["TemporaryDirectory", "werkzeug_urls_URL"]
 
 
 def _ensure_tree_writeable(path: str) -> None:
@@ -59,10 +59,8 @@ class FixedTemporaryDirectory(tempfile.TemporaryDirectory):
 
 if sys.version_info >= (3, 8):
     TemporaryDirectory = tempfile.TemporaryDirectory
-    from importlib import metadata as importlib_metadata
 else:
     TemporaryDirectory = FixedTemporaryDirectory
-    import importlib_metadata
 
 
 class _CompatURL(urllib.parse.SplitResult):

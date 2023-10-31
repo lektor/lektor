@@ -1,5 +1,6 @@
 import sys
 import warnings
+from importlib import metadata
 from typing import Any
 from typing import Dict
 from typing import Hashable
@@ -10,7 +11,6 @@ from weakref import ref as weakref
 
 from markupsafe import Markup
 
-from lektor.compat import importlib_metadata as metadata
 from lektor.markdown.controller import ControllerCache
 from lektor.markdown.controller import FieldOptions
 from lektor.markdown.controller import MarkdownController

@@ -39,7 +39,6 @@ dependencies = [
     "EXIFRead",
     "filetype>=1.0.7",
     "Flask",
-    "importlib_metadata; python_version<'3.8'",
     "inifile>=0.4.1",
     "Jinja2>=3.0",
     "MarkupSafe",

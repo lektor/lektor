@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import sys
+from importlib import metadata
 from importlib.abc import Loader
 from importlib.machinery import ModuleSpec
 from pathlib import Path
@@ -12,7 +13,6 @@ from unittest import mock
 import pytest
 
 from lektor.cli import cli
-from lektor.compat import importlib_metadata as metadata
 from lektor.context import Context
 from lektor.packages import add_package_to_project
 from lektor.pluginsystem import _check_dist_name
