@@ -1,13 +1,46 @@
 from __future__ import annotations
 
+import importlib.metadata
+import tempfile
 import urllib.parse
 from typing import Any
 from urllib.parse import urlsplit
+from warnings import warn
 
 from werkzeug import urls as werkzeug_urls
 from werkzeug.datastructures import MultiDict
 
+from lektor.utils import DeprecatedWarning
+
 __all__ = ["werkzeug_urls_URL"]
+
+
+_DEPRECATED_ATTRS = {
+    "TemporaryDirectory": tempfile.TemporaryDirectory,
+    "importlib_metadata": importlib.metadata,
+}
+
+
+def __getattr__(name):
+    try:
+        value = _DEPRECATED_ATTRS.get(name)
+    except KeyError:
+        # pylint: disable=raise-missing-from
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    if hasattr(value, "__module__"):
+        replacement = f"{value.__module__}.{value.__name__}"
+    else:
+        replacement = f"{value.__name__}"
+    warn(
+        DeprecatedWarning(
+            name=f"lektor.compat.{name}",
+            reason=f"use {replacement} instead",
+            version="3.4.0",
+        ),
+        stacklevel=2,
+    )
+    return value
 
 
 class _CompatURL(urllib.parse.SplitResult):

@@ -1,9 +1,36 @@
+import importlib
+import tempfile
 from urllib.parse import urlsplit
 
 import pytest
 from werkzeug import urls as werkzeug_urls
 
 from lektor.compat import _CompatURL
+
+
+@pytest.mark.parametrize(
+    "name, expected_value, replacement",
+    [
+        (
+            "TemporaryDirectory",
+            tempfile.TemporaryDirectory,
+            "tempfile.TemporaryDirectory",
+        ),
+        ("importlib_metadata", importlib.metadata, "importlib.metadata"),
+    ],
+)
+def test_deprecated_attr(name, expected_value, replacement):
+    lektor_compat = importlib.import_module("lektor.compat")
+    with pytest.deprecated_call(match=f"use {replacement} instead") as warnings:
+        value = getattr(lektor_compat, name)
+    assert value is expected_value
+    assert warnings[0].filename == __file__
+
+
+def test_missing_attr():
+    lektor_compat = importlib.import_module("lektor.compat")
+    with pytest.raises(AttributeError):
+        lektor_compat.MISSING  # pylint: disable=pointless-statement
 
 
 def make_CompatURL(url: str) -> _CompatURL:
