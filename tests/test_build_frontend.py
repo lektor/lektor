@@ -1,4 +1,5 @@
 """Tests for the hatch build hooks in ../build_frontend.py."""
+import os
 import shutil
 import sys
 from importlib.util import module_from_spec
@@ -81,8 +82,10 @@ def test_initialize_skips_build_if_output_exists(
 
 
 @pytest.mark.usefixtures("frontend_src")
-def test_initialize_aborts_if_no_npm(frontend_build_hook, mocker):
-    mocker.patch("shutil.which").return_value = None
+def test_initialize_aborts_if_no_npm(
+    frontend_build_hook, frontend_build_module, monkeypatch
+):
+    monkeypatch.setitem(os.environ, "PATH", "")
     with pytest.raises(SystemExit) as exc_info:
         frontend_build_hook.initialize("standard", build_data={})
     assert exc_info.value.args[0] == 1

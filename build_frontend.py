@@ -65,16 +65,20 @@ class FrontendBuildHook(BuildHookInterface):
             app.display_info(f"{APP_JS} exists, skipping frontend build")
             return
 
-        npm = shutil.which("npm")
-        if npm is None:
-            app.abort("npm is not available. can not build frontend")
+        try:
+            proc = subprocess.run(
+                "npm -v", capture_output=True, text=True, shell=True, check=True
+            )
+        except subprocess.CalledProcessError as exc:
+            app.abort(f"{exc.cmd!r} failed (is node/npm installed?)")
+        app.display_info(f"found npm version {proc.stdout.strip()}")
 
         frontend = Path(root, FRONTEND)
         if not frontend.is_dir():
             app.abort("frontend source is missing. can not build frontend")
 
         app.display_info("npm install")
-        subprocess.run((npm, "install"), cwd=frontend, check=True)
+        subprocess.run("npm install", cwd=frontend, shell=True, check=True)
         app.display_info("npm run build")
-        subprocess.run((npm, "run", "build"), cwd=frontend, check=True)
+        subprocess.run("npm run build", cwd=frontend, shell=True, check=True)
         app.display_success("built frontend static files")
