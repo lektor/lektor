@@ -216,11 +216,7 @@ class Field:
         return self.type.value_to_raw(value)
 
     def __repr__(self):
-        return "<{} {!r} type={!r}>".format(
-            self.__class__.__name__,
-            self.name,
-            self.type,
-        )
+        return f"<{self.__class__.__name__} {self.name!r} type={self.type!r}>"
 
 
 def _iter_all_fields(obj):
@@ -389,10 +385,7 @@ class DataModel:
         return rv
 
     def __repr__(self):
-        return "<{} {!r}>".format(
-            self.__class__.__name__,
-            self.id,
-        )
+        return f"<{self.__class__.__name__} {self.id!r}>"
 
 
 class FlowBlockModel:
@@ -451,10 +444,7 @@ class FlowBlockModel:
         return rv
 
     def __repr__(self):
-        return "<{} {!r}>".format(
-            self.__class__.__name__,
-            self.id,
-        )
+        return f"<{self.__class__.__name__} {self.id!r}>"
 
 
 def fielddata_from_ini(inifile):

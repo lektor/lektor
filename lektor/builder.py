@@ -684,10 +684,7 @@ class Artifact:
         self._pending_update_ops = []
 
     def __repr__(self):
-        return "<{} {!r}>".format(
-            self.__class__.__name__,
-            self.dst_filename,
-        )
+        return f"<{self.__class__.__name__} {self.dst_filename!r}>"
 
     @property
     def is_current(self):
