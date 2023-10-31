@@ -115,10 +115,7 @@ class FlowBlock:
             ctx.flow_block_render_stack.pop()
 
     def __repr__(self):
-        return "<{} {!r}>".format(
-            self.__class__.__name__,
-            self["_flowblock"],
-        )
+        return f"<{self.__class__.__name__} {self['_flowblock']!r}>"
 
 
 class Flow:
@@ -135,10 +132,7 @@ class Flow:
     __nonzero__ = __bool__
 
     def __repr__(self):
-        return "<{} {!r}>".format(
-            self.__class__.__name__,
-            self.blocks,
-        )
+        return f"<{self.__class__.__name__} {self.blocks!r}>"
 
 
 class FlowDescriptor:
