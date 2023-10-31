@@ -5,8 +5,6 @@ import os
 import re
 from pathlib import Path
 from typing import Match
-from typing import Optional
-from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 from zlib import adler32
@@ -47,7 +45,7 @@ Filename = Union[str, os.PathLike]
 
 
 def _rewrite_html_for_editing(
-    html: bytes, edit_url: str, artifact_name: Optional[str] = None
+    html: bytes, edit_url: str, artifact_name: str | None = None
 ) -> bytes:
     """Adds an "edit pencil" button to the text of an HTML page.
 
@@ -74,7 +72,7 @@ def _send_html_for_editing(
     except (FileNotFoundError, IsADirectoryError, PermissionError):
         abort(404)
     html = _rewrite_html_for_editing(html, edit_url, artifact.artifact_name)
-    check = adler32(f"{artifact.dst_filename}\0{edit_url}".encode("utf-8")) & 0xFFFFFFFF
+    check = adler32(f"{artifact.dst_filename}\0{edit_url}".encode()) & 0xFFFFFFFF
     resp = Response(html, mimetype=mimetype)
     resp.set_etag(f"{st.st_mtime}-{st.st_size}-{check}")
     return resp
@@ -88,7 +86,7 @@ def _deduce_mimetype(filename: Filename) -> str:
 
 
 def _checked_send_file(
-    filename: Filename, mimetype: Optional[str] = None
+    filename: Filename, mimetype: str | None = None
 ) -> ResponseValue:
     """Same as flask.send_file, except raises NotFound on file errors."""
     # NB: flask.send_file interprets relative paths relative to
@@ -147,7 +145,7 @@ class ArtifactServer:
 
     def build_primary_artifact(
         self, source: SourceObject
-    ) -> Tuple[Artifact, Optional[BuildFailure]]:
+    ) -> tuple[Artifact, BuildFailure | None]:
         """Build source object, return primary artifact.
 
         If the build was successfull, returns a tuple of (artifact, ``None``).
@@ -169,7 +167,7 @@ class ArtifactServer:
 
     @staticmethod
     def handle_build_failure(
-        failure: BuildFailure, edit_url: Optional[str] = None
+        failure: BuildFailure, edit_url: str | None = None
     ) -> Response:
         """Format build failure to an HTML response."""
         html = render_template("build-failure.html", **failure.data).encode("utf-8")
@@ -177,7 +175,7 @@ class ArtifactServer:
             html = _rewrite_html_for_editing(html, edit_url)
         return Response(html, mimetype="text/html")
 
-    def get_edit_url(self, source: SourceObject) -> Optional[str]:
+    def get_edit_url(self, source: SourceObject) -> str | None:
         primary_alternative = self.lektor_ctx.config.primary_alternative
         if not isinstance(source, Record):
             # Asset or VirtualSourceObject — not editable

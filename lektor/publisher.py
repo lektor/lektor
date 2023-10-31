@@ -21,15 +21,12 @@ from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import ContextManager
-from typing import Dict
 from typing import Generator
 from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import NoReturn
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 from warnings import warn
@@ -58,11 +55,9 @@ def _ascii_host(host: str) -> str:
 
 
 @contextmanager
-def _ssh_key_file(
-    credentials: Optional[Mapping[str, str]]
-) -> Iterator[Optional["StrPath"]]:
+def _ssh_key_file(credentials: Mapping[str, str] | None) -> Iterator[StrPath | None]:
     with ExitStack() as stack:
-        key_file: Optional["StrPath"]
+        key_file: StrPath | None
         key_file = credentials.get("key_file") if credentials else None
         key = credentials.get("key") if credentials else None
         if not key_file and key:
@@ -81,8 +76,8 @@ def _ssh_key_file(
 
 @contextmanager
 def _ssh_command(
-    credentials: Optional[Mapping[str, str]], port: Optional[int] = None
-) -> Iterator[Optional[str]]:
+    credentials: Mapping[str, str] | None, port: int | None = None
+) -> Iterator[str | None]:
     with _ssh_key_file(credentials) as key_file:
         args = []
         if port:
@@ -152,15 +147,15 @@ class Command(ContextManager["Command"]):
     def __init__(
         self,
         argline: Iterable[str],
-        cwd: Optional["StrOrBytesPath"] = None,
-        env: Optional[Mapping[str, str]] = None,
+        cwd: StrOrBytesPath | None = None,
+        env: Mapping[str, str] | None = None,
         capture: bool = True,
         silent: bool = False,
         check: bool = False,
-        input: Optional[str] = None,
+        input: str | None = None,
         capture_stdout: bool = False,
     ) -> None:
-        kwargs: Dict[str, Any] = {"cwd": cwd}
+        kwargs: dict[str, Any] = {"cwd": cwd}
         if env:
             kwargs["env"] = {**os.environ, **env}
         if silent:
@@ -186,7 +181,7 @@ class Command(ContextManager["Command"]):
 
         with ExitStack() as stack:
             self._cmd = stack.enter_context(portable_popen(list(argline), **kwargs))
-            self._closer: Optional[Callable[[], None]] = stack.pop_all().close
+            self._closer: Callable[[], None] | None = stack.pop_all().close
 
         if input is not None or capture_stdout:
             self._output = self._communicate(input, capture_stdout, capture)
@@ -196,8 +191,8 @@ class Command(ContextManager["Command"]):
             self._output = None
 
     def _communicate(
-        self, input: Optional[str], capture_stdout: bool, capture: bool
-    ) -> Optional[Iterator[str]]:
+        self, input: str | None, capture_stdout: bool, capture: bool
+    ) -> Iterator[str] | None:
         proc = self._cmd
         try:
             if capture_stdout:
@@ -234,7 +229,7 @@ class Command(ContextManager["Command"]):
         self.close()
         return self._cmd.returncode
 
-    def result(self) -> "CompletedProcess[str]":
+    def result(self) -> CompletedProcess[str]:
         """Wait for subprocess to complete.  Return ``CompletedProcess`` instance.
 
         If ``capture_stdout=True`` was passed to the constructor, the output
@@ -244,7 +239,7 @@ class Command(ContextManager["Command"]):
         return CompletedProcess(self._cmd.args, self.wait(), self._stdout)
 
     @property
-    def returncode(self) -> Optional[int]:
+    def returncode(self) -> int | None:
         """Return exit status of the subprocess.
 
         Or ``None`` if the subprocess is still alive.
@@ -254,7 +249,7 @@ class Command(ContextManager["Command"]):
     def __exit__(self, *__: Any) -> None:
         self.close()
 
-    def __iter__(self) -> Generator[str, None, "CompletedProcess[str]"]:
+    def __iter__(self) -> Generator[str, None, CompletedProcess[str]]:
         """A generator with yields any captured output and returns a ``CompletedProcess``.
 
         If ``capture`` is ``True`` (the default).  Both stdout and stderr are available
@@ -278,7 +273,7 @@ class Command(ContextManager["Command"]):
 
 
 class Publisher:
-    def __init__(self, env: "Environment", output_path: str) -> None:
+    def __init__(self, env: Environment, output_path: str) -> None:
         self.env = env
         self.output_path = os.path.abspath(output_path)
 
@@ -289,7 +284,7 @@ class Publisher:
     def publish(
         self,
         target_url: str,
-        credentials: Optional[Mapping[str, str]] = None,
+        credentials: Mapping[str, str] | None = None,
         **extra: Any,
     ) -> Iterator[str]:
         raise NotImplementedError()
@@ -564,7 +559,7 @@ class FtpPublisher(Publisher):
                             if not item:
                                 break
                             h.update(item)
-                except IOError as e:
+                except OSError as e:
                     if e.errno != errno.ENOENT:
                         raise
                 yield (
@@ -584,7 +579,7 @@ class FtpPublisher(Publisher):
             con.log_buffer.append("000 Updating %s" % artifact_name)
             con.upload_file(tmp_dst, source, mkdir=True)
             con.rename_file(tmp_dst, artifact_name)
-            con.append(".lektor/listing", "%s|%s\n" % (artifact_name, checksum))
+            con.append(".lektor/listing", f"{artifact_name}|{checksum}\n")
 
     def consolidate_listing(self, con, current_artifacts):
         server_artifacts, duplicates = self.read_existing_artifacts(con)
@@ -604,7 +599,7 @@ class FtpPublisher(Publisher):
         if duplicates or server_artifacts != current_artifacts:
             listing = []
             for artifact_name, checksum in current_artifacts.items():
-                listing.append("%s|%s\n" % (artifact_name, checksum))
+                listing.append(f"{artifact_name}|{checksum}\n")
             listing.sort()
             con.upload_file(".lektor/.listing.tmp", "".join(listing))
             con.rename_file(".lektor/.listing.tmp", ".lektor/listing")
@@ -612,16 +607,14 @@ class FtpPublisher(Publisher):
     def publish(self, target_url, credentials=None, **extra):
         con = self.connection_class(target_url, credentials)
         connected = con.connect()
-        for event in con.drain_log():
-            yield event
+        yield from con.drain_log()
         if not connected:
             return
 
         yield "000 Reading server state ..."
         con.mkdir(".lektor")
         committed_artifacts, _ = self.read_existing_artifacts(con)
-        for event in con.drain_log():
-            yield event
+        yield from con.drain_log()
 
         yield "000 Begin sync ..."
         current_artifacts = {}
@@ -629,14 +622,12 @@ class FtpPublisher(Publisher):
             current_artifacts[artifact_name] = checksum
             if checksum != committed_artifacts.get(artifact_name):
                 self.upload_artifact(con, artifact_name, filename, checksum)
-                for event in con.drain_log():
-                    yield event
+                yield from con.drain_log()
         yield "000 Sync done!"
 
         yield "000 Consolidating server state ..."
         self.consolidate_listing(con, current_artifacts)
-        for event in con.drain_log():
-            yield event
+        yield from con.drain_log()
 
         yield "000 All done!"
 
@@ -661,7 +652,7 @@ class GitRepo(ContextManager["GitRepo"]):
     :param work_tree: The work tree for the repository.
     """
 
-    def __init__(self, work_tree: "StrPath") -> None:
+    def __init__(self, work_tree: StrPath) -> None:
         environ = {**os.environ, "GIT_WORK_TREE": str(work_tree)}
 
         for what, default in [("NAME", "Lektor Bot"), ("EMAIL", "bot@getlektor.com")]:
@@ -692,7 +683,7 @@ class GitRepo(ContextManager["GitRepo"]):
         self,
         *args: str,
         check: bool = True,
-        input: Optional[str] = None,
+        input: str | None = None,
         capture_stdout: bool = False,
     ) -> Command:
         """Run a git subcommand."""
@@ -704,9 +695,9 @@ class GitRepo(ContextManager["GitRepo"]):
         self,
         *args: str,
         check: bool = True,
-        input: Optional[str] = None,
+        input: str | None = None,
         capture_stdout: bool = False,
-    ) -> "CompletedProcess[str]":
+    ) -> CompletedProcess[str]:
         """Run a git subcommand and wait for completion."""
         return self._popen(
             args, check=check, input=input, capture_stdout=capture_stdout, capture=False
@@ -754,7 +745,7 @@ class GitRepo(ContextManager["GitRepo"]):
         self,
         push_url: str,
         branch: str,
-        cname: Optional[str] = None,
+        cname: str | None = None,
         preserve_history: bool = True,
     ) -> Iterator[str]:
         """Publish the contents of the work tree to GitHub pages.
@@ -813,7 +804,7 @@ class GithubPagesPublisher(Publisher):
     def publish(
         self,
         target_url: str,
-        credentials: Optional[Mapping[str, str]] = None,
+        credentials: Mapping[str, str] | None = None,
         **extra: Any,
     ) -> Iterator[str]:
         if not locate_executable("git"):
@@ -835,7 +826,7 @@ class GithubPagesPublisher(Publisher):
 
     def _parse_url(
         self, target_url: str
-    ) -> Tuple[str, str, Optional[str], bool, Sequence[str]]:
+    ) -> tuple[str, str, str | None, bool, Sequence[str]]:
         url = urlsplit(target_url)
         if not url.hostname:
             self.fail("github owner missing from target URL")
@@ -902,7 +893,7 @@ class GithubPagesPublisher(Publisher):
 
     @staticmethod
     def _parse_credentials(
-        credentials: Optional[Mapping[str, str]], target_url: str
+        credentials: Mapping[str, str] | None, target_url: str
     ) -> Mapping[str, str]:
         url = urlsplit(target_url)
         creds = dict(credentials or {})

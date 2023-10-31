@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import posixpath
-from typing import Optional
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qsl
 from urllib.parse import urlsplit
@@ -106,12 +105,12 @@ class SourceObject:
     def url_to(
         self,
         path,  # : Union[str, "SourceObject", "SupportsUrlPath"]
-        alt: Optional[str] = None,
-        absolute: Optional[bool] = None,
-        external: Optional[bool] = None,
-        base_url: Optional[str] = None,
-        resolve: Optional[bool] = None,
-        strict_resolve: Optional[bool] = None,
+        alt: str | None = None,
+        absolute: bool | None = None,
+        external: bool | None = None,
+        base_url: str | None = None,
+        resolve: bool | None = None,
+        strict_resolve: bool | None = None,
     ) -> str:
         """Calculates the URL from the current source object to the given
         other source object.  Alternatively a path can also be provided
@@ -179,11 +178,11 @@ class SourceObject:
     def _resolve_url(
         self,
         _url: str,
-        alt: Optional[str],
-        absolute: Optional[bool],
-        external: Optional[bool],
-        base_url: Optional[str],
-        strict: Optional[bool],
+        alt: str | None,
+        absolute: bool | None,
+        external: bool | None,
+        base_url: str | None,
+        strict: bool | None,
     ) -> str:
         """Resolve (possibly relative) URL or db path to URL."""
         url = urlsplit(_url)

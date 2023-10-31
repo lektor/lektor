@@ -188,7 +188,7 @@ def test_dates_format_filter_raises_type_error_on_bad_format(
 def test_dates_format_filter_raises_type_error_on_bad_kwarg(
     env: Environment, dates_filter: str, arg: str
 ) -> None:
-    template = env.jinja_env.from_string("{{ now | %s(%s=42) }}" % (dates_filter, arg))
+    template = env.jinja_env.from_string(f"{{{{ now | {dates_filter}({arg}=42) }}}}")
     with pytest.raises(TypeError):
         template.render(now=datetime.datetime.now())
 

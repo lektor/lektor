@@ -27,8 +27,8 @@ class RawValue:
 
     def _get_hint(self, prefix, reason):
         if self.field is not None:
-            return "%s in field '%s': %s" % (prefix, self.field.name, reason)
-        return "%s: %s" % (prefix, reason)
+            return f"{prefix} in field '{self.field.name}': {reason}"
+        return f"{prefix}: {reason}"
 
     def bad_value(self, reason):
         return BadValue(hint=self._get_hint("Bad value", reason), obj=self.value)

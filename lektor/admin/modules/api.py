@@ -298,11 +298,11 @@ def get_new_record_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
             "label": label_i18n["en"],
             "can_have_children": tree_item.can_have_children,
             "implied_model": implied_model,
-            "available_models": dict(
-                (k, describe_model(v))
+            "available_models": {
+                k: describe_model(v)
                 for k, v in pad.db.datamodels.items()
                 if not v.hidden or k == implied_model
-            ),
+            },
         }
     )
 

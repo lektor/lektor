@@ -6,7 +6,6 @@ import sys
 import warnings
 from importlib import metadata
 from pathlib import Path
-from typing import Type
 from weakref import ref as weakref
 
 from inifile import IniFile
@@ -176,7 +175,7 @@ class PluginController:
     def instanciate_plugin(
         self,
         plugin_id: str,
-        plugin_cls: Type[Plugin],
+        plugin_cls: type[Plugin],
         dist: metadata.Distribution | None = None,
     ) -> None:
         env = self.env

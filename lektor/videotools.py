@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import decimal
 import json
 import os
@@ -35,7 +34,7 @@ class Dimensions(namedtuple("Dimensions", ["width", "height"])):
         if width < 1 or height < 1:
             raise ValueError("Invalid dimensions")
 
-        return super(Dimensions, cls).__new__(cls, width, height)
+        return super().__new__(cls, width, height)
 
     @property
     def aspect_ratio(self):
@@ -165,7 +164,7 @@ class Dimensions(namedtuple("Dimensions", ["width", "height"])):
         if mode == ThumbnailMode.STRETCH:
             return self.stretch(width, height, upscale)
 
-        raise ValueError('Unexpected mode "{!r}"'.format(mode))
+        raise ValueError(f'Unexpected mode "{mode!r}"')
 
 
 def get_timecode(td):
@@ -183,9 +182,9 @@ def get_timecode(td):
 
     str_seconds, str_decimals = str(float(seconds)).split(".")
 
-    timecode = "{:02d}:{:02d}:{}".format(hours, minutes, str_seconds.zfill(2))
+    timecode = f"{hours:02d}:{minutes:02d}:{str_seconds.zfill(2)}"
     if str_decimals != "0":
-        timecode += ".{}".format(str_decimals)
+        timecode += f".{str_decimals}"
 
     return timecode
 
@@ -320,7 +319,7 @@ def make_video_thumbnail(
 
     # Construct a filename suffix unique to the given parameters
     suffix = get_suffix(seek, width, height, mode=mode, quality=quality)
-    dst_url_path = get_dependent_url(source_url_path, suffix, ext=".{}".format(format))
+    dst_url_path = get_dependent_url(source_url_path, suffix, ext=f".{format}")
 
     if quality is None and format == "jpg":
         quality = 95
@@ -355,7 +354,7 @@ def make_video_thumbnail(
         reporter.report_debug_info("ffmpeg cmd line", cmdline)
         proc = portable_popen(cmdline)
         if proc.wait() != 0:
-            raise RuntimeError("ffmpeg exited with code {}".format(proc.returncode))
+            raise RuntimeError(f"ffmpeg exited with code {proc.returncode}")
 
         if not os.path.exists(artifact.dst_filename):
             msg = (

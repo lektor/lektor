@@ -98,7 +98,7 @@ def test_prev_next_dependencies(tmp_path, pntest_env, pntest_reporter):
     builder.build_all()
 
     # post2, post3, and post4 had to be rebuilt, but not post1.
-    assert set(["post2", "post3", "post4"]) == set(reporter.artifact_ids)
+    assert {"post2", "post3", "post4"} == set(reporter.artifact_ids)
 
     # post2 depends on post3 now, not post4.
     assert "content/post3/contents.lr" in reporter.deps["post2"]

@@ -53,15 +53,13 @@ def test_new_plugin(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = os.path.join("packages", "plugin-name")
-    assert set(os.listdir(path)) == set(
-        [
-            "lektor_plugin_name.py",
-            "pyproject.toml",
-            "setup.cfg",
-            ".gitignore",
-            "README.md",
-        ]
-    )
+    assert set(os.listdir(path)) == {
+        "lektor_plugin_name.py",
+        "pyproject.toml",
+        "setup.cfg",
+        ".gitignore",
+        "README.md",
+    }
 
     # gitignore
     gitignore_expected = textwrap.dedent(
@@ -177,15 +175,13 @@ def test_new_plugin_path(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = "path"
-    assert set(os.listdir(path)) == set(
-        [
-            "lektor_plugin_name.py",
-            "pyproject.toml",
-            "setup.cfg",
-            ".gitignore",
-            "README.md",
-        ]
-    )
+    assert set(os.listdir(path)) == {
+        "lektor_plugin_name.py",
+        "pyproject.toml",
+        "setup.cfg",
+        ".gitignore",
+        "README.md",
+    }
 
 
 def test_new_plugin_path_param(project_cli_runner):
@@ -197,15 +193,13 @@ def test_new_plugin_path_param(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = "path"
-    assert set(os.listdir(path)) == set(
-        [
-            "lektor_plugin_name.py",
-            "pyproject.toml",
-            "setup.cfg",
-            ".gitignore",
-            "README.md",
-        ]
-    )
+    assert set(os.listdir(path)) == {
+        "lektor_plugin_name.py",
+        "pyproject.toml",
+        "setup.cfg",
+        ".gitignore",
+        "README.md",
+    }
 
 
 def test_new_plugin_path_and_name_params(project_cli_runner):
@@ -217,15 +211,13 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
     path = "path"
-    assert set(os.listdir(path)) == set(
-        [
-            "lektor_plugin_name.py",
-            "pyproject.toml",
-            "setup.cfg",
-            ".gitignore",
-            "README.md",
-        ]
-    )
+    assert set(os.listdir(path)) == {
+        "lektor_plugin_name.py",
+        "pyproject.toml",
+        "setup.cfg",
+        ".gitignore",
+        "README.md",
+    }
 
 
 # new-theme
@@ -238,13 +230,13 @@ def test_new_theme(project_cli_runner, can_symlink):
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
     path = os.path.join("themes", "lektor-theme-name")
-    assert set(os.listdir(path)) == set(
-        ["example-site", "images", "README.md", "theme.ini"]
-    )
-    assert set(os.listdir(os.path.join(path, "images"))) == set(["homepage.png"])
-    assert set(os.listdir(os.path.join(path, "example-site"))) == set(
-        ["lektor-theme-name.lektorproject", "README.md", "themes"]
-    )
+    assert set(os.listdir(path)) == {"example-site", "images", "README.md", "theme.ini"}
+    assert set(os.listdir(os.path.join(path, "images"))) == {"homepage.png"}
+    assert set(os.listdir(os.path.join(path, "example-site"))) == {
+        "lektor-theme-name.lektorproject",
+        "README.md",
+        "themes",
+    }
     if can_symlink:
         assert (
             os.readlink(os.path.join(path, "example-site/themes/lektor-theme-name"))
@@ -292,13 +284,13 @@ def test_new_theme_name_only(
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
     path = os.path.join("themes", "lektor-theme-name")
-    assert set(os.listdir(path)) == set(
-        ["example-site", "images", "README.md", "theme.ini"]
-    )
-    assert set(os.listdir(os.path.join(path, "images"))) == set(["homepage.png"])
-    assert set(os.listdir(os.path.join(path, "example-site"))) == set(
-        ["lektor-theme-name.lektorproject", "README.md", "themes"]
-    )
+    assert set(os.listdir(path)) == {"example-site", "images", "README.md", "theme.ini"}
+    assert set(os.listdir(os.path.join(path, "images"))) == {"homepage.png"}
+    assert set(os.listdir(os.path.join(path, "example-site"))) == {
+        "lektor-theme-name.lektorproject",
+        "README.md",
+        "themes",
+    }
     if can_symlink:
         assert (
             os.readlink(os.path.join(path, "example-site/themes/lektor-theme-name"))
@@ -336,9 +328,7 @@ def test_new_theme_path(project_cli_runner):
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
     path = "path"
-    assert set(os.listdir(path)) == set(
-        ["example-site", "images", "theme.ini", "README.md"]
-    )
+    assert set(os.listdir(path)) == {"example-site", "images", "theme.ini", "README.md"}
 
 
 def test_new_theme_path_param(project_cli_runner):
@@ -350,9 +340,7 @@ def test_new_theme_path_param(project_cli_runner):
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
     path = "path"
-    assert set(os.listdir(path)) == set(
-        ["example-site", "images", "theme.ini", "README.md"]
-    )
+    assert set(os.listdir(path)) == {"example-site", "images", "theme.ini", "README.md"}
 
 
 def test_new_theme_path_and_name_params(project_cli_runner):
@@ -364,9 +352,7 @@ def test_new_theme_path_and_name_params(project_cli_runner):
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
     path = "path"
-    assert set(os.listdir(path)) == set(
-        ["example-site", "images", "theme.ini", "README.md"]
-    )
+    assert set(os.listdir(path)) == {"example-site", "images", "theme.ini", "README.md"}
 
 
 @pytest.mark.parametrize(

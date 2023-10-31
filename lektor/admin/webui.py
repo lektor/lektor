@@ -66,7 +66,7 @@ def make_app(
     # Pass requests for /admin/... to the admin app
     @app.route(f"{admin_path}/", defaults={"page": ""})
     @app.route(f"{admin_path}/<path:page>", methods=["GET", "POST", "PUT"])
-    def admin_view(page: str) -> "WSGIApplication":
+    def admin_view(page: str) -> WSGIApplication:
         environ = request.environ
         # Save top-level SCRIPT_NAME (used by dash)
         environ["lektor.site_root"] = request.root_path

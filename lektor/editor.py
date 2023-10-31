@@ -21,8 +21,8 @@ from lektor.utils import is_valid_id
 from lektor.utils import secure_filename
 
 
-implied_keys = set(["_id", "_path", "_gid", "_alt", "_source_alt", "_attachment_for"])
-possibly_implied_keys = set(["_model", "_template", "_attachment_type"])
+implied_keys = {"_id", "_path", "_gid", "_alt", "_source_alt", "_attachment_for"}
+possibly_implied_keys = {"_model", "_template", "_attachment_type"}
 
 
 class BadEdit(Exception):
@@ -213,7 +213,7 @@ class EditorSession:
         base = self.pad.db.to_fs_path(self.path)
         suffix = ".lr"
         if alt != PRIMARY_ALT:
-            suffix = "+%s%s" % (alt, suffix)
+            suffix = f"+{alt}{suffix}"
         if self.is_attachment:
             return base + suffix
         return os.path.join(base, "contents" + suffix)
@@ -356,7 +356,7 @@ class EditorSession:
                 f.write(chunk)
 
     def __repr__(self):
-        return "<%s %r%s%s>" % (
+        return "<{} {!r}{}{}>".format(
             self.__class__.__name__,
             self.path,
             self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",

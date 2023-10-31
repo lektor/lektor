@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import dataclasses
@@ -100,7 +99,7 @@ class ThumbnailMode(Enum):
 
 
 def _convert_gps(coords, hem):
-    deg, min, sec = [float(x.num) / float(x.den) for x in coords]
+    deg, min, sec = (float(x.num) / float(x.den) for x in coords)
     sign = -1 if hem in "SW" else 1
     return sign * (deg + min / 60.0 + sec / 3600.0)
 
@@ -174,7 +173,7 @@ class EXIFInfo:
     def _get_frac_string(self, key):
         try:
             val = self._mapping[key].values[0]
-            return "%s/%s" % (val.num, val.den)
+            return f"{val.num}/{val.den}"
         except LookupError:
             return None
 
@@ -496,7 +495,7 @@ class _FormatInfo:
     extensions: ClassVar[Sequence[str]]
 
     @classmethod
-    def get_save_params(cls, thumbnail_params: "ThumbnailParams") -> dict[str, Any]:
+    def get_save_params(cls, thumbnail_params: ThumbnailParams) -> dict[str, Any]:
         """Compute kwargs to be passed to Image.save() when writing the thumbnail."""
         params = dict(cls.default_save_params)
         params.update(cls._extra_save_params(thumbnail_params))
@@ -504,7 +503,7 @@ class _FormatInfo:
         return params
 
     @classmethod
-    def get_thumbnail_tag(cls, thumbnail_params: "ThumbnailParams") -> str:
+    def get_thumbnail_tag(cls, thumbnail_params: ThumbnailParams) -> str:
         """Get a string which serializes the thumbnail_params.
 
         This is value is used as a suffix when generating the file name for the
@@ -530,12 +529,12 @@ class _FormatInfo:
 
     @staticmethod
     def _extra_save_params(
-        thumbnail_params: "ThumbnailParams",
+        thumbnail_params: ThumbnailParams,
     ) -> Mapping[str, Any] | Iterable[tuple[str, Any]]:
         return {}
 
     @staticmethod
-    def _extra_tag_bits(thumbnail_params: "ThumbnailParams") -> Iterable[str]:
+    def _extra_tag_bits(thumbnail_params: ThumbnailParams) -> Iterable[str]:
         return ()
 
 
@@ -551,14 +550,14 @@ class _PngFormatInfo(_FormatInfo):
 
     @staticmethod
     def _extra_save_params(
-        thumbnail_params: "ThumbnailParams",
+        thumbnail_params: ThumbnailParams,
     ) -> Iterator[tuple[str, Any]]:
         quality = thumbnail_params.quality
         if quality is not None:
             yield "compress_level", min(9, max(0, quality // 10))
 
     @classmethod
-    def _extra_tag_bits(cls, thumbnail_params: "ThumbnailParams") -> Iterable[str]:
+    def _extra_tag_bits(cls, thumbnail_params: ThumbnailParams) -> Iterable[str]:
         for key, value in cls._extra_save_params(thumbnail_params):
             assert key == "compress_level"
             yield f"q{value}"
@@ -571,14 +570,14 @@ class _JpegFormatInfo(_FormatInfo):
 
     @staticmethod
     def _extra_save_params(
-        thumbnail_params: "ThumbnailParams",
+        thumbnail_params: ThumbnailParams,
     ) -> Iterator[tuple[str, Any]]:
         quality = thumbnail_params.quality
         if quality is not None:
             yield "quality", quality
 
     @classmethod
-    def _extra_tag_bits(cls, thumbnail_params: "ThumbnailParams") -> Iterable[str]:
+    def _extra_tag_bits(cls, thumbnail_params: ThumbnailParams) -> Iterable[str]:
         for key, value in cls._extra_save_params(thumbnail_params):
             assert key == "quality"
             yield f"q{value}"

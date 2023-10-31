@@ -322,7 +322,7 @@ def theme_quickstart(defaults=None, project=None):
     if path is None:
         if project is not None:
             default_path = os.path.join(
-                project.tree, "themes", "lektor-theme-{}".format(theme_id)
+                project.tree, "themes", f"lektor-theme-{theme_id}"
             )
         else:
             if len(os.listdir(".")) == 0:
@@ -366,8 +366,8 @@ def theme_quickstart(defaults=None, project=None):
     os.chdir(example_themes)
     try:
         os.symlink(
-            "../../../lektor-theme-{}".format(theme_id),
-            "lektor-theme-{}".format(theme_id),
+            f"../../../lektor-theme-{theme_id}",
+            f"lektor-theme-{theme_id}",
         )
     except OSError as exc:
         # Windows, by default, only allows members of the "Administrators" group
