@@ -8,6 +8,11 @@ repos:
     hooks:
       - id: reorder-python-imports
         args: ["--py38-plus"]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: "v3.15.0"
+    hooks:
+      - id: pyupgrade
+        args: ["--py38-plus"]
   - repo: https://github.com/pycqa/flake8
     rev: "6.1.0"
     hooks:
