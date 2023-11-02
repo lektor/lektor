@@ -4,13 +4,13 @@ import inspect
 import os
 import sys
 import warnings
+from importlib import metadata
 from pathlib import Path
 from typing import Type
 from weakref import ref as weakref
 
 from inifile import IniFile
 
-from lektor.compat import importlib_metadata as metadata
 from lektor.context import get_ctx
 from lektor.utils import process_extra_flags
 

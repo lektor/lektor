@@ -2,6 +2,7 @@
 import os
 import sys
 import warnings
+from importlib import metadata
 from itertools import chain
 
 import click
@@ -13,7 +14,6 @@ from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
 from lektor.cli_utils import ResolvedPath
 from lektor.cli_utils import validate_language
-from lektor.compat import importlib_metadata as metadata
 from lektor.project import Project
 from lektor.utils import secure_url
 

@@ -23,7 +23,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -33,14 +32,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "Babel",
     "click>=6.0",
     "EXIFRead",
     "filetype>=1.0.7",
     "Flask",
-    "importlib_metadata; python_version<'3.8'",
     "inifile>=0.4.1",
     "Jinja2>=3.0",
     "MarkupSafe",

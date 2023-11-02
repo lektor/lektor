@@ -1,15 +1,13 @@
 """MarkdownController implementation for mistune 2.x"""
 from __future__ import annotations
 
-import sys
 from importlib import import_module
-from typing import Any
 from typing import Callable
 from typing import ClassVar
-from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Sequence
+from typing import TypedDict
 
 import mistune.util
 
@@ -46,16 +44,10 @@ class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
         return super().image(src, alt, title)
 
 
-if sys.version_info < (3, 8):
-    # No typing.TypedDict → punt
-    ParserConfigDict = Dict[str, Any]
-else:
-    from typing import TypedDict
-
-    class ParserConfigDict(TypedDict, total=False):
-        block: mistune.BlockParser
-        inline: mistune.InlineParser
-        plugins: Sequence[Callable[[mistune.Markdown], None]]
+class ParserConfigDict(TypedDict, total=False):
+    block: mistune.BlockParser
+    inline: mistune.InlineParser
+    plugins: Sequence[Callable[[mistune.Markdown], None]]
 
 
 MistunePlugin = Callable[[mistune.Markdown], None]

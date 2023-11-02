@@ -17,6 +17,7 @@ from subprocess import CompletedProcess
 from subprocess import DEVNULL
 from subprocess import PIPE
 from subprocess import STDOUT
+from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import ContextManager
@@ -35,7 +36,6 @@ from warnings import warn
 
 from werkzeug.datastructures import MultiDict
 
-from lektor.compat import TemporaryDirectory
 from lektor.compat import werkzeug_urls_URL
 from lektor.exception import LektorException
 from lektor.utils import bool_from_string

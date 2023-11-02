@@ -1,38 +1,36 @@
-import os
-from pathlib import Path
+import importlib
+import tempfile
 from urllib.parse import urlsplit
 
 import pytest
 from werkzeug import urls as werkzeug_urls
 
 from lektor.compat import _CompatURL
-from lektor.compat import _ensure_tree_writeable
-from lektor.compat import FixedTemporaryDirectory
-from lektor.compat import TemporaryDirectory
 
 
-def test_ensure_tree_writeable(tmp_path):
-    topdir = tmp_path / "topdir"
-    subdir = topdir / "subdir"
-    regfile = subdir / "regfile"
-    subdir.mkdir(parents=True)
-    regfile.touch(mode=0)
-    subdir.chmod(0)
-    topdir.chmod(0)
+@pytest.mark.parametrize(
+    "name, expected_value, replacement",
+    [
+        (
+            "TemporaryDirectory",
+            tempfile.TemporaryDirectory,
+            "tempfile.TemporaryDirectory",
+        ),
+        ("importlib_metadata", importlib.metadata, "importlib.metadata"),
+    ],
+)
+def test_deprecated_attr(name, expected_value, replacement):
+    lektor_compat = importlib.import_module("lektor.compat")
+    with pytest.deprecated_call(match=f"use {replacement} instead") as warnings:
+        value = getattr(lektor_compat, name)
+    assert value is expected_value
+    assert warnings[0].filename == __file__
 
-    _ensure_tree_writeable(topdir)
 
-    for p in topdir, subdir, regfile:
-        assert os.access(p, os.W_OK)
-
-
-@pytest.mark.parametrize("tmpdir_class", [FixedTemporaryDirectory, TemporaryDirectory])
-def test_TemporaryDirectory(tmpdir_class):
-    with tmpdir_class() as tmpdir:
-        file = Path(tmpdir, "test-file")
-        file.touch(mode=0)
-        os.chmod(tmpdir, 0)
-    assert not os.path.exists(tmpdir)
+def test_missing_attr():
+    lektor_compat = importlib.import_module("lektor.compat")
+    with pytest.raises(AttributeError):
+        lektor_compat.MISSING  # pylint: disable=pointless-statement
 
 
 def make_CompatURL(url: str) -> _CompatURL:
