@@ -11,6 +11,7 @@ from contextlib import ExitStack
 from contextlib import suppress
 from pathlib import Path
 from typing import BinaryIO
+from typing import Final
 from typing import Generator
 from typing import Mapping
 from typing import NamedTuple
@@ -27,10 +28,6 @@ if TYPE_CHECKING:
     from typing import Literal
     from _typeshed import SupportsRead
 
-if sys.version_info >= (3, 8):
-    from typing import Final
-else:
-    from typing_extensions import Final
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias

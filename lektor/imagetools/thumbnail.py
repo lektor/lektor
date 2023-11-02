@@ -5,12 +5,12 @@ import dataclasses
 import io
 import math
 import posixpath
-import sys
 from enum import Enum
 from functools import partial
 from pathlib import Path
 from typing import Any
 from typing import ClassVar
+from typing import Final
 from typing import Iterable
 from typing import Iterator
 from typing import Mapping
@@ -34,11 +34,6 @@ if TYPE_CHECKING:
     from _typeshed import SupportsRead
     from lektor.builder import Artifact
     from lektor.context import Context
-
-if sys.version_info >= (3, 8):
-    from typing import Final
-else:
-    from typing_extensions import Final
 
 
 class ThumbnailMode(Enum):
