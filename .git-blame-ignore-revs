@@ -8,6 +8,9 @@
 #
 # $ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
+# 2023-10-31 - chore: run pyupgrade --py38-plus
+e0eb6fa53aadcb4785c3c44e87710bac9af4ef20
+
 # 2021-09-18 - update pylint
 #19486da795ba5dff7a8abf39302e3ec2c6429dd0
 # (commented out due to non-cosmetic changes related to adding explict
