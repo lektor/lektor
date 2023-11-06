@@ -2,6 +2,51 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b9 (unreleased)
+
+### Compatibility
+
+- Drop support for python 3.7. ([#1173])
+- Officially support python 3.12. ([#1167])
+- Remove pin on `werkzeug<3`. ([#1172], [#1171])
+
+### Features
+
+- Added Turkish translation. Thank you [\@uyar]! ([#1157])
+
+### Bugs Fixed
+
+#### Jinja Globals
+
+- Fix `bag()` to object the pad from `site` in the Jinja context, rather than from the Lektor build context. ([#1155])
+
+#### Plugins
+
+- Use symlinks when constructing Lektor's private virtual
+  environment. This fixes issues install plugins on macOS. ([#1161],
+  [#1159])
+
+### Style
+
+- Update prettier, update eslint rules. ([#1153])
+- Update to latest pylint, black, flake8. Use flake8-bugbear. ([#1162])
+- Update npm locks, upgrade esbuild, update tests to React 18 APIs. ([#1170])
+- Apply `pyupgrade --py38-plus` to codebase ([#1174])
+
+[\@uyar]: https://github.com/uyar
+[#1153]: https://github.com/lektor/lektor/pull/1153
+[#1155]: https://github.com/lektor/lektor/pull/1155
+[#1157]: https://github.com/lektor/lektor/pull/1157
+[#1159]: https://github.com/lektor/lektor/issues/1159
+[#1161]: https://github.com/lektor/lektor/pull/1161
+[#1162]: https://github.com/lektor/lektor/pull/1162
+[#1167]: https://github.com/lektor/lektor/pull/1167
+[#1170]: https://github.com/lektor/lektor/issues/1170
+[#1171]: https://github.com/lektor/lektor/issues/1171
+[#1172]: https://github.com/lektor/lektor/pull/1172
+[#1173]: https://github.com/lektor/lektor/pull/1173
+[#1174]: https://github.com/lektor/lektor/pull/1174
+
 ## 3.4.0b8 (2023-06-06)
 
 ### Bugs Fixed
