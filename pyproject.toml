@@ -36,8 +36,6 @@ requires-python = ">=3.8"
 dependencies = [
     "Babel",
     "click>=6.0",
-    "EXIFRead",
-    "filetype>=1.0.7",
     "Flask",
     "inifile>=0.4.1",
     "Jinja2>=3.0",
@@ -160,7 +158,6 @@ disable = [
     "fixme",
     "broad-except",
     "redefined-builtin",
-    "no-member",
     "too-many-arguments",
     "too-few-public-methods",
     "too-many-public-methods",
@@ -190,12 +187,6 @@ strict = true
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = [
-    "filetype",
-]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
 # Packages and modules we want to check
 module = [
     "lektor.assets",
@@ -203,7 +194,7 @@ module = [
     "lektor.devserver",
     "lektor.packages",
     "lektor.admin.*",
-    "lektor.imagetools",
+    "lektor.imagetools.*",
     "test_packages",
 ]
 ignore_errors = false
@@ -213,19 +204,18 @@ module = [
     "lektor.packages",
 ]
 disallow_untyped_defs = false
-disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = [
     "lektor.admin.*",
     "lektor.devserver",
-    "lektor.imagetools",
+    "lektor.imagetools.*",
+    "lektor.packages",
 ]
 disallow_untyped_calls = false
-warn_return_any = false
 
 [[tool.mypy.overrides]]
 module = [
-    "lektor.imagetools",
+    "lektor.admin.*",
 ]
-disallow_untyped_defs = false
+warn_return_any = false
