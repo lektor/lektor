@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.4.0b9 (unreleased)
+## 3.4.0b9 (2023-11-12)
 
 ### Compatibility
 
@@ -10,11 +10,40 @@ These are all the changes in Lektor since the first public release.
 - Officially support python 3.12. ([#1167])
 - Remove pin on `werkzeug<3`. ([#1172], [#1171])
 
-### Features
+### Refactorings
+
+This release includes a significant continuation of refactoring of the
+code in `lektor.imagetools` which started in [#1104]:
+
+- We now use Pillow to access image file metadata (e.g. dimensions,
+  format, and EXIF tags). This replaces some homegrown code for
+  reading basic image metadata and `exifread` for EXIF tag access.
+
+- Some internal API has been cleaned up.
+
+- Compatibility with various versions of Pillow has been increased.
+
+See [#1138] for details.
+
+### Features Removed
+
+- Removed `--no-reload` option to the `lektor server` command. This was added in 3.4.0b4 as part of #1027 and seems no longer necessary since now live-reload can be disabled on a per-window bases (see #1164).
+
+### Features Added
 
 - Added Turkish translation. Thank you [\@uyar]! ([#1157])
 
+#### Admin GUI
+
+- Replace the _“Edit Pencil”_ with a toolbar containing both an _Edit_
+  button and a toggle that can be used to disable
+  _Live-reload_. ([#1164])
+
 ### Bugs Fixed
+
+#### Admin GUI
+
+- Use a real link (`<a href=...`) for the "Return to Website" button. ([#1164])
 
 #### Jinja Globals
 
@@ -34,12 +63,14 @@ These are all the changes in Lektor since the first public release.
 - Apply `pyupgrade --py38-plus` to codebase ([#1174])
 
 [\@uyar]: https://github.com/uyar
+[#1138]: https://github.com/lektor/lektor/pull/1138
 [#1153]: https://github.com/lektor/lektor/pull/1153
 [#1155]: https://github.com/lektor/lektor/pull/1155
 [#1157]: https://github.com/lektor/lektor/pull/1157
 [#1159]: https://github.com/lektor/lektor/issues/1159
 [#1161]: https://github.com/lektor/lektor/pull/1161
 [#1162]: https://github.com/lektor/lektor/pull/1162
+[#1164]: https://github.com/lektor/lektor/pull/1164
 [#1167]: https://github.com/lektor/lektor/pull/1167
 [#1170]: https://github.com/lektor/lektor/issues/1170
 [#1171]: https://github.com/lektor/lektor/issues/1171
