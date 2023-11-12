@@ -10,6 +10,9 @@ import { compile } from "sass";
 
 import { compilerOptions } from "./tsconfig.json";
 
+// Optimization: compute fontawesome SVG at compile-time to minimize bundle size
+import SVG_ICONS_FONTAWESOME from "./tooldrawer/components/_svg-icons/fontawesome";
+
 // A simple esbuild plugin to compile sass.
 const sassPlugin: Plugin = {
   name: "sass",
@@ -36,8 +39,16 @@ const sassPlugin: Plugin = {
  */
 async function runBuild(dev: boolean) {
   const ctx = await context({
-    entryPoints: [join(__dirname, "js", "main.tsx")],
-    outfile: join(__dirname, "..", "lektor", "admin", "static", "app.js"),
+    entryPoints: {
+      app: join(__dirname, "js", "main.tsx"),
+      tooldrawer: join(__dirname, "tooldrawer"),
+      "livereload-worker": join(
+        __dirname,
+        "tooldrawer",
+        "livereload-worker.ts",
+      ),
+    },
+    outdir: join(__dirname, "..", "lektor", "admin", "static"),
     format: "iife",
     bundle: true,
     target: compilerOptions.target,
@@ -55,7 +66,10 @@ async function runBuild(dev: boolean) {
     sourcesContent: dev,
     // The following options differ between dev and prod builds.
     // For prod builds, we want to use React's prod build and minify.
-    define: { "process.env.NODE_ENV": dev ? '"development"' : '"production"' },
+    define: {
+      "process.env.NODE_ENV": dev ? '"development"' : '"production"',
+      SVG_ICONS_FONTAWESOME: JSON.stringify(SVG_ICONS_FONTAWESOME),
+    },
     // Only minify syntax (like DCE and not by removing whitespace and renaming
     // identifiers). This keeps the bundle size a bit larger but still very
     // readable.

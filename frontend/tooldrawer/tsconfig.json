@@ -1,0 +1,26 @@
+{
+  "extend": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "target": "es2019",
+    "module": "es2020",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "useDefineForClassFields": false,
+    "lib": ["es2020", "DOM", "DOM.Iterable", "WebWorker"]
+  }
+}

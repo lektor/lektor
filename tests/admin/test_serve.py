@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import os
 import shutil
@@ -37,6 +39,15 @@ def dummy_app_context(dummy_app):
         yield
 
 
+def make_tooldrawer_config(
+    edit_url: str | None = None, artifact: Artifact | None = None
+) -> serve.TooldrawerConfig:
+    return serve.TooldrawerConfig(
+        editUrl=edit_url,
+        livereloadConfig=serve.LivereloadConfig.from_artifact(artifact),
+    )
+
+
 @pytest.mark.parametrize(
     "html_text, expect_at_tail",
     [
@@ -49,26 +60,26 @@ def dummy_app_context(dummy_app):
     ],
 )
 @pytest.mark.usefixtures("dummy_app_context")
-def test_rewrite_html_for_editing(html_text, expect_at_tail):
+def test_inject_tooldrawer(html_text, expect_at_tail):
     eof_mark = "---EOF---"
-    edit_url = "http://example.com/EDIT_URL"
-    rewritten = serve._rewrite_html_for_editing(
-        f"{html_text}{eof_mark}".encode(), edit_url
-    )
+    config = make_tooldrawer_config("http://example.com/EDIT_URL")
+    rewritten = serve._inject_tooldrawer(f"{html_text}{eof_mark}".encode(), config)
     html, _, tail = rewritten.decode("utf-8").rpartition(eof_mark)
     if expect_at_tail:
-        assert edit_url in tail
-        assert edit_url not in html
+        assert config.editUrl in tail
+        assert config.editUrl not in html
     else:
-        assert edit_url not in tail
-        assert edit_url in html
+        assert config.editUrl not in tail
+        assert config.editUrl in html
 
 
 @pytest.mark.usefixtures("dummy_app_context")
-def test_rewrite_html_for_editing_adds_livereload(dummy_app):
+def test_inject_tooldrawer_adds_livereload(dummy_app, make_dummy_artifact):
     dummy_app.register_blueprint(livereload.bp)
-    assert b"ARTIFACT_NAME" in serve._rewrite_html_for_editing(
-        html=b"", edit_url="EDIT_URL", artifact_name="ARTIFACT_NAME"
+    artifact = make_dummy_artifact(artifact_name="ARTIFACT_NAME")
+    config = make_tooldrawer_config("EDIT_URL", artifact)
+    assert b"ARTIFACT_NAME" in serve._inject_tooldrawer(
+        html=b"", tooldrawer_config=config
     )
 
 
@@ -94,7 +105,8 @@ def make_dummy_artifact(tmp_path):
 @pytest.mark.usefixtures("dummy_app_context")
 def test_send_html_for_editing(tmp_path, make_dummy_artifact):
     artifact = make_dummy_artifact()
-    resp = serve._send_html_for_editing(artifact, "EDIT_URL")
+    config = make_tooldrawer_config("EDIT_URL", artifact)
+    resp = serve._send_html_for_editing(artifact, config)
     assert resp.mimetype == "text/html"
     # pylint: disable=unsupported-membership-test
     assert "EDIT_URL" in resp.get_data(True)
@@ -103,10 +115,10 @@ def test_send_html_for_editing(tmp_path, make_dummy_artifact):
 @pytest.mark.usefixtures("dummy_app_context")
 def test_send_html_for_editing_etag_depends_on_edit_url(tmp_path, make_dummy_artifact):
     artifact = make_dummy_artifact()
-    resp1 = serve._send_html_for_editing(artifact, "EDIT_URL1")
-    resp2 = serve._send_html_for_editing(artifact, "EDIT_URL2")
+    resp1 = serve._send_html_for_editing(artifact, make_tooldrawer_config("EDIT_URL1"))
+    resp2 = serve._send_html_for_editing(artifact, make_tooldrawer_config("EDIT_URL2"))
     assert resp2.headers["ETag"] != resp1.headers["ETag"]
-    resp3 = serve._send_html_for_editing(artifact, "EDIT_URL1")
+    resp3 = serve._send_html_for_editing(artifact, make_tooldrawer_config("EDIT_URL1"))
     assert resp3.headers["ETag"] == resp1.headers["ETag"]
 
 
@@ -116,10 +128,16 @@ def test_send_html_for_editing_etag_depends_on_artifact_name(
 ):
     artifact1 = make_dummy_artifact("test1")
     artifact2 = make_dummy_artifact("test2")
-    resp1 = serve._send_html_for_editing(artifact1, "EDIT_URL")
-    resp2 = serve._send_html_for_editing(artifact2, "EDIT_URL")
+    resp1 = serve._send_html_for_editing(
+        artifact1, make_tooldrawer_config("EDIT_URL", artifact1)
+    )
+    resp2 = serve._send_html_for_editing(
+        artifact1, make_tooldrawer_config("EDIT_URL", artifact2)
+    )
     assert resp2.headers["ETag"] != resp1.headers["ETag"]
-    resp3 = serve._send_html_for_editing(artifact1, "EDIT_URL")
+    resp3 = serve._send_html_for_editing(
+        artifact1, make_tooldrawer_config("EDIT_URL", artifact1)
+    )
     assert resp3.headers["ETag"] == resp1.headers["ETag"]
 
 
@@ -355,7 +373,7 @@ class TestArtifactServer:
             data={k: k.upper() for k in ("artifact", "exception", "traceback")},
         )
         with app.test_request_context("failing/"):
-            resp = a_s.handle_build_failure(failure, edit_url)
+            resp = a_s.handle_build_failure(failure, make_tooldrawer_config(edit_url))
         assert resp.status_code == 200
         assert "TRACEBACK" in resp.get_data(True)
         if edit_url is not None:

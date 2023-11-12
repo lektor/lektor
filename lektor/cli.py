@@ -323,18 +323,8 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
 )
 @extraflag
 @click.option("--browse", is_flag=True)
-@click.option(
-    "--no-reload",
-    "reload",
-    is_flag=True,
-    flag_value=False,
-    default=True,
-    help="Disable the live reloading.",
-)
 @pass_context
-def server_cmd(
-    ctx, host, port, output_path, prune, verbosity, extra_flags, browse, reload
-):
+def server_cmd(ctx, host, port, output_path, prune, verbosity, extra_flags, browse):
     """The server command will launch a local server for development.
 
     Lektor's development server will automatically build all files into
@@ -359,7 +349,6 @@ def server_cmd(
         extra_flags=extra_flags,
         lektor_dev=os.environ.get("LEKTOR_DEV") == "1",
         browse=browse,
-        reload=reload,
     )
 
 

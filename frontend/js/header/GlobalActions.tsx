@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRecord } from "../context/record-context";
 import { getCanonicalUrl } from "../utils";
 import { get } from "../fetch";
@@ -23,16 +23,37 @@ const preferences = () => {
 export default function GlobalActions(): JSX.Element {
   const record = useRecord();
 
+  // Fetch previewURL so that we can use a link instead of button
+  // with onclick handler for the preview button.
+  // This allows one to, e.g., open a preview in a new window by
+  // right-clicking on the button.
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>();
+  const fetchPreviewUrl = useMemo(async () => {
+    try {
+      const { url } = await get("/previewinfo", record);
+      const canonicalUrl = getCanonicalUrl(url ?? "/");
+      setPreviewUrl(canonicalUrl);
+      return canonicalUrl;
+    } catch (err) {
+      showErrorDialog(err);
+    }
+  }, [record]);
+
   useEffect(() => {
     return setShortcutHandler(ShortcutAction.Search, findFiles);
   }, []);
 
   const returnToWebsite = useCallback(() => {
-    get("/previewinfo", record).then(({ url }) => {
-      window.location.href =
-        url === null ? getCanonicalUrl("/") : getCanonicalUrl(url);
-    }, showErrorDialog);
-  }, [record]);
+    if (previewUrl === null) {
+      // href has not yet been set on the link button
+      // wait for /previewinfo fetch to complete...
+      fetchPreviewUrl
+        .then((href) => {
+          window.location.href = href;
+        })
+        .catch(showErrorDialog);
+    }
+  }, [previewUrl, fetchPreviewUrl]);
 
   return (
     <div className="btn-group">
@@ -60,14 +81,14 @@ export default function GlobalActions(): JSX.Element {
       >
         <i className="fa fa-refresh fa-fw" />
       </button>
-      <button
-        type="button"
+      <a
+        href={previewUrl}
         className="btn btn-secondary border"
-        onClick={returnToWebsite}
         title={trans("RETURN_TO_WEBSITE")}
+        onClick={returnToWebsite}
       >
         <i className="fa fa-eye fa-fw" />
-      </button>
+      </a>
       <button
         type="button"
         className="btn btn-secondary border"
