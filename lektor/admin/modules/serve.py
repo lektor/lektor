@@ -80,7 +80,10 @@ def _inject_tooldrawer(
             tooldrawer_config=dataclasses.asdict(tooldrawer_config),
             tooldrawer_js=url_for("static", filename="tooldrawer.js"),
         ).encode("utf-8")
-        html = re.sub(rb"(?i)(?=</\s*head\s*>|\Z)", tooldrawer_html, html, count=1)
+        match = re.search(rb"(?i)</\s*head\s*>|\Z", html)
+        assert match is not None
+        head_end = match.start()
+        html = html[:head_end] + tooldrawer_html + html[head_end:]
     return html
 
 

@@ -75,12 +75,22 @@ def test_inject_tooldrawer(html_text, expect_at_tail):
 
 @pytest.mark.usefixtures("dummy_app_context")
 def test_inject_tooldrawer_adds_livereload(dummy_app, make_dummy_artifact):
+    # Exercises a bug: the injected HTML includes backslash escapes within JSON
+    # strings. re.sub(pat, repl, s) doesn't work in that case, as it treats backslashes
+    # in repl specially.  This results in an exception: "re.error: bad escape \u at
+    # position [...]"
     dummy_app.register_blueprint(livereload.bp)
     artifact = make_dummy_artifact(artifact_name="ARTIFACT_NAME")
     config = make_tooldrawer_config("EDIT_URL", artifact)
     assert b"ARTIFACT_NAME" in serve._inject_tooldrawer(
         html=b"", tooldrawer_config=config
     )
+
+
+@pytest.mark.usefixtures("dummy_app_context")
+def test_inject_tooldrawer_unicode_escapes():
+    config = make_tooldrawer_config("http://example.com/EDIT_URL?path=/foo&alt=de")
+    assert b"TOOLDRAWER_CONFIG" in serve._inject_tooldrawer(b"", config)
 
 
 @pytest.fixture
