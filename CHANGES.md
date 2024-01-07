@@ -2,6 +2,16 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b10 (unreleased)
+
+### Bugs Fixed
+
+#### Admin Server
+
+- Fix `"re.error: bad escape \u"` exception. ([#1177])
+
+[#1177]: https://github.com/lektor/lektor/pull/1177
+
 ## 3.4.0b9 (2023-11-12)
 
 ### Compatibility
