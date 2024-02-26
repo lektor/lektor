@@ -1,3 +1,4 @@
+import os
 from inspect import cleandoc
 from io import BytesIO
 from operator import itemgetter
@@ -307,16 +308,44 @@ def test_upload_new_attachment_failure(scratch_client, scratch_content_path, pat
         ("/", "page", {"valid_id": True, "exists": True, "path": "/page"}, None),
     ],
 )
-def test_add_new_record(
-    scratch_client, scratch_content_path, path, id, expect, creates
-):
+def test_add_new_record(scratch_client, scratch_project, path, id, expect, creates):
+    def tree_files():
+        return {
+            Path(dirpath, filename)
+            for (dirpath, dirnames, filenames) in os.walk(scratch_project.tree)
+            for filename in filenames
+        }
+
+    orig_tree_files = tree_files()
     params = {"path": path, "id": id, "data": {}}
     resp = scratch_client.post("/admin/api/newrecord", json=params)
     assert resp.status_code == 200
     assert resp.get_json() == expect
-    if creates is not None:
-        dstpath = scratch_content_path / creates
-        assert dstpath.exists()
+    new_files = tree_files() - orig_tree_files
+    if creates is None:
+        assert len(new_files) == 0
+    else:
+        assert new_files == {Path(scratch_project.tree, "content", creates)}
+
+
+@pytest.mark.parametrize(
+    "path, id",
+    [
+        # Ensure that attempts to create records outside of the `content` subtree fail.
+        # (Reported by Riku Bamba)
+        ("/../../templates", ""),
+    ],
+)
+def test_add_new_record_bad_request(scratch_client, scratch_project, path, id):
+    params = {"path": path, "id": id, "data": {}}
+    resp = scratch_client.post("/admin/api/newrecord", json=params)
+    assert resp.status_code == 400
+    assert resp.get_json() == {
+        "error": {
+            "title": "Invalid parameters",
+            "messages": {"path": ["Invalid value."]},
+        },
+    }
 
 
 @pytest.mark.parametrize(
