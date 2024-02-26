@@ -1,6 +1,7 @@
 import json
 import os
 from operator import itemgetter
+from pathlib import Path
 
 import pytest
 
@@ -84,6 +85,23 @@ def test_recordinfo_children_sort_limited_alts(project, env):
     )
     child_data = data["children"]
     assert list(sorted(child_data, key=itemgetter("label"))) == child_data
+
+
+def test_newrecord(scratch_project, scratch_env):
+    params = {"path": "/", "id": "new", "data": {}}
+    webadmin = WebAdmin(scratch_env, output_path=scratch_project.tree)
+    resp = webadmin.test_client().post("/admin/api/newrecord", json=params)
+    assert resp.status_code == 200
+    assert resp.get_json() == {"valid_id": True, "exists": False, "path": "/new"}
+    assert Path(scratch_project.tree, "content", "new", "contents.lr").exists()
+
+
+def test_newrecord_bad_path(scratch_project, scratch_env):
+    params = {"path": "/../../templates", "id": "", "data": {}}
+    webadmin = WebAdmin(scratch_env, output_path=scratch_project.tree)
+    resp = webadmin.test_client().post("/admin/api/newrecord", json=params)
+    assert resp.status_code == 400
+    assert resp.get_data(as_text=True) == "Invalid path"
 
 
 def test_eventstream_yield_bytes():
