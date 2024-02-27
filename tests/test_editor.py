@@ -43,6 +43,7 @@ def test_make_editor_session(pad, path, kwargs, expect):
             "conflicting",
             marks=pytest.mark.xfail(reason="buglet that should be fixed"),
         ),
+        ("/../../templates", {}, "Invalid path"),
     ],
 )
 def test_make_editor_session_raises_bad_edit(pad, path, kwargs, expect):

@@ -1,10 +1,12 @@
 # coding: utf-8
+import os
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 import pytest
 
 from lektor.utils import build_url
+from lektor.utils import cleanup_path
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 from lektor.utils import magic_split_ext
@@ -12,6 +14,7 @@ from lektor.utils import make_relative_url
 from lektor.utils import parse_path
 from lektor.utils import secure_url
 from lektor.utils import slugify
+from lektor.utils import untrusted_to_os_path
 from lektor.utils import Url
 
 
@@ -229,3 +232,30 @@ def test_make_relative_url(source, target, expected):
 def test_make_relative_url_relative_source_absolute_target():
     with pytest.raises(ValueError):
         make_relative_url("rel/a/tive/", "/abs/o/lute")
+
+
+@pytest.mark.parametrize(
+    "db_path, expected",
+    [
+        ("a/b", "/a/b"),
+        ("//a//./b//", "/a/b"),
+        ("//a//../b//", "/a/b"),
+        ("//a//..x/b//", "/a/..x/b"),
+    ],
+)
+def test_cleanup_path(db_path, expected):
+    assert cleanup_path(db_path) == expected
+
+
+@pytest.mark.parametrize(
+    "db_path, expected",
+    [
+        ("a/b", "a/b"),
+        ("/a/b", "a/b"),
+        ("a/b/", "a/b"),
+        ("/../../a", "a"),
+    ],
+)
+def test_untrusted_to_os_path(db_path, expected):
+    os_path = untrusted_to_os_path(db_path)
+    assert os_path.split(os.sep) == expected.split("/")
