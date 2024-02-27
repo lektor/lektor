@@ -33,7 +33,7 @@ is_windows = os.name == "nt"
 
 _slash_escape = "\\/" not in json.dumps("/")
 
-_slashes_re = re.compile(r"(/\.{1,2}(/|$))|/")
+_slashes_re = re.compile(r"(?:/(?:\.{1,2}(?=/|$))?)+")
 _last_num_re = re.compile(r"^(.*)(\d+)(.*?)$")
 _list_marker = object()
 _value_marker = object()
@@ -109,10 +109,11 @@ def is_path_child_of(a, b, strict=True):
 
 
 def untrusted_to_os_path(path):
-    path = path.strip("/").replace("/", os.path.sep)
     if not isinstance(path, str):
         path = path.decode(fs_enc, "replace")
-    return path
+    clean_path = cleanup_path(path)
+    assert clean_path.startswith("/")
+    return clean_path[1:].replace("/", os.path.sep)
 
 
 def is_path(path):

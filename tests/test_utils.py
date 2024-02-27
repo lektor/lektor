@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from lektor.utils import build_url
+from lektor.utils import cleanup_path
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 from lektor.utils import magic_split_ext
@@ -231,6 +232,19 @@ def test_make_relative_url(source, target, expected):
 def test_make_relative_url_relative_source_absolute_target():
     with pytest.raises(ValueError):
         make_relative_url("rel/a/tive/", "/abs/o/lute")
+
+
+@pytest.mark.parametrize(
+    "db_path, expected",
+    [
+        ("a/b", "/a/b"),
+        ("//a//./b//", "/a/b"),
+        ("//a//../b//", "/a/b"),
+        ("//a//..x/b//", "/a/..x/b"),
+    ],
+)
+def test_cleanup_path(db_path, expected):
+    assert cleanup_path(db_path) == expected
 
 
 @pytest.mark.parametrize(
