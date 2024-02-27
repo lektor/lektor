@@ -31,6 +31,7 @@ from lektor.db import Record
 from lektor.environment.config import ServerInfo
 from lektor.publisher import publish
 from lektor.publisher import PublishError
+from lektor.utils import cleanup_path
 from lektor.utils import is_valid_id
 
 
@@ -62,13 +63,17 @@ class _ServerInfoField(marshmallow.fields.String):
         return server_info
 
 
+def _is_valid_path(value: str) -> bool:
+    return cleanup_path(value) == value
+
+
 def _is_valid_alt(value: str) -> bool:
     lektor_config = get_lektor_context().config
     return bool(lektor_config.is_valid_alternative(value))
 
 
 # Mark types for special validation
-_PathType = mdcls.NewType("_PathType", str)
+_PathType = mdcls.NewType("_PathType", str, validate=_is_valid_path)
 _AltType = mdcls.NewType("_AltType", str, validate=_is_valid_alt)
 _BoolType = mdcls.NewType("_BoolType", bool, truthy={1, "1"}, falsy={0, "0"})
 
