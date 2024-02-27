@@ -1,3 +1,4 @@
+import os
 import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ from lektor.utils import parse_path
 from lektor.utils import secure_url
 from lektor.utils import slugify
 from lektor.utils import unique_everseen
+from lektor.utils import untrusted_to_os_path
 from lektor.utils import Url
 
 
@@ -336,3 +338,17 @@ def _warning_line(warning: warnings.WarningMessage) -> str:
     """Get the text of the line for which warning was issued."""
     with open(warning.filename, encoding="utf-8") as fp:
         return next(islice(fp, warning.lineno - 1, None), None)
+
+
+@pytest.mark.parametrize(
+    "db_path, expected",
+    [
+        ("a/b", "a/b"),
+        ("/a/b", "a/b"),
+        ("a/b/", "a/b"),
+        ("/../../a", "a"),
+    ],
+)
+def test_untrusted_to_os_path(db_path, expected):
+    os_path = untrusted_to_os_path(db_path)
+    assert os_path.split(os.sep) == expected.split("/")
