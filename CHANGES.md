@@ -2,6 +2,22 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.11 (2024-02-27)
+
+### Security
+
+Prior to this release it was possible to create files outside of the
+`content` tree using the admin API. (Normally, the admin API should not
+be made accessible to untrusted parties, since the point of the API to
+to allow for editing of the Lektor project content.)
+
+- Better sanitation of DB file paths, better validation of path passed
+  to `make_editor_session`. ([#1180])
+- Better validation of API parameters. ([#1182])
+
+[#1180]: https://github.com/lektor/lektor/pull/1180
+[#1182]: https://github.com/lektor/lektor/pull/1182
+
 ## 3.3.10 (2023-05-05)
 
 - Address recent deprecations of various bits of `werkzeug.urls`,
