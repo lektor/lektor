@@ -106,6 +106,10 @@ jobs:
         include:
           - python: "3.12"
             install-ffmpeg: true
+          - os: "macos-latest"
+            # Omit test with older pillow versions on macOS.
+            # (Binary wheels not available?)
+            tox_skip_env: ".*-pillow"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -141,6 +145,8 @@ jobs:
           python -m pip install tox tox-gh-actions coverage[toml]
       - name: Run python tests
         run: tox
+        env:
+          TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
       - name: Publish coverage data to codecov
         uses: codecov/codecov-action@v3
 
