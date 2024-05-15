@@ -2,6 +2,17 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b12 (2024-05-14)
+
+### Bugs
+
+#### Admin server
+
+- Fix route declaration for the `add-child` endpoint. (Thanks to
+  @mjoerg [#1184])
+
+[#1184]: https://github.com/lektor/lektor/pull/1184
+
 ## 3.4.0b11 (2024-02-27)
 
 ### Security
