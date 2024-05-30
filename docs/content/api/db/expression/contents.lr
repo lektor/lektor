@@ -1,0 +1,27 @@
+title: Expression
+---
+summary: Represents filter expressions for the query system.
+---
+module: lektor.db
+---
+type: class
+---
+body:
+
+Expressions are used to filter down [Query :ref](../query/) objects.  They
+can be passed to the [filter :ref](../query/filter/) function in particular.
+
+The most basic expression is created by accessing the [F :ref](../f/) object
+which will return an expression that points to a field.  Further manipulation
+of it can create more expressive expressions.  `F.name` literally just means
+that a field by that name exists and is set to a value.
+
+The query syntax is mostly the same in Python as well as in the Jinja 2
+templates, the main difference are [and :ref](../and/) and [or :ref](../or/).
+
+## Example
+
+```pycon
+>>> p.children.filter((F.name == 'foo') | (F.name == 'bar')).all()
+[<Page model=u'page' id=u'bar'>, <Page model=u'page' id=u'foo'>]
+```

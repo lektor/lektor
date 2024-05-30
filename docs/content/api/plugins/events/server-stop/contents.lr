@@ -1,0 +1,10 @@
+title: server-stop
+---
+type: event
+---
+summary: Emitted right before the server stops.
+---
+body:
+
+This is emitted when the server stops.  For more information see
+[server-spawn :ref](../server-spawn/) which shows how to use it.

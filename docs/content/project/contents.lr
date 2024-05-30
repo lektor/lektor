@@ -1,0 +1,12 @@
+title: Project
+---
+summary: Covers the general layout, configs and concepts behind Lektor projects.
+---
+sort_key: 70
+---
+body:
+
+A project in the context of Lektor is a single website.  It's typically a
+folder that contains all the information necessary to build it.  Within that
+folder there are templates, models, content files as well as the main project
+file which acts as configuration file.

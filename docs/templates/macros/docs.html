@@ -1,0 +1,37 @@
+{% macro get_doc_icon(page) -%}
+  {% if page.type == 'method' or page.type == 'function' or page.type == 'filter' -%}
+  <i class="glyphicon glyphicon-cog"></i>
+  {%- elif page.type == 'property' -%}
+  <i class="glyphicon glyphicon-info-sign"></i>
+  {%- elif page.type == 'operator' -%}
+  <i class="glyphicon glyphicon-flash"></i>
+  {%- elif page.type == 'class' -%}
+  <i class="glyphicon glyphicon-leaf"></i>
+  {%- elif page.type == 'cmdlet' -%}
+  <i class="glyphicon glyphicon-console"></i>
+  {%- elif page.type == 'event' -%}
+  <i class="glyphicon glyphicon-flash"></i>
+  {%- elif page.type == 'type' or page.type == 'sysfield' -%}
+  <i class="glyphicon glyphicon-pencil"></i>
+  {%- else -%}
+  <i class="glyphicon glyphicon-list-alt"></i>
+  {%- endif %}
+{%- endmacro %}
+
+{% macro get_doc_link(page) -%}
+  <a href="{{ page|url }}">{{ page.title }}{%
+    if page.type == 'function' or page.type == 'method' %}(){% endif %}</a>
+{%- endmacro %}
+
+{% macro get_doc_header(page) %}
+  {% if page.type %}
+    <h1>{% if page.type %}{{ get_doc_icon(page) }} {% endif %}{%
+      if page.module %}<code class="mod">{{ page.module }}.</code>{% endif
+      %}<code class="obj">{{ page.title }}</code>{%
+      if (page.type == 'method' or page.type == 'function' or page.type == 'filter'
+        or page.type == 'event') or page.signature
+      %} <span class="sig">(<code>{{ page.signature }}</code>)</span>{% endif %}</h1>
+  {% else %}
+    <h1>{{ page.title }}</h1>
+  {% endif %}
+{% endmacro %}
