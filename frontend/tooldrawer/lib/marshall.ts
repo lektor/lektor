@@ -9,9 +9,8 @@ type TypeDescriptor<TypeConstructor extends new (arg: any) => any> = {
 };
 /* eslint-enable */
 
-type TypeDescriptorType<TypeDesc> = TypeDesc extends TypeDescriptor<infer C>
-  ? InstanceType<C>
-  : never;
+type TypeDescriptorType<TypeDesc> =
+  TypeDesc extends TypeDescriptor<infer C> ? InstanceType<C> : never;
 
 export type MarshallPropMap = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

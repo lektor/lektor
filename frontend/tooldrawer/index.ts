@@ -26,7 +26,7 @@ if (window === window.top && (editUrl || livereloadConfig)) {
     "DOMContentLoaded",
     () => {
       render(tooldrawer({ editUrl, livereloadConfig }), document.body);
-      persistDrawerState(document.getElementsByTagName("lektor-drawer")![0]);
+      persistDrawerState(document.getElementsByTagName("lektor-drawer")[0]);
     },
     { once: true },
   );

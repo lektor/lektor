@@ -1,6 +1,6 @@
 import ToggleGroup from "./ToggleGroup";
-import React from "react";
-import { Simulate, act } from "react-dom/test-utils";
+import React, { act } from "react";
+import { Simulate } from "react-dom/test-utils";
 import { JSDOM } from "jsdom";
 import { ok } from "assert";
 import { createRoot } from "react-dom/client";
