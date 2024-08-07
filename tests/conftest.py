@@ -4,6 +4,7 @@ import shutil
 import sys
 import textwrap
 from contextlib import contextmanager
+from contextlib import suppress
 from pathlib import Path
 
 import pytest
@@ -125,6 +126,20 @@ def pytest_runtest_teardown(item):
 def save_sys_path():
     with restore_import_state():
         yield
+
+
+# Fix for spurious failures in pytest_runtest_teardown sanity-check:
+#
+# Import setuptools early to pre-mangle sys.path.  This avoids mangling of sys.path
+# during a test run, if setuptools is imported during the run.
+#
+# Details:
+# - Setuptools>=71 adds its _vendor subdirectory to sys.path when imported.
+# - When running under python < 3.12, setuptools can be imported during execution of
+#   import statements.  (This appears to happen, somehow, through setuptools'
+#   _distutils_hack:DistUtilsMetafinder:find_spec.)
+with suppress(ModuleNotFoundError):
+    __import__("setuptools")
 
 
 @pytest.fixture(scope="session")
