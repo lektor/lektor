@@ -23,20 +23,20 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
           cache: "npm"
           cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: make frontend/node_modules
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
           cache: "pip"
           cache-dependency-path: "**/pyproject.toml"
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -68,8 +68,8 @@ jobs:
           - node: "current"
             os: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: "npm"
@@ -111,8 +111,8 @@ jobs:
             # (Binary wheels not available?)
             tox_skip_env: ".*-pillow"
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           cache: "pip"
@@ -148,7 +148,7 @@ jobs:
         env:
           TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
       - name: Publish coverage data to codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
 
   ############################################################################
   # Package and (Possibly) Publish to PyPI
@@ -157,11 +157,13 @@ jobs:
     needs: ["lint", "node-tests", "python-tests"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
 
@@ -174,10 +176,10 @@ jobs:
         run: python -m build
 
       - name: Save release artifacts (for inspection)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist/*
+          path: dist/
 
       - name: Publish release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
