@@ -774,7 +774,9 @@ class GitRepo(ContextManager["GitRepo"]):
             self.add_to_index("CNAME", f"{cname}\n")
 
         # Check for changes
-        diff_cmd = self.popen("diff", "--cached", "--exit-code", "--quiet", check=False)
+        diff_cmd = self.popen(
+            "diff", "--cached", "--no-renames", "--exit-code", "--quiet", check=False
+        )
         yield from _prefix_output(diff_cmd)
         if diff_cmd.returncode == 0:
             yield "No changes to publish☺"
