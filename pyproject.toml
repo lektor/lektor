@@ -48,6 +48,7 @@ dependencies = [
     "python-slugify",
     "pytz; python_version<'3.9'",  # favor zoneinfo for python>=3.9
     "requests",
+    "typing-extensions>=3.10; python_version<'3.10'",
     "tzdata; python_version>='3.9' and sys_platform == 'win32'",
     "watchfiles>=0.12",
     "Werkzeug>=2.1.0",
