@@ -1,7 +1,6 @@
 # Lektor
 
 [![Tests master](https://github.com/lektor/lektor/workflows/Tests%20master/badge.svg)](https://github.com/lektor/lektor/actions?query=workflow%3A%22Tests+master%22)
-[![Code Coverage](https://codecov.io/gh/lektor/lektor/branch/master/graph/badge.svg)](https://codecov.io/gh/lektor/lektor)
 [![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://pypi.org/project/Lektor/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Lektor.svg)](https://pypi.org/project/Lektor/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
