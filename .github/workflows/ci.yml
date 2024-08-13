@@ -149,6 +149,8 @@ jobs:
           TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
       - name: Publish coverage data to codecov
         uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   ############################################################################
   # Package and (Possibly) Publish to PyPI
