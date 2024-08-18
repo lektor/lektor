@@ -101,7 +101,7 @@ class WatcherTest:
                 # The FSEventObserver (used on macOS) seems to send events for things that
                 # happened before is was started.  Here, we wait a little bit for things to
                 # start, then discard any pre-existing events.
-                time.sleep(0.1)
+                time.sleep(1)
                 event.clear()
 
             yield self.watched_path
