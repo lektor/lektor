@@ -2,6 +2,14 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.12 (2024-08-18)
+
+- Test under python 3.12
+
+- Fix the admin API so that the `/matchurl` endpoint doesn't fail with
+  an exception when passwed a URL to a non-Record artifact (e.g. a
+  VirtualSourceObject).
+
 ## 3.3.11 (2024-02-27)
 
 ### Security
