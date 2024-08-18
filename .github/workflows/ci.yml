@@ -92,7 +92,7 @@ jobs:
         include:
           - python: "3.6"
             os: "ubuntu-20.04"
-          - python: "3.7"
+          - python: "3.8"
             os: "macos-latest"
           - python: "3.12"
             os: "macos-latest"
