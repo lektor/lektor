@@ -1,13 +1,17 @@
 import os
+import stat
 import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
 from itertools import islice
+from pathlib import Path
 from urllib.parse import urlsplit
 
 import pytest
 
+from lektor.utils import atomic_open
 from lektor.utils import build_url
+from lektor.utils import create_temp
 from lektor.utils import deprecated
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
@@ -239,6 +243,70 @@ def test_make_relative_url(source, target, expected):
 def test_make_relative_url_relative_source_absolute_target():
     with pytest.raises(ValueError):
         make_relative_url("rel/a/tive/", "/abs/o/lute")
+
+
+def test_atomic_open(tmp_path):
+    path = tmp_path / "test.txt"
+    path.write_text("previous")
+
+    with atomic_open(path, "w") as fp:
+        fp.write("new")
+        fp.flush()
+        assert path.read_text() == "previous"
+        assert len(list(tmp_path.iterdir())) == 2
+    assert path.read_text() == "new"
+    assert len(list(tmp_path.iterdir())) == 1
+
+
+def test_atomic_open_exception(tmp_path):
+    path = tmp_path / "test.txt"
+
+    with pytest.raises(RuntimeError, match="test"):
+        with atomic_open(path, "w") as fp:
+            fp.write("new")
+            fp.flush()
+            raise RuntimeError("test")
+    assert len(list(tmp_path.iterdir())) == 0
+
+
+@pytest.fixture(params=[0o022, 0o002, 0x000])
+def umask(request):
+    umask = request.param
+    saved = os.umask(umask)
+    try:
+        yield umask
+    finally:
+        os.umask(saved)
+
+
+def test_atomic_open_respects_umask(tmp_path, umask):
+    path = tmp_path / "test.txt"
+    with atomic_open(path, "w"):
+        pass
+    assert stat.S_IMODE(path.stat().st_mode) == 0o666 & ~umask
+
+
+@pytest.mark.parametrize("mode", ["a", "w+", "x", "rw", "foo"])
+def test_atomic_open_raises_on_bad_mode(tmp_path, mode):
+    with pytest.raises(ValueError, match="mode"):
+        with atomic_open(tmp_path / "file.txt", mode):
+            pass
+
+
+def test_create_temp(tmp_path):
+    assert sum(1 for _ in tmp_path.iterdir()) == 0
+    fd, filename = create_temp(prefix="a", suffix=".bin", dir=tmp_path)
+    assert sum(1 for _ in tmp_path.iterdir()) == 1
+    assert Path(filename).parent == tmp_path
+    os.write(fd, b"test\n")
+    os.close(fd)
+    assert Path(filename).read_bytes() == b"test\n"
+
+
+@pytest.mark.parametrize("mode", [0o666, 0o777])
+def test_create_temp_respects_umask(tmp_path, mode, umask):
+    _, filename = create_temp(dir=tmp_path, mode=mode)
+    assert stat.S_IMODE(os.stat(filename).st_mode) == mode & ~umask
 
 
 @pytest.mark.parametrize(

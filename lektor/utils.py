@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import codecs
+import io
 import json
 import os
 import posixpath
@@ -15,18 +16,24 @@ import uuid
 import warnings
 from collections.abc import Hashable
 from collections.abc import Iterable
+from collections.abc import Iterator
 from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 from functools import wraps
+from pathlib import Path
 from pathlib import PurePosixPath
 from typing import Any
 from typing import Callable
 from typing import ClassVar
+from typing import IO
+from typing import Literal
 from typing import overload
+from typing import TYPE_CHECKING
 from typing import TypeVar
+from typing import Union
 
 from jinja2 import is_undefined
 from markupsafe import Markup
@@ -34,6 +41,9 @@ from slugify import slugify as _slugify
 from werkzeug.http import http_date
 from werkzeug.urls import iri_to_uri
 from werkzeug.urls import uri_to_iri
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
 
 
 is_windows = os.name == "nt"
@@ -521,33 +531,113 @@ def get_dependent_url(url_path, suffix, ext=None):
     return posixpath.join(url_directory, url_base + "@" + suffix + ext)
 
 
+# These are the only modes we really support
+_AtomicOpenTextMode = Literal["w", "wt", "tw", "r", "rt", "tr"]
+_AtomicOpenBinaryModeWriting = Literal["wb", "bw"]
+_AtomicOpenBinaryModeReading = Literal["rb", "br"]
+_AtomicOpenMode = Union[
+    _AtomicOpenTextMode, _AtomicOpenBinaryModeWriting, _AtomicOpenBinaryModeReading
+]
+
+
+@overload
 @contextmanager
-def atomic_open(filename, mode="r", encoding=None):
-    if "r" not in mode:
-        fd, tmp_filename = tempfile.mkstemp(
-            dir=os.path.dirname(filename), prefix=".__atomic-write"
-        )
-        os.chmod(tmp_filename, 0o644)
-        f = os.fdopen(fd, mode)
-    else:
-        f = open(filename, mode=mode, encoding=encoding)
-        tmp_filename = None
+def atomic_open(
+    filename: StrPath,
+    mode: _AtomicOpenTextMode = "r",
+    encoding: str | None = None,
+) -> Iterator[io.TextIOWrapper]:
+    ...
+
+
+@overload
+@contextmanager
+def atomic_open(
+    filename: StrPath,
+    mode: _AtomicOpenBinaryModeWriting,
+    encoding: None = None,
+) -> Iterator[io.BufferedWriter]:
+    ...
+
+
+@overload
+@contextmanager
+def atomic_open(
+    filename: StrPath,
+    mode: _AtomicOpenBinaryModeReading,
+    encoding: None = None,
+) -> Iterator[io.BufferedReader]:
+    ...
+
+
+@contextmanager
+def atomic_open(
+    filename: StrPath, mode: _AtomicOpenMode = "r", encoding: str | None = None
+) -> Iterator[IO[Any]]:
+    if any(c in mode for c in "ax+"):
+        raise ValueError(f"unsupported open mode: {mode}")
+
+    if "r" in mode:
+        with open(filename, mode=mode, encoding=encoding) as fp:
+            yield fp
+        return
+
+    fd, tmp_filename = create_temp(
+        prefix=".__atomic-write",
+        dir=Path(filename).parent,
+        text="b" not in mode,
+    )
     try:
-        yield f
-    except Exception as e:
-        f.close()
-        _exc_type, exc_value, tb = sys.exc_info()
-        if tmp_filename is not None:
-            with suppress(OSError):
-                os.remove(tmp_filename)
-
-        if exc_value.__traceback__ is not tb:
-            raise exc_value.with_traceback(tb) from e
-        raise exc_value from e
-
-    f.close()
-    if tmp_filename is not None:
+        with open(fd, mode, encoding=encoding) as fp:
+            yield fp
         os.replace(tmp_filename, filename)
+    except Exception:
+        with suppress(OSError):
+            os.remove(tmp_filename)
+        raise
+
+
+def create_temp(
+    suffix: str = "",
+    prefix: str = "tmp",
+    dir: StrPath | None = None,
+    text: bool = False,
+    mode: int = 0o666,
+) -> tuple[int, str | bytes]:
+    """User-callable function to create and return a unique temporary
+    file.  The return value is a pair (fd, name) where fd is the
+    file descriptor returned by os.open, and name is the filename.
+
+    This works very much like `tempfile.mkstemp`, except that it allows more control
+    over the mode (access permissions) of the created file.
+
+    The access permissions of the created file is determined by the value of 'mode'
+    (which defaults to 0o666) combined with any umask or default ACL that may be in
+    place.
+
+    Caller is responsible for deleting the file when done with it.
+
+    """
+    if (tmp_dir := dir) is None:
+        tmp_dir = os.getcwd()
+
+    flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    if not text:
+        flags |= getattr(os, "O_BINARY", 0)
+
+    for _ in range(32000):
+        filename = tempfile.mktemp(suffix=suffix, prefix=prefix, dir=tmp_dir)
+        try:
+            fd = os.open(filename, flags, mode)
+        except FileExistsError:
+            continue
+        # NB: Under Windows, PermissionError can be raised by os.open if a directory
+        # with the chosen name already exists. Since mktemp doesn't return names to
+        # existing files/dirs, the likelihood of this happening is slim. We don't
+        # check for it here.
+        return fd, filename
+
+    raise AssertionError("Unable to find temporary file name")
 
 
 def portable_popen(cmd, *args, **kwargs):
