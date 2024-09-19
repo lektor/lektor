@@ -1,9 +1,9 @@
 import sys
 import warnings
+from collections.abc import Hashable
 from importlib import metadata
 from typing import Any
 from typing import Dict
-from typing import Hashable
 from typing import Optional
 from typing import Type
 from typing import TYPE_CHECKING

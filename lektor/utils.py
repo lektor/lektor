@@ -13,6 +13,7 @@ import unicodedata
 import urllib.parse
 import uuid
 import warnings
+from collections.abc import Hashable
 from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
@@ -23,7 +24,6 @@ from pathlib import PurePosixPath
 from typing import Any
 from typing import Callable
 from typing import ClassVar
-from typing import Hashable
 from typing import Iterable
 from typing import overload
 from typing import TypeVar
@@ -410,6 +410,8 @@ class Url(urllib.parse.SplitResult):
     the IRI (internationalized) version of the query.
 
     """
+
+    url: str
 
     def __new__(cls, value: str):
         # XXX: deprecate use of constructor so that eventually we can make its signature

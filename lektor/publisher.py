@@ -85,9 +85,11 @@ def _ssh_command(
         if key_file:
             args.append(f' -i "{key_file}" -o IdentitiesOnly=yes')
         if args:
-            yield "ssh" + " ".join(args)
+            ssh_command = "ssh" + " ".join(args)
         else:
-            yield None
+            ssh_command = None
+
+        yield ssh_command
 
 
 class PublishError(LektorException):
