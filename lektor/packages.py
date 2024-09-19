@@ -7,11 +7,11 @@ import site
 import subprocess
 import sys
 import sysconfig
+from collections.abc import Sized
 from pathlib import Path
 from typing import Any
 from typing import Iterable
 from typing import Iterator
-from typing import Sized
 from typing import TYPE_CHECKING
 from venv import EnvBuilder
 
