@@ -11,6 +11,7 @@ from collections.abc import Iterable
 from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import Sequence
+from contextlib import AbstractContextManager
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
@@ -25,7 +26,6 @@ from subprocess import STDOUT
 from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
-from typing import ContextManager
 from typing import NoReturn
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
@@ -96,7 +96,7 @@ class PublishError(LektorException):
     """Raised by publishers if something goes wrong."""
 
 
-class Command(ContextManager["Command"]):
+class Command(AbstractContextManager["Command"]):
     """A wrapper around subprocess.Popen to facilitate streaming output via generator.
 
     :param argline: Command with arguments to execute.
@@ -638,7 +638,7 @@ class FtpTlsPublisher(FtpPublisher):
     connection_class = FtpTlsConnection
 
 
-class GitRepo(ContextManager["GitRepo"]):
+class GitRepo(AbstractContextManager["GitRepo"]):
     """A temporary git repository.
 
     This class provides some lower-level utility methods which may be

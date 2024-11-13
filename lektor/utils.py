@@ -481,7 +481,7 @@ def is_unsafe_to_delete(path, base):
     a = os.path.abspath(path)
     b = os.path.abspath(base)
     diff = os.path.relpath(a, b)
-    first = diff.split(os.path.sep)[0]
+    first = diff.split(os.path.sep, maxsplit=1)[0]
     return first in (os.path.curdir, os.path.pardir)
 
 
