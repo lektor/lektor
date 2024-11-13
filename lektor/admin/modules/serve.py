@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 bp = Blueprint("serve", __name__)
 
 
-Filename = Union[str, os.PathLike]
+Filename = Union[str, os.PathLike[str]]
 
 
 @dataclasses.dataclass(frozen=True)
