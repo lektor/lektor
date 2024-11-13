@@ -3,13 +3,13 @@ from __future__ import annotations
 import posixpath
 import warnings
 from collections import defaultdict
+from collections.abc import Generator
+from collections.abc import Iterable
+from collections.abc import Sequence
 from contextlib import suppress
 from itertools import takewhile
 from operator import methodcaller
 from pathlib import Path
-from typing import Generator
-from typing import Iterable
-from typing import Sequence
 from typing import TYPE_CHECKING
 
 from werkzeug.utils import cached_property

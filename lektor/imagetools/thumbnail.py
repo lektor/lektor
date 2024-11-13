@@ -5,17 +5,17 @@ import dataclasses
 import io
 import math
 import posixpath
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Mapping
+from collections.abc import Sequence
 from enum import Enum
 from functools import partial
 from pathlib import Path
 from typing import Any
 from typing import ClassVar
 from typing import Final
-from typing import Iterable
-from typing import Iterator
-from typing import Mapping
 from typing import NamedTuple
-from typing import Sequence
 from typing import TYPE_CHECKING
 
 import PIL.Image

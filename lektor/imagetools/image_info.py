@@ -6,14 +6,14 @@ import enum
 import re
 import sys
 import warnings
+from collections.abc import Generator
+from collections.abc import Mapping
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
 from pathlib import Path
 from typing import BinaryIO
 from typing import Final
-from typing import Generator
-from typing import Mapping
 from typing import NamedTuple
 from typing import TYPE_CHECKING
 from typing import Union

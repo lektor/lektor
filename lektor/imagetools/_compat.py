@@ -1,11 +1,11 @@
 """Compatibility with various versions of Pillow."""
 from __future__ import annotations
 
+from collections.abc import Iterable
+from collections.abc import Mapping
 from enum import IntEnum
 from types import ModuleType
 from types import SimpleNamespace
-from typing import Iterable
-from typing import Mapping
 
 import PIL.ExifTags
 import PIL.Image

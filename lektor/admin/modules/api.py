@@ -1,14 +1,13 @@
 import os
 import posixpath
+from collections.abc import Iterator
+from collections.abc import Mapping
 from dataclasses import dataclass
 from dataclasses import field
 from functools import wraps
 from typing import Any
 from typing import Callable
 from typing import cast
-from typing import Dict
-from typing import Iterator
-from typing import Mapping
 from typing import Optional
 from typing import TypeVar
 
@@ -40,7 +39,7 @@ bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 @bp.url_value_preprocessor
 def pass_lektor_context(
-    endpoint: Optional[str], values: Optional[Dict[str, Any]]
+    endpoint: Optional[str], values: Optional[dict[str, Any]]
 ) -> None:
     """Pass LektorContext to each view callable in a `ctx` parameter"""
     assert isinstance(values, dict)
@@ -282,7 +281,7 @@ def get_new_record_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
     alt = validated.alt
     tree_item = ctx.tree.get(validated.path)
 
-    def describe_model(model: DataModel) -> Dict[str, Any]:
+    def describe_model(model: DataModel) -> dict[str, Any]:
         primary_field = None
         if model.primary_field is not None:
             f = model.field_map.get(model.primary_field)
@@ -356,7 +355,7 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
 class _NewRecordParams:
     id: str
     model: Optional[str]
-    data: Dict[str, Optional[str]]
+    data: dict[str, Optional[str]]
     path: _PathType
     alt: _AltType = PRIMARY_ALT
 
@@ -400,7 +399,7 @@ def delete_record(validated: _DeleteRecordParams, ctx: LektorContext) -> Respons
 
 @dataclass
 class _UpdateRawRecordParams:
-    data: Dict[str, Optional[str]]
+    data: dict[str, Optional[str]]
     path: _PathType
     alt: _AltType = PRIMARY_ALT
 
@@ -451,7 +450,7 @@ class _PublishBuildParams:
 @_with_validated(_PublishBuildParams)
 def publish_build(validated: _PublishBuildParams, ctx: LektorContext) -> Response:
     @eventstream
-    def generator() -> Iterator[Dict[str, str]]:
+    def generator() -> Iterator[dict[str, str]]:
         try:
             event_iter = (
                 publish(

@@ -9,12 +9,12 @@ repos:
     rev: "v3.14.0"
     hooks:
       - id: reorder-python-imports
-        args: ["--py38-plus"]
+        args: ["--py39-plus"]
   - repo: https://github.com/asottile/pyupgrade
     rev: "v3.19.0"
     hooks:
       - id: pyupgrade
-        args: ["--py38-plus"]
+        args: ["--py39-plus"]
   - repo: https://github.com/pycqa/flake8
     rev: "7.1.1"
     hooks:

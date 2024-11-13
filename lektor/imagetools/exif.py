@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import numbers
 import sys
+from collections.abc import Mapping
 from datetime import datetime
 from fractions import Fraction
 from functools import wraps
 from pathlib import Path
 from typing import Any
 from typing import Callable
-from typing import Mapping
-from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import Union
@@ -101,8 +100,8 @@ def _to_string(value: str) -> str:
 
 # NB: Older versions of Pillow return (numerator, denominator) tuples
 # for EXIF rational numbers.  New versions return a Fraction instance.
-ExifRational: TypeAlias = Union[numbers.Rational, Tuple[int, int]]
-ExifReal: TypeAlias = Union[numbers.Real, Tuple[int, int]]
+ExifRational: TypeAlias = Union[numbers.Rational, tuple[int, int]]
+ExifReal: TypeAlias = Union[numbers.Real, tuple[int, int]]
 
 
 def _to_rational(value: ExifRational) -> numbers.Rational:

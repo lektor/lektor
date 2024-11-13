@@ -14,6 +14,7 @@ import urllib.parse
 import uuid
 import warnings
 from collections.abc import Hashable
+from collections.abc import Iterable
 from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
@@ -24,7 +25,6 @@ from pathlib import PurePosixPath
 from typing import Any
 from typing import Callable
 from typing import ClassVar
-from typing import Iterable
 from typing import overload
 from typing import TypeVar
 

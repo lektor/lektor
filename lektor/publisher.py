@@ -6,6 +6,11 @@ import io
 import os
 import posixpath
 import urllib.parse
+from collections.abc import Generator
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Mapping
+from collections.abc import Sequence
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import suppress
@@ -21,12 +26,7 @@ from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import ContextManager
-from typing import Generator
-from typing import Iterable
-from typing import Iterator
-from typing import Mapping
 from typing import NoReturn
-from typing import Sequence
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 from warnings import warn
