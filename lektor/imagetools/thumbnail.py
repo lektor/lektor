@@ -374,8 +374,9 @@ def _create_thumbnail(
     # Convert from any embedded ICC color profile to sRGB.
     _convert_icc_profile_to_srgb(thumbnail)
 
-    # Do not propate comment tag to thumbnail
+    # Do not propagate comment tag, or XMP data to thumbnail
     thumbnail.info.pop("comment", None)
+    thumbnail.info.pop("xmp", None)
 
     return thumbnail
 
