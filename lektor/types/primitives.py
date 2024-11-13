@@ -150,7 +150,8 @@ class DateTimeType(SingleInputType):
             try:
                 tz = get_timezone(timezone)
                 zoneoffset = None
-            except LookupError:
+            # NB: under py39 on windows with tzdata, zoneinfo.ZoneInfo can raise ValueError
+            except (LookupError, ValueError):
                 if zoneoffset is None:
                     return raw.bad_value(f"Unknown timezone {timezone!r}")
 
