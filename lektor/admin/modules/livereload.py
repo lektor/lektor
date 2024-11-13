@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import queue
 import secrets
-from typing import Generator
+from collections.abc import Generator
 from typing import TYPE_CHECKING
 
 from flask import Blueprint
@@ -22,7 +22,7 @@ version_id = secrets.token_urlsafe(16)
 
 @bp.route("/events")
 @eventstream
-def events() -> Generator[dict[str, str], None, None]:
+def events() -> Generator[dict[str, str]]:
     updated_artifacts: queue.Queue[Artifact] = queue.Queue()
     with reporter.on_build_change(updated_artifacts.put):
         while True:

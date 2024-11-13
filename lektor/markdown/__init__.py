@@ -3,9 +3,7 @@ import warnings
 from collections.abc import Hashable
 from importlib import metadata
 from typing import Any
-from typing import Dict
 from typing import Optional
-from typing import Type
 from typing import TYPE_CHECKING
 from weakref import ref as weakref
 
@@ -23,7 +21,7 @@ from lektor.utils import DeprecatedWarning
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
 
-controller_class: Type[MarkdownController]
+controller_class: type[MarkdownController]
 
 
 MISTUNE_VERSION = metadata.version("mistune")
@@ -45,7 +43,7 @@ class Markdown:
         self.source = source
         self.__record = weakref(record) if record is not None else None
         self.__field_options = field_options
-        self.__cache: Dict[Hashable, RenderResult] = {}
+        self.__cache: dict[Hashable, RenderResult] = {}
 
     def __bool__(self) -> bool:
         return bool(self.source)

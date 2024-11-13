@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Generator
 from typing import Any
-from typing import Generator
 from typing import TYPE_CHECKING
 
 import watchfiles
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def watch_project(
     env: Environment, output_path: StrPath, **kwargs: Any
-) -> Generator[set[watchfiles.FileChange], None, None]:
+) -> Generator[set[watchfiles.FileChange]]:
     """Watch project source files for changes.
 
     Returns an generator that yields sets of changes as they are noticed.

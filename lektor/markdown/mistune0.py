@@ -1,7 +1,6 @@
 """MarkdownController implementation for mistune 0.x"""
 import threading
 from typing import ClassVar
-from typing import List
 from typing import Optional
 
 import mistune  # type: ignore[import]
@@ -52,7 +51,7 @@ class MarkdownConfig:
             "escape": False,
         }
         self.renderer_base = ImprovedRenderer
-        self.renderer_mixins: List[type] = []
+        self.renderer_mixins: list[type] = []
 
     def make_renderer(self) -> ImprovedRenderer:
         bases = tuple(self.renderer_mixins) + (self.renderer_base,)

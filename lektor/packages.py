@@ -7,11 +7,10 @@ import site
 import subprocess
 import sys
 import sysconfig
+from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import Sized
 from pathlib import Path
-from typing import Any
-from typing import Iterable
-from typing import Iterator
 from typing import TYPE_CHECKING
 from venv import EnvBuilder
 
@@ -128,17 +127,13 @@ class VirtualEnv:
         #
         # Note that, e.g., pip>=21.3 is required to support PEP660 editable
         # installs.
-        options: dict[str, Any] = {
-            "clear": True,
-            "with_pip": with_pip,
-            "symlinks": symlinks,
-        }
-        if sys.version_info >= (3, 9):
-            EnvBuilder(upgrade_deps=upgrade_deps, **options).create(self.path)
-        else:
-            EnvBuilder(**options).create(self.path)
-            if upgrade_deps:
-                self.run_pip_install("--upgrade", "pip", "setuptools")
+        env_builder = EnvBuilder(
+            clear=True,
+            with_pip=with_pip,
+            upgrade_deps=upgrade_deps,
+            symlinks=symlinks,
+        )
+        env_builder.create(self.path)
 
     def addsitedir(self, sitedir: str) -> None:
         """Add an additional sitedir to sys.path for virtual environment.

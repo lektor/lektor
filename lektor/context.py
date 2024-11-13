@@ -196,7 +196,7 @@ class Context:
         """Decorator version of :func:`add_sub_artifact`."""
 
         def decorator(f):
-            self.add_sub_artifact(build_func=f, *args, **kwargs)
+            self.add_sub_artifact(*args, build_func=f, **kwargs)
             return f
 
         return decorator

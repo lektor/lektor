@@ -1,9 +1,9 @@
+from collections.abc import Iterable
+from collections.abc import Iterator
 from functools import update_wrapper
 from itertools import chain
 from typing import Any
 from typing import Callable
-from typing import Iterable
-from typing import Iterator
 
 from flask import json
 from flask import Response

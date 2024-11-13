@@ -3,13 +3,13 @@ from __future__ import annotations
 import posixpath
 import warnings
 from collections import defaultdict
+from collections.abc import Generator
+from collections.abc import Iterable
+from collections.abc import Sequence
 from contextlib import suppress
 from itertools import takewhile
 from operator import methodcaller
 from pathlib import Path
-from typing import Generator
-from typing import Iterable
-from typing import Sequence
 from typing import TYPE_CHECKING
 
 from werkzeug.utils import cached_property
@@ -66,7 +66,7 @@ class Asset(SourceObject):
         self.parent = parent
         self._paths = paths
 
-    def iter_source_filenames(self) -> Generator[str, None, None]:
+    def iter_source_filenames(self) -> Generator[str]:
         yield from map(str, self._paths)
 
     @property
@@ -128,7 +128,7 @@ class Directory(Asset):
     def _children_by_name(self) -> dict[str, Asset]:
         return {asset.name: asset for asset in self._iter_children()}
 
-    def _iter_children(self) -> Generator[Asset, None, None]:
+    def _iter_children(self) -> Generator[Asset]:
         env = self.pad.env
         candidates_by_name = defaultdict(list)
         for path in self._paths:
