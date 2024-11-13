@@ -58,7 +58,7 @@ class WatcherTest:
     def __call__(
         self,
         timeout: float = 1.2,
-    ) -> Generator[WatchResult, None, None]:
+    ) -> Generator[WatchResult]:
         """Run watch_project in a separate thread, wait for a file change event.
 
         This is a context manager that runs watch_project in a separate thread.
@@ -80,7 +80,7 @@ class WatcherTest:
     def watch(
         self,
         timeout: float,
-    ) -> Generator[WatchResult, None, None]:
+    ) -> Generator[WatchResult]:
         """Run watch_project in a separate thread, wait for a file change event."""
         running = threading.Event()
         stop = threading.Event()

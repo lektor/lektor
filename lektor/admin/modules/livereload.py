@@ -22,7 +22,7 @@ version_id = secrets.token_urlsafe(16)
 
 @bp.route("/events")
 @eventstream
-def events() -> Generator[dict[str, str], None, None]:
+def events() -> Generator[dict[str, str]]:
     updated_artifacts: queue.Queue[Artifact] = queue.Queue()
     with reporter.on_build_change(updated_artifacts.put):
         while True:

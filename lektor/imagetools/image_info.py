@@ -174,7 +174,7 @@ def _PIL_image_info(
 
 
 @contextmanager
-def _save_position(fp: BinaryIO) -> Generator[BinaryIO, None, None]:
+def _save_position(fp: BinaryIO) -> Generator[BinaryIO]:
     position = fp.tell()
     try:
         yield fp

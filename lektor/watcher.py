@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def watch_project(
     env: Environment, output_path: StrPath, **kwargs: Any
-) -> Generator[set[watchfiles.FileChange], None, None]:
+) -> Generator[set[watchfiles.FileChange]]:
     """Watch project source files for changes.
 
     Returns an generator that yields sets of changes as they are noticed.
