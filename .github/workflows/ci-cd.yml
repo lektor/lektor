@@ -1,4 +1,5 @@
-name: Tests master
+---
+name: 🧪 CI/CD
 
 on:
   # This avoids having duplicate builds for a pull request
