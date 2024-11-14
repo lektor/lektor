@@ -1,0 +1,20 @@
+title: asseturl
+---
+type: filter
+---
+summary: Generates a relative URL from the current page to an asset.
+---
+signature: alt=None
+---
+body:
+
+This works similar to the [url](../url/) one but can only link to assets from
+the `assets/` folder.  However unlike `|url` it will append a dummy query
+string with a hash of the source asset.  This ensures that when the asset
+changes it will be newly cached.
+
+## Example
+
+```html+jinja
+<link rel="stylesheet" href="{{ '/static/styles.css'|asseturl }}">
+```

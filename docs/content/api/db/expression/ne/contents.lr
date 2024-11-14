@@ -1,0 +1,21 @@
+title: !=
+---
+summary: Compares an expression to another by ensuring inequality.
+---
+type: operator
+---
+body:
+
+This checks if the left side of the expression does not match the right side
+by doing an exact comparison:
+
+## Example
+
+```html+jinja
+<h2>Everything Other Than Houses</h2>
+<ul>
+{% for project in this.children.filter(F.type != 'house') %}
+  <li>{{ project.name }}</li>
+{% endfor %}
+</ul>
+```
