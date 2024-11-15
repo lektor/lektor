@@ -1,5 +1,5 @@
-"""Helper to probe basic image information: dimensions and format.
-"""
+"""Helper to probe basic image information: dimensions and format."""
+
 from __future__ import annotations
 
 import enum

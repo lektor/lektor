@@ -14,6 +14,7 @@ additional control over the building of the frontend code.
 - ``HATCH_BUILD_CLEAN=true``: force (re)building of the frontend code
 
 """
+
 import shutil
 import subprocess
 from pathlib import Path

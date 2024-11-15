@@ -865,8 +865,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> Callable[..., Any]:
-    ...
+) -> Callable[..., Any]: ...
 
 
 @overload
@@ -876,8 +875,7 @@ def deprecated(
     name: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 @overload
@@ -887,8 +885,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 def deprecated(*args: Any, **kwargs: Any) -> _F | _Deprecate:

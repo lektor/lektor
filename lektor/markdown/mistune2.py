@@ -1,4 +1,5 @@
 """MarkdownController implementation for mistune 2.x"""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
