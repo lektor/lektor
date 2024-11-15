@@ -1689,9 +1689,10 @@ class Pad:
     def theme_asset_roots(self):
         """The root of the asset tree of each theme.
 
-        As of Lektor 3.4.0, asset trees from any active themes are logically merged
-        into a single tree, accessible via Pad.asset_root. Accordingly, `theme_asset_roots`
+        As of Lektor 3.4.0, asset trees from any active themes are logically merged into
+        a single tree, accessible via Pad.asset_root. Accordingly, `theme_asset_roots`
         alway returns an empty list.
+
         """
         return []
 

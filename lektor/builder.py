@@ -592,14 +592,15 @@ class FileInfo(_ArtifactSourceInfo):
 def _pack_virtual_source_path(path, alt):
     """Pack VirtualSourceObject's path and alt into a single string.
 
-    The full identity key for a VirtualSourceObject is its ``path`` along with its ``alt``.
-    (Two VirtualSourceObjects with differing alts are not the same object.)
+    The full identity key for a VirtualSourceObject is its ``path`` along with its
+    ``alt``.  (Two VirtualSourceObjects with differing alts are not the same object.)
 
     This functions packs the (path, alt) pair into a single string for storage
     in the ``artifacts.path`` of the buildstate database.
 
     Note that if alternatives are not configured for the current site, there is
     only one alt, so we safely omit the alt from the packed path.
+
     """
     if alt is None or alt == PRIMARY_ALT:
         return path

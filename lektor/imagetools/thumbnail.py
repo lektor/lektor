@@ -343,7 +343,7 @@ def _create_thumbnail(
     #       "im = Image.open('in.jpg'); im.thumbnail((W,H)); im.save('out.jpg')"
     # or
     #     python -m timeit -s "from PIL import Image" \
-    #       "im = Image.open('in.jpg'); im.resize((W,H)[,reducing_gap=3]).save('out.jpg')"
+    #       "Image.open('in.jpg').resize((W,H)[,reducing_gap=3]).save('out.jpg')"
     #
     #         WxH    |  .resize()  |  .thumbnail()  |  .resize(reducing_gap=3)
     #     ===========|=============|================|===========================
@@ -437,7 +437,8 @@ def make_image_thumbnail(
     else:
         if width is None or height is None:
             raise ValueError(
-                f'"{mode.value}" mode requires both `width` and `height` to be specified.'
+                f'"{mode.value}" mode requires both `width` and `height` '
+                "to be specified."
             )
         if upscale is None:
             upscale = True

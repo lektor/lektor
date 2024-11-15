@@ -241,7 +241,8 @@ def _join_url_path(source, path):
         # Punt and treat path as relative to the source's containing directory.
         content_path = posixpath.dirname(source.url_path) or "/"
         reporter.report_generic(
-            f"Suspicious use of relative URL {path!r} from non-container source {source!r}"
+            f"Suspicious use of relative URL {path!r} "
+            f"from non-container source {source!r}"
         )
     return posixpath.join(content_path, path)
 

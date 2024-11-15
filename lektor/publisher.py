@@ -134,7 +134,9 @@ class Command(AbstractContextManager["Command"]):
     and how stdout may be captured for further processing.
 
         def run_wc(input):
-            rv = yield from Command(('wc'), check=True, input=input, capture_stdout=True)
+            rv = yield from Command(
+                ('wc'), check=True, input=input, capture_stdout=True
+            )
             lines, words, chars = rv.stdout.split()
             print(f"{words} words, {chars} chars")
 
@@ -253,7 +255,8 @@ class Command(AbstractContextManager["Command"]):
         self.close()
 
     def __iter__(self) -> Generator[str, None, CompletedProcess[str]]:
-        """A generator with yields any captured output and returns a ``CompletedProcess``.
+        """A generator with yields any captured output and returns a
+        ``CompletedProcess``.
 
         If ``capture`` is ``True`` (the default).  Both stdout and stderr are available
         in the iterator output.
