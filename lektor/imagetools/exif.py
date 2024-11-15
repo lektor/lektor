@@ -1,5 +1,5 @@
-"""Helper to access Exif info in images.
-"""
+"""Helper to access Exif info in images."""
+
 from __future__ import annotations
 
 import numbers

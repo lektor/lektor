@@ -1,4 +1,5 @@
 """MarkdownController implementation for mistune 0.x"""
+
 import threading
 from typing import ClassVar
 from typing import Optional

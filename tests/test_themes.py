@@ -41,9 +41,7 @@ def theme_project(theme_project_tmpdir, request):
         [project]
         name = Themes Project
         {}
-    """.format(
-            "themes = blog_theme, project_theme" if with_themes_var else ""
-        )
+    """.format("themes = blog_theme, project_theme" if with_themes_var else "")
     )
     lektorfile = theme_project_tmpdir / "themes.lektorproject"
     lektorfile.write_text(lektorfile_text, "utf8")

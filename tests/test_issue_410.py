@@ -6,6 +6,7 @@ This tests for at least one of the bugs reported in `#410`_, namely
 .. _#410: https://github.com/lektor/lektor/issues/410
 
 """
+
 import os
 
 import pytest

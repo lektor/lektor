@@ -1,5 +1,5 @@
-"""Unit tests for lektor.pluginsystem.
-"""
+"""Unit tests for lektor.pluginsystem."""
+
 from __future__ import annotations
 
 import inspect

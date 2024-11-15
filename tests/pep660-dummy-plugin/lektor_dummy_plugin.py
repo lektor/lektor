@@ -1,4 +1,5 @@
 """Dummy test plugin"""
+
 from lektor.pluginsystem import Plugin
 
 
