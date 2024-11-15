@@ -14,6 +14,7 @@ from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
 from lektor.cli_utils import ResolvedPath
 from lektor.cli_utils import validate_language
+from lektor.devcli import cli as devcli
 from lektor.project import Project
 from lektor.utils import secure_url
 
@@ -613,8 +614,6 @@ def quickstart_cmd(ctx, **options):
 
     project_quickstart(options)
 
-
-from .devcli import cli as devcli  # pylint: disable=wrong-import-position
 
 cli.add_command(devcli, "dev")
 
