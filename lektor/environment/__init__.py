@@ -111,8 +111,9 @@ def _dates_filter(name, wrapped):
             raise
         except Exception as exc:
             raise TypeError(
-                f"While evaluating filter '{name}', an unexpected exception was raised. "
-                "This is likely caused by an input or parameter of an unsupported type."
+                f"While evaluating filter '{name}', an unexpected exception was "
+                "raised. This is likely caused by an input or parameter of an "
+                "unsupported type."
             ) from exc
 
     return update_wrapper(wrapper, wrapped)

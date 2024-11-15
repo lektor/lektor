@@ -73,7 +73,8 @@ class TooldrawerConfig:
 def _inject_tooldrawer(
     html: bytes, tooldrawer_config: TooldrawerConfig | None
 ) -> bytes:
-    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML page."""
+    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML
+    page."""
     if tooldrawer_config:
         tooldrawer_html = render_template(
             "tooldrawer.html",

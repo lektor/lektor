@@ -168,8 +168,8 @@ def _default_none(wrapped: Callable[[EXIFInfo], _T]) -> Callable[[EXIFInfo], _T 
 class EXIFInfo:
     """Adapt Exif tags to more user-friendly values.
 
-    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to certain
-    Exif tags more user-friendly.
+    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to
+    certain Exif tags more user-friendly.
 
     """
 
