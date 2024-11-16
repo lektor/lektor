@@ -12,6 +12,7 @@ from werkzeug.datastructures import MultiDict
 
 from lektor.utils import DeprecatedWarning
 
+
 __all__ = ["werkzeug_urls_URL"]
 
 

@@ -24,9 +24,10 @@ import PIL.Image
 from ._compat import ExifTags
 from ._compat import UnidentifiedImageError
 
+
 if TYPE_CHECKING:
-    from typing import Literal
     from _typeshed import SupportsRead
+    from typing import Literal
 
 
 if sys.version_info >= (3, 10):

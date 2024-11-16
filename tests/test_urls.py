@@ -9,8 +9,9 @@ from lektor.sourceobj import VirtualSourceObject
 from lektor.utils import cleanup_path
 from lektor.utils import cleanup_url_path
 
-# noreorder
-from conftest import restore_import_state  # pylint: disable=wrong-import-order
+
+# pylint: disable-next=wrong-import-order
+from conftest import restore_import_state  # isort: skip
 
 
 @pytest.fixture(scope="module")

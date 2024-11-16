@@ -246,7 +246,8 @@ def deploy_cmd(ctx, *, server, output_path, extra_flags, **credentials):
 
     For more information see the deployment chapter in the documentation.
     """
-    from lektor.publisher import publish, PublishError
+    from lektor.publisher import publish
+    from lektor.publisher import PublishError
 
     if output_path is None:
         output_path = ctx.get_default_output_path()

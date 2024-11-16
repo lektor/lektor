@@ -29,6 +29,7 @@ from lektor.assets import Directory
 from lektor.constants import PRIMARY_ALT
 from lektor.db import Record
 
+
 if TYPE_CHECKING:
     from flask.typing import ResponseReturnValue
     from flask.typing import ResponseValue

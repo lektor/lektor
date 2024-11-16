@@ -11,6 +11,7 @@ from lektor.environment import Environment
 from lektor.project import Project
 from lektor.reporter import Reporter
 
+
 sep = os.path.sep
 
 

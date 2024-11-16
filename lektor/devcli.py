@@ -8,6 +8,7 @@ from lektor.cli_utils import AliasedGroup
 from lektor.cli_utils import extraflag
 from lektor.cli_utils import pass_context
 
+
 try:
     from IPython import embed
     from traitlets.config.loader import Config
@@ -44,8 +45,10 @@ def shell_cmd(ctx, extra_flags):
     """
     ctx.load_plugins(extra_flags=extra_flags)
     import code
-    from lektor.db import F, Tree
+
     from lektor.builder import Builder
+    from lektor.db import F
+    from lektor.db import Tree
 
     banner = "Python {} on {}\nLektor Project: {}".format(
         sys.version,

@@ -18,8 +18,10 @@ from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
 from lektor.utils import DeprecatedWarning
 
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
+
     from lektor.db import Pad
 
 

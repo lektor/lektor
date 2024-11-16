@@ -9,8 +9,10 @@ import watchfiles
 
 from lektor.utils import get_cache_dir
 
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
+
     from lektor.environment import Environment
 
 

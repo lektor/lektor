@@ -18,6 +18,7 @@ from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
 from lektor.utils import DeprecatedWarning
 
+
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
 

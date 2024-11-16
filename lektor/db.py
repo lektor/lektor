@@ -51,6 +51,7 @@ from lektor.utils import untrusted_to_os_path
 from lektor.videotools import get_video_info
 from lektor.videotools import make_video_thumbnail
 
+
 if TYPE_CHECKING:
     from lektor.environment import Environment
     from lektor.environment.config import Config
