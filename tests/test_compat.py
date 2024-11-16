@@ -30,7 +30,7 @@ def test_deprecated_attr(name, expected_value, replacement):
 def test_missing_attr():
     lektor_compat = importlib.import_module("lektor.compat")
     with pytest.raises(AttributeError):
-        lektor_compat.MISSING  # pylint: disable=pointless-statement
+        _ = lektor_compat.MISSING
 
 
 def make_CompatURL(url: str) -> _CompatURL:

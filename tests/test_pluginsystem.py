@@ -186,7 +186,7 @@ class TestPlugin:
         plugin = DummyPlugin(env, "dummy-plugin")
         del env
         with pytest.raises(RuntimeError, match=r"Environment went away"):
-            plugin.env  # pylint: disable=pointless-statement
+            _ = plugin.env
 
     def test_version(self, dummy_plugin, dummy_plugin_distribution):
         assert dummy_plugin.version == dummy_plugin_distribution.version
@@ -312,7 +312,7 @@ class TestPluginController:
         plugin_controller = PluginController(env)
         del env
         with pytest.raises(RuntimeError, match=r"Environment went away"):
-            plugin_controller.env  # pylint: disable=pointless-statement
+            _ = plugin_controller.env
 
     def test_instantiate_plugin(self, plugin_controller, env):
         plugin_controller.instanciate_plugin("plugin-id", DummyPlugin)

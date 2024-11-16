@@ -510,7 +510,7 @@ def test_Page_url_path_is_for_primary_alt(scratch_pad):
 def test_Page_url_path_raise_error_if_paginated_and_dotted(scratch_pad):
     page = scratch_pad.get("/paginated.dotted")
     with pytest.raises(Exception) as exc_info:
-        page.url_path  # pylint: disable=pointless-statement
+        _ = page.url_path
     assert re.match(
         r"(?=.*\bextension\b)(?=.*\bpagination\b).*\bcannot be used",
         str(exc_info.value),

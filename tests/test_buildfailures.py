@@ -24,7 +24,7 @@ def test_BuildFailure_from_exc_info():
         try:
             x["somekey"]
         except KeyError:
-            raise RuntimeError("test error")  # pylint: disable=raise-missing-from
+            raise RuntimeError("test error")  # pylint: disable=raise-missing-from # noqa: B904
 
     artifact_name = "test_artifact"
     failure = None

@@ -862,7 +862,8 @@ class GithubPagesPublisher(Publisher):
                         cleandoc(self._DEFAULT_BRANCH_DEPRECATION_MSG).splitlines()
                     ),
                     # deprecated in version 3.4.0
-                    category=DeprecationWarning,
+                    category=FutureWarning,
+                    stacklevel=1,
                 )
                 branch = "master"
             else:
