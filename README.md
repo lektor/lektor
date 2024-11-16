@@ -1,11 +1,14 @@
 # Lektor
 
-[![Tests master](https://github.com/lektor/lektor/workflows/Tests%20master/badge.svg)](https://github.com/lektor/lektor/actions?query=workflow%3A%22Tests+master%22)
+[![CI/CD Badge]][CI/CD]
 [![Code Coverage](https://codecov.io/gh/lektor/lektor/branch/master/graph/badge.svg)](https://codecov.io/gh/lektor/lektor)
 [![PyPI version](https://badge.fury.io/py/Lektor.svg)](https://pypi.org/project/Lektor/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Lektor.svg)](https://pypi.org/project/Lektor/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Join the chat at https://gitter.im/lektor/lektor](https://badges.gitter.im/lektor/lektor.svg)](https://gitter.im/lektor/lektor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[CI/CD Badge]: https://github.com/lektor/lektor/actions/workflows/ci-cd.yml/badge.svg?branch=master
+[CI/CD]: https://github.com/lektor/lektor/actions/workflows/ci-cd.yml
 
 Lektor is a static website generator. It builds out an entire project
 from static files into many individual HTML pages and has a built-in
