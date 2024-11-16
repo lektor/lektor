@@ -133,8 +133,16 @@ exclude_lines = [
 #
 [tool.ruff.lint]
 select = [
-    "E", "F", "W", # "C901",
+    "E", "F", "W",
+    "I",                        # isort
 ]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+lines-after-imports = 2
+order-by-type = false
+extra-standard-library = [ "_typeshed" ]
+known-first-party = ["lektor"]
 
 ################################################################
 #
