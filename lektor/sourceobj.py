@@ -105,6 +105,7 @@ class SourceObject:
     def url_to(
         self,
         path,  # : Union[str, "SourceObject", "SupportsUrlPath"]
+        *,
         alt: str | None = None,
         absolute: bool | None = None,
         external: bool | None = None,

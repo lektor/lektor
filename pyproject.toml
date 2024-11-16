@@ -141,10 +141,12 @@ max-module-lines = 2000
 
 [tool.pylint.design]
 max-attributes = 20
+max-positional-arguments = 7   # default is 5
 max-locals = 30
 max-branches = 20
 max-nested-blocks = 8
 max-returns = 8
+
 
 [tool.pylint."messages control"]
 disable = [

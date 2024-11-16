@@ -280,6 +280,7 @@ def make_video_thumbnail(
     source_video,
     source_url_path,
     seek,
+    *,
     width=None,
     height=None,
     mode=ThumbnailMode.DEFAULT,

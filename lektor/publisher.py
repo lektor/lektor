@@ -149,6 +149,7 @@ class Command(AbstractContextManager["Command"]):
     def __init__(
         self,
         argline: Iterable[str],
+        *,
         cwd: StrOrBytesPath | None = None,
         env: Mapping[str, str] | None = None,
         capture: bool = True,

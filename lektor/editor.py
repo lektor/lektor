@@ -106,13 +106,13 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
         pad,
         id,
         str(path),
-        raw_data,
-        raw_data_fallback,
-        datamodel,
-        record,
-        exists,
-        is_attachment,
-        alt,
+        original_data=raw_data,
+        fallback_data=raw_data_fallback,
+        datamodel=datamodel,
+        record=record,
+        exists=exists,
+        is_attachment=is_attachment,
+        alt=alt,
     )
 
 
@@ -143,6 +143,7 @@ class EditorSession:
         pad,
         id,
         path,
+        *,
         original_data,
         fallback_data,
         datamodel,

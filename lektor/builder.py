@@ -666,6 +666,7 @@ class Artifact:
         artifact_name,
         dst_filename,
         sources,
+        *,
         source_obj=None,
         extra=None,
         config_hash=None,
