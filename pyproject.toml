@@ -135,6 +135,7 @@ exclude_lines = [
 select = [
     "E", "F", "W",
     "I",                        # isort
+    "B",                        # flake8-bugbear
 ]
 
 [tool.ruff.lint.isort]
