@@ -27,7 +27,7 @@ def __getattr__(name):
         value = _DEPRECATED_ATTRS.get(name)
     except KeyError:
         # pylint: disable=raise-missing-from
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
 
     if hasattr(value, "__module__"):
         replacement = f"{value.__module__}.{value.__name__}"
