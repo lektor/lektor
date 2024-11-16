@@ -20,6 +20,7 @@ import requests
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
+
     from lektor.environment import Environment  # circ dependency
 else:
     StrPath = object

@@ -39,9 +39,11 @@ from lektor.utils import bool_from_string
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
 
+
 if TYPE_CHECKING:  # pragma: no cover
     from _typeshed import StrOrBytesPath
     from _typeshed import StrPath
+
     from lektor.environment import Environment
 
 

@@ -21,6 +21,7 @@ from pathlib import Path
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
+
 # path to frontend source
 FRONTEND = "frontend"
 

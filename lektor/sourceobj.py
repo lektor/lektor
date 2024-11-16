@@ -12,6 +12,7 @@ from lektor.reporter import reporter
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
+
 if TYPE_CHECKING:
     from lektor.db import Pad
 

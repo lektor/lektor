@@ -11,6 +11,7 @@ from types import SimpleNamespace
 import PIL.ExifTags
 import PIL.Image
 
+
 __all__ = ["ExifTags", "Transpose", "UnidentifiedImageError"]
 
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))

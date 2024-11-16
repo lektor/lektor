@@ -31,8 +31,10 @@ from .image_info import SvgImageInfo
 from .image_info import TiffOrientation
 from .image_info import UnknownImageInfo
 
+
 if TYPE_CHECKING:
     from _typeshed import SupportsRead
+
     from lektor.builder import Artifact
     from lektor.context import Context
 

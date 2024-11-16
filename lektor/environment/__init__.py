@@ -31,8 +31,10 @@ from lektor.publisher import builtin_publishers
 from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
+
 if TYPE_CHECKING:
     from typing import Literal
+
     from lektor.assets import Asset
     from lektor.build_programs import BuildProgram
     from lektor.sourceobj import SourceObject
@@ -221,7 +223,8 @@ class Environment:
             loader=jinja2.FileSystemLoader(template_paths),
         )
 
-        from lektor.db import F, get_alts  # pylint: disable=import-outside-toplevel
+        from lektor.db import F  # pylint: disable=import-outside-toplevel
+        from lektor.db import get_alts  # pylint: disable=import-outside-toplevel
 
         def latlongformat(latlong, secs=True):
             lat, lon = latlong

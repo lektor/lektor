@@ -18,6 +18,7 @@ from lektor.environment import Environment
 from lektor.environment.config import Config
 from lektor.reporter import CliReporter
 
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
 
