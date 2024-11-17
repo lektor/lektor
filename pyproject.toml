@@ -135,7 +135,12 @@ exclude_lines = [
 select = [
     "E", "F", "W",
     "I",                        # isort
+    "UP",                       # pyupgrade
     "B",                        # flake8-bugbear
+]
+ignore = [
+    "UP031",                    # printf-string-formatting
+    "UP032",                    # f-string
 ]
 
 [tool.ruff.lint.isort]
