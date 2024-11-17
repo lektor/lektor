@@ -138,6 +138,7 @@ select = [
     "UP",                       # pyupgrade
     "B",                        # flake8-bugbear
     "C4",                       # flake8-comprehensions
+    "ISC",                      # flake8-implicit-string-concat
 ]
 
 [tool.ruff.lint.isort]
