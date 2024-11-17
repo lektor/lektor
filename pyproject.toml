@@ -140,6 +140,7 @@ select = [
     "C4",                       # flake8-comprehensions
     "ISC",                      # flake8-implicit-string-concat
     "FLY",                      # flynt
+    "FURB",                     # refurb
 ]
 
 [tool.ruff.lint.isort]
