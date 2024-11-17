@@ -138,9 +138,6 @@ select = [
     "UP",                       # pyupgrade
     "B",                        # flake8-bugbear
 ]
-ignore = [
-    "UP031",                    # printf-string-formatting
-]
 
 [tool.ruff.lint.isort]
 force-single-line = true
