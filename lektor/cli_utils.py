@@ -21,7 +21,7 @@ def pruneflag(cli):
     return click.option(
         "--prune/--no-prune",
         default=True,
-        help="Controls if old " 'artifacts should be pruned.  "prune" is the default.',
+        help="Whether outdated artifacts are pruned. The default is to prune.",
     )(cli)
 
 
