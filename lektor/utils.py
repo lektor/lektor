@@ -21,7 +21,7 @@ from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
-from functools import lru_cache
+from functools import cache
 from functools import wraps
 from pathlib import Path
 from pathlib import PurePosixPath
@@ -334,7 +334,7 @@ def increment_filename(filename):
     return rv
 
 
-@lru_cache(maxsize=None)
+@cache
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
