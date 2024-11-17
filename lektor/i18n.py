@@ -5,9 +5,7 @@ import os
 translations_path = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "translations"
 )
-KNOWN_LANGUAGES = list(
-    x[:-5] for x in os.listdir(translations_path) if x.endswith(".json")
-)
+KNOWN_LANGUAGES = [x[:-5] for x in os.listdir(translations_path) if x.endswith(".json")]
 
 
 translations = {}

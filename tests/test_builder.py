@@ -9,7 +9,7 @@ from lektor.reporter import NullReporter
 
 
 def get_child_sources(prog):
-    return sorted(list(prog.iter_child_sources()), key=lambda x: x["_id"])
+    return sorted(prog.iter_child_sources(), key=lambda x: x["_id"])
 
 
 def test_basic_build(pad, builder):

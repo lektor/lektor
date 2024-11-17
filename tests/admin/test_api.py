@@ -80,7 +80,7 @@ def test_recordinfo_children_sort_limited_alts(test_client):
     # configured alts, get_record_info throws an exception.
     data = test_client.get("/admin/api/recordinfo?path=/projects").get_json()
     child_data = data["children"]
-    assert list(sorted(child_data, key=itemgetter("label"))) == child_data
+    assert sorted(child_data, key=itemgetter("label")) == child_data
 
 
 def test_eventstream_yield_bytes():
