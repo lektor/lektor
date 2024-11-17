@@ -215,7 +215,7 @@ def clean_cmd(ctx, *, output_path, verbosity, extra_flags):
 @click.option(
     "--password",
     envvar="LEKTOR_DEPLOY_PASSWORD",
-    help="An optional password to override the URL or the " "default prompt.",
+    help="An optional password to override the URL or the default prompt.",
 )
 @click.option(
     "--key-file",
@@ -409,7 +409,7 @@ def project_info_cmd(ctx, *, as_json, **opts):
 
 
 @cli.command(
-    "content-file-info", short_help="Provides information for " "a set of lektor files."
+    "content-file-info", short_help="Provides information for a set of lektor files."
 )
 @click.option("as_json", "--json", is_flag=True, help="Prints out the data as json.")
 @click.argument("files", nargs=-1, type=click.Path(dir_okay=False))
@@ -563,9 +563,7 @@ def plugins_list_cmd(ctx, *, as_json, verbosity):
         click.echo(f"  import-name: {plugin.import_name}")
 
 
-@plugins_cmd.command(
-    "flush-cache", short_help="Flushes the plugin " "installation cache."
-)
+@plugins_cmd.command("flush-cache", short_help="Flushes the plugin installation cache.")
 @pass_context
 def plugins_flush_cache_cmd(ctx):
     """This uninstalls all plugins in the cache.  On next usage the plugins
