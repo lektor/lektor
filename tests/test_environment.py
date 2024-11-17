@@ -165,14 +165,14 @@ def dates_filter(request: pytest.FixtureRequest) -> str:
 def test_dates_format_filter_handles_undefined(
     env: Environment, dates_filter: str
 ) -> None:
-    template = env.jinja_env.from_string("{{ undefined | %s }}" % dates_filter)
+    template = env.jinja_env.from_string(f"{{{{ undefined | {dates_filter} }}}}")
     assert template.render() == ""
 
 
 def test_dates_format_filter_raises_type_error_on_bad_arg(
     env: Environment, dates_filter: str
 ) -> None:
-    template = env.jinja_env.from_string("{{ obj | %s }}" % dates_filter)
+    template = env.jinja_env.from_string(f"{{{{ obj | {dates_filter} }}}}")
     with pytest.raises(TypeError, match="unexpected exception"):
         template.render(obj=object())
 
@@ -180,7 +180,7 @@ def test_dates_format_filter_raises_type_error_on_bad_arg(
 def test_dates_format_filter_raises_type_error_on_bad_format(
     env: Environment, dates_filter: str
 ) -> None:
-    template = env.jinja_env.from_string("{{ now | %s(42) }}" % dates_filter)
+    template = env.jinja_env.from_string(f"{{{{ now | {dates_filter}(42) }}}}")
     with pytest.raises(TypeError, match="should be a str"):
         template.render(now=datetime.datetime.now())
 

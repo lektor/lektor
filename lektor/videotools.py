@@ -207,18 +207,19 @@ def get_ffmpeg_quality(quality_percent):
 def get_suffix(seek, width, height, mode, quality):
     """Make suffix for a thumbnail that is unique to the given parameters."""
     timecode = get_timecode(seek).replace(":", "-").replace(".", "-")
-    suffix = "t%s" % timecode
+    bits = [f"t{timecode}"]
 
     if width is not None or height is not None:
-        suffix += "_%s" % "x".join(str(x) for x in [width, height] if x is not None)
+        dimension = "x".join(str(x) for x in [width, height] if x is not None)
+        bits.append(dimension)
 
     if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.value
+        bits.append(mode.value)
 
     if quality is not None:
-        suffix += "_q%s" % quality
+        bits.append(f"q{quality}")
 
-    return suffix
+    return "_".join(bits)
 
 
 def get_video_info(filename):
@@ -302,7 +303,7 @@ def make_video_thumbnail(
     if format is None:
         format = "jpg"
     if format not in THUMBNAIL_FORMATS:
-        raise ValueError('Invalid thumbnail format "%s"' % format)
+        raise ValueError(f'Invalid thumbnail format "{format}"')
 
     if quality is not None and format != "jpg":
         raise ValueError("The quality parameter is only supported for jpeg images")

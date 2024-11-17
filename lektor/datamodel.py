@@ -347,7 +347,7 @@ class DataModel:
                 self._child_slug_tmpl[1].evaluate(pad, this=data).strip().split()
             ).strip("/")
         except Exception as exc:
-            reporter.report_generic("Failed to expand child slug_format: %s" % exc)
+            reporter.report_generic(f"Failed to expand child slug_format: {exc}")
             return "temp-" + slugify(data["_id"])
 
     def get_default_template_name(self):
@@ -642,7 +642,7 @@ def load_datamodels(env):
     def create_model(model_id):
         model_data = data.get(model_id)
         if model_data is None:
-            raise RuntimeError("Model %r not found" % model_id)
+            raise RuntimeError(f"Model {model_id!r} not found")
 
         if model_data["parent"] is not None:
             parent = get_model(model_data["parent"])

@@ -49,7 +49,7 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     path = cleanup_path(path)
 
     if alt != PRIMARY_ALT and not pad.db.config.is_valid_alternative(alt):
-        raise BadEdit("Attempted to edit an invalid alternative (%s)" % alt)
+        raise BadEdit(f"Attempted to edit an invalid alternative ({alt})")
 
     raw_data = pad.db.load_raw_data(path, cls=OrderedDict, alt=alt, fallback=False)
     raw_data_fallback = None
@@ -340,12 +340,12 @@ class EditorSession:
             if self._master_delete:
                 raise BadDelete(
                     "Master deletes need to be done from the primary "
-                    'alt.  Tried to delete from "%s"' % self.alt
+                    f'alt.  Tried to delete from "{self.alt}"'
                 )
             if self._recursive_delete:
                 raise BadDelete(
                     "Cannot perform recursive delete from a non "
-                    'primary alt.  Tried to delete from "%s"' % self.alt
+                    f'primary alt.  Tried to delete from "{self.alt}"'
                 )
 
         if self.is_attachment:
@@ -370,12 +370,13 @@ class EditorSession:
                 f.write(chunk)
 
     def __repr__(self):
-        return "<{} {!r}{}{}>".format(
-            self.__class__.__name__,
-            self.path,
-            self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
-            not self.exists and " new" or "",
-        )
+        bits = [repr(self.path)]
+        if self.alt != PRIMARY_ALT:
+            bits.append(f" alt={self.alt!r}")
+        if not self.exists:
+            bits.append(" new")
+
+        return f"<{self.__class__.__name__} {' '.join(bits)}>"
 
     # The mapping methods used to access the page data have been moved
     # to EditorSession.data.

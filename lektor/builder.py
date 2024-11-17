@@ -8,6 +8,7 @@ import stat
 import sys
 from collections import deque
 from collections import namedtuple
+from collections.abc import Sized
 from contextlib import contextmanager
 from dataclasses import dataclass
 from itertools import chain
@@ -89,6 +90,11 @@ def create_tables(con):
         )
     finally:
         con.close()
+
+
+def _placeholders(values: Sized) -> str:
+    """Return SQL '?' placeholders for an array or set of values."""
+    return ",".join(["?"] * len(values))
 
 
 class BuildState:
@@ -267,11 +273,10 @@ class BuildState:
                 for i in range(0, len(to_clean), MAX_VARS):
                     chunk = to_clean[i : i + MAX_VARS]
                     cur.execute(
-                        """
+                        f"""
                         delete from source_info
-                         where source in (%s)
-                    """
-                        % ", ".join(["?"] * len(chunk)),
+                         where source in ({_placeholders(chunk)})
+                        """,
                         chunk,
                     )
 
@@ -306,10 +311,11 @@ class BuildState:
             return False
 
         cur.execute(
-            """
-            select source from dirty_sources where source in (%s) limit 1
-        """
-            % ", ".join(["?"] * len(sources)),
+            f"""
+            select source from dirty_sources
+            where source in ({_placeholders(sources)})
+            limit 1
+            """,
             sources,
         )
         return cur.fetchone() is not None
@@ -573,7 +579,7 @@ class FileInfo(_ArtifactSourceInfo):
         not consider it changed.
         """
         if not isinstance(other, FileInfo):
-            raise TypeError("'other' must be a FileInfo, not %r" % other)
+            raise TypeError(f"'other' must be a FileInfo, not {other!r}")
 
         if self.mtime != other.mtime or self.size != other.size:
             return False
@@ -629,12 +635,12 @@ class VirtualSourceInfo(_ArtifactSourceInfo):
 
     def unchanged(self, other):
         if not isinstance(other, VirtualSourceInfo):
-            raise TypeError("'other' must be a VirtualSourceInfo, not %r" % other)
+            raise TypeError(f"'other' must be a VirtualSourceInfo, not {other!r}")
 
         if (self.path, self.alt) != (other.path, other.alt):
             raise ValueError(
                 "trying to compare mismatched virtual paths: "
-                "%r.unchanged(%r)" % (self, other)
+                f"{self!r}.unchanged({other!r})"
             )
 
         return (self.mtime, self.checksum) == (other.mtime, other.checksum)
@@ -866,11 +872,8 @@ class Artifact:
             sources = [self.build_state.to_source_filename(x) for x in self.sources]
             cur = con.cursor()
             cur.execute(
-                """
-                delete from dirty_sources where source in (%s)
-            """
-                % ", ".join(["?"] * len(sources)),
-                list(sources),
+                f"delete from dirty_sources where source in ({_placeholders(sources)})",
+                sources,
             )
             cur.close()
             reporter.report_dirty_flag(False)
@@ -1042,8 +1045,8 @@ class PathCache:
                 filename = filename.lstrip(os.path.altsep)
         else:
             raise ValueError(
-                "The given value (%r) is not below the "
-                "source folder (%r)" % (filename, self.env.root_path)
+                f"The given value ({filename!r}) is not below the "
+                f"source folder ({self.env.root_path!r})"
             )
         rv = filename.replace(os.path.sep, "/")
         self.source_filename_cache[key] = rv
@@ -1085,16 +1088,13 @@ class Builder:
         try:
             os.makedirs(self.meta_path)
             if os.listdir(self.destination_path) != [".lektor"]:
-                if not click.confirm(
-                    click.style(
-                        "The build dir %s hasn't been used before, and other "
-                        "files or folders already exist there. If you prune "
-                        "(which normally follows the build step), "
-                        "they will be deleted. Proceed with building?"
-                        % self.destination_path,
-                        fg="yellow",
-                    )
-                ):
+                msg = (
+                    f"The build dir {self.destination_path} hasn't been used before, "
+                    "and other files or folders already exist there. "
+                    "If you prune (which normally follows the build step), "
+                    "they will be deleted. Proceed with building?"
+                )
+                if not click.confirm(click.style(msg, fg="yellow")):
                     os.rmdir(self.meta_path)
                     raise click.Abort()
         except OSError:
@@ -1158,7 +1158,7 @@ class Builder:
         ):
             if isinstance(source, cls):
                 return builder(source, build_state)
-        raise RuntimeError("I do not know how to build %r" % source)
+        raise RuntimeError(f"I do not know how to build {source!r}")
 
     def build_artifact(self, artifact, build_func):
         """Various parts of the system once they have an artifact and a

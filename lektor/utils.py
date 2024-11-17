@@ -660,7 +660,7 @@ def portable_popen(cmd, *args, **kwargs):
         raise RuntimeError("No executable specified")
     exe = locate_executable(cmd[0], kwargs.get("cwd"))
     if exe is None:
-        raise RuntimeError('Could not locate executable "%s"' % cmd[0])
+        raise RuntimeError(f'Could not locate executable "{cmd[0]}"')
 
     if isinstance(exe, str) and sys.platform != "win32":
         exe = exe.encode(sys.getfilesystemencoding())

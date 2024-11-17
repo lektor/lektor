@@ -66,7 +66,7 @@ def add_package_to_project(project, req):
                 f"Latest requested version ({version_hint}) could not be found"
             )
 
-        cfg["packages.%s" % canonical_name] = version
+        cfg[f"packages.{canonical_name}"] = version
         cfg.save()
         return {"name": canonical_name, "version": version}
 
@@ -78,7 +78,7 @@ def remove_package_from_project(project, name):
     choices = (name.lower(), "lektor-" + name.lower())
     for pkg, version in cfg.section_as_dict("packages").items():
         if pkg.lower() in choices:
-            del cfg["packages.%s" % pkg]
+            del cfg[f"packages.{pkg}"]
             cfg.save()
             return {"name": pkg, "version": version}
     return None

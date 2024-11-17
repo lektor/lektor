@@ -584,7 +584,7 @@ class FtpPublisher(Publisher):
     def upload_artifact(self, con, artifact_name, source_file, checksum):
         with open(source_file, "rb") as source:
             tmp_dst = self.get_temp_filename(artifact_name)
-            con.log_buffer.append("000 Updating %s" % artifact_name)
+            con.log_buffer.append(f"000 Updating {artifact_name}")
             con.upload_file(tmp_dst, source, mkdir=True)
             con.rename_file(tmp_dst, artifact_name)
             con.append(".lektor/listing", f"{artifact_name}|{checksum}\n")
@@ -597,11 +597,11 @@ class FtpPublisher(Publisher):
 
         for artifact_name, _checksum in server_artifacts.items():
             if artifact_name not in current_artifacts:
-                con.log_buffer.append("000 Deleting %s" % artifact_name)
+                con.log_buffer.append(f"000 Deleting {artifact_name}")
                 con.delete_file(artifact_name)
                 folder = posixpath.dirname(artifact_name)
                 if folder not in known_folders:
-                    con.log_buffer.append("000 Deleting %s" % folder)
+                    con.log_buffer.append(f"000 Deleting {folder}")
                     con.delete_folder(folder)
 
         if duplicates or server_artifacts != current_artifacts:
@@ -933,7 +933,7 @@ def publish(env, target, output_path, credentials=None, **extra):
     url = urlsplit(target_url)
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
-        raise PublishError('"%s" is an unknown scheme.' % url.scheme)
+        raise PublishError(f'"{url.scheme}" is an unknown scheme.')
     return publisher(env, output_path).publish(target_url, credentials, **extra)
 
 

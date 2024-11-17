@@ -66,11 +66,11 @@ def update_config_from_ini(config, inifile):
         elif sect.startswith("alternatives."):
             alt = sect.split(".")[1]
             config["ALTERNATIVES"][alt] = {
-                "name": get_i18n_block(inifile, "alternatives.%s.name" % alt),
-                "url_prefix": inifile.get("alternatives.%s.url_prefix" % alt),
-                "url_suffix": inifile.get("alternatives.%s.url_suffix" % alt),
-                "primary": inifile.get_bool("alternatives.%s.primary" % alt),
-                "locale": inifile.get("alternatives.%s.locale" % alt, "en_US"),
+                "name": get_i18n_block(inifile, f"alternatives.{alt}.name"),
+                "url_prefix": inifile.get(f"alternatives.{alt}.url_prefix"),
+                "url_suffix": inifile.get(f"alternatives.{alt}.url_suffix"),
+                "primary": inifile.get_bool(f"alternatives.{alt}.primary"),
+                "locale": inifile.get(f"alternatives.{alt}.locale", "en_US"),
             }
 
     for alt, alt_data in config["ALTERNATIVES"].items():

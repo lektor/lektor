@@ -468,8 +468,8 @@ def publish_build(validated: _PublishBuildParams, ctx: LektorContext) -> Respons
             )
             for event in event_iter:
                 yield {"msg": event}
-        except PublishError as e:
-            yield {"msg": "Error: %s" % e}
+        except PublishError as exc:
+            yield {"msg": f"Error: {exc}"}
 
     return generator()
 
