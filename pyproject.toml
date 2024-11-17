@@ -140,7 +140,6 @@ select = [
 ]
 ignore = [
     "UP031",                    # printf-string-formatting
-    "UP032",                    # f-string
 ]
 
 [tool.ruff.lint.isort]
