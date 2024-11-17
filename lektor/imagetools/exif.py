@@ -37,7 +37,7 @@ def _combine_make(make: str | None, model: str | None) -> str:
     model = model or ""
     if make and model.startswith(make):
         return model
-    return " ".join([make, model]).strip()
+    return f"{make} {model}".strip()
 
 
 # Interpretation of the Exif Flash tag value
