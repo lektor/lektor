@@ -136,9 +136,17 @@ select = [
     "E", "F", "W",
     "I",                        # isort
     "UP",                       # pyupgrade
+    "YTT",                      # flake8-2020
+    "ASYNC",                    # flake8-async
     "B",                        # flake8-bugbear
     "C4",                       # flake8-comprehensions
+    "T10",                      # flake8-debugger
+    "EXE",                      # flake8-executable
     "ISC",                      # flake8-implicit-string-concat
+    "LOG",                      # flake8-logging
+    "G",                        # flake8-logging-format
+    "Q",                        # flake8-quotes
+    "INT",                      # flake8-gettext
     "FLY",                      # flynt
     "FURB",                     # refurb
 ]
