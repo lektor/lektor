@@ -321,9 +321,7 @@ class Record(DBSourceObject):
         self._data = data
         self._bound_data = {}
         if page_num is not None and not self.supports_pagination:
-            raise RuntimeError(
-                "%s does not support pagination" % self.__class__.__name__
-            )
+            raise RuntimeError(f"{self.__class__.__name__} does not support pagination")
         self.page_num = page_num
 
     @property
@@ -482,13 +480,15 @@ class Record(DBSourceObject):
         return rv
 
     def __repr__(self):
-        return "<{} model={!r} path={!r}{}{}>".format(
-            self.__class__.__name__,
-            self._data["_model"],
-            self._data["_path"],
-            self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
-            self.page_num is not None and " page_num=%r" % self.page_num or "",
-        )
+        bits = [
+            f"model={self._data['_model']!r}",
+            f"path={self._data['_path']!r}",
+        ]
+        if self.alt != PRIMARY_ALT:
+            bits.append(f"alt={self.alt!r}")
+        if self.page_num is not None:
+            bits.append(f"page_num={self.page_num!r}")
+        return f"<{self.__class__.__name__} {' '.join(bits)}>"
 
 
 class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
@@ -1171,11 +1171,8 @@ class Query:
         yield from iterable
 
     def __repr__(self):
-        return "<{} {!r}{}>".format(
-            self.__class__.__name__,
-            self.path,
-            self.alt and " alt=%r" % self.alt or "",
-        )
+        alt_ = " alt={self.alt!r}" if self.alt else ""
+        return f"<{self.__class__.__name__} {self.path!r}{alt_}>"
 
 
 class EmptyQuery(Query):
@@ -1230,17 +1227,17 @@ def _iter_filename_choices(fn_base, alts, config, fallback=True):
     # implicitly say the record exists.
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield os.path.join(fn_base, "contents+%s.lr" % alt), alt, False
+            yield os.path.join(fn_base, f"contents+{alt}.lr"), alt, False
 
     if fallback or PRIMARY_ALT in alts:
         yield os.path.join(fn_base, "contents.lr"), PRIMARY_ALT, False
 
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield fn_base + "+%s.lr" % alt, alt, True
+            yield f"{fn_base}+{alt}.lr", alt, True
 
     if fallback or PRIMARY_ALT in alts:
-        yield fn_base + ".lr", PRIMARY_ALT, True
+        yield f"{fn_base}.lr", PRIMARY_ALT, True
 
 
 def _iter_content_files(dir_path, alts):
@@ -1251,7 +1248,7 @@ def _iter_content_files(dir_path, alts):
     for alt in alts:
         if alt == PRIMARY_ALT:
             continue
-        if os.path.isfile(os.path.join(dir_path, "contents+%s.lr" % alt)):
+        if os.path.isfile(os.path.join(dir_path, f"contents+{alt}.lr")):
             yield alt
     if os.path.isfile(os.path.join(dir_path, "contents.lr")):
         yield PRIMARY_ALT

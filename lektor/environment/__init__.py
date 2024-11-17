@@ -399,19 +399,19 @@ class Environment:
 
     def add_publisher(self, scheme, publisher):
         if scheme in self.publishers:
-            raise RuntimeError('Scheme "%s" is already registered.' % scheme)
+            raise RuntimeError(f"Scheme {scheme!r} is already registered.")
         self.publishers[scheme] = publisher
 
     def add_type(self, type):
         name = type.name
         if name in self.types:
-            raise RuntimeError('Type "%s" is already registered.' % name)
+            raise RuntimeError(f"Type {name!r} is already registered.")
         self.types[name] = type
 
     def virtualpathresolver(self, prefix):
         def decorator(func):
             if prefix in self.virtual_sources:
-                raise RuntimeError('Prefix "%s" is already registered.' % prefix)
+                raise RuntimeError(f"Prefix {prefix!r} is already registered.")
             self.virtual_sources[prefix] = func
             return func
 

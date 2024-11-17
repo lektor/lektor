@@ -273,9 +273,9 @@ def test_root_pagination(scratch_project, scratch_env):
             f.write(
                 "_model: page\n"
                 "---\n"
-                "title: Page %s\n"
+                f"title: Page {name}\n"
                 "---\n"
-                "body: Hello World!\n" % name
+                "body: Hello World!\n"
             )
 
     scratch_pad = Database(scratch_env).new_pad()
@@ -303,7 +303,7 @@ def test_undefined_order(pad):
                 (2, "2016-01-02"),
             ]:
                 yield pad.instance_from_data(
-                    {"_id": str(day), "_path": "test/%s" % day, "pub_date": pub_date},
+                    {"_id": str(day), "_path": f"test/{day}", "pub_date": pub_date},
                     datamodel=blog_post,
                 )
 

@@ -29,7 +29,7 @@ class Generator:
     def __init__(self, base):
         self.question = 0
         self.jinja_env = Environment(
-            loader=PackageLoader("lektor", "quickstart-templates/%s" % base),
+            loader=PackageLoader("lektor", os.path.join("quickstart-templates", base)),
             line_statement_prefix="%%",
             line_comment_prefix="##",
             variable_start_string="${",
@@ -47,7 +47,7 @@ class Generator:
 
     @staticmethod
     def abort(message):
-        click.echo("Error: %s" % message, err=True)
+        click.echo(f"Error: {message}", err=True)
         raise click.Abort()
 
     def prompt(self, text, default=None, info=None):
@@ -85,14 +85,14 @@ class Generator:
             try:
                 os.makedirs(path)
             except OSError as e:
-                self.abort("Could not create target folder: %s" % e)
+                self.abort(f"Could not create target folder: {e}")
 
         if os.path.isdir(path):
             try:
                 if len(os.listdir(path)) != 0:
                     raise OSError("Directory not empty")
             except OSError as e:
-                self.abort("Bad target folder: %s" % e)
+                self.abort(f"Bad target folder: {e}")
 
         with TemporaryDirectory() as scratch:
             yield scratch

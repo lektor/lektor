@@ -48,7 +48,7 @@ class AliasedGroup(click.Group):
             return None
         if len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
-        ctx.fail("Too many matches: %s" % ", ".join(sorted(matches)))
+        ctx.fail(f"Too many matches: {', '.join(sorted(matches))}")
 
 
 class Context:
@@ -91,7 +91,7 @@ class Context:
                     "exist in the working directory or "
                     "any of the parent directories."
                 )
-            raise click.UsageError('Could not find project "%s"' % self._project_path)
+            raise click.UsageError(f'Could not find project "{self._project_path}"')
         self._project = rv
         return rv
 
@@ -128,7 +128,7 @@ pass_context = click.make_pass_decorator(Context, ensure=True)
 
 def validate_language(ctx, param, value):
     if value is not None and not is_valid_language(value):
-        raise click.BadParameter('Unsupported language "%s".' % value)
+        raise click.BadParameter(f'Unsupported language "{value}".')
     return value
 
 
