@@ -56,4 +56,4 @@ def test_get_default_child_slug_reports_failure(datamodel, pad):
         assert datamodel.get_default_child_slug(pad, data) == "temp-id"
     _, event_data = reporter.buffer[-1]
     message = event_data["message"]
-    assert re.search(r"failed to expand\b.*\bslug_format\b", message, re.I)
+    assert re.search(r"failed to expand\b.*\bslug_format\b", message, re.IGNORECASE)

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -17,5 +16,4 @@ def test_ResolvedPath_resolves_relative_path(
 
     resolved = resolved_path.convert("filename", None, None)
     assert isinstance(resolved, str)
-    # NB: os.path.realpath does not resolve symlinks on Windows with Python==3.7
-    assert resolved == os.path.join(Path().resolve(), "filename")
+    assert resolved == str(Path.cwd().resolve() / "filename")

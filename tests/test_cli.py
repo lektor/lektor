@@ -183,5 +183,4 @@ def test_build_output_path_relative_to_cwd(
     args, kwargs = mock.call_args
     bound_args = inspect.signature(to_mock).bind(*args, **kwargs).arguments
     output_path = bound_args[param_name]
-    # NB: os.path.realpath does not resolve symlinks on Windows with Python==3.7
-    assert output_path == os.path.join(Path().resolve(), "htdocs")
+    assert output_path == str(Path.cwd().resolve() / "htdocs")
