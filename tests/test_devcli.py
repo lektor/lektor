@@ -370,9 +370,7 @@ def test_new_theme_path_and_name_params(project_cli_runner):
 @pytest.mark.xfail(strict=False, reason="seems to be broken in CI")
 def test_new_theme_varying_names(project_cli_runner, theme_name, expected_id):
     result = project_cli_runner.invoke(
-        cli,
-        ["dev", "new-theme"],
-        input="{}\n" "\n" "\n" "\n" "y\n".format(theme_name),
+        cli, ["dev", "new-theme"], input=(f"{theme_name}\n" "\n" "\n" "\n" "y\n")
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0

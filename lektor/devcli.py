@@ -50,10 +50,9 @@ def shell_cmd(ctx, extra_flags):
     from lektor.db import F
     from lektor.db import Tree
 
-    banner = "Python {} on {}\nLektor Project: {}".format(
-        sys.version,
-        sys.platform,
-        ctx.get_env().root_path,
+    banner = (
+        f"Python {sys.version} on {sys.platform}\n"
+        f"Lektor Project: {ctx.get_env().root_path}"
     )
     ns = {}
     startup = os.environ.get("PYTHONSTARTUP")

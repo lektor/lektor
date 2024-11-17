@@ -328,11 +328,10 @@ def make_video_thumbnail(
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
 
-        vfilter = "thumbnail,scale={rw}:{rh},crop={tw}:{th}".format(
-            rw=resize_dim.width,
-            rh=resize_dim.height,
-            tw=crop_dim.width,
-            th=crop_dim.height,
+        vfilter = (
+            "thumbnail",
+            f"scale={resize_dim.width}:{resize_dim.height}",
+            f"crop={crop_dim.width}:{crop_dim.height}",
         )
 
         cmdline = [
@@ -344,7 +343,7 @@ def make_video_thumbnail(
             "-i",
             source_video,
             "-vf",
-            vfilter,
+            ",".join(vfilter),
             "-frames:v",
             "1",
             "-qscale:v",
@@ -359,10 +358,10 @@ def make_video_thumbnail(
 
         if not os.path.exists(artifact.dst_filename):
             msg = (
-                "Unable to create video thumbnail for {!r}. Maybe the seek "
-                "is outside of the video duration?"
+                f"Unable to create video thumbnail for {source_video!r}. "
+                "Maybe the seek is outside of the video duration?"
             )
-            raise RuntimeError(msg.format(source_video))
+            raise RuntimeError(msg)
 
     ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_video])(
         build_thumbnail_artifact
