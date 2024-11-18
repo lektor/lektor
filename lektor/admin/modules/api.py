@@ -338,13 +338,10 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
         return jsonify({"bad_upload": True})
 
     buckets = []
-
     for file in request.files.getlist("file"):
+        stored_filename = ts.add_attachment(file.filename, file)
         buckets.append(
-            {
-                "original_filename": file.filename,
-                "stored_filename": ts.add_attachment(file.filename, file),
-            }
+            {"original_filename": file.filename, "stored_filename": stored_filename}
         )
 
     return jsonify(

@@ -524,10 +524,9 @@ def fields_from_data(env, data, parent_fields=None):
         known_fields.add(name)
 
     if parent_fields is not None:
-        prepended_fields = []
-        for field in parent_fields:
-            if field.name not in known_fields:
-                prepended_fields.append(field)
+        prepended_fields = [
+            field for field in parent_fields if field.name not in known_fields
+        ]
         fields = prepended_fields + fields
 
     return fields

@@ -308,13 +308,13 @@ class EditorSession:
         files = [self.fs_path]
         if self._master_delete:
             files.append(self.attachment_fs_path)
-            for alt in self.pad.db.config.list_alternatives():
-                files.append(self.get_fs_path(alt))
-
+            files.extend(
+                self.get_fs_path(alt) for alt in self.pad.db.config.list_alternatives()
+            )
         for fn in files:
             try:
                 os.unlink(fn)
-            except OSError:
+            except OSError:  # noqa: PERF203
                 pass
 
     def _page_delete_impl(self):
@@ -332,7 +332,7 @@ class EditorSession:
         for fn in self.fs_path, directory:
             try:
                 os.unlink(fn)
-            except OSError:
+            except OSError:  # noqa: PERF203
                 pass
 
     def _delete_impl(self):
