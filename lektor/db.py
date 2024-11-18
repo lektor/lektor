@@ -385,7 +385,7 @@ class Record(DBSourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in (self.datamodel.label_i18n or {}).items():
+        for lang in self.datamodel.label_i18n or {}:
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)
@@ -1696,10 +1696,7 @@ class Pad:
 
     def get_all_roots(self):
         """Returns all the roots for building."""
-        rv = []
-        for alt in self.db.config.list_alternatives():
-            rv.append(self.get_root(alt=alt))
-
+        rv = [self.get_root(alt=alt) for alt in self.db.config.list_alternatives()]
         # If we don't have any alternatives, then we go with the implied
         # root.
         if not rv and self.root:

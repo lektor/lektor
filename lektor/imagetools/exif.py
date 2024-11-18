@@ -5,6 +5,7 @@ from __future__ import annotations
 import numbers
 import sys
 from collections.abc import Mapping
+from contextlib import suppress
 from datetime import datetime
 from fractions import Fraction
 from functools import wraps
@@ -328,10 +329,8 @@ class EXIFInfo:
             (self._ifd0, ExifTags.Base.DateTime),
         )
         for ifd, tag in date_tags:
-            try:
+            with suppress(LookupError, ValueError):
                 return datetime.strptime(ifd[tag], "%Y:%m:%d %H:%M:%S")
-            except (LookupError, ValueError):
-                continue
         return None
 
     @property
