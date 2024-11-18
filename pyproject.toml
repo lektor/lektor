@@ -147,8 +147,16 @@ select = [
     "G",                        # flake8-logging-format
     "Q",                        # flake8-quotes
     "INT",                      # flake8-gettext
+    "PL",                       # pylint
     "FLY",                      # flynt
     "FURB",                     # refurb
+]
+ignore = [
+    "PLW2901",                  # pylint redefined-loop-name
+    "PLR0913",                  # pylint too-many-arguments
+    "PLR2004",                  # pylint magic-value-comparison
+    "PLR2044",                  # pylint empty-comment
+    "PLR5501",                  # pylint collapsible-else-if
 ]
 
 [tool.ruff.lint.isort]
@@ -157,6 +165,10 @@ lines-after-imports = 2
 order-by-type = false
 extra-standard-library = [ "_typeshed" ]
 known-first-party = ["lektor"]
+
+[tool.ruff.lint.pylint]
+max-branches = 20
+max-returns = 8
 
 ################################################################
 #
