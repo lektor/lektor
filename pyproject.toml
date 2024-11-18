@@ -150,6 +150,7 @@ select = [
     "PL",                       # pylint
     "FLY",                      # flynt
     "FURB",                     # refurb
+    "PERF",                     # perflint
 ]
 ignore = [
     "PLW2901",                  # pylint redefined-loop-name
