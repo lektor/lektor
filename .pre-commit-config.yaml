@@ -40,3 +40,34 @@ repos:
         entry: ./frontend/node_modules/prettier/bin/prettier.cjs --write --list-different
         require_serial: true
         files: \.(ts|tsx|js|less|ya?ml|md)$
+
+  - repo: https://github.com/PyCQA/pylint.git
+    # rev: v3.3.1
+    rev: v3.2.7
+    hooks:
+      - id: pylint
+        additional_dependencies:
+          - hatchling # distribution package build backend
+          - Babel # runtime
+          - click >= 6.0 # runtime
+          - Flask # runtime
+          - inifile >= 0.4.1 # runtime
+          - Jinja2 >= 3.0 # runtime
+          - MarkupSafe # runtime
+          - marshmallow # runtime
+          - marshmallow_dataclass >= 8.5.9 # runtime
+          - mistune >=0.7.0, <3 # runtime
+          - Pillow >= 6 # runtime
+          - pip # runtime
+          - python-slugify # runtime
+          - requests # runtime
+          - typing-extensions >= 3.10; python_version < '3.10' # runtime
+          - tzdata; sys_platform == 'win32' # runtime
+          - watchfiles >= 0.12 # runtime
+          - Werkzeug >= 2.1.0 # runtime
+          - ipython # runtime, additional through `ipython` extra
+          - traitlets # runtime, additional through `ipython` extra
+          - pytest >= 6 # tests
+          - pytest-mock # tests
+          - importlib_metadata; python_version < "3.10" # tests
+          - iniconfig # tests

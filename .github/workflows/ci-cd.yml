@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+    env:
+      TOXENV: pre-commit
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,15 +46,35 @@ jobs:
       - name: Install python dependencies
         id: pip
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install tox pre-commit
+          python -m pip install tox
           python -m pip freeze --local
-      - name: Run pylint
-        run: tox -e lint
-      - name: Run pre-commit
-        # run pre-commit check even if pylint check fails
-        if: steps.pip.outcome == 'success'
-        run: pre-commit run --show-diff-on-failure --color=always --all-files
+      - name: Pre-populate ${{ env.TOXENV }} tox env
+        run: >-
+          python -Im
+          tox
+          --parallel auto
+          --parallel-live
+          --skip-missing-interpreters false
+          --notest
+      - name: Initialize ${{ env.TOXENV }} envs
+        run: >-
+          python -Im
+          tox
+          exec
+          --skip-pkg-install
+          --quiet
+          --
+          python -Im pre_commit install-hooks
+      - name: Run ${{ env.TOXENV }}
+        id: tox-run
+        run: >-
+          python -Im
+          tox
+          --parallel auto
+          --parallel-live
+          --skip-missing-interpreters false
+          --skip-pkg-install
+          --quiet
 
   ############################################################################
   # Node tests
