@@ -63,6 +63,7 @@ export default function PreviewPage(): JSX.Element {
         // even when the iframe has the focus.
         contentWindow.addEventListener("keydown", (ev: KeyboardEvent) => {
           const clone = new KeyboardEvent(ev.type, ev);
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           window.dispatchEvent(clone) || ev.preventDefault();
         });
 

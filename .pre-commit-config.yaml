@@ -31,7 +31,7 @@ repos:
       - id: eslint
         name: eslint
         language: node
-        entry: ./frontend/node_modules/eslint/bin/eslint.js --fix --max-warnings 0
+        entry: ./frontend/node_modules/eslint/bin/eslint.js --config frontend/eslint.config.mjs --fix --max-warnings 0
         require_serial: true
         files: \.(ts|tsx)$
       - id: prettier

@@ -16,8 +16,8 @@ import SVG_ICONS_FONTAWESOME from "./tooldrawer/components/_svg-icons/fontawesom
 // A simple esbuild plugin to compile sass.
 const sassPlugin: Plugin = {
   name: "sass",
-  setup: ({ onResolve, onLoad }) => {
-    onResolve({ filter: /\.scss$/ }, ({ path, resolveDir }) => ({
+  setup: (build) => {
+    build.onResolve({ filter: /\.scss$/ }, ({ path, resolveDir }) => ({
       path: resolve(resolveDir, path),
       namespace: "sass",
       watchFiles: fg.sync(["**/*.scss"], {
@@ -25,8 +25,17 @@ const sassPlugin: Plugin = {
         absolute: true,
       }),
     }));
-    onLoad({ filter: /.*/, namespace: "sass" }, ({ path }) => ({
-      contents: compile(path).css.toString(),
+    build.onLoad({ filter: /.*/, namespace: "sass" }, ({ path }) => ({
+      contents: compile(path, {
+        // silence warnings that are caused by bootstrap
+        // see https://github.com/twbs/bootstrap/issues/40849
+        silenceDeprecations: [
+          "color-functions",
+          "global-builtin",
+          "import",
+          "mixed-decls",
+        ],
+      }).css.toString(),
       resolveDir: dirname(path),
       loader: "css",
     }));
