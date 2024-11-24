@@ -26,7 +26,16 @@ const sassPlugin: Plugin = {
       }),
     }));
     build.onLoad({ filter: /.*/, namespace: "sass" }, ({ path }) => ({
-      contents: compile(path).css.toString(),
+      contents: compile(path, {
+        // silence warnings that are caused by bootstrap
+        // see https://github.com/twbs/bootstrap/issues/40849
+        silenceDeprecations: [
+          "color-functions",
+          "global-builtin",
+          "import",
+          "mixed-decls",
+        ],
+      }).css.toString(),
       resolveDir: dirname(path),
       loader: "css",
     }));
