@@ -75,7 +75,11 @@ export function useChangedFlag<T>(): [
       };
 
       const result = await cb();
-      options?.sync ? flushSync(update) : update();
+      if (options?.sync) {
+        flushSync(update);
+      } else {
+        update();
+      }
       return result;
     },
     [setFlushed],

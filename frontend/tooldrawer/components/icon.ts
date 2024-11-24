@@ -21,7 +21,9 @@ const iconSvg = new Map<string, ReturnType<typeof html>>(
     html`${unsafeSVG(svg)}`,
   ]),
 );
-iconSvg.size > 0 || console.warn("No icon data is available");
+if (iconSvg.size === 0) {
+  console.warn("No icon data is available");
+}
 
 declare global {
   interface HTMLElementTagNameMap {

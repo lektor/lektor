@@ -1,5 +1,5 @@
 {
-  "include": ["build.ts", "js/**/*"],
+  "include": ["build.ts", "eslint.config.mjs", "js/**/*"],
   "compilerOptions": {
     "target": "es2018",
     "module": "es2015",

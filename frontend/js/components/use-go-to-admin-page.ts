@@ -32,6 +32,7 @@ export function useGoToAdminPage() {
 
   return useCallback(
     (name: PageName, path: RecordPath, alt: RecordAlternative) => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       navigate(adminPath(name, path, alt));
     },
     [navigate],

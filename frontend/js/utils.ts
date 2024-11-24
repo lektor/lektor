@@ -52,7 +52,7 @@ export function getPlatform(): "windows" | "mac" | "linux" | null {
       return "linux";
     }
     return null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
