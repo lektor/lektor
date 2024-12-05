@@ -574,6 +574,18 @@ def atomic_open(
 def atomic_open(
     filename: StrPath, mode: _AtomicOpenMode = "r", encoding: str | None = None
 ) -> Iterator[IO[Any]]:
+    """Open a file for atomic update.
+
+    Perform an "all-or-nothing" write to a file.
+
+    This opens a temporary file to receive writes. It is meant to be used as a context
+    manager. When the context is exited normally, the temporary file is closed then
+    atomically renamed to the target file name.
+
+    If an exception is thrown during this process the temporary file is silently
+    deleted.
+
+    """
     if any(c in mode for c in "ax+"):
         raise ValueError(f"unsupported open mode: {mode}")
 
@@ -604,9 +616,10 @@ def create_temp(
     text: bool = False,
     mode: int = 0o666,
 ) -> tuple[int, str | bytes]:
-    """User-callable function to create and return a unique temporary
-    file.  The return value is a pair (fd, name) where fd is the
-    file descriptor returned by os.open, and name is the filename.
+    """Create and return a unique temporary file.
+
+    The return value is a pair (fd, name) where fd is the file descriptor returned by
+    os.open, and name is the filename.
 
     This works very much like `tempfile.mkstemp`, except that it allows more control
     over the mode (access permissions) of the created file.
@@ -614,8 +627,6 @@ def create_temp(
     The access permissions of the created file is determined by the value of 'mode'
     (which defaults to 0o666) combined with any umask or default ACL that may be in
     place.
-
-    Caller is responsible for deleting the file when done with it.
 
     """
     if (tmp_dir := dir) is None:
@@ -633,8 +644,8 @@ def create_temp(
             continue
         # NB: Under Windows, PermissionError can be raised by os.open if a directory
         # with the chosen name already exists. Since mktemp doesn't return names to
-        # existing files/dirs, the likelihood of this happening is slim. We don't
-        # check for it here.
+        # existing files/dirs, the likelihood of this happening is slim. For now, we
+        # don't check for it here.
         return fd, filename
 
     raise AssertionError("Unable to find temporary file name")
