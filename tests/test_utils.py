@@ -272,6 +272,8 @@ def test_atomic_open_exception(tmp_path):
 @pytest.fixture(params=[0o022, 0o002, 0x000])
 def umask(request):
     umask = request.param
+    if os.name == "nt":
+        pytest.skip("Windows does not support umask")
     saved = os.umask(umask)
     try:
         yield umask
@@ -283,7 +285,7 @@ def test_atomic_open_respects_umask(tmp_path, umask):
     path = tmp_path / "test.txt"
     with atomic_open(path, "w"):
         pass
-    assert stat.S_IMODE(path.stat().st_mode) == 0o666 & ~umask
+    assert oct(stat.S_IMODE(path.stat().st_mode)) == oct(0o666 & ~umask)
 
 
 @pytest.mark.parametrize("mode", ["a", "w+", "x", "rw", "foo"])
@@ -306,7 +308,7 @@ def test_create_temp(tmp_path):
 @pytest.mark.parametrize("mode", [0o666, 0o777])
 def test_create_temp_respects_umask(tmp_path, mode, umask):
     _, filename = create_temp(dir=tmp_path, mode=mode)
-    assert stat.S_IMODE(os.stat(filename).st_mode) == mode & ~umask
+    assert oct(stat.S_IMODE(os.stat(filename).st_mode)) == oct(mode & ~umask)
 
 
 @pytest.mark.parametrize(
