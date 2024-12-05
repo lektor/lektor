@@ -19,6 +19,7 @@ from lektor.utils import slugify
 class ChildConfig:
     def __init__(
         self,
+        *,
         enabled=None,
         slug_format=None,
         model=None,
@@ -47,7 +48,9 @@ class ChildConfig:
 
 
 class PaginationConfig:
-    def __init__(self, env, enabled=None, per_page=None, url_suffix=None, items=None):
+    def __init__(
+        self, env, *, enabled=None, per_page=None, url_suffix=None, items=None
+    ):
         self.env = env
         if enabled is None:
             enabled = False
@@ -153,7 +156,7 @@ class PaginationConfig:
 
 
 class AttachmentConfig:
-    def __init__(self, enabled=None, model=None, order_by=None, hidden=None):
+    def __init__(self, *, enabled=None, model=None, order_by=None, hidden=None):
         if enabled is None:
             enabled = True
         if hidden is None:
@@ -231,6 +234,7 @@ class DataModel:
         env,
         id,
         name_i18n,
+        *,
         label_i18n=None,
         filename=None,
         hidden=None,
@@ -394,6 +398,7 @@ class FlowBlockModel:
         env,
         id,
         name_i18n,
+        *,
         filename=None,
         fields=None,
         order=None,

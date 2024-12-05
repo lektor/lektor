@@ -410,6 +410,7 @@ def make_image_thumbnail(
     ctx: Context,
     source_image: str | Path,
     source_url_path: str,
+    *,
     width: int | None = None,
     height: int | None = None,
     mode: ThumbnailMode = ThumbnailMode.DEFAULT,

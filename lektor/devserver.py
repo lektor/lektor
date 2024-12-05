@@ -93,6 +93,7 @@ def run_server(
     bindaddr: BindAddr,
     env: Environment,
     output_path: StrPath,
+    *,
     prune: bool = True,
     verbosity: int = 0,
     lektor_dev: bool = False,

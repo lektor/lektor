@@ -92,6 +92,7 @@ def cli(ctx, project=None, language=None):
 @pass_context
 def build_cmd(
     ctx,
+    *,
     output_path,
     watch,
     prune,
@@ -175,7 +176,7 @@ def build_cmd(
 @click.confirmation_option(help="Confirms the cleaning.")
 @extraflag
 @pass_context
-def clean_cmd(ctx, output_path, verbosity, extra_flags):
+def clean_cmd(ctx, *, output_path, verbosity, extra_flags):
     """Cleans the entire build folder.
 
     If not build folder is provided, the default build folder of the project
@@ -229,7 +230,7 @@ def clean_cmd(ctx, output_path, verbosity, extra_flags):
 )
 @extraflag
 @pass_context
-def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
+def deploy_cmd(ctx, *, server, output_path, extra_flags, **credentials):
     """This command deploys the entire contents of the build folder
     (`--output-path`) onto a configured remote server.  The name of the
     server must fit the name from a target in the project configuration.
@@ -324,7 +325,7 @@ def deploy_cmd(ctx, server, output_path, extra_flags, **credentials):
 @extraflag
 @click.option("--browse", is_flag=True)
 @pass_context
-def server_cmd(ctx, host, port, output_path, prune, verbosity, extra_flags, browse):
+def server_cmd(ctx, *, host, port, output_path, prune, verbosity, extra_flags, browse):
     """The server command will launch a local server for development.
 
     Lektor's development server will automatically build all files into
@@ -382,7 +383,7 @@ def server_cmd(ctx, host, port, output_path, prune, verbosity, extra_flags, brow
     help="Print the path to the package cache.",
 )
 @pass_context
-def project_info_cmd(ctx, as_json, **opts):
+def project_info_cmd(ctx, *, as_json, **opts):
     """Prints out information about the project.  This is particular
     useful for script usage or for discovering information about a
     Lektor project that is not immediately obvious (like the paths
@@ -412,7 +413,7 @@ def project_info_cmd(ctx, as_json, **opts):
 @click.option("as_json", "--json", is_flag=True, help="Prints out the data as json.")
 @click.argument("files", nargs=-1, type=click.Path(dir_okay=False))
 @pass_context
-def content_file_info_cmd(ctx, files, as_json):
+def content_file_info_cmd(ctx, files, *, as_json):
     """Given a list of files this returns the information for those files
     in the context of a project.  If the files are from different projects
     an error is generated.
@@ -539,7 +540,7 @@ def plugins_remove_cmd(ctx, name):
     help="Increases the verbosity of the output.",
 )
 @pass_context
-def plugins_list_cmd(ctx, as_json, verbosity):
+def plugins_list_cmd(ctx, *, as_json, verbosity):
     """This returns a list of all currently actively installed plugins
     in the project.  By default it only prints out the plugin IDs and
     version numbers but the entire information can be returned by
