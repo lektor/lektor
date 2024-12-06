@@ -431,6 +431,22 @@ def test_Artifact_open_encoding(builder):
         assert fp.read() == "Ciarán"
 
 
+def test_Artifact_file_mode(builder, tmp_path):
+    # Check that created artifacts have same file mode as normally created files.
+    new_file = tmp_path / "dummy-test-file"
+    new_file.touch()
+    new_file_mode = new_file.stat().st_mode
+
+    build_state = builder.new_build_state()
+    artifact = build_state.new_artifact("dummy-artifact", sources=())
+    with artifact.update(), artifact.open("w"):
+        pass
+    artifact_mode = Path(artifact.dst_filename).stat().st_mode
+
+    # applying oct makes failures more readable
+    assert oct(artifact_mode) == oct(new_file_mode)
+
+
 def test_FileInfo_unchanged(env, tmp_path):
     file_path = tmp_path / "file"
     file_path.write_text("foo")

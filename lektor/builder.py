@@ -6,7 +6,6 @@ import shutil
 import sqlite3
 import stat
 import sys
-import tempfile
 from collections import deque
 from collections import namedtuple
 from contextlib import contextmanager
@@ -23,6 +22,7 @@ from lektor.constants import PRIMARY_ALT
 from lektor.context import Context
 from lektor.reporter import reporter
 from lektor.sourcesearch import find_files
+from lektor.utils import create_temp
 from lektor.utils import fs_enc
 from lektor.utils import process_extra_flags
 from lektor.utils import prune_file_and_folder
@@ -726,9 +726,11 @@ class Artifact:
 
         if ensure_dir:
             self.ensure_dir()
-        fd, self._new_artifact_file = tempfile.mkstemp(
-            dir=os.path.dirname(self.dst_filename),
+
+        fd, self._new_artifact_file = create_temp(
             prefix=".__trans",
+            dir=os.path.dirname(self.dst_filename),
+            text="b" not in mode,
         )
         return open(fd, mode, encoding=encoding)
 
