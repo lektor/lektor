@@ -1,0 +1,22 @@
+title: markdown-meta-init
+---
+body:
+
+! Future versions of Lektor may change its Markdown parser away from [Mistune](https://github.com/lepture/mistune), and the various markdown related event hooks may be completely removed or work differently if that happens.
+
+This event is emitted before the markdown meta information is set. This can be used to add custom meta variables to the markdown object.
+
+## Example
+
+[lektor-markdown-header-anchors :ext](https://github.com/lektor/lektor-markdown-header-anchors) uses this to initialize a meta var as an empty list:
+
+```python
+def on_markdown_meta_init(self, meta, **extra):
+    meta['toc'] = []
+```
+---
+signature: meta, record
+---
+summary: This event is emitted before the markdown meta information is set.
+---
+type: event

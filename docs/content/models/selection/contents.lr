@@ -1,0 +1,23 @@
+title: Default Model Selection
+---
+summary: Explains how Lektor decides on the model to use.
+---
+body:
+
+When Lektor encounters a content file it needs to decide which data model to
+use for figuring out how to handle the fields.  In the ideal case the content
+file contains `_model` field which will point explicitly to a model.  However
+if a model was not defined it's picked automatically.
+
+Lektor will attempt to load a few models and will pick the first that exists.
+If no model exists at all then Lektor calls back to the special `none` model
+which is empty other than for system fields.
+
+1. If a model is defined for children by the parent model then it's used.
+   For more information about this feature see [Children & Pagination
+   :ref](../children/).
+2. The ID of the page is attempted as model name next.
+3. If it still does not match anything, it will try the default `page`
+   model.
+4. If that also does not match, it falls back to the special `none` model
+   which is always empty.

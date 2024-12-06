@@ -1,0 +1,72 @@
+title: rsync
+---
+summary: Automatic deployments with SSH and rsync.
+---
+body:
+
+`rsync://username@server/path/to/folder`
+
+This deploys via SSH and rsync to a remote server.  This is the recommended
+way to deploy if the system supports it as it is a very fast and reliable
+way.  It uses the system's SSH config so for authentication just configure
+SSH as you would normally do.  The `username` part is optional and defaults
+to the current user that is signed into the machine or whatever is picked up
+as default from the `.ssh/config`.
+
+## Example
+
+```ini
+[servers.production]
+target = rsync://deploy@example.com/var/www/example.com
+```
+
+## Credentials
+
+The `rsync` deploy method supports both username and password parameter
+though it's recommended to use `.ssh/config` and an SSH agent to secure
+the deployment.  The `--password` parameter is not supported!  Instead you
+need to use `--key-file` (`LEKTOR_DEPLOY_KEY_FILE`) or `--key`
+(`LEKTOR_DEPLOY_KEY`).  The `--key-file` is the path to an OpenSSH private
+key.
+
+If you are using `--key` you can directly copy paste the contents of a key
+into a string.  This is useful if you want to use it as an environment
+variable.  The format for the string is `KEY_TYPE:BASE64` where `KEY_TYPE`
+is the type of the key (`RSA`, `EC`, etc.) and `BASE64` is the base64 encoded
+private key without newlines or whitespace.  To find out which type your
+key is look at the first line of the key marker.  For instance `BEGIN EC
+PRIVATE KEY` indicates an `EC` key.  If no key type is defined `RSA` is
+assumed.
+
+## Deletion Support
+
+!! New in version 3.2.
+
+To keep two directories truly in sync when deploying with `rsync`,
+it's necessary to explicitly tell `rsync` to remove files or directories
+on target that don't exist on source anymore. This can be done using the
+`?delete` URL parameter:
+
+```ini
+[servers.production]
+target = rsync://server/path/to/folder?delete
+```
+
+If the parameter is provided Lektor will issue a `rsync --delete-delay`,
+which performs deletions after all other transfers ended, and only in case
+there were no failures.
+
+!!!! Note that the `?delete` option will remove **any file or directory**
+on target that does not exist on source. This means that if you have files
+in the target tree that are not managed by lektor, they will get removed.
+
+## Exclusion Support
+
+You can exclude items from being synced by using one or more `exclude`
+parameters. This is also useful in combination with `delete` to prevent
+removal of files in the target tree that are not managed by lektor:
+
+```ini
+[servers.production]
+target = rsync://server/path/to/folder?delete&exclude=target_item_1&exclude=target_item_2
+```
