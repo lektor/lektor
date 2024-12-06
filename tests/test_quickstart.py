@@ -20,7 +20,8 @@ class struct_passwd(NamedTuple):
 
 @pytest.fixture
 def git_config_file(tmp_path, monkeypatch):
-    """Create a temporary git config file, and monkeypatch $GIT_CONFIG to point to it."""
+    """Create a temporary git config file, and monkeypatch $GIT_CONFIG to point to
+    it."""
     config_file = tmp_path / "git_config"
     config_file.touch()
     monkeypatch.setitem(os.environ, "GIT_CONFIG", str(config_file))

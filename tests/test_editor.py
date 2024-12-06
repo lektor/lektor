@@ -137,7 +137,7 @@ def test_editor_data_getitem(editor_data):
     assert editor_data["item1"] == "value1"
     assert editor_data["item2"] == "fallback2"
     with pytest.raises(KeyError):
-        editor_data["item3"]  # pylint: disable=pointless-statement
+        _ = editor_data["item3"]
 
 
 def test_editor_data_setitem(editor_data):

@@ -185,7 +185,7 @@ class PageBuildProgram(BuildProgram):
             raise BuildError(
                 "The URL for this record contains non ASCII "
                 "characters.  This is currently not supported "
-                "for portability reasons (%r)." % self.source.url_path
+                f"for portability reasons ({self.source.url_path!r})."
             ) from error
 
         artifact.render_template_into(self.source["_template"], this=self.source)

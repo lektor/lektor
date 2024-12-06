@@ -30,7 +30,7 @@ def test_deprecated_attr(name, expected_value, replacement):
 def test_missing_attr():
     lektor_compat = importlib.import_module("lektor.compat")
     with pytest.raises(AttributeError):
-        lektor_compat.MISSING  # pylint: disable=pointless-statement
+        _ = lektor_compat.MISSING
 
 
 def make_CompatURL(url: str) -> _CompatURL:
@@ -73,7 +73,7 @@ def test_compatURL_host(make_url):
         ("http:/foo", [None]),
         ("http://bücher.example/foo", ["xn--bcher-kva.example"]),
         # werkzeug < 2.3 strips non-ascii
-        ("http://bad\uFFFF.example.org", ["bad\uFFFF.example.org", "bad.example.org"]),
+        ("http://bad\uffff.example.org", ["bad\uffff.example.org", "bad.example.org"]),
     ],
 )
 def test_compatURL_ascii_host(url, expected, make_url):

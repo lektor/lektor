@@ -29,7 +29,8 @@ class MarkdownType(Type):
 def _check_option(options, name, choices):
     value = options.get(name)
     if value is not None and value not in choices:
-        warn(
+        message = (
             f"Unrecognized value {value!r} for the {name!r} markdown field option. "
             f"Valid values are: {', '.join(repr(_) for _ in choices)}."
         )
+        warn(message, stacklevel=3)
