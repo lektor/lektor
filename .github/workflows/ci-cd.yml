@@ -7,6 +7,7 @@ on:
     branches:
       - master
       - "*-maintenance"
+      - "*"
     tags:
       - "v*"
   pull_request:
@@ -21,6 +22,7 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag' # only publish to PyPI on tag pushes
     strategy:
       fail-fast: false
     steps:
@@ -59,6 +61,7 @@ jobs:
   ############################################################################
   node-tests:
     name: ${{ matrix.os}} node-${{ matrix.node }}
+    if: github.ref_type == 'tag' # only publish to PyPI on tag pushes
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -84,26 +87,24 @@ jobs:
   # Python tests
   ############################################################################
   python-tests:
-    name: ${{ matrix.os }} py${{ matrix.python }}
+    name: ${{ matrix.os }} py${{ matrix.python }} ${{ matrix.resolution }} dependencies
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python: ["3.9", "3.13"]
+        resolution: ["highest"]
         include:
-          - { os: "macos-latest", python: "3.9" }
-          - { os: "macos-latest", python: "3.13", install-ffmpeg: true }
-          - { os: "windows-latest", python: "3.9" }
-          - { os: "windows-latest", python: "3.13", install-ffmpeg: true }
-          - { python: "3.13", install-ffmpeg: true }
+          - { os: "ubuntu-latest", python: "3.9", resolution: "lowest" }
+          - { os: "ubuntu-latest", python: "3.13", resolution: "lowest" }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python }}
-          cache: "pip"
-          cache-dependency-path: "**/pyproject.toml"
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux' && matrix.install-ffmpeg
@@ -126,14 +127,15 @@ jobs:
         if: runner.os == 'Windows'
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
+      - name: Install python
+        if: matrix.python != '3.13'
+        run: uv python install --python-preference only-managed ${{ matrix.python }}
       - name: Install python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install tox tox-gh-actions coverage[toml]
+        run: uv sync --group=uv --group=dev --python-preference only-managed --python ${{ matrix.python }}  --resolution ${{ matrix.resolution }}
       - name: Run python tests
-        run: tox
+        run: uv run -vv tox run --skip-missing-interpreters false
         env:
-          TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
+          TOX_GH_MAJOR_MINOR: ${{ matrix.python }}
       - name: Publish coverage data to codecov
         uses: codecov/codecov-action@v4
         with:
@@ -144,6 +146,7 @@ jobs:
   ############################################################################
   build:
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag' # only publish to PyPI on tag pushes
     steps:
       - uses: actions/checkout@v4
         with:
