@@ -93,11 +93,8 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.9", "3.13"]
-        resolution: ["highest"]
-        include:
-          - { os: "ubuntu-latest", python: "3.9", resolution: "lowest" }
-          - { os: "ubuntu-latest", python: "3.13", resolution: "lowest" }
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        resolution: ["highest", "lowest"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
