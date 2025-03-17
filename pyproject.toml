@@ -58,6 +58,7 @@ optional-dependencies.ipython = [
     "decorator>=4",
     "matplotlib-inline>=0.1.1; python_version>='3.11'",
     "traitlets>=5.13.0",
+    "wcwidth>=0.2.13",
 ]
 
 [dependency-groups]

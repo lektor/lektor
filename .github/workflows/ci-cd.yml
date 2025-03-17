@@ -102,6 +102,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
           cache-dependency-glob: "**/pyproject.toml"
+          # TODO(https://github.com/astral-sh/setup-uv/issues/226): Remove this.
+          prune-cache: ${{ matrix.os != 'windows-latest' }}
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux' && matrix.install-ffmpeg
