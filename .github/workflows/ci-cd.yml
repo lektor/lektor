@@ -87,7 +87,7 @@ jobs:
   # Python tests
   ############################################################################
   python-tests:
-    name: ${{ matrix.os }} py${{ matrix.python }} ${{ matrix.resolution }} dependencies
+    name: ${{ matrix.os }} py${{ matrix.python }} ${{ matrix.resolution }} deps
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -130,7 +130,7 @@ jobs:
       - name: Install python dependencies
         run: uv sync --group=uv --group=dev --python-preference only-managed --python ${{ matrix.python }}  --resolution ${{ matrix.resolution }}
       - name: Run python tests
-        run: uv run -vv tox run --skip-missing-interpreters false
+        run: uv run tox run --skip-missing-interpreters false
         env:
           TOX_GH_MAJOR_MINOR: ${{ matrix.python }}
       - name: Publish coverage data to codecov
