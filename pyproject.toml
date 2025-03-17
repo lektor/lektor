@@ -56,7 +56,7 @@ dependencies = [
 optional-dependencies.ipython = [
     "ipython>=9.0; python_version>='3.11'",
     "decorator>=4",
-    "matplotlib-inline>=0.1.1",
+    "matplotlib-inline>=0.1.1; python_version>='3.11'",
     "traitlets>=5.13.0",
 ]
 
