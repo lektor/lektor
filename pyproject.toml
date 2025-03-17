@@ -76,6 +76,7 @@ dev = [
     "cryptography>=44.0.2",
     "cffi>=1.15",
     "coverage>=7.7.0",
+    "uv-secure>=0.9.0",
 ]
 uv = [
     "tox-uv>=1.13.1",
