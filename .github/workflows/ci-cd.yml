@@ -87,19 +87,19 @@ jobs:
   # Python tests
   ############################################################################
   python-tests:
-    name: ${{ matrix.os }} py${{ matrix.python }} ${{ matrix.resolution }} deps
+    name: ${{ matrix.os }} py${{ matrix.python-version }} ${{ matrix.resolution }} deps
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         resolution: ["highest", "lowest"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ matrix.python-version }}
           enable-cache: true
           cache-dependency-glob: "**/pyproject.toml"
 
@@ -125,14 +125,14 @@ jobs:
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python
-        if: matrix.python != '3.13'
-        run: uv python install --python-preference only-managed ${{ matrix.python }}
+        if: matrix.python-version != '3.13'
+        run: uv python install --python-preference only-managed ${{ matrix.python-version }}
       - name: Install python dependencies
-        run: uv sync --group=uv --group=dev --python-preference only-managed --python ${{ matrix.python }}  --resolution ${{ matrix.resolution }}
+        run: uv sync --group=uv --group=dev --python-preference only-managed --python ${{ matrix.python-version }}  --resolution ${{ matrix.resolution }}
       - name: Run python tests
-        run: uv run tox run --skip-missing-interpreters false
+        run: uv run tox run -vv --skip-missing-interpreters false
         env:
-          TOX_GH_MAJOR_MINOR: ${{ matrix.python }}
+          TOX_GH_MAJOR_MINOR: ${{ matrix.python-version }}
       - name: Publish coverage data to codecov
         uses: codecov/codecov-action@v4
         with:

@@ -79,6 +79,7 @@ dev = [
 ]
 uv = [
     "tox-uv>=1.13.1",
+    "uv>=0.6.6",
 ]
 [project.scripts]
 lektor = "lektor.cli:main"
