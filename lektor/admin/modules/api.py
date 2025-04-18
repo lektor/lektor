@@ -67,16 +67,15 @@ class _ServerInfoField(marshmallow.fields.String):
         return server_info
 
 
-def _is_valid_path(value: str) -> bool:
+def _is_valid_path(value: str) -> None:
     if not cleanup_path(value) == value:
         raise marshmallow.ValidationError("Invalid value.")
 
 
-def _is_valid_alt(value: str) -> bool:
+def _is_valid_alt(value: str) -> None:
     lektor_config = get_lektor_context().config
     if not lektor_config.is_valid_alternative(value):
         raise marshmallow.ValidationError("Invalid alternative.")
-    return bool(lektor_config.is_valid_alternative(value))
 
 
 # Mark types for special validation
