@@ -2,6 +2,7 @@ import os
 import posixpath
 from collections.abc import Iterator
 from collections.abc import Mapping
+from contextvars import ContextVar
 from dataclasses import dataclass
 from dataclasses import field
 from functools import wraps
@@ -27,6 +28,7 @@ from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
 from lektor.datamodel import DataModel
 from lektor.db import Record
+from lektor.environment.config import Config
 from lektor.environment.config import ServerInfo
 from lektor.publisher import publish
 from lektor.publisher import PublishError
@@ -35,6 +37,9 @@ from lektor.utils import is_valid_id
 
 
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
+
+
+LEKTOR_CONFIG: ContextVar[Config] = ContextVar("lektor_config")
 
 
 @bp.url_value_preprocessor
@@ -54,7 +59,7 @@ class _ServerInfoField(marshmallow.fields.String):
         data: Optional[Mapping[str, Any]],
         **kwargs: Any,
     ) -> ServerInfo:
-        lektor_config = self.context["lektor_config"]
+        lektor_config = LEKTOR_CONFIG.get()
         server_id = super()._deserialize(value, attr, data, **kwargs)
         server_info = lektor_config.get_server(server_id)
         if server_info is None:
@@ -63,11 +68,14 @@ class _ServerInfoField(marshmallow.fields.String):
 
 
 def _is_valid_path(value: str) -> bool:
-    return cleanup_path(value) == value
+    if not cleanup_path(value) == value:
+        raise marshmallow.ValidationError("Invalid value.")
 
 
 def _is_valid_alt(value: str) -> bool:
     lektor_config = get_lektor_context().config
+    if not lektor_config.is_valid_alternative(value):
+        raise marshmallow.ValidationError("Invalid alternative.")
     return bool(lektor_config.is_valid_alternative(value))
 
 
@@ -111,9 +119,7 @@ def _with_validated(param_type: type) -> Callable[[F], F]:
                 data = request.get_json() or {}
             else:
                 data = request.values
-            schema.context = {
-                "lektor_config": kwargs["ctx"].config,
-            }
+            LEKTOR_CONFIG.set(kwargs["ctx"].config)
             try:
                 kwargs["validated"] = schema.load(data)
             except marshmallow.ValidationError as exc:
