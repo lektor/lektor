@@ -827,8 +827,9 @@ class URLBuilder:
         if url == "/":
             return url
         if trailing_slash is None:
-            _, last = url.split("/", 1)
+            _, last = url.rsplit("/", 1)
             if "." in last:
+                # Assuming the url points to a file
                 return url
         return url + "/"
 
