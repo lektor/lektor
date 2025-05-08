@@ -5,6 +5,7 @@ from importlib import metadata
 from typing import Any
 from typing import Optional
 from typing import TYPE_CHECKING
+from typing import Union
 from weakref import ref as weakref
 
 from markupsafe import Markup
@@ -25,9 +26,7 @@ controller_class: type[MarkdownController]
 
 
 MISTUNE_VERSION = metadata.version("mistune")
-if MISTUNE_VERSION.startswith("0."):
-    from lektor.markdown.mistune0 import MarkdownController0 as controller_class
-elif MISTUNE_VERSION.startswith("2."):
+if MISTUNE_VERSION.startswith("2."):
     from lektor.markdown.mistune2 import MarkdownController2 as controller_class
 else:  # pragma: no cover
     raise ImportError("Unsupported version of mistune")
@@ -51,7 +50,7 @@ class Markdown:
     __nonzero__ = __bool__
 
     @property
-    def record(self) -> SourceObject:
+    def record(self) -> Union[SourceObject, None]:
         ref = self.__record
         if ref is None:
             return None

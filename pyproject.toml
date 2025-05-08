@@ -34,29 +34,55 @@ classifiers = [
 
 requires-python = ">=3.9"
 dependencies = [
-    "Babel",
+    "Babel>=2.12",
     "click>=6.0",
-    "Flask",
+    "Flask>=3",
     "inifile>=0.4.1",
-    "Jinja2>=3.0",
+    "Jinja2>=3.1.6", # Contains fix for GHSA-cpwx-vrp4-4pq7
     "MarkupSafe",
     "marshmallow",
     "marshmallow_dataclass>=8.5.9",
-    "mistune>=0.7.0,<3",
-    "Pillow>=6",
-    "pip",
-    "python-slugify",
-    "requests",
+    "mistune>=2.0.3,<3",  # Contains fix for GHSA-fw3v-x4f2-v673
+    "Pillow>=11", # Earliest version to support py3.9 to py3.13
+    "pip>=24.1",
+    "python-slugify>=7.0.0", # Only >=7 support py3.7 and up
+    "requests>=2.32.0", # Contains fix for GHSA-9wx4-h78v-vm56
+    "urllib3>=2.2.2",  # urllib3 is not well supported in python 3.10 and beyond. Dependency of requests
     "typing-extensions>=3.10; python_version<'3.10'",
     "tzdata; sys_platform == 'win32'",
     "watchfiles>=0.12",
-    "Werkzeug>=2.1.0",
+    "Werkzeug>=3.0.6", # Contains fix for GHSA-q34m-jh98-gwm2
 ]
 optional-dependencies.ipython = [
-    "ipython",
-    "traitlets",
+    "ipython>=9.0; python_version>='3.11'",
+    "decorator>=4",
+    "matplotlib-inline>=0.1.1; python_version>='3.11'",
+    "traitlets>=5.13.0",
+    "wcwidth>=0.2.13",
 ]
 
+[dependency-groups]
+dev = [
+    "tox>=4.24.1",
+    "pytest>=8.3.5",
+    "pytest-mock>=3.14.0",
+    "pytest-click>=1.1.0",
+    "hatchling>=1.27.0",
+    "tox-gh-actions>=3.3.0",
+    "hatch>=1.14.0",
+    "hatch-vcs>=0.4.0",
+    "setuptools-scm>=8.2.0",
+    "setuptools>=67.0.0;python_version>='3.12'",
+    "zstandard==0.15.0",
+    "cryptography>=44.0.2",
+    "cffi>=1.17",
+    "coverage>=7.7.0",
+    "uv-secure>=0.9.0",
+]
+uv = [
+    "tox-uv>=1.13.1",
+    "uv>=0.6.6",
+]
 [project.scripts]
 lektor = "lektor.cli:main"
 
