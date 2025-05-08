@@ -14,7 +14,7 @@ export default function PrimaryField({
   primary: string;
   setPrimary: (s: SetStateAction<string>) => void;
   field: Field;
-}): JSX.Element {
+}): React.JSX.Element {
   const Widget = getWidgetComponentWithFallback(field.type);
   const value = Widget.deserializeValue
     ? Widget.deserializeValue(primary, field.type)

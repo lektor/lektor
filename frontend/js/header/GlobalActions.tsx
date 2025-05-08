@@ -20,7 +20,7 @@ const preferences = () => {
   dispatch("lektor-dialog", { type: "preferences" });
 };
 
-export default function GlobalActions(): JSX.Element {
+export default function GlobalActions(): React.JSX.Element {
   const record = useRecord();
 
   // Fetch previewURL so that we can use a link instead of button

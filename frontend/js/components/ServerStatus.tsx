@@ -7,7 +7,7 @@ interface State {
   projectId: string | null;
 }
 
-export default function ServerStatus(): JSX.Element | null {
+export default function ServerStatus(): React.JSX.Element | null {
   const [state, setState] = useState<State>({
     serverIsUp: true,
     projectId: null,

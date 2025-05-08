@@ -6,7 +6,7 @@ export default function DeletableAttachments({
   recordInfo,
 }: {
   recordInfo: RecordInfo;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <div>
       <h4>{trans("ATTACHMENTS_TO_BE_DELETED")}</h4>

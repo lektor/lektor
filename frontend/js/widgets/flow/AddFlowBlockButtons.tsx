@@ -11,7 +11,7 @@ export default function AddFlowBlockButtons({
   flowblocks: Record<string, FlowBlockModel>;
   flowblock_order: string[];
   addBlock: (model: FlowBlockModel) => void;
-}): JSX.Element {
+}): React.JSX.Element {
   const models = flowblock_order.map((key) => flowblocks[key]);
   return (
     <div className="add-flow-block">

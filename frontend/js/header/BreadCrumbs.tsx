@@ -55,7 +55,7 @@ function AddNewPage({
   ) : null;
 }
 
-function BreadCrumbs(): JSX.Element {
+function BreadCrumbs(): React.JSX.Element {
   const page = useContext(PageContext);
   const { path, alt } = useRecord();
 

@@ -187,7 +187,7 @@ export function FieldRows({
 }: {
   fields: Field[];
   renderFunc: (field: Field) => ReactNode;
-}): JSX.Element {
+}): React.JSX.Element {
   const rows = useMemo(() => processFields(fields), [fields]);
   return (
     <>

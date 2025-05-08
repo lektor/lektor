@@ -6,7 +6,7 @@ export default function DeletableAlternatives({
   recordInfo,
 }: {
   recordInfo: RecordInfo;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <div>
       <h4>{trans("ALTS_TO_BE_DELETED")}</h4>

@@ -13,7 +13,7 @@ export default function AvailableModels({
   newChildInfo: NewRecordInfo;
   selected: string;
   setSelected: (s: string) => void;
-}): JSX.Element {
+}): React.JSX.Element {
   const available = Object.values(newChildInfo.available_models).sort((a, b) =>
     a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
   );

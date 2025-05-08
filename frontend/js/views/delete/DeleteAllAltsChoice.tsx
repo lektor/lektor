@@ -9,7 +9,7 @@ export default function DeleteAllAltsChoice({
   deleteMasterRecord: boolean;
   setDeleteMasterRecord: (v: boolean) => void;
   isAttachment: boolean;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <>
       <p>{trans("DELETE_PRIMARY_ALT_INFO")}</p>

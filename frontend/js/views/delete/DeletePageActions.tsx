@@ -7,7 +7,7 @@ export default function DeletePageActions({
 }: {
   deleteRecord: () => void;
   cancelDelete: () => void;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <div className="actions">
       <button type="button" className="btn btn-primary" onClick={deleteRecord}>
