@@ -14,7 +14,7 @@ function validateInteger(value: string) {
   return null;
 }
 
-export function IntegerInputWidget(props: WidgetProps): JSX.Element {
+export function IntegerInputWidget(props: WidgetProps): React.JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"

@@ -6,7 +6,7 @@ export default function DeletableChildPages({
   recordInfo,
 }: {
   recordInfo: RecordInfo;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <div>
       <h4>{trans("CHILD_PAGES_TO_BE_DELETED")}</h4>

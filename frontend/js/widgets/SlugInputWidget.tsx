@@ -8,7 +8,7 @@ function postprocessSlug(value: string) {
 
 const inputAddon = <i className="fa fa-link" />;
 
-export function SlugInputWidget(props: WidgetProps): JSX.Element {
+export function SlugInputWidget(props: WidgetProps): React.JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"

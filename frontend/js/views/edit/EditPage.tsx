@@ -154,7 +154,7 @@ function getValues({
   return rv;
 }
 
-function EditPage(): JSX.Element | null {
+function EditPage(): React.JSX.Element | null {
   const { path, alt } = useRecord();
 
   const form = useRef<HTMLFormElement | null>(null);

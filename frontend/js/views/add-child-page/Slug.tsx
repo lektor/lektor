@@ -14,7 +14,7 @@ export default function Slug({
   id: string;
   placeholder: string;
   setId: (s: SetStateAction<string>) => void;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <div className="row field-row">
       <div className="col-md-12">

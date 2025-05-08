@@ -21,7 +21,7 @@ export interface SearchResult {
   title: string;
 }
 
-function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
+function FindFiles({ dismiss }: { dismiss: () => void }): React.JSX.Element {
   const alt = useRecordAlt();
   const page = useContext(PageContext);
 

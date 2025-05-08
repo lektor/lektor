@@ -10,7 +10,7 @@ export function EditPageActions({
 }: {
   recordInfo: RawRecordInfo;
   hasPendingChanges: boolean;
-}): JSX.Element {
+}): React.JSX.Element {
   const { path, alt } = useRecord();
   const goToAdminPage = useGoToAdminPage();
 

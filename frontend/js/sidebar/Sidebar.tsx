@@ -45,7 +45,7 @@ const compareAlternatives = (a: Alternative, b: Alternative) => {
   return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 };
 
-function Sidebar(): JSX.Element | null {
+function Sidebar(): React.JSX.Element | null {
   const page = useContext(PageContext);
   const path = useRecordPath();
 
