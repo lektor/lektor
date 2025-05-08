@@ -1,0 +1,7 @@
+_model: page
+---
+title: The Page Title
+---
+body:
+
+This is a piece of _markdown_ body **text**.
