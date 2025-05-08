@@ -31,8 +31,10 @@ from lektor.publisher import builtin_publishers
 from lektor.utils import format_lat_long
 from lektor.utils import tojson_filter
 
+
 if TYPE_CHECKING:
     from typing import Literal
+
     from lektor.assets import Asset
     from lektor.build_programs import BuildProgram
     from lektor.sourceobj import SourceObject
@@ -111,8 +113,9 @@ def _dates_filter(name, wrapped):
             raise
         except Exception as exc:
             raise TypeError(
-                f"While evaluating filter '{name}', an unexpected exception was raised. "
-                "This is likely caused by an input or parameter of an unsupported type."
+                f"While evaluating filter '{name}', an unexpected exception was "
+                "raised. This is likely caused by an input or parameter of an "
+                "unsupported type."
             ) from exc
 
     return update_wrapper(wrapper, wrapped)
@@ -220,7 +223,8 @@ class Environment:
             loader=jinja2.FileSystemLoader(template_paths),
         )
 
-        from lektor.db import F, get_alts  # pylint: disable=import-outside-toplevel
+        from lektor.db import F  # pylint: disable=import-outside-toplevel
+        from lektor.db import get_alts  # pylint: disable=import-outside-toplevel
 
         def latlongformat(latlong, secs=True):
             lat, lon = latlong
@@ -395,19 +399,19 @@ class Environment:
 
     def add_publisher(self, scheme, publisher):
         if scheme in self.publishers:
-            raise RuntimeError('Scheme "%s" is already registered.' % scheme)
+            raise RuntimeError(f"Scheme {scheme!r} is already registered.")
         self.publishers[scheme] = publisher
 
     def add_type(self, type):
         name = type.name
         if name in self.types:
-            raise RuntimeError('Type "%s" is already registered.' % name)
+            raise RuntimeError(f"Type {name!r} is already registered.")
         self.types[name] = type
 
     def virtualpathresolver(self, prefix):
         def decorator(func):
             if prefix in self.virtual_sources:
-                raise RuntimeError('Prefix "%s" is already registered.' % prefix)
+                raise RuntimeError(f"Prefix {prefix!r} is already registered.")
             self.virtual_sources[prefix] = func
             return func
 

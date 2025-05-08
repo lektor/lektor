@@ -101,7 +101,7 @@ class FlowBlock:
             try:
                 return self.pad.db.env.render_template(
                     [
-                        "blocks/%s.html" % self._data["_flowblock"],
+                        "blocks/{}.html".format(self._data["_flowblock"]),
                         "blocks/default.html",
                     ],
                     pad=self.pad,

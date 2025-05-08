@@ -21,7 +21,7 @@ from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
-from functools import lru_cache
+from functools import cache
 from functools import wraps
 from pathlib import Path
 from pathlib import PurePosixPath
@@ -334,7 +334,7 @@ def increment_filename(filename):
     return rv
 
 
-@lru_cache(maxsize=None)
+@cache
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
@@ -660,7 +660,7 @@ def portable_popen(cmd, *args, **kwargs):
         raise RuntimeError("No executable specified")
     exe = locate_executable(cmd[0], kwargs.get("cwd"))
     if exe is None:
-        raise RuntimeError('Could not locate executable "%s"' % cmd[0])
+        raise RuntimeError(f'Could not locate executable "{cmd[0]}"')
 
     if isinstance(exe, str) and sys.platform != "win32":
         exe = exe.encode(sys.getfilesystemencoding())
@@ -967,8 +967,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> Callable[..., Any]:
-    ...
+) -> Callable[..., Any]: ...
 
 
 @overload
@@ -978,8 +977,7 @@ def deprecated(
     name: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 @overload
@@ -989,8 +987,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 def deprecated(*args: Any, **kwargs: Any) -> _F | _Deprecate:

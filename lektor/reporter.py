@@ -302,12 +302,12 @@ class CliReporter(Reporter):
         self._write_line("{}: {}".format(key, style(str(value), fg="yellow")))
 
     def start_build(self, activity):
-        self._write_line(style("Started %s" % activity, fg="cyan"))
+        self._write_line(style(f"Started {activity}", fg="cyan"))
         if not self.show_build_info:
             return
-        self._write_line(style("  Tree: %s" % self.env.root_path, fg="cyan"))
+        self._write_line(style(f"  Tree: {self.env.root_path}", fg="cyan"))
         self._write_line(
-            style("  Output path: %s" % self.builder.destination_path, fg="cyan")
+            style(f"  Output path: {self.builder.destination_path}", fg="cyan")
         )
 
     def finish_build(self, activity, start_time):
@@ -334,12 +334,9 @@ class CliReporter(Reporter):
         self.outdent()
 
     def report_build_all_failure(self, failures):
+        pluralize = "failure" if failures == 1 else "failures"
         self._write_line(
-            click.style(
-                "Error: Build failed with %s failure%s."
-                % (failures, failures != 1 and "s" or ""),
-                fg="red",
-            )
+            click.style(f"Error: Build failed with {failures} {pluralize}.", fg="red")
         )
 
     def report_failure(self, artifact, exc_info):
@@ -395,7 +392,8 @@ class CliReporter(Reporter):
     def enter_source(self):
         if not self.show_source_internals:
             return
-        self._write_line("Source %s" % style(repr(self.current_source), fg="magenta"))
+        current_source = style(repr(self.current_source), fg="magenta")
+        self._write_line(f"Source {current_source}")
         self.indent()
 
     def leave_source(self, start_time):

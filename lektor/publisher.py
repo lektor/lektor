@@ -39,9 +39,11 @@ from lektor.utils import bool_from_string
 from lektor.utils import locate_executable
 from lektor.utils import portable_popen
 
+
 if TYPE_CHECKING:  # pragma: no cover
     from _typeshed import StrOrBytesPath
     from _typeshed import StrPath
+
     from lektor.environment import Environment
 
 
@@ -134,7 +136,9 @@ class Command(AbstractContextManager["Command"]):
     and how stdout may be captured for further processing.
 
         def run_wc(input):
-            rv = yield from Command(('wc'), check=True, input=input, capture_stdout=True)
+            rv = yield from Command(
+                ('wc'), check=True, input=input, capture_stdout=True
+            )
             lines, words, chars = rv.stdout.split()
             print(f"{words} words, {chars} chars")
 
@@ -253,7 +257,8 @@ class Command(AbstractContextManager["Command"]):
         self.close()
 
     def __iter__(self) -> Generator[str, None, CompletedProcess[str]]:
-        """A generator with yields any captured output and returns a ``CompletedProcess``.
+        """A generator with yields any captured output and returns a
+        ``CompletedProcess``.
 
         If ``capture`` is ``True`` (the default).  Both stdout and stderr are available
         in the iterator output.
@@ -579,7 +584,7 @@ class FtpPublisher(Publisher):
     def upload_artifact(self, con, artifact_name, source_file, checksum):
         with open(source_file, "rb") as source:
             tmp_dst = self.get_temp_filename(artifact_name)
-            con.log_buffer.append("000 Updating %s" % artifact_name)
+            con.log_buffer.append(f"000 Updating {artifact_name}")
             con.upload_file(tmp_dst, source, mkdir=True)
             con.rename_file(tmp_dst, artifact_name)
             con.append(".lektor/listing", f"{artifact_name}|{checksum}\n")
@@ -590,13 +595,13 @@ class FtpPublisher(Publisher):
         for artifact_name in current_artifacts.keys():
             known_folders.add(posixpath.dirname(artifact_name))
 
-        for artifact_name, _checksum in server_artifacts.items():
+        for artifact_name in server_artifacts:
             if artifact_name not in current_artifacts:
-                con.log_buffer.append("000 Deleting %s" % artifact_name)
+                con.log_buffer.append(f"000 Deleting {artifact_name}")
                 con.delete_file(artifact_name)
                 folder = posixpath.dirname(artifact_name)
                 if folder not in known_folders:
-                    con.log_buffer.append("000 Deleting %s" % folder)
+                    con.log_buffer.append(f"000 Deleting {folder}")
                     con.delete_folder(folder)
 
         if duplicates or server_artifacts != current_artifacts:
@@ -857,7 +862,8 @@ class GithubPagesPublisher(Publisher):
                         cleandoc(self._DEFAULT_BRANCH_DEPRECATION_MSG).splitlines()
                     ),
                     # deprecated in version 3.4.0
-                    category=DeprecationWarning,
+                    category=FutureWarning,
+                    stacklevel=1,
                 )
                 branch = "master"
             else:
@@ -927,7 +933,7 @@ def publish(env, target, output_path, credentials=None, **extra):
     url = urlsplit(target_url)
     publisher = env.publishers.get(url.scheme)
     if publisher is None:
-        raise PublishError('"%s" is an unknown scheme.' % url.scheme)
+        raise PublishError(f'"{url.scheme}" is an unknown scheme.')
     return publisher(env, output_path).publish(target_url, credentials, **extra)
 
 
