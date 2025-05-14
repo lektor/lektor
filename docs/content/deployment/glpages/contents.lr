@@ -1,0 +1,74 @@
+title: GitLab Pages
+---
+summary: Deploys to GitLab Pages.
+---
+body:
+
+[GitLab](https://gitlab.com/) supports Lektor on their [GitLab
+Pages](http://doc.gitlab.com/ee/pages/) infrastructure.  Effectively
+GitLab can build your website out of any repository on GitLab and hosts it
+up on either a subdomain or a custom domain (including SSL).
+
+Because this is all supported by the side of GitLab there is nothing you
+need to configure in Lektor itself other than adding a GitLab config file.
+
+There is also an example project on GitLab with a README you can clone:
+[pages/lektor](https://gitlab.com/pages/lektor)
+
+## Create a Repository
+
+What you need to do to start is to create a new repository for the project
+on gitlab.  There are two types of GitLab pages: user and project pages.
+User pages are hosted at `<username>.gitlab.io` and project pages at
+`<username>.gitlab.io/<project>`.  There can only be one user page and the
+repository for it needs to be named `<username>.gitlab.io`.
+
+The branch does not matter.  GitLab scans all branches for a file named
+`.gitlab-ci.yml` which contains a configuration for gitlab pages.
+
+## Configuration
+
+To enable support for Lektor you need to create a `.gitlab-ci.yml` config
+next to your `.lektorproject` file with the following contents:
+
+```yaml
+image: python:latest
+
+pages:
+  script:
+    - pip install lektor
+    - lektor build --output-path public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+```
+
+It's important that the output path is set to `public` as this is what
+will be served up.  In case you want to use a different branch than `master`
+just name the branch differently and adjust the `only` entry.
+
+Whenever you commit to the repository now, GitLab will automatically start
+a job on the public infrastructure and deploy your website.
+
+## CNAME Support
+
+If you want to use a [CNAME :ext](https://en.wikipedia.org/wiki/CNAME) with
+GitLab pages you can configure it in the GitLab settings:
+
+* [Configure CNAME](http://doc.gitlab.com/ee/pages/#add-a-custom-domain-to-your-pages-website)
+
+## SSL/TLS Support
+
+If you have an SSL certificate and a custom domain, you can upload your private
+key and certificate to GitLab and SSL will become available on your custom
+domain as well.
+
+* [Configure SSL/TLS](http://doc.gitlab.com/ee/pages/#secure-your-custom-domain-website-with-tls)
+
+## 404 Pages
+
+Per convention the file named `404.html` is used as placeholder if a page
+cannot be found.  You can create such a page by creating a `404.html/contents.lr`
+file.

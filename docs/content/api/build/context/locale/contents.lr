@@ -1,0 +1,20 @@
+title: locale
+---
+summary: The current locale (language/territory) code for the context.
+---
+type: property
+---
+body:
+
+For functionality in Lektor that is dependent on the locale (technical
+term for language and territory) the context provides this information.  It's
+automatically resolved based on configuration from the current alt.
+
+This is primarily useful for plugins that want to change their behavior based
+on the current requested language.
+
+## Example
+
+```python
+print get_ctx().locale
+```

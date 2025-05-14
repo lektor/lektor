@@ -1,0 +1,61 @@
+title: datetime
+---
+type: type
+---
+summary: A type that can store a date and time.
+---
+version_added: 2.0
+---
+body:
+
+The `datetime` type can store a date and time.
+`datetime` value can also include time zone info.
+
+The canonical format for the type in text form is `YYYY-MM-DD HH:MM:SS[ Z]`.
+
+`Z` is optional information.
+You can use `Z` field with below informations.
+
+* Time Zone Abbreviations such as `UTC`, `EST`
+* Time Zone Name such as `America/Dominica`
+* Timedelta such as `+0900`, `-0930`
+
+You can also use [datetimeformat
+:ref](../../../../api/templates/filters/datetimeformat/)
+filter with this type.
+
+## Valid Examples
+
+```
+pub_date: 2016-01-13 07:53:22
+
+or
+
+pub_date: 2016-01-13 07:53:22 UTC
+
+or
+
+pub_date: 2016-01-13 07:53:22 EST
+
+or
+
+pub_date: 2016-01-13 07:53:22 America/Dominica
+
+or
+
+pub_date: 2016-01-13 07:53:22 +0900
+```
+
+## Field Usage
+
+```ini
+[fields.pub_date]
+label = Publication date
+type = datetime
+```
+
+## Template Usage
+
+```html+jinja
+<p>Published: {{ this.pub_date.strftime('%Y-%m-%d %H:%M:%S') }}
+```

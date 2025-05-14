@@ -1,0 +1,19 @@
+title: self
+---
+summary: Returns the item at the query itself.
+---
+type: property
+---
+body:
+
+Because a query object filters "downwards" there this is a way access the item
+at the level of the query object.  It's particularly useful for debugging
+in the `shell`:
+
+## Example
+
+```pycon
+>>> root = pad.root
+>>> root.children.query.self == root
+True
+```

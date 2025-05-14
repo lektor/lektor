@@ -1,0 +1,57 @@
+title: sub_artifact
+---
+summary: Creates a sub-artifact of the current one.
+---
+type: method
+---
+signature: artifact_name, sources=None, source_obj=None, config_hash=None
+---
+body:
+
+This method can be used as Python decorator to inform the builder to create
+an artifact that is related to the current artifact but locally contained
+within it.  For instance this is used to implement the thumbnailing and
+similar things.
+
+Each artifact needs at least a name which is what the final file will be
+called.  For instance `/demo.css` would place an artifact named `demo.css`
+in the root folder.  The `sources` is an optional list of files that indicate
+that they are responsible for creating this artifact.  It can be left empty
+in which case the artifact just tracks the current file.  The `source_obj`
+can optionally point to a source object but for most plugins this will never
+be set.
+
+The artifact passed to the function is then the [Artifact :ref](../../artifact/)
+object for modification.  Note that the function will not be invoked if the
+artifact is already considered up to date.
+
+In addition a `config_hash` can be provided with can be a hash value.  If
+provided it can identify the configuration that the artifact was created
+from.  If the hash changes the artifact will be rebuilt.  Such a hash
+can for instance be generated with [get_structure_hash
+:ref](../../../utils/get-structure-hash/).
+
+## Example
+
+```python
+import os
+from lektor.pluginsystem import Plugin
+
+class IncludeFilePlugin(Plugin):
+
+    def setup_env(self, **extra):
+        def get_css(artifact_name='/demo.css'):
+            ctx = get_ctx()
+            @ctx.sub_artifact(artifact_name)
+            def build_stylesheet(artifact):
+                with artifact.open('w') as f:
+                    f.write('body { background: red; }\n')
+            return artifact_name
+        self.env.jinja_env.globals['get_demo_css'] = get_css
+```
+
+Inside a template it can be used like this:
+
+```html+jinja
+<link rel=stylesheet href="{{ get_demo_css()|url }}">
+```
