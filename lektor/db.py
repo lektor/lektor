@@ -748,7 +748,9 @@ class Attachment(Record):
     def parent(self):
         """The associated record for this attachment."""
         return self.pad.get(
-            self._data["_attachment_for"], persist=self.pad.cache.is_persistent(self)
+            self._data["_attachment_for"],
+            alt=self.alt,
+            persist=self.pad.cache.is_persistent(self)
         )
 
     @cached_property
@@ -1049,7 +1051,7 @@ class Query:
         """Returns the order that should be used."""
         if self._order_by is not None:
             return self._order_by
-        base_record = self.pad.get(self.path)
+        base_record = self.pad.get(self.path, alt=self.alt)
         if base_record is not None:
             if self._include_attachments and not self._include_pages:
                 return base_record.datamodel.attachment_config.order_by
