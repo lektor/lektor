@@ -18,7 +18,7 @@ def url_to(*args, **kwargs):
     return ctx.url_to(*args, **kwargs)
 
 
-def get_asset_url(asset):
+def get_asset_url(asset, **kwargs):
     """Calculates the asset URL relative to the current record."""
     ctx = get_ctx()
     if ctx is None:
@@ -26,7 +26,7 @@ def get_asset_url(asset):
     asset = ctx.pad.get_asset(asset)
     if asset is None:
         return Undefined("Asset not found")
-    return ctx.get_asset_url(asset)
+    return ctx.get_asset_url(asset, **kwargs)
 
 
 @LocalProxy
@@ -180,14 +180,14 @@ class Context:
             strict_resolve=strict_resolve,
         )
 
-    def get_asset_url(self, asset):
+    def get_asset_url(self, asset, **kwargs):
         """Calculates the asset URL relative to the current record."""
         if self.source is None:
             raise RuntimeError(
                 "Can only generate paths to assets if "
                 "the context has a source document set."
             )
-        asset_url = self.source.url_to("!" + asset.url_path)
+        asset_url = self.source.url_to("!" + asset.url_path, **kwargs)
         info = self.build_state.get_file_info(asset.source_filename)
         self.record_dependency(asset.source_filename)
         return f"{asset_url}?h={info.checksum[:8]}"
