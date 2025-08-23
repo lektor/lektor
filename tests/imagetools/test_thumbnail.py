@@ -31,8 +31,13 @@ from lektor.imagetools.thumbnail import ThumbnailParams
 
 HERE = Path(__file__).parent
 DEMO_PROJECT = HERE / "../demo-project/content"
-ICC_PROFILE_TEST_JPG = DEMO_PROJECT / "icc-profile-test/rgb-to-gbr-test.jpg"
-CMYK_ICC_PROFILE_TEST = DEMO_PROJECT / "icc-profile-test/CGATS001Compat-v2-micro.icc"
+ICC_PROFILE_TEST_JPG = (
+    DEMO_PROJECT / "icc-profile-test/rgb-to-gbr-test/rgb-to-gbr-test.jpg"
+)
+CMYK_ICC_PROFILE_TEST = (
+    DEMO_PROJECT
+    / "icc-profile-test/CGATS001Compat-v2-micro/CGATS001Compat-v2-micro.icc"
+)
 NONIMAGE_FILE_PATH = Path(__file__)  # we are not an image
 
 
