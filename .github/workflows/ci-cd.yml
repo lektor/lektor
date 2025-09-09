@@ -47,9 +47,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install tox pre-commit
           python -m pip freeze --local
-      - name: Display python requirements.txt
-        run: |
-          python -m pip freeze --local
       - name: Run pylint
         run: tox -e lint
       - name: Run pre-commit
@@ -133,6 +130,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install tox tox-gh-actions coverage[toml]
+      - name: Display python requirements.txt
+        run: |
+          python -m pip freeze --local
       - name: Run python tests
         run: tox
         env:
