@@ -117,7 +117,8 @@ def test_no_reference_cycle_in_environment(project):
     env = project.make_env(load_plugins=False)
     # reference count should be two: one from our `env` variable, and
     # another from the argument to sys.getrefcount
-    assert sys.getrefcount(env) == 2
+    # Due to refcount optimisations, seems to be just one on Python 3.14
+    assert sys.getrefcount(env) == 2 if sys.version_info < (3, 14) else 1
 
 
 @pytest.fixture
