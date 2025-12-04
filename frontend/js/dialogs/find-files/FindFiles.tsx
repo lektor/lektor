@@ -35,6 +35,7 @@ function FindFiles({ dismiss }: { dismiss: () => void }): React.JSX.Element {
 
   useEffect(() => {
     if (!query) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       setSelected(-1);
       return;

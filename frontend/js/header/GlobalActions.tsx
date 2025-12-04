@@ -28,16 +28,18 @@ export default function GlobalActions(): React.JSX.Element {
   // This allows one to, e.g., open a preview in a new window by
   // right-clicking on the button.
   const [previewUrl, setPreviewUrl] = useState<string | undefined>();
-  const fetchPreviewUrl = useMemo(async () => {
-    try {
-      const { url } = await get("/previewinfo", record);
-      const canonicalUrl = getCanonicalUrl(url ?? "/");
-      setPreviewUrl(canonicalUrl);
-      return canonicalUrl;
-    } catch (err) {
-      showErrorDialog(err);
-    }
-  }, [record]);
+  const fetchPreviewUrl = useMemo(
+    () =>
+      get("/previewinfo", record)
+        .then((response) => response.url)
+        .then((url) => getCanonicalUrl(url ?? "/"))
+        .then((canonicalUrl) => {
+          setPreviewUrl(canonicalUrl);
+          return canonicalUrl;
+        })
+        .catch(showErrorDialog),
+    [record],
+  );
 
   useEffect(() => {
     return setShortcutHandler(ShortcutAction.Search, findFiles);

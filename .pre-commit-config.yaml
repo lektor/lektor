@@ -39,4 +39,4 @@ repos:
         language: node
         entry: ./frontend/node_modules/prettier/bin/prettier.cjs --write --list-different
         require_serial: true
-        files: \.(ts|tsx|js|less|ya?ml|md)$
+        files: \.(ts|tsx|mjs|js|less|ya?ml|md)$
