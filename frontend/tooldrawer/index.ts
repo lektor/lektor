@@ -14,7 +14,6 @@ interface TooldrawerConfig {
   livereloadConfig?: LivereloaderConfig;
 }
 declare global {
-  // eslint-disable-next-line no-var
   var TOOLDRAWER_CONFIG: TooldrawerConfig;
 }
 
