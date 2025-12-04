@@ -90,13 +90,13 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
           - { os: "macos-latest", python: "3.9" }
-          - { os: "macos-latest", python: "3.13", install-ffmpeg: true }
+          - { os: "macos-latest", python: "3.14", install-ffmpeg: true }
           - { os: "windows-latest", python: "3.9" }
-          - { os: "windows-latest", python: "3.13", install-ffmpeg: true }
-          - { python: "3.13", install-ffmpeg: true }
+          - { os: "windows-latest", python: "3.14", install-ffmpeg: true }
+          - { python: "3.14", install-ffmpeg: true }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
