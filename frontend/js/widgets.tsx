@@ -80,6 +80,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
   if (Widget.isFakeWidget) {
     return (
       <div className={className} key={field.name}>
+        {/*eslint-disable-next-line react-hooks/static-components */}
         <Widget key={field.name} field={field} />
       </div>
     );
@@ -95,6 +96,7 @@ export const FieldBox = React.memo(function FieldBox(props: {
         {!field.hide_label ? <dt>{trans_obj(field.label_i18n)}</dt> : null}
         <dd>
           {description}
+          {/*eslint-disable-next-line react-hooks/static-components */}
           <Widget
             value={value}
             onChange={onChange}

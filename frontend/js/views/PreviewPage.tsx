@@ -38,7 +38,7 @@ function usePreviewUrl(siteRootUrl: string): string {
 }
 
 export default function PreviewPage(): React.JSX.Element {
-  const siteRootUrl = useMemo(getSiteRootUrl, []);
+  const siteRootUrl = useMemo(() => getSiteRootUrl(), []);
   const previewUrl = usePreviewUrl(siteRootUrl);
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const goToAdminPage = useGoToAdminPage();

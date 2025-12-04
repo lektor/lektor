@@ -26,6 +26,7 @@ export default function PrimaryField({
         <dl className="field">
           <dt>{formatUserLabel(field.label_i18n)}</dt>
           <dd>
+            {/*eslint-disable-next-line react-hooks/static-components */}
             <Widget
               value={value}
               onChange={setPrimary}
