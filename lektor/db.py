@@ -103,7 +103,7 @@ def _require_ctx(record):
 
 
 @total_ordering
-class _CmpHelper:
+class _CmpHelper:  # noqa: PLW1641
     def __init__(self, value, reverse):
         self.value = value
         self.reverse = reverse
@@ -162,7 +162,7 @@ def save_eval(filter, record):
         return Undefined(e.message)
 
 
-class Expression:
+class Expression:  # noqa: PLW1641
     def __eval__(self, record):
         # pylint: disable=no-self-use
         return record

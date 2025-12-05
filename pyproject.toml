@@ -153,6 +153,7 @@ select = [
     "PERF",                     # perflint
 ]
 ignore = [
+    "PLC0415",                  # pylint import-outside-toplevel
     "PLW2901",                  # pylint redefined-loop-name
     "PLR0913",                  # pylint too-many-arguments
     "PLR2004",                  # pylint magic-value-comparison

@@ -39,8 +39,7 @@ def discover_relevant_flowblock_models(flow, pad, record, alt):
             if isinstance(field.type, FlowType):
                 if field.type.flow_blocks is None:
                     raise RuntimeError(
-                        "Nested flow-blocks require explicit "
-                        "list of involved blocks."
+                        "Nested flow-blocks require explicit list of involved blocks."
                     )
                 to_process.extend(field.type.flow_blocks)
 

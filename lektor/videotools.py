@@ -247,7 +247,7 @@ def get_video_info(filename):
     stdout, _ = proc.communicate()
 
     if proc.returncode != 0:
-        raise RuntimeError("ffprobe exited with code %d" % proc.returncode)
+        raise RuntimeError(f"ffprobe exited with code {proc.returncode}")
 
     ffprobe_data = json.loads(stdout.decode("utf8"))
     info = {

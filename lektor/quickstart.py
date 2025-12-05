@@ -53,7 +53,7 @@ class Generator:
     def prompt(self, text, default=None, info=None):
         self.question += 1
         self.e("")
-        self.e("Step %d:" % self.question, fg="yellow")
+        self.e(f"Step {self.question}:", fg="yellow")
         if info is not None:
             self.e(click.wrap_text(info, self.term_width, "| ", "| "))
         text = "> " + click.style(text, fg="green")
@@ -248,10 +248,8 @@ def plugin_quickstart(defaults=None, project=None):
         )
 
     plugin_id = plugin_name.lower()
-    if plugin_id.startswith("lektor"):
-        plugin_id = plugin_id[6:]
-    if plugin_id.endswith("plugin"):
-        plugin_id = plugin_id[:-6]
+    plugin_id = plugin_id.removeprefix("lektor")
+    plugin_id = plugin_id.removesuffix("plugin")
     plugin_id = slugify(plugin_id)
 
     path = defaults.get("path")

@@ -270,13 +270,7 @@ def test_root_pagination(scratch_project, scratch_env):
         with open(
             os.path.join(base, "content", name, "contents.lr"), "w", encoding="utf-8"
         ) as f:
-            f.write(
-                "_model: page\n"
-                "---\n"
-                f"title: Page {name}\n"
-                "---\n"
-                "body: Hello World!\n"
-            )
+            f.write(f"_model: page\n---\ntitle: Page {name}\n---\nbody: Hello World!\n")
 
     scratch_pad = Database(scratch_env).new_pad()
 

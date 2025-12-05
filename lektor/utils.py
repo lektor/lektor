@@ -42,6 +42,7 @@ from werkzeug.http import http_date
 from werkzeug.urls import iri_to_uri
 from werkzeug.urls import uri_to_iri
 
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
 
@@ -546,8 +547,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenTextMode = "r",
     encoding: str | None = None,
-) -> Iterator[io.TextIOWrapper]:
-    ...
+) -> Iterator[io.TextIOWrapper]: ...
 
 
 @overload
@@ -556,8 +556,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeWriting,
     encoding: None = None,
-) -> Iterator[io.BufferedWriter]:
-    ...
+) -> Iterator[io.BufferedWriter]: ...
 
 
 @overload
@@ -566,8 +565,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeReading,
     encoding: None = None,
-) -> Iterator[io.BufferedReader]:
-    ...
+) -> Iterator[io.BufferedReader]: ...
 
 
 @contextmanager
@@ -779,12 +777,7 @@ def deg_to_dms(deg):
 def format_lat_long(lat=None, long=None, secs=True):
     def _format(value, sign):
         d, m, sd = deg_to_dms(value)
-        return "%d° %d′ %s%s" % (
-            abs(d),
-            abs(m),
-            secs and ("%d″ " % abs(sd)) or "",
-            sign[d < 0],
-        )
+        return f"{abs(d)}° {abs(m)}′ {secs and f'{abs(sd)}″ ' or ''}{sign[d < 0]}"
 
     rv = []
     if lat is not None:

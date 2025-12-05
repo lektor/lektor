@@ -294,7 +294,7 @@ class EXIFInfo:
     @_default_none
     def shutter_speed(self) -> str:
         value = _to_float(self._exif_ifd[ExifTags.Base.ShutterSpeedValue])
-        return f"1/{2 ** value:.0f}"
+        return f"1/{2**value:.0f}"
 
     @property
     @_default_none

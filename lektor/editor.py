@@ -122,7 +122,7 @@ def _deprecated_data_proxy(wrapped):
     """
 
     name = wrapped.__name__
-    newname = name[4:] if name.startswith("iter") else name
+    newname = name.removeprefix("iter")
 
     @wraps(wrapped)
     def wrapper(self, *args, **kwargs):
