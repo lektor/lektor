@@ -2,7 +2,7 @@
 
 ## Color-rotated test image
 
-The `rgb-to-gbr-test.jpg` test image comes from
+The `rgb-to-gbr-test/rgb-to-gbr-test.jpg` test image comes from
 [codelogic/wide-gamut-tests](https://github.com/codelogic/wide-gamut-tests)
 and is licensed under an Apache license. To save on storage space,
 the version included here is scaled to 200x200 pixels (from the
@@ -14,7 +14,7 @@ with the displayed color names.
 
 ## Sample CMYK ICC Profile
 
-The `CGATS001Compat-v2-micro.icc` profile is the smallest CMYK ICC
+The `CGATS001Compat-v2-micro/CGATS001Compat-v2-micro.icc` profile is the smallest CMYK ICC
 profile I could find. It comes from
 [saucecontrol/Compact-ICC-Profiles](https://github.com/saucecontrol/Compact-ICC-Profiles)
 and is made available under a
