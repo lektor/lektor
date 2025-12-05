@@ -1,4 +1,5 @@
 import sqlite3
+from collections.abc import Sized
 
 from lektor.constants import PRIMARY_ALT
 
@@ -67,6 +68,11 @@ def _build_parent_path(path, mapping, alt, lang):
     return rv
 
 
+def _placeholders(values: Sized) -> str:
+    """Return SQL '?' placeholders for an array or set of values."""
+    return ",".join(["?"] * len(values))
+
+
 def _process_search_results(builder, cur, alt, lang, limit):
     mapping = _mapping_from_cursor(cur)
     rv = []
@@ -88,12 +94,11 @@ def _process_search_results(builder, cur, alt, lang, limit):
 
     if files_needed:
         cur.execute(
-            """
+            f"""
             select path, alt, lang, type, title
               from source_info
-             where path in (%s)
-        """
-            % ", ".join(["?"] * len(files_needed)),
+             where path in ({_placeholders(files_needed)})
+            """,
             list(files_needed),
         )
         mapping.update(_mapping_from_cursor(cur))
@@ -126,22 +131,17 @@ def find_files(builder, query, alt=PRIMARY_ALT, lang=None, limit=50, types=None)
     try:
         cur = con.cursor()
         cur.execute(
-            """
+            f"""
             select path, alt, lang, type, title
               from source_info
              where (title like ? or path like ?)
-               and lang in (%s)
-               and alt in (%s)
-               and type in (%s)
+               and lang in ({_placeholders(languages)})
+               and alt in ({_placeholders(alts)})
+               and type in ({_placeholders(types)})
           order by title
            collate nocase
              limit ?
-        """
-            % (
-                ", ".join(["?"] * len(languages)),
-                ", ".join(["?"] * len(alts)),
-                ", ".join(["?"] * len(types)),
-            ),
+            """,
             [title_like, path_like] + languages + alts + types + [limit * 2],
         )
         return _process_search_results(builder, cur, alt, lang, limit)

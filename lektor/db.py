@@ -51,6 +51,7 @@ from lektor.utils import untrusted_to_os_path
 from lektor.videotools import get_video_info
 from lektor.videotools import make_video_thumbnail
 
+
 if TYPE_CHECKING:
     from lektor.environment import Environment
     from lektor.environment.config import Config
@@ -102,7 +103,7 @@ def _require_ctx(record):
 
 
 @total_ordering
-class _CmpHelper:
+class _CmpHelper:  # noqa: PLW1641
     def __init__(self, value, reverse):
         self.value = value
         self.reverse = reverse
@@ -161,7 +162,7 @@ def save_eval(filter, record):
         return Undefined(e.message)
 
 
-class Expression:
+class Expression:  # noqa: PLW1641
     def __eval__(self, record):
         # pylint: disable=no-self-use
         return record
@@ -320,9 +321,7 @@ class Record(DBSourceObject):
         self._data = data
         self._bound_data = {}
         if page_num is not None and not self.supports_pagination:
-            raise RuntimeError(
-                "%s does not support pagination" % self.__class__.__name__
-            )
+            raise RuntimeError(f"{self.__class__.__name__} does not support pagination")
         self.page_num = page_num
 
     @property
@@ -386,7 +385,7 @@ class Record(DBSourceObject):
 
     def get_record_label_i18n(self):
         rv = {}
-        for lang, _ in (self.datamodel.label_i18n or {}).items():
+        for lang in self.datamodel.label_i18n or {}:
             label = self.datamodel.format_record_label(self, lang)
             if not label:
                 label = self.get_fallback_record_label(lang)
@@ -481,13 +480,15 @@ class Record(DBSourceObject):
         return rv
 
     def __repr__(self):
-        return "<{} model={!r} path={!r}{}{}>".format(
-            self.__class__.__name__,
-            self._data["_model"],
-            self._data["_path"],
-            self.alt != PRIMARY_ALT and " alt=%r" % self.alt or "",
-            self.page_num is not None and " page_num=%r" % self.page_num or "",
-        )
+        bits = [
+            f"model={self._data['_model']!r}",
+            f"path={self._data['_path']!r}",
+        ]
+        if self.alt != PRIMARY_ALT:
+            bits.append(f"alt={self.alt!r}")
+        if self.page_num is not None:
+            bits.append(f"page_num={self.page_num!r}")
+        return f"<{self.__class__.__name__} {' '.join(bits)}>"
 
 
 class Siblings(VirtualSourceObject):  # pylint: disable=abstract-method
@@ -1170,11 +1171,8 @@ class Query:
         yield from iterable
 
     def __repr__(self):
-        return "<{} {!r}{}>".format(
-            self.__class__.__name__,
-            self.path,
-            self.alt and " alt=%r" % self.alt or "",
-        )
+        alt_ = " alt={self.alt!r}" if self.alt else ""
+        return f"<{self.__class__.__name__} {self.path!r}{alt_}>"
 
 
 class EmptyQuery(Query):
@@ -1229,17 +1227,17 @@ def _iter_filename_choices(fn_base, alts, config, fallback=True):
     # implicitly say the record exists.
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield os.path.join(fn_base, "contents+%s.lr" % alt), alt, False
+            yield os.path.join(fn_base, f"contents+{alt}.lr"), alt, False
 
     if fallback or PRIMARY_ALT in alts:
         yield os.path.join(fn_base, "contents.lr"), PRIMARY_ALT, False
 
     for alt in alts:
         if alt != PRIMARY_ALT and config.is_valid_alternative(alt):
-            yield fn_base + "+%s.lr" % alt, alt, True
+            yield f"{fn_base}+{alt}.lr", alt, True
 
     if fallback or PRIMARY_ALT in alts:
-        yield fn_base + ".lr", PRIMARY_ALT, True
+        yield f"{fn_base}.lr", PRIMARY_ALT, True
 
 
 def _iter_content_files(dir_path, alts):
@@ -1250,7 +1248,7 @@ def _iter_content_files(dir_path, alts):
     for alt in alts:
         if alt == PRIMARY_ALT:
             continue
-        if os.path.isfile(os.path.join(dir_path, "contents+%s.lr" % alt)):
+        if os.path.isfile(os.path.join(dir_path, f"contents+{alt}.lr")):
             yield alt
     if os.path.isfile(os.path.join(dir_path, "contents.lr")):
         yield PRIMARY_ALT
@@ -1689,18 +1687,16 @@ class Pad:
     def theme_asset_roots(self):
         """The root of the asset tree of each theme.
 
-        As of Lektor 3.4.0, asset trees from any active themes are logically merged
-        into a single tree, accessible via Pad.asset_root. Accordingly, `theme_asset_roots`
+        As of Lektor 3.4.0, asset trees from any active themes are logically merged into
+        a single tree, accessible via Pad.asset_root. Accordingly, `theme_asset_roots`
         alway returns an empty list.
+
         """
         return []
 
     def get_all_roots(self):
         """Returns all the roots for building."""
-        rv = []
-        for alt in self.db.config.list_alternatives():
-            rv.append(self.get_root(alt=alt))
-
+        rv = [self.get_root(alt=alt) for alt in self.db.config.list_alternatives()]
         # If we don't have any alternatives, then we go with the implied
         # root.
         if not rv and self.root:

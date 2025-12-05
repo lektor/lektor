@@ -14,11 +14,13 @@ additional control over the building of the frontend code.
 - ``HATCH_BUILD_CLEAN=true``: force (re)building of the frontend code
 
 """
+
 import shutil
 import subprocess
 from pathlib import Path
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+
 
 # path to frontend source
 FRONTEND = "frontend"

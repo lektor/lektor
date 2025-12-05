@@ -345,7 +345,7 @@ class TestMarkdown:
     def test_record_gone_away(self, field_options, mocker):
         markdown = Markdown("text", mocker.Mock(name="record"), field_options)
         with pytest.raises(RuntimeError) as exc_info:
-            markdown.record  # pylint: disable=pointless-statement
+            _ = markdown.record
         assert "gone away" in str(exc_info.value)
 
     @pytest.mark.parametrize("source", ["![test](/test.jpg)"])
@@ -528,7 +528,7 @@ def test_deprecated_escape(improved_renderer):
 
 def test_getattr_raises():
     with pytest.raises(AttributeError, match="no attribute 'goober'"):
-        lektor.markdown.goober  # pylint: disable=pointless-statement
+        _ = lektor.markdown.goober
 
 
 def test_dir():

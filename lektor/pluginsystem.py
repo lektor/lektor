@@ -20,15 +20,14 @@ def get_plugin(plugin_id_or_class, env=None):
         ctx = get_ctx()
         if ctx is None:
             raise RuntimeError(
-                "Context is unavailable and no environment "
-                "was passed to the function."
+                "Context is unavailable and no environment was passed to the function."
             )
         env = ctx.env
     plugin_id = env.plugin_ids_by_class.get(plugin_id_or_class, plugin_id_or_class)
     try:
         return env.plugins[plugin_id]
     except KeyError as error:
-        raise LookupError("Plugin %r not found" % plugin_id) from error
+        raise LookupError(f"Plugin {plugin_id!r} not found") from error
 
 
 class Plugin:
@@ -180,7 +179,7 @@ class PluginController:
     ) -> None:
         env = self.env
         if plugin_id in env.plugins:
-            raise RuntimeError('Plugin "%s" is already registered' % plugin_id)
+            raise RuntimeError(f'Plugin "{plugin_id}" is already registered')
         plugin = plugin_cls(env, plugin_id)
         # Plugin.version needs the source distribution to be able to cleanly determine
         # the plugin version.  For reasons of backward compatibility, we don't want to

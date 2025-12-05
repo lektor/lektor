@@ -1,4 +1,5 @@
 """Tests for the hatch build hooks in ../build_frontend.py."""
+
 import os
 import shutil
 import sys
