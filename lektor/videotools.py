@@ -207,18 +207,19 @@ def get_ffmpeg_quality(quality_percent):
 def get_suffix(seek, width, height, mode, quality):
     """Make suffix for a thumbnail that is unique to the given parameters."""
     timecode = get_timecode(seek).replace(":", "-").replace(".", "-")
-    suffix = "t%s" % timecode
+    bits = [f"t{timecode}"]
 
     if width is not None or height is not None:
-        suffix += "_%s" % "x".join(str(x) for x in [width, height] if x is not None)
+        dimension = "x".join(str(x) for x in [width, height] if x is not None)
+        bits.append(dimension)
 
     if mode != ThumbnailMode.DEFAULT:
-        suffix += "_%s" % mode.value
+        bits.append(mode.value)
 
     if quality is not None:
-        suffix += "_q%s" % quality
+        bits.append(f"q{quality}")
 
-    return suffix
+    return "_".join(bits)
 
 
 def get_video_info(filename):
@@ -246,7 +247,7 @@ def get_video_info(filename):
     stdout, _ = proc.communicate()
 
     if proc.returncode != 0:
-        raise RuntimeError("ffprobe exited with code %d" % proc.returncode)
+        raise RuntimeError(f"ffprobe exited with code {proc.returncode}")
 
     ffprobe_data = json.loads(stdout.decode("utf8"))
     info = {
@@ -302,7 +303,7 @@ def make_video_thumbnail(
     if format is None:
         format = "jpg"
     if format not in THUMBNAIL_FORMATS:
-        raise ValueError('Invalid thumbnail format "%s"' % format)
+        raise ValueError(f'Invalid thumbnail format "{format}"')
 
     if quality is not None and format != "jpg":
         raise ValueError("The quality parameter is only supported for jpeg images")
@@ -328,11 +329,10 @@ def make_video_thumbnail(
     def build_thumbnail_artifact(artifact):
         artifact.ensure_dir()
 
-        vfilter = "thumbnail,scale={rw}:{rh},crop={tw}:{th}".format(
-            rw=resize_dim.width,
-            rh=resize_dim.height,
-            tw=crop_dim.width,
-            th=crop_dim.height,
+        vfilter = (
+            "thumbnail",
+            f"scale={resize_dim.width}:{resize_dim.height}",
+            f"crop={crop_dim.width}:{crop_dim.height}",
         )
 
         cmdline = [
@@ -344,7 +344,7 @@ def make_video_thumbnail(
             "-i",
             source_video,
             "-vf",
-            vfilter,
+            ",".join(vfilter),
             "-frames:v",
             "1",
             "-qscale:v",
@@ -359,10 +359,10 @@ def make_video_thumbnail(
 
         if not os.path.exists(artifact.dst_filename):
             msg = (
-                "Unable to create video thumbnail for {!r}. Maybe the seek "
-                "is outside of the video duration?"
+                f"Unable to create video thumbnail for {source_video!r}. "
+                "Maybe the seek is outside of the video duration?"
             )
-            raise RuntimeError(msg.format(source_video))
+            raise RuntimeError(msg)
 
     ctx.sub_artifact(artifact_name=dst_url_path, sources=[source_video])(
         build_thumbnail_artifact

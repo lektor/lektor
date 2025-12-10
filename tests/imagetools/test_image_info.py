@@ -76,7 +76,7 @@ class DummySVGImage(DummyFileBase):
             if values[key] is not None
         )
         svg = (
-            f'{self.xml_decl or ""}'
+            f"{self.xml_decl or ''}"
             f"<svg{svg_attrs}>"
             '<circle cx="50" cy="50" r="50" fill="lightgrey"/>'
             '<circle cx="30" cy="30" r="10" fill="black"/>'

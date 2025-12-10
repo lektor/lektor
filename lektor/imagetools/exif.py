@@ -1,10 +1,11 @@
-"""Helper to access Exif info in images.
-"""
+"""Helper to access Exif info in images."""
+
 from __future__ import annotations
 
 import numbers
 import sys
 from collections.abc import Mapping
+from contextlib import suppress
 from datetime import datetime
 from fractions import Fraction
 from functools import wraps
@@ -21,9 +22,10 @@ from ._compat import ExifTags
 from ._compat import UnidentifiedImageError
 from .image_info import TiffOrientation
 
+
 if TYPE_CHECKING:
-    from typing import Literal
     from _typeshed import SupportsRead
+    from typing import Literal
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
@@ -36,7 +38,7 @@ def _combine_make(make: str | None, model: str | None) -> str:
     model = model or ""
     if make and model.startswith(make):
         return model
-    return " ".join([make, model]).strip()
+    return f"{make} {model}".strip()
 
 
 # Interpretation of the Exif Flash tag value
@@ -168,8 +170,8 @@ def _default_none(wrapped: Callable[[EXIFInfo], _T]) -> Callable[[EXIFInfo], _T 
 class EXIFInfo:
     """Adapt Exif tags to more user-friendly values.
 
-    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to certain
-    Exif tags more user-friendly.
+    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to
+    certain Exif tags more user-friendly.
 
     """
 
@@ -292,7 +294,7 @@ class EXIFInfo:
     @_default_none
     def shutter_speed(self) -> str:
         value = _to_float(self._exif_ifd[ExifTags.Base.ShutterSpeedValue])
-        return f"1/{2 ** value:.0f}"
+        return f"1/{2**value:.0f}"
 
     @property
     @_default_none
@@ -327,10 +329,8 @@ class EXIFInfo:
             (self._ifd0, ExifTags.Base.DateTime),
         )
         for ifd, tag in date_tags:
-            try:
+            with suppress(LookupError, ValueError):
                 return datetime.strptime(ifd[tag], "%Y:%m:%d %H:%M:%S")
-            except (LookupError, ValueError):
-                continue
         return None
 
     @property

@@ -14,6 +14,7 @@ from lektor.cli_utils import pass_context
 from lektor.cli_utils import pruneflag
 from lektor.cli_utils import ResolvedPath
 from lektor.cli_utils import validate_language
+from lektor.devcli import cli as devcli
 from lektor.project import Project
 from lektor.utils import secure_url
 
@@ -214,7 +215,7 @@ def clean_cmd(ctx, *, output_path, verbosity, extra_flags):
 @click.option(
     "--password",
     envvar="LEKTOR_DEPLOY_PASSWORD",
-    help="An optional password to override the URL or the " "default prompt.",
+    help="An optional password to override the URL or the default prompt.",
 )
 @click.option(
     "--key-file",
@@ -245,7 +246,8 @@ def deploy_cmd(ctx, *, server, output_path, extra_flags, **credentials):
 
     For more information see the deployment chapter in the documentation.
     """
-    from lektor.publisher import publish, PublishError
+    from lektor.publisher import publish
+    from lektor.publisher import PublishError
 
     if output_path is None:
         output_path = ctx.get_default_output_path()
@@ -264,7 +266,7 @@ def deploy_cmd(ctx, *, server, output_path, extra_flags, **credentials):
         server_info = config.get_server(server)
         if server_info is None:
             raise click.BadParameter(
-                'Server "%s" does not exist.' % server, param_hint="server"
+                f"Server {server!r} does not exist.", param_hint="server"
             )
 
     try:
@@ -276,20 +278,19 @@ def deploy_cmd(ctx, *, server, output_path, extra_flags, **credentials):
             server_info=server_info,
             extra_flags=extra_flags,
         )
-    except PublishError as e:
-        raise click.UsageError(
-            'Server "%s" is not configured for a valid '
-            "publishing method: %s" % (server, e)
-        )
+    except PublishError as exc:
+        server_desc = "Default server" if server is None else f"Server {server!r}"
+        message = f"{server_desc} configuration error: {exc}"
+        raise click.UsageError(message) from exc
 
-    click.echo("Deploying to %s" % server_info.name)
-    click.echo("  Build cache: %s" % output_path)
-    click.echo("  Target: %s" % secure_url(server_info.target))
+    click.echo(f"Deploying to {server_info.name}")
+    click.echo(f"  Build cache: {output_path}")
+    click.echo(f"  Target: {secure_url(server_info.target)}")
     try:
         for line in event_iter:
-            click.echo("  %s" % click.style(line, fg="cyan"))
+            click.echo(f"  {click.style(line, fg='cyan')}")
     except PublishError as e:
-        click.secho("Error: %s" % e, fg="red")
+        click.secho(f"Error: {e}", fg="red")
     else:
         click.echo("Done!")
 
@@ -338,8 +339,8 @@ def server_cmd(ctx, *, host, port, output_path, prune, verbosity, extra_flags, b
     if output_path is None:
         output_path = ctx.get_default_output_path()
     ctx.load_plugins(extra_flags=extra_flags)
-    click.echo(" * Project path: %s" % ctx.get_project().project_path)
-    click.echo(" * Output path: %s" % output_path)
+    click.echo(f" * Project path: {ctx.get_project().project_path}")
+    click.echo(f" * Output path: {output_path}")
     run_server(
         (host, port),
         env=ctx.get_env(),
@@ -400,15 +401,15 @@ def project_info_cmd(ctx, *, as_json, **opts):
         for op in ops:
             click.echo(json_data.get(op, ""))
     else:
-        click.echo("Name: %s" % json_data["name"])
-        click.echo("File: %s" % json_data["project_file"])
-        click.echo("Tree: %s" % json_data["tree"])
-        click.echo("Output: %s" % json_data["default_output_path"])
-        click.echo("Package Cache: %s" % json_data["package_cache_path"])
+        click.echo(f"Name: {json_data['name']}")
+        click.echo(f"File: {json_data['project_file']}")
+        click.echo(f"Tree: {json_data['tree']}")
+        click.echo(f"Output: {json_data['default_output_path']}")
+        click.echo(f"Package Cache: {json_data['package_cache_path']}")
 
 
 @cli.command(
-    "content-file-info", short_help="Provides information for " "a set of lektor files."
+    "content-file-info", short_help="Provides information for a set of lektor files."
 )
 @click.option("as_json", "--json", is_flag=True, help="Prints out the data as json.")
 @click.argument("files", nargs=-1, type=click.Path(dir_okay=False))
@@ -424,7 +425,7 @@ def content_file_info_cmd(ctx, files, *, as_json):
         if as_json:
             echo_json({"success": False, "error": msg})
             sys.exit(1)
-        raise click.UsageError("Could not find content file info: %s" % msg)
+        raise click.UsageError(f"Could not find content file info: {msg}")
 
     for filename in files:
         this_project = Project.discover(filename)
@@ -457,12 +458,12 @@ def content_file_info_cmd(ctx, files, *, as_json):
         )
     else:
         click.echo("Project:")
-        click.echo("  Name: %s" % project.name)
-        click.echo("  File: %s" % project.project_file)
-        click.echo("  Tree: %s" % project.tree)
+        click.echo(f"  Name: {project.name}")
+        click.echo(f"  File: {project.project_file}")
+        click.echo(f"  Tree: {project.tree}")
         click.echo("Paths:")
         for project_file in project_files:
-            click.echo("  - %s" % project_file)
+            click.echo(f"  - {project_file}")
 
 
 @cli.group("plugins", short_help="Manages plugins.")
@@ -490,14 +491,10 @@ def plugins_add_cmd(ctx, name):
     try:
         info = add_package_to_project(project, name)
     except RuntimeError as e:
-        click.echo("Error: %s" % e, err=True)
+        click.echo(f"Error: {e}", err=True)
     else:
         click.echo(
-            "Package %s (%s) was added to the project"
-            % (
-                info["name"],
-                info["version"],
-            )
+            f"Package {info['name']} ({info['version']}) was added to the project"
         )
 
 
@@ -514,20 +511,14 @@ def plugins_remove_cmd(ctx, name):
     try:
         old_info = remove_package_from_project(project, name)
     except RuntimeError as e:
-        click.echo("Error: %s" % e, err=True)
+        click.echo(f"Error: {e}", err=True)
     else:
         if old_info is None:
             click.echo(
                 "Package was not registered with the project. Nothing was removed."
             )
         else:
-            click.echo(
-                "Removed package %s (%s)"
-                % (
-                    old_info["name"],
-                    old_info["version"],
-                )
-            )
+            click.echo(f"Removed package {old_info['name']} ({old_info['version']})")
 
 
 @plugins_cmd.command("list", short_help="List all plugins.")
@@ -565,16 +556,14 @@ def plugins_list_cmd(ctx, *, as_json, verbosity):
             click.echo()
         click.echo(f"{plugin.name} ({plugin.id})")
         for line in plugin.description.splitlines():
-            click.echo("  %s" % line)
+            click.echo(f"  {line}")
         if plugin.path is not None:
-            click.echo("  path: %s" % plugin.path)
-        click.echo("  version: %s" % plugin.version)
-        click.echo("  import-name: %s" % plugin.import_name)
+            click.echo(f"  path: {plugin.path}")
+        click.echo(f"  version: {plugin.version}")
+        click.echo(f"  import-name: {plugin.import_name}")
 
 
-@plugins_cmd.command(
-    "flush-cache", short_help="Flushes the plugin " "installation cache."
-)
+@plugins_cmd.command("flush-cache", short_help="Flushes the plugin installation cache.")
 @pass_context
 def plugins_flush_cache_cmd(ctx):
     """This uninstalls all plugins in the cache.  On next usage the plugins
@@ -614,8 +603,6 @@ def quickstart_cmd(ctx, **options):
 
     project_quickstart(options)
 
-
-from .devcli import cli as devcli  # pylint: disable=wrong-import-position
 
 cli.add_command(devcli, "dev")
 

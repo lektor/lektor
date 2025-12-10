@@ -12,6 +12,7 @@ from lektor.reporter import reporter
 from lektor.utils import is_path_child_of
 from lektor.utils import join_path
 
+
 if TYPE_CHECKING:
     from lektor.db import Pad
 
@@ -241,7 +242,8 @@ def _join_url_path(source, path):
         # Punt and treat path as relative to the source's containing directory.
         content_path = posixpath.dirname(source.url_path) or "/"
         reporter.report_generic(
-            f"Suspicious use of relative URL {path!r} from non-container source {source!r}"
+            f"Suspicious use of relative URL {path!r} "
+            f"from non-container source {source!r}"
         )
     return posixpath.join(content_path, path)
 

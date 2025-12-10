@@ -9,8 +9,9 @@ from lektor.constants import PRIMARY_ALT
 from lektor.db import Tree
 from lektor.project import Project
 
+
 # pylint: disable-next=wrong-import-order
-from conftest import restore_import_state  # noreorder
+from conftest import restore_import_state  # isort: skip
 
 
 @pytest.fixture(scope="session")
@@ -214,7 +215,7 @@ def test_get(tree, path, name):
 def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
     item = tree.get(path)
     children = item.get_children(offset, limit, order_by=order_by)
-    assert list(child.id for child in children) == expect
+    assert [child.id for child in children] == expect
 
 
 @pytest.mark.parametrize(
@@ -262,7 +263,7 @@ def test_tree_item_get_children(tree, path, offset, limit, order_by, expect):
 )
 def test_tree_item_iter_subpages(tree, path, order_by, expect):
     item = tree.get(path)
-    assert list(child.id for child in item.iter_subpages(order_by)) == expect
+    assert [child.id for child in item.iter_subpages(order_by)] == expect
 
 
 @pytest.mark.parametrize(
@@ -282,7 +283,7 @@ def test_tree_item_iter_subpages(tree, path, order_by, expect):
 )
 def test_tree_item_iter_attachments(tree, path, expect):
     item = tree.get(path)
-    assert list(child.id for child in item.iter_attachments()) == expect
+    assert [child.id for child in item.iter_attachments()] == expect
 
 
 @pytest.mark.parametrize(

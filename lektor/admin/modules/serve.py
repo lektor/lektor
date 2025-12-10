@@ -29,6 +29,7 @@ from lektor.assets import Directory
 from lektor.constants import PRIMARY_ALT
 from lektor.db import Record
 
+
 if TYPE_CHECKING:
     from flask.typing import ResponseReturnValue
     from flask.typing import ResponseValue
@@ -73,7 +74,8 @@ class TooldrawerConfig:
 def _inject_tooldrawer(
     html: bytes, tooldrawer_config: TooldrawerConfig | None
 ) -> bytes:
-    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML page."""
+    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML
+    page."""
     if tooldrawer_config:
         tooldrawer_html = render_template(
             "tooldrawer.html",

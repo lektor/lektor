@@ -43,11 +43,14 @@ def test_ssh_key_file_returns_none():
 def test_ssh_key_file_creates_key(prefix, key_type):
     credentials = {"key": prefix + "".join(["1234567890abcdef"] * 7)}
     with _ssh_key_file(credentials) as key_file:
-        assert Path(key_file).read_text() == (  # pylint: disable=unspecified-encoding
-            f"-----BEGIN {key_type} PRIVATE KEY-----\n"
-            "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef\n"
-            "1234567890abcdef1234567890abcdef1234567890abcdef\n"
-            f"-----END {key_type} PRIVATE KEY-----\n"
+        assert (
+            Path(key_file).read_text()  # pylint: disable=unspecified-encoding
+            == (
+                f"-----BEGIN {key_type} PRIVATE KEY-----\n"
+                "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef\n"
+                "1234567890abcdef1234567890abcdef1234567890abcdef\n"
+                f"-----END {key_type} PRIVATE KEY-----\n"
+            )
         )
     assert not Path(key_file).exists()
 

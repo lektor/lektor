@@ -43,12 +43,17 @@ def default_author_email(mocker):
     return email
 
 
+def _pack_lines(*lines: str) -> str:
+    """Pack input lines into single string."""
+    return "\n".join(lines) + "\n"
+
+
 # new-plugin
 def test_new_plugin(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin"],
-        input="Plugin Name\n" "\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("Plugin Name", "", "Author Name", "author@email.com", "y"),
     )
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
@@ -132,7 +137,7 @@ def test_new_plugin_abort_cancel(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin"],
-        input="Plugin Name\n" "\n" "Author Name\n" "author@email.com\n" "n\n",
+        input=_pack_lines("Plugin Name", "", "Author Name", "author@email.com", "n"),
     )
     assert "Aborted!" in result.output
     assert result.exit_code == 1
@@ -142,7 +147,7 @@ def test_new_plugin_name_only(project_cli_runner, default_author, default_author
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin"],
-        input="Plugin Name\n" "\n" "\n" "\n" "y\n",
+        input=_pack_lines("Plugin Name", "", "", "", "y"),
     )
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
@@ -158,7 +163,7 @@ def test_new_plugin_name_param(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin", "plugin-name"],
-        input="\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("", "Author Name", "author@email.com", "y"),
     )
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
@@ -170,7 +175,9 @@ def test_new_plugin_path(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin"],
-        input="Plugin Name\n" "path\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines(
+            "Plugin Name", "path", "Author Name", "author@email.com", "y"
+        ),
     )
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
@@ -188,7 +195,7 @@ def test_new_plugin_path_param(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin", "--path", "path"],
-        input="Plugin Name\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("Plugin Name", "Author Name", "author@email.com", "y"),
     )
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
@@ -206,7 +213,7 @@ def test_new_plugin_path_and_name_params(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-plugin", "plugin-name", "--path", "path"],
-        input="Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("Author Name", "author@email.com", "y"),
     )
     assert "Create Plugin?" in result.output
     assert result.exit_code == 0
@@ -225,7 +232,9 @@ def test_new_theme(project_cli_runner, can_symlink):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
-        input="Lektor Theme Name\n" "\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines(
+            "Lektor Theme Name", "", "Author Name", "author@email.com", "y"
+        ),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
@@ -267,7 +276,7 @@ def test_new_theme_abort_cancel(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
-        input="Theme Name\n" "\n" "Author Name\n" "author@email.com\n" "n\n",
+        input=_pack_lines("Theme Name", "", "Author Name", "author@email.com", "n"),
     )
     assert "Aborted!" in result.output
     assert result.exit_code == 1
@@ -279,7 +288,7 @@ def test_new_theme_name_only(
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
-        input="Lektor Name Theme\n" "\n" "\n" "\n" "y\n",
+        input=_pack_lines("Lektor Name Theme", "", "", "", "y"),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
@@ -311,7 +320,7 @@ def test_new_theme_name_param(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme", "theme-name"],
-        input="\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("", "Author Name", "author@email.com", "y"),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
@@ -323,7 +332,7 @@ def test_new_theme_path(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
-        input="Theme Name\n" "path\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("Theme Name", "path", "Author Name", "author@email.com", "y"),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
@@ -335,7 +344,7 @@ def test_new_theme_path_param(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme", "--path", "path"],
-        input="Theme Name\n" "Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("Theme Name", "Author Name", "author@email.com", "y"),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
@@ -347,7 +356,7 @@ def test_new_theme_path_and_name_params(project_cli_runner):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme", "theme-name", "--path", "path"],
-        input="Author Name\n" "author@email.com\n" "y\n",
+        input=_pack_lines("Author Name", "author@email.com", "y"),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0
@@ -372,7 +381,7 @@ def test_new_theme_varying_names(project_cli_runner, theme_name, expected_id):
     result = project_cli_runner.invoke(
         cli,
         ["dev", "new-theme"],
-        input="{}\n" "\n" "\n" "\n" "y\n".format(theme_name),
+        input=_pack_lines(f"{theme_name}", "", "", "", "y"),
     )
     assert "Create Theme?" in result.output
     assert result.exit_code == 0

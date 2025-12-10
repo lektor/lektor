@@ -21,7 +21,7 @@ from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
-from functools import lru_cache
+from functools import cache
 from functools import wraps
 from pathlib import Path
 from pathlib import PurePosixPath
@@ -41,6 +41,7 @@ from slugify import slugify as _slugify
 from werkzeug.http import http_date
 from werkzeug.urls import iri_to_uri
 from werkzeug.urls import uri_to_iri
+
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -334,7 +335,7 @@ def increment_filename(filename):
     return rv
 
 
-@lru_cache(maxsize=None)
+@cache
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
@@ -546,8 +547,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenTextMode = "r",
     encoding: str | None = None,
-) -> Iterator[io.TextIOWrapper]:
-    ...
+) -> Iterator[io.TextIOWrapper]: ...
 
 
 @overload
@@ -556,8 +556,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeWriting,
     encoding: None = None,
-) -> Iterator[io.BufferedWriter]:
-    ...
+) -> Iterator[io.BufferedWriter]: ...
 
 
 @overload
@@ -566,8 +565,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeReading,
     encoding: None = None,
-) -> Iterator[io.BufferedReader]:
-    ...
+) -> Iterator[io.BufferedReader]: ...
 
 
 @contextmanager
@@ -660,7 +658,7 @@ def portable_popen(cmd, *args, **kwargs):
         raise RuntimeError("No executable specified")
     exe = locate_executable(cmd[0], kwargs.get("cwd"))
     if exe is None:
-        raise RuntimeError('Could not locate executable "%s"' % cmd[0])
+        raise RuntimeError(f'Could not locate executable "{cmd[0]}"')
 
     if isinstance(exe, str) and sys.platform != "win32":
         exe = exe.encode(sys.getfilesystemencoding())
@@ -779,12 +777,7 @@ def deg_to_dms(deg):
 def format_lat_long(lat=None, long=None, secs=True):
     def _format(value, sign):
         d, m, sd = deg_to_dms(value)
-        return "%d° %d′ %s%s" % (
-            abs(d),
-            abs(m),
-            secs and ("%d″ " % abs(sd)) or "",
-            sign[d < 0],
-        )
+        return f"{abs(d)}° {abs(m)}′ {secs and f'{abs(sd)}″ ' or ''}{sign[d < 0]}"
 
     rv = []
     if lat is not None:
@@ -967,8 +960,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> Callable[..., Any]:
-    ...
+) -> Callable[..., Any]: ...
 
 
 @overload
@@ -978,8 +970,7 @@ def deprecated(
     name: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 @overload
@@ -989,8 +980,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 def deprecated(*args: Any, **kwargs: Any) -> _F | _Deprecate:

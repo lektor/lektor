@@ -1,4 +1,5 @@
 """Compatibility with various versions of Pillow."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -10,6 +11,7 @@ from types import SimpleNamespace
 import PIL.ExifTags
 import PIL.Image
 
+
 __all__ = ["ExifTags", "Transpose", "UnidentifiedImageError"]
 
 PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
@@ -17,8 +19,8 @@ PILLOW_VERSION_INFO = tuple(map(int, PIL.__version__.split(".")))
 if PILLOW_VERSION_INFO >= (9, 4):
     ExifTags: ModuleType | SimpleNamespace = PIL.ExifTags
 else:
-    # Pillow < 9.4 does not provide the PIL.ExifTags.{Base,GPS,IFD} enums. Here we provide
-    # and ExifTags namespace which has them.
+    # Pillow < 9.4 does not provide the PIL.ExifTags.{Base,GPS,IFD} enums. Here we
+    # provide and ExifTags namespace which has them.
 
     def _reverse_map(mapping: Mapping[int, str]) -> dict[str, int]:
         return dict(map(reversed, mapping.items()))  # type: ignore[arg-type]

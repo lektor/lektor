@@ -18,6 +18,7 @@ from lektor.context import Context
 from lektor.context import get_ctx
 from lektor.sourceobj import SourceObject
 
+
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
 

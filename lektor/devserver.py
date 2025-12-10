@@ -18,8 +18,10 @@ from lektor.reporter import CliReporter
 from lektor.utils import process_extra_flags
 from lektor.watcher import watch_project
 
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
+
     from lektor.environment import Environment
 
 

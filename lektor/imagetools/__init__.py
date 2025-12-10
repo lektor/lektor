@@ -10,6 +10,7 @@ from .thumbnail import make_image_thumbnail
 from .thumbnail import Thumbnail
 from .thumbnail import ThumbnailMode
 
+
 __all__ = [
     "compute_dimensions",
     "get_image_info",

@@ -14,6 +14,7 @@ from lektor.admin.modules import livereload
 from lektor.admin.modules import serve
 from lektor.environment import Environment
 
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
     from _typeshed.wsgi import WSGIApplication
