@@ -1,12 +1,12 @@
 import threading
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from dataclasses import dataclass
 from typing import Any
-from typing import Callable
 from typing import NamedTuple
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -45,7 +45,7 @@ def require_ctx() -> Context:
 class RendererContext(NamedTuple):
     """Extra data used during Markdown rendering."""
 
-    record: Optional[SourceObject]
+    record: SourceObject | None
     meta: Meta
     field_options: FieldOptions
 
@@ -68,7 +68,7 @@ class RendererHelper:
     """Various helpers used by our markdown renderer subclasses."""
 
     @property
-    def record(self) -> Optional[SourceObject]:
+    def record(self) -> SourceObject | None:
         """The record that owns the markdown field being rendered.
 
         This is used as the base for resolving relative URLs in the Markdown text.
@@ -154,7 +154,7 @@ class MarkdownController(ABC):
     def parser(self) -> Callable[[str], str]:  # () -> mistune.Mistune
         return self.make_parser()
 
-    def get_cache_key(self) -> Optional[Hashable]:
+    def get_cache_key(self) -> Hashable | None:
         """Get cache key.
 
         Identical keys guarantee that the rendered result for a given string,
@@ -169,7 +169,7 @@ class MarkdownController(ABC):
         return ctx.base_url
 
     def render(
-        self, source: str, record: Optional[SourceObject], field_options: FieldOptions
+        self, source: str, record: SourceObject | None, field_options: FieldOptions
     ) -> RenderResult:
         """Render markdown string"""
         meta: Meta = {}

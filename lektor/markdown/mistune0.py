@@ -2,7 +2,6 @@
 
 import threading
 from typing import ClassVar
-from typing import Optional
 
 import mistune  # type: ignore[import]
 
@@ -33,13 +32,13 @@ class ImprovedRenderer(
     def meta(self) -> Meta:
         return self.lektor.meta
 
-    def link(self, link: str, title: Optional[str], text: str) -> str:
+    def link(self, link: str, title: str | None, text: str) -> str:
         url = self.lektor.resolve_url(link)
         if not title:
             return f'<a href="{escape(url)}">{text}</a>'
         return f'<a href="{escape(url)}" title="{escape(title)}">{text}</a>'
 
-    def image(self, src: str, title: Optional[str], text: str) -> str:
+    def image(self, src: str, title: str | None, text: str) -> str:
         url = escape(self.lektor.resolve_url(src))
         if not title:
             return f'<img src="{url}" alt="{escape(text)}">'

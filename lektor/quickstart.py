@@ -9,7 +9,6 @@ from importlib import import_module
 from subprocess import PIPE
 from subprocess import run
 from tempfile import TemporaryDirectory
-from typing import Optional
 
 import click
 from jinja2 import Environment
@@ -144,7 +143,7 @@ def get_default_author() -> str:
     return getpass.getuser()
 
 
-def get_default_author_email() -> Optional[str]:
+def get_default_author_email() -> str | None:
     """Attempt to guess an email address for the current user.
 
     May return an empty string if not reasonable guess can be made.

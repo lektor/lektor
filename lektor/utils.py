@@ -14,6 +14,7 @@ import unicodedata
 import urllib.parse
 import uuid
 import warnings
+from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -26,14 +27,12 @@ from functools import wraps
 from pathlib import Path
 from pathlib import PurePosixPath
 from typing import Any
-from typing import Callable
 from typing import ClassVar
 from typing import IO
 from typing import Literal
 from typing import overload
 from typing import TYPE_CHECKING
 from typing import TypeVar
-from typing import Union
 
 from jinja2 import is_undefined
 from markupsafe import Markup
@@ -282,7 +281,7 @@ def merge(a, b):
     if a is None:
         return b
     if isinstance(a, list) and isinstance(b, list):
-        for idx, (item_1, item_2) in enumerate(zip(a, b)):
+        for idx, (item_1, item_2) in enumerate(zip(a, b, strict=False)):
             a[idx] = merge(item_1, item_2)
     if isinstance(a, dict) and isinstance(b, dict):
         for key, value in b.items():
@@ -536,9 +535,9 @@ def get_dependent_url(url_path, suffix, ext=None):
 _AtomicOpenTextMode = Literal["w", "wt", "tw", "r", "rt", "tr"]
 _AtomicOpenBinaryModeWriting = Literal["wb", "bw"]
 _AtomicOpenBinaryModeReading = Literal["rb", "br"]
-_AtomicOpenMode = Union[
-    _AtomicOpenTextMode, _AtomicOpenBinaryModeWriting, _AtomicOpenBinaryModeReading
-]
+_AtomicOpenMode = (
+    _AtomicOpenTextMode | _AtomicOpenBinaryModeWriting | _AtomicOpenBinaryModeReading
+)
 
 
 @overload
