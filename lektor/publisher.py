@@ -6,6 +6,7 @@ import io
 import os
 import posixpath
 import urllib.parse
+from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -25,7 +26,6 @@ from subprocess import PIPE
 from subprocess import STDOUT
 from tempfile import TemporaryDirectory
 from typing import Any
-from typing import Callable
 from typing import NoReturn
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit

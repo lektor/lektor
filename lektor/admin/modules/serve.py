@@ -6,7 +6,6 @@ import os
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Union
 from zlib import adler32
 
 from flask import abort
@@ -42,7 +41,7 @@ if TYPE_CHECKING:
 bp = Blueprint("serve", __name__)
 
 
-Filename = Union[str, os.PathLike[str]]
+Filename = str | os.PathLike[str]
 
 
 @dataclasses.dataclass(frozen=True)

@@ -23,16 +23,16 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "Babel",
     "click>=6.0",
@@ -47,7 +47,6 @@ dependencies = [
     "pip",
     "python-slugify",
     "requests",
-    "typing-extensions>=3.10; python_version<'3.10'",
     "tzdata; sys_platform == 'win32'",
     "watchfiles>=0.12",
     "Werkzeug>=2.1.0",

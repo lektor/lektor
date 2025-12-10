@@ -78,11 +78,7 @@ def test_VirtualEnv_run_pip_install(tmp_path: Path) -> None:
     prog = inspect.cleandoc(
         """
         import sys
-        if sys.version_info < (3, 10):
-            # need "selectable" entry_points
-            import importlib_metadata as metadata
-        else:
-            from importlib import metadata
+        from importlib import metadata
 
         for ep in metadata.entry_points(group="lektor.plugins", name="dummy"):
             print(ep.load().__name__)

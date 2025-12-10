@@ -1,5 +1,6 @@
 import os
 import posixpath
+from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Mapping
 from contextvars import ContextVar
@@ -7,9 +8,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from functools import wraps
 from typing import Any
-from typing import Callable
 from typing import cast
-from typing import Optional
 from typing import TypeVar
 
 import click
@@ -43,9 +42,7 @@ LEKTOR_CONFIG: ContextVar[Config] = ContextVar("lektor_config")
 
 
 @bp.url_value_preprocessor
-def pass_lektor_context(
-    endpoint: Optional[str], values: Optional[dict[str, Any]]
-) -> None:
+def pass_lektor_context(endpoint: str | None, values: dict[str, Any] | None) -> None:
     """Pass LektorContext to each view callable in a `ctx` parameter"""
     assert isinstance(values, dict)
     values["ctx"] = get_lektor_context()
@@ -55,8 +52,8 @@ class _ServerInfoField(marshmallow.fields.String):
     def _deserialize(
         self,
         value: str,
-        attr: Optional[str],
-        data: Optional[Mapping[str, Any]],
+        attr: str | None,
+        data: Mapping[str, Any] | None,
         **kwargs: Any,
     ) -> ServerInfo:
         lektor_config = LEKTOR_CONFIG.get()
@@ -225,7 +222,7 @@ def get_preview_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
 class _FindParams:
     q: str
     alt: _AltType = PRIMARY_ALT
-    lang: Optional[str] = None
+    lang: str | None = None
 
 
 @bp.route("/find", methods=["POST"])
@@ -356,8 +353,8 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
 @dataclass
 class _NewRecordParams:
     id: str
-    model: Optional[str]
-    data: dict[str, Optional[str]]
+    model: str | None
+    data: dict[str, str | None]
     path: _PathType
     alt: _AltType = PRIMARY_ALT
 
@@ -401,7 +398,7 @@ def delete_record(validated: _DeleteRecordParams, ctx: LektorContext) -> Respons
 
 @dataclass
 class _UpdateRawRecordParams:
-    data: dict[str, Optional[str]]
+    data: dict[str, str | None]
     path: _PathType
     alt: _AltType = PRIMARY_ALT
 

@@ -90,12 +90,12 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
-          - { os: "macos-latest", python: "3.9" }
+          - { os: "macos-latest", python: "3.10" }
           - { os: "macos-14", python: "3.14", install-ffmpeg: true }
           # macos-15 and newer have CI failures that do not reproduce on the other platforms
-          - { os: "windows-latest", python: "3.9" }
+          - { os: "windows-latest", python: "3.10" }
           - { os: "windows-latest", python: "3.14", install-ffmpeg: true }
           - { python: "3.14", install-ffmpeg: true }
     steps:

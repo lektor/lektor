@@ -5,11 +5,11 @@ import shutil
 import sys
 import threading
 import warnings
+from collections.abc import Callable
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 import pytest
 from watchfiles import Change
