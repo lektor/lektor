@@ -37,6 +37,13 @@ def create_tables(con):
         without_rowid = ""
 
     try:
+        is_virtual_exists = con.execute(
+            """ select count(*) from pragma_table_info('artifacts')
+                        where name='is_virtual';
+            """
+        ).fetchone()[0]
+        if not is_virtual_exists:
+            con.execute("""drop table if exists artifacts""")
         con.execute(
             f"""
             create table if not exists artifacts (
@@ -46,6 +53,7 @@ def create_tables(con):
                 source_size integer,
                 source_checksum text,
                 is_dir integer,
+                is_virtual integer,
                 is_primary_source integer,
                 primary key (artifact, source)
             ) {without_rowid};
@@ -201,7 +209,7 @@ class BuildState:
         cur.execute(
             """
             select source, source_mtime, source_size,
-                   source_checksum, is_dir
+                   source_checksum, is_dir, is_virtual
             from artifacts
             where artifact = ?
         """,
@@ -210,8 +218,9 @@ class BuildState:
         rv = cur.fetchall()
 
         found = set()
-        for path, mtime, size, checksum, is_dir in rv:
-            if "@" in path:
+        for path, mtime, size, checksum, is_dir, is_virtual in rv:
+            if is_virtual:
+                assert "@" in path
                 vpath, alt = _unpack_virtual_source_path(path)
                 yield path, VirtualSourceInfo(vpath, alt, mtime, checksum)
             else:
@@ -659,6 +668,7 @@ artifacts_row = namedtuple(
         "source_size",
         "source_checksum",
         "is_dir",
+        "is_virtual",
         "is_primary_source",
     ],
 )
@@ -794,6 +804,7 @@ class Artifact:
                         source_size=info.size,
                         source_checksum=info.checksum,
                         is_dir=info.is_dir,
+                        is_virtual=False,
                         is_primary_source=source in primary_sources,
                     )
                 )
@@ -811,6 +822,7 @@ class Artifact:
                         source_size=None,
                         source_checksum=checksum,
                         is_dir=False,
+                        is_virtual=True,
                         is_primary_source=False,
                     )
                 )
@@ -827,8 +839,8 @@ class Artifact:
                     """
                     insert or replace into artifacts (
                         artifact, source, source_mtime, source_size,
-                        source_checksum, is_dir, is_primary_source)
-                    values (?, ?, ?, ?, ?, ?, ?)
+                        source_checksum, is_dir, is_virtual, is_primary_source)
+                    values (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     rows,
                 )

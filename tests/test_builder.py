@@ -460,3 +460,15 @@ def test_FileInfo_unchanged(env, tmp_path):
     assert file_info2.size != 3
 
     assert not file_info.unchanged(file_info2)
+
+
+def test_filenames_with_AT_do_not_get_built_twice(
+    scratch_builder, scratch_project_data
+):
+    scratch_project_data.joinpath("assets").mkdir()
+    scratch_project_data.joinpath("assets/@test").write_text("x")
+
+    scratch_builder.build_all()
+
+    with AssertBuildsNothingReporter():
+        scratch_builder.build_all()
