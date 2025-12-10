@@ -24,15 +24,15 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "lts/*"
           cache: "npm"
           cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: make frontend/node_modules
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
           cache: "pip"
@@ -45,7 +45,7 @@ jobs:
         id: pip
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox pre-commit
+          python -m pip install tox tox-uv pre-commit
           python -m pip freeze --local
       - name: Run pylint
         run: tox -e lint
@@ -69,8 +69,8 @@ jobs:
           - node: "current"
             os: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: "npm"
@@ -93,13 +93,14 @@ jobs:
         python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
           - { os: "macos-latest", python: "3.9" }
-          - { os: "macos-latest", python: "3.14", install-ffmpeg: true }
+          - { os: "macos-14", python: "3.14", install-ffmpeg: true }
+          # macos-15 and newer have CI failures that do not reproduce on the other platforms
           - { os: "windows-latest", python: "3.9" }
           - { os: "windows-latest", python: "3.14", install-ffmpeg: true }
           - { python: "3.14", install-ffmpeg: true }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           cache: "pip"
@@ -129,7 +130,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox tox-gh-actions coverage[toml]
+          python -m pip install tox tox-uv tox-gh-actions coverage[toml]
       - name: Run python tests
         run: tox
         env:
@@ -145,13 +146,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "lts/*"
 
