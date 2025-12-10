@@ -912,10 +912,12 @@ class Artifact:
         con = self.build_state.connect_to_database()
         try:
             f(con)
+            con.commit()
         except:  # noqa
             con.rollback()
             raise
-        con.commit()
+        finally:
+            con.close()
 
     @contextmanager
     def update(self):
