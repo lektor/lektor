@@ -63,6 +63,7 @@ class FileContents:
             return open(self.filename, "rb")
         if mode != "r":
             raise TypeError("Can only open files for reading")
+        # pylint: disable=deprecated-method
         return codecs.open(self.filename, encoding=encoding or "utf-8")
 
     def _ensure_hashes(self):

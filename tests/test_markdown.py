@@ -477,7 +477,7 @@ def test_deprecated_ImprovedRenderer(improved_renderer):
         # pylint: disable-next=import-outside-toplevel,no-name-in-module
         from lektor.markdown import ImprovedRenderer
     assert all(w.filename == __file__ for w in warnings)
-    assert ImprovedRenderer is type(improved_renderer)
+    assert isinstance(improved_renderer, ImprovedRenderer)
 
 
 @pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
