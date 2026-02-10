@@ -48,7 +48,6 @@ class Plugin:
 
     @property
     def version(self):
-
         return get_distribution("lektor-" + self.id).version
 
     @property

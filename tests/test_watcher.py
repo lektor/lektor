@@ -78,7 +78,6 @@ class WatcherTest:
         should_set_event: bool = True,
         timeout: float = 1.2,
     ) -> Generator[Path, None, None]:
-
         kwargs: dict[str, Any] = {}
         if observer_class is not None:
             kwargs.update(

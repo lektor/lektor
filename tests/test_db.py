@@ -149,7 +149,6 @@ def test_undiscoverable_basics(pad):
 
 
 def test_attachment_api(pad):
-
     root = pad.root
     root_attachments = [
         "hello.txt",

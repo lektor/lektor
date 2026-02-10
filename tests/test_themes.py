@@ -56,19 +56,16 @@ def theme_project(theme_project_tmpdir, request):
 
 @pytest.fixture(scope="function")
 def theme_env(theme_project):
-
     return Environment(theme_project)
 
 
 @pytest.fixture(scope="function")
 def theme_pad(theme_env):
-
     return Database(theme_env).new_pad()
 
 
 @pytest.fixture(scope="function")
 def theme_builder(theme_pad, tmpdir):
-
     return Builder(theme_pad, str(tmpdir.mkdir("output")))
 
 
