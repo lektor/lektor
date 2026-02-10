@@ -1,5 +1,6 @@
 import datetime
 import sys
+import weakref
 from html import unescape
 from pathlib import Path
 
@@ -49,11 +50,14 @@ def test_jinja2_feature_do(compile_template):
     assert tmpl.render() == "a-b"
 
 
+@pytest.mark.skipif(
+    not hasattr(sys, "getrefcount"), reason="interpreter does not support ref counting"
+)
 def test_no_reference_cycle_in_environment(project):
-    env = project.make_env(load_plugins=False)
-    # reference count should be two: one from our `env` variable, and
-    # another from the argument to sys.getrefcount
-    assert sys.getrefcount(env) == 2
+    ref = weakref.ref(project.make_env(load_plugins=False))
+    # With ref counts (and no ref cycle), the environment should be immediately
+    # garbage collected
+    assert ref() is None
 
 
 @pytest.fixture
