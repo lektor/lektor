@@ -2,11 +2,11 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.3.13 (unreleased)
+## 3.3.13 (2026-02-10)
 
 Lucky 13!
 
-This release addresses various pieces of bit-rot.
+This release addresses various pieces of bit-rot. (PR[#1248])
 
 ### Breaking Changes
 
@@ -24,7 +24,8 @@ This release addresses various pieces of bit-rot.
   `test_no_reference_cycle_in_environment`,
   `test_datetime_timezone_est`).
 
-[#1242]: https://github.com/lektor/lektor/pull/1142
+[#1242]: https://github.com/lektor/lektor/pull/1242
+[#1248]: https://github.com/lektor/lektor/pull/1248
 
 ## 3.3.12 (2024-08-18)
 
