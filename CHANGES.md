@@ -2,6 +2,30 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.13 (unreleased)
+
+Lucky 13!
+
+This release addresses various pieces of bit-rot.
+
+### Breaking Changes
+
+- Drop support for long-since-EOLed python 3.6 and 3.7.
+
+### Features
+
+- Test under python 3.13 and 3.14
+
+### Fixes
+
+- Pin `setuptools<81` to address the removal of `pkg_resources` from `setuptools`.
+- Fix "unclosed database" warnings. (Backport [#1242])
+- Fix a few brittle tests (`test_new_theme_varying_names`,
+  `test_no_reference_cycle_in_environment`,
+  `test_datetime_timezone_est`).
+
+[#1242]: https://github.com/lektor/lektor/pull/1142
+
 ## 3.3.12 (2024-08-18)
 
 - Test under python 3.12
