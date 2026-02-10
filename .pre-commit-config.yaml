@@ -1,14 +1,17 @@
 repos:
   - repo: https://github.com/ambv/black
-    rev: "22.12.0"
+    # NB: Using any black past 23.12.1 results in conflict between
+    # black and reorder-python-imports.
+    # See https://github.com/psf/black/issues/4175
+    rev: "23.12.1"
     hooks:
       - id: black
   - repo: https://github.com/asottile/reorder_python_imports
-    rev: "v3.9.0"
+    rev: "v3.16.0"
     hooks:
       - id: reorder-python-imports
   - repo: https://github.com/pycqa/flake8
-    rev: "6.0.0"
+    rev: "7.3.0"
     hooks:
       - id: flake8
         language_version: python3
