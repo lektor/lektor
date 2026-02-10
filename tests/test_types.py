@@ -247,7 +247,9 @@ def test_datetime_timezone_est(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo is get_timezone("EST")
+        naive = rv.replace(tzinfo=None)
+        tz = get_timezone("EST")
+        assert rv.tzinfo.utcoffset(naive) == tz.utcoffset(naive)
 
 
 def test_datetime_timezone_location(env, pad):
