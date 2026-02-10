@@ -48,6 +48,7 @@ def _prevent_inlining(wrapped):
 
     Applying this decorator to them will ensure they are not inlined.
     """
+
     # the use of @pass_context will prevent inlining
     @jinja2.pass_context
     def wrapper(_jinja_ctx, *args, **kwargs):

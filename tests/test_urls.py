@@ -4,7 +4,6 @@ from lektor.utils import cleanup_path
 
 
 def test_cleanup_path():
-
     assert cleanup_path("/") == "/"
     assert cleanup_path("/foo") == "/foo"
     assert cleanup_path("/foo/") == "/foo"
@@ -17,7 +16,6 @@ def test_cleanup_path():
 
 
 def test_basic_url_to_with_alts(pad):
-
     wolf_en = pad.get("/projects/wolf", alt="en")
     slave_en = pad.get("/projects/slave", alt="en")
     wolf_de = pad.get("/projects/wolf", alt="de")
@@ -78,7 +76,6 @@ def test_basic_url_to_with_alts(pad):
     ],
 )
 def test_url_to_all_params(pad, path, alt, absolute, external, base_url, expected):
-
     if external and not absolute:
         pad.db.config.base_url = "/projects/slave1/"
 
@@ -97,7 +94,6 @@ def test_url_to_all_params(pad, path, alt, absolute, external, base_url, expecte
     ],
 )
 def test_url_to_all_params_error_cases(pad, path, alt, absolute, external, base_url):
-
     wolf_en = pad.get("/projects/wolf")
 
     with pytest.raises(RuntimeError):
