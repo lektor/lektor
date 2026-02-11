@@ -8,23 +8,29 @@ root = true
 # defaults
 [*]
 end_of_line = lf
-insert_final_newline = false
+insert_final_newline = true
 indent_style = space
 
 [*.{ini,py,rst}]
 indent_size = 4
 trim_trailing_whitespace = true
-insert_final_newline = true
 max_line_length = 88
 
-[*.{js,jsx}]
+[*.{js,jsx,ts,tsx,json}]
 indent_size = 2
 
-[*.{html,css}]
+[*.{html,css,scss}]
 indent_size = 2
 trim_trailing_whitespace = true
-insert_final_newline = true
 
 [*.yml]
 indent_size = 2
+trim_trailing_whitespace = true
+
+[*.toml]
+indent_size = 4
+trim_trailing_whitespace = true
+
+[Makefile]
+indent_style = tab
 trim_trailing_whitespace = true
