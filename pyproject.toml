@@ -44,6 +44,7 @@ dependencies = [
     "marshmallow_dataclass>=8.5.9",
     "mistune>=0.7.0,<3",
     "Pillow>=6",
+    "pillow-avif-plugin",
     "pip",
     "python-slugify",
     "requests",
