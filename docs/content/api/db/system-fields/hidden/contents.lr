@@ -1,0 +1,20 @@
+title: _hidden
+---
+summary: Controls if the page should be built or not.
+---
+type: sysfield
+---
+body:
+
+This field controls if Lektor should process the page into a build artifact.
+By default each page is built into a build artifact (HTML page) and each
+attachment is processed.  This can be prevented by setting `_hidden` to `yes`.
+
+This also automatically applies to all children of a page unless they
+forcefully override this setting.
+
+This is useful for more advanced setups like [Single Page Applications
+:ref](../../../../guides/single-page/).
+
+Hidden pages are automatically also removed from the `.children` property
+of records but stay available for querying via the pad.

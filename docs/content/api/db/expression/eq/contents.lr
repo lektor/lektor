@@ -1,0 +1,21 @@
+title: ==
+---
+summary: Compares an expression to another.
+---
+type: operator
+---
+body:
+
+This checks if the left side of the expression matches the right side.
+Typically it compares if a value matches a specific value exactly:
+
+## Example
+
+```html+jinja
+<h2>Our Houses</h2>
+<ul>
+{% for project in this.children.filter(F.type == 'house') %}
+  <li>{{ project.name }}</li>
+{% endfor %}
+</ul>
+```

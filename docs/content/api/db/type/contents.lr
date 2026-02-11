@@ -1,0 +1,46 @@
+title: Type
+---
+module: lektor.types
+---
+signature: env, options
+---
+summary: The base class for all field types.
+---
+type: class
+---
+version_added: 2.0
+---
+body:
+
+The fields in [Records :ref](../record/) use types to specify the behavior of
+the values.  Lektor comes with a wide range of [built-in field types
+:ref](../types/) but it is possible to build your own by subclassing types
+class.  A type is instantiated with two parameters: a reference to the
+[Environment :ref](../../environment/) that it belongs to and a dictionary
+with configuration options from the ini file.
+
+A field type has to implement the [value_from_raw :ref](value-from-raw/)
+method and set the `widget` property as a very basic requirement.
+
+To create a type you need to create a subclass.  The name of the class needs
+to match the type name.  If you want to name your type `mything` then it
+needs to be called `MyThingType`.  Afterwards you can register it with the
+environment in [setup_env :ref](../../plugins/events/setup-env/):
+
+```python
+from lektor.types import Type
+
+class MyThingType(Type):
+    widget = 'singleline-text'
+
+    def value_from_raw(self, raw):
+        return raw.value
+
+def setup_env(self, **extra):
+    self.env.add_type(MyThingType)
+```
+
+For more information see [value_from_raw :ref](value-from-raw/).
+
+There is a more complete example in the
+[Plugin How To :ref](../../../plugins/howto/#adding-new-field-types).

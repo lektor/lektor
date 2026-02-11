@@ -1,0 +1,14 @@
+title: API
+---
+sort_key: 1000
+---
+summary: Covers documentation for the entire public API of Lektor.
+---
+allow_comments: no
+---
+body:
+
+Lektor consists of many interfaces that you can interface with through
+various different ways.  Not just when developing plugins, but also from
+within the templates.  This part of the documentation covers all those
+areas in detail.

@@ -1,0 +1,21 @@
+title: from_file
+---
+type: method
+---
+signature: filename
+---
+summary: Loads a project from a project file.
+---
+body:
+
+This is the most common way to create a project instance.  It's a class
+method that given the path to a project file will load the project.  If
+the file does not exist then `None` is returned.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.from_file('/path/to/the/project.lektorproject')
+```

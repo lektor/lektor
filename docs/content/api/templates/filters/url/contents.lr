@@ -1,0 +1,52 @@
+title: url
+---
+type: filter
+---
+summary: Generates a relative URL from the current page to another.
+---
+signature: alt=None, absolute=None, external=None
+---
+body:
+
+This filter is the most useful filter for URL generation and it comes in two
+flavors.  It takes one optional argument which is the `alt` if it should
+differ from the current one (see [Alternatives :ref](../../../../content/alts/)).
+The filter can be applied to either a string or a [Record
+:ref](../../../db/record/) object.
+
+Note that the URL filter operates on paths as they exist in your tree, not
+as the final URLs.  This is important when a page forcefully overrides the
+URL path.  In this case it could be that linking to `/project` for instance
+would generate the URL `de/projekte/` if that's what's configured.
+
+If you want to override this behavior you can prefix the URL with `!` and
+no resolving will take place.
+
+Note that the URL filter always generates a relative URL.  So for instance
+if you are currently at `/info/about/` and you want to link to `/projects/`
+it will generate a link in the form of `../../projects/`.  This makes it
+possible to easily deploy the website to a folder outside of the root of
+the website.
+
+## Examples
+
+```html+jinja
+<ul class="nav">
+  <li><a href="{{ '/'|url }}">Index</a></li>
+  <li><a href="{{ '/about'|url }}">About</a></li>
+</ul>
+```
+
+Same page to other alternative:
+
+```html+jinja
+<a href="{{ '.'|url(alt='ru') }}">Русский</a>
+```
+
+If you already know 100% where to link to, and you do not want any resolving
+to take place, then you can prefix a path with `!`.  For instance this always
+links to the root of the website:
+
+```html+jinja
+<a href="{{ '!/'|url }}">To Root</a>
+```

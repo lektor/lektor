@@ -1,0 +1,30 @@
+title: include_hidden
+---
+summary: Changes the query so that it includes or does not include hidden records.
+---
+type: method
+---
+signature: value
+---
+body:
+
+This controls how the query should behave with regards to hidden records.
+A query created from the [children :ref](../../record/children/) attribute of
+a record will not include hidden records (or undiscoverable) by default.  The
+opposite is true for queries created from the [query :ref](../../pad/query/)
+method of the pad.
+
+The parameter can be set to `True` to include hidden or `False` to exclude
+hidden records.
+
+## Example
+
+Here a basic example of how to filter something in a template:
+
+```html+jinja
+<ul>
+{% for item in this.children.include_hidden(true) %}
+  <li>{{ item.title }}{% if item.is_hidden %} (hidden){% endif %}</li>
+{% endfor %}
+</ul>
+```

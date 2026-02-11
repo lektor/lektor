@@ -1,0 +1,30 @@
+title: Record
+---
+summary: Specific features of pages and attachments.
+---
+module: lektor.db
+---
+type: class
+---
+body:
+
+Records are [Source Objects :ref](../obj/) that come from the `content/`
+folder and correspond to [Data Models :ref](../../../models/).  They provide
+a wider range of functionality compared to a standard source object but
+they also provide all the functionality a regular source object does.
+
+In addition to the functionality here, they also expose all the configured
+fields.
+
+## Accessing Data
+
+Most of the time things will just work as you expect.  If you access these
+objects from templates they give access to their built-in attributes as well
+as custom fields through the attribute syntax.  If however a built-in
+attribute overlaps with your custom field, you need to access the fields
+with the subscript syntax (`[]`):
+
+```html+jinja
+<p>Built-in Path: {{ obj.path }}
+<p>Path field: {{ obj['path'] }}
+```

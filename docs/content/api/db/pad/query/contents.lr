@@ -1,0 +1,24 @@
+title: query
+---
+summary: Creates a query at a specific path.
+---
+type: method
+---
+signature: path=None, alt='_primary'
+---
+body:
+
+This is one of the many ways to create a [Query :ref](../../query/) object in
+Lektor.  It creates a query at a specific path and alt.  This is an
+alternative to accessing the children of the [root :ref](../root/) record
+and will also include hidden pages.
+
+## Example
+
+```html+jinja
+<ul>
+{% for project in site.query('/projects') %}
+  <li>{{ project.name }}: {{ project.year }}</li>
+{% endfor %}
+</ul>
+```

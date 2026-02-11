@@ -1,0 +1,166 @@
+title: Development
+---
+summary: A quick introduction to plugin development.
+---
+sort_key: 10
+---
+body:
+
+If you want to dive into plugin development yourself, this guide will get you
+going quickly.  Before we can get started you need to have a Lektor project
+we can temporarily add the plugin to and you need to have the `lektor`
+[command line tool](../../cli/) installed.
+
+## Enable Development Mode
+
+When developing plugins it's very useful to enable Lektor's development
+mode before starting the server.  This can be achieved by exporting the
+`LEKTOR_DEV` environment variable and setting it to `1`:
+
+```
+$ export LEKTOR_DEV=1
+$ lektor server
+```
+
+With that in place, Lektor will automatically restart the development server
+when the plugin is changing.
+
+## Creating A Package
+
+Plugins come in packages.  To make one, just create a folder with a sensible
+name (typically the name of your plugin minus the `lektor-` prefix) in your
+`packages/` folder.
+
+You can either do this manually or you can use the `lektor dev new-plugin`
+command (see [new-plugin :ref](../../cli/dev/new-plugin/)) which will create
+this folder structure for you:
+
+```
+$ lektor dev new-plugin
+```
+
+This will guide you through a flow which ends up creating a new plugin
+package in the packages folder.
+
+Alternatively you can manually create a `packages/hello-world/` folder.
+
+Once that is done, we need to create a `setup.py` file which tells Lektor
+what your plugin needs to run.  This will already be created for you if
+you used the wizard.
+
+```python
+from setuptools import setup
+
+setup(
+    name='lektor-hello-world',
+    version='0.1',
+    py_modules=['lektor_hello_world'],
+    entry_points={
+        'lektor.plugins': [
+            'hello-world = lektor_hello_world:HelloWorldPlugin',
+        ]
+    },
+    install_requires=[]
+)
+```
+
+So going line by line, these are what the things mean:
+
+* `setuptools` is a module that helps us install the package with the
+  Python interpreter that Lektor uses.  We only need the setup function
+  from it for this example.
+* `name` is the name of the plugin when it's published to the Python package
+  index where all Lektor plugins go.  As such it should be prefixed with
+  `lektor-` to make it not clash with other packages on the index.
+* `version` identifies the version.  During local development it does not
+  matter what you write here, but it will play a role once you start
+  publishing your packages.  Users need to reference exact versions of these
+  plugins when using them.
+* `py_modules`: this is a list of modules that your plugin needs to run.
+  This should always be exactly one module named `lektor_XXX` where `XXX`
+  is your plugin name with underscores instead of dashes as separators.
+  If you need more than one module you should use a package instead.  This is
+  not covered here, but you can find this in the [setuptools documentation
+  :ext](https://pythonhosted.org/setuptools/).
+* `entry_points`: this is meta data that is needed to associate our package
+  with Lektor.  Lektor will load all plugins in the `lektor.plugins` list.
+  It can be a list of definitions in the form `plugin-name = import_path`.
+  The plugin name is what will show up in the plugin list in Lektor,
+  the import path should be the dotted import path to the module that contains
+  the plugin followed by a colon (`:`) with the class name afterwards.
+* `install_requires`: this is a list of dependencies for our plugin.  We
+  leave it empty here as we do not depend on anything in this simple
+  example.
+
+## Creating The Plugin
+
+Now it's time to create our first plugin that does absolutely nothing.  We
+create a new file with the name `lektor_hello_world.py` next to our
+`setup.py` and put the following things in:
+
+```python
+from lektor.pluginsystem import Plugin
+
+class HelloWorldPlugin(Plugin):
+    name = 'Hello World'
+    description = 'This is a demo plugin for testing purposes.'
+```
+
+If you now start your lektor server with `lektor server` you should
+see some output that indicates that the plugin was loaded.  You can also
+get a list with `lektor plugins list`:
+
+```
+$ lektor plugins list
+hello-world: Hello World
+  This is a demo plugin for testing purposes.
+  path: /Users/john/demo/packages/hello-world
+  import-name: lektor_hello_world:HelloWorldPlugin
+```
+
+## Hooking Events
+
+Plugins in Lektor are based on the concept of hooking events.  There are many
+events that can be hooked but we will only cover a very basic one here,
+the `setup-env` event.  To respond to it, we need to implement
+a function named `on_setup_env`:
+
+```python
+import random
+
+MESSAGES = [
+    'Reticulating splines',
+    'Populating slots',
+    'Possessing pawns',
+]
+
+def get_random_message():
+    return random.choice(MESSAGES)
+
+class HelloWorldPlugin(Plugin):
+    name = 'Hello World'
+    description = 'This is a demo plugin for testing purposes.'
+
+    def on_setup_env(self, **extra):
+        self.env.jinja_env.globals.update(
+            get_random_message=get_random_message
+        )
+```
+
+This will inject a function with the name `get_random_message` into our
+template globals when the environment is initialized.  This means that we
+can access this function from templates then:
+
+```html+jinja
+<p>Message of the page: {{ get_random_message() }}
+```
+
+There are many events that can be hooked and they can be found in the
+[Event Documentation :ref](../../api/plugins/events/).  All events need
+to be subscribed with an extra `**extra` argument to catch down additional
+arguments that might be supplied in the future.
+
+## What Plugins Can Do
+
+To understand what you can do with plugins have a look at the
+[Plugin API :ref](../../api/plugins/).

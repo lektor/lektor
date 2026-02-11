@@ -1,0 +1,22 @@
+title: []
+---
+summary: Looks up a field from the type.
+---
+type: operator
+---
+body:
+
+The “get-item” operator is used to look up a field from a record.  Within
+templates attribute access automatically falls back to this operator which
+is why you can typically access `foo.bar` instead of `foo['bar']` unless a
+conflict with a record property exists.
+
+All available fields can be accessed this way (model defined fields as well
+as system fields which are prefixed by an underscore).
+
+## Example
+
+```python
+for child in this.children:
+    print('ID: %s' % child['_id'])
+```

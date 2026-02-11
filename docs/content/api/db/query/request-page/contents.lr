@@ -1,0 +1,31 @@
+title: request_page
+---
+summary: Requests a specific page from a pagination.
+---
+type: method
+---
+signature: page_num
+---
+body:
+
+When pagination is enabled it's often quite useful to select a specific
+page of a record that is paginated.  When dealing with child records the
+default behavior is to return an unpaginated version of the record.  With
+this parameter it's possible to change this.  The parameter is the number
+of the page to access.
+
+Truth be told: this method exists mostly for consistency and less because
+there is a good reason to use it.
+
+## Example
+
+```html+jinja
+<ul>
+{% for child in this.children.request_page(1) %}
+  <li>
+    Items on the first page of {{ child.title }}:
+    {{ child.pagination.items.count() }}
+  </li>
+{% endfor %}
+</ul>
+```

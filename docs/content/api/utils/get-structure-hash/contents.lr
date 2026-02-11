@@ -1,0 +1,25 @@
+title: get_structure_hash
+---
+summary: Generates a hash from a Python structure.
+---
+type: function
+---
+module: lektor.utils
+---
+signature: params
+---
+body:
+
+Given a Python object (typically a dictionary or tuple) it generates a stable
+MD5 hash from those recursively.  This is useful for the `config_hash`
+parameter with artifacts.
+
+## Example
+
+```pycon
+>>> from lektor.utils import get_structure_hash
+>>> get_structure_hash([1, 2, 3])
+'fbcf00cb8f6fc7631af7fbff70ca6f87'
+>>> get_structure_hash([1, 2, 3, 4])
+'390e449c9748b72d6b9194a1c768d434'
+```

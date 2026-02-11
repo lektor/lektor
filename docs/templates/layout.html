@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="{{ '/static/styles.css'|asseturl }}">
+  <link rel="stylesheet" href="{{ get_pygments_stylesheet()|url }}">
+  <link rel="shortcut icon" href="{{ '/static/favicon.png'|asseturl }}">
+  <title>{% block title %}Hello{% endblock %} | Lektor Static Content Management System</title>
+</head>
+<body class="{% block bodyclass %}default{% endblock %}">
+  <div class="body-wrapper">
+    {% block outerbody %}
+    <div class="container">
+      {% block body %}{% endblock %}
+    </div>
+    {% endblock %}
+  </div>
+
+  {% block bottomsummary %}
+  <div class="bottomsummary">
+    <div class="container">
+    </div>
+  </div>
+  {% endblock %}
+
+  {% block footer %}
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4 icon-bar">
+          <a href="https://github.com/lektor/lektor/" title="Lektor on GitHub"
+            ><i class="fa fa-github"></i></a>
+          <a href="https://github.com/lektor/lektor/issues/" title="Report Issues for Lektor"
+            ><i class="fa fa-bug"></i></a>
+          <a href="https://twitter.com/getlektor" title="Find Lektor on Twitter"
+            ><i class="fa fa-twitter"></i></a>
+          <a href="https://gitter.im/lektor/lektor" title="Chat on Gitter"
+            ><i class="fa fa-comment"></i></a>
+          {%- if this.path %}
+          <a href="https://github.com/lektor/lektor-website/tree/master/content{% if this.path != '/'
+            %}{{ this.path.split('@')[0]}}{% endif %}/contents.lr" title="View source for this page"><i class="fa fa-code"></i></a>
+          {%- endif %}
+        </div>
+        <div class="col-sm-8">
+          <a href="{{ '/license'|url }}">License & Copyright</a> •
+          <a href="{{ '/contact'|url }}">Contact</a> •
+          Made with <i class="fa fa-fw fa-heart" title="Heart"><span hidden>Heart</span></i> in Carinthia
+        </div>
+      </div>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <script type=text/javascript src="{{ '/static/app.js'|asseturl }}" charset="utf-8"></script>
+  <script>
+    ((window.gitter = {}).chat = {}).options = {
+      room: 'lektor/lektor',
+      activationElement: null
+    };
+    document.write('<button class="js-gitter-toggle-chat-button">Toggle Chat</button>');
+    var dnt = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+    if (dnt != "1" && dnt != "yes") {
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-70822533-1', 'auto');
+      ga('set', 'anonymizeIp', true);
+      ga('send', 'pageview');
+    } else {
+      console.debug("Respecting Do-Not-Track, not running analytics.");
+    }
+  </script>
+  <script async src='https://www.google-analytics.com/analytics.js'></script>
+  <script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
+</body>
+</html>

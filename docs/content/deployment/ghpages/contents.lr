@@ -1,0 +1,76 @@
+title: GitHub Pages
+---
+summary: Deploys to GitHub Pages.
+---
+body:
+
+* `ghpages://username/repository`
+* `ghpages+https://username/repository`
+
+A popular way to host websites for Open Source projects is the GitHub pages.
+It's a free service provided by [GitHub :ext](http://github.com/) which allows
+to host completely static websites through GitHub.
+
+The way this is implemented in Lektor currently is that Lektor will force-push
+a website into a repository of choice.  There are two ways to push it up:
+`ghpages` (which uses SSH) or `ghpages+https` (which uses HTTPS).  The latter
+can also accept `username:password@` in the URL to hold the credentials in
+addition to accepting username and password from the command line or
+environment variables.
+
+Example:
+
+```ini
+[servers.ghpages]
+target = ghpages://your-user/your-repository
+```
+
+## Credentials
+
+This deployment method has two implementations: `ghpages` (also known as
+`ghpages+ssh`) which uses SSH and `ghpages+https` which uses HTTPS.  They
+use different methods for credentials.  For the SSH transport the same
+rules apply as for the [rsync deployment method :ref](../rsync/).  The HTTPS
+transport on the other hand accepts `--username` and `--password` which
+override the values in the URL.
+
+! If you have 2-factor authentication set up and you're using HTTPS, instead of your normal password, you will need to use a [personal access token :ext](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/).
+
+## Behavior
+
+The way this deployment support works is that it commits a new commit into a
+temporary location and pushes it into the `gh-pages` or `master` branch
+depending on the name of the repository.  If you push to `username.github.io`
+then it commits to `master`, otherwise to `gh-pages`.  This is consistent
+with behavior for GitHub Pages.
+
+## CNAME Support
+
+If you want to use a custom domain with GitHub pages (also known as a 
+[CNAME :ext](https://en.wikipedia.org/wiki/CNAME)), provide the intended 
+CNAME in the target URL using the `?cname` parameter:
+
+```ini
+[servers.production]
+target = ghpages://your-user/your-repository?cname=www.example.com
+```
+
+Note that this will overwrite whatever custom domain you may have set on
+GitHub with every deployment.
+
+For more information about how CNAMEs work with GitHub you can read about
+the feature in the GitHub help center:
+[Adding a CNAME file to your repository
+:ext](https://help.github.com/articles/adding-a-cname-file-to-your-repository/).
+
+## 404 Pages
+
+Per convention the file named `404.html` is used as placeholder if a page
+cannot be found.  You can create such a page by creating a `404.html/contents.lr`
+file.
+
+## Automatic Deployments
+
+If you want to use ghpages it's desirable to have this build automatically.
+This is easy to accomplish with the help of Travis-CI.  For more information
+see [Deploying with Travis-CI :ref](../travisci/).

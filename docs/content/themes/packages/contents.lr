@@ -1,0 +1,22 @@
+title: Installing Plugins with a Theme.
+---
+sort_key: 40
+---
+summary: Explains how a theme could depend or include several plugins.
+---
+body:
+
+!!!! Not implemented yet.
+
+Themes could depend on [plugins](../../plugins), and they will be loaded along
+the theme.
+
+1. You could use the `[packages]` section of the `theme.ini` to install
+released packages:
+```ini
+[packages]
+lektor-disqus-comments = 0.2
+```
+
+2. Plugins can be added to the `packages/` folder in the theme. Each plugin has
+to go into a separate folder.
