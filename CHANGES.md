@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.4.0b13 (unreleased)
+## 3.4.0b13 (2026-02-11)
 
 ### Changes
 
