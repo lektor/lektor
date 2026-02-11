@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import AdminLink from "../components/AdminLink";
 import { useRecordAlt } from "../context/record-context";
 import { RecordInfo } from "../components/types";
-import { trans } from "../i18n";
+import { trans, trans_obj } from "../i18n";
 
 function AttachmentActions({ recordInfo }: { recordInfo: RecordInfo }) {
   const alt = useRecordAlt();
@@ -16,7 +16,7 @@ function AttachmentActions({ recordInfo }: { recordInfo: RecordInfo }) {
             return (
               <li key={atch.id}>
                 <AdminLink page="edit" path={atch.path} alt={alt}>
-                  {atch.id} ({atch.type})
+                  {trans_obj(atch.label_i18n)} ({atch.type})
                 </AdminLink>
               </li>
             );
