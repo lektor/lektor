@@ -2,6 +2,27 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b13 (unreleased)
+
+### Changes
+
+- Dropped support for python 3.8 and 3.9. Test under 3.13 and 3.14.
+
+### Fixes
+
+- Fix ghpages publisher for git 2.46 ([d5e87d9])
+- Fix file mode of created files ([#1214])
+- Fix bug in url generation ([#1080])
+- Fix database connection leak ([#1242])
+- Fix to support `marshmallow 4` ([#1222])
+- Various npm package updates in frontend code, including update to react 19.
+
+[d5e87d9]: https://github.com/lektor/lektor/commit/d5e87d9f8b54a06d12b8262fb4155f0aff5c1df8
+[#1080]: https://github.com/lektor/lektor/issues/1080
+[#1214]: https://github.com/lektor/lektor/pull/1214
+[#1222]: https://github.com/lektor/lektor/pull/1222
+[#1242]: https://github.com/lektor/lektor/pull/1242
+
 ## 3.4.0b12 (2024-05-14)
 
 ### Bugs
