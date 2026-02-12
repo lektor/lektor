@@ -13,6 +13,7 @@ from lektor.db import Image
 from lektor.db import Query
 from lektor.db import Video
 from lektor.filecontents import FileContents
+from lektor.metaformat import serialize
 
 
 def test_root(pad):
@@ -175,7 +176,7 @@ def test_undiscoverable_basics(pad):
 
     q = secret.children
     assert q._include_undiscoverable is False
-    assert q._include_hidden is None
+    assert q._include_hidden is False
     q = q.include_undiscoverable(True)
     assert q._include_undiscoverable is True
     assert q._include_hidden is False
@@ -556,3 +557,28 @@ def test_Pad_make_url_raises_runtime_error_if_no_project_url(pad):
 def test_Pad_make_url_raises_runtime_error_if_no_base_url(pad):
     with pytest.raises(RuntimeError, match="(?i)no base url"):
         pad.make_url("/a/b")
+
+
+def test_Query_include_hidden_and_undiscoverable(scratch_project_data, scratch_pad):
+    def make_child(name, data):
+        contents_lr = scratch_project_data / "content" / name / "contents.lr"
+        contents_lr.parent.mkdir()
+        contents_lr.write_text("".join(serialize(data.items())))
+
+    make_child("hidden", {"_hidden": "yes"})
+    make_child("undiscoverable", {"_discoverable": "no"})
+    make_child("hidden-undiscoverable", {"_hidden": "yes", "_discoverable": "no"})
+
+    children = scratch_pad.root.children
+
+    def paths(query: Query) -> set:
+        return {child.path for child in query}
+
+    assert paths(children) == set()
+    assert paths(children.include_hidden(True)) == {"/hidden"}
+    assert paths(children.include_undiscoverable(True)) == {"/undiscoverable"}
+    assert paths(children.include_hidden(True).include_undiscoverable(True)) == {
+        "/hidden",
+        "/undiscoverable",
+        "/hidden-undiscoverable",
+    }
