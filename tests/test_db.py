@@ -176,7 +176,7 @@ def test_undiscoverable_basics(pad):
 
     q = secret.children
     assert q._include_undiscoverable is False
-    assert q._include_hidden is None
+    assert q._include_hidden is False
     q = q.include_undiscoverable(True)
     assert q._include_undiscoverable is True
     assert q._include_hidden is False

@@ -343,28 +343,29 @@ class Record(DBSourceObject):
         return self._data["_alt"]
 
     @property
-    def is_hidden(self):
-        """Indicates if a record is hidden.  A record is considered hidden
-        if the record itself is hidden or the parent is.
+    def is_hidden(self) -> bool:
+        """Indicates whether a record is hidden.
+
+        Artifacts are not built for hidden objects.  Also, by default, hidden records
+        are not included in `Query` results.
         """
-        if not is_undefined(self._data["_hidden"]):
-            return self._data["_hidden"]
-        return self._is_considered_hidden()
+        hidden = self._data["_hidden"]
+        if not is_undefined(hidden):
+            return hidden
+        return self._is_hidden_by_parent_config()
 
-    def _is_considered_hidden(self):
-        parent = self.parent
-        if parent is None:
-            return False
+    def _is_hidden_by_parent_config(self) -> bool:
+        # Records may be implicitly hidden by their parents' configuration.  The details
+        # depend on record type.
 
-        hidden_children = parent.datamodel.child_config.hidden
-        if hidden_children is not None:
-            return hidden_children
-        return parent.is_hidden
+        # The Page and Attachment subclasses provide concrete implementations for this
+        # method.
+        raise NotImplementedError
 
     @property
-    def is_discoverable(self):
-        """Indicates if the page is discoverable without knowing the URL."""
-        return self._data["_discoverable"] and not self.is_hidden
+    def is_discoverable(self) -> bool:
+        """Indicates whether the page is discoverable without knowing the URL."""
+        return self._data["_discoverable"]
 
     @cached_property
     def pagination(self):
@@ -662,6 +663,19 @@ class Page(Record):
             )
         return None
 
+    def _is_hidden_by_parent_config(self) -> bool:
+        # For Pages, If an explicit value for the _hidden field is not set, the value of
+        # the hidden option in the child configuration section of the parent's datamodel
+        # is checked. If that, too, is not set, then pages inherit the hidden status of
+        # their parent.
+        parent = self.parent
+        if parent is None:
+            return False
+        hidden_children = parent.datamodel.child_config.hidden
+        if hidden_children is not None:
+            return hidden_children
+        return parent.is_hidden
+
     @property
     def children(self):
         """A query over all children that are not hidden or undiscoverable.
@@ -728,10 +742,12 @@ class Attachment(Record):
 
     is_attachment = True
 
-    def _is_considered_hidden(self):
+    def _is_hidden_by_parent_config(self) -> bool:
         # Attachments are only considered hidden if they have been
-        # configured as such.  This means that even if a record itself is
-        # hidden, the attachments by default will not.
+        # configured as such. If an explicit value for the _hidden field is not set,
+        # the value of the hidden option in the attachment configuration section of the
+        # parent's datamodel is checked. If that, too, is not set, attachments will be
+        # visible, even if their parent is hidden.
         parent = self.parent
         if parent is None:
             return False
@@ -972,7 +988,7 @@ class Query:
         self._pristine = True
         self._limit = None
         self._offset = None
-        self._include_hidden = None
+        self._include_hidden = False
         self._include_undiscoverable = False
         self._page_num = None
         self._filter_func = None
@@ -999,11 +1015,9 @@ class Query:
         )
 
     def _matches(self, record):
-        include_hidden = self._include_hidden
-        if include_hidden is not None:
-            if not self._include_hidden and record.is_hidden:
-                return False
-        if not self._include_undiscoverable and record.is_undiscoverable:
+        if not self._include_hidden and record.is_hidden:
+            return False
+        if not self._include_undiscoverable and not record.is_discoverable:
             return False
         for filter in self._filters or ():
             if not save_eval(filter, record):
@@ -1064,24 +1078,18 @@ class Query:
         return None
 
     def include_hidden(self, value):
-        """Controls if hidden records should be included which will not
-        happen by default for queries to children.
+        """Controls whether hidden records should be included.
+
+        By default, they are not.
         """
         rv = self._clone(mark_dirty=True)
         rv._include_hidden = value
         return rv
 
     def include_undiscoverable(self, value):
-        """Controls if undiscoverable records should be included as well."""
+        """Controls whether undiscoverable records should be included as well."""
         rv = self._clone(mark_dirty=True)
         rv._include_undiscoverable = value
-
-        # If we flip from not including undiscoverables to discoverables
-        # but we did not yet decide on the value of _include_hidden it
-        # becomes False to not include it.
-        if rv._include_hidden is None and value:
-            rv._include_hidden = False
-
         return rv
 
     def request_page(self, page_num):
