@@ -1,0 +1,36 @@
+title: bag
+---
+summary: Looks up a value from a databags.
+---
+type: function
+---
+signature: ...
+---
+template_var: bag
+---
+body:
+
+This handy function can look up data from [Databags :ref](../../../databags/).
+The path to the values is a dotted path but alternatively multiple parameters
+can be provided that will be concatenated into a dotted path.
+
+## Simple Example
+
+```html+jinja
+<title>{{ bag('site.title') }}</title>
+```
+
+alternative method that does the same:
+
+```html+jinja
+<title>{{ bag('site', 'title') }}</title>
+```
+
+## Example with Alternatives
+
+Because you can use arbitrary variables in it, this is a simple way to
+load translations from a data bag:
+
+```html+jinja
+<a href="#">{{ bag('i18n', alt, 'CLICK_HERE') }}</a>
+```

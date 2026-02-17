@@ -1,0 +1,28 @@
+title: record
+---
+summary: A reference to the associated base record.
+---
+type: property
+---
+version_added: 2.0
+---
+body:
+
+Most records (other than the root) have a [parent :ref](../parent/).  This as
+a concept generally makes in most situations.  However when virtual sources
+come into play the parent often just refers to another virtual source but not
+the root record they all belong to.
+
+This property for the most part refers back to the object itself.  However
+for virtual sources this refers back to the record that was associated with
+the virtual source.  Most of the time this matches `parent` but for nested
+source objects it's useful to be able to refer back to the base in all cases
+without having to walk up the parents.
+
+## Example
+
+```html+jinja
+{% if this != this.record %}
+  <a href="{{ this.record|url }}">go back to overview</a>
+{% endif %}
+```

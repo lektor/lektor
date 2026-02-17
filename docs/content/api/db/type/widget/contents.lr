@@ -1,0 +1,47 @@
+title: widget
+---
+summary: An attribute that identifies the widget to use in the admin panel.
+---
+type: property
+---
+version_added: 2.0
+---
+body:
+
+It's currently not yet possible to create your own widgets for the admin panel
+but you can select one of the built-in widgets for your own type.  Note that
+not all widgets will necessarily will work directly with your type as such.
+For instance the `select` widget and some others will currently require some
+extra values be supplied in the [to_json :ref](../to-json/) method.
+
+## Example
+
+```python
+from lektor.types import Type
+
+class MyThingType(Type):
+    widget = 'singleline-text'
+
+    def value_from_raw(self, raw):
+        return raw.value
+```
+
+## Available Widgets
+
+These widgets are currently available:
+
+* `singleline-text`: single-line text input field
+* `multiline-text`: multi-line text input field
+* `datepicker`: a date input field (currently not yet an actual date picker)
+* `integer`: an integer input field
+* `float`: a floating point value input field
+* `checkbox`: a checkbox
+* `url`: a URL input field
+* `slug`: input field for URL slugs
+* `checkboxes`: an input field with multiple checkboxes *
+* `select`: an input field in the form of a select box *
+
+\* `checkboxes` and `select` require a `choices` list to be supplied which is
+a list of `[value, label]` tuples where value is the stored value and label
+is a dictionary of internationalized values for the UI.  For more information
+you will currently have to refer to the Lektor sourcecode.

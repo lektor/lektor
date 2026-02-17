@@ -1,0 +1,27 @@
+title: html
+---
+type: type
+---
+summary: A type that can store raw HTML.
+---
+body:
+
+The `html` type is basically the same as the [text :ref](../text/) type but
+in templates it's rendered directly as HTML instead of being escaped.
+
+It renders as a multi-line input field in the admin interface.
+
+## Field Usage
+
+```ini
+[fields.tracking_code]
+label = Tracking Code
+description = raw HTML that is inserted for ad tracking purposes.
+type = html
+```
+
+## Template Usage
+
+```html+jinja
+{{ this.tracking_code }}
+```
