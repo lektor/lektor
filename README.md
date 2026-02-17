@@ -31,7 +31,7 @@ For installation instructions head to the official documentation:
 
 ## Want to develop on Lektor?
 
-This gets you started (assuming you have Python, pip, npm, and pre-commit
+This gets you started (assuming you have Python, npm, and pre-commit
 installed):
 
 ```bash
@@ -40,10 +40,13 @@ $ cd lektor
 $ python -m venv _venv
 $ . _venv/bin/activate
 
-# pip>=21.3 is required for PEP 610 support
-$ pip install -U "pip>=21.3"
+# pip>=25.1 is required for PEP 735 support
+$ pip install -U "pip>=25.1"
 
-$ pip install --editable .
+$ pip install --group dev --editable .
+
+# build the frontend javascript (requires npm to be installed)
+$ make build-js
 
 # If you plan on committing:
 $ pre-commit install
@@ -54,8 +57,15 @@ $ cp -r example example-project
 $ lektor --project example-project server
 ```
 
-If you want to run the test suite (you'll need tox installed):
+If you want to run the whole test suite, under various versions of
+python, etc. (you'll need tox installed):
 
 ```sh
 $ tox
+```
+
+Or run the tests directly in your dev environment
+
+```sh
+$ pytest [...]
 ```
