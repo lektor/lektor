@@ -59,6 +59,27 @@ optional-dependencies.ipython = [
 [project.scripts]
 lektor = "lektor.cli:main"
 
+[dependency-groups]
+dev = [                         # generally useful during development
+    {include-group = "pytest"},
+]
+pytest = [                 # requirements for running our pytest tests
+    "pytest>=6",
+    "pytest-click",
+    "pytest-mock",
+    "coverage[toml]",
+    "iniconfig",
+    "hatchling",
+]
+pylint = [                      # requirements for running pylint
+    "pylint==4.0.4",
+    "pytest>=6",
+    "pytest-mock",
+    "iniconfig",
+]
+mistune0 = ["mistune<2"]        # pin old mistune for testing
+tzdata = ["tzdata"]             # test with tzdata rather than system zone data
+
 [tool.hatch.version]
 source = "vcs"
 
