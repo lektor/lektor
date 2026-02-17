@@ -20,7 +20,7 @@ To see how it works look at the top-level `example/` folder, which contains
 a showcase of the wide variety of Lektor's features.
 
 For a more complete example look at the [lektor/lektor-website](https://github.com/lektor/lektor-website)
-repository, which contains the sourcecode for the official lektor website.
+repository, which contains the source code for the official Lektor website.
 
 ## How do I use this?
 
@@ -31,8 +31,12 @@ For installation instructions head to the official documentation:
 
 ## Want to develop on Lektor?
 
-This gets you started (assuming you have Python, npm, and pre-commit
-installed):
+This gets you started (assuming you have [Python] >= 3.10, [npm], and
+[pre-commit] installed):
+
+[python]: https://www.python.org/
+[pre-commit]: https://pre-commit.com/
+[npm]: https://nodejs.org/
 
 ```bash
 $ git clone https://github.com/lektor/lektor
@@ -43,10 +47,8 @@ $ . _venv/bin/activate
 # pip>=25.1 is required for PEP 735 support
 $ pip install -U "pip>=25.1"
 
+# NB: this step requires that npm is installed (see below)
 $ pip install --group dev --editable .
-
-# build the frontend javascript (requires npm to be installed)
-$ make build-js
 
 # If you plan on committing:
 $ pre-commit install
@@ -58,7 +60,9 @@ $ lektor --project example-project server
 ```
 
 If you want to run the whole test suite, under various versions of
-python, etc. (you'll need tox installed):
+python, etc. (you'll need [tox] installed):
+
+[tox]: https://tox.wiki/
 
 ```sh
 $ tox
@@ -69,3 +73,16 @@ Or run the tests directly in your dev environment
 ```sh
 $ pytest [...]
 ```
+
+> [!NOTE]
+> The admin front-end resources (e.g. `.js` and `.css` files) in `lektor/admin/static`
+> get built as part of the python distribution build process.
+> This happens, e.g., when running `pip install -e .`
+>
+> That magic may be disabled (you might want to do this if, e.g., `npm` is not
+> available in your dev environment) by setting the `HATCH_BUILD_NO_HOOKS`
+> environment variable during the build. E.g.
+>
+> ```sh
+> HATCH_BUILD_NO_HOOKS=true pip install --group dev --editable .
+> ```
