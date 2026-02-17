@@ -810,8 +810,17 @@ class Image(Attachment):
             return rv
         return Undefined("The format of the image could not be determined.")
 
-    def thumbnail(self, width=None, height=None, mode=None, upscale=None, quality=None):
+    def thumbnail(
+        self,
+        width=None,
+        height=None,
+        mode=None,
+        upscale=None,
+        quality=None,
+        format=None,
+    ):
         """Utility to create thumbnails."""
+        thumbnail_format = format or self.pad.config.thumbnail_format
 
         if mode is None:
             mode = ThumbnailMode.DEFAULT
@@ -832,6 +841,7 @@ class Image(Attachment):
             mode=mode,
             upscale=upscale,
             quality=quality,
+            format=thumbnail_format,
         )
 
 
