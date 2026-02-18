@@ -7,7 +7,7 @@ import { LektorEvents, subscribe, unsubscribe } from "../events";
  * Listen to events and show an error dialog (potentially on top of an open
  * dialog).
  */
-export default function ErrorDialog(): JSX.Element | null {
+export default function ErrorDialog(): React.JSX.Element | null {
   const [error, setError] = useState<{ code: string } | null>(null);
 
   const dismiss = useCallback(() => {

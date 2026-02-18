@@ -5,11 +5,11 @@ import shutil
 import sys
 import threading
 import warnings
+from collections.abc import Callable
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 import pytest
 from watchfiles import Change
@@ -61,8 +61,8 @@ class WatcherTest:
     ) -> Generator[WatchResult]:
         """Run watch_project in a separate thread, wait for a file change event.
 
-        This is a context manager that runs watch_project in a separate thread.
-        After the context exits, it will wait at most ``timeout`` seconds before returning.
+        This is a context manager that runs watch_project in a separate thread.  After
+        the context exits, it will wait at most ``timeout`` seconds before returning.
         If a file system change is seen, it will return immediately.
 
         The context manager returns a WatchResult value.  After the context has been

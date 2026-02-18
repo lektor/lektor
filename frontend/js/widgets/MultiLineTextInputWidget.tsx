@@ -38,7 +38,7 @@ function _pixels(dimension: string): number {
   return Number(dimension.replace(/px/, ""));
 }
 
-function deref<T>(ref: RefObject<T>): T {
+function deref<T>(ref: RefObject<T | null>): T {
   if (ref.current === undefined || ref.current === null) {
     throw new Error("Attempt to dereference undefined reference");
   }

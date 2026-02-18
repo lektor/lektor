@@ -1,10 +1,9 @@
-"""Helper to probe basic image information: dimensions and format.
-"""
+"""Helper to probe basic image information: dimensions and format."""
+
 from __future__ import annotations
 
 import enum
 import re
-import sys
 import warnings
 from collections.abc import Generator
 from collections.abc import Mapping
@@ -16,7 +15,7 @@ from typing import BinaryIO
 from typing import Final
 from typing import NamedTuple
 from typing import TYPE_CHECKING
-from typing import Union
+from typing import TypeAlias
 from xml.etree import ElementTree as etree
 
 import PIL.Image
@@ -24,15 +23,10 @@ import PIL.Image
 from ._compat import ExifTags
 from ._compat import UnidentifiedImageError
 
+
 if TYPE_CHECKING:
-    from typing import Literal
     from _typeshed import SupportsRead
-
-
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
+    from typing import Literal
 
 
 class SvgImageInfo(NamedTuple):
@@ -53,7 +47,7 @@ class UnknownImageInfo(NamedTuple):
     height: None = None
 
 
-ImageInfo: TypeAlias = Union[PILImageInfo, SvgImageInfo, UnknownImageInfo]
+ImageInfo: TypeAlias = PILImageInfo | SvgImageInfo | UnknownImageInfo
 
 
 class TiffOrientation(enum.IntEnum):

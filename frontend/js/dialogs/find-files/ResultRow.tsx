@@ -19,7 +19,7 @@ export default function ResultRow({
   dismiss: () => void;
   alt: RecordAlternative;
   target: PageName;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <li className={isActive ? "active" : ""}>
       <AdminLink page={target} path={result.path} alt={alt} onClick={dismiss}>

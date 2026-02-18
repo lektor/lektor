@@ -14,10 +14,10 @@ export default function InputWidgetBase({
   placeholder,
 }: WidgetProps & {
   postprocessValue?: (val: string) => string;
-  inputAddon: JSX.Element | string;
+  inputAddon: React.JSX.Element | string;
   inputType: string;
   validate?: (val: string) => string | null;
-}): JSX.Element {
+}): React.JSX.Element {
   const onChangeHandler = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       let value = event.target.value;

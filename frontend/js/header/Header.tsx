@@ -9,7 +9,7 @@ export default function Header({
 }: {
   sidebarIsActive: boolean;
   toggleSidebar: () => void;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <header>
       <div className="container">

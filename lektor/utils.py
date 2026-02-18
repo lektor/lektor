@@ -14,6 +14,7 @@ import unicodedata
 import urllib.parse
 import uuid
 import warnings
+from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -21,19 +22,17 @@ from contextlib import contextmanager
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
-from functools import lru_cache
+from functools import cache
 from functools import wraps
 from pathlib import Path
 from pathlib import PurePosixPath
 from typing import Any
-from typing import Callable
 from typing import ClassVar
 from typing import IO
 from typing import Literal
 from typing import overload
 from typing import TYPE_CHECKING
 from typing import TypeVar
-from typing import Union
 
 from jinja2 import is_undefined
 from markupsafe import Markup
@@ -41,6 +40,7 @@ from slugify import slugify as _slugify
 from werkzeug.http import http_date
 from werkzeug.urls import iri_to_uri
 from werkzeug.urls import uri_to_iri
+
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -281,7 +281,7 @@ def merge(a, b):
     if a is None:
         return b
     if isinstance(a, list) and isinstance(b, list):
-        for idx, (item_1, item_2) in enumerate(zip(a, b)):
+        for idx, (item_1, item_2) in enumerate(zip(a, b, strict=False)):
             a[idx] = merge(item_1, item_2)
     if isinstance(a, dict) and isinstance(b, dict):
         for key, value in b.items():
@@ -334,7 +334,7 @@ def increment_filename(filename):
     return rv
 
 
-@lru_cache(maxsize=None)
+@cache
 def locate_executable(exe_file, cwd=None, include_bundle_path=True):
     """Locates an executable in the search path."""
     choices = [exe_file]
@@ -535,9 +535,9 @@ def get_dependent_url(url_path, suffix, ext=None):
 _AtomicOpenTextMode = Literal["w", "wt", "tw", "r", "rt", "tr"]
 _AtomicOpenBinaryModeWriting = Literal["wb", "bw"]
 _AtomicOpenBinaryModeReading = Literal["rb", "br"]
-_AtomicOpenMode = Union[
-    _AtomicOpenTextMode, _AtomicOpenBinaryModeWriting, _AtomicOpenBinaryModeReading
-]
+_AtomicOpenMode = (
+    _AtomicOpenTextMode | _AtomicOpenBinaryModeWriting | _AtomicOpenBinaryModeReading
+)
 
 
 @overload
@@ -546,8 +546,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenTextMode = "r",
     encoding: str | None = None,
-) -> Iterator[io.TextIOWrapper]:
-    ...
+) -> Iterator[io.TextIOWrapper]: ...
 
 
 @overload
@@ -556,8 +555,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeWriting,
     encoding: None = None,
-) -> Iterator[io.BufferedWriter]:
-    ...
+) -> Iterator[io.BufferedWriter]: ...
 
 
 @overload
@@ -566,8 +564,7 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeReading,
     encoding: None = None,
-) -> Iterator[io.BufferedReader]:
-    ...
+) -> Iterator[io.BufferedReader]: ...
 
 
 @contextmanager
@@ -660,7 +657,7 @@ def portable_popen(cmd, *args, **kwargs):
         raise RuntimeError("No executable specified")
     exe = locate_executable(cmd[0], kwargs.get("cwd"))
     if exe is None:
-        raise RuntimeError('Could not locate executable "%s"' % cmd[0])
+        raise RuntimeError(f'Could not locate executable "{cmd[0]}"')
 
     if isinstance(exe, str) and sys.platform != "win32":
         exe = exe.encode(sys.getfilesystemencoding())
@@ -779,12 +776,7 @@ def deg_to_dms(deg):
 def format_lat_long(lat=None, long=None, secs=True):
     def _format(value, sign):
         d, m, sd = deg_to_dms(value)
-        return "%d° %d′ %s%s" % (
-            abs(d),
-            abs(m),
-            secs and ("%d″ " % abs(sd)) or "",
-            sign[d < 0],
-        )
+        return f"{abs(d)}° {abs(m)}′ {secs and f'{abs(sd)}″ ' or ''}{sign[d < 0]}"
 
     rv = []
     if lat is not None:
@@ -827,8 +819,9 @@ class URLBuilder:
         if url == "/":
             return url
         if trailing_slash is None:
-            _, last = url.split("/", 1)
+            _, last = url.rsplit("/", 1)
             if "." in last:
+                # Assuming the url points to a file
                 return url
         return url + "/"
 
@@ -966,8 +959,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> Callable[..., Any]:
-    ...
+) -> Callable[..., Any]: ...
 
 
 @overload
@@ -977,8 +969,7 @@ def deprecated(
     name: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 @overload
@@ -988,8 +979,7 @@ def deprecated(
     reason: str | None = ...,
     version: str | None = ...,
     stacklevel: int = ...,
-) -> _Deprecate:
-    ...
+) -> _Deprecate: ...
 
 
 def deprecated(*args: Any, **kwargs: Any) -> _F | _Deprecate:

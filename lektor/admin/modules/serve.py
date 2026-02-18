@@ -6,7 +6,6 @@ import os
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Union
 from zlib import adler32
 
 from flask import abort
@@ -29,6 +28,7 @@ from lektor.assets import Directory
 from lektor.constants import PRIMARY_ALT
 from lektor.db import Record
 
+
 if TYPE_CHECKING:
     from flask.typing import ResponseReturnValue
     from flask.typing import ResponseValue
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 bp = Blueprint("serve", __name__)
 
 
-Filename = Union[str, os.PathLike[str]]
+Filename = str | os.PathLike[str]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -73,7 +73,8 @@ class TooldrawerConfig:
 def _inject_tooldrawer(
     html: bytes, tooldrawer_config: TooldrawerConfig | None
 ) -> bytes:
-    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML page."""
+    """Add "edit pencil" and "livereload" control  buttons to the text of an HTML
+    page."""
     if tooldrawer_config:
         tooldrawer_html = render_template(
             "tooldrawer.html",

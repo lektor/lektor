@@ -43,9 +43,12 @@ def _parse_choices(options):
             implied_labels.append(item.strip())
 
     if user_labels:
-        rv = list(zip(choices, _reflow_and_split_labels(user_labels)))
+        rv = list(zip(choices, _reflow_and_split_labels(user_labels), strict=False))
     else:
-        rv = [(key, {"en": label}) for key, label in zip(choices, implied_labels)]
+        rv = [
+            (key, {"en": label})
+            for key, label in zip(choices, implied_labels, strict=False)
+        ]
 
     return rv
 

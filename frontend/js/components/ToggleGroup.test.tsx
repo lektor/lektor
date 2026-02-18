@@ -1,6 +1,5 @@
 import ToggleGroup from "./ToggleGroup";
 import React, { act } from "react";
-import { Simulate } from "react-dom/test-utils";
 import { JSDOM } from "jsdom";
 import { ok } from "assert";
 import { createRoot } from "react-dom/client";
@@ -36,7 +35,7 @@ describe("ToggleGroup", () => {
     const el = container.querySelector("h4");
     ok(el);
     act(() => {
-      Simulate.click(el);
+      el.click();
     });
     ok(!container.innerHTML.includes("closed"));
   });

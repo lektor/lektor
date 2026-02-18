@@ -19,7 +19,7 @@ export default memo(function FlowBlock({
 }: {
   block: FlowBlockData;
   moveBlock: (i: number, s: number) => void;
-  renderFormField: (b: FlowBlockData, f: Field) => JSX.Element;
+  renderFormField: (b: FlowBlockData, f: Field) => React.JSX.Element;
   removeBlock: (i: number) => void;
   idx: number;
   length: number;

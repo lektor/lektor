@@ -21,7 +21,7 @@ export interface SearchResult {
   title: string;
 }
 
-function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
+function FindFiles({ dismiss }: { dismiss: () => void }): React.JSX.Element {
   const alt = useRecordAlt();
   const page = useContext(PageContext);
 
@@ -35,6 +35,7 @@ function FindFiles({ dismiss }: { dismiss: () => void }): JSX.Element {
 
   useEffect(() => {
     if (!query) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       setSelected(-1);
       return;

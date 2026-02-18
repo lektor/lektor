@@ -1,19 +1,19 @@
-"""Helper to access Exif info in images.
-"""
+"""Helper to access Exif info in images."""
+
 from __future__ import annotations
 
 import numbers
-import sys
+from collections.abc import Callable
 from collections.abc import Mapping
+from contextlib import suppress
 from datetime import datetime
 from fractions import Fraction
 from functools import wraps
 from pathlib import Path
 from typing import Any
-from typing import Callable
 from typing import TYPE_CHECKING
+from typing import TypeAlias
 from typing import TypeVar
-from typing import Union
 
 import PIL.Image
 
@@ -21,14 +21,10 @@ from ._compat import ExifTags
 from ._compat import UnidentifiedImageError
 from .image_info import TiffOrientation
 
-if TYPE_CHECKING:
-    from typing import Literal
-    from _typeshed import SupportsRead
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
+if TYPE_CHECKING:
+    from _typeshed import SupportsRead
+    from typing import Literal
 
 
 def _combine_make(make: str | None, model: str | None) -> str:
@@ -36,7 +32,7 @@ def _combine_make(make: str | None, model: str | None) -> str:
     model = model or ""
     if make and model.startswith(make):
         return model
-    return " ".join([make, model]).strip()
+    return f"{make} {model}".strip()
 
 
 # Interpretation of the Exif Flash tag value
@@ -100,8 +96,8 @@ def _to_string(value: str) -> str:
 
 # NB: Older versions of Pillow return (numerator, denominator) tuples
 # for EXIF rational numbers.  New versions return a Fraction instance.
-ExifRational: TypeAlias = Union[numbers.Rational, tuple[int, int]]
-ExifReal: TypeAlias = Union[numbers.Real, tuple[int, int]]
+ExifRational: TypeAlias = numbers.Rational | tuple[int, int]
+ExifReal: TypeAlias = numbers.Real | tuple[int, int]
 
 
 def _to_rational(value: ExifRational) -> numbers.Rational:
@@ -168,8 +164,8 @@ def _default_none(wrapped: Callable[[EXIFInfo], _T]) -> Callable[[EXIFInfo], _T 
 class EXIFInfo:
     """Adapt Exif tags to more user-friendly values.
 
-    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to certain
-    Exif tags more user-friendly.
+    This is an adapter that wraps a ``PIL.Image.Exif`` instance to make access to
+    certain Exif tags more user-friendly.
 
     """
 
@@ -292,7 +288,7 @@ class EXIFInfo:
     @_default_none
     def shutter_speed(self) -> str:
         value = _to_float(self._exif_ifd[ExifTags.Base.ShutterSpeedValue])
-        return f"1/{2 ** value:.0f}"
+        return f"1/{2**value:.0f}"
 
     @property
     @_default_none
@@ -327,10 +323,8 @@ class EXIFInfo:
             (self._ifd0, ExifTags.Base.DateTime),
         )
         for ifd, tag in date_tags:
-            try:
+            with suppress(LookupError, ValueError):
                 return datetime.strptime(ifd[tag], "%Y:%m:%d %H:%M:%S")
-            except (LookupError, ValueError):
-                continue
         return None
 
     @property

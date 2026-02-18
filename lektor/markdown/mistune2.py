@@ -1,9 +1,10 @@
 """MarkdownController implementation for mistune 2.x"""
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from collections.abc import Sequence
 from importlib import import_module
-from typing import Callable
 from typing import ClassVar
 from typing import TypedDict
 

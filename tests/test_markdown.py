@@ -1,6 +1,5 @@
 import re
 import threading
-from typing import Union
 
 import pytest
 from markupsafe import Markup
@@ -345,7 +344,7 @@ class TestMarkdown:
     def test_record_gone_away(self, field_options, mocker):
         markdown = Markdown("text", mocker.Mock(name="record"), field_options)
         with pytest.raises(RuntimeError) as exc_info:
-            markdown.record  # pylint: disable=pointless-statement
+            _ = markdown.record
         assert "gone away" in str(exc_info.value)
 
     @pytest.mark.parametrize("source", ["![test](/test.jpg)"])
@@ -393,7 +392,7 @@ class TestMarkdown:
         assert markdown.__html__().rstrip() == "<p>text</p>"
 
 
-def _normalize_html(output: Union[str, Markup]) -> str:
+def _normalize_html(output: str | Markup) -> str:
     html = str(output).strip()
     html = html.replace("&copy;", "©")
     html = re.sub(r"(<img [^>]*?)\s*/>", r"\1>", html)
@@ -477,7 +476,7 @@ def test_deprecated_ImprovedRenderer(improved_renderer):
         # pylint: disable-next=import-outside-toplevel,no-name-in-module
         from lektor.markdown import ImprovedRenderer
     assert all(w.filename == __file__ for w in warnings)
-    assert ImprovedRenderer is type(improved_renderer)
+    assert isinstance(improved_renderer, ImprovedRenderer)
 
 
 @pytest.mark.skipif(not MISTUNE_VERSION.startswith("0."), reason="not mistune0")
@@ -528,7 +527,7 @@ def test_deprecated_escape(improved_renderer):
 
 def test_getattr_raises():
     with pytest.raises(AttributeError, match="no attribute 'goober'"):
-        lektor.markdown.goober  # pylint: disable=pointless-statement
+        _ = lektor.markdown.goober
 
 
 def test_dir():

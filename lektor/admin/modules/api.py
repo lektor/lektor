@@ -1,14 +1,14 @@
 import os
 import posixpath
+from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Mapping
+from contextvars import ContextVar
 from dataclasses import dataclass
 from dataclasses import field
 from functools import wraps
 from typing import Any
-from typing import Callable
 from typing import cast
-from typing import Optional
 from typing import TypeVar
 
 import click
@@ -27,6 +27,7 @@ from lektor.admin.utils import eventstream
 from lektor.constants import PRIMARY_ALT
 from lektor.datamodel import DataModel
 from lektor.db import Record
+from lektor.environment.config import Config
 from lektor.environment.config import ServerInfo
 from lektor.publisher import publish
 from lektor.publisher import PublishError
@@ -37,10 +38,11 @@ from lektor.utils import is_valid_id
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
 
 
+LEKTOR_CONFIG: ContextVar[Config] = ContextVar("lektor_config")
+
+
 @bp.url_value_preprocessor
-def pass_lektor_context(
-    endpoint: Optional[str], values: Optional[dict[str, Any]]
-) -> None:
+def pass_lektor_context(endpoint: str | None, values: dict[str, Any] | None) -> None:
     """Pass LektorContext to each view callable in a `ctx` parameter"""
     assert isinstance(values, dict)
     values["ctx"] = get_lektor_context()
@@ -50,11 +52,11 @@ class _ServerInfoField(marshmallow.fields.String):
     def _deserialize(
         self,
         value: str,
-        attr: Optional[str],
-        data: Optional[Mapping[str, Any]],
+        attr: str | None,
+        data: Mapping[str, Any] | None,
         **kwargs: Any,
     ) -> ServerInfo:
-        lektor_config = self.context["lektor_config"]
+        lektor_config = LEKTOR_CONFIG.get()
         server_id = super()._deserialize(value, attr, data, **kwargs)
         server_info = lektor_config.get_server(server_id)
         if server_info is None:
@@ -62,13 +64,15 @@ class _ServerInfoField(marshmallow.fields.String):
         return server_info
 
 
-def _is_valid_path(value: str) -> bool:
-    return cleanup_path(value) == value
+def _is_valid_path(value: str) -> None:
+    if not cleanup_path(value) == value:
+        raise marshmallow.ValidationError("Invalid value.")
 
 
-def _is_valid_alt(value: str) -> bool:
+def _is_valid_alt(value: str) -> None:
     lektor_config = get_lektor_context().config
-    return bool(lektor_config.is_valid_alternative(value))
+    if not lektor_config.is_valid_alternative(value):
+        raise marshmallow.ValidationError("Invalid alternative.")
 
 
 # Mark types for special validation
@@ -111,9 +115,7 @@ def _with_validated(param_type: type) -> Callable[[F], F]:
                 data = request.get_json() or {}
             else:
                 data = request.values
-            schema.context = {
-                "lektor_config": kwargs["ctx"].config,
-            }
+            LEKTOR_CONFIG.set(kwargs["ctx"].config)
             try:
                 kwargs["validated"] = schema.load(data)
             except marshmallow.ValidationError as exc:
@@ -220,7 +222,7 @@ def get_preview_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
 class _FindParams:
     q: str
     alt: _AltType = PRIMARY_ALT
-    lang: Optional[str] = None
+    lang: str | None = None
 
 
 @bp.route("/find", methods=["POST"])
@@ -333,13 +335,10 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
         return jsonify({"bad_upload": True})
 
     buckets = []
-
     for file in request.files.getlist("file"):
+        stored_filename = ts.add_attachment(file.filename, file)
         buckets.append(
-            {
-                "original_filename": file.filename,
-                "stored_filename": ts.add_attachment(file.filename, file),
-            }
+            {"original_filename": file.filename, "stored_filename": stored_filename}
         )
 
     return jsonify(
@@ -354,8 +353,8 @@ def upload_new_attachments(validated: _PathAndAlt, ctx: LektorContext) -> Respon
 @dataclass
 class _NewRecordParams:
     id: str
-    model: Optional[str]
-    data: dict[str, Optional[str]]
+    model: str | None
+    data: dict[str, str | None]
     path: _PathType
     alt: _AltType = PRIMARY_ALT
 
@@ -399,7 +398,7 @@ def delete_record(validated: _DeleteRecordParams, ctx: LektorContext) -> Respons
 
 @dataclass
 class _UpdateRawRecordParams:
-    data: dict[str, Optional[str]]
+    data: dict[str, str | None]
     path: _PathType
     alt: _AltType = PRIMARY_ALT
 
@@ -463,8 +462,8 @@ def publish_build(validated: _PublishBuildParams, ctx: LektorContext) -> Respons
             )
             for event in event_iter:
                 yield {"msg": event}
-        except PublishError as e:
-            yield {"msg": "Error: %s" % e}
+        except PublishError as exc:
+            yield {"msg": f"Error: {exc}"}
 
     return generator()
 

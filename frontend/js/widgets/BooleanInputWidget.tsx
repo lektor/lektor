@@ -19,7 +19,7 @@ export function BooleanInputWidget({
   disabled,
   placeholder,
   onChange,
-}: WidgetProps<string | null>): JSX.Element {
+}: WidgetProps<string | null>): React.JSX.Element {
   return (
     <div className="form-check">
       <label className="form-check-label">

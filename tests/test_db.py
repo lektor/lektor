@@ -270,13 +270,7 @@ def test_root_pagination(scratch_project, scratch_env):
         with open(
             os.path.join(base, "content", name, "contents.lr"), "w", encoding="utf-8"
         ) as f:
-            f.write(
-                "_model: page\n"
-                "---\n"
-                "title: Page %s\n"
-                "---\n"
-                "body: Hello World!\n" % name
-            )
+            f.write(f"_model: page\n---\ntitle: Page {name}\n---\nbody: Hello World!\n")
 
     scratch_pad = Database(scratch_env).new_pad()
 
@@ -303,7 +297,7 @@ def test_undefined_order(pad):
                 (2, "2016-01-02"),
             ]:
                 yield pad.instance_from_data(
-                    {"_id": str(day), "_path": "test/%s" % day, "pub_date": pub_date},
+                    {"_id": str(day), "_path": f"test/{day}", "pub_date": pub_date},
                     datamodel=blog_post,
                 )
 
@@ -510,7 +504,7 @@ def test_Page_url_path_is_for_primary_alt(scratch_pad):
 def test_Page_url_path_raise_error_if_paginated_and_dotted(scratch_pad):
     page = scratch_pad.get("/paginated.dotted")
     with pytest.raises(Exception) as exc_info:
-        page.url_path  # pylint: disable=pointless-statement
+        _ = page.url_path
     assert re.match(
         r"(?=.*\bextension\b)(?=.*\bpagination\b).*\bcannot be used",
         str(exc_info.value),

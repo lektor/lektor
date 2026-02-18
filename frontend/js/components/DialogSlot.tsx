@@ -20,7 +20,7 @@ export default function DialogSlot({
   setAppSettings,
 }: {
   setAppSettings: Dispatch<SetStateAction<AppSettings>>;
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const [dialog, setDialog] = useState<DialogState>(null);
 
   const dismiss = useCallback(() => {

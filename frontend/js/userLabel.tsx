@@ -6,7 +6,7 @@ import { trans_obj, Translatable } from "./i18n";
  */
 export function formatUserLabel(
   inputConfig: Translatable | string,
-): JSX.Element {
+): React.JSX.Element {
   const label =
     typeof inputConfig === "string" ? inputConfig : trans_obj(inputConfig);
 

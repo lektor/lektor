@@ -16,7 +16,7 @@ interface NewAttachmentInfo {
   can_upload: boolean;
 }
 
-function AddAttachmentPage(): JSX.Element | null {
+function AddAttachmentPage(): React.JSX.Element | null {
   const path = useRecordPath();
   const [newAttachmentInfo, setNewAttachmentInfo] =
     useState<NewAttachmentInfo | null>(null);

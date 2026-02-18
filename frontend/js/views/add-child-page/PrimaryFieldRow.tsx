@@ -14,7 +14,7 @@ export default function PrimaryField({
   primary: string;
   setPrimary: (s: SetStateAction<string>) => void;
   field: Field;
-}): JSX.Element {
+}): React.JSX.Element {
   const Widget = getWidgetComponentWithFallback(field.type);
   const value = Widget.deserializeValue
     ? Widget.deserializeValue(primary, field.type)
@@ -26,6 +26,7 @@ export default function PrimaryField({
         <dl className="field">
           <dt>{formatUserLabel(field.label_i18n)}</dt>
           <dd>
+            {/*eslint-disable-next-line react-hooks/static-components */}
             <Widget
               value={value}
               onChange={setPrimary}

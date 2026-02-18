@@ -8,7 +8,7 @@ export default function DeletePageHeader({
 }: {
   recordInfo: RecordInfo;
   currentAlt: string;
-}): JSX.Element {
+}): React.JSX.Element {
   const isPrimary = currentAlt === "_primary";
   const altInfo = recordInfo.alts.find((a) => a.alt === currentAlt);
 

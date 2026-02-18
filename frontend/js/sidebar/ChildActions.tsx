@@ -16,7 +16,7 @@ export default function ChildActions({
   allChildren: RecordChild[];
   page: number;
   setPage: (n: number) => void;
-}): JSX.Element {
+}): React.JSX.Element {
   const alt = useRecordAlt();
 
   const shownChildren = allChildren.slice(

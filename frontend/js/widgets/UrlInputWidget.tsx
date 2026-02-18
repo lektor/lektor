@@ -13,7 +13,7 @@ function validateUrl(value: string) {
 
 const inputAddon = <i className="fa fa-external-link" />;
 
-export function UrlInputWidget(props: WidgetProps): JSX.Element {
+export function UrlInputWidget(props: WidgetProps): React.JSX.Element {
   return (
     <InputWidgetBase
       inputType="text"

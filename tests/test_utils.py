@@ -197,6 +197,10 @@ def test_url_builder():
     assert build_url(["a", None, "b", "", "c"]) == "/a/b/c/"
 
 
+def test_url_builder_dot_handling():
+    assert build_url(["blog", "01.01.2025", "photos"]) == "/blog/01.01.2025/photos/"
+
+
 def test_parse_path():
     assert parse_path("") == []
     assert parse_path("/") == []

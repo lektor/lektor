@@ -20,7 +20,7 @@ function AdminLink({
   alt,
   children,
   ...otherProps
-}: AdminLinkProps): JSX.Element {
+}: AdminLinkProps): React.JSX.Element {
   const current = useRecord();
   const recordMatches = path === current.path && alt === current.alt;
 

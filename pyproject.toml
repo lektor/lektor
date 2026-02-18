@@ -23,16 +23,16 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "Babel",
     "click>=6.0",
@@ -47,7 +47,6 @@ dependencies = [
     "pip",
     "python-slugify",
     "requests",
-    "typing-extensions>=3.10; python_version<'3.10'",
     "tzdata; sys_platform == 'win32'",
     "watchfiles>=0.12",
     "Werkzeug>=2.1.0",
@@ -129,6 +128,51 @@ exclude_lines = [
 
 ################################################################
 #
+# ruff
+#
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",
+    "I",                        # isort
+    "UP",                       # pyupgrade
+    "YTT",                      # flake8-2020
+    "ASYNC",                    # flake8-async
+    "B",                        # flake8-bugbear
+    "C4",                       # flake8-comprehensions
+    "T10",                      # flake8-debugger
+    "EXE",                      # flake8-executable
+    "ISC",                      # flake8-implicit-string-concat
+    "LOG",                      # flake8-logging
+    "G",                        # flake8-logging-format
+    "Q",                        # flake8-quotes
+    "INT",                      # flake8-gettext
+    "PL",                       # pylint
+    "FLY",                      # flynt
+    "FURB",                     # refurb
+    "PERF",                     # perflint
+]
+ignore = [
+    "PLC0415",                  # pylint import-outside-toplevel
+    "PLW2901",                  # pylint redefined-loop-name
+    "PLR0913",                  # pylint too-many-arguments
+    "PLR2004",                  # pylint magic-value-comparison
+    "PLR2044",                  # pylint empty-comment
+    "PLR5501",                  # pylint collapsible-else-if
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+lines-after-imports = 2
+order-by-type = false
+extra-standard-library = [ "_typeshed" ]
+known-first-party = ["lektor"]
+
+[tool.ruff.lint.pylint]
+max-branches = 20
+max-returns = 8
+
+################################################################
+#
 # pylint
 #
 [tool.pylint.main]
@@ -167,6 +211,10 @@ disable = [
     "unnecessary-dunder-call",
 ]
 
+################################################################
+#
+# mypy
+#
 [tool.mypy]
 files = ["$MYPY_CONFIG_FILE_DIR/lektor"]
 

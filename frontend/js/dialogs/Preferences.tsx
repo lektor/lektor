@@ -20,7 +20,7 @@ export default function Preferences({
 }: {
   setAppSettings: Dispatch<SetStateAction<AppSettings>>;
   dismiss: () => void;
-}): JSX.Element {
+}): React.JSX.Element {
   const appSettings = useAppSettings();
   const [state, setState] = useState(appSettings);
 
@@ -83,7 +83,7 @@ function ShortcutKeyPrefs({
 }: {
   keyMap: ShortcutKeyMap;
   setKeyMap: Dispatch<SetStateAction<ShortcutKeyMap>>;
-}): JSX.Element {
+}): React.JSX.Element {
   const setShortcut = useCallback(
     (action: ShortcutAction, key: ShortcutKey | null) => {
       setKeyMap(
@@ -128,12 +128,12 @@ function ShortcutKeyInputWidget({
   onValueChange,
   ...props
 }: Omit<
-  JSX.IntrinsicElements["input"],
+  React.JSX.IntrinsicElements["input"],
   "value" | "type" | "onChange" | "onKeyDown"
 > & {
   value: ShortcutKey | null;
   onValueChange: Dispatch<ShortcutKey | null>;
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <input
       type="text"

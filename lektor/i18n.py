@@ -1,19 +1,18 @@
 import json
 import os
-
-
-translations_path = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), "translations"
-)
-KNOWN_LANGUAGES = list(
-    x[:-5] for x in os.listdir(translations_path) if x.endswith(".json")
-)
+from importlib import resources
+from pathlib import Path
 
 
 translations = {}
-for _lang in KNOWN_LANGUAGES:
-    with open(os.path.join(translations_path, _lang + ".json"), "rb") as f:
-        translations[_lang] = json.load(f)
+for file in resources.files("lektor").joinpath("translations").iterdir():
+    filename = Path(file.name)
+    if filename.suffix == ".json" and file.is_file():
+        lang = filename.stem
+        with file.open("rb") as f:
+            translations[lang] = json.load(f)
+
+KNOWN_LANGUAGES = set(translations.keys())
 
 
 def get_translations(language):

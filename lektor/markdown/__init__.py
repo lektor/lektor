@@ -3,7 +3,6 @@ import warnings
 from collections.abc import Hashable
 from importlib import metadata
 from typing import Any
-from typing import Optional
 from typing import TYPE_CHECKING
 from weakref import ref as weakref
 
@@ -17,6 +16,7 @@ from lektor.markdown.controller import RenderResult
 from lektor.sourceobj import SourceObject
 from lektor.utils import deprecated
 from lektor.utils import DeprecatedWarning
+
 
 if TYPE_CHECKING:  # pragma: no cover
     from lektor.environment import Environment
@@ -38,7 +38,7 @@ get_controller = ControllerCache(controller_class)
 
 class Markdown:
     def __init__(
-        self, source: str, record: Optional[SourceObject], field_options: FieldOptions
+        self, source: str, record: SourceObject | None, field_options: FieldOptions
     ) -> None:
         self.source = source
         self.__record = weakref(record) if record is not None else None

@@ -13,7 +13,7 @@ import DeletePageHeader from "./DeletePageHeader";
 import { dispatch } from "../../events";
 import { useGoToAdminPage } from "../../components/use-go-to-admin-page";
 
-function DeletePage(): JSX.Element | null {
+function DeletePage(): React.JSX.Element | null {
   const { path, alt } = useRecord();
 
   const [recordInfo, setRecordInfo] = useState<RecordInfo | null>(null);

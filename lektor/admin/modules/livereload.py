@@ -10,6 +10,7 @@ from flask import Blueprint
 from lektor.admin.utils import eventstream
 from lektor.reporter import reporter
 
+
 if TYPE_CHECKING:
     from lektor.builder import Artifact
 
