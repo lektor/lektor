@@ -38,15 +38,7 @@ class DependencyReporter(Reporter):
     def report_dependencies(self, dependencies):
         source_id = self.current_artifact.source_obj["_id"]
         row = self.deps.setdefault(source_id, set())
-        for (
-            _artifact_name,
-            source_path,
-            _mtime,
-            _size,
-            _checksum,
-            _is_dir,
-            _is_primary,
-        ) in dependencies:
+        for _artifact_name, source_path, *_rest in dependencies:
             row.add(source_path)
 
     @property
