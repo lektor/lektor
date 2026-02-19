@@ -36,7 +36,7 @@ class Plugin:
     name = "Your Plugin Name"
     description = "Description goes here"
 
-    __dist: metadata.Distribution = None
+    __dist: metadata.Distribution | None = None
 
     def __init__(self, env, id):
         self._env = weakref(env)
@@ -119,25 +119,14 @@ class Plugin:
         }
 
 
-def _find_plugins():
-    """Find all available plugins.
-
-    Returns an interator of (distribution, entry_point) pairs.
-    """
-    for dist in metadata.distributions():
-        for ep in dist.entry_points:
-            if ep.group == "lektor.plugins":
-                _check_dist_name(dist.metadata["Name"], ep.name)
-                yield dist, ep
-
-
 def _check_dist_name(dist_name, plugin_id):
     """Check that plugin comes from a validly named distribution.
 
     Raises RuntimeError if distribution name is not of the form
     ``lektor-``*<plugin_id>*.
     """
-    # XXX: do we really need to be so strict about distribution names?
+    # XXX: Do we really need to be so strict about distribution names?
+    # Ref: https://github.com/lektor/lektor/issues/875
     match_name = "lektor-" + plugin_id.lower()
     if match_name != dist_name.lower():
         raise RuntimeError(
@@ -148,10 +137,12 @@ def _check_dist_name(dist_name, plugin_id):
 
 def initialize_plugins(env):
     """Initializes the plugins for the environment."""
-    for dist, ep in _find_plugins():
+    for ep in metadata.entry_points(group="lektor.plugins"):
+        if ep.dist is not None:
+            _check_dist_name(ep.dist.metadata["Name"], ep.name)
         plugin_id = ep.name
         plugin_cls = ep.load()
-        env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls, dist)
+        env.plugin_controller.instanciate_plugin(plugin_id, plugin_cls, ep.dist)
     env.plugin_controller.emit("setup-env")
 
 

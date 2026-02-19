@@ -16,7 +16,6 @@ from lektor.cli import cli
 from lektor.context import Context
 from lektor.packages import add_package_to_project
 from lektor.pluginsystem import _check_dist_name
-from lektor.pluginsystem import _find_plugins
 from lektor.pluginsystem import get_plugin
 from lektor.pluginsystem import Plugin
 from lektor.pluginsystem import PluginController
@@ -265,11 +264,6 @@ class TestPlugin:
             "import_name": f"{__name__}:DummyPlugin",
             "path": str(Path(__file__).parent),
         }
-
-
-def test_find_plugins(dummy_plugin_distribution):
-    (ep,) = dummy_plugin_distribution.entry_points
-    assert list(_find_plugins()) == [(dummy_plugin_distribution, ep)]
 
 
 @pytest.mark.parametrize(
