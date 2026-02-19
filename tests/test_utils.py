@@ -20,6 +20,7 @@ from lektor.utils import make_relative_url
 from lektor.utils import parse_path
 from lektor.utils import secure_url
 from lektor.utils import slugify
+from lektor.utils import split_camel_case
 from lektor.utils import unique_everseen
 from lektor.utils import untrusted_to_os_path
 from lektor.utils import Url
@@ -186,6 +187,24 @@ def test_Url_anchor(sample_url):
 )
 def test_secure_url(url, expected):
     assert secure_url(url) == expected
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        ("ASeriousNote", ["A", "Serious", "Note"]),
+        ("TheIRSNeverSleeps", ["The", "IRS", "Never", "Sleeps"]),
+        ("Space Separated", ["Space", "Separated"]),
+        (" stripped ", ["stripped"]),
+        pytest.param(
+            "GrußGott",
+            ["Gruß", "Gott"],
+            marks=pytest.mark.xfail(reason="does not yet work with non-ascii"),
+        ),
+    ],
+)
+def test_split_camel_case(input, expected):
+    assert split_camel_case(input) == expected
 
 
 def test_url_builder():

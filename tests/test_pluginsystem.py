@@ -22,9 +22,6 @@ from lektor.pluginsystem import PluginController
 
 
 class DummyPlugin(Plugin):
-    name = "Dummy Plugin"
-    description = "For testing"
-
     # DummyPlugin.calls is test-local (see fixture dummy_plugin_calls, below)
     calls = []
 
@@ -121,6 +118,7 @@ def dummy_plugin_distribution(save_sys_path):
     dist = DummyDistribution(
         {
             "Name": "lektor-dummy-plugin",
+            "Summary": "The description.",
             "Version": "1.23",
         }
     )
@@ -186,6 +184,18 @@ class TestPlugin:
         del env
         with pytest.raises(RuntimeError, match=r"Environment went away"):
             _ = plugin.env
+
+    def test_name(self, dummy_plugin, dummy_plugin_distribution):
+        assert dummy_plugin.name == "Dummy"
+
+    def test_description(self, dummy_plugin, dummy_plugin_distribution):
+        assert dummy_plugin.description == dummy_plugin_distribution.metadata["Summary"]
+
+    def test_description_fallback(self, env):
+        # Create a plugin with no associated distribution.
+        # (This shouldn't happen in real Lektor runs.)
+        plugin = DummyPlugin(env, "dummy")
+        assert "no description available" in plugin.description
 
     def test_version(self, dummy_plugin, dummy_plugin_distribution):
         assert dummy_plugin.version == dummy_plugin_distribution.version
@@ -258,8 +268,8 @@ class TestPlugin:
     def test_to_json(self, dummy_plugin, dummy_plugin_distribution):
         assert dummy_plugin.to_json() == {
             "id": "dummy-plugin",
-            "name": DummyPlugin.name,
-            "description": DummyPlugin.description,
+            "name": dummy_plugin.name,
+            "description": dummy_plugin.description,
             "version": dummy_plugin_distribution.version,
             "import_name": f"{__name__}:DummyPlugin",
             "path": str(Path(__file__).parent),

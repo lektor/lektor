@@ -786,6 +786,14 @@ def format_lat_long(lat=None, long=None, secs=True):
     return ", ".join(rv)
 
 
+def split_camel_case(s: str) -> list[str]:
+    """Split camel-cased words.
+
+    This currently only works with ASCII strings.
+    """
+    return re.split(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|\s+", s.strip())
+
+
 def get_cache_dir():
     if is_windows:
         folder = os.environ.get("LOCALAPPDATA")

@@ -12,6 +12,7 @@ from inifile import IniFile
 
 from lektor.context import get_ctx
 from lektor.utils import process_extra_flags
+from lektor.utils import split_camel_case
 
 
 def get_plugin(plugin_id_or_class, env=None):
@@ -33,14 +34,48 @@ def get_plugin(plugin_id_or_class, env=None):
 class Plugin:
     """This needs to be subclassed for custom plugins."""
 
-    name = "Your Plugin Name"
-    description = "Description goes here"
+    name: str
+    description: str
 
     __dist: metadata.Distribution | None = None
 
     def __init__(self, env, id):
         self._env = weakref(env)
         self.id = id
+
+    @property
+    def name(self) -> str:
+        """Provide a default value for the plugin name.
+
+        This default name is formed from the plugin class name, which is split on
+        camel-case word boundaries, with any trailing "Plugin" removed.
+
+        Note that if you don't like this default, you may override it by setting
+        a `description` attribute on your subclass.
+
+        """
+        words = split_camel_case(self.__class__.__name__)
+        if len(words) > 1 and words[-1].title() == "Plugin":
+            del words[-1]
+        return " ".join(words)
+
+    @property
+    def description(self) -> str:
+        """Provide a default description from the plugin distribution's metadata.
+
+        This default is taken from the value for `description` key set in the
+        `[project]` section of `pyproject.toml` (or the `description` parameter passed
+        to `setup()`).
+
+        Note that if you don't like this default, you may override it by setting
+        a `description` attribute directly on your subclass.
+
+        """
+        if self.__dist is not None:
+            # The "Summary" is, confusingly, set, e.g. in pyproject.toml's
+            # project.description key.
+            return self.__dist.metadata["Summary"]
+        return "<no description available>"
 
     @property
     def env(self):
