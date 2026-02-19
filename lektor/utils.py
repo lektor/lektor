@@ -898,7 +898,7 @@ class RecursionCheck(threading.local):
 
     level = 0
 
-    def __enter__(self) -> bool:
+    def __enter__(self) -> int:
         self.level += 1
         return self.level
 

@@ -91,17 +91,14 @@ class Plugin:
         return None
 
     @property
-    def path(self) -> str:
+    def path(self) -> str | None:
         mod = sys.modules[self.__class__.__module__.split(".", maxsplit=1)[0]]
+        if mod.__file__ is None:
+            return None  # pragma: no cover
         path = Path(mod.__file__).resolve().parent
-        package_cache = self.env.project.get_package_cache_path()
-        try:
-            # We could use Path.is_relative_to(), except that's py39+ only
-            path.relative_to(package_cache)
+        if path.is_relative_to(self.env.project.get_package_cache_path()):
             # We're only interested in local, editable packages. This is not one.
             return None
-        except ValueError:
-            pass
         return os.fspath(path)
 
     @property
