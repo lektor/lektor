@@ -9,7 +9,7 @@ build-js: frontend/node_modules
 
 frontend/node_modules: frontend/package-lock.json
 	@echo "---> installing npm dependencies"
-	@cd frontend; npm install
+	@cd frontend; npm install --no-save
 	@touch -m frontend/node_modules
 
 # Run tests on Python files.

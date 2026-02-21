@@ -79,8 +79,8 @@ class FrontendBuildHook(BuildHookInterface):
         if not frontend.is_dir():
             app.abort("frontend source is missing. can not build frontend")
 
-        app.display_info("npm install")
-        subprocess.run("npm install", cwd=frontend, shell=True, check=True)
+        app.display_info("npm install --no-save")
+        subprocess.run("npm install --no-save", cwd=frontend, shell=True, check=True)
         app.display_info("npm run build")
         subprocess.run("npm run build", cwd=frontend, shell=True, check=True)
         app.display_success("built frontend static files")
