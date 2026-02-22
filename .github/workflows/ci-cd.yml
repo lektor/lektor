@@ -141,6 +141,41 @@ jobs:
         run: tox
         env:
           TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-${{ matrix.python }}-${{ matrix.os }}
+          path: .coverage*
+          include-hidden-files: true
+          retention-days: 1
+
+  coverage:
+    name: Coverage Report
+    needs: python-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - run: uv tool install coverage[toml]
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-data-*
+          merge-multiple: true
+      - name: Test coverage
+        run: |
+          coverage combine
+          coverage report --show-missing
+          coverage html
+          coverage xml
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            htmlcov/
+          include-hidden-files: true
 
   ############################################################################
   # Build distribution packages
