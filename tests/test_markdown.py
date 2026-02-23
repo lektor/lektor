@@ -198,6 +198,7 @@ def test_controller_cache(env):
 
 
 match MISTUNE_MAJOR_VERSION:
+    # pylint: disable=no-name-in-module
     case 0:
         plugin_url = ...
     case 2:

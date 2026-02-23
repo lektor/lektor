@@ -99,7 +99,8 @@ class MarkdownController3(MarkdownController):
             plugins = tuple(unique_everseen(map(self.resolve_plugin, plugins)))
         return mistune.Markdown(renderer, inline=LektorInlineParser(), plugins=plugins)
 
-    def resolve_plugin(self, plugin: str | MistunePlugin) -> MistunePlugin:
+    @staticmethod
+    def resolve_plugin(plugin: str | MistunePlugin) -> MistunePlugin:
         if callable(plugin):
             return plugin
         if not isinstance(plugin, str):
