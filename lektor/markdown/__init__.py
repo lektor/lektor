@@ -25,10 +25,12 @@ controller_class: type[MarkdownController]
 
 
 MISTUNE_VERSION = metadata.version("mistune")
-if MISTUNE_VERSION.startswith("0."):
-    from lektor.markdown.mistune0 import MarkdownController0 as controller_class
+if MISTUNE_VERSION.startswith("3."):
+    from lektor.markdown.mistune3 import MarkdownController3 as controller_class
 elif MISTUNE_VERSION.startswith("2."):
     from lektor.markdown.mistune2 import MarkdownController2 as controller_class
+elif MISTUNE_VERSION.startswith("0."):
+    from lektor.markdown.mistune0 import MarkdownController0 as controller_class
 else:  # pragma: no cover
     raise ImportError("Unsupported version of mistune")
 

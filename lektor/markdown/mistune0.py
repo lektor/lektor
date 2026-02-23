@@ -61,7 +61,7 @@ class MarkdownConfig:
 
 class MarkdownController0(MarkdownController, threading.local):
     # NB: making this a threading.local means the results in the
-    # cached_property MarkdownController.parser having a separate
+    # cached_property MarkdownController.parser have a separate
     # value in each thread.
     #
     # We need that since the mistune 0.x parser is not thread-safe.
