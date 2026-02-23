@@ -78,8 +78,6 @@ pylint = [                      # requirements for running pylint
     "pytest-mock",
     "iniconfig",
 ]
-mistune0 = ["mistune<2"]        # pin old mistune for testing
-tzdata = ["tzdata"]             # test with tzdata rather than system zone data
 
 [tool.hatch.version]
 source = "vcs"
