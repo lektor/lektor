@@ -17,7 +17,6 @@ def escape(text: str) -> str:
 
 
 class ImprovedRenderer(
-    # pylint: disable=no-member
     mistune.Renderer  # type: ignore[misc]
 ):
     lektor: ClassVar = RendererHelper()
@@ -74,5 +73,4 @@ class MarkdownController0(MarkdownController, threading.local):
         env.plugin_controller.emit(
             "markdown-lexer-config", config=cfg, renderer=renderer
         )
-        # pylint: disable=unexpected-keyword-arg
         return mistune.Markdown(renderer, **cfg.options)
