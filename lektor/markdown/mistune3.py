@@ -32,6 +32,10 @@ class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
     # renderer mixins (written for Lektor<3.4 and mistune 0.x) are not going to work
     # with mistune 2.x anyway.
 
+    # NB: Under mistune 3 the renderer is responsible for xml-escaping the `url`
+    # parameter of `HTMLRenderer.link` and `.image`.  Under mistune 0 and 2 the URLs
+    # were passed the the renderer already escaped.
+
     def link(self, text: str, url: str, title: str | None = None) -> str:
         url = self.lektor.resolve_url(url)
         return super().link(text, url, title)
@@ -39,6 +43,11 @@ class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
     def image(self, text: str, url: str, title: str | None = None) -> str:
         url = self.lektor.resolve_url(url)
         return super().image(text, url, title)
+
+
+class LektorInlineParser(mistune.InlineParser):
+    # FIXME: clean this up
+    lektor: ClassVar = ImprovedRenderer.lektor
 
 
 class ParserConfigDict(TypedDict, total=False):
@@ -88,7 +97,7 @@ class MarkdownController3(MarkdownController):
         plugins = parser_options.get("plugins")
         if plugins:
             plugins = tuple(unique_everseen(map(self.resolve_plugin, plugins)))
-        return mistune.Markdown(renderer, plugins=plugins)
+        return mistune.Markdown(renderer, inline=LektorInlineParser(), plugins=plugins)
 
     def resolve_plugin(self, plugin: str | MistunePlugin) -> MistunePlugin:
         if callable(plugin):
