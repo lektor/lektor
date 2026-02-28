@@ -89,7 +89,7 @@ class Context:
                     "Could not automatically discover "
                     "project.  A Lektor project must "
                     "exist in the working directory or "
-                    "any of the parent directories."
+                    "any of the parent directories (use --project <path> flag)."
                 )
             raise click.UsageError(f'Could not find project "{self._project_path}"')
         self._project = rv
