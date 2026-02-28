@@ -40,7 +40,7 @@ def test_alias(project_cli_runner):
 def test_dev_cmd_alias(isolated_cli_runner):
     result = isolated_cli_runner.invoke(cli, ["dev", "s"])  # short for 'shell'
     assert result.exit_code == 2
-    assert "Error: Could not automatically discover project" in result.output
+    assert "Error: Could not automatically discover a project" in result.output
 
 
 def test_alias_multiple_matches(project_cli_runner):
@@ -60,7 +60,7 @@ def test_alias_no_matches(project_cli_runner):
 def test_build_no_project(isolated_cli_runner):
     result = isolated_cli_runner.invoke(cli, ["build"])
     assert result.exit_code == 2
-    assert "Could not automatically discover project." in result.output
+    assert "Could not automatically discover a project" in result.output
 
 
 def test_build(project_cli_runner):
