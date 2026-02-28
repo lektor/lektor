@@ -86,10 +86,11 @@ class Context:
                 return None
             if self._project_path is None:
                 raise click.UsageError(
-                    "Could not automatically discover "
-                    "project.  A Lektor project must "
-                    "exist in the working directory or "
-                    "any of the parent directories (use --project <path> flag)."
+                    "Could not automatically discover a "
+                    "project in the working or ancestor directories. "
+                    "The --project global parameter or the "
+                    "LEKTOR_PROJECT environment variable may be used "
+                    "to explicitly specify the path to the project."
                 )
             raise click.UsageError(f'Could not find project "{self._project_path}"')
         self._project = rv
