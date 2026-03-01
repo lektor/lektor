@@ -1,5 +1,5 @@
-/* eslint-env mocha */
-import { strictEqual } from "assert";
+import { it } from "node:test";
+import { strictEqual } from "node:assert";
 import { translations } from "../i18n";
 import { isValidDate, postprocessDate, validateDate } from "./DateInputWidget";
 

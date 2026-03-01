@@ -1,7 +1,8 @@
+import { ok } from "node:assert";
+import { before, describe, it } from "node:test";
 import ToggleGroup from "./ToggleGroup";
 import React, { act } from "react";
 import { JSDOM } from "jsdom";
-import { ok } from "assert";
 import { createRoot } from "react-dom/client";
 
 before(() => {

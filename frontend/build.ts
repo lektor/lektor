@@ -2,16 +2,21 @@
  * An esbuild-powered script to build Lektor's admin frontend.
  */
 
-import { context, Plugin } from "esbuild";
+import { dirname, join, resolve } from "node:path";
+import { argv } from "node:process";
+import { fileURLToPath } from "node:url";
+import { context, type Plugin } from "esbuild";
 import fg from "fast-glob";
-import { resolve, dirname, join } from "path";
-import { argv } from "process";
 import { compile } from "sass";
 
-import { compilerOptions } from "./tsconfig.json";
-
 // Optimization: compute fontawesome SVG at compile-time to minimize bundle size
-import SVG_ICONS_FONTAWESOME from "./tooldrawer/components/_svg-icons/fontawesome";
+import SVG_ICONS_FONTAWESOME from "./tooldrawer/components/_svg-icons/fontawesome.ts";
+import tsconfig from "./tsconfig.json" with { type: "json" };
+
+const { compilerOptions } = tsconfig;
+
+const filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(filename);
 
 // A simple esbuild plugin to compile sass.
 const sassPlugin: Plugin = {
@@ -91,7 +96,9 @@ async function runBuild(dev: boolean) {
   }
 }
 
-if (require.main === module) {
+const is_main = resolve(process.argv[1] ?? "") === filename;
+
+if (is_main) {
   const dev = argv.includes("--watch");
   runBuild(dev).catch(console.error);
 }

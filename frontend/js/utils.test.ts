@@ -1,4 +1,5 @@
-import { ok, strictEqual } from "assert";
+import { describe, it } from "node:test";
+import { ok, strictEqual } from "node:assert";
 import {
   isValidUrl,
   trimLeadingSlashes,

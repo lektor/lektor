@@ -2,67 +2,45 @@
   "name": "lektor",
   "license": "ISC",
   "private": true,
+  "type": "module",
   "engines": {
-    "node": ">=14"
+    "node": ">=22.18"
   },
   "dependencies": {
-    "@fontsource/roboto-slab": "^5.0.3"
+    "@fontsource/roboto-slab": "^5.0.3",
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "bootstrap": "^5.3.0",
+    "font-awesome": "^4.3.0",
+    "lit": "^3.0.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.12.0",
+    "react-router-dom": "^7.12.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@types/jsdom": "^27.0.0",
-    "@types/mocha": "^10.0.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.1.3",
     "@types/react-dom": "^19.1.3",
     "@types/react-router-dom": "^5.1.7",
-    "bootstrap": "^5.3.0",
     "esbuild": "^0.27.1",
-    "esbuild-register": "^3.3.2",
     "eslint": "^9.15.0",
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "fast-glob": "^3.2.11",
-    "font-awesome": "^4.3.0",
     "jsdom": "^27.2.0",
-    "lit": "^3.0.2",
-    "mocha": "^11.2.2",
-    "nyc": "^17.0.0",
     "prettier": "^3.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router": "^7.12.0",
-    "react-router-dom": "^7.12.0",
     "sass": "^1.49.9",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.15.0"
   },
   "scripts": {
-    "test": "nyc mocha",
-    "build": "node -r esbuild-register build.ts",
-    "dev": "node -r esbuild-register build.ts --watch",
-    "report-coverage": "nyc report --reporter=lcov > coverage.lcov"
-  },
-  "mocha": {
-    "spec": [
-      "js/**/*.test.ts",
-      "js/**/*.test.tsx"
-    ],
-    "require": "esbuild-register"
-  },
-  "nyc": {
-    "extension": [
-      ".jsx",
-      ".js",
-      ".tsx",
-      ".ts"
-    ],
-    "reporter": [
-      "text",
-      "html"
-    ],
-    "require": "esbuild-register"
+    "test": "tsx --test \"js/**/*.test.ts\" \"js/**/*.test.tsx\"",
+    "coverage": "tsx --experimental-test-coverage --test \"js/**/*.test.ts\" \"js/**/*.test.tsx\"",
+    "build": "node build.ts",
+    "dev": "node build.ts --watch"
   }
 }

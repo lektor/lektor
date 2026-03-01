@@ -1,4 +1,5 @@
-import { strictEqual } from "assert";
+import { it } from "node:test";
+import { strictEqual } from "node:assert";
 import { ChildPosCache } from "./Sidebar";
 
 it("sidebar: child page position cache", () => {

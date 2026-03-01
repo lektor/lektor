@@ -1,4 +1,5 @@
-import { deepStrictEqual } from "assert";
+import { it } from "node:test";
+import { deepStrictEqual } from "node:assert";
 import { parseFlowFormat, serializeFlowFormat } from "./FlowWidget";
 
 const rawFlowBlock = `#### text ####

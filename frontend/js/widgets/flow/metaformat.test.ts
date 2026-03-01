@@ -1,4 +1,5 @@
-import { deepStrictEqual, ok } from "assert";
+import { it } from "node:test";
+import { deepStrictEqual, ok } from "node:assert";
 import { lineIsDashes, processBuf, serialize, tokenize } from "./metaformat";
 
 it("metaformat: check whether line just contains of dashes", () => {

@@ -1,4 +1,5 @@
-import { strictEqual } from "assert";
+import { describe, it } from "node:test";
+import { strictEqual } from "node:assert";
 import { slugify } from "./slugify";
 
 describe("slugs", () => {
