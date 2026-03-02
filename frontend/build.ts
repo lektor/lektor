@@ -34,7 +34,12 @@ const sassPlugin: Plugin = {
       contents: compile(path, {
         // silence warnings that are caused by bootstrap
         // see https://github.com/twbs/bootstrap/issues/40849
-        silenceDeprecations: ["color-functions", "global-builtin", "import"],
+        silenceDeprecations: [
+          "color-functions",
+          "global-builtin",
+          "if-function",
+          "import",
+        ],
       }).css.toString(),
       resolveDir: dirname(path),
       loader: "css",
