@@ -136,7 +136,11 @@ parallel = true
 [tool.coverage.paths]
 paths = [
     "lektor",
-    ".tox/py*/*/lektor",
+    ".tox/*/site-packages/lektor",
+    # Attempt to match source files on various GitHub Windows/macOS runners
+    '*:*\lektor\lektor\lektor',
+    '*/lektor/lektor/lektor',
+    "*/.tox/*/site-packages/lektor",
 ]
 
 [tool.coverage.report]
