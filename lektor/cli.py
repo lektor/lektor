@@ -4,6 +4,7 @@ import sys
 import warnings
 from importlib import metadata
 from itertools import chain
+from pathlib import Path
 
 import click
 
@@ -19,7 +20,10 @@ from lektor.project import Project
 from lektor.utils import secure_url
 
 
-version = metadata.version("Lektor")
+try:
+    version = metadata.version("Lektor")
+except metadata.PackageNotFoundError:
+    version = f"local ({Path(__file__).absolute().parent})"
 
 
 @click.group(cls=AliasedGroup)
