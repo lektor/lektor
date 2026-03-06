@@ -2,6 +2,42 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b14 (unreleased)
+
+### Features
+
+- The `lektor.pluginsystem.Plugin` base class now provides sane
+  defaults for the `Plugin.name` and `Plugin.description` attributes. ([78ea0ef])
+
+### Fixes
+
+- Fix `Query.include_hidden` so that it actually causes hidden records to be included.
+  This fixes a [long-standing bug][#358].
+  In edge-cases, this change may affect existing projects. ([#1251], [#1229])
+- Improve error message when CLI can not find project. Thank you, Antonia Cavallo!
+  ([#1257])
+- Builder: update build db schema to use real flag to mark virtual sources, rather
+  than relying on broken heuristics. Thank you, Patrick Gerken! ([#1223])
+- Use `importlib.metadata.entry_points` to find installed plugins. This fixes some
+  edge-case "plugin is already registered" errors. ([a2502d1])
+
+### Frontend
+
+- Modernize build script, use node-native test runner. ([#1259])
+- Use `npm install --no-save` during package build to avoid dirtying git source ([#1254])
+- Dependency bumps. ([#1256])
+
+[#358]: https://github.com/lektor/lektor/issues/358
+[#1223]: https://github.com/lektor/lektor/pull/1223
+[#1229]: https://github.com/lektor/lektor/issues/1229
+[#1251]: https://github.com/lektor/lektor/pull/1251
+[#1254]: https://github.com/lektor/lektor/pull/1254
+[#1256]: https://github.com/lektor/lektor/pull/1256
+[#1257]: https://github.com/lektor/lektor/pull/1257
+[#1259]: https://github.com/lektor/lektor/pull/1259
+[78ea0ef]: https://github.com/lektor/lektor/commit/78ea0efe4ea5716658f26d2c56c4737835c27ff3
+[a2502d1]: https://github.com/lektor/lektor/commit/a2502d1ec8eef298f845bb5d50ea4127b455d1b9
+
 ## 3.4.0b13 (2026-02-11)
 
 ### Changes
