@@ -1,0 +1,163 @@
+title: Blog
+---
+summary: Shows how to build a basic blog with Lektor.
+---
+body:
+
+Blogging is what spawned many content management systems and static site
+generators.  We're living in a world where many people like to share what's
+on their minds and the best way to do that turns out to be pages ordered by
+the date of publication.  That's basically what a blog is.  Here we will
+build our own blog with Lektor.
+
+## The Models
+
+For a blog we want two models.  The model for the `blog` itself and the model
+for the `blog-post`.  The idea is that we have a folder called `blog` which
+uses the `blog` model which contains all the blog posts.  Each of the blog
+posts will use the `blog-post` model.
+
+### `blog.ini`
+
+This is the model for the blog itself.  It instructs Lektor that all of the
+pages below it will be blog posts, how many blog posts we want to show per
+page and what the order is.  We also set it to `hidden` and `protected` which
+will make it unavailable in the admin (`hidden`) for new pages and make it
+impossible to delete (`protected`).  This means we need to manually create the
+one page later which will use this.
+
+```ini
+[model]
+name = Blog
+label = Blog
+hidden = yes
+protected = yes
+
+[children]
+model = blog-post
+order_by = -pub_date, title
+
+[pagination]
+enabled = yes
+per_page = 10
+```
+
+### `blog-post.ini`
+
+Each blog post has a title, publication date, author and body.  The publication
+date and title are also used for sorting if you look into the `blog.ini`.
+Lastly we set up the label of the page to be the title of the blog post.  We
+can also set it to `hidden` as the model is automatically selected in the
+admin whenever a page is created in the blog.
+
+```ini
+[model]
+name = Blog Post
+label = {{ this.title }}
+hidden = yes
+
+[fields.title]
+label = Title
+type = string
+size = large
+
+[fields.pub_date]
+label = Publication date
+type = date
+width = 1/2
+
+[fields.author]
+label = Author
+type = string
+width = 1/2
+
+[fields.body]
+label = Body
+type = markdown
+```
+
+## The Templates
+
+Now that we have the models set up, we want to create the templates.
+
+### `blog.html`
+
+Let's start with the blog overview page.  This template is used for our `blog`
+model.  In this example we just want to show the titles of the post on the
+overview page with the author and date and a controller for the pagination.
+Because pagination is enabled we can iterate over `this.pagination.items`
+instead of `this.children` which will return only the items for the intended
+page.
+
+```html+jinja
+{% extends "layout.html" %}
+{% from "macros/pagination.html" import render_pagination %}
+{% block title %}My Blog{% endblock %}
+{% block body %}
+  <h1>My Blog</h1>
+
+  <ul class="blog-index">
+  {% for post in this.pagination.items %}
+    <li>
+      <a href="{{ post|url }}">{{ post.title }}</a> —
+      by {{ post.author }}
+      on {{ post.pub_date|dateformat }}
+    </li>
+  {% endfor %}
+  </ul>
+
+  {% if this.pagination.pages > 1 %}
+    {{ render_pagination(this.pagination) }}
+  {% endif %}
+{% endblock %}
+```
+
+For the pagination macro have a look at the [pagination guide
+:ref](../pagination/) which covers that part.
+
+### `blog-post.html`
+
+Now we just need a template for our blog post.  This (`blog-post.html`) will
+do:
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}{{ this.title }} | My Blog{% endblock %}
+{% block body %}
+  <h1>{{ this.title }}
+  <p class="meta">
+    by {{ this.author }}
+    on {{ this.pub_date|dateformat('full') }}
+  <div class="body">{{ this.body }}</div>
+{% endblock %}
+```
+
+## Initializing The Blog
+
+Now that we have models and templates we just need to designate a part of the
+website as blog.  For that create a new folder in your `content/` folder
+with the name of your blog.  For instance just `content/blog` and put a
+`contents.lr` file with this content in:
+
+```
+_model: blog
+```
+
+Now you can head to the admin UI to create new blog posts.
+
+## Changing the URL Structure
+
+With the above settings the blog will live at `blog/` and the posts at
+`blog/<post-slug>`.  But what if you want to put the date of the blog post
+into the URL?  That's thankfully very easy.  All you need to do is to set up
+a new URL format for the children.  Just edit `blog.ini` and add this to
+the `[children]` section:
+
+```ini
+slug_format = {{ (this.pub_date|dateformat('YYYY/M/') if this.pub_date) ~ this._id }}
+```
+
+What this does is that it will prepend the year (`YYYY`) and month (`M`) to
+the ID of the page if the publication date is configured.  Otherwise it will
+just use the ID of the page.  With this change our blog post will move from
+for instance `blog/hello/` to `blog/2015/12/hello/`.

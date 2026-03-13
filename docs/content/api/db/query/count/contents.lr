@@ -1,0 +1,16 @@
+title: count
+---
+summary: Counts the total number of records a query matches.
+---
+type: method
+---
+body:
+
+This is a simple way to count the total number of items a query matches.
+
+## Example
+
+```html+jinja
+{% set project_count = site.query('/projects').count() %}
+<p>We built {{ project_count }} projects.
+```

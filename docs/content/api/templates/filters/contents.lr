@@ -1,0 +1,8 @@
+title: Filters
+---
+summary: Filters specific to Lektor that templates have access to.
+---
+body:
+
+These is the list of custom filters added by Lektor in addition to the
+[built in filters :ext](http://jinja.pocoo.org/docs/dev/templates/#builtin-filters).

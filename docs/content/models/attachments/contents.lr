@@ -1,0 +1,21 @@
+title: Attachments
+---
+summary: Describes behavior of attachments for records.
+---
+body:
+
+Each source can also have other files attached.  Anything that is not
+the main content file in a folder is considered to be an attachment.
+There are a few settings to control these in the `[attachments]` section:
+
+* `enabled`: if set to `no` then attachments are disabled.  If they do
+  exist in the folder they are silently ignored.
+* `model`: an optional default model that is used for all attachments.
+* `order_by`: controls the ordering of attachments, similar to how this
+  works for child pages.
+* `hidden`: if this is set it can override the hidden flag for all
+  attachments at once.  The default as of Lektor 2 is that attachments are
+  not hidden by default.
+
+!! The `hidden` flag was added in Lektor 2.0 and the default was changed so
+that attachments are not hidden by default, even if the parent is.
