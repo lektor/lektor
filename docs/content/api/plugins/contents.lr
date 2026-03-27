@@ -1,0 +1,9 @@
+title: Plugins
+---
+summary: Provides an introduction to the plugin system in Lektor.
+---
+body:
+
+Lektor allows plugins to depend on plugins to extend functionality.  This is
+achieved through a flexible and ever growing plugin interface.  If you are
+new to it have a look at the [Guide :ref](../../plugins/).

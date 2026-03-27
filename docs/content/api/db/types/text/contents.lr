@@ -1,0 +1,27 @@
+title: text
+---
+summary: A type that can store a multiple lines of text.
+---
+type: type
+---
+body:
+
+The `text` type is very similar to the [string :ref:](../string/) type but
+can store multiple lines.  It does not support any formatting but is very
+useful for storing code and other things.
+
+It renders as a multi-line input field in the admin interface.
+
+## Field Usage
+
+```ini
+[fields.code]
+label = Code
+type = text
+```
+
+## Template Usage
+
+```html+jinja
+<pre>{{ this.code }}</pre>
+```

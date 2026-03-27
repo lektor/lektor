@@ -1,0 +1,48 @@
+title: Command Line
+---
+sort_key: 900
+---
+summary: Covers Lektor's command line interface behind the lektor executable.
+---
+body:
+
+Lektor comes with a handy `lektor` command line executable you can use from
+your terminal to manage all of Lektor in addition to the GUI.  If you do
+not have the Lektor command available because you only installed the GUI,
+have a look at [Installation Documentation :ref](../installation/) to see
+how to remedy this.
+
+All the commands documented here show up as subcommands to the global
+`lektor` command.  So to invoke `build` you would write `lektor build`.
+
+## Options
+
+There are some general options that can be set on the `lektor` command
+to change the behavior.
+
+* `--project PATH`: explicitly provide the path to the project to work on.
+  If this is not provided then the project is searched upwards from the
+  current working directory until a folder is found with a single
+  `.lektorproject` file in it.
+* `--language LANG`: admin interface language, defaults to `en`. Available
+  options are: `ca`, `de`, `en`, `es`, `fr`, `it`, `ja`, `ko`, `nl`, `pl`,
+  `pt`, `ru`, `zh`.
+* `--version`: if this is passed it prints out the version of Lektor and
+  aborts further execution.
+* `--help`: prints out help about the command line interface.
+
+## Environment Variables
+
+There are a few environment variables which control how Lektor executes:
+
+`LEKTOR_PROJECT`
+> This can be used alternatively to `--project` to set the path to a
+> project that Lektor should be using.  If neither this variable nor
+> `--project` is set, Lektor will look for a project upwards from the current
+> working directory.
+
+`LEKTOR_OUTPUT_PATH`
+> Overrides the default output path with a different path.  By default the
+> output path will be a path unique to the project but in a default cache
+> folder under Lektor's control.  `--output-path` on some commands overrides
+> this value.
