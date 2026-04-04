@@ -6,6 +6,7 @@ from typing import Any
 from typing import TYPE_CHECKING
 from weakref import ref as weakref
 
+import packaging.version
 from markupsafe import Markup
 
 from lektor.markdown.controller import ControllerCache
@@ -25,12 +26,19 @@ controller_class: type[MarkdownController]
 
 
 MISTUNE_VERSION = metadata.version("mistune")
-if MISTUNE_VERSION.startswith("0."):
-    from lektor.markdown.mistune0 import MarkdownController0 as controller_class
-elif MISTUNE_VERSION.startswith("2."):
-    from lektor.markdown.mistune2 import MarkdownController2 as controller_class
-else:  # pragma: no cover
-    raise ImportError("Unsupported version of mistune")
+_mistune_version = packaging.version.parse(MISTUNE_VERSION)
+MISTUNE_MAJOR_VERSION = _mistune_version.major
+MISTUNE_VERSION_TUPLE = _mistune_version.release
+
+match MISTUNE_MAJOR_VERSION:
+    case 3:
+        from lektor.markdown.mistune3 import MarkdownController3 as controller_class
+    case 2:
+        from lektor.markdown.mistune2 import MarkdownController2 as controller_class
+    case 0:
+        from lektor.markdown.mistune0 import MarkdownController0 as controller_class
+    case _:
+        raise ImportError("Unsupported version of mistune")  # pragma: no cover
 
 
 get_controller = ControllerCache(controller_class)

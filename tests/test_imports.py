@@ -12,16 +12,15 @@ from subprocess import run
 import pytest
 
 import lektor
-from lektor.markdown import MISTUNE_VERSION
+from lektor.markdown import MISTUNE_MAJOR_VERSION
 
-
-ignored = set()
 
 # Do not check importability of module for the non-installed version of mistune
-if MISTUNE_VERSION.startswith("2"):
-    ignored.add("lektor.markdown.mistune0")
-else:
-    ignored.add("lektor.markdown.mistune2")
+ignored = {
+    f"lektor.markdown.mistune{mistune_version}"
+    for mistune_version in (0, 2, 3)
+    if mistune_version != MISTUNE_MAJOR_VERSION
+}
 
 
 def iter_lektor_modules():
