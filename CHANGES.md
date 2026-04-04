@@ -162,7 +162,7 @@ See [#1138] for details.
 - Update prettier, update eslint rules. ([#1153])
 - Update to latest pylint, black, flake8. Use flake8-bugbear. ([#1162])
 - Update npm locks, upgrade esbuild, update tests to React 18 APIs. ([#1170])
-- Apply `pyupgrade --py38-plus` to codebase ([#1174])
+- Apply `pyupgrade --py38-plus` to code base ([#1174])
 
 [\@uyar]: https://github.com/uyar
 [#1138]: https://github.com/lektor/lektor/pull/1138
@@ -204,7 +204,7 @@ See [#1138] for details.
 
 - Pin `watchfiles>=0.12`. (Our tests use the `stop_event` parameter of `watchfiles.watch`.)
 - Fix exception from `describe_build_func` when building thumbnails with verbose logging enabled.
-- Fix "FATAL: exception not rethrown" message when `lektor server` is stopped. ([#1145])
+- Fix "FATAL: exception not re-thrown" message when `lektor server` is stopped. ([#1145])
 - Fix multiple browser new tabs when `lektor server --browse` is used with `LEKTOR_DEV` set ([#1145])
 - Fix mypy errors in `lektor.admin.modules`.
 - Fix `Builder.touch_site_config` so that it actually touches the site
@@ -288,7 +288,7 @@ See [#1138] for details.
 
 - Avoid the use of `warnings.catch_warnings` which was introduced in
   [#1113]. Its use resets the warnings registry resulting in undesired
-  repition of seen warnings. ([#1135]).
+  repetition of seen warnings. ([#1135]).
 
 ### Bit-Rot
 
@@ -568,7 +568,7 @@ December 2021.
 #### Thumbnailing
 
 - The `crop` parameter of the `Image.thumbnail()` method (long since
-  depreacted) has been removed. ([#551][], [#960][])
+  deprecated) has been removed. ([#551][], [#960][])
 - Implicit thumbnail upscaling has been disabled. ([#551][], [#960][])
 
 ### Bugs
@@ -590,7 +590,7 @@ December 2021.
 
 #### Builder
 
-- The `asseturl` filter was not propery tracking build dependencies
+- The `asseturl` filter was not properly tracking build dependencies
   resulting in stale hashes in the asset URL if the asset was
   updated. ([#1020][])
 - Fix so that un-hidden children of hidden parents are built. Fix
@@ -610,7 +610,7 @@ December 2021.
 
 - Update pre-commit config to use `black==22.3.0` to avoid breakage
   caused by `click>=8.1.0`. ([#1019][])
-- Updateto `pylint=2.13.4`. ([#1025][])
+- Update to `pylint=2.13.4`. ([#1025][])
 
 #### Command Line
 
@@ -679,7 +679,7 @@ December 2021.
 
 #### Admin API
 
-- Fix a bug in `make_editor_session` when editing non-existant pages
+- Fix a bug in `make_editor_session` when editing non-existent pages
   with a non-primary alt. ([#964][])
 - Fix the ability to add an initial flowblock to a page. (Broken in 3.3.1.)
 - Refactor API views to move business logic back into the `Tree`
@@ -774,7 +774,7 @@ December 2021.
 ### Bugs Fixed
 
 - Fixed an import cycle which caused in `ImportError` if
-  `lektor.types` was imported before `lektor.environemnt`. [#974][]
+  `lektor.types` was imported before `lektor.environment`. [#974][]
 
 #### Deprecations
 
@@ -1030,7 +1030,7 @@ It has been rewritten in Typescript, and updated to use v5 of the Bootstrap CSS 
 
 ### Compatibility
 
-- Restore python 2.7 compatibility. It was broken in leketor 3.2.2. [#951][]
+- Restore python 2.7 compatibility. It was broken in Lektor 3.2.2. [#951][]
 - Pin inifile>=0.4.1 to support python 3.10 [#943][], [#953][]
 
 [#943]: https://github.com/lektor/lektor/issues/943
@@ -1128,7 +1128,7 @@ Release date 26th of January, 2019
 Release date 7th of September 2018
 
 - Fix pagination and virtual pathing for alts
-- Fixing deply from local server in Python 3
+- Fixing deploy from local server in Python 3
 - Now passing server_info to publisher from local server, providing better
   support for plugin provided publishers.
 - Added a more full-featured example project.
@@ -1146,7 +1146,7 @@ Release date 18th of April 2018
 
 - Better Image dimension detection.
 - Fix backwards compatibility with thumbnail generation.
-- Adding safety check when runnning new build in non-empty dir since that could delete data.
+- Adding safety check when running new build in non-empty dir since that could delete data.
 - Adding command aliases.
 
 ## 3.1.0
@@ -1173,7 +1173,7 @@ Release date 29th of January 2018.
 - Thumbnails can now have a defined quality.
 - Moved Windows cache to local appdata.
 - README tweaks.
-- Beter translations.
+- Better translations.
 - Better file tracking in watcher.
 - Upgraded many node dependencies.
 - Upgraded from ES5 to ES6.
@@ -1229,7 +1229,7 @@ Released on 11th of April 2016
   up in `children`. The default is that a page is discoverable. Setting it
   to `False` means in practical terms that someone needs to know the URL as
   all collection operations will not return it.
-- Added `for_page` function to pagination that returns the pagiantion for a
+- Added `for_page` function to pagination that returns the pagination for a
   specific page.
 - Make pagination next_page and prev_page be None on the edges.
 - Allow plugins to provide publishers.
@@ -1251,7 +1251,7 @@ Released on 11th of April 2016
   rendered output is rendered.
 - Added Dutch translations.
 - Added Record.get_siblings()
-- Added various utilties: build_url, join_path, parse_path
+- Added various utilities: build_url, join_path, parse_path
 - Added support for virtual paths and made pagination work with it.
 - Added support for Query.distinct
 - Add support for pagination url resolving on root URL.
@@ -1306,7 +1306,7 @@ Released on 27th of December 2015
   fall back to asset resolving.
 - verbose mode now correctly displays traceback of build failures.
 - Fixed a bug that caused build failures not to be remembered.
-- Fixed a bad EXIF attribute (longitude was misspelt)
+- Fixed a bad EXIF attribute (longitude was misspelled)
 - Use requests for URL fetching instead of urllib. This should fix
   some SSL errors on some Python versions.
 - Parent of page now correctly resolves to the right alt.
