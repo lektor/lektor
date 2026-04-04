@@ -7,7 +7,7 @@ These are all the changes in Lektor since the first public release.
 ### Features
 
 - The `lektor.pluginsystem.Plugin` base class now provides sane
-  defaults for the `Plugin.name` and `Plugin.description` attributes. ([78ea0ef])
+  defaults for the `Plugin.name` and `Plugin.description` attributes. ([#1253])
 
 ### Fixes
 
@@ -19,24 +19,32 @@ These are all the changes in Lektor since the first public release.
 - Builder: update build db schema to use real flag to mark virtual sources, rather
   than relying on broken heuristics. Thank you, Patrick Gerken! ([#1223])
 - Use `importlib.metadata.entry_points` to find installed plugins. This fixes some
-  edge-case "plugin is already registered" errors. ([a2502d1])
+  edge-case "plugin is already registered" errors. ([#1253])
 
 ### Frontend
 
 - Modernize build script, use node-native test runner. ([#1259])
 - Use `npm install --no-save` during package build to avoid dirtying git source ([#1254])
-- Dependency bumps. ([#1256])
+- Dependency bumps. ([#1256], [#1263], [#1264], [#1265], [#1266])
+
+### CI
+
+- Disuse codecov.io for aggregation of code coverage. Add combined
+  coverage reporting CI job. ([#1192])
 
 [#358]: https://github.com/lektor/lektor/issues/358
 [#1223]: https://github.com/lektor/lektor/pull/1223
 [#1229]: https://github.com/lektor/lektor/issues/1229
 [#1251]: https://github.com/lektor/lektor/pull/1251
+[#1253]: https://github.com/lektor/lektor/pull/1253
 [#1254]: https://github.com/lektor/lektor/pull/1254
 [#1256]: https://github.com/lektor/lektor/pull/1256
 [#1257]: https://github.com/lektor/lektor/pull/1257
 [#1259]: https://github.com/lektor/lektor/pull/1259
-[78ea0ef]: https://github.com/lektor/lektor/commit/78ea0efe4ea5716658f26d2c56c4737835c27ff3
-[a2502d1]: https://github.com/lektor/lektor/commit/a2502d1ec8eef298f845bb5d50ea4127b455d1b9
+[#1263]: https://github.com/lektor/lektor/pull/1263
+[#1264]: https://github.com/lektor/lektor/pull/1264
+[#1265]: https://github.com/lektor/lektor/pull/1265
+[#1266]: https://github.com/lektor/lektor/pull/1266
 
 ## 3.4.0b13 (2026-02-11)
 
