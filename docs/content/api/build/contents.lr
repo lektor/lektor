@@ -1,0 +1,9 @@
+title: Build System
+---
+summary: Everything about Lektor's build system.
+---
+body:
+
+The build system in Lektor is what is responsible for converting the source
+files into the final website.  Parts of it are currently documented so that
+the plugin system can interact with it.

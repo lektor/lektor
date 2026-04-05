@@ -1,0 +1,28 @@
+title: add_type
+---
+signature: type
+---
+summary: Adds a new field type to the environment.
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+This registers a new [Field Type :ref](../../db/type/) with the environment
+
+## Example
+
+```python
+from lektor.types import Type
+
+class MyThingType(Type):
+    widget = 'singleline-text'
+
+    def value_from_raw(self, raw):
+        return raw.value
+
+def setup_env(self, **extra):
+    self.env.add_type(MyThingType)
+```

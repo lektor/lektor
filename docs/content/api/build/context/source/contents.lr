@@ -1,0 +1,21 @@
+title: source
+---
+summary: A reference to the current source object.
+---
+type: property
+---
+body:
+
+The context is created for each target artifact.  As most artifacts are
+created from [Source Objects :ref](../../../db/obj/), it's typically possible
+to refer back to it.  Note that there are situations in which artifacts are
+created but no source is available.  In this case the value will be `None`.
+
+## Example
+
+```python
+from lektor.context import get_ctx
+
+ctx = get_ctx()
+print ctx.source.source_filename
+```

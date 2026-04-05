@@ -1,0 +1,19 @@
+title: iter_child_sources
+---
+type: method
+---
+summary: Optionally this method can be implemented to produce child sources.
+---
+body:
+
+Optionally a builder can yield further sources that are then picked up by the
+builder and processed normally.  This is how the recursive build process in
+Lektor is implemented for normal records.
+
+## Example
+
+```python
+def iter_child_sources(self):
+    for child in self.sources.children:
+        yield child
+```
