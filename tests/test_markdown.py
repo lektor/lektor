@@ -447,6 +447,11 @@ def _normalize_html(output: str | Markup) -> str:
         ),
         ("| Table Header |\n| -------|\n| Cell |\n", r"(?s).*<tr>"),
         ("raw URL - http://example.net/ foo", r'.*<a href="http://example\.net/"'),
+        ################
+        # Bugs:
+        # lektor/lektor#1272.
+        ("[link](index?s=foo&section=all)", r".*\bhref=.*\bsection=all\b"),
+        ("![&quotidian](&quotidian.img)", r"(.*\bquotidian\b){2}"),
     ],
 )
 @pytest.mark.usefixtures("context")
