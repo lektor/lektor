@@ -1,0 +1,10 @@
+title: source
+---
+summary: A reference to the source object.
+---
+type: property
+---
+body:
+
+This refers to the source object that created the build program.  It's primary
+use is to build the artifact in [build_artifact :ref](../build-artifact/).

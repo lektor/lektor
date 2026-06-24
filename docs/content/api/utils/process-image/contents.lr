@@ -1,0 +1,49 @@
+title: process_image
+---
+module: lektor.imagetools
+---
+signature: ctx, source_image, dst_filename, width=None, height=None, mode=ThumbnailMode.DEFAULT
+---
+summary: Build an image from a source image, optionally compressing and resizing.
+---
+type: function
+---
+version_added: 2.0
+---
+body:
+
+This function takes a [Context :ref](../../build/context/) object, the
+absolute paths to the image's source and target files, the target image's
+width and/or height, and the operation mode.
+In the default mode, if width or height are `None`, they are calculated
+from the source image's dimensions so that the image is scaled proportionally.
+
+Used internally for the implementation of [thumbnail :ref](../../db/record/thumbnail), and exposed as an API for image-processing plugins.
+
+## Example
+
+```python
+from lektor.build_programs import AttachmentBuildProgram
+from lektor.context import get_ctx
+from lektor.db import Image
+from lektor.imagetools import process_image, ThumbnailMode
+from lektor.pluginsystem import Plugin
+
+
+class ImageCropBuildProgram(AttachmentBuildProgram):
+    def build_artifact(self, artifact):
+        ctx = get_ctx()
+        width, height = 600, 400
+        source_img = artifact.source_obj.attachment_filename
+        artifact.ensure_dir()
+
+        process_image(ctx,
+                      source_img,
+                      artifact.dst_filename,
+                      width, height, mode=ThumbnailMode.CROP)
+
+
+class ImageCropPlugin(Plugin):
+    def on_setup_env(self, **extra):
+        self.env.add_build_program(Image, ImageCropBuildProgram)
+```

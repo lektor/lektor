@@ -1,0 +1,17 @@
+title: markdown-lexer-config
+---
+module: 
+---
+type: event
+---
+signature: config, renderer
+---
+summary: This event is emitted after the renderer is made, but before it is used.
+---
+body:
+
+! Future versions of Lektor may change its Markdown parser away from [Mistune](https://github.com/lepture/mistune), and the various markdown related event hooks may be completely removed or work differently if that happens.
+
+This event is emitted right after markdown renderer is made, but before it is used to render markdown. This is where lexer configuration can be set.
+---
+version_added: 3.1

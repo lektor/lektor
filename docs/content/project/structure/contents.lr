@@ -1,0 +1,107 @@
+title: Folder Structure
+---
+summary: Explains the structure of a project on the filesystem.
+---
+body:
+
+When you start your first Lektor project it's important to understand how data
+is structured on the file system.  A Lektor project is a folder on the file
+system with a project file and a well defined structure.
+
+The most basic layout looks like this:
+
+```
+yourproject.lektorproject
+content/
+models/
+templates/
+assets/
+```
+
+There are a few more folders that play a role and plugins can add even more.
+
+## Project File
+
+The project file holds the main configuration of the project and is used to
+identify the project for the user interface.  The name does not matter but
+it needs to have the `.lektorproject` extension.  For more information about
+that see [Project File :ref](../file/).
+
+## Folders
+
+### `content/`
+
+The content folder is named `content` and contains all the sources that are
+built into the final project.  Each folder within corresponds to a record
+and the data of it is stored in the file by the name `contents.lr` within
+which is a Lektor content file.  All other files are considered attachments.
+
+Here is a basic example layout to get an idea how this can look like:
+
+```
+content/
+  contents.lr
+  projects/
+    contents.lr
+    project-a/
+      contents.lr
+      thumbnail.png
+    project-b/
+      contents.lr
+      thumbnail.png
+    project-c/
+      contents.lr
+      thumbnail.png
+```
+
+The content folder is explained in detail in [Content :ref](../../content/).
+
+### `models/`
+
+This is the bread and butter of what makes Lektor powerful.  The models define
+exactly how the data from the content folder should be processed.  The `models`
+folder contains a list of INI files that each correspond to a single model.
+
+For more information about this refer to the [Data Modelling :ref](../../models/)
+documentation.
+
+### `templates/`
+
+Each model corresponds to a template from the `templates` folder.  So if you have a
+model named `page` the file named `page.html` from the templates folder will then
+be used to render it.
+
+### `assets/`
+
+Whatever is stored in the `assets` folder is copied over verbatim to the final
+result.  So if you put a folder named `css` in there with all your static CSS
+files they will appear as such in the final output.
+
+!!! This folder is not just useful for static files that are stylesheets or
+scripts, but because it overlays the entire website you can also use it to
+store things such as `favicon.ico`, `.htaccess`, `robots.txt` etc.
+
+### `flowblocks/`
+
+The `flowblocks` folder contains models for blocks that are used by the
+[Flow System :ref](../../content/flow/).  Flow blocks split a part of a page into
+smaller pieces so those could be individually designed.  They work similar to models
+but are contained within a field of a model.
+
+### `packages/`
+
+For local plugin development the `packages/` folder can be used.  Any plugin
+stored in there is automatically activated in the system.
+
+### `configs/`
+
+This folder (`configs/`) contains plugin specific config files.  All the
+files in there are named `<plugin-id>.ini`.
+
+### `databags/`
+
+Lektor also supports [Data Bags :ref](../../content/databags/) which go into a
+folder named `databags/`.  These are files with some general information
+that can be accessed from templates.  For instance you could store menus and
+navigations there, API keys and much more.  This is generally just information
+you want to access from different places and maybe not keep in templates directly.

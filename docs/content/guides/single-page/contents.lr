@@ -1,0 +1,136 @@
+title: Single-Page
+---
+summary: Some inspiration for structuring single page apps.
+---
+body:
+
+Lektor builds a page out of every source file.  However that does not mean
+that you cannot have multiple pages combined into a single one.  You have
+probably already seen that when doing something with the children of a page
+in templates.  But you can do this in much more elaborate ways.
+
+You could for instance generate a huge page out of individual pages to
+achieve a page where you can scroll to all parts.
+
+In this example we will implement a project documentation where all
+documentation pages are rendered into a long page.
+
+## The Models
+
+First we need to define the models.  We will need three here:
+
+* `doc-pages.ini`: this is a dummy model that we will use to hide away the
+  parts of our big page.
+* `doc-page.ini`: this is the model for our documentation pages.
+* `index.ini`: this is the model we just use to combine everything together.
+
+We will just sort all the documentation pages by the page ID so it's possible
+to just order the pages by prefixing the page with a number
+(`0001-installation`, `0002-quickstart` etc.)
+
+### `index.ini`
+
+```ini
+[model]
+name = Documentation
+label = {{ this.title }}
+hidden = yes
+protected = yes
+
+[fields.title]
+type = string
+```
+
+### `doc-pages.ini`
+
+```ini
+[model]
+name = Documentation Pages
+label = Documentation Pages
+hidden = yes
+protected = yes
+
+[children]
+model = doc-page
+order_by = _id
+```
+
+### `doc-page.ini`
+
+```ini
+[model]
+name = Documentation Page
+label = {{ this.title }}
+hidden = yes
+
+[fields.title]
+type = string
+
+[fields.body]
+type = markdown
+```
+
+## Initializing the Contents
+
+Now that we have the models we need to set up the initial pages.  All our
+models are hidden which means that we cannot use the admin panel to setup
+the initial pages.  So we need to set up the structure outselves.  The
+following pages and contents we will need:
+
+### `contents.lr`
+
+```
+_model: index
+----
+title: My Documentation
+```
+
+### `doc/contents.lr`
+
+```
+_model: doc-pages
+----
+_hidden: yes
+```
+
+This will set up our index model and our doc-pages model for the `doc/`
+folder.  The latter is also set to `_hidden` which will make Lektor prevent
+the generation of those files: they are invisible.  So we need to find other
+ways to render them.
+
+## Templates
+
+For now we only need a single template: `index.html`, the one that will be
+used by the only page that actually renders.  Within that template we now
+need to query for all the other pages we have below `doc/`:
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}{{ this.title }}{% endblock %}
+{% block body %}
+  {% set pages = site.query('/doc').include_undiscoverable(true).all() %}
+  <header>
+    <h1>{{ this.title }}</h1>
+    <nav>
+      <ul>
+        {% for page in pages %}
+        <li><a href="#{{ page._id }}">{{ page.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </header>
+  {% for page in pages %}
+    <div class="section" id="{{ page._id }}">
+      <h1>{{ page.title }}</h1>
+      {{ page.body }}
+    </div>
+  {% endfor %}
+{% endblock %}
+```
+
+## Other Things To Do
+
+Now every time you add or change a page below `doc/` it will start rebuilding
+the overview page.  Obviously you can further complicate the setup by doing
+something with attachments, supporting different models etc.  The
+possibilities are endless.

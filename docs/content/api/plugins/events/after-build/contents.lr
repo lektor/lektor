@@ -1,0 +1,13 @@
+title: after-build
+---
+signature: builder, build_state, source, prog
+---
+summary: This event is emitted after an individual source is built.
+---
+type: event
+---
+body:
+
+This event is emitted right after a source is being built into a final build
+artifact.  It works pretty much exactly the same as the [before-build
+:ref](../before-build/) event.

@@ -1,0 +1,21 @@
+title: height
+---
+summary: Returns the height of an image in pixels.
+---
+type: property
+---
+body:
+
+If you are dealing with an attachment that is an image, this property becomes
+available and indicates the height of the image in pixels if that information
+is available.
+
+## Example
+
+```html+jinja
+{% for image in this.attachments.images %}
+  <img src="{{ image|url }}"
+    height="{{ image.height }}"
+    height="{{ image.height }}">
+{% endfor %}
+```

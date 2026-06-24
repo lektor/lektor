@@ -1,0 +1,82 @@
+title: publish
+---
+signature: target_url, credentials=None, **extra
+---
+summary: The method that triggers the deployment
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+This method implements the actual publishing process.  It's supposed to
+implement a generator that reports the progress of the publishing.  If at any
+point something happens that would cause an error for the deployment this can
+be signalled with the [fail :ref](../fail/) method which aborts the execution
+and reports an error.
+
+The parameters to the function are as follows:
+
+* `target_url`: a URL object with the parsed URL.  This object comes from the
+  Werkzeug library and gives access to the individual parts of a URL by the
+  exposed attributes ([Read about the URL object :ext](http://werkzeug.pocoo.org/docs/0.11/urls/)).
+* `credentials`: an optional dictionary with command line supplied credentials.
+  Note that these credentials might be completely absent and the keys which are
+  provided might change with future versions of Lektor.
+* `**extra`: for forwards compatibility publishers are required to ignore extra
+  keyword arguments.
+
+Each line in the generator must be a string which is then either logged to
+the output in the console or in the deploy/publish window in the admin UI.
+
+## Example
+
+This example implements a simple publisher that just copies all built files
+into a new location.
+
+```python
+import os
+import shutil
+from lektor.publisher import Publisher
+
+
+class CopyPublisher(Publisher):
+
+    def publish(self, target_url, credentials=None, **extra):
+        src_path = self.output_path
+        dst_path = target_url.path
+        strip = len(src_path) + 1
+
+        for path, folders, filenames in os.walk(src_path):
+            # Ignore the .lektor folder.
+            folders[:] = [x for x in folders if x != '.lektor']
+
+            # Copy all files over
+            for filename in filenames:
+                full_path = os.path.join(src_path, path, filename)
+                dst = os.path.join(path, full_path[strip:])
+
+                # Make sure the destination folder exists.
+                try:
+                    os.makedirs(os.path.dirname(dst))
+                except (OSError, IOError):
+                    pass
+
+                # Copy the file
+                yield 'Copy %s' % filename
+                shutil.copy(full_path, dst)
+
+        yield 'Done'
+
+
+class MyPlugin(Plugin):
+    def on_setup_env(self, **extra):
+        self.env.add_publisher('copy', CopyPublisher)
+```
+
+This publisher registers with the `copy` scheme and could be used like this:
+
+```ini
+target_url = copy:///path/to/destination/folder
+```

@@ -1,0 +1,19 @@
+title: setup-env
+---
+type: event
+---
+summary: Emitted right after the plugin is associated with the environment.
+---
+body:
+
+This event is emitted right after the plugin was initialized and associated
+with the [environment :ref](../../../environment/).  This can be used to
+reconfigure it.  For instance this is the perfect place to inject Jinja 2
+filters and global variables.
+
+## Example
+
+```python
+def on_setup_env(self, **extra):
+    self.env.jinja_env.globals['my_variable'] = 'my value'
+```

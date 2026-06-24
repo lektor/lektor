@@ -1,0 +1,23 @@
+title: new_pad
+---
+type: method
+---
+summary: Creates a brand new database pad.
+---
+body:
+
+To access the [Database :ref](../../db/) from an environment you need to
+first construct a [Pad :ref](../../db/pad/).  This method can do that for
+you.  For more information about how the pad works, you can refer to the
+general documentation of it.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+env = project.make_env()
+pad = env.new_pad()
+root_record = pad.root
+```

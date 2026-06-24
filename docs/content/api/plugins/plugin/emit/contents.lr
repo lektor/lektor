@@ -1,0 +1,38 @@
+title: emit
+---
+type: method
+---
+signature: event, **extra
+---
+summary: Emits a plugin specific event.
+---
+body:
+
+This method can be used to emit an event that other plugins can hook.  The
+event name is prefixed with the plugin ID.
+
+## Example
+
+```python
+from lektor.pluginsystem import Plugin
+
+
+class MyPlugin(Plugin):
+
+    def on_env_setup(self, **extra):
+        self.emit('setup', foo=42)
+```
+
+Another plugin can then hook this:
+
+```python
+from lektor.pluginsystem import Plugin
+
+
+class MyPlugin(Plugin):
+
+    def on_my_plugin_setup(self, foo, **extra):
+        print('got %s' % foo)
+```
+
+(This assumes the plugin id is set to `my-plugin` in `setup.py`)

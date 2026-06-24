@@ -1,0 +1,52 @@
+title: value_from_raw
+---
+signature: raw
+---
+summary: Main method to override to implement the value conversion.
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+This method needs to be implemented to perform the type conversion from the
+raw value from the content file into a value that Lektor can process in the
+database layer.  This can be any Python type for as long as it makes sense.
+It must either return a valid value or a special value that indicates a bad
+value.  For more information see the raw value information below and the
+example provided.
+
+## Example
+
+```python
+from lektor.types import Type
+
+class LocationType(Type):
+    widget = 'singleline-text'
+
+    def value_from_raw(self, raw):
+        if raw.value is None:
+            return raw.missing_value('Location was not supplied')
+        try:
+            lng, lat = [float(x.strip()) for x in
+                        raw.value.split(';')]
+        except (TypeError, ValueError):
+            return raw.bad_value('Location was malformed')
+        return (lng, lat)
+
+def setup_env(self, **extra):
+    self.env.add_type(LocationType)
+```
+
+## Raw Value
+
+The value passed is a `raw` value type.  It has a few properties and methods:
+
+| Attribute            | Description
+| -------------------- | --------------------
+| `name`               | The name of the field
+| `value`              | The raw value as unicode string or `None` if missing
+| `pad`                | A reference to the [pad :ref](../../pad/)
+| `bad_value(rsn)`     | Creates a value that indicates a bad value with a reason.
+| `missing_value(rsn)` | Similar to `bad_value `but indicates an absent value.

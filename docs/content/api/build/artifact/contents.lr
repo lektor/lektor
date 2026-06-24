@@ -1,0 +1,34 @@
+title: Artifact
+---
+summary: Represents an artifact during the build process.
+---
+type: class
+---
+body:
+
+During the build process Lektor creates artifact objects to represent final
+build artifacts.  Generally each [Source Object :ref](../../db/obj/) will
+generate one artifact for which it acts as a primary source.
+
+There are however many cases in which a source object will create
+sub-artifacts.  For instance any thumbnail created in the context of a page
+will be creating its own artifact.  To give plugins the same ability the
+artifact system is partially documented.  See also [sub_artifact
+:ref](../context/sub-artifact/) to see how to create your own artifact
+instances.
+
+The most important function of an artifact is [open :ref](open/) which can
+open the artifact for reading or writing.  If the build goes well, Lektor
+will commit those changes and persist them.
+
+## Example
+
+```python
+ctx = get_ctx()
+@ctx.sub_artifact('artifact.txt')
+def build_stylesheet(artifact):
+    with artifact.open('w') as f:
+        f.write('Hello World!\n')
+```
+---
+module: lektor.builder

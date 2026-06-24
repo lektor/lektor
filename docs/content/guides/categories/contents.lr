@@ -1,0 +1,212 @@
+title: Categories
+---
+summary: A simple pattern for implementing categories.
+---
+body:
+
+Because Lektor is based on the idea of mirroring the tree structure from the
+file system to the final website it sometimes might not be quite clear how
+one could achieve any form of filtering (for instance categories).  However
+this is actually very easily achieved through the concept of “child
+replacement”.  This will give you a quick introduction to how this feature
+can be used to implement categories.
+
+## Basic Setup
+
+In this case we assume you have a bunch of projects that can exist in
+different categories and it should be possible to see which projects belong
+to which category.
+
+## The Models
+
+So we will end up with four models: `projects.ini`, `project.ini`,
+`project-categories.ini` and `project-category.ini`.  Here is how they look:
+
+### `projects.ini`
+
+```ini
+[model]
+name = Projects
+label = Projects
+hidden = yes
+protected = yes
+
+[children]
+model = project
+order_by = -date, name
+```
+
+### `project.ini`
+
+```ini
+[model]
+name = Project
+label = {{ this.name }}
+hidden = yes
+
+[fields.name]
+label = Name
+type = string
+
+[fields.date]
+label = Date
+type = date
+
+[fields.description]
+label = Description
+type = markdown
+
+[fields.categories]
+label = Categories
+type = checkboxes
+source = site.query('/project-categories')
+```
+
+The above models should be mostly clear.  What is probably not entirely clear
+is the `source` parameter for the categories.  Essentially we instruct the
+admin panel to fill the selection for the checkboxes from the child pages
+below the `project-categories` folder.  This is where we will maintain the
+categories.
+
+### `project-categories.ini`
+
+```ini
+[model]
+name = Project Categories
+label = Project Categories
+hidden = yes
+protected = yes
+
+[children]
+model = project-category
+order_by = name
+```
+
+### `project-category.ini`
+
+```ini
+[model]
+name = Project Category
+label = {{ this.name }}
+hidden = yes
+
+[children]
+replaced_with = site.query('/projects').filter(F.categories.contains(this))
+
+[fields.name]
+label = Name
+type = string
+```
+
+So this is where the magic lives.  the `replaced_with` key in the `[children]`
+section tells Lektor to ignore the child pages that would normally exist below
+the path but to substitute them with another query.  In this case we replace
+them with all the projects where the category (`this`) is in the checked
+set of categories (`F.categories`).
+
+## Initializing The Folders
+
+Now that we have the models, we need to initialize the folders.  This is
+necessary because most models are hidden which means they cannot be selected
+from the admin interface.  We need the following things:
+
+### `projects/contents.lr`
+
+```
+_model: projects
+```
+
+### `project-categories/contents.lr`
+
+```
+_model: project-categories
+----
+_slug: projects/categories
+```
+
+Here we also tell the system that we want to move the page from
+`project-categories/` to `projects/categories/` which looks nicer.  This
+means a category named `Foo` will then end up as `projects/categories/foo/`.
+
+## Creating Categories
+
+Now we can head to the admin panel to create some categories.  Each category
+that is created will become available for new projects in the category
+selection.
+
+## The Templates
+
+To render out all the pages we probably want to use some macros to reuse
+markup that appears on multiple pages.
+
+### `projects.html`
+
+```html+jinja
+{% extends "layout.html" %}
+{% from "macros/projects.html" import
+  render_project_list, render_category_nav %}
+{% block title %}Projects{% endblock %}
+{% block body %}
+  <h1>Projects</h1>
+  {{ render_category_nav(active=none) }}
+  {{ render_project_list(this.children) }}
+{% endblock %}
+```
+
+### `project.html`
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}{{ this.name }}{% endblock %}
+{% block body %}
+  <h1>{{ this.name }}</h1>
+  <div class="description">{{ this.description }}</div>
+{% endblock %}
+```
+
+### `project-categories.html`
+
+```html+jinja
+{% extends "layout.html" %}
+{% from "macros/projects.html" import render_category_nav %}
+{% block title %}Project Categories{% endblock %}
+{% block body %}
+  <h1>Project Categories</h1>
+  {{ render_category_nav(active=none) }}
+{% endblock %}
+```
+
+### `project-category.html`
+
+```html+jinja
+{% extends "layout.html" %}
+{% from "macros/projects.html" import render_category_nav,
+   render_project_list %}
+{% block title %}Project Category {{ this.name }}{% endblock %}
+{% block body %}
+  <h1>Project Category {{ this.name }}</h1>
+  {{ render_category_nav(active=this._id) }}
+  {{ render_project_list(this.children) }}
+{% endblock %}
+```
+
+### `macros/projects.html`
+
+```html+jinja
+{% macro render_category_nav(active=none) %}
+  <ul>
+  {% for category in site.query('/project-categories') %}
+    <li{% if category._id == active %} class="active"{% endif
+      %}><a href="{{ category|url }}">{{ category.name }}</a></li>
+  {% endfor %}
+  </ul>
+{% endmacro %}
+
+{% macro render_project_list(projects) %}
+  <ul>
+  {% for project in projects %}
+    <li><a href="{{ project|url }}">{{ project.name }}</a></li>
+  {% endfor %}
+  </ul>
+{% endmacro %}
+```

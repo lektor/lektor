@@ -1,0 +1,9 @@
+title: before-prune
+---
+body: This event is emitted right before Lektor searches the build directory for data that does not match a known artifact. Orphaned data is then removed. This event is also emitted before a `clean`, that is, when the build directory is completely purged of all data.
+---
+signature: builder, all
+---
+summary: This event is emitted before unused data in the build folder is removed.
+---
+type: event

@@ -1,0 +1,189 @@
+title: How To
+---
+summary: Covers the most common things plugins would do and how to implement it.
+---
+sort_key: 20
+---
+body:
+
+So you want to build a plugin but it's not quite clear how you would structure
+a plugin to accomplish this?  This part of the documentation should help you
+find answers to those questions.
+
+## Expose Functionality
+
+Most plugins will provide functionality of sorts.  There are two places where
+functionality is typically needed: in templates or for other plugins to use.
+Plugins can import from each other just like this, but functionality exposed
+into templates should follow some basic rules:
+
+* modify `jinja_env.globals` or `jinja_env.filters` and do not use
+  `process-template-context` unless you absolutely know what you are doing.
+* expose as few global variables as possible.  If you have a lot you want to
+  provide then consider registering an object with the templates and to
+  attach multiple attributes on it.
+* use clear names for template globals.  This is a shared space that all
+  plugins and Lektor itself modify so do not provide a function called
+  `get_script` but for instance call it `get_my_plugin_script`.
+
+A simple example of a plugin that implements [Gravatar
+:ext](https://en.gravatar.com/) support:
+
+```python
+from hashlib import md5
+from werkzeug.urls import url_encode
+from lektor.pluginsystem import Plugin
+
+BASE_URL = 'https://secure.gravatar.com/avatar/'
+
+def get_gravatar(email, **options):
+    fn = md5(email.lower().strip().encode('utf-8')).hexdigest()
+    return '%s/%s?%s' % (BASE_URL, fn, url_encode(options))
+
+class GravatarPlugin(Plugin):
+    name = 'Gravatar'
+    def on_setup_env(self, **extra):
+        self.env.jinja_env.filters['gravatar'] = get_gravatar
+```
+
+## Configure Plugins
+
+Plugins can come with their own config files and it's encouraged that plugins
+take advantage of this.  Each plugin has exactly one INI file called
+`<plugin-id>.ini` inside the `configs` folder.
+
+To get access to the plugin the `get_config` function can be used which
+returns a dict like object to access the ini file.
+
+```python
+config = self.get_config()
+value = config.get('section.key', 'default_value')
+```
+
+This would correspond to this config in `configs/my-plugin.ini`:
+
+```ini
+[section]
+key = the value
+```
+
+## Dependency Tracking
+
+While a lot of dependencies are tracked automatically, when you develop a
+plugin you probably will discover that sometimes you need to track your own
+ones.  There are different ways in which dependency tracking can work and
+depending on the situation you might have to use two different mechanisms.
+
+1. **Dependency tracking by association**: while a build of a source object
+   into an artifact is active more dependencies for that artifact can be
+   registered with the [record_dependency :ref](../../api/build/context/record-dependency/)
+   method of the context.  It takes a filename that should be recorded as
+   additional dependency for the current artifact
+2. **Dependency tracking as artifact source**: if you build your own artifact
+   you need to define the source files that make up the artifact (if you have
+   such a thing).  For instance if you build a thumbnail you will need to
+   track those source files that are the source images.  This can be done
+   through the [sub_artifact :ref](../../api/build/context/sub-artifact/)
+   method which declares a new artifact.
+
+Here is an example of both ways in one plugin:
+
+```python
+import os
+from flask import json
+from lektor.pluginsystem import Plugin
+
+def dump_exif(image):
+    ctx = get_ctx()
+    path = posixpath.join(image.path, '-exif.json')
+    @ctx.sub_artifact(path, sources=[image.source_filename])
+    def include_file(artifact):
+        ctx.record_dependency(__file__)
+        with artifact.open('wb') as f:
+            json.dump(image.exif.to_dict(), f)
+    return path
+
+class ExifDumpPlugin(Plugin):
+    def setup_env(self, **extra):
+        self.env.jinja_env.globals['dump_exif'] = dump_exif
+```
+
+This dumps out the EXIF data into a JSON file and returns the artifact name.
+The source image is tracked as direct source for the artifact and within the
+function we also track the plugin's filename to rebuild if the plugin changes.
+
+## Adding New Field Types
+
+Let's say you want to add an "asciidoc"
+[field type :ref](../../api/db/types/) so you can write with [AsciiDoc](http://www.methods.co.nz/asciidoc) markup.
+
+First [install AsciiDoc](http://www.methods.co.nz/asciidoc/INSTALL.html) so its command-line program is available. Then update `blog-post.ini` from the [blog guide :ref](../../guides/blog) like so:
+
+```ini
+[fields.body]
+label = Body
+type = asciidoc  # Custom type.
+```
+
+In a blog post's `contents.lr`, write some AsciiDoc like:
+
+```
+body:
+
+== Header 1
+
+Some text.
+
+-----
+code here
+-----
+```
+
+You can add your "asciidoc" type to Lektor with a plugin:
+
+```python
+from subprocess import PIPE, Popen
+
+from lektor.pluginsystem import Plugin
+from lektor.types import Type
+
+
+def asciidoc_to_html(text):
+    # The "-" at the end tells asciidoc to read from stdin.
+    p = Popen(
+        ['asciidoc', '--no-header-footer', 
+         '--backend=html5', '-'],
+        stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+    out, err = p.communicate(text)
+    if p.returncode != 0:
+        raise RuntimeError('asciidoc: "%s"' % err)
+
+    return out
+
+
+# Wrapper with an __html__ method prevents
+# Lektor from escaping HTML tags.
+class HTML(object):
+    def __init__(self, html):
+        self.html = html
+
+    def __html__(self):
+        return self.html
+
+
+class AsciiDocType(Type):
+    widget = 'multiline-text'
+
+    def value_from_raw(self, raw):
+        return HTML(asciidoc_to_html(raw.value or u''))
+
+
+class AsciiDocPlugin(Plugin):
+    name = u'AsciiDoc'
+    description = u'Adds AsciiDoc field type to Lektor.'
+
+    def on_setup_env(self, **extra):
+        # Derives type name "asciidoc" from class name.
+        self.env.add_type(AsciiDocType)
+```

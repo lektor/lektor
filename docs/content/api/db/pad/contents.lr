@@ -1,0 +1,69 @@
+title: Pad
+---
+summary: The basic interface to querying the database.
+---
+module: lektor.db
+---
+type: class
+---
+template_var: site
+---
+body:
+
+The `Pad` is a helper class that provides basic access to querying the
+database.  Inside templates an instance of it is available under the
+`site` variable automatically.
+
+To understand what the pad does you need to consider what it is.  The
+pad is similar to a `connection` in a regular database.  Whenever you
+load a record it's temporarily cached on the pad.  So unless you overflow
+the cache, loading the object a second time will most likely return an
+already loaded instance from the pad.  This also means that the pad
+is not threadsafe.  So if you want (for whatever reason) use multiple
+threads you have to create a separate pad for each thread.
+
+This typically only comes up in the context of plugins or more complex
+command line scripts.
+
+## Template Usage
+
+A ready-configured pad is always available under the `site` name which
+allows you to easily discover other pages.  Here is a basic example of
+how to do this through the [get :ref](get/) method:
+
+```html+jinja
+{% set root = site.get('/') %}
+<title>{{ this.title }} | {{ root.title }}</title>
+```
+
+## Plugin Usage
+
+Within plugins it's typically not a good idea to construct a new Pad.
+Instead you can get access to the current pad from the active context:
+
+```python
+from lektor.context import get_ctx
+
+ctx = get_ctx()
+if ctx is not None:
+    pad = get_ctx().pad
+```
+
+Note that you can only get access to a pad if a context is available.  This
+will not be the case when the plugin is currently being initialized for
+instance.
+
+## Manual Pad Creation
+
+If you want to work with the database from a script, you can create a
+pad from the [Environment :ref](../../environment/) with the help of
+the [new_pad :ref](../../environment/new-pad/) method:
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+env = project.make_env()
+pad = env.new_pad()
+root_record = pad.root
+```

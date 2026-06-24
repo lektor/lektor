@@ -1,0 +1,23 @@
+title: lookup
+---
+type: method
+---
+signature: key
+---
+summary: Looks up data from databags.
+---
+body:
+
+This is the most common way to look up values from databags from regular
+Python code.  Within templates you can also use the [bag
+:ref](../../templates/globals/bag/) function which is easier to call.
+
+The key is in dotted notation.  For more information about this refer
+to the main [databags :ref](../) documentation.
+
+## Example
+
+```python
+def translate(pad, alt, key):
+    return pad.databags.get('i18n.%s.%s' % (alt, key), key)
+```

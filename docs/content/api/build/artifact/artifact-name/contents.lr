@@ -1,0 +1,11 @@
+title: artifact_name
+---
+summary: The name of the artifact
+---
+type: property
+---
+body:
+
+This property just returns the artifact name.  This is mostly useful for
+debugging purposes as in the majority of situations you already have
+the artifact name from different sources.

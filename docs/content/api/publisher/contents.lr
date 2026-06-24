@@ -1,0 +1,23 @@
+title: Publisher
+---
+module: lektor.publisher
+---
+summary: The interface for extending the deployment process
+---
+type: class
+---
+body: 
+
+This class can be subclassed to implement custom deployment methods.
+Internally these are called “publishers” and to register them with the
+environment the [add_publisher :ref](../environment/add-publisher/) method can
+be used.
+
+Publishers have one method called [publish :ref](publish/) which is used to
+trigger the actual deployment process.  It also has a reference back to the
+environment it belongs to as well as the output path of the build process.
+
+For a minimal example of a publisher refer to the documentation of the
+[publish :ref](publish/) method.
+---
+version_added: 2.0

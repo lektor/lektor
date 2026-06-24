@@ -1,0 +1,36 @@
+title: config_filename
+---
+type: property
+---
+summary: The filename of the plugin config.
+---
+body:
+
+This property returns the path to the file that holds the config for this
+plugin in the loaded project.  This is by default in `configs/<plugin-id>.ini`.
+Plugins could override this in theory but it's not recommended.  The primary
+use of this property is to track dependencies.
+
+For a convenient way to load the config see [get_config](../get-config/).
+
+## Example
+
+```python
+from lektor.pluginsystem import Plugin
+from lektor.context import get_ctx
+
+
+class MyPlugin(Plugin):
+
+    def on_env_setup(self, **extra):
+        color = self.get_config().get('color')
+        def get_css(artifact_name='/static/demo.css'):
+            ctx = get_ctx()
+            @ctx.sub_artifact(artifact_name, sources=[
+                self.config_filename])
+            def build_stylesheet(artifact):
+                with artifact.open('w') as f:
+                    f.write('body { background: %s }\n' % color)
+            return artifact_name
+        self.env.jinja_env.globals['get_css'] = get_css
+```

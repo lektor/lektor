@@ -1,0 +1,23 @@
+title: record_label
+---
+summary: Returns the configured label for this record.
+---
+type: property
+---
+body:
+
+Each record in Lektor has a configured Record label that is used by the
+admin interface to show a human readable version of it.  Typically this is
+the title or something similar.  This functionality can also be used outside
+of the admin panel.  This is particularly useful when rendering children of
+a page that might use different independent models.
+
+## Example
+
+```html+jinja
+<ul>
+{% for child in this.children %}
+  <li><a href="{{ child|url }}">{{ child.record_label }}</a></li>
+{% endfor %}
+</ul>
+```

@@ -1,0 +1,21 @@
+title: is_attachment
+---
+summary: Indicates if the record is a page or attachment.
+---
+type: property
+---
+body:
+
+This property indicates whether the record is a page or attachment.  If it's
+an attachment this will be `true`.  Because some functionality only exists
+on one type but not the other this can be useful in some utility code to
+change the behavior.
+
+## Example
+
+```html+jinja
+{% macro render_record_link(record) %}
+  <a href="{{ record|url }}">{{ record.record_label }}</a>
+  {% if record.is_attachment %} ({{ record._attachment_type }}){% endif %}
+{% endmacro %}
+```

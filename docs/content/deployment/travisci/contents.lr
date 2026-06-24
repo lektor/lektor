@@ -1,0 +1,150 @@
+title: Travis-CI
+---
+summary: Automated deployments via Travis-CI.
+---
+body:
+
+For certain websites it can be interesting to use
+[Travis-CI](https://travis-ci.org/) to automatically deploy the latest version
+of a website from a github repository.  This is particularly useful when
+coupled with the [GitHub Pages :ref](../ghpages/) deployment method which is
+what we're going to cover in this guide.  But you can easily adjust it to
+any other method.
+
+This assumes you already signed up for Travis-CI.  If you have not, just
+head to [travis-ci.org :ext](https://travis-ci.org/) and sign up with your
+GitHub account.
+
+This guide is also available as a [7 minute screencast](https://www.youtube.com/embed/3pj_EyZIL5A).
+
+## Travis Config
+
+Once you have signed up for Travis-CI you need to add a `.travis.yml` config
+file into your repository.  You can copy paste this over:
+
+```yaml
+language: python
+python: 3.6
+install: "pip install Lektor"
+script: "lektor build"
+deploy:
+  provider: script
+  script: "lektor deploy ghpages"
+```
+
+Because Travis already comes with all dependencies we need other than
+Lektor itself we just need to pip install Lektor and we're ready to go.  For
+the build step we invoke `lektor build`, and for the deploy step we invoke
+`lektor deploy ghpages` to ship it to the ghpages server.  We still need
+to configure that.
+
+## Project Server Config
+
+For the above example the best way to configure the server for the deployment
+in the project file would be to use `ghpages+https` like this:
+
+```ini
+[servers.ghpages]
+target = ghpages+https://username/repository
+```
+
+You need to add this to your `.lektorproject` file.
+
+Whenever Travis builds it will automatically throw the end result into the
+`gh-pages` branch and the website updates.  We do however still need to
+configure the access credentials.  We will get to that.
+
+## Enabling Travis
+
+So now that we have all that configured we need to tell travis to build the
+repository.  For that just head to your [Travis-CI Profile
+:ext](https://travis-ci.org/profile) and enable the repository.  If it does not
+show up yet, you can force a sync with the click of a button.
+
+## Access Credentials
+
+So how do you safely provide your credentials?  Lektor accepts username and
+password for the `ghpages+https` transport via the `LEKTOR_DEPLOY_USERNAME`
+and `LEKTOR_DEPLOY_PASSWORD` environment variables.  These can be set in the
+Travis-CI settings of your repository on travis-ci.org in secret so they are
+not stored anywhere else and will not show up in the build output.  However one
+thing you need to be careful with is that they still give access to your entire
+account!
+
+To solve this problem we recommend two things:
+
+1. [Create a personal access token :ext](https://github.com/settings/tokens)
+   and use that instead.  Just provide the token instead of your password on
+   sign-in.  This makes it easily possible to just revoke that token if
+   something goes wrong.  Note that you only need the `repo` scope for this
+   to work.  This also works if you have 2FA activated on an account.
+2. [Create a deployment (machine) user
+   :ext](https://developer.github.com/guides/managing-deploy-keys/#machine-users).
+   This allows you to use a user that is exclusively used for just the
+   purpose of updating the website.
+
+Once you have done that travis will start deploying the website on every
+commit.
+
+!!!! When copy/pasting username and password into travis please ensure that
+you do not copy any leading or trailing whitespace with it.  This will not
+just break the build but also reveal the password in the process.  For
+more information see [travis-ci#4139
+:ext](https://github.com/travis-ci/travis-ci/issues/4139).
+
+## Committer Information
+
+By default the commits to the `gh-pages` branch will be authored by a user
+named “Lektor Bot”.  If you want to override this you can export the
+`GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` environment variables and
+set them to something else.  This is best done in the travis settings.
+
+## Private Repositories
+
+If you are using private repositories you will need the commercial version of
+travis.  It has the advantage that you can also set up SSH keys on there which
+means that authentication becomes easier.  For more information see [Private
+Dependencies :ext](https://docs.travis-ci.com/user/private-dependencies/) in
+the Travis CI documentation.
+
+## Speeding up Builds with Caching
+
+In the default setting Travis will have to rebuild everything because between
+builds it does not cache the build results.  You can change this by enabling
+caching.  Adjust your `.travis.yml` file to look like this:
+
+```yaml
+language: python
+python: 3.6
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/lektor/builds
+install: "pip install Lektor"
+script: "lektor build"
+deploy:
+  provider: script
+  script: "lektor deploy ghpages"
+```
+
+## Restricting Branches
+
+If you plan on having different branches and contributors you should disable
+the deployment to the master branch only.  You can do this with the following
+config:
+
+```yaml
+language: python
+python: 3.6
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/lektor/builds
+install: "pip install Lektor"
+script: "lektor build"
+deploy:
+  provider: script
+  script: "lektor deploy ghpages"
+  on:
+    branch: master
+```

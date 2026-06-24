@@ -1,0 +1,49 @@
+title: Attachments
+---
+summary: A quick introduction in how attachments are handled in Lektor.
+---
+body:
+
+Each page in Lektor can have attachments appended.  These files are stored
+directly in the page folder and become available publicly.
+
+## Attachment Types
+
+For the most part Lektor does not care much about what types your attachments
+are but it will specially handle some.  In particular image formats supported
+by browsers have special support for automatic thumbnailing and accessing
+basic image data.
+
+The following file formats are specially handled:
+
+| Type     | Extensions
+| -------- | ----------------------------
+| Image    | .jpg .jpeg .gif .png
+| Video    | .avi, .mpg, .mpeg, .wmv, .ogv
+| Audio    | .mp3, .wav, .ogg
+
+## Metadata
+
+Attachments can also be given metadata.  For this you need to create a lektor
+content file with the same name as the attachment but with `.lr` added as
+extra extension:
+
+| File        | Metadata file
+| ----------- | ---------------
+| sunset.jpeg | sunset.jpeg.lr
+| code.py     | code.py.lr
+
+Attachments can be [given a default model :ref](../../models/attachments/) or
+a model can be explicitly given in the metadata content file with the `_model` field.
+
+Here is a basic example:
+
+```
+_model: image
+----
+description: A beautiful sunset.
+----
+photographer: Mr. Peter John Doe
+----
+copyright: 2015 by Mr. Peter John Doe
+```

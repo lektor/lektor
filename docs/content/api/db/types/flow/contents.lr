@@ -1,0 +1,78 @@
+title: flow
+---
+type: type
+---
+summary: A type to build complex pages out of blocks.
+---
+body:
+
+The `flow` type is a special type that allows you to use
+[Flow Blocks :ref](../../../../content/flow/) in a page.  Blocks are small
+items that work like page models but can be used for a specific field.  Such
+a flow field can hold as many blocks as you want in a well defined order
+which allows you to build complex pages out of these blocks.
+
+Each block typically renders a specific template automatically although this
+can be customized.
+
+For configuration you can define which blocks are allowed by setting the
+`flow_blocks` parameter which is a comma separated list of flow blocks
+that are allowed.  If not defined, all flow blocks become available.
+
+The text format for flow blocks in the `contents.lr` file looks a bit more
+complex because of its nested nature, but in essence it's this:
+
+```
+#### name-of-flow-block ####
+field-1: value 1
+-----
+field-2: value 2
+```
+
+Because flow blocks are stored within another field the `---` needs to be
+escaped to `----`.  Likewise flow blocks within flow blocks would also
+require an additional level by adding additional hashes for the name of the
+flow block:
+
+```
+##### nested-flow-block #####
+field-1: value 1
+------
+field-2: value 2
+```
+
+In the template the `flow` type automatically renders out all the blocks
+within it, but the blocks can be individually accessed through the
+`blocks` attribute.  Each block's attributes are the individual fields which
+you are free to access if so desired.
+
+## Field Usage
+
+```ini
+[fields.body]
+label = Body
+type = flow
+flow_blocks = text, image
+```
+
+## Template Usage
+
+```html+jinja
+<div class="body">
+  {{ this.body }}
+</div>
+```
+
+or more complex:
+
+```html+jinja
+<div class="body">
+  {% for item in this.body.blocks %}
+    <div class="block">{{ item }}</div>
+  {% endfor %}
+</div>
+```
+
+To see how the actual blocks are rendered have a look at the main
+[Flow Documentation :ref](../../../../content/flow/) which covers templating
+in detail.

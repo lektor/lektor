@@ -1,0 +1,12 @@
+title: site
+---
+summary: Gives access to the current database pad.
+---
+type: class
+---
+template_var: site
+---
+body:
+
+This gives access to the current database [Pad :ref](../../../db/pad/).  For
+more information see the page there.

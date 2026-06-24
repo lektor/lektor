@@ -1,0 +1,17 @@
+title: _attachment_type
+---
+summary: An indication of the attachment type.
+---
+type: sysfield
+---
+body:
+
+This indicates the type of the attachment, which is detected by file extension.
+Currently only a small set of attachment types are detected, with the most
+useful one being `image`.
+
+!!!! This feature in many ways does not entirely work as you would expect
+and should be taken as something that will improve in future versions.
+
+Read more about attachments 
+[in the content section :ref](../../../../content/attachments/)

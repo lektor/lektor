@@ -1,0 +1,111 @@
+title: URLs and Slugs
+---
+summary: Explains how URLs and slugs work in Lektor.
+---
+body:
+
+Lektor's URLs in general mirror what happens on the file system as much as
+possible.  There are however various cases in which this behavior can be
+changed.
+
+## A URL Is Composed of Slugs
+
+Each page in Lektor is associated with a string called a *slug*. The full 
+URL of a page is its own slug concatenated with the slug of each its parents. 
+
+The default slug is the ID of the page. So the page 
+`content/foo/bar/contents.lr` has the default slug `bar`, its parent has the
+default slug `foo`, and its default URL would be `/foo/bar/`. 
+
+## Slug Customization
+
+Slugs can be customized. They can even contain slashes (see below). There are
+three systems that control what the slug looks like:
+
+### Folder Name
+
+The name of the folder that contains the `contents.lr` file is the ID of the
+page and thus the default slug (unless changed by the model — more about that
+later).  This means that you could for instance just rename the folder to
+get a different slug.  This is the recommended way for the majority of pages
+to adjust the slug.
+
+### The `_slug` System Field
+
+The second option is to use the `_slug` system field.  This field is available
+for all models automatically and overrides the slug explicitly.  This is
+particularly useful to force a slug that could not be represented on the file
+system (for instance because it should contain a slash) or because you want
+to change the slug for a different [Alternative :ref](../alts/).  As
+an example a page translated to German might want to translate the slug as well.
+
+### Implied Slug Configuration
+
+The last part is a system that controls the implied slugs.  In particular it
+means that the model of the parent page can override the default slug for all
+of the children below it.  This for instance can be used to automatically add
+the date of a blog post into the slug.  For more information about this
+feature see [Children & Pagination :ref](../../models/children/).
+
+## Slugs Containing Slashes 
+
+Slugs can indeed contain slashes. It's perfectly valid for a page to have 
+`2015/5/demo` as slug, and it will still be incorporated into URLs as described
+above.  What's not possible is for a page to pretend that it belongs to a 
+different parent.  The parent paths are always added to it.  So once a page 
+has a parent page `/foo` its URL path will always begin with the URL path of 
+the page `foo`.
+
+
+## Extensions and File Types
+
+The default behavior for a page is to build into a hidden `index.html` file.
+This means that if you have a page called `foo/bar/contents.lr` it will
+build into a file named `foo/bar/index.html`.  Web servers typically look for
+an `index.html` file in a folder which is why you can just access `/foo/bar/`
+and the page will render.
+
+If however the last path component contains a period (`.`) then the last path
+component is assumed to be a filename directly.  This means that if you set
+the slug of a page to `404.html` for instance, the page will indeed render
+into `404.html` and not `404/index.html`.
+
+However you need to be careful with this as web servers pick the “mimetype”
+of a file based on the extension.  So if you name a file `foo.html` it will
+behave very differently compared to a file named `foo.txt`.  So do not name
+your files in ways that would be incompatible with what the web server
+renders.  This however also allows you to generate files that are not
+HTML.  For instance you could render into a `.xml` file if that is what
+you want.
+
+This feature is called “Dotted Slugs” and there are some specifics with
+regards to how these are handled.
+
+## Content Below Dotted Slugs
+
+One specific behavior of a path component that contains a dotted slug is that
+content below that path need to move to a different location.  Imagine for
+instance you named the page `404.html` but that page has an attachment.  As
+`404.html` is now a file it's impossible for a folder with the same name to
+exist.  This means that the attachments have to be stored elsewhere.  The
+convention for this in Lektor is to prefix the path with an underscore.  So
+if `404.html` has an attachment named `foo.jpeg` it will move into
+`_404.html/foo.jpeg`.
+
+## External and Absolute URLs
+
+Lektor by default will prefer relative URLs.  This makes it possible to easily
+host a website below a certain folder without having to do anything special to
+make this work.  However there are some features which will require the use of
+an absolute or fully canonical (external) URL.  For instance sitemaps or Atom
+feeds do not work with relative URLs.  In this case the absolute URL path has
+to be configured.
+
+You can pick the default for URL generation in the project configuration.
+For more information read about the [Project Configuration
+:ref](../../project/file/#[project]).
+
+The default of `relative`, a relative URL style, means that you can deploy a
+website to a sub folder without any configuration, however most likely custom
+404 pages will fail to find the needed assets.  Fully canonical URLs are not
+recommended as default style.

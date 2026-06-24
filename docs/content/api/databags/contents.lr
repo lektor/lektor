@@ -1,0 +1,60 @@
+title: Databags
+---
+type: class
+---
+module: lektor.databags
+---
+summary: A support system for loading site specific variables.
+---
+body:
+
+The databag system is a simple support system in Lektor that allows a
+Lektor website to load variables from simple key/value or JSON files.
+This is primarily useful to load translations, API keys and similar
+things that are needed in multiple templates.
+
+From within templates you can use the [bag :ref](../templates/globals/bag/)
+function to access databags.
+
+## Supported Formats
+
+Databags go into the `databags/` folder in your project.  There are two
+formats supported: key/value pairs as ini files as well as JSON files:
+
+| Extension | Format
+| --------- | --------
+| `.json`   | JSON
+| `.ini`    | INI Files with or without sections
+
+## Navigating Bags
+
+Dotted notation is used to navigate into data bags which are globally
+merged together.  This means that if you have a file named `i18n.ini`
+with a section `[en]` and a key `CLICK_HERE` the path `i18n.en.CLICK_HERE`
+will target that key.  For JSON files further nesting is possible.  You
+can also just target a section and the return value will be a dictionary
+which can for instance be used with the [tojson :ref](../templates/filters/tojson/)
+filter.
+
+## Example Databag
+
+This is a basic example of a data bag that contains configuration values
+for google maps.  It's stored in `databags/gmaps.ini`:
+
+```ini
+key = 1233456ABCDEFG
+api_url = https://www.google.com/maps/embed/v1/
+```
+
+This can then be usde to good effect in templates:
+
+```html+jinja
+{% macro render_map(location, width=600, height=450) %}
+  <iframe
+    width="{{ width }}" height="{{ height }}"
+    frameborder="0" style="border:0"
+    src="{{ bag('gmaps.api_url') }}?q={{ location|urlencode
+      }}&key={{ bag('gmaps.key')|urlencode }}"
+    allowfullscreen></iframe>
+{% endmacro %}
+```

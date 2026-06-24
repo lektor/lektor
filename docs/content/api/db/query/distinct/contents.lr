@@ -1,0 +1,39 @@
+title: distinct
+---
+summary: Returns the set of unique values for a field.
+---
+type: method
+---
+signature: field_name
+---
+version_added: 2.0
+---
+body:
+
+Returns a `set` with all values for `field_name` of all
+[Records :ref](../../record/) in this query.
+
+## Example
+
+If your blog posts have a field called `tags`:
+
+```ini
+# blog-post.ini
+
+[field.tags]
+name = Tags
+type = strings
+```
+
+You can display all your blog posts' tags with:
+
+```html+jinja
+{% set tags = site.query('/blog').distinct('tags') %}
+{% if tags %}
+  <ul>
+    {% for tag in tags|sort %}
+      <li>{{ tag }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+```

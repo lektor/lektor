@@ -1,0 +1,55 @@
+title: exif
+---
+summary: Provides access to the EXIF information of an image.
+---
+type: property
+---
+body:
+
+This property gives access to some of the EXIF information that might be
+embedded in the picture.  Not all pictures might contain that information
+and some information might be unavailable.  In those cases the attribute
+will be `null`.
+
+In addition the `to_dict()` method can be used to convert the EXIF data
+into a dictionary that can be dumped to JSON for instance.
+
+| Field               | Description
+| ------------------- | --------------------------
+| `artist`            | The name of the photographer
+| `copyright`         | The embedded copyright message
+| `created_at`        | The timestamp of the image
+| `camera`            | Combined name of camera make and model
+| `camera_make`       | The name of the camera manufacturer
+| `camera_model`      | The name of the camera model
+| `lens`              | Combined name of the lense make and model
+| `lens_make`         | The name of the lense manufacturer
+| `lens_model`        | The name of the lense model
+| `aperture`          | The aperture value as floating point number
+| `f_num`             | The F-number as actual number
+| `f`                 | The f-number as string (`ƒ/2.2` for instance)
+| `iso`               | The ISO speed as integer
+| `exposure_time`     | The exposure time as string
+| `shutter_speed`     | The shutter speed as string
+| `focal_length`      | The focal length as string
+| `focal_length_35mm` | The focal length as string in the 35mm equivalent
+| `flash_info`        | Information text about the flash usage
+| `location`          | Longitude and latitude as floating point tuple.
+| `latitude`          | The longitude as floating point value.
+| `longitude`         | The longitude as floating point value.
+| `altitude`          | The altitude in meters as floating point value.
+| `documentname`      | The image document name as a string.
+| `description`       | The image description as a string.
+
+## Example
+
+```html+jinja
+{% if image.exif.location %}
+  <h2>Picture Location</h2>
+  <iframe width="600" height="450" frameborder="0" style="border:0"
+    src="https://www.google.com/maps/embed/v1/place?q={{
+    (image.exif.latitude ~ ', ' ~
+     image.exif.longitude)|urlencode }}&key=..."
+    allowfullscreen></iframe>
+{% endif %}
+```

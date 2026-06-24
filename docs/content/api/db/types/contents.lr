@@ -1,0 +1,10 @@
+title: Builtin Field Types
+---
+summary: An overview of all the field types supported in Lektor.
+---
+body:
+
+Lektor supports many different types that can be used for data modelling.
+
+Plugins can add additional types, see the
+[plugin "how to" :ref](../../../plugins/howto/#adding-new-field-types).

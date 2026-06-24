@@ -1,0 +1,25 @@
+title: all
+---
+summary: Returns all matching records as list.
+---
+type: method
+---
+body:
+
+This method returns all matching [Records :ref](../../record/) that match
+the query as a list.  In many cases just iterating over the query achieve
+the same result, but if you want an actual list this method comes in
+handy.
+
+## Example
+
+```html+jinja
+{% items = site.query('/projects').include_hidden(false).all() %}
+{% if items %}
+  <ul>
+  {% for item in items %}
+    <li>{{ item.name }}</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+```

@@ -1,0 +1,20 @@
+title: name
+---
+type: property
+---
+summary: The human readable plugin name.
+---
+body:
+
+This property needs to be set to a human readable name for the plugin.  It's
+what's shown in the UI to show the UI.
+
+## Example
+
+```python
+from lektor.pluginsystem import Plugin
+
+
+class MyPlugin(Plugin):
+    name = 'My Plugin'
+```

@@ -1,0 +1,49 @@
+title: get
+---
+summary: Loads a single record.
+---
+type: method
+---
+signature: id, alt='_primary', page_num=None
+---
+body:
+
+This can look up a single [Record :ref](../../record/) and return it.  In templates this method
+is particularly useful when having to work with other pages that are well
+known to the system but some information should be pulled from.  Note that
+this loads by default the "primary" [Alternative :ref](../../../../content/alts/).
+
+The path needs to be absolute with folder separated by slashes.
+
+The default behavior is to load the unpaginated version of a record.  If you
+want to select a specific page for pagination, then you need to pass
+`page_num` with a valid page number or you use the virtual path (`@1` for the
+first page for instance).
+
+## Examples
+
+This is a simple example that shows how to use the method in a template:
+
+```html+jinja
+{% set root = site.get('/') %}
+<title>{{ this.title }} | {{ root.title }}</title>
+```
+
+Here another example that loads the current page but in another language:
+
+```html+jinja
+{% set other_lang = site.get(this._path, alt='ru') %}
+<p>This page in Russian: {{ other_lang.title }}
+```
+
+## Virtual Paths
+
+This method can also be used to look up [virtual paths
+:ref](../../../../content/paths/).  For instance to fetch a specific version of a
+pagination you can use a virtual path instead of using the `page_num`
+parameter:
+
+```pycon
+>>> pad.get('/blog@3')
+<Page model=u'blog' path='/blog' page_num=3>
+```

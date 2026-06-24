@@ -1,0 +1,26 @@
+title: render_template_into
+---
+summary: Renders a template into the artifact.
+---
+signature: template_name, this, fail=False, pad=None, this=None, values=None, alt=None
+---
+type: method
+---
+body:
+
+This method renders a template into the artifact.  The default behavior is to
+catch the error and render it into the template with a failure marker.  This
+can be changed with the `fail` parameter.  This is similar to the behavior of
+the [render_template :ref](../../../environment/render-template/) method of the
+environment.
+
+## Example
+
+```python
+class MyBuildProgram(BuildProgram):
+    ...
+
+    def build_artifact(self, artifact):
+        artifact.render_template_into(
+            self.source['_template'], this=self.source)
+```
