@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { PageName } from "../context/page-context";
 import { RecordAlternative, RecordPath } from "../context/record-context";
 

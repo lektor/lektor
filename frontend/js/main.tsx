@@ -1,12 +1,12 @@
 import React, { StrictMode, useMemo } from "react";
 import { createRoot } from "react-dom/client";
+import { RouterProvider } from "react-router/dom";
 import {
   Navigate,
-  RouterProvider,
   createBrowserRouter,
   useLocation,
   useMatch,
-} from "react-router-dom";
+} from "react-router";
 import { setCurrentLanguage } from "./i18n";
 import { RecordContext, RecordPathDetails } from "./context/record-context";
 
