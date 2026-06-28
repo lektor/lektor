@@ -34,11 +34,11 @@
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "fast-glob": "^3.2.11",
-    "jsdom": "^28.0.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.0.0",
     "sass": "^1.49.9",
     "tsx": "^4.22.4",
-    "typescript": "^5.7.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.15.0"
   },
   "scripts": {
