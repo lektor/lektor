@@ -6,6 +6,10 @@
   "engines": {
     "node": ">=22.18"
   },
+  "allowScripts": {
+    "esbuild": false,
+    "@parcel/watcher": false
+  },
   "dependencies": {
     "@fontsource/roboto-slab": "^5.0.3",
     "@fortawesome/fontawesome-svg-core": "^6.4.2",
