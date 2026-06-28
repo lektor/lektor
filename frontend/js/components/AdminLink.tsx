@@ -1,5 +1,5 @@
 import React, { memo, ReactNode } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { PageName } from "../context/page-context";
 import { RecordPathDetails, useRecord } from "../context/record-context";
 import { adminPath } from "./use-go-to-admin-page";

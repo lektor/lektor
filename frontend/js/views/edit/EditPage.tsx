@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { unstable_usePrompt } from "react-router-dom";
+import { unstable_usePrompt } from "react-router";
 
 import { get, put } from "../../fetch";
 import { trans, Translatable, trans_fallback, trans_format } from "../../i18n";
