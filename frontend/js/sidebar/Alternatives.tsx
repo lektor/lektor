@@ -24,7 +24,7 @@ function Alternatives({ alts }: { alts: Alternative[] }) {
 
     return (
       <li key={item.alt} className={className}>
-        <AdminLink page={page as "edit"} path={path} alt={item.alt}>
+        <AdminLink page={page} path={path} alt={item.alt}>
           {title}
         </AdminLink>
       </li>

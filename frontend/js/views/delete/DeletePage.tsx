@@ -36,6 +36,7 @@ function DeletePage(): React.JSX.Element | null {
   }, [path]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDeleteMasterRecord(alt === "_primary");
   }, [alt]);
 
