@@ -62,6 +62,7 @@ lektor = "lektor.cli:main"
 [dependency-groups]
 dev = [                         # generally useful during development
     {include-group = "pytest"},
+    {include-group = "prek"},
 ]
 pytest = [                 # requirements for running our pytest tests
     "pytest>=6",
@@ -77,6 +78,7 @@ pylint = [                      # requirements for running pylint
     "pytest-mock",
     "iniconfig",
 ]
+prek = ["prek"]                 # Running pre-commit hooks with prek.
 mistune0 = ["mistune<2"]        # pin old mistune for testing
 tzdata = ["tzdata"]             # test with tzdata rather than system zone data
 

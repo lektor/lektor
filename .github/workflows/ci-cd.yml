@@ -37,22 +37,18 @@ jobs:
           python-version: "3.x"
           cache: "pip"
           cache-dependency-path: "**/pyproject.toml"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Install python dependencies
         id: pip
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox tox-uv pre-commit
+          python -m pip install tox tox-uv
           python -m pip freeze --local
       - name: Run pylint
         run: tox -e lint
-      - name: Run pre-commit
+      - name: Run prek
+        uses: j178/prek-action@v2
         # run pre-commit check even if pylint check fails
         if: steps.pip.outcome == 'success'
-        run: pre-commit run --show-diff-on-failure --color=always --all-files
 
   ############################################################################
   # Node tests

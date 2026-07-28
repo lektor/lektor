@@ -31,10 +31,10 @@ For installation instructions head to the official documentation:
 ## Want to develop on Lektor?
 
 This gets you started (assuming you have [Python] >= 3.10, [npm], and
-[pre-commit] installed):
+[uv] installed):
 
 [python]: https://www.python.org/
-[pre-commit]: https://pre-commit.com/
+[uv]: https://docs.astral.sh/uv/
 [npm]: https://nodejs.org/
 
 ```bash
@@ -50,7 +50,7 @@ $ pip install -U "pip>=25.1"
 $ pip install --group dev --editable .
 
 # If you plan on committing:
-$ pre-commit install
+$ uv run prek install
 
 # Run the Lektor server
 $ export LEKTOR_DEV=1

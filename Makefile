@@ -26,7 +26,7 @@ test-js: frontend/node_modules
 .PHONY: lint
 # Lint code.
 lint:
-	pre-commit run -a
+	uv run prek run -v -a
 	tox -e lint
 
 .PHONY: test
@@ -35,5 +35,5 @@ test: lint test-python test-js
 .PHONY: test-all
 # Run tests on all supported Python versions.
 test-all: test-js
-	pre-commit run -a
+	uv run prek run -v -a
 	tox
