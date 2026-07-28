@@ -24,15 +24,15 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "lts/*"
           cache: "npm"
           cache-dependency-path: "**/package-lock.json"
       - name: Install node dependencies
         run: make frontend/node_modules
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
           cache: "pip"
@@ -46,7 +46,7 @@ jobs:
       - name: Run pylint
         run: tox -e lint
       - name: Run prek
-        uses: j178/prek-action@v2
+        uses: j178/prek-action@5337cb91e0fa35a7ff31b9ca345126d8bbbcdf16 # v2.0.6
         # run pre-commit check even if pylint check fails
         if: steps.pip.outcome == 'success'
 
@@ -65,8 +65,8 @@ jobs:
           - node: "current"
             os: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
           cache: "npm"
@@ -96,13 +96,13 @@ jobs:
           - { os: "windows-latest", python: "3.14", install-ffmpeg: true }
           - { python: "3.14", install-ffmpeg: true }
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
           cache: "pip"
           cache-dependency-path: "**/pyproject.toml"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "lts/*"
           cache: "npm"
@@ -138,7 +138,7 @@ jobs:
         env:
           TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-data-${{ matrix.python }}-${{ matrix.os }}
           path: .coverage*
@@ -151,10 +151,10 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
       - run: uv tool install coverage[toml]
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: coverage-data-*
           merge-multiple: true
@@ -165,7 +165,7 @@ jobs:
           coverage html
           coverage xml
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-report
           path: |
@@ -179,13 +179,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "lts/*"
 
@@ -198,7 +198,7 @@ jobs:
         run: python -m build
 
       - name: Store the distribution packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: python-package-distributions
           path: dist/
@@ -223,12 +223,12 @@ jobs:
       id-token: write # IMPORTANT: mandatory for trusted publishing
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: python-package-distributions
           path: dist/
 
       - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
         with:
           password: ${{ secrets.PYPI_PASSWORD }}
