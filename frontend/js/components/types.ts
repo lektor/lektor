@@ -21,6 +21,7 @@ export interface RecordAttachment {
   id: string;
   path: RecordPath;
   type: string;
+  label_i18n: Translatable;
 }
 
 // Returned by /recordinfo
