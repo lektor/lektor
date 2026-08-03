@@ -1,0 +1,28 @@
+title: Query
+---
+summary: Provides functionality to query the database.
+---
+module: lektor.db
+---
+type: class
+---
+body:
+
+The query class is used to filter queries to the database.  It's available
+through either the [Pad :ref](../pad/) or through things like the
+[children :ref](../record/children/) property of records.
+
+Most operations on a query object return another one which will return a
+more filtered result.
+
+## Example
+
+Here a basic example of how to filter something in a template:
+
+```html+jinja
+<ul>
+{% for item in this.children.filter(F.status == 'published') %}
+  <li>{{ item.title }}</li>
+{% endfor %}
+</ul>
+```

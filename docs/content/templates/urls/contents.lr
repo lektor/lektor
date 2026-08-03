@@ -1,0 +1,85 @@
+title: URLs and Links
+---
+summary: Explains how to manage URLs and links in templates.
+---
+sort_key: 10
+---
+body:
+
+Linking to other pages in templates is achieved through the `|url` and
+`|asseturl` filters.  These two filters will ensure that the links that are
+generated are automatically relative to the current page so they will work
+correctly anywhere you host the page.  They also deal with URL paths
+that have been changed through configuration.
+
+## `url` Filter
+
+The [url :ref](../../api/templates/filters/url/) filter is the most useful
+filter for URL generation and it comes in two flavors.  It takes one optional
+argument which is the `alt` if it should differ from the current one (see
+[Alternatives :ref](../../content/alts/)).  The filter can be applied to either
+a string or a [Record :ref](../../api/db/record/) object.
+
+### Basic Navigation
+
+This is an example of how to just link to some specific pages that exist.
+Because the path starts with a slash it will be treated as absolute path:
+
+```html+jinja
+<ul class="nav">
+  <li><a href="{{ '/'|url }}">Index</a></li>
+  <li><a href="{{ '/about'|url }}">About</a></li>
+</ul>
+```
+
+### Relative Linking
+
+If you want to link relative to the current page, just leave out the
+slash:
+
+```html+jinja
+<a href="{{ 'project-a'|url }}">Go To Project A</a>
+```
+
+### Link To Alternatives
+
+If you want to link to a page in a different alternative you can use the
+optional `alt` parameter.  For instance you can link to the current page
+in another alternative (`.` indicates the current page):
+
+```html+jinja
+<a href="{{ '.'|url(alt='ru') }}">Русский</a>
+```
+
+### Link to Pages
+
+Because the URL filter can also accept entire record objects you can easily
+link to all children of a page:
+
+```html+jinja
+<ul class="nav">
+{% for page in this.children %}
+  <li><a href="{{ page|url }}">{{ page.title }}</a></li>
+{% endfor %}
+</ul>
+```
+
+## `asseturl` Filter
+
+A second filter that is available is the [asseturl
+:ref](../../api/templates/filters/asseturl/) filter.  It works similar to
+`|url` but can only link to assets from the `assets/` folder.  However unlike
+`|url` it will append a dummy query string with a hash of the source asset.
+This ensures that when the asset changes it will be newly cached.
+
+Example:
+
+```html+jinja
+<link rel="stylesheet" href="{{ '/static/styles.css'|asseturl }}">
+```
+
+The end result will look something like this:
+
+```html
+<link rel="stylesheet" href="static/styles.css?h=deadbeef">
+```

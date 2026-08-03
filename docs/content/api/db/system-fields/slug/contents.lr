@@ -1,0 +1,13 @@
+title: _slug
+---
+summary: The URL slug of the record.
+---
+type: sysfield
+---
+body:
+
+This field defines the URL slug of the record.  If not set it defaults to
+either the `_id` or an expansion of what the parent defines for all children.
+
+For more information about this refer to [URLs and Slugs
+:ref](../../../../content/urls/).

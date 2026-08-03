@@ -1,0 +1,40 @@
+title: urlresolver
+---
+type: method
+---
+summary: Registers a custom URL resolver function.
+---
+body:
+
+This is very experimental API and used to register a custom URL resolver
+function with the environment.  It's invoked whenever a node has matched but
+more data is left to parse.  This can be used to implement virtual items.
+This works in combination with [generator :ref](../generator/) but handles the
+URL matching part of the equation.
+
+The registered function is invoked with a source object and a list of
+URL path segments.
+
+## Example
+
+```python
+from lektor.sourceobj import VirtualSourceObject
+from lektor.utils import build_url
+
+class Source(VirtualSourceObject):
+
+    @property
+    def path(self):
+        return self.record.path + '@source'
+
+    @property
+    def url_path(self):
+        return build_url([self.record.url_path, 'source.txt'])
+
+@env.urlresolver
+def match_source_file(node, url_path):
+    if url_path == ['source.txt'] \
+       and isinstance(node, Record) \
+       and not node.is_attachment:
+        return Source(node)
+```

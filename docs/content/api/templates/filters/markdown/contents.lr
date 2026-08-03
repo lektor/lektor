@@ -1,0 +1,22 @@
+title: markdown
+---
+signature: source
+---
+summary: Converts markdown to HTML
+---
+type: filter
+---
+version_added: 2.0
+---
+body: 
+
+This filter converts a markdown string into HTML.  This behaves the same as
+the [Markdown Type :ref](../../../db/types/markdown/).
+
+## Example
+
+```html+jinja
+<div class="example">
+  {{ "Hello **World**"|markdown }}
+</div>
+```

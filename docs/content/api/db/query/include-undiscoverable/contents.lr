@@ -1,0 +1,31 @@
+title: include_undiscoverable
+---
+signature: value
+---
+summary: Controls what happens to records that are not discoverable.
+---
+type: method
+---
+version_added: 2.0
+---
+body:
+
+This controls how the query should behave with regards to undiscoverable
+records.  A query (either created from the [children :ref](../../record/children/)
+attribute or the [query :ref](../../pad/query/) method of the pad) will not
+include undiscoverable records by default.
+
+If undiscoverable records should included this method needs to be used.
+Set it to `True` to include hidden or `False` to exclude them (default).
+
+## Example
+
+Here a basic example of how to filter something in a template:
+
+```html+jinja
+<ul>
+{% for item in this.children.include_undiscoverable(true) %}
+  <li>{{ item.title }}</li>
+{% endfor %}
+</ul>
+```

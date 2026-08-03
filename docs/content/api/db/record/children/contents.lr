@@ -1,0 +1,33 @@
+title: children
+---
+summary: Returns a query to the children of a page.
+---
+type: property
+---
+body:
+
+Because of Lektor's tree based nature almost all records can have children
+below them.  The `children` attribute provides a convenient way to access
+those.  It returns a [Query :ref](../../query/) object that can be used to
+further filter down children.
+
+Attachments of pages are not considered children even though they technically
+are.  These are accessible via the [attachments :ref](../attachments/)
+property instead which works largely the same.
+
+If a record is an attachment neither `children` nor `attachments` are
+available.
+
+What's important to know about children is that the default query will
+exclude hidden children.  This is different from creating a query object
+via the [query :ref](../../pad/query/) method of the pad.
+
+## Example
+
+```html+jinja
+<ul>
+{% for child in this.children %}
+  <li>{{ child.title }}</li>
+{% endfor %}
+</ul>
+```

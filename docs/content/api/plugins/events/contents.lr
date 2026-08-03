@@ -1,0 +1,30 @@
+title: Events
+---
+summary: A list of all events emitted by Lektor for plugins.
+---
+body:
+
+As Lektor executes and builds it emits various events that plugins can
+respond to.  This gives a list of all of those events.
+
+## Handling Events
+
+Events are handled by implementing a method with the name of the event and
+the prefix `on_` on the plugin and underscores instead of dashes.  So for
+instance if the event is called [process-template-context
+:ref](process-template-context/) the method to implement is
+`on_process_template_context`.  It's important to additionally *always*
+catch extra parameters in a `**extra` parameter so that the plugin does
+not break if an event starts sending additional parameters in the future.
+
+## Emitting Events
+
+If you want to emit your own events you can do that from the environment's
+plugin controller:
+
+```python
+self.emit('your-signal', parameter='value')
+```
+
+This emits a signal named `your-plugin-your-signal`.  The signal prefix is
+taken from the plugin ID which is set in `setup.py`.

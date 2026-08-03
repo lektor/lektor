@@ -1,0 +1,23 @@
+title: limit
+---
+summary: Limits the total number of items returned.
+---
+type: method
+---
+signature: offset
+---
+body:
+
+The offset method can be used to limit the return value to a certain number
+of matching records.
+
+## Example
+
+```html+jinja
+<h3>Our Top 3</h3>
+<ul>
+{% for item in this.children.order_by('-rating').limit(3) %}
+  <li>{{ item.title }}</li>
+{% endfor %}
+</ul>
+```

@@ -1,0 +1,17 @@
+title: produce_artifacts
+---
+summary: Method that needs to be overridden for the build to work.
+---
+type: method
+---
+body:
+
+This method needs to be overridden by subclasses.  It's invoked at the
+beginning of the build process and it's purpose is to invoke the
+[declare_artifact :ref](../declare-artifact/) method for each artifact
+that the build should generate.  For each of these invocations later the
+[build_artifact :ref](../build-artifact/) method will be invoked if the
+builder determined that the artifact needs to be rebuild.
+
+For an example refer to the [add_build_program
+:ref](../../../environment/add-build-program/) documentation.

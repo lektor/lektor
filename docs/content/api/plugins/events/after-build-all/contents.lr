@@ -1,0 +1,12 @@
+title: after-build-all
+---
+signature: builder
+---
+summary: This event is emitted after all sources are built.
+---
+type: event
+---
+body:
+
+This event is emitted after the builder build all sources.  It works similar
+to the [before-build-all :ref](../before-build-all/) event otherwise.

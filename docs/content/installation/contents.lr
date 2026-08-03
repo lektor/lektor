@@ -1,0 +1,103 @@
+title: Installation
+---
+summary: How to install Lektor on your computer.
+---
+sort_key: 50
+---
+body:
+
+Lektor comes in two flavors: as a command line executable and as a
+desktop application.  The desktop version also contains the command
+line executable, but it also bundles together all dependencies of Lektor
+in an easy to use package which heavily simplifies installation.
+
+## Desktop Application
+
+!! Info: Support for the Mac Desktop Application is paused as of version 3.1. See [note](/blog/2018/1/lektor-31-released/#support-for-mac-installer-paused).
+
+Currently the desktop application is only available for OS X and can be
+[downloaded from the Lektor website](../../downloads/).  It comes as a downloadable
+disk image that you can mount which contains one application by the name of
+`Lektor.app`.  Just drag it into your `Applications` folder and you are good to
+go.
+
+If you also want access to the command line tools just launch `Lektor.app`
+and then click in the menu bar on *Lektor ➤ Install Shell Command*.
+
+## Command Line Application
+
+If you do not want to install the desktop app then you can just install the command
+line executable.  This runs on most operating systems (OSX, Linux and Windows) but
+the installation is a bit more involved.
+
+You need to make sure you have the following software installed on your computer:
+
+* Python 3 is recommended (but 2.7 is also supported)
+  On Ubuntu `python3-dev`, `libssl-dev` and `libffi-dev` are also required
+  `sudo apt-get install python3-dev libssl-dev libffi-dev`
+* ImageMagick (`brew install imagemagick` can get you this on OS X and  `sudo apt-get install imagemagick`
+  on Ubuntu the `imagemagick` package needs to be installed. 
+  On Windows do `choco install imagemagick`, which requires [chocolatey :ext](https://chocolatey.org/),
+  or [download from here :ext](http://www.imagemagick.org)).
+
+Once you have those installed and have made sure that they are on your `PATH`, you can
+get Lektor installed with our installation script:
+
+```
+# curl -sf https://www.getlektor.com/installer.py | python3
+```
+
+This will attempt to install lektor in your user's `HOME`. If you want a system-wide installation, try this instead:
+
+```
+$ curl -sf https://www.getlektor.com/installer.py | sudo python3
+```
+
+If you would like to install Lektor without being prompted, set LEKTOR_SILENT before running the prior command.
+
+For Windows, make sure that Python is in your `PATH` and run in `Powershell`:
+
+```
+PS C:\> (new-object net.webclient).DownloadString('https://www.getlektor.com/installer.py') | python
+```
+
+or you can use the `command prompt` instead:
+
+```
+C:\> @powershell -NoProfile -Command "(new-object net.webclient).DownloadString('https://www.getlektor.com/installer.py') | python"
+```
+
+
+## pip
+
+Alternatively you can manually install the command line version with
+`virtualenv` if you know how that works.  Note that this method is *heavily
+discouraged* for anything other than advanced use cases such as build servers.
+
+```
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install Lektor
+```
+
+!!!! When we say this installation type is discouraged we mean it.  The reason
+is that it encourages uses of Lektor which are entirely unsupported by us.
+Lektor actively manages virtualenvs for plugin installations in very specific
+ways and this might or might not work in your setup.  We support pip
+installations for deployment environments and local development only.
+
+## Development Version
+
+If you want to install the development version of Lektor you can do so.  It's
+the same as with installing the command line application but instead of
+using PyPI you install directly from git and you need to have `npm` installed
+to build the admin UI:
+
+```
+$ git clone https://github.com/lektor/lektor
+$ cd lektor
+$ make build-js
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install --editable .
+```

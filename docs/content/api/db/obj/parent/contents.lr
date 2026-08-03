@@ -1,0 +1,18 @@
+title: parent
+---
+summary: The parent object for this source object.
+---
+type: property
+---
+body:
+
+For most source objects it's possible to discover their parents through
+this property.  It's not a requirement that this property is implemented but
+most will have it.  In particular it's useful for virtual source objects
+where this property can be used to discover the associated parent object.
+
+## Example
+
+```html+jinja
+<p>My parent is: {{ this.parent.path }}
+```

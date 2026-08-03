@@ -1,0 +1,13 @@
+title: _template
+---
+signature: 
+---
+summary: Selects the template for the page.
+---
+type: sysfield
+---
+body:
+
+This field sets the template that Lektor uses for rendering.  It defaults to
+model name + `.html`.  If the `_model` is `page` the name of the template
+will be `page.html`.  In some situations it makes sense to override this.

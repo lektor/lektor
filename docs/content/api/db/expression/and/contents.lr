@@ -1,0 +1,34 @@
+title: and
+---
+summary: True if both left and right side are true.
+---
+type: method
+---
+signature: other
+---
+body:
+
+This evaluates to true if both the expression on the left as well as the
+expression on the right are true.  This is one of the few operators that
+differs between Python and templates.  In templates you have to use the
+`and` method whereas in Python have to use the `&` operator.
+
+## Template Example
+
+```html+jinja
+<h3>3 Star or Higher</h3>
+<ul>
+{% for item in this.children.filter(
+    (F.type == 'hotel').and(F.stars >= 3)) %}
+  <li>{{ item.name }}: {{ item.stars }} stars</li>
+{% endfor %}
+</ul>
+```
+
+## Python Example
+
+```python
+def get_hotels(page):
+    return page.children.filter(
+        (F.type == 'hotel') & (F.stars >= 3))
+```

@@ -1,0 +1,30 @@
+title: url_to
+---
+summary: Generates a URL relative to another path.
+---
+type: method
+---
+signature: path, alt=None, absolute=None, external=None
+---
+body:
+
+Calculates the URL from the current source object to the given other source
+object.  Alternatively a path can also be provided instead of a source object.
+If the path starts with a leading bang (``!``) then no resolving is performed.
+If no `alt` is provided the `alt` of the page is used.
+
+This is what the `|url` filter uses internally to generate URLs.
+
+In addition to that `absolute` can enforce the URL to be absolute instead of
+relative to the current page and `external` can be used to also add the
+domain part to the URL (if configured).  The default behavior is to use the
+configured URL style (which is `relative`) unless absolute or external were
+explicitly provided.  For more information read about this in the
+[Project Configuration :ref](../../../../project/file/#[project]).
+
+## Example
+
+```html+jinja
+{% set downloads = site.get('/downloads') %}
+Path from downloads to here: {{ downloads.url_to(this) }}
+```

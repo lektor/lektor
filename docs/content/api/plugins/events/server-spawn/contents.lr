@@ -1,0 +1,33 @@
+title: server-spawn
+---
+type: event
+---
+summary: Emitted right after the server was started.
+---
+body:
+
+When the development server boots up it emits this event if plugins want
+to spawn their own development tools.  For instance it can be used to
+start a background process that kicks off webpack or similar tools.  There
+is a second event called [server-stop :ref](../server-stop/) which can be
+used to detect server shutdowns.
+
+## Example
+
+```python
+import os
+from subprocess import Popen
+
+class MyPlugin(Plugin):
+    ...
+
+    webpack = None
+
+    def on_server_spawn(self, **extra):
+        path = os.path.join(self.env.root_path, 'webpack')
+        self.webpack = Popen(['webpack', '--watch'], cwd=path)
+
+    def on_server_stop(self, **extra):
+        if self.webpack is not None:
+            self.webpack.kill()
+```

@@ -1,0 +1,107 @@
+title: Flow
+---
+summary: Learn about how to use the flow system to build more flexible pages.
+---
+body:
+
+Flow is a system in Lektor that allows you to have higher flexibility when
+creating pages.  The [Flow Type :ref](../../api/db/types/flow/) field type
+that allows you to store multiple different formats of data within the same
+field each with its own template.
+
+This allows you to build complex pages made from individual components.
+
+## How does Flow Work?
+
+When you add a `flow` field to one of your models you essentially gain the
+ability to attach as many blocks as you want into this field.  Each block
+corresponds to a specific [Flow Block Model :ref](../../models/flow/) and
+can render a separate template.
+
+This is a very powerful feature as it allows you to be very flexible in the
+designs you want to achieve for your website.  As an example, the
+[Front Page](../../../) of this website uses many different blocks to
+implement the slideshow, feature list and more.
+
+<img src="flow-admin.png" class="screenshot" alt="">
+
+## Flow Block Models
+
+To use the `flow` type you need to define some blocks.  This works pretty
+much the same as with creating [Data Models :ref](../../models/) except they
+go into the `flowblocks` folder and have slightly different parameters.
+
+For more information about this see [Flow Block Models
+:ref](../../models/flow/).
+
+## Block Templating
+
+Flow blocks appear as elements of the flow type.  When it's rendered in a
+template it will render each block separately one after another and connect
+them with newlines.  These blocks can also manually be accessed however.
+Each flow block renders a template named after itself from the `blocks`
+folder in the template directory.  So if you have a flow block model
+named `text` it will render from `templates/blocks/text.html`.
+
+Within a template a flow block has access to all the variables that you would
+expect.  `this` points to the current block and `record` points to the record
+the block is contained in.
+
+This is a simple example of a typical template of a flow block:
+
+```html+jinja
+<div class="text-block text-block-{{ this.class }}">
+  {{ this.text }}
+</div>
+```
+
+Some more involved templates might also refer back to the page to do something
+with it.  Here for instance is a simple flow block for including a thumbnail
+of an attached image:
+
+```html+jinja
+{% set img = record.attachments.images.get(this.image) %}
+{% if img %}
+  <div class="thumbnail-block">
+    <img src="{{ img.thumbnail(480)|url }}" alt="">
+  </div>
+{% endif %}
+```
+
+This also has a safeguard that if the image does not exist nothing is rendered
+instead.  This is a good idea because someone could delete the attachments but
+not update the reference in the block.
+
+## Flow Templating
+
+The default behavior of rendering an entire flow is to render the templates
+of the individual blocks one after another.  Sometimes that is not flexible
+enough.  Because of that you can access the blocks individually.  This is
+particularly useful for more complex situations where you either deal with
+nested flows or where you want to wrap the individual blocks somehow.
+
+For instance in this case the blocks are wrapped before rendering:
+
+```html+jinja
+{% for blk in this.demo_flow.blocks %}
+  <div class="block block-{{ blk._flowblock }}">
+    {{ blk }}
+  </div>
+{% endfor %}
+```
+
+The `_flowblock` field is always available on a flow block and is the name
+of the data model that defines it.  This is a good way to also specifically
+customize individual blocks in a flow without having to invoke their
+templates.  You can for instance completely manually render blocks without
+using their templates:
+
+```html+jinja
+{% for blk in this.demo_flow.blocks %}
+  {% if blk._flowblock == 'text' %}
+    <p>{{ blk.text }}
+  {% elif blk._flowblock == 'image' %}
+    <img src="{{ blk.image }}" alt="{{ blk.alt }}">
+  {% endif %}
+{% endfor %}
+```

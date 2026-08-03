@@ -1,0 +1,25 @@
+title: contains
+---
+summary: Checks if an item contains another one.
+---
+type: method
+---
+signature: item
+---
+body:
+
+This expression evaluates to true if an item is contained within a field.
+This works with fields that are lists in nature or [strings
+:ref](../../types/string/).  For instance a string can be
+contained in another string or a item can be contained within a list.
+
+## Template Example
+
+```html+jinja
+<h3>Projects Tagged 'amazing'</h3>
+<ul>
+{% for item in this.children.filter(F.tags.contains('amazing')) %}
+  <li>{{ item.name }}</li>
+{% endfor %}
+</ul>
+```

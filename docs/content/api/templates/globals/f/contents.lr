@@ -1,0 +1,12 @@
+title: F
+---
+summary: Gives access to the field accessor.
+---
+type: class
+---
+template_var: F
+---
+body:
+
+This gives access to the [F :ref](../../../db/f/) object for creating
+expressions involving fields.  For more information see the page there.

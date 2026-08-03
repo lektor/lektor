@@ -1,0 +1,27 @@
+title: date
+---
+type: type
+---
+summary: A type that can store a date.
+---
+body:
+
+The `date` type can store a date.  Because it knows a bit more about dates
+than a plain old `string` some basic operations can be provided in the
+templates.
+
+The canonical format for the type in text form is `YYYY-MM-DD`.
+
+## Field Usage
+
+```ini
+[fields.pub_date]
+label = Publication date
+type = date
+```
+
+## Template Usage
+
+```html+jinja
+<p>Published: {{ this.pub_date.strftime('%d/%m/%Y') }}
+```

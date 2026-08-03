@@ -1,0 +1,25 @@
+title: make_env
+---
+type: method
+---
+signature: load_plugins=True
+---
+summary: Creates an environment from a project.
+---
+body:
+
+Once a project is loaded this method can be used to create a
+[Environment :ref](../../environment/) object to work with.  This is the
+preferred way to construct such a thing.
+
+By default plugins will be loaded and initialized but this can be disabled
+by passing `load_plugins=False`.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+env = project.make_env()
+```

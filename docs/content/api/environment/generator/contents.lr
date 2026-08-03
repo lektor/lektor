@@ -1,0 +1,39 @@
+title: generator
+---
+type: method
+---
+summary: Registers a custom generator function.
+---
+body:
+
+This is very experimental API and used to register a function that can
+generate source objects relative to another one.  This works in combination
+with [urlresolver :ref](../urlresolver/) but handles the build-all part of
+the equation.
+
+The registered function is invoked for each source after it was build.  As
+such it's important to only return items if a virtual sub resource actually
+exists for a page.
+
+## Example
+
+```python
+from lektor.sourceobj import VirtualSourceObject
+from lektor.db import Record
+from lektor.utils import build_url
+
+class Source(VirtualSourceObject):
+
+    @property
+    def path(self):
+        return self.record.path + '@source'
+
+    @property
+    def url_path(self):
+        return build_url([self.record.url_path, 'source.txt'])
+
+@env.generator
+def generate_source_file(node):
+    if isinstance(node, Record) and not node.is_attachment:
+        yield Source(node)
+```

@@ -1,0 +1,29 @@
+title: order_by
+---
+summary: Changes the ordering of the query.
+---
+type: method
+---
+signature: *fields
+---
+body:
+
+This is a handy way to change the order of the items returned.  The default
+order is defined in the model config but can be overridden this way.  The
+method accepts an arbitrary number of strings, each of which refers to the
+name of a field.  If a string is prefixed with a minus sign (`-`) then the
+order is reversed.
+
+If two records have the same value for a field, then the ordering is defined on
+the next argument given.  So if you order by (`'year', 'name'`) it will first
+order by year and within a year it will order by name.
+
+## Example
+
+```html+jinja
+<ul>
+{% for project in this.children.order_by('-year', 'name') %}
+  <li>{{ project.year }}: {{ project.name }}</li>
+{% endif %}
+</ul>
+```

@@ -1,0 +1,41 @@
+title: datetimeformat
+---
+type: filter
+---
+signature: datetime, format='medium', locale=None
+---
+summary: Formats a datetime into a string
+---
+body:
+
+To format a proper date (this is created by the [datetime
+:ref](../../../../api/db/types/datetime/) type) into a string this filter can
+be used.  It will automatically format based on the language used by the
+current context which is based on the locale of the current alt.
+
+A different language can be provided with the `locale` parameter.
+
+The following formats are locale specific:
+
+| Format   | How it Looks
+| -------- | ----------------
+| `full`   | Wednesday, January 13, 2016 at 7:08:35 AM GMT+00:00
+| `long`   | January 13, 2016 at 7:08:35 AM +0000
+| `medium` | Jan 13, 2016, 7:08:35 AM
+| `short`  | 1/13/16, 7:08 AM
+
+In addition to that format codes from the CLDR project can be used.  For
+more information see [CLDR Date/Time Symbols
+:ext](http://cldr.unicode.org/translation/date-time).
+
+## Examples
+
+```html+jinja
+<p>Date: {{ this.pub_date|datetimeformat('full') }}
+```
+
+Or with custom CLDR format strings:
+
+```html+jinja
+<p>Date: {{ this.pub_date|datetimeformat('yyyyy.MMMM.dd GGG hh:mm a') }}
+```

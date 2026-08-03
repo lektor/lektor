@@ -1,0 +1,16 @@
+title: Project
+---
+type: class
+---
+module: lektor.project
+---
+summary: Provides access to a project file.
+---
+body:
+
+The project class is one of the most basic classes that Lektor uses to
+implement its building process.  It's generated very early on when the
+application needs to interact with the project file on disk.  This
+class is mostly useful for building scripts that use the Lektor API and
+not so much in other situations as it's not directly playing a role in
+the main build process.

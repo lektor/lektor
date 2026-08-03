@@ -1,0 +1,28 @@
+title: open
+---
+summary: Can open the artifact for reading or writing.
+---
+type: method
+---
+signature: mode='rb', ensure_dir=None
+---
+body:
+
+This opens the artifact for reading or writing.  The default behavior is that
+if the artifact is opened for reading, the directory it's contained within
+automatically is created.  This can be disabled or enabled with the
+`ensure_dir` parameter.
+
+If the artifact is opened for writing, a copy will be created and only
+committed when the entire build process goes through smoothly and the
+changes are committed by the builder.
+
+## Example
+
+```python
+ctx = get_ctx()
+@ctx.sub_artifact('artifact.txt')
+def build_stylesheet(artifact):
+    with artifact.open('w') as f:
+        f.write('Hello World!\n')
+```

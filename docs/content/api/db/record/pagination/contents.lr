@@ -1,0 +1,89 @@
+title: pagination
+---
+summary: Provides access to the pagination information.
+---
+type: property
+---
+body:
+
+When pagination is enabled for a page, then `pagination` will return a
+pagination controller that gives access to a query that is specific for the
+actual page that was navigated to, instead of including all children as well
+as information about the current page.  In a nutshell: when pagination is
+enabled, you should use `pagination.items` instead of `children` on an
+overview page.
+
+The following attributes exist on the pagination object:
+
+| Attribute    | Description
+| ------------ | ------------
+| `current`    | The current record
+| `prev`       | The record for the last page (might be `None`)
+| `next`       | The record for the next page (might be `None`)
+| `total`      | The total number of items across all pages
+| `pages`      | The total number of pages
+| `page`       | The number of current page
+| `has_prev`   | `True` if a previous page exists
+| `has_next`   | `True` if a next page exists
+| `items`      | The query that resolves to the children of the current page.
+| `for_page()` | Returns the record for a different page.
+
+The `for_page()` function accepts a page number and returns the record for
+the other page.  For more information also see the virtual path example
+below.
+
+!! *Changed in Lektor 2.0:* The `for_page()` method was added.
+
+## Item Query Example
+
+Simple example that shows how to iterate over the items specific to a
+page:
+
+```html+jinja
+<ul>
+{% for child in this.pagination.items %}
+  <li>{{ child.title }}</li>
+{% endfor %}
+</ul>
+```
+
+## Pagination Example
+
+This example shows how to render a basic pagination with a previous and
+next page link as well as the number of the current page:
+
+```html+jinja
+<div class="pagination">
+  {% if this.pagination.has_prev %}
+    <a href="{{ this.pagination.prev_page|url }}">&laquo;</a>
+  {% else %}
+    <span class="disabled">&laquo;</span>
+  {% endif %}
+  — <strong>{{ this.pagination.page }}</strong> —
+  {% if this.pagination.has_next %}
+    <a href="{{ this.pagination.next_page|url }}">&raquo;</a>
+  {% else %}
+    <span class="disabled">&raquo;</span>
+  {% endif %}
+</div>
+```
+
+## Virtual Paths
+
+!! *New in Lektor 2.0:* virtual paths did not exist in earlier Lektor versions.
+
+The pagination is implemented in a way where each page in the pagination is
+a virtual path below the record itself.  The value of the path is just the
+number of the page.  So for instance to link to the second page you can just
+do this:
+
+```html+jinja
+<a href="{{ '@2'|url }}">Go to Page 2</a>
+```
+
+Alternatively you can also use the `for_path()` function which returns the
+entire pagination for a page:
+
+```html+jinja
+<a href="{{ this.pagination.for_page(2)|url }}">Go to Page 2</a>
+```

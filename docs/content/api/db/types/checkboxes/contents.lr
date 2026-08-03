@@ -1,0 +1,50 @@
+title: checkboxes
+---
+type: type
+---
+summary: A type that can be used to select multiple items of a list.
+---
+body:
+
+The `checkboxes` type is a useful type that allows you to select multiple
+values in the admin panel from a list of choices.  These choices can be
+either defined in the model or dynamically loaded from the tree of pages.
+
+The configuration of the type is a bit more involved because of it's
+flexibility.  The following options exist:
+
+* `source`: if provided it should be an expression that evaluates to an
+  iterable of records.  The variable `record` thereby points to the current
+  record.
+* `choices`: instead of `source` this can be provided in which case it is a
+  comma separated list of values.
+* `choice_labels`: when `choices` is given, this is used as labels to display
+  it in the UI.  It's a comma separated list of values.
+* `item_key`: an template format expression to convert a source item into
+  the value that is stored.  This defaults to `{{ this._id }}` which means
+  that the ID of the selected record is stored.
+* `item_label`: similar to `item_key` but for the UI part.  This has no
+  default which means that the record's configured title will be used as
+  label.
+
+In the contents file the values are stored as comma separated list.
+
+## Field Usage
+
+```ini
+[fields.slideshow]
+label = Slideshow
+type = checkboxes
+description = Attached images to include in the slidehow
+source = record.attachments.images
+```
+
+## Template Usage
+
+```html+jinja
+{% for image in this.attachments.images %}
+  {% if image._id in this.slideshow %}
+    <img src="{{ image.thumbnail(500) }}" class="slide">
+  {% endif %}
+{% endfor %}
+```

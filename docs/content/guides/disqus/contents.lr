@@ -1,0 +1,48 @@
+title: Disqus Comments
+---
+summary: Enabling disqus comments in one minute.
+---
+body:
+
+The `disqus-comments` plugin adds support for Disqus comments to Lektor and
+with its help you can have comments on your pages in no time.  Once the plugin
+is enabled a `render_disqus_comments` function is available for templates which
+can render a disqus comment box.  All you need to do for this is to create your
+own Disqus community at [Disqus Engage :ext](https://publishers.disqus.com/engage).
+
+Once you have created your community there you will be given a "short name"
+which can then be used with this plugin.
+
+## Enabling the Plugin
+
+First you need to enable the plugin.  The following command will do that
+for you:
+
+```
+$ lektor plugins add disqus-comments
+```
+
+## Configuring the Plugin
+
+The plugin has a config file that is needed to inform it about your
+website.  Just create a file named `disqus-comments.ini` into your
+`configs/` folder and configure the `shortname` key with the name of
+your disqus community:
+
+```ini
+shortname = YOUR_SHORTNAME
+```
+
+## In Templates
+
+Now you can add a discussion box to any of your templates by just using
+the `render_disqus_comments` function.  Just calling it is enough to
+get the comment box:
+
+```html
+<div class="comments">{{ render_disqus_comments() }}</div>
+```
+
+Optionally the function accepts two arguments: `identifier` and
+`url` to override the defaults.  For more information have a look at
+the disqus widget documentation.

@@ -1,0 +1,9 @@
+title: Globals
+---
+summary: Globals specific to Lektor that templates have access to.
+---
+body:
+
+Certain variables and functions are always available in templates.  Mostly this
+gives you access to things like the [Pad :ref](../../db/pad/) but also useful
+helper functions.

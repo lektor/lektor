@@ -1,0 +1,38 @@
+title: markdown
+---
+summary: A type that can store and parse Markdown.
+---
+type: type
+---
+body:
+
+The `markdown` format is a special form of the [text :ref](../text/) type but
+instead of rendering unformatted text, it parses it as
+[Markdown :ext](https://en.wikipedia.org/wiki/Markdown) and converts it into
+HTML.
+
+Normally accessing the Markdown field just returns the rendered HTML but
+there are some special attributes on it to access more information:
+
+| Attribute      | Explanation
+| -------------- | --------------------------------------
+| `html`	 | the rendered Markdown as HTML string
+| `source`       | the unprocessed Markdown source
+
+Additional attributes can become available through the use of plugins.
+
+## Field Usage
+
+```ini
+[fields.body]
+label = Body
+type = markdown
+```
+
+## Template Usage
+
+```html+jinja
+<div class="body">
+  {{ this.body }}
+</div>
+```

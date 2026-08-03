@@ -1,0 +1,22 @@
+title: >
+---
+summary: True if the left side is larger than the right side.
+---
+type: operator
+---
+body:
+
+This evaluates to true if the left side compares larger than the right side.
+This behavior works best with [integers :ref](../../types/integer/)
+or [floats :ref](../../types/float/).
+
+## Template Example
+
+```html+jinja
+<h3>Well Rated Items</h3>
+<ul>
+{% for item in this.children.filter(F.stars > 3) %}
+  <li>{{ item.name }}: {{ item.stars }} stars</li>
+{% endfor %}
+</ul>
+```
