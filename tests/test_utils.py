@@ -14,6 +14,7 @@ from lektor.utils import build_url
 from lektor.utils import create_temp
 from lektor.utils import deprecated
 from lektor.utils import is_path_child_of
+from lektor.utils import is_valid_id
 from lektor.utils import join_path
 from lektor.utils import magic_split_ext
 from lektor.utils import make_relative_url
@@ -332,6 +333,16 @@ def test_create_temp(tmp_path):
 def test_create_temp_respects_umask(tmp_path, mode, umask):
     _, filename = create_temp(dir=tmp_path, mode=mode)
     assert oct(stat.S_IMODE(os.stat(filename).st_mode)) == oct(mode & ~umask)
+
+
+@pytest.mark.parametrize("id_", ["", "foo", "x.y", "x.", "x..y"])
+def test_is_valid_id_true(id_):
+    assert is_valid_id(id_)
+
+
+@pytest.mark.parametrize("id_", [".", "..", " x", "x y", "\N{EM QUAD}", "a/b", "a\\b"])
+def test_is_valid_id_false(id_):
+    assert not is_valid_id(id_)
 
 
 @pytest.mark.parametrize(
