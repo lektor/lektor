@@ -167,6 +167,14 @@ def untrusted_to_os_path(path):
 
 
 def is_path(path):
+    warnings.warn(
+        DeprecatedWarning(
+            "is_path",
+            reason="Do not use lektor.utils.use_path.  It's stupid.",
+            version="3.4.0",
+        ),
+        stacklevel=2,
+    )
     return os.path.sep in path or (os.path.altsep and os.path.altsep in path)
 
 
