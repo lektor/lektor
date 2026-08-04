@@ -693,11 +693,13 @@ def portable_popen(cmd, *args, **kwargs):
     return subprocess.Popen(cmd, *args, **kwargs)
 
 
-def is_valid_id(value):
+def is_valid_id(value: str) -> bool:
+    """Determine whether value is a valid id for a db object."""
     if value == "":
         return True
     return (
         "/" not in value
+        and "\\" not in value
         and value.strip() == value
         and value.split() == [value]
         and not value.startswith(".")
