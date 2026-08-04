@@ -612,7 +612,7 @@ def create_temp(
     dir: StrPath | None = None,
     text: bool = False,
     mode: int = 0o666,
-) -> tuple[int, str | bytes]:
+) -> tuple[int, str]:
     """Create and return a unique temporary file.
 
     The return value is a pair (fd, name) where fd is the file descriptor returned by
