@@ -6,6 +6,9 @@ These are all the changes in Lektor since the first public release.
 
 ### Fixes
 
+- Fix directory traversal vulnerability. When running on Windows, it was possible to write outside of the project's `content` sub-directory via the admin API.
+  Thank you to Arpit Jain (@arpitjain099) for the detailed report.
+
 - Update pins to exclude `mistune` 2.0.x, which have a bug relating to
   overzealous unescaping of HTML entities. ([#1272])
 
