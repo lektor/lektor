@@ -2,6 +2,29 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b15 (unreleased)
+
+### Fixes
+
+- Update pins to exclude `mistune` 2.0.x, which have a bug relating to
+  overzealous unescaping of HTML entities. ([#1272])
+
+### CI
+
+- Use [prek] to run pre-commit hooks
+- Pin GH action versions with [gha-update]
+
+### Frontend
+
+- Upgrade react-router to v8
+- Various dependency bumps (including [#1276], [#1271])
+
+[prek]: https://prek.j178.dev/
+[gha-update]: https://gha-update.readthedocs.io/
+[#1271]: https://github.com/lektor/lektor/pull/1271
+[#1272]: https://github.com/lektor/lektor/issues/1272
+[#1276]: https://github.com/lektor/lektor/pull/1276
+
 ## 3.4.0b14 (2026-05-05)
 
 ### Features
