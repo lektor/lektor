@@ -2,6 +2,18 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.4.0b16 (Unreleased)
+
+### Fixed
+
+- Allow _project tree_ to be located outside of the directory containing the _project file_.
+  The [documentation][docs-project-path] has always claimed that this was possible, but
+  it has not been (until now). ([#1289], [#858])
+
+[docs-project-path]: https://www.getlektor.com/docs/project/file/#:~:text=you%20can%20set%20the%20path%20in%20the%20file%20to%20a%20path%20(absolute%20or%20relative%20to%20the%20project%20file)%20which%20resolves%20to%20the%20project%20tree "Documentation on the `path` setting in the Lektor Project File"
+[#858]: https://github.com/lektor/lektor/issues/858
+[#1289]: https://github.com/lektor/lektor/pull/1289
+
 ## 3.4.0b15 (2026-08-07)
 
 ### Fixes
