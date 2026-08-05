@@ -33,7 +33,7 @@ is_windows = os.name == "nt"
 
 _slash_escape = "\\/" not in json.dumps("/")
 
-_slashes_re = re.compile(r"(?:/(?:\.{1,2}(?=/|$))?)+")
+_slashes_re = re.compile(r"(?x: [/\\] (?: \.{1,2} (?=[/\\]|$) )? )+")
 _last_num_re = re.compile(r"^(.*)(\d+)(.*?)$")
 _list_marker = object()
 _value_marker = object()
@@ -81,6 +81,16 @@ def join_path(a, b):
 
 
 def cleanup_path(path):
+    """Normalize up a db path.
+
+    A normalized db path will follows the semantics of an absolute POSIX path, with any
+    directory traversal path elements (``..`` or ``.``) ignored.
+
+    NB: This function is intended for use only on Lektor DB paths.  It is not intended
+    to be used on file-system paths. Lektor DB paths assume POSIX path semantics, so if
+    running under Windows, file-system semantics will differ.
+
+    """
     return "/" + _slashes_re.sub("/", path).strip("/")
 
 
@@ -109,6 +119,13 @@ def is_path_child_of(a, b, strict=True):
 
 
 def untrusted_to_os_path(path):
+    """Convert an untrusted (user-input) DB path to a relative file-system path.
+
+    NB: This function is intended for use only on Lektor DB paths.  It is not intended
+    to be used on file-system paths. Lektor DB paths assume POSIX path semantics, so if
+    running under Windows, file-system semantics will differ.
+
+    """
     if not isinstance(path, str):
         path = path.decode(fs_enc, "replace")
     clean_path = cleanup_path(path)
@@ -504,6 +521,7 @@ def is_valid_id(value):
         return True
     return (
         "/" not in value
+        and "\\" not in value
         and value.strip() == value
         and value.split() == [value]
         and not value.startswith(".")

@@ -106,11 +106,20 @@ def test_newrecord(scratch_test_client, scratch_project):
     assert Path(scratch_project.tree, "content", "new", "contents.lr").exists()
 
 
-def test_newrecord_bad_path(scratch_test_client, scratch_project):
-    params = {"path": "/../../templates", "id": "", "data": {}}
+@pytest.mark.parametrize("path", ["/../../templates", "/..\\..\\templates"])
+def test_newrecord_bad_path(path, scratch_test_client, scratch_project):
+    params = {"path": path, "id": "", "data": {}}
     resp = scratch_test_client.post("/admin/api/newrecord", json=params)
     assert resp.status_code == 400
     assert resp.get_data(as_text=True) == "Invalid path"
+
+
+@pytest.mark.parametrize("id_", [".foo", "a/b", "a\\..\\..\\templates"])
+def test_newrecord_bad_id(id_, scratch_test_client, scratch_project):
+    params = {"path": "/", "id": id_, "data": {}}
+    resp = scratch_test_client.post("/admin/api/newrecord", json=params)
+    assert resp.status_code == 200
+    assert resp.get_json() == {"valid_id": False, "exists": False, "path": None}
 
 
 def test_eventstream_yield_bytes():

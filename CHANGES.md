@@ -2,6 +2,15 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.14 (unreleased)
+
+### Vulnerabilities Fixed
+
+- Fix directory traversal vulnerability. When running on Windows, it
+  was possible to write outside of the project's `content`
+  sub-directory via the admin API.
+  Thank you to Arpit Jain (@arpitjain099) for the detailed report.
+
 ## 3.3.13 (2026-02-10)
 
 Lucky 13!

@@ -18,7 +18,6 @@ from lektor.utils import atomic_open
 from lektor.utils import cleanup_path
 from lektor.utils import increment_filename
 from lektor.utils import is_valid_id
-from lektor.utils import parse_path
 from lektor.utils import secure_filename
 
 
@@ -34,18 +33,13 @@ class BadDelete(BadEdit):
     pass
 
 
-def _is_valid_path(path: str) -> bool:
-    split_path = path.strip("/").split("/")
-    if split_path == [""]:
-        split_path = []
-    return parse_path(path) == split_path
-
-
 def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamodel=None):
-    """Creates an editor session for the given path object."""
-    if not _is_valid_path(path):
+    """Creates an editor session for the object at the given db path and alt."""
+    # path must be a canonical db-path,
+    # though for b/c we will accept paths without a leading "/"
+    path = path if path.startswith("/") else f"/{path}"
+    if cleanup_path(path) != path:
         raise BadEdit("Invalid path")
-    path = cleanup_path(path)
 
     if alt != PRIMARY_ALT and not pad.db.config.is_valid_alternative(alt):
         raise BadEdit("Attempted to edit an invalid alternative (%s)" % alt)

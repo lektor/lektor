@@ -35,6 +35,17 @@ class Project:
             inifile.get("project.name")
             or os.path.basename(filename).rsplit(".")[0].title()
         )
+        # NB: Here we force project.path to always be relative to the directory
+        # containing the Project File.  This is in contrast to the behavior described in
+        # the Lektor Documentation which allows for project.path to reference locations
+        # outside of the Project File.  For b/c, we maintain the non-doc-conforming
+        # behavior in the 3.3 branch, and switch to the (more sensible and) documented
+        # behavior in the 3.4 branch of Lektor.
+        #
+        # Note also, that the use of untrusted_to_os_path here is incorrect, as that
+        # function is really only meant to be applied to Lektor db-paths, not to
+        # filesystem paths.  Nevertheless, I think it works here, and it's what Lektor
+        # has been doing since day one.
         path = os.path.join(
             os.path.dirname(filename),
             untrusted_to_os_path(inifile.get("project.path") or "."),

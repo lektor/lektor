@@ -8,6 +8,7 @@ import pytest
 from lektor.utils import build_url
 from lektor.utils import cleanup_path
 from lektor.utils import is_path_child_of
+from lektor.utils import is_valid_id
 from lektor.utils import join_path
 from lektor.utils import magic_split_ext
 from lektor.utils import make_relative_url
@@ -190,6 +191,16 @@ def test_parse_path():
     assert parse_path("/foo/bar/../stuff") == ["foo", "bar", "stuff"]
 
 
+@pytest.mark.parametrize("id_", ["", "foo", "x.y", "x.", "x..y"])
+def test_is_valid_id_true(id_):
+    assert is_valid_id(id_)
+
+
+@pytest.mark.parametrize("id_", [".", "..", " x", "x y", "\N{EM QUAD}", "a/b", "a\\b"])
+def test_is_valid_id_false(id_):
+    assert not is_valid_id(id_)
+
+
 @pytest.mark.parametrize(
     "source, target, expected",
     [
@@ -235,6 +246,7 @@ def test_make_relative_url_relative_source_absolute_target():
         ("//a//./b//", "/a/b"),
         ("//a//../b//", "/a/b"),
         ("//a//..x/b//", "/a/..x/b"),
+        ("//a\\..\\b//", "/a/b"),
     ],
 )
 def test_cleanup_path(db_path, expected):
