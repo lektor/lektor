@@ -127,6 +127,7 @@ jobs:
         #   https://github.com/lektor/lektor/pull/933#issuecomment-923107580
         #   https://github.com/tox-dev/tox/issues/1550
         if: runner.os == 'Windows'
+        shell: pwsh
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python dependencies
@@ -135,8 +136,6 @@ jobs:
           python -m pip install tox tox-uv tox-gh-actions coverage[toml]
       - name: Run python tests
         run: tox
-        env:
-          TOX_SKIP_ENV: ${{ matrix.tox_skip_env }}
       - name: Upload coverage data
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
