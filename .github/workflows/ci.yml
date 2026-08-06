@@ -114,6 +114,7 @@ jobs:
 
       - name: Install Windows system dependencies
         if: startsWith(runner.os, 'windows') && matrix.install-imagemagick
+        shell: pwsh
         run: |
           choco install --no-progress --timeout 600 imagemagick.app ffmpeg
           # The imagemagick.app package, for whatever reason, installs
@@ -135,6 +136,7 @@ jobs:
         #   https://github.com/lektor/lektor/pull/933#issuecomment-923107580
         #   https://github.com/tox-dev/tox/issues/1550
         if: startsWith(runner.os, 'windows')
+        shell: pwsh
         run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python dependencies
