@@ -131,13 +131,6 @@ jobs:
           $ImDirs | Out-File $env:GITHUB_PATH utf8 -Append
           $ImDirs | % { "::notice title=ImageMagick::ImageMagick installed at $_" }
         continue-on-error: true
-      - name: Workaround for UnicodeDecodeError from tox on Windows
-        # Refs:
-        #   https://github.com/lektor/lektor/pull/933#issuecomment-923107580
-        #   https://github.com/tox-dev/tox/issues/1550
-        if: startsWith(runner.os, 'windows')
-        shell: pwsh
-        run: Out-File $env:GITHUB_ENV utf8 -Append -InputObject 'PYTHONIOENCODING=utf-8'
 
       - name: Install python dependencies
         run: |
