@@ -574,6 +574,8 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenTextMode = "r",
     encoding: str | None = None,
+    *,
+    fsync: bool = True,
 ) -> Iterator[io.TextIOWrapper]: ...
 
 
@@ -583,6 +585,8 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeWriting,
     encoding: None = None,
+    *,
+    fsync: bool = True,
 ) -> Iterator[io.BufferedWriter]: ...
 
 
@@ -592,12 +596,18 @@ def atomic_open(
     filename: StrPath,
     mode: _AtomicOpenBinaryModeReading,
     encoding: None = None,
+    *,
+    fsync: bool = True,
 ) -> Iterator[io.BufferedReader]: ...
 
 
 @contextmanager
 def atomic_open(
-    filename: StrPath, mode: _AtomicOpenMode = "r", encoding: str | None = None
+    filename: StrPath,
+    mode: _AtomicOpenMode = "r",
+    encoding: str | None = None,
+    *,
+    fsync: bool = True,
 ) -> Iterator[IO[Any]]:
     """Open a file for atomic update.
 
@@ -609,6 +619,12 @@ def atomic_open(
 
     If an exception is thrown during this process the temporary file is silently
     deleted.
+
+    To avoid to possibility of leaving a partially written file (e.g. in the event of
+    sudden power loss), when ``fsync`` is ``True`` (the default), an attempt is made to
+    ensure that all buffers are flushed to disc before the file is renamed to the
+    target. This can take a bit of time.  If that additional delay is unacceptable, set
+    ``fsync`` to ``False``.
 
     """
     if any(c in mode for c in "ax+"):
@@ -627,6 +643,9 @@ def atomic_open(
     try:
         with open(fd, mode, encoding=encoding) as fp:
             yield fp
+            if fsync:
+                fp.flush()
+                os.fsync(fd)
         os.replace(tmp_filename, filename)
     except Exception:
         with suppress(OSError):
