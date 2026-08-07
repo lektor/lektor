@@ -306,6 +306,7 @@ def test_upload_new_attachment_failure(scratch_client, scratch_content_path, pat
         ),
         ("/page", ".new", {"valid_id": False, "exists": False, "path": None}, None),
         ("/", "page", {"valid_id": True, "exists": True, "path": "/page"}, None),
+        ("/", "x\\..\\new", {"valid_id": False, "exists": False, "path": None}, None),
     ],
 )
 def test_add_new_record(scratch_client, scratch_project, path, id, expect, creates):
@@ -334,6 +335,8 @@ def test_add_new_record(scratch_client, scratch_project, path, id, expect, creat
         # Ensure that attempts to create records outside of the `content` subtree fail.
         # (Reported by Riku Bamba)
         ("/../../templates", ""),
+        # (Reported by Arpit Jain)
+        ("/..\\..\\templates", ""),
     ],
 )
 def test_add_new_record_bad_request(scratch_client, scratch_project, path, id):

@@ -108,7 +108,20 @@ def join_path(a, b):
     return rv
 
 
-def cleanup_path(path):
+def cleanup_path(path: str) -> str:
+    """Normalize up a db path.
+
+    A normalized db path will follows the semantics of an absolute POSIX path, with any
+    directory traversal path elements (``..`` or ``.``) resolved.
+
+    NB: This function is intended for use only on Lektor DB paths.  It is not intended
+    to be used on file-system paths. Lektor DB paths assume POSIX path semantics, so if
+    running under Windows, file-system semantics will differ.
+
+    """
+    # Protect against directory traversal attacks when running under Windows.
+    path = path.replace("\\", "/")
+
     # NB: POSIX allows for two leading slashes in a pathname, so we have to
     # deal with the possiblity of leading double-slash ourself.
     return posixpath.normpath("/" + path.lstrip("/"))
@@ -158,7 +171,14 @@ def is_path_child_of(a, b, strict=True):
     return a_p[: len(b_p)] == b_p and len(a_p) > len(b_p)
 
 
-def untrusted_to_os_path(path):
+def untrusted_to_os_path(path: str | bytes) -> str:
+    """Convert an untrusted (user-input) DB path to a relative file-system path.
+
+    NB: This function is intended for use only on Lektor DB paths.  It is not intended
+    to be used on file-system paths. Lektor DB paths assume POSIX path semantics, so if
+    running under Windows, file-system semantics will differ.
+
+    """
     if not isinstance(path, str):
         path = path.decode(fs_enc, "replace")
     clean_path = cleanup_path(path)
@@ -673,11 +693,13 @@ def portable_popen(cmd, *args, **kwargs):
     return subprocess.Popen(cmd, *args, **kwargs)
 
 
-def is_valid_id(value):
+def is_valid_id(value: str) -> bool:
+    """Determine whether value is a valid id for a db object."""
     if value == "":
         return True
     return (
         "/" not in value
+        and "\\" not in value
         and value.strip() == value
         and value.split() == [value]
         and not value.startswith(".")
