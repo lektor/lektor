@@ -2,7 +2,7 @@
 
 These are all the changes in Lektor since the first public release.
 
-## 3.3.14 (unreleased)
+## 3.3.14 (2026-08-07)
 
 ### Vulnerabilities Fixed
 
