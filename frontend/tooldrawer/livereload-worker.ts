@@ -15,8 +15,7 @@ import { sseDataStream } from "./lib/server-sent-events";
 // The data in the messages are JSON strings which are expected decode to
 // one of the following type.
 type SSEDataType =
-  | { type: "ping"; versionId: string }
-  | { type: "reload"; path: string };
+  { type: "ping"; versionId: string } | { type: "reload"; path: string };
 
 /** The livereload shared worker.
  *

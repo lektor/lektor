@@ -21,7 +21,9 @@ Did you make a pull request to update the docs?
 
 - [ ] Wrote at least one-line docstrings (for any new functions)
 - [ ] Added unit test(s) covering the changes (if testable)
+
 <!--- Remember that an image/animation is worth a thousand words! --->
+
 - [ ] Included a screenshot or animation (if affecting the UI, see [Licecap](https://www.cockos.com/licecap/))
 - [ ] Link to corresponding documentation pull request for [getlektor.com](https://github.com/lektor/lektor-website)
 

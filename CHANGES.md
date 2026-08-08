@@ -193,7 +193,7 @@ See [#1138] for details.
 - Update npm locks, upgrade esbuild, update tests to React 18 APIs. ([#1170])
 - Apply `pyupgrade --py38-plus` to code base ([#1174])
 
-[\@uyar]: https://github.com/uyar
+[@uyar]: https://github.com/uyar
 [#1138]: https://github.com/lektor/lektor/pull/1138
 [#1153]: https://github.com/lektor/lektor/pull/1153
 [#1155]: https://github.com/lektor/lektor/pull/1155
