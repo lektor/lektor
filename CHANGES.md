@@ -4,10 +4,12 @@ These are all the changes in Lektor since the first public release.
 
 ## 3.4.0b15 (2026-08-07)
 
-### Fixes
+### Vulnerabilities Fixed
 
 - Fix directory traversal vulnerability. When running on Windows, it was possible to write outside of the project's `content` sub-directory via the admin API.
-  Thank you to Arpit Jain (@arpitjain099) for the detailed report.
+  Thank you to Arpit Jain (@arpitjain099) for the detailed report. ([#1288])
+
+### Fixes
 
 - Update pins to exclude `mistune` 2.0.x, which have a bug relating to
   overzealous unescaping of HTML entities. ([#1272])
@@ -27,6 +29,7 @@ These are all the changes in Lektor since the first public release.
 [#1271]: https://github.com/lektor/lektor/pull/1271
 [#1272]: https://github.com/lektor/lektor/issues/1272
 [#1276]: https://github.com/lektor/lektor/pull/1276
+[#1288]: https://github.com/lektor/lektor/pull/1288
 
 ## 3.4.0b14 (2026-05-05)
 
