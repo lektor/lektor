@@ -141,6 +141,18 @@ class _JpegFormatInfo(_FormatInfo):
             yield f"q{value}"
 
 
+class _WebPFormatInfo(_FormatInfo):
+    format = "WEBP"
+    default_save_params = {"quality": 85}
+    extensions = (".webp",)
+
+
+class _AvifFormatInfo(_FormatInfo):
+    format = "AVIF"
+    default_save_params = {"quality": 85}
+    extensions = (".avif",)
+
+
 class ImageSize(NamedTuple):
     width: int
     height: int
@@ -419,6 +431,7 @@ def make_image_thumbnail(
     mode: ThumbnailMode = ThumbnailMode.DEFAULT,
     upscale: bool | None = None,
     quality: int | None = None,
+    format: str | None = None,
 ) -> Thumbnail:
     """Helper method that can create thumbnails from within the build process
     of an artifact.
@@ -460,7 +473,7 @@ def make_image_thumbnail(
 
     thumbnail_params = ThumbnailParams(
         size=size,
-        format=image_info.format.upper(),
+        format=format or image_info.format.upper(),
         quality=quality,
         crop=mode == ThumbnailMode.CROP,
     )
