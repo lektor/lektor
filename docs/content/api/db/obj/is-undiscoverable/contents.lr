@@ -1,0 +1,13 @@
+title: is_undiscoverable
+---
+summary: The inverse of is_discoverable.
+---
+type: property
+---
+version_added: 2.0
+---
+body:
+
+This works like [is_discoverable :ref](../is-discoverable/) but the other
+way around.  It just exists for consistency and to make checks look a little
+bit nicer in some places.

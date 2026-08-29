@@ -1,0 +1,21 @@
+title: attachments
+---
+summary: Returns a query to the attachments of a page.
+---
+type: property
+---
+body:
+
+This returns a [Query :ref](../../query/) to all attachments of a page.  This
+query can be further filtered to access specific types of attachments if
+needed.
+
+## Example
+
+```html+jinja
+<div class="images">
+{% for image in this.attachments.images %}
+  <img src="{{ image.thumbnail(240) }}">
+{% endfor %}
+</div>
+```

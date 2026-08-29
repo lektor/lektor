@@ -1,0 +1,25 @@
+title: gather_dependencies
+---
+summary: Can collect dependencies for a code block.
+---
+type: method
+---
+signature: func
+---
+body:
+
+As code is executing in the context of the build process Lektor will
+automatically track dependencies.  However in some cases it might be
+useful for a plugin to know exactly which dependencies are recorded.
+
+In this case this method can be used as a context manager.  Whenever Lektor
+encounters a dependency it will invoke the passed function.
+
+## Example
+
+```python
+deps = set()
+with get_ctx().gather_dependencies(deps.add):
+    items = pad.query('/path/to/some/pages').all()
+print('The dependencies are: %s' % deps)
+```

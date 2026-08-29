@@ -1,0 +1,21 @@
+title: width
+---
+summary: Returns the width of an image in pixels.
+---
+type: property
+---
+body:
+
+If you are dealing with an attachment that is an image, this property becomes
+available and indicates the width of the image in pixels if that information
+is available.
+
+## Example
+
+```html+jinja
+{% for image in this.attachments.images %}
+  <img src="{{ image|url }}"
+    width="{{ image.width }}"
+    height="{{ image.height }}">
+{% endfor %}
+```

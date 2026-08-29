@@ -1,0 +1,63 @@
+title: add_build_program
+---
+type: method
+---
+signature: cls, program
+---
+summary: Registers a build program for a source object.
+---
+body:
+
+This is very experimental API and used to register build programs for
+custom source objects.  This can be used to implement virtual items.  This
+works in combination with [generator :ref](../generator/) and
+[urlresolver :ref](../urlresolver/) and is responsible for generating
+artifacts out of source objects.
+
+## Example
+
+```python
+from lektor.sourceobj import VirtualSourceObject
+from lektor.build_programs import BuildProgram
+from lektor.utils import build_url
+
+class Source(VirtualSourceObject):
+
+    @property
+    def path(self):
+        return self.record.path + '@source'
+
+    @property
+    def source_content(self):
+        with open(self.record.source_filename) as f:
+            return f.read().decode('utf-8')
+
+    @property
+    def url_path(self):
+        return build_url([self.record.url_path, 'source.txt'])
+
+class SourceBuildProgram(BuildProgram):
+
+    def produce_artifacts(self):
+        self.declare_artifact(
+            self.source.url_path,
+            sources=list(self.source.iter_source_filenames()))
+
+    def build_artifact(self, artifact):
+        artifact.render_template_into('view_source.html',
+                                      this=self.source)
+
+env.add_build_program(Source, SourceBuildProgram)
+
+@env.virtualpathresolver('source')
+def resolve_virtual_path(record, pieces):
+    if not pieces:
+        return Source(record)
+```
+
+And here the example `view_source.html` template:
+
+```html+jinja
+<h2>Source for {{ this.parent.path }}</h2>
+<pre>{{ this.source_content }}</pre>
+```

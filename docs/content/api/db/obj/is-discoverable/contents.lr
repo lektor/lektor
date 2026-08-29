@@ -1,0 +1,32 @@
+title: is_discoverable
+---
+summary: Indicates that a record can be discovered via .children
+---
+type: property
+---
+version_added: 2.0
+---
+body:
+
+Records can be discoverable or non discoverable.  This is controlled by the
+`_discoverable` system field which defaults to `yes`.  This property can quickly
+check if a record is considered non-discoverable by Lektor or not.  In
+particular a hidden record is also considered undiscoverable.
+
+Undiscoverable records can be queried and final pages will be built but they
+are exempt from queries of the record.  This is useful for pages that should
+be built but not show up yet on overview pages.  For instance this can be used
+to implement drafts of blog posts or similar things.
+
+This property is implemented on the level of source objects to make it
+possible to use this API in all cases.  The default implementation of
+source objects will always return `true` for discoverability checks.
+
+## Example
+
+```html+jinja
+{% set downloads = site.get('/downloads') %}
+{% if downloads.is_discoverable %}
+  <p><a href="{{ downloads|url }}">Go to downloads</a>
+{% endif %}
+```

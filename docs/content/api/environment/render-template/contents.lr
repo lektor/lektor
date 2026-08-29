@@ -1,0 +1,39 @@
+title: render_template
+---
+type: method
+---
+signature: name, pad=None, this=None, values=None, alt=None
+---
+summary: Renders a template from the template folder.
+---
+body:
+
+Whenever Lektor needs to render a template, it will use this exact
+method.  Here are the parameters and what they mean:
+
+* `name`: this is the name of the template that should be rendered.  It's
+  the local filename relative to the `templates` folder and uses slashes
+  for paths.
+* `pad`: when a [Pad :ref](../../pad/) is available, it should be provided
+  so that the `site` variable can be populated.  If a context is available
+  then the pad will also be pulled from the context if needed.
+* `this`: the value of the `this` variable in templates.  This should always
+  be the closest renderable thing.  Typically this is a [Record
+  :ref](../../db/record/) or flow block or something similar.
+* `values`: optional additional variables can be provided as a dictionary here.
+* `alt`: this can override the default selected `alt`.  If not provided it's
+  discovered from `this` and it will default to `_primary` if no other
+  information can be found.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+env = project.make_env(load_plugins=False)
+pad = env.new_pad()
+rv = env.render_template('hello.html', pad=pad, this={
+    'title': 'Demo Object'
+})
+```

@@ -1,0 +1,9 @@
+title: databags
+---
+summary: Provides access to the databags system.
+---
+type: property
+---
+body:
+
+Through this attribute you can access the stored [databags :ref](../../../databags/).

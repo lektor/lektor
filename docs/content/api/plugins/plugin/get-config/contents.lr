@@ -1,0 +1,27 @@
+title: get_config
+---
+type: method
+---
+signature: fresh=False
+---
+summary: Returns a loaded config for the plugin as ini file.
+---
+body:
+
+This loads the config of the plugin as an [Ini File :ext](https://github.com/mitsuhiko/python-inifile).
+
+Dotted paths are used to navigate into sections.  So `get('foo.bar')` would
+navigate to the `bar` key in the `[foo]` section.
+
+## Example
+
+```python
+from lektor.pluginsystem import Plugin
+
+
+class MyPlugin(Plugin):
+
+    def on_env_setup(self, **extra):
+        color = self.get_config().get('color')
+        self.env.jinja_env.globals['my_color'] = color
+```

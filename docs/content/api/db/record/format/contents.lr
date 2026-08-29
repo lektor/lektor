@@ -1,0 +1,18 @@
+title: format
+---
+summary: Returns the format of a supported attachment.
+---
+type: property
+---
+body:
+
+This returns the format of the attachment as a string.  This is currently
+only implemented for attachments that are images.
+
+## Example
+
+```html+jinja
+{% for image in this.attachments.images %}
+  <p>{{ image._id }}: {{ image.format }}
+{% endfor %}
+```

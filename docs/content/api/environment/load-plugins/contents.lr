@@ -1,0 +1,21 @@
+title: load_plugins
+---
+type: method
+---
+summary: Loads the available plugins for the environment.
+---
+body:
+
+Normally when an environment is constructed plugins are loaded automatically.
+If you disabled this when creating the environment you can still at a later
+point load the plugins by invoking this method.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+env = project.make_env(load_plugins=False)
+env.load_plugins()
+```

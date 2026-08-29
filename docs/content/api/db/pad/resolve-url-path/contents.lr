@@ -1,0 +1,33 @@
+title: resolve_url_path
+---
+summary: Resolves a URL path to a into a source object.
+---
+type: method
+---
+signature: url_path, include_invisible=False, include_assets=False, alt_fallback=True
+---
+body:
+
+This method is used by Lektor to resolve a URL path to a
+[Source Object :ref](../../obj/).  This is not particularly useful to use
+within templates but it's very useful in the `shell` to debug what's
+happening in Lektor.
+
+This can resolve into any source object, so not just records.  If you only
+want to resolve to records you can pass `include_assets=False` and only
+records will be included.
+
+## Examples
+
+Shows an example of how to resolve paths into assets:
+
+```pycon
+>>> pad.resolve_url_path('/docs/api')
+<Page model=u'doc-page' path=u'/docs/api'>
+>>> pad.resolve_url_path('/header.jpg')
+<Image model='none' path=u'/header.jpg'>
+>>> pad.resolve_url_path('/static')
+<Directory '/static'>
+>>> pad.resolve_url_path('/missing-page') is None
+True
+```

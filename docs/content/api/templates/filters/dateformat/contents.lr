@@ -1,0 +1,41 @@
+title: dateformat
+---
+type: filter
+---
+signature: date, format='medium', locale=None
+---
+summary: Formats a date into a string
+---
+body:
+
+To format a proper date (this is created by the [date
+:ref](../../../../api/db/types/date/) type) into a string this filter can
+be used.  It will automatically format based on the language used by the
+current context which is based on the locale of the current alt.
+
+A different language can be provided with the `locale` parameter.
+
+The following formats are locale specific:
+
+| Format   | How it Looks
+| -------- | ----------------
+| `full`   | Saturday, December 5, 2015
+| `long`   | December 5, 2015
+| `medium` | Dec 5, 2015
+| `short`  | 12/5/15
+
+In addition to that format codes from the CLDR project can be used.  For
+more information see [CLDR Date/Time Symbols
+:ext](http://cldr.unicode.org/translation/date-time).
+
+## Examples
+
+```html+jinja
+<p>Date: {{ this.pub_date|dateformat('full') }}
+```
+
+Or with custom CLDR format strings:
+
+```html+jinja
+<p>Date: {{ this.pub_date|dateformat('EEE, MMM d, ''yy') }}
+```

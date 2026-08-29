@@ -1,0 +1,27 @@
+title: has_next
+---
+summary: Whether the record has a next sibling.
+---
+type: method
+---
+body:
+
+True if there is a next record in the parent's list of children.
+
+If the parent record has pagination enabled, then use the pagination query to
+filter and order the children. Otherwise, the parent's standard configuration
+for children is used.
+See [the pagination guide :ref](../../../../guides/pagination/) and the
+[page order guide :ref](../../../../guides/page-order/).
+
+## Example
+
+```html+jinja
+{% if this.has_next() %}
+  <a href="{{ this.get_siblings().next_page|url }}">next</a>
+{% else %}
+  <p>This is the last entry.
+{% endif %}
+```
+
+See also: [has_prev :ref](../has_prev/) and [get_siblings :ref](../get_siblings/).

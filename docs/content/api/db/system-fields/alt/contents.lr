@@ -1,0 +1,11 @@
+title: _alt
+---
+summary: The alt for this record.
+---
+type: sysfield
+---
+body:
+
+This field points to the [Alternative :ref](../../../../content/alts/) of
+the page.  This should be considered as an internal field that is exposed
+through the [alt :ref](../../obj/alt/) source object property instead.

@@ -1,0 +1,23 @@
+title: declare_artifact
+---
+signature: artifact_name, sources=None, extra=None
+---
+summary: Declares an artifact to build from this program.
+---
+type: method
+---
+body:
+
+This method is supposed to be called from [produce_artifacts
+:ref](../produce-artifacts/).  For each of these invocations the builder will
+later invoke the [build_artifact :ref](../build-artifact/) function.
+
+The parameters behave as follows:
+
+* `artifact_name`: the name of the final artifact that will be built.  This
+  will be converted into a filename appropriate for the operating system
+  automatically and should thus always use forward slashes.
+* `sources`: a list of source filenames that make up the artifact.  This will
+  be tracked as main indication about how artifacts change.
+* `extra`: arbitrary extra information that is associated with the artifact so
+  that [build_artifact :ref](../build-artifact/) can use it.

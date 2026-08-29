@@ -1,0 +1,11 @@
+title: url_path
+---
+summary: The absolute URL path of the source object.
+---
+type: property
+---
+body:
+
+This is the absolute URL path to the page where the source object can be
+reached when rendered.  Typically the [url :ref](../../../templates/filters/url/)
+filter or the [url_to :ref](../url-to/) method would be used.

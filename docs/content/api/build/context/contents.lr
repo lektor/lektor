@@ -1,0 +1,29 @@
+title: Context
+---
+summary: Provides context information for the current build.
+---
+module: lektor.context
+---
+type: class
+---
+body:
+
+When Lektor builds sources into finished build artifacts it performs many
+operations in addition to just creating the end result.  For instance it needs
+to perform dependency tracking, it needs to remember that there might be
+associated other artifacts and more.  All this information is tracked on the
+`Context` during a build of a single source.  At a later point the builder
+will look at the context to decide on further operations to perform.
+
+The current context can be discovered by calling the [get_ctx :ref](../get-ctx/)
+function which will return it.  If there is no artifact build ongoing then
+the return value will be `None`.
+
+## Basic Example
+
+```python
+from lektor.context import get_ctx
+
+ctx = get_ctx()
+print('The current source is %s' % ctx.source)
+```

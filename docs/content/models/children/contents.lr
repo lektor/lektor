@@ -1,0 +1,97 @@
+title: Children & Pagination
+---
+summary: Explains how child records and pagination works.
+---
+body:
+
+By default each model can have child pages.  This is what enables the
+hierarchical structure of the Lektor database.  Children are configured
+together with a model that encloses it.  This is typically called the
+“collection model”.  For instance you can have a collection model called
+`pages` which is the parent to a few `page` children.
+
+## Child Configuration
+
+Most configuration related to child pages goes into `[children]`.  It
+configures how children of the model should be handled.  In particular it
+controls if a page can have children to begin with, if the children can be of
+any format or have to match specific models and more.
+
+Here are the most important options below `[children]`:
+
+- `enabled`: this can enable or disable children.  The default is that a
+  page can have children.
+- `slug_format`: this key controls the URL key for children.  By default
+  the URL key is the ID of the page.  However in some cases you might
+  want to change that.  For instance blog-posts might want to pull in
+  parts of the date into the URL.  This is a template expression.
+- `model`: if this is set to a string, then all children are automatically
+  forced to the same model and the UI will not give a way to select a
+  model when creating a new child page.  This allows specific parts of
+  the website to use the correct models automatically.  For instance you
+  can force all pages below `/projects` to use the `project` model.
+- `order_by`: a comma separated list of fields that indicate the default
+  sort order.  If a field is prefixed with a minus sign, the order is
+  inversed.
+- `replaced_with`: this allows a page to simulate that it has children
+  when it really has not.  This can be a query expression and the result
+  is then used as the children of the model.  This for instance can be
+  used to implement categories with filtering.
+- `hidden`: if this is set it can override the parent's hidden flag for
+  all children.  This is particularly useful if you want to have a folder
+  for error pages or other special pages where the parent itself should not
+  be rendered but all children are.  The default is not set.
+
+!! The `hidden` flag was added in Lektor 2.0
+
+## Child Slug Behavior
+
+Slugs are the URL paths or more correctly: parts of it.  The URL paths
+always are the concatenation from the parent's page URL path plus the
+children's slug.  If not configured the default slug of children is the
+page's `_id`.  A slug can contain slashes to navigate into folders.  This
+also allows pages to overlap into other pages.  For instance if you have
+a model called `categories` which is used by a folder named `categories/`,
+that folder could set the `_slug` to `blog/categories` and then the URL
+for categories would be `blog/categories/example` instead of
+`categories/example`.
+
+The default slug can be changed with the `slug_format` parameter in the
+`[children]` section which can be a template expression.  For instance a
+common way to format slugs would be to include some date components.  What's
+important about this is that the slug expression must not fail even if fields
+are empty!  This is necessary because new pages will start out with the
+fields not being filled in.
+
+This for instance includes a date in the URL if set:
+
+```ini
+slug_format = {{ (this.date|dateformat('YYYY/M/') if this.date) ~ this._id }}
+```
+
+## Pagination
+
+In general a source document renders into a single page.  The exception to
+that rule are pages with children which show the children on the rendered
+page and have pagination enabled.  In that case it becomes possible to
+slide the range of children into smaller pieces and render those slides
+instead.
+
+Pagination is controlled from the `[pagination]` section.  The following
+keys are available:
+
+* `enabled`: if set to `yes` pagination becomes enabled.  It's off by
+  default.
+* `per_page`: this controls how many children are shown per page.  If
+  pagination is enabled and this is not set, an implicit default of `20`
+  is assumed.
+* `items`: if this is set to a query then the pagination's items will be
+  overridden by it.  This can be used to make the pagination work over a
+  subset of items.
+
+If pagination is enabled then the [pagination attribute
+:ref](../../api/db/record/pagination/) of a record becomes available.  For
+more information have a look at the [pagination guide
+:ref](../../guides/pagination/).
+
+!! The `items` property was added in Lektor 2.0

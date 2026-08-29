@@ -1,0 +1,20 @@
+title: record
+---
+summary: A reference to the current source record.
+---
+type: property
+---
+body:
+
+This works almost exactly like the [source :ref](../source/) property but the
+difference is that it is `None` if the source object is not a
+[Record :ref](../../../db/record/).
+
+## Example
+
+```python
+from lektor.context import get_ctx
+
+ctx = get_ctx()
+print ctx.record.record_label
+```

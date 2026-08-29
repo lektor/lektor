@@ -1,0 +1,94 @@
+title: Content
+---
+summary: Learn how the content is stored, built and how you can edit it.
+---
+sort_key: 80
+---
+body:
+
+Lektor builds a website by taking all the files in the `content/` folder,
+processing them according to the rules of your [Models :ref](../models/)
+and rendering them by using templates.  Don't worry.  It's easier than it
+sounds.
+
+## One Folder — One Page
+
+Each page (or each URL) corresponds to a folder below the `content/` folder.
+There can be as many folders as you want and they can be arbitrarily nested.
+Within each folder there needs to be at least one file, the content file:
+`contents.lr`.  Into that file, your data goes.
+
+All the other files in a folder are considered attachments of the page.
+
+Here is an example structure from a website:
+
+```
+content/
+  contents.lr
+  portfolio/
+    contents.lr
+    project-a/
+      contents.lr
+      thumbnail.jpg
+    project-b/
+      contents.lr
+      thumbnail.jpg
+  about/
+    contents.lr
+```
+
+## One Page — One URL
+
+Out of each `contents.lr` file, Lektor builds exactly one final page on
+exactly one URL.  So if you have `content/portfolio/project-a/contents.lr`
+the rendered end result will be at `/portfolio/project-a/`.
+
+## Page, Model and Template
+
+Each page is associated with a model and a template.  Each page needs to have
+a model that defines which fields exist.  The template by default matches the
+model name but it can be overridden on a per-page basis.
+
+So how is the model selected?  Either explicitly in the `contents.lr` file
+with the `_model` key or by configuration and convention.  Lektor will
+select the default model based on trying things in this order:
+
+1. configured model in contents file
+2. model configured from a parent model for all children
+3. model matching the page ID
+4. the model named `page`
+
+The template is always the name of the model with `.html` as extension.  It
+can be overridden in the content file with the `_template` field.
+
+## Content File Format
+
+So now it's time to talk about the content file.  The content file is just a
+UTF-8 encoded text file with the `.lr` extension.  It can be edited with any
+text editor that supports UTF-8 as character encoding.  This file consists of
+multiple data fields according to the model.  The format is very simple:
+
+```
+_model: page
+----
+title: The Page Title
+----
+body:
+
+The page body goes here
+```
+
+Fields are separated by three dashes `---` and follow the format `key: value`.
+For values with multiple lines it's recommended to insert two newlines after
+the key.  The format of each field is specific to how the model is configured.
+
+Some fields are plain text, others can be markdown syntax and more.  These
+fields become available for rendering in the template automatically.
+
+!!! If you want to use `---` itself in the document text, just add another
+dash.  This means `----` will render as `---` and `-----` will render as
+`----` etc.
+
+Fields prefixed with an underscore are so-called system fields.  They are
+provided by Lektor and customize behavior within Lektor.  For a list of
+available fields see [System Fields :ref](../api/db/system-fields/).

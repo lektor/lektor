@@ -1,0 +1,179 @@
+title: Webpack
+---
+summary: Shows how to use webpack to do Sass, Less or other things with Lektor.
+---
+body:
+
+Websites are exploding in complexity and even static websites are no exception
+to this.  In particular systems like bootstrap and friends no longer just come
+in CSS files but they come with their own build setup to ship JavaScript files,
+they use Less or Sass to build the stylesheets and much more.
+
+Right now there is a fight between different systems to figure out which way
+the journey will go, but one of the best solutions has turned out to be
+[webpack :ext](https://webpack.github.io/).
+
+Webpack is not natively supported by Lektor but there is an official [Webpack
+Support Plugin :ext](https://github.com/lektor/lektor-webpack-support) which
+can be used to make Lektor and Webpack friends.
+
+## Enabling the Plugin
+
+First you need to enable the plugin.  The following command will do that
+for you:
+
+```
+$ lektor plugins add webpack-support
+```
+
+## Webpack Setup
+
+Now you need to configure webpack.  The plugin expects a webpack project in the
+`webpack/` folder.  Within you will need a `package.json` as well as a
+`webpack.config.js`
+
+### `package.json`
+
+This file instructs `npm` which packages we will need.
+
+[npm-init :ext](https://docs.npmjs.com/cli/init) is a command-line tool to
+interactively create a ``package.json`` file.
+
+```
+$ npm init
+```
+
+This will ask you a bunch of questions (invoke with ``--yes`` to use default
+values) and then generate a ``package.json`` file for you.
+
+It should look similar to the following example. Please **do not** just
+copy-paste this! Instead run the tool, so that your ``package.json`` meets
+the latest format specification.
+
+```json
+{
+  "name": "lektor-example",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
+```
+
+Now we can `npm install` all the things we want:
+
+```
+$ npm install --save-dev webpack babel-core node-sass babel-loader sass-loader css-loader url-loader style-loader file-loader extract-text-webpack-plugin
+```
+
+This will install webpack itself together with babel and sass as well as
+a bunch of loaders we need for getting all that configured.  Because we
+created a `package.json` before and we used `--save-dev` the dependencies
+will be remembered in the `package.json` file.
+
+### `webpack.config.js`
+
+Next up is the webpack config file.  Here we will go with a very basic
+setup that's good enough to cover most things you will encounter.  The
+idea is to build the files from `webpack/scss` and `webpack/js` into
+`assets/static/gen` so that we can use it even if we do not have webpack
+installed for as long as someone else ran it before.
+
+In this example we will configure the following things:
+
+* all `.scss` files will be processed with Sass
+* all `.js` files will be processed with Babel to convert ES6 into ES5
+* JS and CSS files will be minified
+* all built files will go to `assets/static/gen`
+* there will be a `gen/app.js` and a `gen/styles.css` file to include
+
+```javascript
+var webpack = require('webpack');
+var path = require('path');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+module.exports = {
+  entry: {
+    'app': './js/main.js',
+    'styles': './scss/main.scss'
+  },
+  output: {
+    path: path.dirname(__dirname) + '/assets/static/gen',
+    filename: '[name].js'
+  },
+  devtool: '#cheap-module-source-map',
+  resolve: {
+    modules: ['node_modules'],
+    extensions: ['.js']
+  },
+  module: {
+    rules: [
+      { test: /\.js$/, exclude: /node_modules/,
+        loader: 'babel-loader' },
+      { test: /\.scss$/,
+        loader: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader!sass-loader' } ) },
+      { test: /\.css$/,
+        loader: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader' } ) },
+      { test: /\.(woff2?|ttf|eot|svg|png|jpe?g|gif)$/,
+        loader: 'file' }
+    ]
+  },
+  plugins: [
+    new ExtractTextPlugin({
+      filename: 'styles.css',
+      allChunks: true
+    }),
+    new webpack.optimize.UglifyJsPlugin()
+  ]
+};
+```
+
+## Creating the App
+
+Now we can start building our app.  We configured at least two files
+in webpack: `js/main.js` and `scss/main.scss`.  Those are the entry
+points we need to have.  You can create them as empty files in
+`webpack/js/main.js` and `webpack/scss/main.scss`.
+
+## Running the Server
+
+Now you're ready to go.  When you run `lektor server` webpack will not
+run, instead you need to now run it with the `webpack` flag which
+will enable the webpack build:
+
+```
+$ lektor server -f webpack
+```
+
+Webpack automatically builds your files into `assets/static/gen` and this is
+where Lektor will then pick up the files.  This is done so that you can ship
+the webpack generated assets to others that do not have webpack installed which
+simplifies using a Lektor website that uses webpack.
+
+## Manual Builds
+
+To manually trigger a build that also invokes webpack you can also pass
+the `webpack` flag there:
+
+```
+$ lektor build -f webpack
+```
+
+## Including The Files
+
+Now you need to include the files in your template.  This will do it:
+
+```html+jinja
+<link rel="stylesheet" href="{{
+  '/static/gen/styles.css'|asseturl }}">
+<script type=text/javascript src="{{
+  '/static/gen/app.js'|asseturl }}" charset="utf-8"></script>
+```

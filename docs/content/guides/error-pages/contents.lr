@@ -1,0 +1,86 @@
+title: Error Pages
+---
+summary: Brief introduction into error pages in Lektor.
+---
+body:
+
+Because Lektor renders out static pages the question comes up what happens if a
+page cannot be found.  This is typically achieved by a special page that a
+server will then use as a stand-in for a page that otherwise cannot be found.
+
+In Lektor as a convention this page should be called `404.html`.  While in
+reality the name of this page largely depends on how you deploy your pages we
+are sticking with the generally accepted location of calling it `404.html`.
+This will work on GitHub Pages and some other environments where this cannot
+be otherwise configured and most web servers can be configured to use this file
+for URLs that are not found.
+
+! In versions of Lektor before 2.0 custom 404 pages will not be honored by the
+development server.  To test those you will need to explicitly navigate to
+`/404.html`.
+
+## URLs on 404 Pages
+
+If you are using 404 pages then these pages can appear at any URL.  This means
+that relative URLs *will not work*.  If you want to use custom error pages you
+will have to set the `url_style` to `absolute` as otherwise URLs on an error
+page will not work.  Just add this to your project file:
+
+```ini
+[project]
+url_style = absolute
+```
+
+For more information about this you can read the [Project File Documentation
+:ref](../../project/file/).
+
+## Creating an Error Page
+
+You can easily add a 404 page by creating a `404.html/contents.lr`
+file.  If you do not care much about the contents and structure of the file
+you can just point it to an empty model (`none`) and manually select a
+`404.html` template like this:
+
+```
+_model: none
+----
+_template: 404.html
+```
+
+Then just create a `404.html` template with the intended contents.
+
+## Server Configuration
+
+If you are deploying such pages to your own servers you will need to ensure
+that the error pages are activated.  Depending on the server used this will
+work slightly differently.
+
+### Apache
+
+Making custom error pages work is easiest with Apache.  If `.htaccess` files
+are enabled you can just put a file with that name into your `assets` folder
+and add the following line to it:
+
+```apache
+ErrorDocument 404 /404.html
+```
+
+Alternatively you can add the above line into a `VirtualHost` or `Directory`
+section in your main config file.
+
+### nginx
+
+For nginx you need to enable the error document in your main config file.  Just
+add it to your `server` section:
+
+```nginx
+error_page 404 /404.html;
+```
+
+### lighttpd
+
+If you are using lighttpd you can configure an error page for 404 this way:
+
+```ini
+server.error-handler-404 = "/404.html"
+```

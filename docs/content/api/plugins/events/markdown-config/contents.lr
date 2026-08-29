@@ -1,0 +1,30 @@
+title: markdown-config
+---
+body:
+
+! Future versions of Lektor may change its Markdown parser away from [Mistune](https://github.com/lepture/mistune), and the various markdown related event hooks may be completely removed or work differently if that happens.
+
+This event is emitted right after MarkdownConfig is instantiated, in which configuration can be set. This is done before the renderer is made.
+
+## Example
+
+[lektor-markdown-header-anchors :ext](https://github.com/lektor/lektor-markdown-header-anchors) uses this to register a renderer mixin:
+
+```python
+def on_markdown_config(self, config, **extra):
+    class HeaderAnchorMixin(object):
+        def header(renderer, text, level, raw):
+            if self.get_config().get('anchor-type') == "random":
+                anchor = uuid.uuid4().hex[:6]
+            else:
+                anchor = slugify(raw)
+            renderer.meta['toc'].append((level, anchor, Markup(text)))
+            return '<h%d id="%s">%s</h%d>' % (level, anchor, text, level)
+    config.renderer_mixins.append(HeaderAnchorMixin)
+```
+---
+signature: config
+---
+summary: This event is emitted while the Markdown renderer is configured.
+---
+type: event

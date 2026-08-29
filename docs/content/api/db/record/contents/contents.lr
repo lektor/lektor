@@ -1,0 +1,42 @@
+title: contents
+---
+summary: Provides access to the raw contents of a record or attachment.
+---
+type: property
+---
+body:
+
+This property provides access to the raw contents of a record.  For attachments
+this gives access to the contents of the actual attachments, for other records
+it gives access to the record's `contents.lr` file.
+
+It provides many useful attributes and methods to do something with the
+contents of that file:
+
+## Properties
+
+| Property    | Description
+| ----------- | --------------
+| `sha1`      | The SHA1 hash of the contents as hexadecimal string
+| `md5`       | The MD5 hash of the contents as hexadecimal string
+| `integrity` | A subresource integritry string ([read about it](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity))
+| `mimetype`  | The guessed mimetype of the object
+| `bytes`     | The number of bytes for the contents as integer
+
+## Methods
+
+| Method          | Description
+| --------------- | ------------
+| `as_data_url()` | Returns a data URL for the contents. Optionally accepts a different mimetype than the guesed one.
+| `as_text()`     | Returns the contents of the file as text.  UTF-8 is assumed.
+| `as_bytes()`    | Returns the contents of the file as bytes.
+| `as_base64()`   | Returns the contents of the file as base64 encoded bytes.
+| `open()`        | Opens the file for editing. Accepts `r` or `rb` as modes and a second argument which is the file encoding.
+
+## Example
+
+Here are some ideas of what you can do with it:
+
+```html+jinja
+<img src="{{ image.contents.as_data_url() }}" alt="">
+```

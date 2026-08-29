@@ -1,0 +1,26 @@
+title: Environment
+---
+type: class
+---
+module: lektor.environment
+---
+summary: The working environment for the build process.
+---
+body:
+
+This class holds all the relevant information for building a Lektor
+[Project :ref](../project/).  It can be reused between builds and only
+holds state that is immutable after initialization.  For instance it
+will hold all loaded plugins, the configuration for the Jinja 2
+template engine and more.
+
+Plugins have access to the environment at any point by accessing `self.env`.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+env = project.make_env()
+```

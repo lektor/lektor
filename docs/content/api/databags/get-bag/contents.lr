@@ -1,0 +1,13 @@
+title: get_bag
+---
+type: method
+---
+signature: name
+---
+summary: Looks up an entire databag by its name.
+---
+body:
+
+This method is a special case of [lookup :ref](../lookup/) which just
+looks up an entire data bag and returns it as dictionary.  For most
+intents and purposes `lookup` is what you want.

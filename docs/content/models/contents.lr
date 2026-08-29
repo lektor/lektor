@@ -1,0 +1,96 @@
+title: Data Modelling
+---
+summary: Gives a basic introduction to creating data models for Lektor.
+---
+sort_key: 200
+---
+body:
+
+What makes Lektor so powerful is the ability to model your data and to then use
+this data to generate the final results.  Getting this part right will make it
+easier later to generate beautiful looking HTML.
+
+## Models
+
+Models are the blueprints for your pages.  They define which fields exist and
+what goes into them.  Models are stored in the `models` folder in your project
+and are basic UTF-8 encoded INI files.  Models can have any name but if no
+model has been explicitly selected, a default model will be selected.  For
+most situations this will be the model with the name `page`.  Detailed
+information can be found under [Default Model Selection :ref](selection/).
+
+Here is an example of a very basic model (`models/page.ini`):
+
+```ini
+[model]
+name = Page
+label = {{ this.title }}
+
+[fields.title]
+label = Title
+type = string
+size = large
+
+[fields.body]
+label = Body
+type = markdown
+```
+
+In this particular case, we have a model with the id `page` (as defined by the
+filename) and a name `Page` which will appear like that in the UI.  Pages that
+use this model will use the template expression `{{ this.title }}` to be
+displayed in the UI.  In this case, it uses the title of the page.
+
+There are two fields defined: a `title` and a `body`.  The former is just an
+unformatted string which is shown larger in the UI (`size = large`) and the
+latter uses markdown for rendering.  This will give it a text area in the admin
+panel.
+
+## Fields
+
+Fields for models are ordered in the UI in the order they appear in the model.
+Most options in the field are specific to the type that is selected, but some
+are the same for all of them.
+
+Fields not only define the behavior of the data (for instance strings and
+integers are sorted differently) but also how it's shown in the UI and what
+can be done with it in general.
+
+The following options are used for all types:
+
+- `label`: the label for the field.  This is shown in the UI in larger letters
+- `description`: an optional string that provides some description for the
+  field that is shown in the UI to give a bit more explanation.
+- `addon_label`: an optional string that is supported by all types that are
+  rendered as an input field.  This string is shown as an UI label on the 
+right side of the input field to give it more context.  For instance, it can
+  be used to clarify units of a field (pixel, percent etc.).
+- `width`: defines the width of the input in the admin as a fraction.  For
+  instance `1/4` sets it to a quarter of the width, `1/2` to a half etc.
+- `size` can be set to `normal`, `small` or `large` to affect the size a
+  field is rendered in the admin UI.
+- `type`: defines the type of the field.  Depending on the type more options
+  can become available.
+
+There are many different field types that are available and they are documented
+extensively in the [types documentation :ref](../api/db/types/).
+
+## Model Options
+
+Models have the following options that can customize the model itself:
+
+- `name`: the name of the model itself.  Usually a more capitalized form of
+  the filename which is the ID of the model.
+- `label`: a template expression that should be used for pages that use this
+  model.  Typically this expression refers to the title but not always.  For
+  instance blog posts might also want to refer to the date.
+- `hidden`: a boolean value that indicates if the model should be hidden from
+  the UI or not.  If set to `yes` then new pages cannot select this model.
+  This is very useful for models that are implied through configuration.
+- `protected`: if a model is set to protected then all of its instances
+  cannot be deleted once created.
+- `inherits`: if you want to inherit all fields and model option settings from another model then this
+  can be set to the name of another model.
+
+In addition to that, there are some configuration sections in the model file
+that can customize more behavior.

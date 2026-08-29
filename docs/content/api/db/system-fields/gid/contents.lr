@@ -1,0 +1,20 @@
+title: _gid
+---
+summary: A globally unique ID of the page.
+---
+type: sysfield
+---
+body:
+
+The `_gid` is the MD5 hashed version of the page's [`_path`](../path/).  This
+is useful in situations where a stable ID is needed that follows a certain
+format.  For instance it can come in useful when a ID is needed for a DOM
+element.
+
+## Example
+
+```html+jinja
+<body class="page-{{ this._gid }}">
+...
+</body>
+```

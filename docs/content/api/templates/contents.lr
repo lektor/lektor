@@ -1,0 +1,9 @@
+title: Template API
+---
+summary: Specific functionality added to the Jinja template environment by Lektor.
+---
+body:
+
+Lektor extends the [Jinja2 :ext](http://jinja.pocoo.org/) templating language
+with many useful helpers.  We do not document Jinja 2 itself here, but all
+the specific helpers are explained.

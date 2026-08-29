@@ -1,0 +1,32 @@
+title: build_url
+---
+module: lektor.utils
+---
+signature: pieces, trailing_slash=None
+---
+summary: Helper function that assists in building URL paths.
+---
+type: function
+---
+version_added: 2.0
+---
+body:
+
+This function assists in creating URL paths from individual segments.  This
+is particularly useful for building virtual source objects.  It takes a bunch
+of path segments and returns an absolute path.  The default behavior is to
+guess the trailing slash based on the presence of a dot in the last path
+segment.  If you want to override the detection you can explicitly pass
+`True` to enforce a trailing slash or `False` to avoid it.
+
+## Example
+
+```pycon
+>>> from lektor.utils import build_url
+>>> build_url(['foo', 42])
+u'/foo/42/'
+>>> build_url(['foo', None, 23])
+u'/foo/23/'
+>>> build_url(['foo', 'hello.html'])
+u'/foo/hello.html'
+```

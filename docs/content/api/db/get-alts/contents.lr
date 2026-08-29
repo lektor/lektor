@@ -1,0 +1,34 @@
+title: get_alts
+---
+module: lektor.db
+---
+signature: source=None, fallback=False
+---
+summary: Helper function to return the list of alternatives for a source
+---
+type: function
+---
+version_added: 2.0
+---
+body:
+
+Given a source this function returns the list of all [Alternatives
+:ref](../../../content/alts/) that the source exists as.  It does not include
+fallbacks unless `fallback=True` is passed.  If no source is provided all
+configured alts are returned.  If alts are not configured at all, the return
+value is an empty list.
+
+This returns only the list of alt short IDs.  Access to the configured name
+of the alt within the project config is not available.  Databags should be
+used to provide alts with a humand readable title.
+
+## Example
+
+```html+jinja
+<p>Other languages:
+<ul>
+{% for alt in get_alts(this) %}
+  <li><a href="{{ '.'|url(alt=alt) }}">{{ alt|title }}</a></li>
+{% endfor %}
+</ul>
+```

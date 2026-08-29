@@ -1,0 +1,43 @@
+title: record_dependency
+---
+summary: Instructs the builder to record a new dependency for the current artifact.
+---
+type: method
+---
+signature: filename
+---
+body:
+
+Because Lektor is a system that builds artifacts into static files, an
+important part of it is the dependency graph.  It tracks dependencies between
+produced artifacts and source files to automatically determine which files
+need to be rebuilt when sources change.
+
+As such it's crucial that plugins record dependencies properly or changes
+will not show up, even if sources change.
+
+This can be achieved with the `record_dependency` context method.  If a plugin
+references a file which can affect the output of the plugin, it's important
+to record this as a dependency.
+
+Note that you should only track dependencies below the project folder.  It
+is possible to dependend to things outside of it, but the automatic watch
+system of the builder will not track files there so they will not show up
+unless a manual build is instructed.
+
+## Example
+
+```python
+import os
+from lektor.pluginsystem import Plugin
+
+class IncludeFilePlugin(Plugin):
+
+    def setup_env(self, **extra):
+        def include_file(filename):
+            fn = os.path.join(self.env.root_path, 'inc', filename)
+            get_ctx().record_dependency(fn)
+            with open(fn) as f:
+                return f.read().decode('utf-8')
+        self.env.jinja_env.globals['include_file'] = include_file
+```

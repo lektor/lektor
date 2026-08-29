@@ -1,0 +1,32 @@
+title: _id
+---
+summary: The local identifier of a record.
+---
+type: sysfield
+---
+body:
+
+Each record has an `_id`.  This ID is basically a form of the filename.
+Depending on if you are looking at an attachment or a page the rules are
+slightly different.
+
+For pages the ID is the name of the folder.  So if you have a page called
+`docs/overview/contents.lr` then `_id` is `overview`.  If you have however
+an attachment named `docs/overview/screenshot.jpg` the `_id` will be the
+filename of the attachment: `screenshot.jpg`.
+
+Note that IDs are not globally unique!  There is also the `_path` which is
+the entire path if the record.
+
+The `_id` is automatically set and cannot be overridden.
+
+## Example
+
+```html+jinja
+<ul class="nav">
+{% for item in site.query('/projects') %}
+  <li{% if item._id == this._id %} class="active"{%
+    endif %}>{{ item.name }}</li>
+{% endfor %}
+</ul>
+```

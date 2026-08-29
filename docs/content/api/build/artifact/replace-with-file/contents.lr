@@ -1,0 +1,24 @@
+title: replace_with_file
+---
+summary: Replaces the artifact with a file from the file system.
+---
+type: method
+---
+signature: filename, ensure_dir=None, copy=False
+---
+body:
+
+This method will replace the artifact with another file on the file system
+on commit.  This is useful when you are dealing with external applications
+that create temporaries.  By default the file is moved as this is what's
+common with temporaries but this can be changed into a copy with `copy=True`.
+
+## Example
+
+```python
+ctx = get_ctx()
+@ctx.sub_artifact('artifact.txt')
+def build_stylesheet(artifact):
+    temporary_file = invoke_external_program()
+    artifact.replace_with_file(temporary_file)
+```

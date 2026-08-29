@@ -1,0 +1,90 @@
+title: Image Operations
+---
+summary: Shows how templates can work with images.
+---
+sort_key: 30
+---
+body:
+
+Images are separate files and as such just embedded into HTML files.  However
+very often you want to perform modifications on these images that require
+interacting with those files directly.  This can be conveniently done directly
+from the template code through the image APIs that Lektor provides.
+
+## Accessing Images
+
+To work with images one needs to get access to the image objects first.  Images
+are returned from the attachments of a page.  If you want to make sure you
+only operate with actual images the `.images` attribute can be used to filter
+the query.  For instance this iterates over all attached images of a page:
+
+```html+jinja
+{% for image in this.attachments.images %}
+  <div class="image"><img src="{{ image|url }}"></div>
+{% endfor %}
+```
+<br/>
+To access images from a different content folder, you would use:
+
+```html+jinja
+{% for image in site.get('/myfolder').attachments.images %}
+  <div class="image"><img src="{{ image|url }}"></div>
+{% endfor %}
+```
+<br/>
+To retrieve only a specific image or attachment with a certain name you would use
+
+```html+jinja
+{% set my_image = site.get('/myfolder').attachments.get('imagenameexample.jpg') %}
+  <div class="image"><img src="{{ my_image|url }}"></div>
+```
+
+
+
+
+
+## Accessing Image Data
+
+One of the more common operations is to access the direct image data.  This
+is resolution and file format.  The `width`, `height` and `format` parameters
+are provided for this.  In some cases this is very useful to generate CSS code
+that needs to know about the original resolution.  For instance this achieves a
+retina rendered background:
+
+```html+jinja
+<div style="
+  background: url({{ image|url }});
+  background-size: {{ image.width / 2 }}px {{ image.height / 2 }}px
+"></div>
+```
+
+## Accessing EXIF Data
+
+Lektor can also give you access to a lot of the EXIF information that is stored
+in the images.  Not all EXIF information is available but the most common
+values are.  For the full list of attributes see [EXIF data
+:ref](../../api/db/record/exif/).
+
+Here an example that shows the camera information:
+
+```html+jinja
+<div class="image">
+  <img src="{{ image|url }}" alt="">
+  <p><strong>Camera:</strong> {{ image.exif.camera }}
+</div>
+```
+
+## Generating Thumbnails
+
+While browsers are reasonably good at downscaling images themselves, you
+still need to transmit the entire image.  When you want smaller images it
+often makes sense to generate thumbnails automatically.  In Lektor each
+image provides the [thumbnail :ref](../../api/db/record/thumbnail/) method.
+
+It accepts the width and height of the target image. If either of these is not
+provided, it will be computed automatically. The return value can be converted
+into a URL with the `|url` filter:
+
+```html+jinja
+<img src="{{ image.thumbnail(320)|url }}">
+```

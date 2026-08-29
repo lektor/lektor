@@ -1,0 +1,25 @@
+title: get_plugin
+---
+summary: Look up a plugin instance.
+---
+type: function
+---
+signature: plugin_id_or_class, env=None
+---
+module: lektor.pluginsystem
+---
+body:
+
+This function can look up a plugin instance for an environment by plugin ID
+or plugin class.  This is particularly useful to retrieve state from a plugin.
+If the `env` is not given a context needs to be active and the env of the
+context is used.
+
+## Example
+
+```python
+from lektor.pluginsystem import get_plugin
+
+plugin = get_plugin('the-plugin-id')
+cfg = plugin.get_config()
+```

@@ -1,0 +1,106 @@
+title: Templates
+---
+sort_key: 90
+---
+summary: A quick introduction into templating in Lektor.
+---
+body:
+
+Lektor uses the [Jinja2 :ext](http://jinja.pocoo.org/) templating language for
+generating HTML out of your pages.  You do not need to understand Jinja2 to
+be able to generate beautiful websites but if you want to dive deep into the
+powers of the templating language then you can learn more about it by
+reading the [Jinja2 Documentation :ext](http://jinja.pocoo.org/docs).
+
+!! Templates are a very powerful component in Lektor.  A lot of documentation
+about the features of it can be found in the [Jinja2 Documentation
+:ext](http://jinja.pocoo.org/docs) as well as the [Lektor Template API
+Documentation :ext](../api/templates/).
+
+## Template Folder and Naming
+
+All templates are stored within the `templates/` folder.  Templates typically
+carry a `.html` extension.  The default naming convention which is used in
+Lektor is that the template name matches the model name.
+
+So if you have a model called `page` there would be a template named
+`page.html`.  Pages can however manually force a different template to be
+rendered.
+
+## Template Context
+
+When a template is rendered it's rendered in the context of a few variables.
+Which ones are available often depends on the situation the template is
+evaluated in but the following are always available:
+
+| Variable       | Description
+| -------------- | --------------------------------------------------------
+| `this`	 | The current [Record :ref](../api/db/record/) that is being rendered.
+| `site`	 | The database [Pad :ref](../api/db/pad/) that can be used to query the site.
+| `alt`          | A string that identifies the [Alternative :ref](../content/alts/) of the page.
+| `config`       | Gives access to the Lektor project configuration.
+
+## The First Template
+
+So let's dive in making our first template.  In case you went through the
+[Quickstart :ref](../quickstart/) you should already have an example model
+to work with called `page`, otherwise just add one with the format shown
+in the [Data Modelling Documentation :ref](../models/).
+
+With that we can create a page template named `templates/page.html`:
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}{{ this.title }}{% endblock %}
+{% block body %}
+  <h2>{{ this.title }}</h2>
+  {{ this.body }}
+{% endblock %}
+```
+
+If you are unfamiliar with Jinja this template might look very confusing, but
+worry not.  We will go through it step by step.
+
+* `{%` starts a Jinja section and `%}` ends it
+* `extends` is a tag that instructs Jinja to extend another template.  In
+  this case we extend our layout template.  We will create this next.
+* `block` creates or updates a block from the layout template.  In this case
+  we have two blocks: one for the `title` of the page and another one for
+  the `body`.
+* `{{` prints a variable and `}}` is the end of the print part.  We do not
+  need to worry about escaping here as Jinja2 does that automatically for
+  us.
+
+## Layout Templates
+
+So we have this page template now, but what about this layout?  Jinja2
+supports template inheritance where one template can inherit code from
+another.  In this case we configured our page template to inherit from
+`layout.html`.  Let's create it:
+
+```html+jinja
+<!doctype html>
+<meta charset="utf-8">
+<title>{% block title %}Welcome{% endblock %} — My Website</title>
+<body>
+  <header>
+    <h1>My Website</h1>
+    <nav>
+      Navigation can go here.
+    </nav>
+  </header>
+  <div class="page">
+    {% block body %}{% endblock %}
+  </div>
+</body>
+```
+
+I hope you can see how the blocks work together now when template inheritance
+is involved.
+
+## Everything about Templates
+
+Templates are the bread and butter of creating expressive websites with
+Lektor.  As such this is one of the most complex topics in the documentation
+and split into smaller parts.  Feel free to experiment around to see what
+you can do with it.

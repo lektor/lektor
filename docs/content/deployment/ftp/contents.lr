@@ -1,0 +1,61 @@
+title: FTP
+---
+summary: Automatic deployments via FTP
+---
+body:
+
+* `ftp://username:password@server:port/path?passive=yes|no`
+* `ftps://username:password@server:port/path?passive=yes|no`
+
+FTP is a very old but well supported protocol.  Lektor can publish through it
+but to speed up the operation it has to make certain concessions.  In
+particular it needs to maintain a “listing file” to remember the state of
+the files as FTP does not support any form of file comparisons.  This means
+that you cannot use Lektor in addition to another system to publish files
+to your FTP server.  It's an either/or thing.
+
+If you have alternatives to using FTP it's recommended to use those.  FTP is
+a very simple transport format, very slow, underspecified, largely insecure
+and not very portable.
+
+The system supports FTP (`ftp://`) and FTP over TLS (`ftps://`).  Passive mode
+can be enabled/disabled with the optional `?passive` parameter.  It defaults
+to true.
+
+## Example
+
+```ini
+[servers.production]
+target = ftps://myuser:mypassword@ftp.example.com/var/www/example
+```
+
+## Credentials
+
+FTP is considered a largely insecure protocol for Lektor.  As such if you
+want to use it you should keep your project file safe as credentials will
+be most likely embedded there.  Alternatively you can set the credentials
+via the command line with the `--username` and `--password` option (or via the
+environment variables `LEKTOR_DEPLOY_USERNAME` and `LEKTOR_DEPLOY_PASSWORD`)
+though this will mean that most likely deploys via the admin interface
+will fail as the values will not be available there.
+
+## Implementation
+
+If you want to know how the FTP sync process works, here is how the system
+figures out what to sync and what not.  When it synchronizes it maintains
+a “listing file” in `.lektor/listing`.  This file contains the checksums of
+all uploaded artifacts.  If that file desynchronizes with the actual files
+that were uploaded it can be deleted and Lektor will sync up everything.
+The file is modified through append operations and at the end of the sync
+duplicate entries in that file are resolved.
+
+## Using Other Tools
+
+The FTP support in Lektor is quite rudimentary and in some situations you
+might want to use a different tool like filezilla to do your synchronizations
+instead.  In that case you just need to point your FTP client to the build
+folder.  To find out where this is, just run this command:
+
+```
+$ lektor project-info --output-path
+```

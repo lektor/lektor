@@ -1,0 +1,96 @@
+title: Paths
+---
+summary: An explanation about how paths in Lektor work.
+---
+body:
+
+!! This refers mostly to Lektor 2.0.  If you are using an older version of
+Lektor the virtual path feature is not implemented yet and a lot of this just
+does not apply.
+
+Lektor attempts to map the paths from the content folder as closely as possible
+to the final URLs (at least in the default configuration).  There are various
+ways in which this can be customized (see [URLs and Slugs :ref](../urls/)) and
+there are situations in which Lektor needs to render out content that does not
+actually directly correspond to a path on the file system.
+
+Here we try to explain how the path system in Lektor works and what it means.
+
+## What is a Path
+
+A path in Lektor is a string that uniquely identifies a [Source Object
+:ref](../../api/db/obj/).  For the most part these directly point to
+`content.lr` files or attachments therein.  These paths always use forward
+slashes, no matter on which platform Lektor runs.  So for instance if you
+have a file named `projects/my-project/contents.lr` then the path for this
+record will be `/projects/my-project`.  Thereby it does not matter if the
+slug or final URL was changed, the path is always the same.
+
+Lektor uses paths to refer to records by default in all cases.  This means that
+if you use the [url filter :ref](../../api/templates/filters/url/) for instance
+it will operate on paths and not URLs!
+
+But what about sources that do not directly correspond to something on the
+file system?  This is where virtual paths come in.  Virtual paths are
+separated from physical paths with an at (`@`) sign.  Virtual paths are always
+attached to a record and point to things that are not actually coming from the
+content folder but something else.
+
+Virtual paths are for instance used to refer to paginated pages or to some
+resources that plugins add.
+
+## Virtual Paths
+
+Virtual paths are added behind physical paths and are separated by an at
+sign (`@`).  The only virtual path that is supported by Lektor out of the box
+is the special numeric virtual path which can be used to refer to specific
+pages for a pagination.  For instance `/blog@1` refers to the first page of
+the `blog` page, `/blog@2` to the second etc.  There are however plugins that
+add virtual paths to refer to their own resources.  For instance a plugin can
+register `/blog@feed` to refer to a RSS/Atom feed for the blog.
+
+## Relative Paths
+
+Now that we talked a bit about paths, we should probably cover how relative
+paths work.  Relative paths work similar to how you expect them to work on
+most operating systems but they can operate on the virtual as well as the
+physical path.  There is also some special behavior with regards to the numeric
+virtual path for pagination.
+
+For the most part `.` refers to the same page and `..` refers to the page one
+level up.  If you use a path that just contains of a virtual path, then it's
+attached to the current page to replace the active virtual path.
+
+| Current         | Relative     | Result
+| --------------- | ------------ | ----------------
+| `/blog`         | `..`         | `/`
+| `/blog`         | `.`          | `/blog`
+| `/blog/post`    | `..`         | `/blog`
+| `/blog`         | `@2`         | `/blog@2`
+| `/blog@2`       | `@1`         | `/blog@1`
+| `/blog@feed`    | `recent`     | `/blog@feed/recent`
+| `/blog@feed`    | `..`         | `/blog@feed`
+
+However! The numeric path is special with regards because it's considered to
+belong to the current page:
+
+| Current         | Relative     | Result
+| --------------- | ------------ | ----------------
+| `/blog@2`       | `.`          | `/blog@2`
+| `/blog@2`       | `..`         | `/`
+
+## Alternatives and Paths
+
+If you have used Lektor a bit you might be wondering how [Alternatives
+:ref](../alts/) work with paths.  The answer might be surprising but it's
+basically that they don't really work with paths.  Alternatives are
+implemented on a level higher than paths.  If you have a page that exists
+in both German and English alternative then they will have the same path.
+The alternative code is supplied separately.
+
+This is done so that you can later start introducing alternatives to sites
+that were never aware of them without having to go everywhere and start
+passing alternative information around.  While there are indeed some places
+where you might have to perform some changes (especially if you perform
+manual queries in the templates) for the most part adding alternatives to an
+existing site later is a trivial matter.
