@@ -1,10 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
 <link rel="stylesheet" href="{{ '/static/style.css'|url }}">
-<title>{% block title %}Welcome{% endblock %} — ${project_name}</title>
+<title>{% block title %}Welcome{% endblock %} — ${project_name|e}</title>
 <body>
   <header>
-    <h1>${project_name}</h1>
+    <h1>${project_name|e}</h1>
     <nav>
       <ul class="nav navbar-nav">
         <li{% if this._path == '/' %} class="active"{% endif
@@ -26,6 +26,6 @@
     {% block body %}{% endblock %}
   </div>
   <footer>
-    &copy; Copyright ${this_year} by ${author_name or 'someone'}.
+    &copy; Copyright ${this_year} by ${(author_name or 'someone')|e}.
   </footer>
 </body>
