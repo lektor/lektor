@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from itertools import islice
 from pathlib import Path
+from unittest import mock
 from urllib.parse import urlsplit
 
 import pytest
@@ -317,6 +318,21 @@ def test_atomic_open_raises_on_bad_mode(tmp_path, mode):
     with pytest.raises(ValueError, match="mode"):
         with atomic_open(tmp_path / "file.txt", mode):
             pass
+
+
+def test_atomic_open_fsync(tmp_path):
+    with mock.patch("os.fsync", autospec=True) as os_fsync:
+        with atomic_open(tmp_path / "file.txt", "w") as fp:
+            fd = fp.fileno()
+            fp.write("x")
+    os_fsync.assert_called_once_with(fd)
+
+
+def test_atomic_open_no_fsync(tmp_path):
+    with mock.patch("os.fsync", autospec=True) as os_fsync:
+        with atomic_open(tmp_path / "file.txt", "w", fsync=False) as fp:
+            fp.write("x")
+    os_fsync.assert_not_called()
 
 
 def test_create_temp(tmp_path):
