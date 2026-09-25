@@ -12,7 +12,6 @@ from werkzeug.utils import cached_property
 from lektor.environment import Environment
 from lektor.utils import comma_delimited
 from lektor.utils import get_cache_dir
-from lektor.utils import untrusted_to_os_path
 
 
 class Project:
@@ -41,7 +40,7 @@ class Project:
         )
         path = os.path.join(
             os.path.dirname(filename),
-            untrusted_to_os_path(inifile.get("project.path") or "."),
+            inifile.get("project.path") or ".",
         )
 
         themes = inifile.get("project.themes")
