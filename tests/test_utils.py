@@ -13,6 +13,7 @@ from lektor.utils import atomic_open
 from lektor.utils import build_url
 from lektor.utils import create_temp
 from lektor.utils import deprecated
+from lektor.utils import format_lat_long
 from lektor.utils import is_path_child_of
 from lektor.utils import is_valid_id
 from lektor.utils import join_path
@@ -456,3 +457,10 @@ def _warning_line(warning: warnings.WarningMessage) -> str:
 def test_untrusted_to_os_path(db_path, expected):
     os_path = untrusted_to_os_path(db_path)
     assert os_path.split(os.sep) == expected.split("/")
+
+
+def test_format_lat_long_keeps_sign_below_one_degree():
+    assert format_lat_long(lat=-0.5) == "0° 30′ 0.0″ S"
+    assert format_lat_long(long=-0.5) == "0° 30′ 0.0″ W"
+    assert format_lat_long(lat=0.5) == "0° 30′ 0.0″ N"
+    assert format_lat_long(lat=-1.5) == "1° 30′ 0.0″ S"

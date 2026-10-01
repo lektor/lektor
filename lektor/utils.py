@@ -806,7 +806,7 @@ def deg_to_dms(deg):
 def format_lat_long(lat=None, long=None, secs=True):
     def _format(value, sign):
         d, m, sd = deg_to_dms(value)
-        return f"{abs(d)}° {abs(m)}′ {secs and f'{abs(sd)}″ ' or ''}{sign[d < 0]}"
+        return f"{abs(d)}° {abs(m)}′ {secs and f'{abs(sd)}″ ' or ''}{sign[value < 0]}"
 
     rv = []
     if lat is not None:
