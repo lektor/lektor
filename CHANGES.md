@@ -2,6 +2,14 @@
 
 These are all the changes in Lektor since the first public release.
 
+## 3.3.15 (unreleased)
+
+### Fixes
+
+- A latitude or longitude between 0 and -1 degrees kept the wrong hemisphere. ([#1293])
+
+[#1293]: https://github.com/lektor/lektor/issues/1293
+
 ## 3.3.14 (2026-08-07)
 
 ### Vulnerabilities Fixed

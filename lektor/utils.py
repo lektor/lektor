@@ -690,7 +690,7 @@ def format_lat_long(lat=None, long=None, secs=True):
             abs(d),
             abs(m),
             secs and ("%d″ " % abs(sd)) or "",
-            sign[d < 0],
+            sign[value < 0],
         )
 
     rv = []

@@ -7,6 +7,7 @@ import pytest
 
 from lektor.utils import build_url
 from lektor.utils import cleanup_path
+from lektor.utils import format_lat_long
 from lektor.utils import is_path_child_of
 from lektor.utils import is_valid_id
 from lektor.utils import join_path
@@ -265,3 +266,10 @@ def test_cleanup_path(db_path, expected):
 def test_untrusted_to_os_path(db_path, expected):
     os_path = untrusted_to_os_path(db_path)
     assert os_path.split(os.sep) == expected.split("/")
+
+
+def test_format_lat_long_keeps_sign_below_one_degree():
+    assert format_lat_long(lat=-0.5) == "0° 30′ 0″ S"
+    assert format_lat_long(long=-0.5) == "0° 30′ 0″ W"
+    assert format_lat_long(lat=0.5) == "0° 30′ 0″ N"
+    assert format_lat_long(lat=-1.5) == "1° 30′ 0″ S"
