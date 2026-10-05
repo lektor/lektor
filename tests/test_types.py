@@ -280,7 +280,7 @@ def test_datetime_timezone_kst(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+        assert rv.tzinfo.utcoffset(rv) == datetime.timedelta(0, 9 * 60 * 60)
 
 
 def test_datetime_timezone_acst(env, pad):
@@ -295,7 +295,7 @@ def test_datetime_timezone_acst(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, (9 * 60 + 30) * 60)
+        assert rv.tzinfo.utcoffset(rv) == datetime.timedelta(0, (9 * 60 + 30) * 60)
 
 
 def test_datetime_timezone_mst(env, pad):
@@ -310,7 +310,7 @@ def test_datetime_timezone_mst(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, -7 * 60 * 60)
+        assert rv.tzinfo.utcoffset(rv) == datetime.timedelta(0, -7 * 60 * 60)
 
 
 def test_datetime_timezone_mart(env, pad):
@@ -325,7 +325,7 @@ def test_datetime_timezone_mart(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, -(9 * 60 + 30) * 60)
+        assert rv.tzinfo.utcoffset(rv) == datetime.timedelta(0, -(9 * 60 + 30) * 60)
 
 
 def test_datetime_timezone_name(env, pad):
@@ -340,7 +340,7 @@ def test_datetime_timezone_name(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+        assert rv.tzinfo.utcoffset(rv) == datetime.timedelta(0, 9 * 60 * 60)
 
         # with timezone name (case 2)
         rv = field.deserialize_value("2016-04-30 01:02:03 KST+0900", pad=pad)
@@ -351,4 +351,4 @@ def test_datetime_timezone_name(env, pad):
         assert rv.hour == 1
         assert rv.minute == 2
         assert rv.second == 3
-        assert rv.tzinfo._offset == datetime.timedelta(0, 9 * 60 * 60)
+        assert rv.tzinfo.utcoffset(rv) == datetime.timedelta(0, 9 * 60 * 60)
