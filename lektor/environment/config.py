@@ -17,12 +17,13 @@ DEFAULT_CONFIG = {
     "EPHEMERAL_RECORD_CACHE_SIZE": 500,
     "ATTACHMENT_TYPES": {
         # Only enable image formats here that we can handle in imagetools.
-        # Right now this is limited to jpg, png and gif.
         ".jpg": "image",
         ".jpeg": "image",
         ".png": "image",
         ".gif": "image",
         ".svg": "image",
+        ".webp": "image",
+        ".avif": "image",
         ".avi": "video",
         ".mpg": "video",
         ".mpeg": "video",
@@ -45,6 +46,7 @@ DEFAULT_CONFIG = {
         "locale": "en_US",
         "url": None,
         "url_style": "relative",
+        "thumbnail_format": None,
     },
     "THEME_SETTINGS": {},
     "PACKAGES": {},
@@ -276,3 +278,15 @@ class Config:
         if style in ("relative", "absolute", "external"):
             return style
         return "relative"
+
+    @cached_property
+    def thumbnail_format(self):
+        """The default image format for thumbnails."""
+        thumbnail_format = self.values["PROJECT"].get("thumbnail_format")
+        if isinstance(thumbnail_format, str):
+            thumbnail_format = thumbnail_format.lower()
+
+        if thumbnail_format in ("jpg", "jpeg", "webp", "avif", None):
+            return thumbnail_format
+
+        raise RuntimeError(f"Unknown thumbnail image format: {thumbnail_format}")

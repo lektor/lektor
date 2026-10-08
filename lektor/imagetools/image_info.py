@@ -19,6 +19,7 @@ from typing import TypeAlias
 from xml.etree import ElementTree as etree
 
 import PIL.Image
+import pillow_avif  # noqa: F401  # pylint: disable=unused-import
 
 from ._compat import ExifTags
 from ._compat import UnidentifiedImageError
@@ -143,6 +144,8 @@ _LEKTOR_FORMATS: Final[Mapping[str, str]] = {
     "PNG": "png",
     "GIF": "gif",
     "JPEG": "jpeg",
+    "WEBP": "webp",
+    "AVIF": "avif",
 }
 
 
