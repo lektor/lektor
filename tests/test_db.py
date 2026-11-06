@@ -28,6 +28,13 @@ def test_root(pad):
     assert record["_path"] == "/"
 
 
+@pytest.mark.parametrize("path", ["/C:/Users/Public", "/c:x"])
+def test_get_drive_path_returns_none(pad, path):
+    # On Windows such a path would resolve outside the content directory (#1301)
+    assert pad.db.load_raw_data(path) is None
+    assert pad.get(path) is None
+
+
 def test_project_implied_model(pad):
     project = pad.query("/projects").first()
     assert project is not None

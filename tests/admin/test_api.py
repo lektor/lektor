@@ -337,6 +337,9 @@ def test_add_new_record(scratch_client, scratch_project, path, id, expect, creat
         ("/../../templates", ""),
         # (Reported by Arpit Jain)
         ("/..\\..\\templates", ""),
+        # Windows drive-absolute paths (#1301)
+        ("/C:/Users/Public", ""),
+        ("/C:Users", ""),
     ],
 )
 def test_add_new_record_bad_request(scratch_client, scratch_project, path, id):
