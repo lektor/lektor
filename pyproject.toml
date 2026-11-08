@@ -79,8 +79,31 @@ pylint = [                      # requirements for running pylint
     "iniconfig",
 ]
 prek = ["prek"]                 # Running pre-commit hooks with prek.
-mistune0 = ["mistune<2"]        # pin old mistune for testing
+mistune0 = ["mistune==0.*"]        # pin old mistune for testing
+mistune-default = []
 tzdata = ["tzdata"]             # test with tzdata rather than system zone data
+
+[tool.uv]
+conflicts = [
+    [
+        # Get uv to lock two different "forks" in it's lock file: one
+        # for mistune==0.*, and one for the latest allowed by the
+        # default pins.  Without this, uv computes a single locked
+        # state, which will satisfy all declared dependency groups
+        # (i.e. mistune0) whether they are requested or not.
+        #
+        # Now, this should run tests with the latest Lektor-supported version of mistune:
+        #
+        #     uv run pytest tests
+        #
+        # To run tests with mistune 0.*:
+        #
+        #     uv run --group mistune0 pytest tests
+        #
+        { group = "mistune0" },
+        { group = "mistune-default" },
+    ],
+]
 
 [tool.hatch.version]
 source = "vcs"
