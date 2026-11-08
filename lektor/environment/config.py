@@ -157,11 +157,18 @@ class Config:
         return None
 
     def get_server(self, name, public=False):
-        """Looks up a server info by name."""
+        """Looks up a server info by name.
+
+        Returns ``None`` if the server is not configured, or if it is
+        disabled (``enabled = no``).
+        """
         info = self.values["SERVERS"].get(name)
         if info is None or "target" not in info:
             return None
         info = info.copy()
+        enabled = bool_from_string(info.pop("enabled", None), True)
+        if not enabled:
+            return None
         target = info.pop("target")
         if public:
             target = secure_url(target)
@@ -169,7 +176,7 @@ class Config:
             id=name,
             name_i18n=get_i18n_block(info, "name", pop=True),
             target=target,
-            enabled=bool_from_string(info.pop("enabled", None), True),
+            enabled=enabled,
             default=bool_from_string(info.pop("default", None), False),
             extra=info,
         )

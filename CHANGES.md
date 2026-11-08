@@ -7,7 +7,11 @@ These are all the changes in Lektor since the first public release.
 ### Fixes
 
 - A latitude or longitude between 0 and -1 degrees kept the wrong hemisphere. ([#1293])
+- Servers configured with `enabled = no` are now ignored. They are no longer
+  listed in the admin publish dialog, and `lektor deploy` refuses to deploy
+  to them. ([#1234])
 
+[#1234]: https://github.com/lektor/lektor/issues/1234
 [#1293]: https://github.com/lektor/lektor/issues/1293
 
 ## 3.4.0b15 (2026-08-07)

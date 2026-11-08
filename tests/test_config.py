@@ -48,3 +48,51 @@ def test_base_url(config, expected):
 )
 def test_base_path(config, expected):
     assert config.base_path == expected
+
+
+@pytest.fixture
+def servers_config(tmp_path):
+    projectfile = tmp_path / "servers.lektorproject"
+    projectfile.write_text(
+        inspect.cleandoc(
+            """
+            [servers.production]
+            target = rsync://example.org/www
+            default = yes
+
+            [servers.staging]
+            target = rsync://staging.example.org/www
+            enabled = no
+            """
+        )
+    )
+    return Config(projectfile)
+
+
+def test_get_server_ignores_disabled_server(servers_config):
+    assert servers_config.get_server("production").target == "rsync://example.org/www"
+    assert servers_config.get_server("staging") is None
+
+
+def test_get_servers_ignores_disabled_server(servers_config):
+    assert set(servers_config.get_servers()) == {"production"}
+
+
+def test_get_default_server_ignores_disabled_server(tmp_path):
+    projectfile = tmp_path / "servers.lektorproject"
+    projectfile.write_text(
+        inspect.cleandoc(
+            """
+            [servers.production]
+            target = rsync://example.org/www
+
+            [servers.staging]
+            target = rsync://staging.example.org/www
+            enabled = no
+            default = yes
+            """
+        )
+    )
+    server = Config(projectfile).get_default_server()
+    assert server is not None
+    assert server.id == "production"
