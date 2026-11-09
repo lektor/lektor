@@ -180,6 +180,7 @@ def get_record_info(validated: _PathAndAlt, ctx: LektorContext) -> Response:
                 "id": x.id,
                 "path": x.path,
                 "type": x.attachment_type,
+                "label_i18n": x.get_record_label_i18n(alt),
             }
             for x in tree_item.iter_attachments()
         ],
