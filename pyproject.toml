@@ -44,6 +44,10 @@ dependencies = [
     "marshmallow",
     "marshmallow_dataclass>=8.5.9",
     "mistune>=0.7.0,<3,!=2.0.*",
+    # Mistune 2.0 does not work with python 3.15
+    # re.Scanner raises ValueError("Cannot use capturing groups in re.Scanner")
+    # Ref: https://github.com/python/cpython/issues/140797
+    "mistune!=2.*; python_version >= '3.15'",
     "Pillow>=6",
     "pip",
     "python-slugify",
