@@ -1,6 +1,7 @@
 import datetime
 import re
 import warnings
+from zoneinfo import ZoneInfo
 
 import pytest
 from markupsafe import escape
@@ -11,6 +12,18 @@ from lektor.datamodel import Field
 from lektor.types.base import BadValue
 from lektor.types.base import Undefined
 from lektor.types.formats import MarkdownDescriptor
+
+
+try:
+    ZoneInfo("EST")
+    skip_if_no_legacy_zones = []
+except KeyError:
+    # Newer systems do not always include legacy symlinks (for names like `EST`)
+    # in their timezone databases.
+    # Ref: https://bugs.launchpad.net/ubuntu/+source/tzdata/+bug/2058249
+    skip_if_no_legacy_zones = pytest.mark.skip(
+        reason="system does not support legacy timezone names"
+    )
 
 
 class DummySource:
@@ -247,7 +260,13 @@ def utc(*args):
         # Known timezone name, UTC
         ("2016-04-30 01:02:03 UTC", utc(2016, 4, 30, 1, 2, 3)),
         # Known timezone name, EST
-        ("2016-04-30 01:02:03 EST", utc(2016, 4, 30, 6, 2, 3)),
+        pytest.param(
+            "2016-01-30 01:02:03 EST",
+            utc(2016, 1, 30, 6, 2, 3),
+            marks=skip_if_no_legacy_zones,
+        ),
+        # Known timezone name, America/New_York
+        ("2016-01-30 01:02:03 America/New_York", utc(2016, 1, 30, 6, 2, 3)),
         # Known location name, Asia/Seoul
         ("2016-04-30 01:02:03 Asia/Seoul", utc(2016, 4, 29, 16, 2, 3)),
         # KST - http://www.timeanddate.com/time/zones/kst
