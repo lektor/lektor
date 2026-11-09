@@ -392,8 +392,8 @@ def test_Thumbnail_str():
 
 
 class TestArtifactDependencyTracking:
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def scratch_project_data(scratch_project_data):
         # add two identical thumbnails to the page template
         page_html = scratch_project_data / "templates/page.html"
