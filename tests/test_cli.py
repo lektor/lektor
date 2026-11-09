@@ -205,5 +205,13 @@ def test_deploy_refuses_disabled_server(
         cli, [f"--project={scratch_project_data}", "deploy", "staging"]
     )
     assert result.exit_code != 0
-    assert "'staging' does not exist" in result.output
+    assert "Server 'staging' is disabled" in result.output
     mock_publish.assert_not_called()
+
+
+def test_deploy_reports_nonexistent_server(project_cli_runner, scratch_project_data):
+    result = project_cli_runner.invoke(
+        cli, [f"--project={scratch_project_data}", "deploy", "nosuchserver"]
+    )
+    assert result.exit_code != 0
+    assert "Server 'nosuchserver' does not exist" in result.output

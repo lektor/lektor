@@ -10,6 +10,7 @@ from werkzeug.utils import cached_property
 from lektor.constants import PRIMARY_ALT
 from lektor.i18n import get_i18n_block
 from lektor.utils import bool_from_string
+from lektor.utils import deprecated
 from lektor.utils import secure_url
 
 
@@ -83,17 +84,34 @@ def update_config_from_ini(config, inifile):
 
 
 class ServerInfo:
+    """Information about a configured server.
+
+    Servers configured with ``enabled = no`` are ignored by ``Config``:
+    ``Config.get_server`` and friends never return a ``ServerInfo`` for them.
+    Consequently the ``enabled`` attribute is always true for the instances
+    created by ``Config``, and it is deprecated.  It is kept only so that
+    third-party code which reads it (or passes ``enabled`` to the constructor)
+    continues to work.
+    """
+
     def __init__(self, id, name_i18n, target, enabled=True, default=False, extra=None):
         self.id = id
         self.name_i18n = name_i18n
         self.target = target
-        self.enabled = enabled
+        self._enabled = enabled
         self.default = default
         self.extra = extra or {}
 
     @property
     def name(self):
         return self.name_i18n.get("en") or self.id
+
+    @property
+    @deprecated(
+        "disabled servers are ignored, so this is always true", version="3.4.0"
+    )
+    def enabled(self):
+        return self._enabled
 
     @property
     def short_target(self):
@@ -110,7 +128,7 @@ class ServerInfo:
             "name_i18n": self.name_i18n,
             "target": self.target,
             "short_target": self.short_target,
-            "enabled": self.enabled,
+            "enabled": self._enabled,
             "default": self.default,
             "extra": self.extra,
         }
@@ -156,6 +174,15 @@ class Config:
             return choices[0]
         return None
 
+    def is_server_disabled(self, name):
+        """Returns true if the server is configured, but disabled
+        (``enabled = no``).
+        """
+        info = self.values["SERVERS"].get(name)
+        if info is None or "target" not in info:
+            return False
+        return not bool_from_string(info.get("enabled"), True)
+
     def get_server(self, name, public=False):
         """Looks up a server info by name.
 
@@ -166,8 +193,7 @@ class Config:
         if info is None or "target" not in info:
             return None
         info = info.copy()
-        enabled = bool_from_string(info.pop("enabled", None), True)
-        if not enabled:
+        if not bool_from_string(info.pop("enabled", None), True):
             return None
         target = info.pop("target")
         if public:
@@ -176,7 +202,7 @@ class Config:
             id=name,
             name_i18n=get_i18n_block(info, "name", pop=True),
             target=target,
-            enabled=enabled,
+            enabled=True,
             default=bool_from_string(info.pop("default", None), False),
             extra=info,
         )

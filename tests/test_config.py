@@ -96,3 +96,21 @@ def test_get_default_server_ignores_disabled_server(tmp_path):
     server = Config(projectfile).get_default_server()
     assert server is not None
     assert server.id == "production"
+
+
+def test_is_server_disabled(servers_config):
+    assert servers_config.is_server_disabled("staging")
+    assert not servers_config.is_server_disabled("production")
+    assert not servers_config.is_server_disabled("nosuchserver")
+
+
+def test_server_info_enabled_is_deprecated(servers_config):
+    server = servers_config.get_server("production")
+    with pytest.deprecated_call(match="'enabled' is deprecated"):
+        assert server.enabled is True
+
+
+def test_server_info_to_json_does_not_warn(servers_config, recwarn):
+    server = servers_config.get_server("production")
+    assert server.to_json()["enabled"] is True
+    assert not recwarn.list
