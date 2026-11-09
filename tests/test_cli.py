@@ -184,3 +184,34 @@ def test_build_output_path_relative_to_cwd(
     bound_args = inspect.signature(to_mock).bind(*args, **kwargs).arguments
     output_path = bound_args[param_name]
     assert output_path == str(Path.cwd().resolve() / "htdocs")
+
+
+def test_deploy_refuses_disabled_server(
+    project_cli_runner, scratch_project_data, mocker
+):
+    project_file = next(scratch_project_data.glob("*.lektorproject"))
+    with project_file.open("a") as fp:
+        fp.write(
+            inspect.cleandoc(
+                """
+                [servers.staging]
+                target = rsync://staging.example.net/
+                enabled = no
+                """
+            )
+        )
+    mock_publish = mocker.patch("lektor.publisher.publish", autospec=True)
+    result = project_cli_runner.invoke(
+        cli, [f"--project={scratch_project_data}", "deploy", "staging"]
+    )
+    assert result.exit_code != 0
+    assert "Server 'staging' is disabled" in result.output
+    mock_publish.assert_not_called()
+
+
+def test_deploy_reports_nonexistent_server(project_cli_runner, scratch_project_data):
+    result = project_cli_runner.invoke(
+        cli, [f"--project={scratch_project_data}", "deploy", "nosuchserver"]
+    )
+    assert result.exit_code != 0
+    assert "Server 'nosuchserver' does not exist" in result.output

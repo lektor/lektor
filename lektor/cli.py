@@ -265,9 +265,11 @@ def deploy_cmd(ctx, *, server, output_path, extra_flags, **credentials):
     else:
         server_info = config.get_server(server)
         if server_info is None:
-            raise click.BadParameter(
-                f"Server {server!r} does not exist.", param_hint="server"
-            )
+            if config.is_server_disabled(server):
+                message = f"Server {server!r} is disabled."
+            else:
+                message = f"Server {server!r} does not exist."
+            raise click.BadParameter(message, param_hint="server")
 
     try:
         event_iter = publish(
