@@ -69,7 +69,6 @@ dev = [                         # generally useful during development
 ]
 pytest = [                 # requirements for running our pytest tests
     "pytest>=6",
-    "pytest-click",
     "pytest-mock",
     "coverage[toml]",
     "iniconfig",

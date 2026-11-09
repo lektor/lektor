@@ -4,6 +4,7 @@ import os
 import re
 from pathlib import Path
 
+import click.testing
 import pytest
 
 from lektor.builder import Builder
@@ -37,8 +38,11 @@ def test_alias(project_cli_runner):
     assert "Name: Demo Project" in result.output
 
 
-def test_dev_cmd_alias(isolated_cli_runner):
-    result = isolated_cli_runner.invoke(cli, ["dev", "s"])  # short for 'shell'
+@pytest.mark.usefixtures("save_sys_path")
+def test_dev_cmd_alias(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)  # run in empty directory
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli, ["dev", "s"])  # short for 'shell'
     assert result.exit_code == 2
     assert "Error: Could not automatically discover a project" in result.output
 
@@ -57,8 +61,11 @@ def test_alias_no_matches(project_cli_runner):
     assert "Error: No such command" in result.output
 
 
-def test_build_no_project(isolated_cli_runner):
-    result = isolated_cli_runner.invoke(cli, ["build"])
+@pytest.mark.usefixtures("save_sys_path")
+def test_build_no_project(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)  # run in empty directory
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli, ["build"])
     assert result.exit_code == 2
     assert "Could not automatically discover a project" in result.output
 

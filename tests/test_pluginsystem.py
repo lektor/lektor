@@ -10,6 +10,7 @@ from importlib.machinery import ModuleSpec
 from pathlib import Path
 from unittest import mock
 
+import click.testing
 import pytest
 
 from lektor.cli import cli
@@ -355,12 +356,13 @@ class TestPluginController:
         assert rv == {dummy_plugin.id: "one-type-error return value"}
 
 
-@pytest.mark.usefixtures("dummy_plugin_distribution")
-def test_cli_integration(project, cli_runner, monkeypatch):
+@pytest.mark.usefixtures("dummy_plugin_distribution", "save_sys_path")
+def test_cli_integration(project, monkeypatch):
     """Check that plugin hooks receive extra_flags from command line."""
     # chdir to tests/demo-project
     monkeypatch.chdir(project.tree)
-    result = cli_runner.invoke(
+    runner = click.testing.CliRunner()
+    result = runner.invoke(
         cli, ["clean", "--yes", "-f", "flag1", "--extra-flag", "flag2:value2"]
     )
     print(result.output)

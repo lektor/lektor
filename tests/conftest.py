@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from contextlib import suppress
 from pathlib import Path
 
+import click.testing
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
@@ -284,18 +285,23 @@ def reporter(request, env):
 
 
 @pytest.fixture(scope="function")
-def project_cli_runner(isolated_cli_runner, project, save_sys_path):
+def in_project_copy(monkeypatch, tmp_path, project):
+    """Run test in temporary copy of project tree."""
+    project_path = tmp_path / "project"
+    shutil.copytree(project.tree, project_path)
+    monkeypatch.chdir(project_path)
+
+
+@pytest.fixture(scope="function")
+def project_cli_runner(in_project_copy, save_sys_path):
+    """Make a temporary copy of the project tree, change to that directory,
+    and return a click.testing.CliRunner instance.
+
+    This is provided for b/c.  One could just as easily use in_project_copy, CliRunner,
+    and save_sys_path directly.
+
     """
-    Copy the project files into the isolated file system used by the
-    Click test runner.
-    """
-    for entry in os.listdir(project.tree):
-        entry_path = os.path.join(project.tree, entry)
-        if os.path.isdir(entry_path):
-            shutil.copytree(entry_path, entry)
-        else:
-            shutil.copy2(entry_path, entry)
-    return isolated_cli_runner
+    return click.testing.CliRunner()
 
 
 @pytest.fixture
