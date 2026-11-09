@@ -107,9 +107,7 @@ class ServerInfo:
         return self.name_i18n.get("en") or self.id
 
     @property
-    @deprecated(
-        "disabled servers are ignored, so this is always true", version="3.4.0"
-    )
+    @deprecated("disabled servers are ignored, so this is always true", version="3.4.0")
     def enabled(self):
         return self._enabled
 
