@@ -577,7 +577,8 @@ def test_legacy_plugin(env, record, field_options):
 
         name = "legacy-plugin"
 
-        def on_markdown_config(self, config, **extra):
+        @staticmethod
+        def on_markdown_config(config, **extra):
             # pylint: disable-next=import-outside-toplevel,no-name-in-module
             from lektor.markdown import escape
 
