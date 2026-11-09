@@ -1,0 +1,27 @@
+title: tojson
+---
+type: filter
+---
+summary: Converts a data structure to JSON.
+---
+body:
+
+This filter converts a value to JSON.  It supports any of the types that are
+supported by JSON directly and the return value will be in a format that
+allows safe embedding in HTML.  However if you want to use this value in an
+attribute of an element it needs to use single quotes otherwise it will
+generate a syntax error due to the embedded quotes.
+
+## Examples
+
+```html+jinja
+<script type="text/javascript">
+  var options = {{ {'foo': 'bar'}|tojson }};
+</script>
+```
+
+If used in attributes, single quotes are required:
+
+```html+jinja
+<a href="#" data-foo='{{ my_data|tojson }}'>Click here</a>
+```

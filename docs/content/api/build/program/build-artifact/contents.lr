@@ -1,0 +1,16 @@
+title: build_artifact
+---
+signature: artifact
+---
+summary: Invoked to build a previously declared artifact.
+---
+type: method
+---
+body:
+
+This method is invoked for previously declared artifacts and is supposed to
+write out the artifact.  It's only invoked if the builder decided that the
+artifact is outdated based on the information at hand.
+
+For an example refer to the [add_build_program
+:ref](../../../environment/add-build-program/) documentation.

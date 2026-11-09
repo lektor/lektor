@@ -1,0 +1,82 @@
+title: Alternatives
+---
+summary: Alternatives allow you to localize or internationalize a site.
+---
+body:
+
+One particularly useful feature of Lektor is the ability to define alternatives
+to a content file.  This allows you to translate your website into many
+different languages or to customize content specifically for some languages
+or regions.
+
+!!!! Alternatives are a fully functional feature in Lektor but very
+underdocumented and lacking in parts.  The result of this is that it might not
+be working exactly as you expect in parts.  In particular one of the limiting
+factors is that you need to have at least one alternative at the URL root or
+the system will refuse to build the website.
+
+## Enabling Alternatives
+
+To enable alternatives you need to extend your [Project File
+:ref](../../project/file/).  For each alternative a new
+section has to be added.  It's important that one of the alternatives is
+marked as "primary" which informs the system which of the alternatives is
+the reference.
+
+```ini
+[alternatives.en]
+name = English
+primary = yes
+locale = en_US
+
+[alternatives.fr]
+name = French
+url_prefix = /fr/
+locale = fr
+```
+
+The `locale` key is used to define the locale that Lektor assumes for the
+alternative.  This is for instance used for date formatting.
+
+## Content Files of Alternatives
+
+Once alternatives are enabled your website will be built multiple times.  Once
+for each alternative.  By default nothing will change as no content files
+exist for the non primary alternatives.  In the example of above if you
+navigate to `/fr/` you will see the same index page as if you would have
+navigated to `/`.
+
+However you can now start translating your content.  Each alternative has
+a content file named `contents+ALT.lr` where `ALT` is the short code of your
+alternative (for instance `fr` for French).  Once a file for an alternative
+exists it's loaded instead of the default `contents.lr` file.
+
+## What's Loaded
+
+To make this a bit more concrete: let's go with the example we configured
+above.  There are two alternatives: English (`en`) and French (`fr`) and
+English is configured as the primary.
+
+In that case depending on which files exist and which alternative is
+targeted, different files will be used.  This table visualizes this:
+
+| contents.lr | contents+fr.lr | contents+en.lr | Target | File Used
+| ----------- | -------------- | -------------- | ------ | ------------
+| ✓           |                |                | en     | contents.lr
+| ✓           |                |                | fr     | contents.lr
+| ✓           | ✓              |                | en     | contents.lr
+| ✓           | ✓              |                | fr     | contents+fr.lr
+|             | ✓              | ✓              | en     | contents+en.lr
+|             | ✓              | ✓              | fr     | contents+fr.lr
+|             | ✓              |                | en     | *missing*
+|             | ✓              |                | fr     | contents+fr.lr
+|             |                | ✓              | en     | contents+en.lr
+|             |                | ✓              | fr     | *missing*
+
+## Alternatives and Paths
+
+Alternatives have a special behavior with regards to paths.  The alternative
+code does not exist in the path!  This can be confusing at first, but has the
+advantage that they automatically work in most places as the paths are the
+same for different alternatives.  For more information see
+[Alternatives and Paths :ref](../paths/#alternatives-and-paths).

@@ -1,0 +1,40 @@
+title: boolean
+---
+type: type
+---
+summary: A type that can store either true or false.
+---
+body:
+
+The `boolean` type is a basic checkbox that can be either `true` or `false`.
+It's most useful for representing flags that can be enabled or disabled.
+
+Since it's stored as text, the following values correspond to `true` and
+`false`:
+
+| Considered True | Considered False
+| --------------- | ----------------
+| `true`          | `false`
+| `yes`           | `no`
+| `1`             | `0`
+
+The `checkbox_label` attribute can be used to give a description to the
+checkbox which otherwise looks a little bit lonely in the admin panel.
+
+## Field Usage
+
+```ini
+[fields.render_big]
+label = Render big
+type = boolean
+checkbox_label = If true, then the page will be rendered larger.
+default = false
+```
+
+## Template Usage
+
+```html+jinja
+<div class="page{% if this.render_big %} page-large{% endif %}">
+  ...
+</div>
+```

@@ -1,0 +1,12 @@
+title: is_current
+---
+summary: Indicates if the artifact is up to date or needs building.
+---
+type: property
+---
+body:
+
+This property on an artifact returns `True` if building is necessary or
+`False` if not based on the state of all dependencies.  When you are using
+the sub-artifact system, the builder callback will only be invoked if the
+artifact is not current.

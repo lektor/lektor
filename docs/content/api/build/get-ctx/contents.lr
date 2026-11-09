@@ -1,0 +1,26 @@
+title: get_ctx
+---
+summary: Returns the currently active build context.
+---
+module: lektor.context
+---
+type: function
+---
+body:
+
+This function returns the currently active [Build Context :ref](../context/)
+or `None` if no context is active.  This is the main method to access the
+context.  Generally the context is available if a build is active and `None`
+if not.  This means that if plugins only call that method in places where
+they know a build is access it's not necessary to check if the context is
+available.
+
+For more information: [Context :ref](../context/).
+
+## Example
+
+```python
+from lektor.context import get_ctx
+
+ctx = get_ctx()
+```

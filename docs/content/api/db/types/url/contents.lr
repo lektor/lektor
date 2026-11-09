@@ -1,0 +1,41 @@
+title: url
+---
+summary: A type that can store URLs.
+---
+type: type
+---
+body:
+
+The `url` type is basically a more fancy version of the basic
+[string :ref](../string/) type but it performs a basic validation in the
+admin UI of being a URL.  In addition to that, it gives access to parts
+of the URL for better displaying.
+
+Within templates the URL can be rendered as such, but it also has a few
+other attributes that are useful:
+
+| Attribute    | Description
+| ------------ | --------------
+| `url`        | The URL is a basic string for further manipulation
+| `host`       | Just the host portion of the URL.
+| `port`       | Just the port of the URL.
+| `path`       | The path of the URL
+| `query`      | The query string of the URL
+| `fragment`   | The part after the hash symbol (`#`) in the URL
+| `scheme`     | The URL schema (`http` etc.)
+| `ascii_url`  | Same as `url` but guaranteed to be ASCII only
+| `ascii_host` | Same as `host` but guaranteed to be ASCII only
+
+## Field Usage
+
+```ini
+[fields.website]
+label = Website
+type = url
+```
+
+## Template Usage
+
+```html+jinja
+<a href="{{ this.url }}">{{ this.url.host }}</a>
+```

@@ -1,0 +1,34 @@
+title: get_siblings
+---
+summary: The previous and next children of this page's parent.
+---
+type: method
+---
+body:
+
+Get the previous and next record in this record's parent's list of children.
+
+The returned object has attributes `prev_page` and `next_page`.
+Each can be a [Record :ref](../) or `None`.
+
+If the parent record has pagination enabled, then use the pagination query to
+filter and order the children. Otherwise, the parent's standard configuration
+for children is used.
+See [the pagination guide :ref](../../../../guides/pagination/) and the
+[page order guide :ref](../../../../guides/page-order/).
+
+## Example
+
+```html+jinja
+{% set siblings = this.get_siblings() %}
+
+{% if siblings.prev_page %}
+  <a href="{{ siblings.prev_page|url }}">previous</a>
+{% endif %}
+
+{% if siblings.next_page %}
+  <a href="{{ siblings.next_page|url }}">next</a>
+{% endif %}
+```
+
+See also: [has_prev :ref](../has_prev/) and [has_next :ref](../has_next/).

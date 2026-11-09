@@ -1,0 +1,26 @@
+title: add_publisher
+---
+type: method
+---
+signature: scheme, publisher
+---
+summary: Registers a publisher class with the environment.
+---
+body:
+
+This method can be used to register a new publisher for a given URL scheme
+with Lektor.  This allows plugins to provide custom deployment methods.  For
+more information on implementing these see [Publisher :ref](../../publisher/).
+
+## Example
+
+```python
+from lektor.publisher import Publisher
+
+class MyPublisher(Publisher):
+    pass
+
+env.add_publisher('my', MyPublisher)
+```
+---
+version_added: 2.0

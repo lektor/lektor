@@ -1,0 +1,10 @@
+title: env
+---
+type: property
+---
+summary: A reference to the active environment.
+---
+body:
+
+This is just a reference back to the [Environment :ref](../../../environment/)
+that the plugin belongs to.

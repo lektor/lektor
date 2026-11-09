@@ -1,0 +1,117 @@
+title: Publishing
+---
+summary: Explains how publishing of plugins works.
+---
+sort_key: 30
+---
+body:
+
+Once you are happy with a plugin you can publish it so that other people
+can use it.  Publishing of plugins happens through the
+[Python Package Index :ext](https://pypi.org/) and can be
+automatically done with the help of the lektor shell command.
+
+## Enhance your setup.py
+
+Before you can go about publishing your plugin there needs to be at least
+some information added about it to your `setup.py`.  At least the keys
+`name`, `version`, `author`, `author_email`, `url` and `description` need to be
+set.  Here is an example of doing this, largely taken from what is given by
+the CLI command `lektor dev new-plugin`:
+
+```python
+import ast
+import io
+import re
+
+from setuptools import setup, find_packages
+
+with io.open('README.md', 'rt', encoding="utf8") as f:
+    readme = f.read()
+
+_description_re = re.compile(r'description\s+=\s+(?P<description>.*)')
+
+with open('lektor_hello_world.py', 'rb') as f:
+    description = str(ast.literal_eval(_description_re.search(
+        f.read().decode('utf-8')).group(1)))
+
+setup(
+    author='Your Name',
+    author_email='your.email@your.domain.invalid',
+    description=description,
+    keywords='Lektor plugin static-site blog',
+    license='MIT',
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    name='lektor-hello-world',
+    packages=find_packages(),
+    py_modules=['lektor_hello_world'],
+    url='http://github.com/youruser/lektor-yourplugin',
+    version='1.0',
+    classifiers=[
+        'Framework :: Lektor',
+        'Environment :: Web Environment',
+        'Environment :: Plugins',
+        'License :: OSI Approved :: MIT License',
+    ],
+    entry_points={
+        'lektor.plugins': [
+            'hello-world = lektor_hello_world:HelloWorldPlugin',
+        ]
+    }
+)
+```
+
+This is not the most basic `setup.py` that is strictly necessary, but instead a more full, ideal `setup.py` that will help your plugin be discovered and and understood most easily. Note that is assumes there is a `README.md` file, and that `name` and `description` are defined in your plugin's `.py` module file, which is their preferred location for Lektor.
+
+
+## Publishing
+
+Once you augmented your `setup.py` you can go ahead with the publishing.  First
+you need to make sure you have a PyPI account.  If you do not, you can
+create one at [pypi.python.org :ext](https://pypi.python.org/pypi?%3Aaction=register_form).
+
+Once you have done that, you can publish the plugin from the command line
+with the `lektor` command:
+
+```
+$ cd path/to/your/plugin
+$ lektor dev publish-plugin
+```
+
+When you use this for the first time it will prompt you for your login
+credentials for `pypi`.  Next time it will have remembered them.
+
+## Listing on this site
+
+### Guide
+
+We'd love to see your new plugin listed on [our plugins page  :ref](/plugins). To do that, submit a pull request to [this repository :ext](https://github.com/lektor/lektor-website) that adds your plugin as a sub-page of /plugins. To have your plugin page look it's best and be found more easily here and on [PyPI :ext](https://pypi.org/), please [fill out your setup.py :ext](https://packaging.python.org/tutorials/distributing-packages/) completely (as in [the above snippet :ref](/docs/plugins/publishing/#enhance-your-setup.py)), including
+
+* `author` and `author_email`
+* `classifiers`, (optional) such as
+    * `Framework :: Lektor`,
+    * `Environment :: Web Environment`,
+    * `Environment :: Plugins`,
+    * `License :: OSI Approved :: [X] License` (substitute your license),
+* `keywords` (optional),
+* `long_description` and `long_description_content_type`,
+* `project_urls` (optional),
+* `url` to link to your repository on GitHub
+
+! Using Markdown for a `long_description` is new functionality of PyPI as of [March 16, 2018 :ext](https://dustingram.com/articles/2018/03/16/markdown-descriptions-on-pypi) that requires `setuptools>=38.6.0`, `twine>=1.11.0`, and `wheel>=0.31.0` if you're using wheels.
+
+The `long_description` is required to have a page on getlektor.com and PyPI that looks filled out. We process it the same way PyPI does, so if it looks good there it should look good on this site. This means that if you chose to have a Markdown README instead of reStructuredText, you will also need the appropriate `long_description_content_type`. We pull most of this data from PyPI, so if the plugin's setup.py's changes are not published, neither site will update. We update on build which happens at least daily. We also pull some information from GitHub when the `url` field is set to the plugin's GitHub project page.
+
+When you submit your pull request, be sure to add some tags. Tags are used on this site to help navigation and discovery of plugins. These are not the same as keywords in your `setup.py`, which are used on PyPI. Specifically, at least include tags for the plugin events that your plugin hooks, such as `setup-env`. These in particular will help new plugin developers learn how to interact with these hooks by example.
+
+### Requirements
+
+Please follow the above guide to get your plugin page on this site and looking it's best. To be clear though, for a new plugin to be listed on this site, the following must be done:
+
+1. The plugin must be available on PyPI.
+1. The plugin's page name on this site is the name of the package on PyPI.
+1. The plugin must be in a category, or else it will not appear anywhere on [the plugins page :ref](/plugins/). New categories are allowed if it makes sense for your plugin.
+1. The plugin must have a long_description and README.
+1. The plugin must have tags. At minimum these should include all plugin events the code uses.
+1. `name` and `description` must be defined in the plugin's subclass in its [source code :ref](/docs/plugins/dev/#creating-the-plugin). This is needed by for `lektor plugins list -v` to display appropriate information.

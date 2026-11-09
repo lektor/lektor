@@ -1,0 +1,29 @@
+title: is_hidden
+---
+summary: Indicates if the object is hidden or not.
+---
+type: property
+---
+body:
+
+Records can be hidden by setting the default `_hidden` system field to
+`yes`.  However records also get hidden automatically if any of their parents
+are hidden.  This property can quickly check if a record is considered hidden
+by Lektor or not.
+
+Hidden records can be queried but final pages will not be built.  This is
+useful for pages that should only exist for assisting other pages.  For
+instance hidden pages can be used to store configuration values.
+
+This property is implemented on the level of source objects to make it
+possible to use this API in all cases though the default implementation for
+source objects is that they are always visible.
+
+## Example
+
+```html+jinja
+{% set downloads = site.get('/downloads') %}
+{% if downloads.is_hidden %}
+  <p>Downloads are currently unavailable
+{% endif %}
+```

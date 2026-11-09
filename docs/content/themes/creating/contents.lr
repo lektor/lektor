@@ -1,0 +1,111 @@
+title: Creating a Theme
+---
+sort_key: 30
+---
+summary: Explains themes structure and theme.ini file.
+---
+body:
+
+!!!! Not implemented yet.
+
+You could create a basic empty theme with the following command:
+
+```bash
+$ lektor dev new-theme
+```
+
+## Theme Components:
+
+A theme could provide templates, assets, and models (also flowblocks):
+
+```
+demo-theme
+├── assets
+├── models
+├── templates
+└── flowblocks
+```
+
+## The theme_settings Variable
+
+A `theme_settings` section in `.lektorproject` file could be used to
+parametrize themes:
+
+```ini
+[theme_settings]
+name = "Lektor"
+github_url = "https://github.com/lektor"
+```
+
+And those settings will be accessed in templates through the config env
+variable:
+```jinja
+{{ config.theme_settings.<variable_name> }}
+```
+Example:
+```jinja
+<a href="{{ config.theme_settings.github_url }}">Github</a>
+
+```
+will output:
+```
+<a href="https://github.com/lektor/lektor">Github</a>
+```
+
+## The theme.ini File
+
+Themes could provide a `theme.ini` file, that is optional, but it's required if
+you want to add your theme to the lektor community themes.
+
+Example:
+
+```ini
+[theme]
+name = Demo theme
+license = MIT
+licenselink = https://github.com/lektor/lektor-demo-theme/blob/master/LICENSE.md
+description = Simple, minimal theme for Lektor
+homepage = https://github.com/lektor/lektor-demo-theme
+tags = simple, minimal, demo
+features = blog
+lektor_minimum_required_version = 3.1
+
+[author]
+name = lektor
+homepage = http://getlektor.com/
+
+[original]
+author =
+homepage =
+repo =
+
+[packages]
+lektor-disqus-comments = 0.2
+```
+
+The `[original]` section is only required if you are porting an existing theme.
+
+!!!! Not implemented yet
+
+The `lektor_minimum_required_version` is used by Lektor to check the
+compatibility when installing a theme.
+
+## Releasing a Theme
+
+!!!! Not implemented yet
+
+You could add a theme to Lektor community theme, open a pull request against
+[lektor themes](https://github.com/lektor/lektor-themes) adding it as a git
+submodule.
+
+You should also include an `images/` folder with a screenshot and a thumbnail:
+
+```
+demo-theme
+└──  images
+    ├── thumbnail.png
+    └── screenshot.png
+```
+
+Themes added to this lektor-themes repository, will automatically be added to the
+lektor website.

@@ -1,0 +1,28 @@
+title: F
+---
+summary: Helper object to refer to fields in query filters.
+---
+module: lektor.db
+---
+template_var: F
+---
+type: class
+---
+body:
+
+When filtering a [Query :ref](../query/) it's often necessary to refer to a
+field of an arbitrary record.  This can be achieved with the `F` object.  Any
+attribute of it refers to a field in the record.  To make this clearer, have a
+look at the example below.
+
+Accessing an attributes creates an [Expression :ref](../expression/).
+
+## Example
+
+```html+jinja
+<ul>
+{% for item in this.children.filter(F.status == 'published') %}
+  <li>{{ item.title }}</li>
+{% endfor %}
+</ul>
+```

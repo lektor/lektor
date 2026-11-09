@@ -1,0 +1,22 @@
+title: discover
+---
+type: method
+---
+signature: base=None
+---
+summary: Auto-discovers a project from a folder or the current working directory.
+---
+body:
+
+This is the way Lektor by defaults discovers project files.  It will start
+out with the current path (of a given base path) and search upwards until it
+finds a folder with a single project file in and then loads this.  If none
+of that leads to a file then `None` is returned.
+
+## Example
+
+```python
+from lektor.project import Project
+
+project = Project.discover()
+```

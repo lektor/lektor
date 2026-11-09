@@ -1,0 +1,18 @@
+title: is_visible
+---
+summary: Indicates if the object is visible or not.
+---
+type: property
+---
+body:
+
+This is exactly the opposite of [is_hidden :ref](../is-hidden/).
+
+## Example
+
+```html+jinja
+{% set downloads = site.get('/downloads') %}
+{% if downloads.is_visible %}
+  <p><a href="{{ downloads|url }}">go to downloads</a>
+{% endif %}
+```

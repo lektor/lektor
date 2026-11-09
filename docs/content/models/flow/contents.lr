@@ -1,0 +1,62 @@
+title: Flow Block Models
+---
+summary: Explains how to model flow blocks.
+---
+body:
+
+To use [Flow :ref](../../content/flow/) you need to define flow block models.
+If you are not familiar with Flow yet, you should read the [Introduction
+Documentation](../../content/flow/) to Flow first.
+
+## Defining Models
+
+Flow block models work pretty much exactly the same as [Regular Models
+:ref](../).  The differences are mostly minor and of cosmetic nature.  They
+are stored in the `flowblocks/` folder and are ini files just like models.
+
+Instead of using `[model]` as section, the section is called `[block]`.
+
+Here a very basic flow block model `flowblocks/text.ini`:
+
+```ini
+[block]
+name = Text Block
+button_label = Text
+
+[fields.text]
+label = Text
+type = markdown
+
+[fields.class]
+label = Class
+type = select
+choices = default, centered
+choice_labels = Default, Centered
+default = default
+```
+
+This should be self explanatory.  One thing that is different about blocks
+compared to regular models is that they support the `button_label` attribute
+which can be used to customize the label of the button that adds blocks to
+a flow.
+
+## Templates
+
+Now that we have a model for our flow block, we need to create a template
+for it. Templates for blocks are stored in the `blocks` subdirectory of the
+`templates` folder.
+The name for the block template is automatically derived from the config file
+that keeps the flow block definition (`templates/blocks/NAME.html`):
+In our case the expected template is `templates/blocks/text.html`,
+as our flow block is defined in a file called `text.ini`.
+
+Here is a suitable template for this:
+
+```html+jinja
+<div class="text-block text-block-{{ this.class }}">
+  {{ this.text }}
+</div>
+```
+
+If you need to access the page the flow is used by, you can use the `record`
+template variable.

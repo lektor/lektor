@@ -1,0 +1,25 @@
+title: startswith
+---
+summary: True if a string starts with another string (case insensitive).
+---
+type: method
+---
+signature: other
+---
+body:
+
+This evaluates to true if the [string :ref](../../types/string/)
+on the left side starts with the string on the right side.  This method
+operates in a case-insensitive manner.  For the case-sensitive method
+see [startswith_cs :ref](../startswith-cs/).
+
+## Example
+
+```html+jinja
+<h1>A</h1>
+<ul>
+{% for item in this.children.filter(F.name.startswith('a')) %}
+  <li>{{ item.name }}</li>
+{% endfor %}
+</ul>
+```

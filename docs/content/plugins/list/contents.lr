@@ -1,0 +1,5 @@
+_model: redirect
+---
+target: /plugins
+---
+_discoverable: no

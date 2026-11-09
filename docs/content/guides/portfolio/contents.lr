@@ -1,0 +1,164 @@
+title: Portfolio Sites
+---
+summary: Demonstrates how to build portfolio sites with Lektor.
+---
+body:
+
+Because Lektor lets you customize your data model entirely it's the perfect
+tool for building portfolio websites.  No matter what it is you're building,
+you can structure the data exactly like you want.  In this example we will
+assume we build a website for someone who wants to showcase their art projects.
+
+## The Models
+
+The way we want to go about this is that we have a site where all the
+projects show up and then a detail page for each project in particular.
+
+### `projects.ini`
+
+First we set up the project overview page.  This model instructs Lektor that
+all of the pages below it will be of type `project`.  We also set it to
+`hidden` and `protected` which will make it unavailable in the admin (`hidden`)
+for new pages and make it impossible to delete (`protected`).  This means we
+need to manually create the one page later which will use this.
+
+Because we only have a single page for the projects overview we give it a
+static label manually (`label = Projects`).
+
+```ini
+[model]
+name = Projects
+label = Projects
+hidden = yes
+protected = yes
+
+[children]
+model = project
+order_by = -date, name
+```
+
+### `project.ini`
+
+Next up is the model for the project.  This is completely up to you, we will go
+with some things here that might appear on such a portfolio page.  In addition
+we will do something with the attachments of this page, but more about that
+later.  For now we just order them by their filename (`_id`):
+
+```ini
+[model]
+name = Project
+label = {{ this.name }}
+hidden = yes
+
+[attachments]
+order_by = _id
+
+[fields.name]
+label = Name
+type = string
+size = large
+
+[fields.date]
+label = Date
+type = date
+width = 1/4
+
+[fields.type]
+label = Project type
+type = string
+width = 1/4
+
+[fields.website]
+label = Website
+type = url
+width = 1/2
+
+[fields.description]
+label = Description
+type = markdown
+```
+
+## Templates
+
+So now that we have models, we should probably go over what we can do with the
+attachments.  Because each page in Lektor can have attachments added we can
+automatically reference those in our templates.  Here is what we're going to
+do: we will take all the attached images, order them by their filename and then
+render thumbnails for them in the detail page.  Additionally we want to show
+one of the images on the overview page if it's available.
+
+### `projects.html`
+
+So here we just render out all projects in the order defined in our
+models and if there is an image attached, we pick the first one and make
+a thumbnail.
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}Projects{% endblock %}
+{% block body %}
+  <h1>Projects</h1>
+  <div class="projects">
+  {% for project in this.children %}
+    <div class="project">
+      {% set image = project.attachments.images.first() %}
+      {% if image %}
+        <img src="{{ image.thumbnail(320)|url }}" alt="">
+      {% endif %}
+      <h2><a href="{{ project|url }}">{{ project.name }}</a>
+        <em>({{ project.date.year }})</em></h2>
+      <p><strong>{{ project.type }}</strong></p>
+    </div>
+  {% endfor %}
+  </div>
+{% endblock %}
+```
+
+### `project.html`
+
+For the detail page we show all information we know about:
+
+```html+jinja
+{% extends "layout.html" %}
+{% block title %}{{ this.name }} ({{ this.date.year }}){% endblock %}
+{% block body %}
+  <h1>{{ this.name }}</h1>
+  <dl>
+    <dt>Date
+    <dd>{{ this.date|dateformat }}
+    {% if this.website %}
+    <dt>Website
+    <dd><a href="{{ this.website }}">{{ this.website.host }}</a>
+    {% endif %}
+    <dt>Project type
+    <dd>{{ this.type }}
+  </dl>
+  <h2>Description</h2>
+  <div class="description">{{ this.description }}</div>
+  {% set images = this.attachments.images.all() %}
+  {% if images %}
+    <h2>Images</h2>
+    {% for image in images %}
+      <div class="image">
+        <img src="{{ image.thumbnail(640)|url }}" alt="">
+        {% if image.exif %}
+        <p class=meta>
+          {{ image.exif.camera }}
+          {% if image.exif.created_at %}
+            ({{ image.exif.created_at|dateformat }})
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
+```
+
+Some notes on what's maybe not entirely obvious:
+
+* a `url` field does not just give access to the stored URL but also provides
+  some properties such as `.host` to just get the host of the website.
+* we can use the `|dateformat` filter to format out dates nicely
+* by calling `.all()` on our images we get the images back as a list where we
+  can then check if any images exist with `if images`.
+* we can access embedded EXIF information by using the `.exif` property.

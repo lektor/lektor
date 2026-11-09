@@ -1,0 +1,13 @@
+title: path
+---
+summary: The path in the source tree of the source object.
+---
+type: property
+---
+body:
+
+For source objects that have a file system representation this resolves to
+the path that can be used to uniquely query the object via the database.
+
+For some source objects (like assets or source objects from plugins) the path
+will be `None` as the object cannot be queried (it's virtual).

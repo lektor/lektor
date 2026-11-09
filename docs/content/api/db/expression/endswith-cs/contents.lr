@@ -1,0 +1,24 @@
+title: endswith_cs
+---
+summary: True if a string ends with another string (case sensitive).
+---
+type: method
+---
+signature: other
+---
+body:
+
+This evaluates to true if the [string :ref](../../types/string/)
+on the left side ends with the string on the right side.  This method
+operates in a case-sensitive manner.  For the case-insensitive method
+see [endswith :ref](../endswith/).
+
+## Example
+
+```html+jinja
+<ul>
+{% for item in this.children.filter(F.name.endswith_cs('House')) %}
+  <li>{{ item.name }}</li>
+{% endfor %}
+</ul>
+```

@@ -1,0 +1,13 @@
+title: Plugin
+---
+type: class
+---
+module: lektor.pluginsystem
+---
+summary: Documents the functionality of the plugin base class.
+---
+body:
+
+This is the baseclass of all plugins in Lektor.  It does not just hold
+event handlers and similar things, but also provides some helper methods
+that are useful for plugins.

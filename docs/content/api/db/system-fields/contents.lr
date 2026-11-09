@@ -1,0 +1,13 @@
+title: System Fields
+---
+summary: The complete list of system fields in Lektor
+---
+body:
+
+All records have a few system fields available in addition to the fields
+defined by the data model.  These fields are always there and control internal
+behavior in Lektor.  They are prefixed by an underscore to separate them
+from the fields a model defines.
+
+Many system fields are hidden from the admin panel but some can be changed
+there (`_template`, `_hidden`, and a few others).

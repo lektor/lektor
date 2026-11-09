@@ -1,0 +1,20 @@
+title: _source_alt
+---
+summary: The alt from the source of the record.
+---
+type: sysfield
+---
+body:
+
+This field points to the true source [Alternative
+:ref](../../../../content/alts/) of the page.  This primarily exists internally
+to support the builder.  In particular the difference to the `_alt` field is
+that this one will indicate if an alt falls back to a different alternative.
+At present pages can only fall back to the `_primary` alternative which will
+be reflected by this field.
+
+## Example
+
+```html+jinja
+<!-- generated from language {{ this._source_alt }} -->
+```

@@ -1,0 +1,20 @@
+title: first
+---
+summary: Returns the first matching record.
+---
+type: method
+---
+body:
+
+This method returns the first [Record :ref](../../record/) that matches the
+query.  If no such record can be produced, `None` is returned.
+
+## Example
+
+```html+jinja
+{% set first_visible = this.children.first() %}
+{% if first_visible %}
+  <h2>Explore More ...</h2>
+  <p>{{ first_visible.title }}
+{% endif %}
+```

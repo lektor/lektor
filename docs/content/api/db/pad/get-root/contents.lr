@@ -1,0 +1,21 @@
+title: get_root
+---
+summary: Returns the root object of a specific alternative.
+---
+type: method
+---
+signature: alt='_primary'
+---
+body:
+
+The tree only has one root record but it can come in different
+[Alternatives :ref](../../../../content/alts/).  This method can be used
+to target the root page of a specific one.  If no alt is provided, then the
+primary alt is loaded.
+
+## Example
+
+```html+jinja
+{% set root = site.get_root(alt='de') %}
+<a href="{{ root|url }}">Go to German Page</a>
+```

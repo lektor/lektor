@@ -1,0 +1,21 @@
+title: changed_base_url
+---
+summary: Can override the base URL that is used for relative URL generation.
+---
+type: method
+---
+signature: value
+---
+body:
+
+By default the URL generation is relative to the current source record
+but in some cases this can lead to issues when plugins attempt more complex
+operations.  In these cases the base URL can temporarily be overridden
+with this method.
+
+## Example
+
+```python
+with get_ctx().changed_base_url('/downloads/'):
+    url = url_to('/')
+```

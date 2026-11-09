@@ -1,0 +1,71 @@
+title: Pagination
+---
+summary: Shows how to build a pagination with Lektor.
+---
+body:
+
+When you have too many items to show on one page you might want to use
+Lektor's built-in pagination support.  It allows a page to show only a
+subset of the child records per page.
+
+## Configuring Pagination
+
+First you need to enable the pagination in the model.  Primarily you need
+to enable the pagination and set how many items show up on a page.  Just
+add this to the parent model:
+
+```ini
+[pagination]
+enabled = yes
+per_page = 10
+```
+
+## Selecting the Children
+
+Now that you have the pagination configured you need to iterate only over
+the children of an active page in your template rather than the children of the
+entire record.  This can be done by changing `this.children` to
+`this.pagination.items`:
+
+```html+jinja
+{% for child in this.pagination.items %}
+  ...
+{% endfor %}
+```
+
+## Rendering a Pagination
+
+Lastly we need to render the pagination somehow.  This is up to you.  The
+handy [pagination object :ref](../../api/db/record/pagination/) has a few
+very useful attributes that can be used for rendering.  It's recommended
+to make a `macros/pagination.html` that looks something like this so that
+you can render the same pagination everywhere:
+
+```html+jinja
+{% macro render_pagination(pagination) %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+      <a href="{{ pagination.prev|url }}">&laquo; Previous</a>
+    {% else %}
+      <span class="disabled">&laquo; Previous</span>
+    {% endif %}
+    | <strong>{{ pagination.page }}</strong> |
+    {% if pagination.has_next %}
+      <a href="{{ pagination.next|url }}">Next &raquo;</a>
+    {% else %}
+      <span class="disabled">Next &raquo;</span>
+    {% endif %}
+  </div>
+{% endmacro %}
+```
+
+## Using the Macro
+
+Now that you have that set up, you can use the macro like this:
+
+```html+jinja
+{% from "macros/pagination.html" import render_pagination %}
+{% if this.pagination.pages > 1 %}
+  {{ render_pagination(this.pagination) }}
+{% endif %}
+```

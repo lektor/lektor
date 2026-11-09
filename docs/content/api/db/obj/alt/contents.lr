@@ -1,0 +1,17 @@
+title: alt
+---
+summary: The alt the source object corresponds to if available.
+---
+type: property
+---
+body:
+
+For most source records there will be an associated [alt
+:ref](../../../../content/alts/).  This attribute points to it.  If the content
+is not associated with an alt this can be `None`.
+
+## Example
+
+```html+jinja
+<!-- generated from alt {{ this.alt }} -->
+```

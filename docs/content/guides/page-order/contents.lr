@@ -1,0 +1,51 @@
+title: Page Order
+---
+summary: How to get your pages ordered.
+---
+body:
+
+Pages can generally have an order defined.  This order comes from the
+configuration of children in the parent model or can be explicitly provided.
+This page guides you through all the different options you have.
+
+## Default Configuration
+
+The most common way to get order into your pages is the configuration for
+children.  This way an order can be defined that is used by default for any
+query involving the children of a page.  So what can you order by?  You can
+order by any field you want.  For instance to order by the name of a page
+you can do this:
+
+```ini
+[children]
+model = project
+order_by = name
+```
+
+This will automatically order the `.children` query by the name of a project.
+You can define more than one ordering.  For instance you could order blog
+posts by dates in decreasing order and secondarily by the blog title:
+
+```ini
+[children]
+model = blog-post
+order_by = -pub_date, title
+```
+
+A minus sign as prefix reverses the order.
+
+## Specific Order
+
+But what to do if you want to order something specifically?  In that case you
+can use the [sort_key :ref](../../api/db/types/sort-key/) type and configure
+that:
+
+```ini
+[children]
+model = doc-page
+order_by = sort_key
+```
+
+Currently you need to explicitly give numbers in this field but future versions
+of Lektor will provide support for automatically reordering them in the admin
+panel.
