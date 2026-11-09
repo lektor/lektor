@@ -8,6 +8,8 @@ from importlib import import_module
 from typing import ClassVar
 from typing import TypedDict
 
+# XXX: don't fail pylint when running under mistune 0.*
+# pylint: disable-next=import-error,no-name-in-module
 import mistune.util
 
 from lektor.markdown.controller import MarkdownController
@@ -22,9 +24,10 @@ def escape(text: str) -> str:
     #
     # (We don't use it below and it can be deleted once access
     # to lektor.markdown.escape is removed.)
-    return mistune.util.escape(text, quote=True)
+    return mistune.util.escape(text, quote=True)  # pylint: disable=no-member
 
 
+# pylint: disable-next=no-member
 class ImprovedRenderer(mistune.HTMLRenderer):  # type: ignore[misc]
     lektor: ClassVar = RendererHelper()
 
@@ -91,7 +94,7 @@ class MarkdownController2(MarkdownController):
             )
         return mistune.Markdown(renderer, **cfg.parser_options)
 
-    PLUGINS = {**mistune.PLUGINS}
+    PLUGINS = {**mistune.PLUGINS}  # pylint: disable=no-member
 
     def resolve_plugin(self, plugin: str | MistunePlugin) -> MistunePlugin:
         if callable(plugin):
