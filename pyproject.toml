@@ -51,10 +51,13 @@ dependencies = [
     "watchfiles>=0.12",
     "Werkzeug>=2.1.0",
 ]
-optional-dependencies.ipython = [
+[project.optional-dependencies]
+ipython = [
     "ipython",
     "traitlets",
 ]
+mistune0 = [ "mistune==0.*" ]
+mistune-default = [ "mistune" ]
 
 [project.scripts]
 lektor = "lektor.cli:main"
@@ -79,8 +82,6 @@ pylint = [                      # requirements for running pylint
     "iniconfig",
 ]
 prek = ["prek"]                 # Running pre-commit hooks with prek.
-mistune0 = ["mistune==0.*"]        # pin old mistune for testing
-mistune-default = []
 tzdata = ["tzdata"]             # test with tzdata rather than system zone data
 
 [tool.uv]
@@ -98,10 +99,10 @@ conflicts = [
         #
         # To run tests with mistune 0.*:
         #
-        #     uv run --group mistune0 pytest tests
+        #     uv run --extra mistune0 pytest tests
         #
-        { group = "mistune0" },
-        { group = "mistune-default" },
+        { extra = "mistune0" },
+        { extra = "mistune-default" },
     ],
 ]
 
