@@ -20,6 +20,7 @@ from lektor.utils import cleanup_path
 from lektor.utils import increment_filename
 from lektor.utils import is_valid_id
 from lektor.utils import secure_filename
+from lektor.utils import untrusted_to_os_path
 
 
 implied_keys = {"_id", "_path", "_gid", "_alt", "_source_alt", "_attachment_for"}
@@ -41,6 +42,10 @@ def make_editor_session(pad, path, is_attachment=None, alt=PRIMARY_ALT, datamode
     path = path if path.startswith("/") else f"/{path}"
     if cleanup_path(path) != path:
         raise BadEdit("Invalid path")
+    try:
+        untrusted_to_os_path(path)
+    except ValueError as exc:
+        raise BadEdit("Invalid path") from exc
 
     if alt != PRIMARY_ALT and not pad.db.config.is_valid_alternative(alt):
         raise BadEdit(f"Attempted to edit an invalid alternative ({alt})")

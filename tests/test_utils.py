@@ -459,6 +459,13 @@ def test_untrusted_to_os_path(db_path, expected):
     assert os_path.split(os.sep) == expected.split("/")
 
 
+@pytest.mark.parametrize("db_path", ["/C:/Users/Public", "C:/x", "/c:x", "/D:"])
+def test_untrusted_to_os_path_rejects_drive(db_path):
+    # A drive prefix would make os.path.join discard the base path on Windows
+    with pytest.raises(ValueError):
+        untrusted_to_os_path(db_path)
+
+
 def test_format_lat_long_keeps_sign_below_one_degree():
     assert format_lat_long(lat=-0.5) == "0° 30′ 0.0″ S"
     assert format_lat_long(long=-0.5) == "0° 30′ 0.0″ W"

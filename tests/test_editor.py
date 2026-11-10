@@ -45,6 +45,8 @@ def test_make_editor_session(pad, path, kwargs, expect):
         ),
         ("/../../templates", {}, "Invalid path"),
         ("/..\\..\\templates", {}, "Invalid path"),
+        ("/C:/Users/Public", {}, "Invalid path"),
+        ("/c:Users", {}, "Invalid path"),
     ],
 )
 def test_make_editor_session_raises_bad_edit(pad, path, kwargs, expect):

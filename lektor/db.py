@@ -1307,7 +1307,11 @@ class Database:
         if cls is None:
             cls = dict
 
-        fn_base = self.to_fs_path(path)
+        try:
+            fn_base = self.to_fs_path(path)
+        except ValueError:
+            # path can not map to a file below content/ (e.g. "/C:/x")
+            return None
 
         rv = cls()
         rv_type = None

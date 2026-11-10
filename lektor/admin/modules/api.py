@@ -33,6 +33,7 @@ from lektor.publisher import publish
 from lektor.publisher import PublishError
 from lektor.utils import cleanup_path
 from lektor.utils import is_valid_id
+from lektor.utils import untrusted_to_os_path
 
 
 bp = Blueprint("api", __name__, url_prefix="/admin/api")
@@ -67,6 +68,10 @@ class _ServerInfoField(marshmallow.fields.String):
 def _is_valid_path(value: str) -> None:
     if not cleanup_path(value) == value:
         raise marshmallow.ValidationError("Invalid value.")
+    try:
+        untrusted_to_os_path(value)
+    except ValueError as exc:
+        raise marshmallow.ValidationError("Invalid value.") from exc
 
 
 def _is_valid_alt(value: str) -> None:

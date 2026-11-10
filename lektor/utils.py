@@ -3,6 +3,7 @@ from __future__ import annotations
 import codecs
 import io
 import json
+import ntpath
 import os
 import posixpath
 import re
@@ -183,6 +184,10 @@ def untrusted_to_os_path(path: str | bytes) -> str:
         path = path.decode(fs_enc, "replace")
     clean_path = cleanup_path(path)
     assert clean_path.startswith("/")
+    # A leading drive (e.g. "C:") would make os.path.join discard the base
+    # directory on Windows. Reject it on all platforms.
+    if ntpath.splitdrive(clean_path[1:])[0]:
+        raise ValueError(f"DB path must not contain a drive: {path!r}")
     return clean_path[1:].replace("/", os.path.sep)
 
 

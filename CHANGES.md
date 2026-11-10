@@ -4,6 +4,10 @@ These are all the changes in Lektor since the first public release.
 
 ## Unreleased
 
+### Vulnerabilities Fixed
+
+- Reject DB paths that start with a Windows drive (e.g. `/C:/Users`). On Windows the admin API could be used to write, upload or delete files outside the project's `content` sub-directory with such a path. ([#1301])
+
 ### Fixes
 
 - A latitude or longitude between 0 and -1 degrees kept the wrong hemisphere. ([#1293])
@@ -14,6 +18,7 @@ These are all the changes in Lektor since the first public release.
 
 [#1234]: https://github.com/lektor/lektor/issues/1234
 [#1293]: https://github.com/lektor/lektor/issues/1293
+[#1301]: https://github.com/lektor/lektor/issues/1301
 
 ## 3.4.0b15 (2026-08-07)
 
