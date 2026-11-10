@@ -181,6 +181,7 @@ def test_controller_cache(env):
 if MISTUNE_VERSION.startswith("0."):
     plugin_url = ...
 else:
+    # pylint: disable-next=import-error,no-name-in-module
     from mistune.plugins import plugin_url
 
 
